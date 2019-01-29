@@ -12,7 +12,7 @@ NOTHING TO SEE HERE, MOVE ALONG
 ## Installation
 
 ```r
-remotes::install_github("rnndescent")
+remotes::install_github("jlmelville/rnndescent")
 ```
 
 ## Example
