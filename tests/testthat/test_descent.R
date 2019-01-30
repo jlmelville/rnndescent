@@ -125,3 +125,9 @@ set.seed(1337)
 rnn <- nn_descent(ui10, 4, verbose = TRUE)
 expect_equal(rnn$idx, expected_idx, check.attributes = FALSE)
 expect_equal(rnn$dist, expected_dist, check.attributes = FALSE, tol = 1e-7)
+
+
+set.seed(1337); uiris_rnn <- nn_descent(uirism, 15)
+# treat sum of distances an objective function
+# expected sum from sum(FNN::get.knn(uirism, 14)$nn.dist)
+expect_equal(sum(uiris_rnn$dist), 1016.834, tol = 1e-3)
