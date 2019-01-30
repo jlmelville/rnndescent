@@ -219,7 +219,7 @@ nn_descent_opt <- function(data, dist_func, indices, dist, n_iters = 10, max_can
   n_neighbors <- ncol(indices)
   current_graph <- nn_to_heap(indices, dist)
   for (iter in 1:n_iters) {
-    tsmessage(iter, " / ", n_iters, " ", sum(current_graph[2, , ]))
+    tsmessage(iter, " / ", n_iters, " ", formatC(sum(current_graph[2, , ])))
 
     res <- build_candidates(current_graph, n_vertices, n_neighbors,
                             max_candidates)
@@ -269,23 +269,6 @@ nn_descent_optl <- function(data, l, dist_func = euc_dist, n_iters = 10,
                  verbose = verbose)
 }
 
-
-random_nbrs <- function(X, k) {
-  nr = nrow(X)
-  indices = matrix(0, nrow = nr, ncol = k)
-  dist = matrix(Inf, nrow = nr, ncol = k)
-
-  for (i in 1:nr) {
-    idxi <- sample((1:nr)[-i], k)
-    indices[i, ] <- idxi
-    for (j in 1:k) {
-      dist[i, j] <- euc_dist(X, i, idxi[j])
-    }
-  }
-
-  list(indices = indices - 1, dist = dist)
-}
-
 det_nbrs <- function(X, k) {
   nr = nrow(X)
   indices = matrix(0, nrow = nr, ncol = k)
@@ -305,12 +288,34 @@ det_nbrs <- function(X, k) {
   list(indices = indices - 1, dist = dist)
 }
 
+random_nbrs <- function(X, k) {
+  nr = nrow(X)
+  indices = matrix(0, nrow = nr, ncol = k)
+  dist = matrix(Inf, nrow = nr, ncol = k)
+
+  for (i in 1:nr) {
+    # we include i as its own neighbor
+    # now sample k - 1  from 1:nr, excluding i
+    # same as sampling from 1:(nr - 1) and adding one if its >= i
+    idxi <- sample.int(nr - 1, k - 1)
+    idxi[idxi >= i] <- idxi[idxi >= i] + 1
+    indices[i, ] <- c(i, idxi)
+    for (j in 2:k) {
+      dist[i, j] <- euc_dist(X, i, indices[i, j])
+    }
+  }
+  dist[, 1] <- 0.0
+  # internally indices are zero-indexed
+  list(indices = indices - 1, dist = dist)
+}
+
 nn_descent <- function(data, k, dist_func = euc_dist, n_iters = 10, verbose = FALSE) {
   init <- random_nbrs(data, k)
-  tsmessage("Init dsum = ", sum(init$dist))
+  tsmessage("Init dsum = ", formatC(sum(init$dist)))
   res <- nn_descent_optl(data, init, dist_func = dist_func, n_iters = n_iters,
                          verbose = verbose)
-  tsmessage("Final dsum = ", sum(res$dist))
+  tsmessage("Final dsum = ", formatC(sum(res$dist)))
+  res$idx <- res$idx + 1
   res
 }
 

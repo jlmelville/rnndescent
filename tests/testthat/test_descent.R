@@ -93,3 +93,35 @@ heap_sorted <- deheap_sort(heap)
 expect_equal(heap_sorted$idx, expected_heap_sort_idx, check.attributes = FALSE)
 expect_equal(heap_sorted$dist, expected_heap_sort_dist, check.attributes = FALSE)
 
+
+expected_idx <- matrix(
+  c(1,  6, 10, 3,
+    2,  7, 3,  5,
+    3,  7, 5,  2,
+    4,  9, 8,  2,
+    5,  8, 3,  7,
+    6,  1, 3, 10,
+    7,  3, 2,  5,
+    8,  5, 4,  7,
+    9,  4, 8,  2,
+    10, 6, 1,  3),
+  byrow = TRUE, nrow = 10, ncol = 4)
+
+# distances from FNN
+expected_dist <- matrix(
+  c(0, 0.3464102, 0.6782330, 0.7000000,
+    0, 0.3000000, 0.4242641, 0.4795832,
+    0, 0.2236068, 0.3316625, 0.4242641,
+    0, 0.3464102, 0.4242641, 0.5477226,
+    0, 0.1732051, 0.3316625, 0.3464102,
+    0, 0.3464102, 0.5000000, 0.5830952,
+    0, 0.2236068, 0.3000000, 0.3464102,
+    0, 0.1732051, 0.4242641, 0.4582576,
+    0, 0.3464102, 0.5830952, 0.6164414,
+    0, 0.5830952, 0.6782330, 1.0440307),
+  byrow = TRUE, nrow = 10, ncol = 4)
+
+set.seed(1337)
+rnn <- nn_descent(ui10, 4, verbose = TRUE)
+expect_equal(rnn$idx, expected_idx, check.attributes = FALSE)
+expect_equal(rnn$dist, expected_dist, check.attributes = FALSE, tol = 1e-7)
