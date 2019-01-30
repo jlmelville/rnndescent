@@ -255,7 +255,7 @@ nn_descent_opt <- function(data, dist_func, indices, dist, n_iters = 10, max_can
     }
 
     if (c <= delta * n_neighbors * n_vertices) {
-      message("c = ", c, " crit = ", delta * n_neighbors * n_vertices)
+      tsmessage("c = ", c, " crit = ", delta * n_neighbors * n_vertices)
       break
     }
   }
