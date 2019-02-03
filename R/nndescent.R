@@ -1,3 +1,8 @@
+#' @useDynLib rnndescent, .registration = TRUE
+#' @importFrom Rcpp sourceCpp
+.onUnload <- function(libpath) {
+  library.dynam.unload("rnndescent", libpath)
+}
 
 # 3 matrices
 # 0: candidate indices

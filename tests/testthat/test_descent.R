@@ -131,3 +131,8 @@ set.seed(1337); uiris_rnn <- nn_descent(uirism, 15)
 # treat sum of distances an objective function
 # expected sum from sum(FNN::get.knn(uirism, 14)$nn.dist)
 expect_equal(sum(uiris_rnn$dist), 1016.834, tol = 1e-3)
+
+# C++ test
+heap_sorted_cpp <- nn_descent_cpp(i10_ridx, i10_rdist)
+expect_equal(heap_sorted_cpp$idx, expected_heap_sort_idx, check.attributes = FALSE)
+expect_equal(heap_sorted_cpp$dist, expected_heap_sort_dist, check.attributes = FALSE)
