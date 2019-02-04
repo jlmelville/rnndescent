@@ -234,6 +234,7 @@ nn_descent_opt <- function(data, dist_func, indices, dist, n_iters = 10, max_can
     c <- 0
     for (i in 1:n_vertices) {
       for (j in 1:max_candidates) {
+
         p <- candidate_neighbors[1, i, j]
 
         if (p < 0 || stats::runif(1) < rho) {
@@ -269,8 +270,12 @@ nn_descent_opt <- function(data, dist_func, indices, dist, n_iters = 10, max_can
 }
 
 nn_descent_optl <- function(data, l, dist_func = euc_dist, n_iters = 10,
+                            max_candidates = 50,
+                            delta = 0.001, rho = 0.5,
                             verbose = FALSE) {
-  nn_descent_opt(data, dist_func, l$indices, l$dist, n_iters = n_iters,
+  nn_descent_opt(data, dist_func, l$indices, l$dist,
+                 n_iters = n_iters, max_candidates = max_candidates,
+                 delta = delta, rho = rho,
                  verbose = verbose)
 }
 
@@ -314,11 +319,47 @@ random_nbrs <- function(X, k) {
   list(indices = indices - 1, dist = dist)
 }
 
-nn_descent <- function(data, k, dist_func = euc_dist, n_iters = 10, verbose = FALSE) {
+
+#' Find Nearest Neighbors and Distances
+#'
+#' @param data Matrix of \code{n} items to search.
+#' @param k Number of nearest neighbors to return.
+#' @param n_iters Number of iterations of nearest neighbor descent to carry out.
+#' @param max_candidates Maximum number of candidate neighbors to try for each
+#'   item.
+#' @param delta precision parameter. Routine will terminate early if
+#'   fewer than \eqn{\delta k N}{delta x k x n} updates are made to the nearest
+#'   neighbor list in a given iteration.
+#' @param rho Sample rate. This fraction of possible items will be used in the
+#'   local join stage.
+#' @param use_cpp If \code{TRUE}, use the faster C++ code path.
+#' @param verbose If \code{TRUE}, log information to the console.
+#' @return a list containing:
+#' \itemize{
+#'   \item \code{idx} an n by k matrix containing the nearest neighbor indices.
+#'   \item \code{dist} an n by k matrix containing the nearest neighbor
+#'    distances.
+#' }
+#' @export
+nnd_knn <- function(data, k, n_iters = 10,
+                    max_candidates = 50,
+                    delta = 0.001, rho = 0.5,
+                    use_cpp = TRUE,
+                    verbose = FALSE) {
+  tsmessage("Initializing from random neighbors")
   init <- random_nbrs(data, k)
   tsmessage("Init dsum = ", formatC(sum(init$dist)))
-  res <- nn_descent_optl(data, init, dist_func = dist_func, n_iters = n_iters,
-                         verbose = verbose)
+
+  if (use_cpp) {
+    res <- nn_descent(data, init$indices, init$dist,
+                      n_iters = n_iters, max_candidates = max_candidates,
+                      delta = delta, rho = rho, verbose = verbose)
+  }
+  else {
+    res <- nn_descent_optl(data, init, dist_func = euc_dist, n_iters = n_iters,
+                           max_candidates = max_candidates,
+                           delta = delta, rho = rho, verbose = verbose)
+  }
   tsmessage("Final dsum = ", formatC(sum(res$dist)))
   res$idx <- res$idx + 1
   res

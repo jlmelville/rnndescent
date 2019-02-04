@@ -122,17 +122,56 @@ expected_dist <- matrix(
   byrow = TRUE, nrow = 10, ncol = 4)
 
 set.seed(1337)
-rnn <- nn_descent(ui10, 4, verbose = TRUE)
+rnn <- nnd_knn(ui10, 4, use_cpp = FALSE, verbose = FALSE)
 expect_equal(rnn$idx, expected_idx, check.attributes = FALSE)
 expect_equal(rnn$dist, expected_dist, check.attributes = FALSE, tol = 1e-7)
 
 
-set.seed(1337); uiris_rnn <- nn_descent(uirism, 15)
+set.seed(1337); uiris_rnn <- nnd_knn(uirism, 15, use_cpp = FALSE)
 # treat sum of distances an objective function
 # expected sum from sum(FNN::get.knn(uirism, 14)$nn.dist)
 expect_equal(sum(uiris_rnn$dist), 1016.834, tol = 1e-3)
 
 # C++ test
-heap_sorted_cpp <- nn_descent_cpp(i10_ridx, i10_rdist)
+heap_sorted_cpp <- nn_descent(ui10, i10_ridx, i10_rdist, n_iters = 0)
 expect_equal(heap_sorted_cpp$idx, expected_heap_sort_idx, check.attributes = FALSE)
 expect_equal(heap_sorted_cpp$dist, expected_heap_sort_dist, check.attributes = FALSE)
+
+expected_nnd_idx <- matrix(
+  c(0, 5, 9, 2,
+    1, 6, 2, 4,
+    2, 6, 4, 1,
+    8, 7, 1, 4,
+    4, 7, 2, 6,
+    5, 0, 2, 9,
+    6, 2, 1, 4,
+    7, 4, 3, 6,
+    8, 3, 7, 1,
+    9, 5, 0, 2),
+  byrow = TRUE, nrow = 10, ncol = 4
+)
+expected_nnd_dist <- matrix(
+c(0, 0.346410161513775, 0.678232998312527, 0.7,
+  0, 0.3, 0.424264068711929, 0.479583152331272,
+  0, 0.223606797749979, 0.33166247903554, 0.424264068711929,
+  0.346410161513776, 0.424264068711928, 0.547722557505166, 0.556776436283002,
+  0, 0.173205080756888, 0.33166247903554, 0.346410161513776,
+  0, 0.346410161513775, 0.5, 0.58309518948453,
+  0, 0.223606797749979, 0.3, 0.346410161513776,
+  0, 0.173205080756888, 0.424264068711928, 0.458257569495584,
+  0, 0.346410161513776, 0.58309518948453, 0.616441400296897,
+  0, 0.58309518948453, 0.678232998312527, 1.04403065089105
+),
+byrow = TRUE, nrow = 10, ncol = 4
+)
+set.seed(1337); rnnd <- nn_descent(ui10, i10_ridx, i10_rdist, verbose = FALSE)
+expect_equal(rnnd$idx, expected_nnd_idx, check.attributes = FALSE)
+expect_equal(rnnd$dist, expected_nnd_dist, check.attributes = FALSE)
+
+set.seed(1337)
+iris_nbrs <- random_nbrs(uirism, 15)
+iris_nnd <- nn_descent(uirism, iris_nbrs$indices, iris_nbrs$dist, verbose = FALSE)
+expect_equal(sum(iris_nnd$dist), 1016.834, tol = 1e-3)
+set.seed(1337); uiris_rnn <- nnd_knn(uirism, 15, use_cpp = TRUE)
+expect_equal(sum(uiris_rnn$dist), 1016.834, tol = 1e-3)
+
