@@ -133,19 +133,25 @@ struct Heap
 
 struct EuclideanDistance
 {
-  EuclideanDistance(Rcpp::NumericMatrix data) : data(data), ndim(data.ncol()) {}
+
+  EuclideanDistance(const std::vector<double>& data, std::size_t ndim) :
+  data(data), ndim(ndim) {
+  }
 
   double operator()(std::size_t i, std::size_t j) {
     double sum = 0.0;
-    double diff = 0.0;
+    const std::size_t di = ndim * i;
+    const std::size_t dj = ndim * j;
+
     for (std::size_t d = 0; d < ndim; d++) {
-      diff = data(i, d) - data(j, d);
+      const double diff = data[di + d] - data[dj + d];
       sum += diff * diff;
     }
+
     return std::sqrt(sum);
   }
 
-  Rcpp::NumericMatrix data;
+  std::vector<double> data;
   std::size_t ndim;
 };
 
@@ -184,8 +190,12 @@ Rcpp::List nn_descent(
     const double delta = 0.001,
     const double rho = 0.5,
     bool verbose = false) {
-  std::size_t npoints = idx.nrow();
-  std::size_t nnbrs = idx.ncol();
+  const std::size_t npoints = idx.nrow();
+  const std::size_t nnbrs = idx.ncol();
+
+  const std::size_t ndim = data.ncol();
+  data = Rcpp::transpose(data);
+  auto data_vec = Rcpp::as<std::vector<double>>(data);
 
   // initialize heap structures
   Heap heap(npoints, nnbrs);
@@ -196,7 +206,7 @@ Rcpp::List nn_descent(
     }
   }
 
-  EuclideanDistance distance(data);
+  EuclideanDistance distance(data_vec, ndim);
 
   for (std::size_t n = 0; n < n_iters; n++) {
     if (verbose) {
