@@ -172,6 +172,12 @@ set.seed(1337)
 iris_nbrs <- random_nbrs(uirism, 15)
 iris_nnd <- nn_descent(uirism, iris_nbrs$indices, iris_nbrs$dist, verbose = FALSE)
 expect_equal(sum(iris_nnd$dist), 1016.834, tol = 1e-3)
+
 set.seed(1337); uiris_rnn <- nnd_knn(uirism, 15, use_cpp = TRUE)
 expect_equal(sum(uiris_rnn$dist), 1016.834, tol = 1e-3)
+
+# Cosine distance
+set.seed(1337); uiris_rnn <- nnd_knn(uirism, 15, use_cpp = TRUE, metric = "cosine")
+# expected sum from RcppHNSW
+expect_equal(sum(uiris_rnn$dist), 1.347357, tol = 1e-3)
 

@@ -166,11 +166,37 @@ deheap_sort <- function(heap) {
   )
 }
 
-euc_dist <- function(X, i, j) {
-  xi <- X[i, ]
-  xj <- X[j, ]
-  diff <- xi - xj
+eucd <- function(a, b) {
+  diff <- a - b
   sqrt(sum(diff * diff))
+}
+
+euc_dist <- function(X, i, j) {
+  eucd(X[i, ], X[j, ])
+}
+
+dot <- function(a, b = a) {
+  sum(a * b)
+}
+
+normv <- function(a) {
+  a / sqrt(dot(a))
+}
+
+norm2 <- function(a) {
+  sqrt(dot(a))
+}
+
+coss <- function(a, b) {
+  dot(a, b) / sqrt(dot(a) * dot(b))
+}
+
+cosd <- function(a, b) {
+  1.0 - coss(a, b)
+}
+
+cos_dist <- function(X, i, j) {
+  cosd(X[i, ], X[j, ])
 }
 
 nn_to_heap <- function(indices, dist) {
@@ -217,9 +243,10 @@ build_candidates <- function(current_graph, n_vertices, n_neighbors,
 }
 
 
-nn_descent_opt <- function(data, dist_func, indices, dist, n_iters = 10, max_candidates = 50,
+nn_descent_opt <- function(data, metric, indices, dist, n_iters = 10, max_candidates = 50,
                            delta = 0.001, rho = 0.5,
                            verbose = FALSE) {
+  dist_fn <- create_dist_fn(metric)
   n_vertices <- nrow(indices)
   n_neighbors <- ncol(indices)
   current_graph <- nn_to_heap(indices, dist)
@@ -248,7 +275,7 @@ nn_descent_opt <- function(data, dist_func, indices, dist, n_iters = 10, max_can
           {
             next
           }
-          d <- dist_func(data, p + 1, q + 1)
+          d <- dist_fn(data, p + 1, q + 1)
           res <- heap_push(current_graph, p, d, q, 1)
           current_graph <- res$heap
           c <- c + res$success
@@ -269,14 +296,22 @@ nn_descent_opt <- function(data, dist_func, indices, dist, n_iters = 10, max_can
   deheap_sort(current_graph)
 }
 
-nn_descent_optl <- function(data, l, dist_func = euc_dist, n_iters = 10,
+nn_descent_optl <- function(data, l, metric = "euclidean", n_iters = 10,
                             max_candidates = 50,
                             delta = 0.001, rho = 0.5,
                             verbose = FALSE) {
-  nn_descent_opt(data, dist_func, l$indices, l$dist,
+  nn_descent_opt(data, metric, l$indices, l$dist,
                  n_iters = n_iters, max_candidates = max_candidates,
                  delta = delta, rho = rho,
                  verbose = verbose)
+}
+
+create_dist_fn <- function(metric) {
+  switch(metric,
+         euclidean = euc_dist,
+         cosine = cos_dist,
+         stop("Unknown metric '", metric, "'")
+  )
 }
 
 det_nbrs <- function(X, k) {
@@ -298,10 +333,11 @@ det_nbrs <- function(X, k) {
   list(indices = indices - 1, dist = dist)
 }
 
-random_nbrs <- function(X, k) {
+random_nbrs <- function(X, k, metric = "euclidean") {
   nr = nrow(X)
   indices = matrix(0, nrow = nr, ncol = k)
   dist = matrix(Inf, nrow = nr, ncol = k)
+  dist_fn <- create_dist_fn(metric)
 
   for (i in 1:nr) {
     # we include i as its own neighbor
@@ -311,7 +347,7 @@ random_nbrs <- function(X, k) {
     idxi[idxi >= i] <- idxi[idxi >= i] + 1
     indices[i, ] <- c(i, idxi)
     for (j in 2:k) {
-      dist[i, j] <- euc_dist(X, i, indices[i, j])
+      dist[i, j] <- dist_fn(X, i, indices[i, j])
     }
   }
   dist[, 1] <- 0.0
@@ -324,6 +360,8 @@ random_nbrs <- function(X, k) {
 #'
 #' @param data Matrix of \code{n} items to search.
 #' @param k Number of nearest neighbors to return.
+#' @param metric Type of distance calculation to use. One of \code{"euclidean"},
+#'   or \code{"cosine"}.
 #' @param n_iters Number of iterations of nearest neighbor descent to carry out.
 #' @param max_candidates Maximum number of candidate neighbors to try for each
 #'   item.
@@ -341,22 +379,25 @@ random_nbrs <- function(X, k) {
 #'    distances.
 #' }
 #' @export
-nnd_knn <- function(data, k, n_iters = 10,
+nnd_knn <- function(data, k,
+                    metric = "euclidean",
+                    n_iters = 10,
                     max_candidates = 50,
                     delta = 0.001, rho = 0.5,
                     use_cpp = TRUE,
                     verbose = FALSE) {
   tsmessage("Initializing from random neighbors")
-  init <- random_nbrs(data, k)
+  init <- random_nbrs(data, k, metric = metric)
   tsmessage("Init dsum = ", formatC(sum(init$dist)))
 
   if (use_cpp) {
     res <- nn_descent(data, init$indices, init$dist,
+                      metric = metric,
                       n_iters = n_iters, max_candidates = max_candidates,
                       delta = delta, rho = rho, verbose = verbose)
   }
   else {
-    res <- nn_descent_optl(data, init, dist_func = euc_dist, n_iters = n_iters,
+    res <- nn_descent_optl(data, init, metric = metric, n_iters = n_iters,
                            max_candidates = max_candidates,
                            delta = delta, rho = rho, verbose = verbose)
   }
@@ -364,4 +405,3 @@ nnd_knn <- function(data, k, n_iters = 10,
   res$idx <- res$idx + 1
   res
 }
-

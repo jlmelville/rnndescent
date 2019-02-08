@@ -131,12 +131,11 @@ struct Heap
   }
 };
 
-struct EuclideanDistance
+struct Euclidean
 {
 
-  EuclideanDistance(const std::vector<double>& data, std::size_t ndim) :
-  data(data), ndim(ndim) {
-  }
+  Euclidean(const std::vector<double>& data, std::size_t ndim)
+    : data(data), ndim(ndim) { }
 
   double operator()(std::size_t i, std::size_t j) {
     double sum = 0.0;
@@ -149,6 +148,45 @@ struct EuclideanDistance
     }
 
     return std::sqrt(sum);
+  }
+
+  std::vector<double> data;
+  std::size_t ndim;
+};
+
+struct Cosine
+{
+
+  Cosine(const std::vector<double>& data, std::size_t ndim)
+    : data(data), ndim(ndim) {}
+
+  double operator()(std::size_t i, std::size_t j) {
+    const std::size_t di = ndim * i;
+    const std::size_t dj = ndim * j;
+
+    normalize(i);
+    normalize(j);
+
+    double sum = 0.0;
+    for (std::size_t d = 0; d < ndim; d++) {
+      sum += data[di + d] * data[dj + d];
+    }
+
+    return 1.0 - sum;
+  }
+
+  void normalize(std::size_t i) {
+    const std::size_t di = ndim * i;
+    double norm = 0.0;
+
+    for (std::size_t d = 0; d < ndim; d++) {
+      norm += data[di + d] * data[di + d];
+    }
+    norm = 1.0 / (std::sqrt(norm) + 1e-30);
+
+    for (std::size_t d = 0; d < ndim; d++) {
+      data[di + d] *= norm;
+    }
   }
 
   std::vector<double> data;
@@ -179,12 +217,13 @@ void build_candidates(Heap& current_graph, Heap& candidate_neighbors,
   }
 }
 
-// [[Rcpp::export]]
-Rcpp::List nn_descent(
+
+
+template <typename Distance>
+Rcpp::List nn_descent_impl(
     Rcpp::NumericMatrix data,
     Rcpp::IntegerMatrix idx,
     Rcpp::NumericMatrix dist,
-    const std::string metric = "euclidean",
     const std::size_t max_candidates = 50,
     const std::size_t n_iters = 10,
     const double delta = 0.001,
@@ -206,7 +245,7 @@ Rcpp::List nn_descent(
     }
   }
 
-  EuclideanDistance distance(data_vec, ndim);
+  Distance distance(data_vec, ndim);
 
   for (std::size_t n = 0; n < n_iters; n++) {
     if (verbose) {
@@ -235,7 +274,7 @@ Rcpp::List nn_descent(
           int q = candidate_neighbors.idx[i][k];
           if (q < 0 || (!candidate_neighbors.flags[i][j] &&
               !candidate_neighbors.flags[i][k])) {
-            continue;
+              continue;
           }
           double d = distance(p, q);
           c += heap.push(p, d, q, true);
@@ -270,5 +309,31 @@ Rcpp::List nn_descent(
     Rcpp::Named("idx") = idxres,
     Rcpp::Named("dist") = distres
   );
+}
+
+// [[Rcpp::export]]
+Rcpp::List nn_descent(
+    Rcpp::NumericMatrix data,
+    Rcpp::IntegerMatrix idx,
+    Rcpp::NumericMatrix dist,
+    const std::string metric = "euclidean",
+    const std::size_t max_candidates = 50,
+    const std::size_t n_iters = 10,
+    const double delta = 0.001,
+    const double rho = 0.5,
+    bool verbose = false) {
+  if (metric == "euclidean") {
+    return nn_descent_impl<Euclidean>(data, idx, dist,
+                                      max_candidates, n_iters, delta, rho,
+                                      verbose);
+  }
+  else if (metric == "cosine") {
+    return nn_descent_impl<Cosine>(data, idx, dist,
+                                   max_candidates, n_iters, delta, rho,
+                                   verbose);
+  }
+  else {
+    Rcpp::stop("Bad metric");
+  }
 }
 

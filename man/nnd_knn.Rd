@@ -4,13 +4,17 @@
 \alias{nnd_knn}
 \title{Find Nearest Neighbors and Distances}
 \usage{
-nnd_knn(data, k, n_iters = 10, max_candidates = 50, delta = 0.001,
-  rho = 0.5, use_cpp = TRUE, verbose = FALSE)
+nnd_knn(data, k, metric = "euclidean", n_iters = 10,
+  max_candidates = 50, delta = 0.001, rho = 0.5, use_cpp = TRUE,
+  verbose = FALSE)
 }
 \arguments{
 \item{data}{Matrix of \code{n} items to search.}
 
 \item{k}{Number of nearest neighbors to return.}
+
+\item{metric}{Type of distance calculation to use. One of \code{"euclidean"},
+or \code{"cosine"}.}
 
 \item{n_iters}{Number of iterations of nearest neighbor descent to carry out.}
 
