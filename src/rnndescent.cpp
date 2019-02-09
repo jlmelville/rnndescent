@@ -132,43 +132,46 @@ struct Heap
   }
 };
 
+template <typename In, typename Out>
 struct Euclidean
 {
-
-  Euclidean(const std::vector<double>& data, std::size_t ndim)
+  Euclidean(const std::vector<In>& data, std::size_t ndim)
     : data(data), ndim(ndim) { }
 
-  double operator()(std::size_t i, std::size_t j) {
-    double sum = 0.0;
+  Out operator()(std::size_t i, std::size_t j) {
+    Out sum = 0.0;
     const std::size_t di = ndim * i;
     const std::size_t dj = ndim * j;
 
     for (std::size_t d = 0; d < ndim; d++) {
-      const double diff = data[di + d] - data[dj + d];
+      const Out diff = data[di + d] - data[dj + d];
       sum += diff * diff;
     }
 
     return std::sqrt(sum);
   }
 
-  std::vector<double> data;
+  std::vector<In> data;
   std::size_t ndim;
+
+  typedef In in_type;
+  typedef Out out_type;
 };
 
+template <typename In, typename Out>
 struct Cosine
 {
-
-  Cosine(const std::vector<double>& data, std::size_t ndim)
+  Cosine(const std::vector<In>& data, std::size_t ndim)
     : data(data), ndim(ndim) {}
 
-  double operator()(std::size_t i, std::size_t j) {
+  Out operator()(std::size_t i, std::size_t j) {
     const std::size_t di = ndim * i;
     const std::size_t dj = ndim * j;
 
     normalize(i);
     normalize(j);
 
-    double sum = 0.0;
+    Out sum = 0.0;
     for (std::size_t d = 0; d < ndim; d++) {
       sum += data[di + d] * data[dj + d];
     }
@@ -178,7 +181,7 @@ struct Cosine
 
   void normalize(std::size_t i) {
     const std::size_t di = ndim * i;
-    double norm = 0.0;
+    In norm = 0.0;
 
     for (std::size_t d = 0; d < ndim; d++) {
       norm += data[di + d] * data[di + d];
@@ -190,19 +193,23 @@ struct Cosine
     }
   }
 
-  std::vector<double> data;
+  std::vector<In> data;
   std::size_t ndim;
+
+  typedef In in_type;
+  typedef Out out_type;
 };
 
 
+template <typename In, typename Out>
 struct Manhattan
 {
 
-  Manhattan(const std::vector<double>& data, std::size_t ndim)
+  Manhattan(const std::vector<In>& data, std::size_t ndim)
     : data(data), ndim(ndim) { }
 
-  double operator()(std::size_t i, std::size_t j) {
-    double sum = 0.0;
+  Out operator()(std::size_t i, std::size_t j) {
+    Out sum = 0.0;
     const std::size_t di = ndim * i;
     const std::size_t dj = ndim * j;
 
@@ -213,13 +220,17 @@ struct Manhattan
     return sum;
   }
 
-  std::vector<double> data;
+  std::vector<In> data;
   std::size_t ndim;
+
+  typedef In in_type;
+  typedef Out out_type;
 };
 
+template<typename In, typename Out>
 struct Hamming
 {
-  Hamming(const std::vector<uint8_t>& vdata, std::size_t vndim) {
+  Hamming(const std::vector<In>& vdata, std::size_t vndim) {
     // Instead of storing each bit as an element, we will pack them
     // into a series of 64-bit bitsets. Possibly compilers are smart enough
     // to use built in integer popcount routines for the bitset count()
@@ -252,8 +263,8 @@ struct Hamming
     ndim = std::ceil(vndim / 64.0);
   }
 
-  std::size_t operator()(std::size_t i, std::size_t j) {
-    std::size_t sum = 0;
+  Out operator()(std::size_t i, std::size_t j) {
+    Out sum = 0;
     const std::size_t di = ndim * i;
     const std::size_t dj = ndim * j;
 
@@ -266,15 +277,41 @@ struct Hamming
 
   std::vector<std::bitset<64>> data;
   std::size_t ndim;
+
+  typedef In in_type;
+  typedef Out out_type;
 };
 
 
-double runif() {
-  return Rcpp::runif(1, 0.0, 1.0)[0];
-}
+struct RRand {
+  // a random uniform value between 0 and 1
+  double unif() {
+    return Rcpp::runif(1, 0.0, 1.0)[0];
+  }
+};
 
+struct RProgress {
+  void iter(std::size_t n, std::size_t n_iters, const Heap& heap) {
+    double sum = 0.0;
+    for (std::size_t i = 0; i < heap.dist.size(); i++) {
+      for (std::size_t j = 0; j < heap.dist[i].size(); j++) {
+        sum += heap.dist[i][j];
+      }
+    }
+    Rcpp::Rcout << (n + 1) << " / " << n_iters << " " << sum << std::endl;
+  }
+  void converged(const double c, const double tol) {
+    Rcpp::Rcout << "c = " << c << " tol = " << tol << std::endl;
+  }
+  void check_interrupt() {
+    Rcpp::checkUserInterrupt();
+  }
+};
+
+template <typename Rand>
 void build_candidates(Heap& current_graph, Heap& candidate_neighbors,
                       const std::size_t npoints, const std::size_t nnbrs) {
+  Rand rand;
   for (std::size_t i = 0; i < npoints; i++) {
     for (std::size_t j = 0; j < nnbrs; j++) {
       if (current_graph.idx[i][j] < 0) {
@@ -282,7 +319,7 @@ void build_candidates(Heap& current_graph, Heap& candidate_neighbors,
       }
       int idx = current_graph.idx[i][j];
       bool isn = current_graph.flags[i][j];
-      double d = runif();
+      double d = rand.unif();
 
       candidate_neighbors.push(i, d, idx, isn);
       candidate_neighbors.push(static_cast<std::size_t>(idx), d, i, isn);
@@ -292,9 +329,9 @@ void build_candidates(Heap& current_graph, Heap& candidate_neighbors,
   }
 }
 
-
-
-template <typename Distance, typename DistanceType>
+template <typename Distance,
+          typename Rand,
+          typename Progress>
 Rcpp::List nn_descent_impl(
     Rcpp::NumericMatrix data,
     Rcpp::IntegerMatrix idx,
@@ -309,7 +346,7 @@ Rcpp::List nn_descent_impl(
 
   const std::size_t ndim = data.ncol();
   data = Rcpp::transpose(data);
-  auto data_vec = Rcpp::as<std::vector<DistanceType>>(data);
+  auto data_vec = Rcpp::as<std::vector<typename Distance::in_type>>(data);
 
   // initialize heap structures
   Heap heap(npoints, nnbrs);
@@ -320,28 +357,25 @@ Rcpp::List nn_descent_impl(
     }
   }
 
+  Progress progress;
+  Rand rand;
   Distance distance(data_vec, ndim);
 
   for (std::size_t n = 0; n < n_iters; n++) {
     if (verbose) {
-      double sum = 0.0;
-      for (std::size_t i = 0; i < npoints; i++) {
-        for (std::size_t j = 0; j < nnbrs; j++) {
-          sum += heap.dist[i][j];
-        }
-      }
-      Rcpp::Rcout << (n + 1) << " / " << n_iters << " " << sum << std::endl;
+      progress.iter(n, n_iters, heap);
     }
 
     Heap candidate_neighbors(npoints, max_candidates);
 
-    build_candidates(heap, candidate_neighbors, npoints, nnbrs);
+    build_candidates<Rand>(heap, candidate_neighbors, npoints, nnbrs);
 
+    const double tol = delta * nnbrs * npoints;
     double c = 0.0;
     for (std::size_t i = 0; i < npoints; i++) {
       for (std::size_t j = 0; j < max_candidates; j++) {
         int p = candidate_neighbors.idx[i][j];
-        if (p < 0 || runif() < rho) {
+        if (p < 0 || rand.unif() < rho) {
           continue;
         }
 
@@ -356,12 +390,11 @@ Rcpp::List nn_descent_impl(
           c += heap.push(q, d, p, true);
         }
       }
-      Rcpp::checkUserInterrupt();
+      progress.check_interrupt();
     }
-    if (c <= delta * nnbrs * npoints) {
+    if (c <= tol) {
       if (verbose) {
-        Rcpp::Rcout << "c = " << c << " crit = " << delta * nnbrs * npoints <<
-          std::endl;
+        progress.converged(c, tol);
       }
       break;
     }
@@ -397,25 +430,30 @@ Rcpp::List nn_descent(
     const double delta = 0.001,
     const double rho = 0.5,
     bool verbose = false) {
+
   if (metric == "euclidean") {
-    return nn_descent_impl<Euclidean, double>(data, idx, dist,
-                                              max_candidates, n_iters, delta, rho,
-                                              verbose);
+    return nn_descent_impl<Euclidean<float, float>,
+                           RRand,
+                           RProgress>
+    (data, idx, dist, max_candidates, n_iters, delta, rho, verbose);
   }
   else if (metric == "cosine") {
-    return nn_descent_impl<Cosine, double>(data, idx, dist,
-                                           max_candidates, n_iters, delta, rho,
-                                           verbose);
+    return nn_descent_impl<Cosine<float, float>,
+                           RRand,
+                           RProgress>
+    (data, idx, dist, max_candidates, n_iters, delta, rho, verbose);
   }
   else if (metric == "manhattan") {
-    return nn_descent_impl<Manhattan, double>(data, idx, dist,
-                                              max_candidates, n_iters, delta, rho,
-                                              verbose);
+    return nn_descent_impl<Manhattan<float, float>,
+                           RRand,
+                           RProgress>
+    (data, idx, dist, max_candidates, n_iters, delta, rho, verbose);
   }
   else if (metric == "hamming") {
-    return nn_descent_impl<Hamming, uint8_t>(data, idx, dist,
-                                             max_candidates, n_iters, delta, rho,
-                                             verbose);
+    return nn_descent_impl<Hamming<uint8_t, std::size_t>,
+                           RRand,
+                           RProgress>
+    (data, idx, dist, max_candidates, n_iters, delta, rho, verbose);
   }
   else {
     Rcpp::stop("Bad metric");

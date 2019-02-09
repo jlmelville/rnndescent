@@ -166,7 +166,7 @@ byrow = TRUE, nrow = 10, ncol = 4
 )
 set.seed(1337); rnnd <- nn_descent(ui10, i10_ridx, i10_rdist, verbose = FALSE)
 expect_equal(rnnd$idx, expected_nnd_idx, check.attributes = FALSE)
-expect_equal(rnnd$dist, expected_nnd_dist, check.attributes = FALSE)
+expect_equal(rnnd$dist, expected_nnd_dist, check.attributes = FALSE, tol = 1e-6)
 
 set.seed(1337)
 iris_nbrs <- random_nbrs(uirism, 15)
