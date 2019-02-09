@@ -199,6 +199,22 @@ cos_dist <- function(X, i, j) {
   cosd(X[i, ], X[j, ])
 }
 
+manhattand <- function(a, b) {
+  sum(abs(a - b))
+}
+
+manhattan_dist <- function(X, i, j) {
+  manhattand(X[i, ], X[j, ])
+}
+
+hammingd <- function(a, b) {
+  sum(bitwXor(a, b))
+}
+
+hamming_dist <- function(X, i, j) {
+  hammingd(X[i, ], X[j, ])
+}
+
 nn_to_heap <- function(indices, dist) {
   N <- nrow(indices)
   k <- ncol(indices)
@@ -310,6 +326,8 @@ create_dist_fn <- function(metric) {
   switch(metric,
          euclidean = euc_dist,
          cosine = cos_dist,
+         manhattan = manhattan_dist,
+         hamming = hamming_dist,
          stop("Unknown metric '", metric, "'")
   )
 }
@@ -361,7 +379,7 @@ random_nbrs <- function(X, k, metric = "euclidean") {
 #' @param data Matrix of \code{n} items to search.
 #' @param k Number of nearest neighbors to return.
 #' @param metric Type of distance calculation to use. One of \code{"euclidean"},
-#'   or \code{"cosine"}.
+#'   \code{"cosine"}, \code{"manhattan"} or \code{"hamming"}.
 #' @param n_iters Number of iterations of nearest neighbor descent to carry out.
 #' @param max_candidates Maximum number of candidate neighbors to try for each
 #'   item.

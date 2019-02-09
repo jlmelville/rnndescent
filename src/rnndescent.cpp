@@ -1,3 +1,4 @@
+#include <bitset>
 #include <Rcpp.h>
 
 struct Heap
@@ -40,49 +41,49 @@ struct Heap
     std::size_t i = 0;
     std::size_t i_swap = 0;
     while (true) {
-        std::size_t ic1 = 2 * i + 1;
-        std::size_t ic2 = ic1 + 1;
+      std::size_t ic1 = 2 * i + 1;
+      std::size_t ic2 = ic1 + 1;
 
-        if (ic1 >= n_nbrs) {
-          break;
-        }
-        else if (ic2 >= n_nbrs) {
-          if (weights[ic1] >= weight) {
-            i_swap = ic1;
-          }
-          else {
-            break;
-          }
-        }
-        else if (weights[ic1] >= weights[ic2]) {
-          if (weight < weights[ic1]) {
-            i_swap = ic1;
-          }
-          else {
-            break;
-          }
+      if (ic1 >= n_nbrs) {
+        break;
+      }
+      else if (ic2 >= n_nbrs) {
+        if (weights[ic1] >= weight) {
+          i_swap = ic1;
         }
         else {
-          if (weight < weights[ic2]) {
-            i_swap = ic2;
-          }
-          else {
-            break;
-          }
+          break;
         }
-
-        weights[i] = weights[i_swap];
-        indices[i] = indices[i_swap];
-        is_new[i] = is_new[i_swap];
-
-        i = i_swap;
+      }
+      else if (weights[ic1] >= weights[ic2]) {
+        if (weight < weights[ic1]) {
+          i_swap = ic1;
+        }
+        else {
+          break;
+        }
+      }
+      else {
+        if (weight < weights[ic2]) {
+          i_swap = ic2;
+        }
+        else {
+          break;
+        }
       }
 
-      weights[i] = weight;
-      indices[i] = iindex;
-      is_new[i] = flag;
+      weights[i] = weights[i_swap];
+      indices[i] = indices[i_swap];
+      is_new[i] = is_new[i_swap];
 
-      return 1;
+      i = i_swap;
+    }
+
+    weights[i] = weight;
+    indices[i] = iindex;
+    is_new[i] = flag;
+
+    return 1;
   }
 
   void deheap_sort() {
@@ -107,26 +108,26 @@ struct Heap
                 std::size_t elt) {
 
     while (elt * 2 + 1 < len) {
-        std::size_t left_child = elt * 2 + 1;
-        std::size_t right_child = left_child + 1;
-        std::size_t swap = elt;
+      std::size_t left_child = elt * 2 + 1;
+      std::size_t right_child = left_child + 1;
+      std::size_t swap = elt;
 
-        if (dist_heap[swap] < dist_heap[left_child]) {
-          swap = left_child;
-        }
+      if (dist_heap[swap] < dist_heap[left_child]) {
+        swap = left_child;
+      }
 
-        if (right_child < len && dist_heap[swap] < dist_heap[right_child]) {
-          swap = right_child;
-        }
+      if (right_child < len && dist_heap[swap] < dist_heap[right_child]) {
+        swap = right_child;
+      }
 
-        if (swap == elt) {
-          break;
-        }
-        else {
-          std::swap(dist_heap[elt], dist_heap[swap]);
-          std::swap(ind_heap[elt], ind_heap[swap]);
-          elt = swap;
-        }
+      if (swap == elt) {
+        break;
+      }
+      else {
+        std::swap(dist_heap[elt], dist_heap[swap]);
+        std::swap(ind_heap[elt], ind_heap[swap]);
+        elt = swap;
+      }
     }
   }
 };
@@ -194,6 +195,80 @@ struct Cosine
 };
 
 
+struct Manhattan
+{
+
+  Manhattan(const std::vector<double>& data, std::size_t ndim)
+    : data(data), ndim(ndim) { }
+
+  double operator()(std::size_t i, std::size_t j) {
+    double sum = 0.0;
+    const std::size_t di = ndim * i;
+    const std::size_t dj = ndim * j;
+
+    for (std::size_t d = 0; d < ndim; d++) {
+      sum += std::abs(data[di + d] - data[dj + d]);
+    }
+
+    return sum;
+  }
+
+  std::vector<double> data;
+  std::size_t ndim;
+};
+
+struct Hamming
+{
+  Hamming(const std::vector<uint8_t>& vdata, std::size_t vndim) {
+    // Instead of storing each bit as an element, we will pack them
+    // into a series of 64-bit bitsets. Possibly compilers are smart enough
+    // to use built in integer popcount routines for the bitset count()
+    // method.
+    std::bitset<64> bits;
+    std::size_t bit_count = 0;
+    std::size_t vd_count = 0;
+
+    for (std::size_t i = 0; i < vdata.size(); i++) {
+      if (bit_count == 64 || vd_count == vndim) {
+        // filled up current bitset
+        data.push_back(bits);
+        bit_count = 0;
+        bits.reset();
+
+        if (vd_count == vndim) {
+          // end of item
+          vd_count = 0;
+        }
+      }
+      bits[bit_count] = vdata[i];
+
+      ++vd_count;
+      ++bit_count;
+    }
+    if (bit_count > 0) {
+      data.push_back(bits);
+    }
+
+    ndim = std::ceil(vndim / 64.0);
+  }
+
+  std::size_t operator()(std::size_t i, std::size_t j) {
+    std::size_t sum = 0;
+    const std::size_t di = ndim * i;
+    const std::size_t dj = ndim * j;
+
+    for (std::size_t d = 0; d < ndim; d++) {
+      sum += (data[di + d] ^ data[dj + d]).count();
+    }
+
+    return sum;
+  }
+
+  std::vector<std::bitset<64>> data;
+  std::size_t ndim;
+};
+
+
 double runif() {
   return Rcpp::runif(1, 0.0, 1.0)[0];
 }
@@ -219,7 +294,7 @@ void build_candidates(Heap& current_graph, Heap& candidate_neighbors,
 
 
 
-template <typename Distance>
+template <typename Distance, typename DistanceType>
 Rcpp::List nn_descent_impl(
     Rcpp::NumericMatrix data,
     Rcpp::IntegerMatrix idx,
@@ -234,7 +309,7 @@ Rcpp::List nn_descent_impl(
 
   const std::size_t ndim = data.ncol();
   data = Rcpp::transpose(data);
-  auto data_vec = Rcpp::as<std::vector<double>>(data);
+  auto data_vec = Rcpp::as<std::vector<DistanceType>>(data);
 
   // initialize heap structures
   Heap heap(npoints, nnbrs);
@@ -323,17 +398,26 @@ Rcpp::List nn_descent(
     const double rho = 0.5,
     bool verbose = false) {
   if (metric == "euclidean") {
-    return nn_descent_impl<Euclidean>(data, idx, dist,
-                                      max_candidates, n_iters, delta, rho,
-                                      verbose);
+    return nn_descent_impl<Euclidean, double>(data, idx, dist,
+                                              max_candidates, n_iters, delta, rho,
+                                              verbose);
   }
   else if (metric == "cosine") {
-    return nn_descent_impl<Cosine>(data, idx, dist,
-                                   max_candidates, n_iters, delta, rho,
-                                   verbose);
+    return nn_descent_impl<Cosine, double>(data, idx, dist,
+                                           max_candidates, n_iters, delta, rho,
+                                           verbose);
+  }
+  else if (metric == "manhattan") {
+    return nn_descent_impl<Manhattan, double>(data, idx, dist,
+                                              max_candidates, n_iters, delta, rho,
+                                              verbose);
+  }
+  else if (metric == "hamming") {
+    return nn_descent_impl<Hamming, uint8_t>(data, idx, dist,
+                                             max_candidates, n_iters, delta, rho,
+                                             verbose);
   }
   else {
     Rcpp::stop("Bad metric");
   }
 }
-
