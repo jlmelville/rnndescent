@@ -329,6 +329,26 @@ void build_candidates(Heap& current_graph, Heap& candidate_neighbors,
   }
 }
 
+// transfer data into R Matrices
+Rcpp::List to_R(const Heap& heap) {
+  const std::size_t npoints = heap.idx.size();
+  const std::size_t nnbrs = heap.idx[0].size();
+
+  Rcpp::IntegerMatrix idxres(npoints, nnbrs);
+  Rcpp::NumericMatrix distres(npoints, nnbrs);
+  for (std::size_t i = 0; i < npoints; i++) {
+    for (std::size_t j = 0; j < nnbrs; j++) {
+      idxres(i, j) = heap.idx[i][j];
+      distres(i, j) = heap.dist[i][j];
+    }
+  }
+
+  return Rcpp::List::create(
+    Rcpp::Named("idx") = idxres,
+    Rcpp::Named("dist") = distres
+  );
+}
+
 template <typename Distance,
           typename Rand,
           typename Progress>
@@ -403,20 +423,7 @@ Rcpp::List nn_descent_impl(
   // sort data
   heap.deheap_sort();
 
-  // transfer data into R Matrices
-  Rcpp::IntegerMatrix idxres(npoints, nnbrs);
-  Rcpp::NumericMatrix distres(npoints, nnbrs);
-  for (std::size_t i = 0; i < npoints; i++) {
-    for (std::size_t j = 0; j < nnbrs; j++) {
-      idxres(i, j) = heap.idx[i][j];
-      distres(i, j) = heap.dist[i][j];
-    }
-  }
-
-  return Rcpp::List::create(
-    Rcpp::Named("idx") = idxres,
-    Rcpp::Named("dist") = distres
-  );
+  return to_R(heap);
 }
 
 // [[Rcpp::export]]
