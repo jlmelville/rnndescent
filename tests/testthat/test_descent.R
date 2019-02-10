@@ -133,7 +133,7 @@ set.seed(1337); uiris_rnn <- nnd_knn(uirism, 15, use_cpp = FALSE)
 expect_equal(sum(uiris_rnn$dist), 1016.834, tol = 1e-3)
 
 # C++ test
-heap_sorted_cpp <- nn_descent(ui10, i10_ridx + 1, i10_rdist, n_iters = 0)
+heap_sorted_cpp <- nn_descent(ui10, i10_ridx, i10_rdist, n_iters = 0)
 expect_equal(heap_sorted_cpp$idx, expected_heap_sort_idx, check.attributes = FALSE)
 expect_equal(heap_sorted_cpp$dist, expected_heap_sort_dist, check.attributes = FALSE)
 
@@ -164,13 +164,13 @@ c(0, 0.346410161513775, 0.678232998312527, 0.7,
 ),
 byrow = TRUE, nrow = 10, ncol = 4
 )
-set.seed(1337); rnnd <- nn_descent(ui10, i10_ridx + 1, i10_rdist, verbose = FALSE)
+set.seed(1337); rnnd <- nn_descent(ui10, i10_ridx, i10_rdist, verbose = FALSE)
 expect_equal(rnnd$idx, expected_nnd_idx, check.attributes = FALSE)
 expect_equal(rnnd$dist, expected_nnd_dist, check.attributes = FALSE, tol = 1e-6)
 
 set.seed(1337)
 iris_nbrs <- random_nbrs(uirism, 15)
-iris_nnd <- nn_descent(uirism, iris_nbrs$indices, iris_nbrs$dist, verbose = FALSE)
+iris_nnd <- nn_descent(uirism, iris_nbrs$indices - 1, iris_nbrs$dist, verbose = FALSE)
 expect_equal(sum(iris_nnd$dist), 1016.834, tol = 1e-3)
 
 set.seed(1337); uiris_rnn <- nnd_knn(uirism, 15, use_cpp = TRUE)

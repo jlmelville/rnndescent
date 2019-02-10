@@ -336,8 +336,8 @@ Heap r_to_heap(
   Heap heap(npoints, nnbrs);
   for (std::size_t i = 0; i < npoints; i++) {
     for (std::size_t j = 0; j < nnbrs; j++) {
-      heap.push(i, dist(i, j), idx(i, j) - 1, true);
-      heap.push(idx(i, j) - 1, dist(i, j), i, true);
+      heap.push(i, dist(i, j), idx(i, j), true);
+      heap.push(idx(i, j), dist(i, j), i, true);
     }
   }
 
