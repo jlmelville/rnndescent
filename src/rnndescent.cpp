@@ -300,7 +300,7 @@ struct RProgress {
     }
     Rcpp::Rcout << (n + 1) << " / " << n_iters << " " << sum << std::endl;
   }
-  void converged(const double c, const double tol) {
+  void converged(const std::size_t c, const double tol) {
     Rcpp::Rcout << "c = " << c << " tol = " << tol << std::endl;
   }
   void check_interrupt() {
@@ -329,8 +329,26 @@ void build_candidates(Heap& current_graph, Heap& candidate_neighbors,
   }
 }
 
+Heap r_to_heap(
+    Rcpp::IntegerMatrix idx,
+    Rcpp::NumericMatrix dist
+) {
+  const std::size_t npoints = idx.nrow();
+  const std::size_t nnbrs = idx.ncol();
+
+  Heap heap(npoints, nnbrs);
+  for (std::size_t i = 0; i < npoints; i++) {
+    for (std::size_t j = 0; j < nnbrs; j++) {
+      heap.push(i, dist(i, j), idx(i, j), true);
+      heap.push(idx(i, j), dist(i, j), i, true);
+    }
+  }
+
+  return heap;
+}
+
 // transfer data into R Matrices
-Rcpp::List to_R(const Heap& heap) {
+Rcpp::List heap_to_r(const Heap& heap) {
   const std::size_t npoints = heap.idx.size();
   const std::size_t nnbrs = heap.idx[0].size();
 
@@ -364,22 +382,16 @@ Rcpp::List nn_descent_impl(
   const std::size_t npoints = idx.nrow();
   const std::size_t nnbrs = idx.ncol();
 
+  Heap heap = r_to_heap(idx, dist);
+
   const std::size_t ndim = data.ncol();
   data = Rcpp::transpose(data);
   auto data_vec = Rcpp::as<std::vector<typename Distance::in_type>>(data);
 
-  // initialize heap structures
-  Heap heap(npoints, nnbrs);
-  for (std::size_t i = 0; i < npoints; i++) {
-    for (std::size_t j = 0; j < nnbrs; j++) {
-      heap.push(i, dist(i, j), idx(i, j), true);
-      heap.push(idx(i, j), dist(i, j), i, true);
-    }
-  }
-
   Progress progress;
   Rand rand;
   Distance distance(data_vec, ndim);
+  const double tol = delta * nnbrs * npoints;
 
   for (std::size_t n = 0; n < n_iters; n++) {
     if (verbose) {
@@ -390,8 +402,7 @@ Rcpp::List nn_descent_impl(
 
     build_candidates<Rand>(heap, candidate_neighbors, npoints, nnbrs);
 
-    const double tol = delta * nnbrs * npoints;
-    double c = 0.0;
+    std::size_t c = 0;
     for (std::size_t i = 0; i < npoints; i++) {
       for (std::size_t j = 0; j < max_candidates; j++) {
         int p = candidate_neighbors.idx[i][j];
@@ -412,7 +423,7 @@ Rcpp::List nn_descent_impl(
       }
       progress.check_interrupt();
     }
-    if (c <= tol) {
+    if (static_cast<double>(c) <= tol) {
       if (verbose) {
         progress.converged(c, tol);
       }
@@ -423,7 +434,7 @@ Rcpp::List nn_descent_impl(
   // sort data
   heap.deheap_sort();
 
-  return to_R(heap);
+  return heap_to_r(heap);
 }
 
 // [[Rcpp::export]]
