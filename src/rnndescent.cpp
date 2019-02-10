@@ -168,6 +168,7 @@ struct Cosine
     const std::size_t di = ndim * i;
     const std::size_t dj = ndim * j;
 
+    // TODO: normalize data once and store set<bool> to check
     normalize(i);
     normalize(j);
 
