@@ -14,7 +14,8 @@ nnd_knn(data, k, metric = "euclidean", n_iters = 10,
 \item{k}{Number of nearest neighbors to return.}
 
 \item{metric}{Type of distance calculation to use. One of \code{"euclidean"},
-\code{"cosine"}, \code{"manhattan"} or \code{"hamming"}.}
+\code{"l2"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"}
+or \code{"hamming"}.}
 
 \item{n_iters}{Number of iterations of nearest neighbor descent to carry out.}
 

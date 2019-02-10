@@ -158,6 +158,31 @@ struct Euclidean
 };
 
 template <typename In, typename Out>
+struct L2
+{
+  L2(const std::vector<In>& data, std::size_t ndim)
+    : data(data), ndim(ndim) { }
+
+  Out operator()(std::size_t i, std::size_t j) {
+    Out sum = 0.0;
+    const std::size_t di = ndim * i;
+    const std::size_t dj = ndim * j;
+
+    for (std::size_t d = 0; d < ndim; d++) {
+      const Out diff = data[di + d] - data[dj + d];
+      sum += diff * diff;
+    }
+
+    return sum;
+  }
+
+  std::vector<In> data;
+  std::size_t ndim;
+
+  typedef In in_type;
+};
+
+template <typename In, typename Out>
 struct Cosine
 {
   Cosine(const std::vector<In>& data, std::size_t ndim)
@@ -448,6 +473,12 @@ Rcpp::List nn_descent(
 
   if (metric == "euclidean") {
     return nn_descent_impl<Euclidean<float, float>,
+                           RRand,
+                           RProgress>
+    (data, idx, dist, max_candidates, n_iters, delta, rho, verbose);
+  }
+  else if (metric == "l2") {
+    return nn_descent_impl<L2<float, float>,
                            RRand,
                            RProgress>
     (data, idx, dist, max_candidates, n_iters, delta, rho, verbose);

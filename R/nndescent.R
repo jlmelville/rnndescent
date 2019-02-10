@@ -166,9 +166,17 @@ deheap_sort <- function(heap) {
   )
 }
 
-eucd <- function(a, b) {
+l2d <- function(a, b) {
   diff <- a - b
-  sqrt(sum(diff * diff))
+  sum(diff * diff)
+}
+
+l2_dist <- function(X, i, j) {
+  l2d(X[i, ], X[j, ])
+}
+
+eucd <- function(a, b) {
+  sqrt(l2d(a, b))
 }
 
 euc_dist <- function(X, i, j) {
@@ -324,6 +332,7 @@ nn_descent_optl <- function(data, l, metric = "euclidean", n_iters = 10,
 
 create_dist_fn <- function(metric) {
   switch(metric,
+         l2 = l2_dist,
          euclidean = euc_dist,
          cosine = cos_dist,
          manhattan = manhattan_dist,
@@ -378,7 +387,8 @@ random_nbrs <- function(X, k, metric = "euclidean") {
 #' @param data Matrix of \code{n} items to search.
 #' @param k Number of nearest neighbors to return.
 #' @param metric Type of distance calculation to use. One of \code{"euclidean"},
-#'   \code{"cosine"}, \code{"manhattan"} or \code{"hamming"}.
+#'   \code{"l2"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"}
+#'   or \code{"hamming"}.
 #' @param n_iters Number of iterations of nearest neighbor descent to carry out.
 #' @param max_candidates Maximum number of candidate neighbors to try for each
 #'   item.
@@ -403,21 +413,32 @@ nnd_knn <- function(data, k,
                     delta = 0.001, rho = 0.5,
                     use_cpp = TRUE,
                     verbose = FALSE) {
+  # As a minor optimization, we will use L2 internally if the user asks for
+  # Euclidean and only take the square root of the final distances.
+  actual_metric <- metric
+  if (metric == "euclidean") {
+    actual_metric <- "l2"
+  }
+
   tsmessage("Initializing from random neighbors")
-  init <- random_nbrs(data, k, metric = metric)
+  init <- random_nbrs(data, k, metric = actual_metric)
   tsmessage("Init dsum = ", formatC(sum(init$dist)))
+  init$indices <- init$indices - 1
 
   if (use_cpp) {
     res <- nn_descent(data, init$indices, init$dist,
-                      metric = metric,
+                      metric = actual_metric,
                       n_iters = n_iters, max_candidates = max_candidates,
                       delta = delta, rho = rho, verbose = verbose)
   }
   else {
-    init$indices <- init$indices - 1
-    res <- nn_descent_optl(data, init, metric = metric, n_iters = n_iters,
+    res <- nn_descent_optl(data, init, metric = actual_metric, n_iters = n_iters,
                            max_candidates = max_candidates,
                            delta = delta, rho = rho, verbose = verbose)
+
+  }
+  if (metric == "euclidean") {
+    res$dist <- sqrt(res$dist)
   }
   tsmessage("Final dsum = ", formatC(sum(res$dist)))
   res$idx <- res$idx + 1
