@@ -155,7 +155,6 @@ struct Euclidean
   std::size_t ndim;
 
   typedef In in_type;
-  typedef Out out_type;
 };
 
 template <typename In, typename Out>
@@ -198,7 +197,6 @@ struct Cosine
   std::size_t ndim;
 
   typedef In in_type;
-  typedef Out out_type;
 };
 
 
@@ -225,7 +223,6 @@ struct Manhattan
   std::size_t ndim;
 
   typedef In in_type;
-  typedef Out out_type;
 };
 
 template<typename In, typename Out>
@@ -280,7 +277,6 @@ struct Hamming
   std::size_t ndim;
 
   typedef In in_type;
-  typedef Out out_type;
 };
 
 
