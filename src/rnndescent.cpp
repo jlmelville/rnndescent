@@ -185,16 +185,30 @@ struct L2
 template <typename In, typename Out>
 struct Cosine
 {
-  Cosine(const std::vector<In>& data, std::size_t ndim)
-    : data(data), ndim(ndim) {}
+  Cosine(const std::vector<In>& _data, std::size_t ndim)
+    : data(_data), ndim(ndim)
+
+  {
+    // normalize data on input
+    const std::size_t npoints = data.size() / ndim;
+    for (std::size_t i = 0; i < npoints; i++) {
+      const std::size_t di = ndim * i;
+      In norm = 0.0;
+
+      for (std::size_t d = 0; d < ndim; d++) {
+        const auto val = data[di + d];
+        norm += val * val;
+      }
+      norm = 1.0 / (std::sqrt(norm) + 1e-30);
+      for (std::size_t d = 0; d < ndim; d++) {
+        data[di + d] *= norm;
+      }
+    }
+  }
 
   Out operator()(std::size_t i, std::size_t j) {
     const std::size_t di = ndim * i;
     const std::size_t dj = ndim * j;
-
-    // TODO: normalize data once and store set<bool> to check
-    normalize(i);
-    normalize(j);
 
     Out sum = 0.0;
     for (std::size_t d = 0; d < ndim; d++) {
@@ -204,22 +218,8 @@ struct Cosine
     return 1.0 - sum;
   }
 
-  void normalize(std::size_t i) {
-    const std::size_t di = ndim * i;
-    In norm = 0.0;
-
-    for (std::size_t d = 0; d < ndim; d++) {
-      norm += data[di + d] * data[di + d];
-    }
-    norm = 1.0 / (std::sqrt(norm) + 1e-30);
-
-    for (std::size_t d = 0; d < ndim; d++) {
-      data[di + d] *= norm;
-    }
-  }
-
   std::vector<In> data;
-  std::size_t ndim;
+  const std::size_t ndim;
 
   typedef In in_type;
 };
