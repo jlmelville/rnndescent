@@ -348,7 +348,7 @@ det_nbrs <- function(X, k) {
     }
   }
 
-  list(indices = indices - 1, dist = dist)
+  list(indices = indices, dist = dist)
 }
 
 random_nbrs <- function(X, k, metric = "euclidean") {
@@ -369,8 +369,7 @@ random_nbrs <- function(X, k, metric = "euclidean") {
     }
   }
   dist[, 1] <- 0.0
-  # internally indices are zero-indexed
-  list(indices = indices - 1, dist = dist)
+  list(indices = indices, dist = dist)
 }
 
 
@@ -415,6 +414,7 @@ nnd_knn <- function(data, k,
                       delta = delta, rho = rho, verbose = verbose)
   }
   else {
+    init$indices <- init$indices - 1
     res <- nn_descent_optl(data, init, metric = metric, n_iters = n_iters,
                            max_candidates = max_candidates,
                            delta = delta, rho = rho, verbose = verbose)
@@ -423,3 +423,37 @@ nnd_knn <- function(data, k,
   res$idx <- res$idx + 1
   res
 }
+
+#' Nearest Neighbor Descent
+#'
+#' This function uses the nearest neighbor descent method to improve
+#' approximate nearest neighbor data.
+#'
+#' @param data Matrix of \code{n} items to search.
+#' @param idx an n by k matrix containing the initial nearest neighbor indices,
+#'   where n is the number of items in \code{data} and k is the number of
+#'   neighbors.
+#' @param dist an n by k matrix containing the initial nearest neighbor
+#'   distances, where n is the number of items in \code{data} and k is the
+#'   number of neighbors.
+#' @param metric Type of distance calculation to use. One of \code{"euclidean"},
+#'   \code{"cosine"}, \code{"manhattan"} or \code{"hamming"}.
+#' @param n_iters Number of iterations of nearest neighbor descent to carry out.
+#' @param max_candidates Maximum number of candidate neighbors to try for each
+#'   item.
+#' @param delta precision parameter. Routine will terminate early if
+#'   fewer than \eqn{\delta k N}{delta x k x n} updates are made to the nearest
+#'   neighbor list in a given iteration.
+#' @param rho Sample rate. This fraction of possible items will be used in the
+#'   local join stage
+#' @param verbose If \code{TRUE}, log information to the console.
+#' @name nn_descent
+#' @return a list containing:
+#' \itemize{
+#'   \item \code{idx} an n by k matrix containing the improved nearest neighbor
+#'    indices.
+#'   \item \code{dist} an n by k matrix containing the improved nearest neighbor
+#'    distances.
+#' }
+#' @export
+NULL
