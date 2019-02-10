@@ -359,8 +359,12 @@ Heap r_to_heap(
   const std::size_t nnbrs = idx.ncol();
 
   Heap heap(npoints, nnbrs);
+  const int max_idx = npoints - 1; // internally we need to be 0-indexed
   for (std::size_t i = 0; i < npoints; i++) {
     for (std::size_t j = 0; j < nnbrs; j++) {
+      if (idx(i, j) < 0 || idx(i, j) > max_idx) {
+        Rcpp::stop("Bad indexes in input");
+      }
       heap.push(i, dist(i, j), idx(i, j), true);
       heap.push(idx(i, j), dist(i, j), i, true);
     }
