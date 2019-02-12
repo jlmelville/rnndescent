@@ -341,7 +341,8 @@ create_dist_fn <- function(metric) {
   )
 }
 
-det_nbrs <- function(X, k) {
+det_nbrs <- function(X, k, metric = "euclidean") {
+  dist_fn <- create_dist_fn(metric)
   nr = nrow(X)
   indices = matrix(0, nrow = nr, ncol = k)
   dist = matrix(Inf, nrow = nr, ncol = k)
@@ -353,7 +354,7 @@ det_nbrs <- function(X, k) {
         idx <- idx %% nr
       }
       indices[i, j] <- idx
-      dist[i, j] <- euc_dist(X, i, idx)
+      dist[i, j] <- dist_fn(X, i, idx)
     }
   }
 
