@@ -72,4 +72,6 @@ In *Proceedings of the 20th international conference on World wide web* (pp. 577
 * [PyNNDescent](https://github.com/lmcinnes/pynndescent), the Python implementation.
 * [nndescent](https://github.com/TatsuyaShirakawa/nndescent), a C++ implementation.
 * [NearestNeighborDescent.jl](https://github.com/dillondaudert/NearestNeighborDescent.jl), a Julia implementation.
+* [nn_descent](https://github.com/eskomski/nn_descent), a C implementation.
+
 
