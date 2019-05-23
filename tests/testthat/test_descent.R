@@ -132,11 +132,6 @@ set.seed(1337); uiris_rnn <- nnd_knn(uirism, 15, use_cpp = FALSE)
 # expected sum from sum(FNN::get.knn(uirism, 14)$nn.dist)
 expect_equal(sum(uiris_rnn$dist), 1016.834, tol = 1e-3)
 
-# C++ test
-heap_sorted_cpp <- nn_descent(ui10, i10_ridx, i10_rdist, n_iters = 0)
-expect_equal(heap_sorted_cpp$idx, expected_heap_sort_idx, check.attributes = FALSE)
-expect_equal(heap_sorted_cpp$dist, expected_heap_sort_dist, check.attributes = FALSE)
-
 expected_nnd_idx <- matrix(
   c(0, 5, 9, 2,
     1, 6, 2, 4,
@@ -226,3 +221,33 @@ set.seed(1337); bitdata <- bitm(nrow = 10, ncol = 160)
 set.seed(1337); bit_rnn <- nnd_knn(bitdata, 4, use_cpp = TRUE, metric = "hamming")
 expect_equal(bit_rnn$idx, expected_hamm_idx, check.attributes = FALSE)
 expect_equal(bit_rnn$dist, expected_hamm_dist, check.attributes = FALSE)
+
+# C++ with set backing
+set.seed(1337); rnnd <- nn_descent(ui10, i10_ridx, i10_rdist, verbose = FALSE, use_set = TRUE)
+expect_equal(rnnd$idx, expected_nnd_idx, check.attributes = FALSE)
+expect_equal(rnnd$dist, expected_nnd_dist, check.attributes = FALSE, tol = 1e-6)
+
+set.seed(1337)
+iris_nbrs <- random_nbrs(uirism, 15)
+iris_nnd <- nn_descent(uirism, iris_nbrs$indices - 1, iris_nbrs$dist, verbose = FALSE, use_set = TRUE)
+expect_equal(sum(iris_nnd$dist), 1016.834, tol = 1e-3)
+
+set.seed(1337); uiris_rnn <- nnd_knn(uirism, 15, use_cpp = TRUE, use_set = TRUE)
+expect_equal(sum(uiris_rnn$dist), 1016.834, tol = 1e-3)
+
+# Cosine distance
+set.seed(1337); uiris_rnn <- nnd_knn(uirism, 15, use_cpp = TRUE, use_set = TRUE, metric = "cosine")
+# expected sum from RcppHNSW
+expect_equal(sum(uiris_rnn$dist), 1.347357, tol = 1e-3)
+
+# Manhattan
+set.seed(1337); juiris_rnn <- nnd_knn(juirism, 15, use_cpp = TRUE, use_set = TRUE, metric = "manhattan")
+# expected sum from Annoy
+expect_equal(sum(juiris_rnn$dist), 1674.102, tol = 1e-3)
+
+# Hamming
+set.seed(1337); bitdata <- bitm(nrow = 10, ncol = 160)
+set.seed(1337); bit_rnn <- nnd_knn(bitdata, 4, use_cpp = TRUE, use_set = TRUE, metric = "hamming")
+expect_equal(bit_rnn$idx, expected_hamm_idx, check.attributes = FALSE)
+expect_equal(bit_rnn$dist, expected_hamm_dist, check.attributes = FALSE)
+

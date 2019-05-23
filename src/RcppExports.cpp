@@ -6,8 +6,8 @@
 using namespace Rcpp;
 
 // nn_descent
-Rcpp::List nn_descent(Rcpp::NumericMatrix data, Rcpp::IntegerMatrix idx, Rcpp::NumericMatrix dist, const std::string metric, const std::size_t max_candidates, const std::size_t n_iters, const double delta, const double rho, bool verbose);
-RcppExport SEXP _rnndescent_nn_descent(SEXP dataSEXP, SEXP idxSEXP, SEXP distSEXP, SEXP metricSEXP, SEXP max_candidatesSEXP, SEXP n_itersSEXP, SEXP deltaSEXP, SEXP rhoSEXP, SEXP verboseSEXP) {
+Rcpp::List nn_descent(Rcpp::NumericMatrix data, Rcpp::IntegerMatrix idx, Rcpp::NumericMatrix dist, const std::string metric, const std::size_t max_candidates, const std::size_t n_iters, const double delta, const double rho, bool use_set, bool verbose);
+RcppExport SEXP _rnndescent_nn_descent(SEXP dataSEXP, SEXP idxSEXP, SEXP distSEXP, SEXP metricSEXP, SEXP max_candidatesSEXP, SEXP n_itersSEXP, SEXP deltaSEXP, SEXP rhoSEXP, SEXP use_setSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -19,14 +19,15 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const std::size_t >::type n_iters(n_itersSEXP);
     Rcpp::traits::input_parameter< const double >::type delta(deltaSEXP);
     Rcpp::traits::input_parameter< const double >::type rho(rhoSEXP);
+    Rcpp::traits::input_parameter< bool >::type use_set(use_setSEXP);
     Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
-    rcpp_result_gen = Rcpp::wrap(nn_descent(data, idx, dist, metric, max_candidates, n_iters, delta, rho, verbose));
+    rcpp_result_gen = Rcpp::wrap(nn_descent(data, idx, dist, metric, max_candidates, n_iters, delta, rho, use_set, verbose));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_rnndescent_nn_descent", (DL_FUNC) &_rnndescent_nn_descent, 9},
+    {"_rnndescent_nn_descent", (DL_FUNC) &_rnndescent_nn_descent, 10},
     {NULL, NULL, 0}
 };
 

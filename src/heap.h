@@ -22,40 +22,60 @@
 
 #include <limits>
 
-struct Heap
+// Base class storing neighbor data as a series of heaps
+// Uses CRTP for compile-time polymorphism
+template <typename AddPolicy>
+struct HeapBase
 {
-  std::vector<std::vector<int>> idx;
+  // used in analogy with std::string::npos as used in std::string::find
+  // to represent not found
+  static constexpr std::size_t npos = static_cast<std::size_t>(-1);
+
+  std::vector<std::vector<std::size_t>> idx;
   std::vector<std::vector<double>> dist;
   std::vector<std::vector<bool>> flags; // vector of bool, yes ugh
-  Heap(const std::size_t n_points, const std::size_t size) {
+
+  HeapBase(const std::size_t n_points, const std::size_t size) {
     for (std::size_t i = 0; i < n_points; i++) {
-      idx.push_back(std::vector<int>(size, -1));
+      idx.push_back(std::vector<std::size_t>(size, npos));
       dist.push_back(std::vector<double>(size, std::numeric_limits<double>::max()));
       flags.push_back(std::vector<bool>(size, false));
     }
   }
 
-  unsigned int push(std::size_t row, double weight, std::size_t index, bool flag) {
-    std::vector<int>& indices = idx[row];
-    std::vector<double>& weights = dist[row];
-    std::vector<bool>& is_new = flags[row];
+  unsigned int add_pair(std::size_t i, std::size_t j, double d, bool flag)
+  {
+    return static_cast<AddPolicy&>(*this).add_pair(i, j, dist, flag);
+  }
 
-    if (weight >= weights[0]) {
+  unsigned int push(std::size_t row, double weight, std::size_t index, bool flag) {
+    if (weight >= dist[row][0]) {
       return 0;
     }
 
     // break if we already have this element
-    int iindex = static_cast<int>(index);
+    std::vector<std::size_t>& indices = idx[row];
     const std::size_t n_nbrs = indices.size();
     for (std::size_t i = 0; i < n_nbrs; i++) {
-      if (iindex == indices[i]) {
+      if (index == indices[i]) {
         return 0;
       }
     }
 
+    return unchecked_push(row, weight, index, flag);
+  }
+
+  unsigned int unchecked_push(std::size_t row, double weight, std::size_t index, bool flag)
+  {
+    std::vector<std::size_t>& indices = idx[row];
+    std::vector<double>& weights = dist[row];
+    std::vector<bool>& is_new = flags[row];
+
+    const std::size_t n_nbrs = indices.size();
+
     // insert val at position zero
     weights[0] = weight;
-    indices[0] = iindex;
+    indices[0] = index;
     is_new[0] = flag;
 
     // descend the heap, swapping values until the max heap criterion is met
@@ -101,7 +121,7 @@ struct Heap
     }
 
     weights[i] = weight;
-    indices[i] = iindex;
+    indices[i] = index;
     is_new[i] = flag;
 
     return 1;
@@ -111,7 +131,7 @@ struct Heap
     const std::size_t npoints = idx.size();
 
     for (std::size_t i = 0; i < npoints; i++) {
-      std::vector<int>& ind_heap = idx[i];
+      std::vector<std::size_t>& ind_heap = idx[i];
       std::vector<double>& dist_heap = dist[i];
 
       const std::size_t nnbrs = ind_heap.size();
@@ -124,7 +144,7 @@ struct Heap
   }
 
   void siftdown(std::vector<double>& dist_heap,
-                std::vector<int>& ind_heap,
+                std::vector<std::size_t>& ind_heap,
                 const std::size_t len,
                 std::size_t elt) {
 
@@ -150,6 +170,26 @@ struct Heap
         elt = swap;
       }
     }
+  }
+};
+
+
+template <class T> constexpr std::size_t HeapBase<T>::npos;
+
+// Checks for duplicates by iterating over the entire array of stored indexes
+struct ArrayHeap : public HeapBase<ArrayHeap>
+{
+  ArrayHeap(const std::size_t n_points, const std::size_t size) : HeapBase(n_points, size) {}
+
+  unsigned int add_pair(std::size_t i, std::size_t j, double d, bool flag)
+  {
+    unsigned int c = 0;
+    c += push(i, d, j, flag);
+    if (i != j) {
+      c += push(j, d, i, flag);
+    }
+
+    return c;
   }
 };
 

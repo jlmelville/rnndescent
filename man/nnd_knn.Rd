@@ -6,7 +6,7 @@
 \usage{
 nnd_knn(data, k, metric = "euclidean", n_iters = 10,
   max_candidates = 50, delta = 0.001, rho = 0.5, use_cpp = TRUE,
-  verbose = FALSE)
+  use_set = FALSE, verbose = FALSE)
 }
 \arguments{
 \item{data}{Matrix of \code{n} items to search.}
@@ -30,6 +30,9 @@ neighbor list in a given iteration.}
 local join stage.}
 
 \item{use_cpp}{If \code{TRUE}, use the faster C++ code path.}
+
+\item{use_set}{If \code{TRUE}, cache pair lookups in a set. This increases
+speed at the cost of a memory use. Applies only if \code{use_cpp = TRUE}.}
 
 \item{verbose}{If \code{TRUE}, log information to the console.}
 }

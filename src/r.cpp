@@ -22,7 +22,7 @@
 #include "distance.h"
 #include "heap.h"
 #include "nndescent.h"
-
+#include "setheap.h"
 
 struct RRand {
   // a random uniform value between 0 and 1
@@ -32,6 +32,7 @@ struct RRand {
 };
 
 struct RProgress {
+  template <typename Heap>
   void iter(std::size_t n, std::size_t n_iters, const Heap& heap) {
     double sum = 0.0;
     for (std::size_t i = 0; i < heap.dist.size(); i++) {
@@ -49,7 +50,7 @@ struct RProgress {
   }
 };
 
-
+template <typename Heap>
 Heap r_to_heap(
     Rcpp::IntegerMatrix idx,
     Rcpp::NumericMatrix dist
@@ -66,8 +67,7 @@ Heap r_to_heap(
         Rcpp::stop("Bad indexes in input");
       }
       const double d = dist(i, j);
-      heap.push(i, d, k, true);
-      heap.push(k, d, i, true);
+      heap.add_pair(i, k, d, true);
     }
   }
 
@@ -75,6 +75,7 @@ Heap r_to_heap(
 }
 
 // transfer data into R Matrices
+template <typename Heap>
 Rcpp::List heap_to_r(const Heap& heap) {
   const std::size_t npoints = heap.idx.size();
   const std::size_t nnbrs = heap.idx[0].size();
@@ -94,7 +95,8 @@ Rcpp::List heap_to_r(const Heap& heap) {
   );
 }
 
-template <typename Distance,
+template <typename Heap,
+          typename Distance,
           typename Rand,
           typename Progress>
 Rcpp::List nn_descent_impl(
@@ -109,7 +111,7 @@ Rcpp::List nn_descent_impl(
   const std::size_t npoints = idx.nrow();
   const std::size_t nnbrs = idx.ncol();
 
-  Heap heap = r_to_heap(idx, dist);
+  Heap heap = r_to_heap<Heap>(idx, dist);
 
   const std::size_t ndim = data.ncol();
   data = Rcpp::transpose(data);
@@ -138,37 +140,88 @@ Rcpp::List nn_descent(
     const std::size_t n_iters = 10,
     const double delta = 0.001,
     const double rho = 0.5,
+    bool use_set = false,
     bool verbose = false) {
 
   if (metric == "euclidean") {
-    return nn_descent_impl<Euclidean<float, float>,
-                           RRand,
-                           RProgress>
-    (data, idx, dist, max_candidates, n_iters, delta, rho, verbose);
+    if (use_set) {
+      return nn_descent_impl<SetHeap,
+                             Euclidean<float, float>,
+                             RRand,
+                             RProgress>
+      (data, idx, dist, max_candidates, n_iters, delta, rho, verbose);
+    }
+    else {
+      return nn_descent_impl<ArrayHeap,
+                             Euclidean<float, float>,
+                             RRand,
+                             RProgress>
+      (data, idx, dist, max_candidates, n_iters, delta, rho, verbose);
+    }
   }
   else if (metric == "l2") {
-    return nn_descent_impl<L2<float, float>,
-                           RRand,
-                           RProgress>
-    (data, idx, dist, max_candidates, n_iters, delta, rho, verbose);
+    if (use_set) {
+      return nn_descent_impl<SetHeap,
+                             L2<float, float>,
+                             RRand,
+                             RProgress>
+      (data, idx, dist, max_candidates, n_iters, delta, rho, verbose);
+    }
+    else {
+      return nn_descent_impl<ArrayHeap,
+                             L2<float, float>,
+                             RRand,
+                             RProgress>
+      (data, idx, dist, max_candidates, n_iters, delta, rho, verbose);
+    }
   }
   else if (metric == "cosine") {
-    return nn_descent_impl<Cosine<float, float>,
-                           RRand,
-                           RProgress>
-    (data, idx, dist, max_candidates, n_iters, delta, rho, verbose);
+    if (use_set) {
+      return nn_descent_impl<SetHeap,
+                             Cosine<float, float>,
+                             RRand,
+                             RProgress>
+      (data, idx, dist, max_candidates, n_iters, delta, rho, verbose);
+    }
+    else {
+      return nn_descent_impl<ArrayHeap,
+                             Cosine<float, float>,
+                             RRand,
+                             RProgress>
+      (data, idx, dist, max_candidates, n_iters, delta, rho, verbose);
+    }
   }
   else if (metric == "manhattan") {
-    return nn_descent_impl<Manhattan<float, float>,
-                           RRand,
-                           RProgress>
-    (data, idx, dist, max_candidates, n_iters, delta, rho, verbose);
+    if (use_set) {
+      return nn_descent_impl<SetHeap,
+                             Manhattan<float, float>,
+                             RRand,
+                             RProgress>
+      (data, idx, dist, max_candidates, n_iters, delta, rho, verbose);
+    }
+    else {
+      return nn_descent_impl<ArrayHeap,
+                             Manhattan<float, float>,
+                             RRand,
+                             RProgress>
+      (data, idx, dist, max_candidates, n_iters, delta, rho, verbose);
+    }
   }
   else if (metric == "hamming") {
-    return nn_descent_impl<Hamming<uint8_t, std::size_t>,
-                           RRand,
-                           RProgress>
-    (data, idx, dist, max_candidates, n_iters, delta, rho, verbose);
+    if (use_set) {
+      return nn_descent_impl<SetHeap,
+                             Hamming<uint8_t, std::size_t>,
+                             RRand,
+                             RProgress>
+      (data, idx, dist, max_candidates, n_iters, delta, rho, verbose);
+    }
+    else {
+      return nn_descent_impl<ArrayHeap,
+                             Hamming<uint8_t, std::size_t>,
+                             RRand,
+                             RProgress>
+      (data, idx, dist, max_candidates, n_iters, delta, rho, verbose);
+    }
   }
   else {
     Rcpp::stop("Bad metric");

@@ -22,29 +22,35 @@
 
 #include "heap.h"
 
-template <typename Rand>
-void build_candidates(Heap& current_graph, Heap& candidate_neighbors,
-                      const std::size_t npoints, const std::size_t nnbrs) {
+template <typename Heap,
+          typename Rand>
+ArrayHeap build_candidates(Heap& current_graph,
+                         std::size_t max_candidates,
+                         const std::size_t npoints,
+                         const std::size_t nnbrs) {
   Rand rand;
+
+  ArrayHeap candidate_neighbors(npoints, max_candidates);
+
   for (std::size_t i = 0; i < npoints; i++) {
     for (std::size_t j = 0; j < nnbrs; j++) {
       if (current_graph.idx[i][j] < 0) {
         continue;
       }
-      int idx = current_graph.idx[i][j];
+      std::size_t idx = current_graph.idx[i][j];
       bool isn = current_graph.flags[i][j];
       double d = rand.unif();
 
-      candidate_neighbors.push(i, d, idx, isn);
-      candidate_neighbors.push(static_cast<std::size_t>(idx), d, i, isn);
-
+      candidate_neighbors.add_pair(i, idx, d, isn);
       current_graph.flags[i][j] = false;
     }
   }
+  return candidate_neighbors;
 }
 
 
-template <typename Distance,
+template <typename Heap,
+          typename Distance,
           typename Rand,
           typename Progress>
 void nnd(
@@ -65,9 +71,7 @@ void nnd(
       progress.iter(n, n_iters, heap);
     }
 
-    Heap candidate_neighbors(npoints, max_candidates);
-
-    build_candidates<Rand>(heap, candidate_neighbors, npoints, nnbrs);
+    ArrayHeap candidate_neighbors = build_candidates<Heap, Rand>(heap, max_candidates, npoints, nnbrs);
 
     std::size_t c = 0;
     for (std::size_t i = 0; i < npoints; i++) {
@@ -78,14 +82,13 @@ void nnd(
         }
 
         for (std::size_t k = 0; k < max_candidates; k++) {
-          int q = candidate_neighbors.idx[i][k];
-          if (q < 0 || (!candidate_neighbors.flags[i][j] &&
+          std::size_t q = candidate_neighbors.idx[i][k];
+          if (q == Heap::npos || (!candidate_neighbors.flags[i][j] &&
               !candidate_neighbors.flags[i][k])) {
               continue;
           }
           double d = distance(p, q);
-          c += heap.push(p, d, q, true);
-          c += heap.push(q, d, p, true);
+          c += heap.add_pair(p, q, d, true);
         }
       }
       progress.check_interrupt();

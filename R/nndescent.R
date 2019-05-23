@@ -399,6 +399,8 @@ random_nbrs <- function(X, k, metric = "euclidean") {
 #' @param rho Sample rate. This fraction of possible items will be used in the
 #'   local join stage.
 #' @param use_cpp If \code{TRUE}, use the faster C++ code path.
+#' @param use_set If \code{TRUE}, cache pair lookups in a set. This increases
+#'   speed at the cost of a memory use. Applies only if \code{use_cpp = TRUE}.
 #' @param verbose If \code{TRUE}, log information to the console.
 #' @return a list containing:
 #' \itemize{
@@ -413,6 +415,7 @@ nnd_knn <- function(data, k,
                     max_candidates = 50,
                     delta = 0.001, rho = 0.5,
                     use_cpp = TRUE,
+                    use_set = FALSE,
                     verbose = FALSE) {
   # As a minor optimization, we will use L2 internally if the user asks for
   # Euclidean and only take the square root of the final distances.
@@ -430,7 +433,8 @@ nnd_knn <- function(data, k,
     res <- nn_descent(data, init$indices, init$dist,
                       metric = actual_metric,
                       n_iters = n_iters, max_candidates = max_candidates,
-                      delta = delta, rho = rho, verbose = verbose)
+                      delta = delta, rho = rho, use_set = use_set,
+                      verbose = verbose)
   }
   else {
     res <- nn_descent_optl(data, init, metric = actual_metric, n_iters = n_iters,
