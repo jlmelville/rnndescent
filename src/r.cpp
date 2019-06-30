@@ -50,15 +50,16 @@ struct RProgress {
   }
 };
 
-template <typename Heap>
-Heap r_to_heap(
+template <template<typename> class Heap, typename Distance>
+Heap<Distance> r_to_heap(
+    Distance& distance,
     Rcpp::IntegerMatrix idx,
     Rcpp::NumericMatrix dist
 ) {
   const std::size_t npoints = idx.nrow();
   const std::size_t nnbrs = idx.ncol();
 
-  Heap heap(npoints, nnbrs);
+  Heap<Distance> heap(distance, npoints, nnbrs);
   const int max_idx = npoints - 1; // internally we need to be 0-indexed
   for (std::size_t i = 0; i < npoints; i++) {
     for (std::size_t j = 0; j < nnbrs; j++) {
@@ -66,8 +67,7 @@ Heap r_to_heap(
       if (k < 0 || k > max_idx) {
         Rcpp::stop("Bad indexes in input");
       }
-      const double d = dist(i, j);
-      heap.add_pair(i, k, d, true);
+      heap.add_pair(i, k, true);
     }
   }
 
@@ -75,8 +75,7 @@ Heap r_to_heap(
 }
 
 // transfer data into R Matrices
-template <typename Heap>
-Rcpp::List heap_to_r(const Heap& heap) {
+Rcpp::List heap_to_r(const NeighborHeap& heap) {
   const std::size_t npoints = heap.idx.size();
   const std::size_t nnbrs = heap.idx[0].size();
 
@@ -95,7 +94,7 @@ Rcpp::List heap_to_r(const Heap& heap) {
   );
 }
 
-template <typename Heap,
+template <template<typename> class Heap,
           typename Distance,
           typename Rand,
           typename Progress>
@@ -111,8 +110,6 @@ Rcpp::List nn_descent_impl(
   const std::size_t npoints = idx.nrow();
   const std::size_t nnbrs = idx.ncol();
 
-  Heap heap = r_to_heap<Heap>(idx, dist);
-
   const std::size_t ndim = data.ncol();
   data = Rcpp::transpose(data);
   auto data_vec = Rcpp::as<std::vector<typename Distance::in_type>>(data);
@@ -120,14 +117,16 @@ Rcpp::List nn_descent_impl(
   Progress progress;
   Rand rand;
   Distance distance(data_vec, ndim);
+  Heap<Distance> heap = r_to_heap<Heap, Distance>(distance, idx, dist);
+
   const double tol = delta * nnbrs * npoints;
 
-  nnd(heap, max_candidates, n_iters, npoints, nnbrs, distance, rand, progress,
+  nnd(heap, max_candidates, n_iters, npoints, nnbrs, rand, progress,
       rho, tol, verbose);
 
-  heap.deheap_sort();
+  heap.neighbor_heap.deheap_sort();
 
-  return heap_to_r(heap);
+  return heap_to_r(heap.neighbor_heap);
 }
 
 // [[Rcpp::export]]

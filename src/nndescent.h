@@ -22,15 +22,21 @@
 
 #include "heap.h"
 
-template <typename Heap,
-          typename Rand>
-ArrayHeap build_candidates(Heap& current_graph,
-                         std::size_t max_candidates,
-                         const std::size_t npoints,
-                         const std::size_t nnbrs) {
-  Rand rand;
 
-  ArrayHeap candidate_neighbors(npoints, max_candidates);
+// Builds the general neighbors of each object, keeping up to max_candidates
+// per object. The objects are associated with a random number rather than
+// the true distance, and hence are stored in random order.
+template <typename Rand>
+
+NeighborHeap build_candidates(
+    NeighborHeap& current_graph,
+    std::size_t max_candidates,
+    const std::size_t npoints,
+    const std::size_t nnbrs)
+  {
+
+  RandomWeight<Rand> weight_measure;
+  RandomHeap<Rand> candidate_neighbors(weight_measure, npoints, max_candidates);
 
   for (std::size_t i = 0; i < npoints; i++) {
     for (std::size_t j = 0; j < nnbrs; j++) {
@@ -39,27 +45,26 @@ ArrayHeap build_candidates(Heap& current_graph,
       }
       std::size_t idx = current_graph.idx[i][j];
       bool isn = current_graph.flags[i][j];
-      double d = rand.unif();
 
-      candidate_neighbors.add_pair(i, idx, d, isn);
+      candidate_neighbors.add_pair(i, idx, isn);
+      // incremental search: mark this object false to indicate it has
+      // participated in the local join
       current_graph.flags[i][j] = false;
     }
   }
-  return candidate_neighbors;
+  return candidate_neighbors.neighbor_heap;
 }
 
-
-template <typename Heap,
+template <template<typename> class Heap,
           typename Distance,
           typename Rand,
           typename Progress>
 void nnd(
-    Heap& heap,
+    Heap<Distance>& current_graph,
     const std::size_t max_candidates,
     const std::size_t n_iters,
     const std::size_t npoints,
     const std::size_t nnbrs,
-    Distance distance,
     Rand rand,
     Progress progress,
     const double rho,
@@ -68,27 +73,35 @@ void nnd(
 {
   for (std::size_t n = 0; n < n_iters; n++) {
     if (verbose) {
-      progress.iter(n, n_iters, heap);
+      progress.iter(n, n_iters, current_graph.neighbor_heap);
     }
 
-    ArrayHeap candidate_neighbors = build_candidates<Heap, Rand>(heap, max_candidates, npoints, nnbrs);
+    NeighborHeap candidate_neighbors = build_candidates<Rand>(
+      current_graph.neighbor_heap, max_candidates, npoints, nnbrs);
 
     std::size_t c = 0;
     for (std::size_t i = 0; i < npoints; i++) {
+      // local join: for each pair of points p, q in the general neighbor list
+      // of i, calculate dist(p, q) and update neighbor list of p and q
+      // NB: the neighbor list of i is unchanged by this operation
       for (std::size_t j = 0; j < max_candidates; j++) {
         int p = candidate_neighbors.idx[i][j];
         if (p < 0 || rand.unif() < rho) {
+          // only sample rho * max_candidates of the general neighbors
           continue;
         }
 
         for (std::size_t k = 0; k < max_candidates; k++) {
           std::size_t q = candidate_neighbors.idx[i][k];
-          if (q == Heap::npos || (!candidate_neighbors.flags[i][j] &&
-              !candidate_neighbors.flags[i][k])) {
+          if (q == NeighborHeap::npos ||
+              (!candidate_neighbors.flags[i][j] &&
+               !candidate_neighbors.flags[i][k]))
+          {
+              // incremental search: two objects are only compared if at least
+              // one of them is new
               continue;
           }
-          double d = distance(p, q);
-          c += heap.add_pair(p, q, d, true);
+          c += current_graph.add_pair(p, q, true);
         }
       }
       progress.check_interrupt();
@@ -101,6 +114,5 @@ void nnd(
     }
   }
 }
-
 
 #endif // RNND_NNDESCENT_H

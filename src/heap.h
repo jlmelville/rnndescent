@@ -23,9 +23,7 @@
 #include <limits>
 
 // Base class storing neighbor data as a series of heaps
-// Uses CRTP for compile-time polymorphism
-template <typename AddPolicy>
-struct HeapBase
+struct NeighborHeap
 {
   // used in analogy with std::string::npos as used in std::string::find
   // to represent not found
@@ -35,37 +33,23 @@ struct HeapBase
   std::vector<std::vector<double>> dist;
   std::vector<std::vector<bool>> flags; // vector of bool, yes ugh
 
-  HeapBase(const std::size_t n_points, const std::size_t size) {
+  NeighborHeap(
+    const std::size_t n_points,
+    const std::size_t size)
+  {
     for (std::size_t i = 0; i < n_points; i++) {
       idx.push_back(std::vector<std::size_t>(size, npos));
-      dist.push_back(std::vector<double>(size, std::numeric_limits<double>::max()));
+      dist.push_back(std::vector<double>(size,
+                                         std::numeric_limits<double>::max()));
       flags.push_back(std::vector<bool>(size, false));
     }
   }
 
-  unsigned int add_pair(std::size_t i, std::size_t j, double d, bool flag)
-  {
-    return static_cast<AddPolicy&>(*this).add_pair(i, j, dist, flag);
-  }
-
-  unsigned int push(std::size_t row, double weight, std::size_t index, bool flag) {
-    if (weight >= dist[row][0]) {
-      return 0;
-    }
-
-    // break if we already have this element
-    std::vector<std::size_t>& indices = idx[row];
-    const std::size_t n_nbrs = indices.size();
-    for (std::size_t i = 0; i < n_nbrs; i++) {
-      if (index == indices[i]) {
-        return 0;
-      }
-    }
-
-    return unchecked_push(row, weight, index, flag);
-  }
-
-  unsigned int unchecked_push(std::size_t row, double weight, std::size_t index, bool flag)
+  unsigned int unchecked_push(
+      std::size_t row,
+      double weight,
+      std::size_t index,
+      bool flag)
   {
     std::vector<std::size_t>& indices = idx[row];
     std::vector<double>& weights = dist[row];
@@ -173,16 +157,32 @@ struct HeapBase
   }
 };
 
+constexpr std::size_t NeighborHeap::npos;
 
-template <class T> constexpr std::size_t HeapBase<T>::npos;
+///////////////////////////////////////
 
 // Checks for duplicates by iterating over the entire array of stored indexes
-struct ArrayHeap : public HeapBase<ArrayHeap>
+template <typename WeightMeasure>
+struct ArrayHeap
 {
-  ArrayHeap(const std::size_t n_points, const std::size_t size) : HeapBase(n_points, size) {}
+  NeighborHeap neighbor_heap;
+  WeightMeasure weight_measure;
 
-  unsigned int add_pair(std::size_t i, std::size_t j, double d, bool flag)
+  ArrayHeap(
+    WeightMeasure& weight_measure,
+    const std::size_t n_points,
+    const std::size_t size) :
+  neighbor_heap(n_points, size),
+  weight_measure(weight_measure)
+    {}
+
+  unsigned int add_pair(
+      std::size_t i,
+      std::size_t j,
+      bool flag)
   {
+    double d = weight_measure(i, j);
+
     unsigned int c = 0;
     c += push(i, d, j, flag);
     if (i != j) {
@@ -191,6 +191,46 @@ struct ArrayHeap : public HeapBase<ArrayHeap>
 
     return c;
   }
+
+  unsigned int push(
+      std::size_t row,
+      double weight,
+      std::size_t index,
+      bool flag)
+  {
+    if (weight >= neighbor_heap.dist[row][0]) {
+      return 0;
+    }
+
+    // break if we already have this element
+    std::vector<std::size_t>& indices = neighbor_heap.idx[row];
+    const std::size_t n_nbrs = indices.size();
+    for (std::size_t i = 0; i < n_nbrs; i++) {
+      if (index == indices[i]) {
+        return 0;
+      }
+    }
+
+    return neighbor_heap.unchecked_push(row, weight, index, flag);
+  }
 };
+
+template <typename Rand>
+struct RandomWeight
+{
+  Rand rand;
+
+  RandomWeight() { }
+
+  double operator()(
+      std::size_t i,
+      std::size_t j)
+  {
+    return rand.unif();
+  }
+};
+
+template <typename Rand>
+using RandomHeap = ArrayHeap<RandomWeight<Rand>>;
 
 #endif // RNDD_HEAP_H
