@@ -159,7 +159,6 @@ struct NeighborHeap
 
 constexpr std::size_t NeighborHeap::npos;
 
-///////////////////////////////////////
 
 // Checks for duplicates by iterating over the entire array of stored indexes
 template <typename WeightMeasure>

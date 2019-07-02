@@ -440,13 +440,13 @@ nnd_knn <- function(data, k,
     res <- nn_descent_optl(data, init, metric = actual_metric, n_iters = n_iters,
                            max_candidates = max_candidates,
                            delta = delta, rho = rho, verbose = verbose)
+    res$idx <- res$idx + 1
 
   }
   if (metric == "euclidean") {
     res$dist <- sqrt(res$dist)
   }
   tsmessage("Final dsum = ", formatC(sum(res$dist)))
-  res$idx <- res$idx + 1
   res
 }
 

@@ -26,10 +26,13 @@
 
 #include "heap.h"
 
+// Heap function for a pair
 template <typename T>
 struct pair_hash
 {
-  std::size_t operator()(const std::pair<T, T>& p) const
+  std::size_t operator()(
+      const std::pair<T, T>& p
+  ) const
   {
     std::size_t seed = 0;
     boost::hash_combine(seed, p.first);
@@ -41,15 +44,29 @@ struct pair_hash
 
 // Checks for duplicates by storing a set of already-seen pairs. Takes up more
 // memory but might be faster if lots of duplicate pairs are expected
-struct SetHeap : public HeapBase<SetHeap>
+template <typename WeightMeasure>
+struct SetHeap
 {
-  std::unordered_set<std::pair<std::size_t, std::size_t>, pair_hash<std::size_t>> seen;
+
+  NeighborHeap neighbor_heap;
+  WeightMeasure weight_measure;
+  std::unordered_set<std::pair<std::size_t, std::size_t>,
+                     pair_hash<std::size_t>> seen;
   std::size_t npairs;
 
-  SetHeap(const std::size_t n_points, const std::size_t size)
-    : HeapBase(n_points, size), seen(), npairs(0) {}
+  SetHeap(WeightMeasure& weight_measure,
+          const std::size_t n_points,
+          const std::size_t size)
+    : neighbor_heap(n_points, size),
+      weight_measure(weight_measure),
+      seen(),
+      npairs(0)
+    {}
 
-  unsigned int add_pair(std::size_t i, std::size_t j, double d, bool flag)
+  unsigned int add_pair(
+      std::size_t i,
+      std::size_t j,
+      bool flag)
   {
     ++npairs;
 
@@ -63,12 +80,14 @@ struct SetHeap : public HeapBase<SetHeap>
     }
     seen.insert(p);
 
+    double d = weight_measure(i, j);
+
     unsigned int c = 0;
-    if (d < dist[i][0]) {
-      c += unchecked_push(i, d, j, flag);
+    if (d < neighbor_heap.dist[i][0]) {
+      c += neighbor_heap.unchecked_push(i, d, j, flag);
     }
-    if (i != j && d < dist[j][0]) {
-      c += unchecked_push(j, d, i, flag);
+    if (i != j && d < neighbor_heap.dist[j][0]) {
+      c += neighbor_heap.unchecked_push(j, d, i, flag);
     }
 
     return c;

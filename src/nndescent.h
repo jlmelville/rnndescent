@@ -21,19 +21,19 @@
 #define RNND_NNDESCENT_H
 
 #include "heap.h"
+#include "setheap.h"
 
 
 // Builds the general neighbors of each object, keeping up to max_candidates
 // per object. The objects are associated with a random number rather than
 // the true distance, and hence are stored in random order.
 template <typename Rand>
-
 NeighborHeap build_candidates(
     NeighborHeap& current_graph,
     std::size_t max_candidates,
     const std::size_t npoints,
     const std::size_t nnbrs)
-  {
+{
 
   RandomWeight<Rand> weight_measure;
   RandomHeap<Rand> candidate_neighbors(weight_measure, npoints, max_candidates);
@@ -55,6 +55,43 @@ NeighborHeap build_candidates(
   return candidate_neighbors.neighbor_heap;
 }
 
+template <typename Heap,
+          typename Rand>
+void build_candidates_full(
+    NeighborHeap& current_graph,
+    RandomHeap<Rand>& new_candidate_neighbors,
+    RandomHeap<Rand>& old_candidate_neighbors,
+    std::size_t npoints,
+    std::size_t nnbrs,
+    std::size_t max_candidates,
+    double rho)
+{
+  Rand rand;
+
+  for (std::size_t i = 0; i < npoints; i++) {
+    for (std::size_t j = 0; j < nnbrs; j++) {
+      if (current_graph.idx[i][j] < 0) {
+        continue;
+      }
+      std::size_t idx = current_graph.idx[i][j];
+      bool isn = current_graph.flags[i][j];
+
+      if (rand.unif() < rho) {
+        if (isn) {
+          unsigned int c = new_candidate_neighbors.add_pair(i, idx, isn);
+          if (c > 0) {
+            current_graph.flags[i][j] = false;
+          }
+        }
+        else {
+          old_candidate_neighbors.add_pair(i, idx, isn);
+        }
+      }
+    }
+  }
+}
+
+// Closer to the basic NNDescent algorithm (#1 in the paper)
 template <template<typename> class Heap,
           typename Distance,
           typename Rand,
@@ -95,11 +132,78 @@ void nnd(
           std::size_t q = candidate_neighbors.idx[i][k];
           if (q == NeighborHeap::npos ||
               (!candidate_neighbors.flags[i][j] &&
-               !candidate_neighbors.flags[i][k]))
+              !candidate_neighbors.flags[i][k]))
           {
-              // incremental search: two objects are only compared if at least
-              // one of them is new
-              continue;
+            // incremental search: two objects are only compared if at least
+            // one of them is new
+            continue;
+          }
+          c += current_graph.add_pair(p, q, true);
+        }
+      }
+      progress.check_interrupt();
+    }
+    if (static_cast<double>(c) <= tol) {
+      if (verbose) {
+        progress.converged(c, tol);
+      }
+      break;
+    }
+  }
+}
+
+// Closer to the NNDescentFull algorithm (#2 in the paper)
+template <template<typename> class Heap,
+          typename Distance,
+          typename Rand,
+          typename Progress>
+void nnd_full(
+    Heap<Distance>& current_graph,
+    const std::size_t max_candidates,
+    const std::size_t n_iters,
+    const std::size_t npoints,
+    const std::size_t nnbrs,
+    Rand rand,
+    Progress progress,
+    const double rho,
+    const double tol,
+    bool verbose)
+{
+  RandomWeight<Rand> weight_measure;
+
+  for (std::size_t n = 0; n < n_iters; n++) {
+    if (verbose) {
+      progress.iter(n, n_iters, current_graph.neighbor_heap);
+    }
+
+    RandomHeap<Rand> old_candidate_neighbors(weight_measure, npoints,
+                                             max_candidates);
+    RandomHeap<Rand> new_candidate_neighbors(weight_measure, npoints,
+                                             max_candidates);
+
+    build_candidates_full<Rand>(current_graph.neighbor_heap,
+                                new_candidate_neighbors,
+                                old_candidate_neighbors,
+                                npoints, nnbrs, max_candidates, rho);
+    std::size_t c = 0;
+    for (std::size_t i = 0; i < npoints; i++) {
+      for (std::size_t j = 0; j < max_candidates; j++) {
+        std::size_t p = new_candidate_neighbors.neighbor_heap.idx[i][j];
+        if (p == NeighborHeap::npos) {
+          continue;
+        }
+        for (std::size_t k = j; k < max_candidates; k++) {
+          std::size_t q = new_candidate_neighbors.neighbor_heap.idx[i][k];
+          if (q == NeighborHeap::npos) {
+            continue;
+          }
+          c += current_graph.add_pair(p, q, true);
+        }
+
+        for (std::size_t k = 0; k < max_candidates; k++) {
+          std::size_t q = old_candidate_neighbors.neighbor_heap.idx[i][k];
+          if (q == NeighborHeap::npos) {
+            continue;
           }
           c += current_graph.add_pair(p, q, true);
         }

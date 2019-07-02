@@ -83,7 +83,7 @@ Rcpp::List heap_to_r(const NeighborHeap& heap) {
   Rcpp::NumericMatrix distres(npoints, nnbrs);
   for (std::size_t i = 0; i < npoints; i++) {
     for (std::size_t j = 0; j < nnbrs; j++) {
-      idxres(i, j) = heap.idx[i][j];
+      idxres(i, j) = heap.idx[i][j] + 1;
       distres(i, j) = heap.dist[i][j];
     }
   }
@@ -121,8 +121,8 @@ Rcpp::List nn_descent_impl(
 
   const double tol = delta * nnbrs * npoints;
 
-  nnd(heap, max_candidates, n_iters, npoints, nnbrs, rand, progress,
-      rho, tol, verbose);
+  nnd_full(heap, max_candidates, n_iters, npoints, nnbrs, rand, progress, rho,
+           tol, verbose);
 
   heap.neighbor_heap.deheap_sort();
 
