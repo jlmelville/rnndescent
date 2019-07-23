@@ -1,10 +1,6 @@
 library(rnndescent)
-context("NN descent")
+context("NN descent Euclidean")
 
-# ten iris entries where the 4 nearest neighbors are distinct
-uiris <- unique(iris)
-uirism <- as.matrix(uiris[, -5])
-ui10 <- uirism[6:15, ]
 
 i10_rdist <- matrix(
   c(0.812403840463596, 0.346410161513775, 0.994987437106621, 1.45945195193264,
@@ -146,56 +142,6 @@ expect_equal(sum(iris_nnd$dist), 1016.834, tol = 1e-3)
 set.seed(1337); uiris_rnn <- nnd_knn(uirism, 15, use_cpp = TRUE)
 expect_equal(sum(uiris_rnn$dist), 1016.834, tol = 1e-3)
 
-# Cosine distance
-set.seed(1337); uiris_rnn <- nnd_knn(uirism, 15, use_cpp = TRUE, metric = "cosine")
-# expected sum from RcppHNSW
-expect_equal(sum(uiris_rnn$dist), 1.347357, tol = 1e-3)
-
-# Manhattan
-set.seed(1337)
-juirism <- jitter(uirism)
-set.seed(1337); juiris_rnn <- nnd_knn(juirism, 15, use_cpp = TRUE, metric = "manhattan")
-# expected sum from Annoy
-expect_equal(sum(juiris_rnn$dist), 1674.102, tol = 1e-3)
-
-# Hamming
-# from Annoy
-expected_hamm_idx <- matrix(
-  c(1, 7, 4, 5,
-    2, 10, 3, 9,
-    3, 4, 2, 7,
-    4, 3, 1, 7,
-    5, 6, 7, 1,
-    6, 5, 10, 3,
-    7, 1, 10, 5,
-    8, 9, 10, 7,
-    9, 8, 10, 4,
-    10, 2, 9, 7),
-byrow = TRUE, nrow = 10, ncol = 4
-)
-
-expected_hamm_dist <- matrix(
-c(0, 72, 74, 77,
-  0, 69, 78, 79,
-  0, 65, 78, 79,
-  0, 65, 74, 76,
-  0, 67, 75, 77,
-  0, 67, 80, 81,
-  0, 72, 74, 75,
-  0, 69, 77, 81,
-  0, 69, 72, 78,
-  0, 69, 72, 74),
-byrow = TRUE, nrow = 10, ncol = 4
-)
-
-bitm <- function(nrow, ncol, prob = 0.5) {
-  matrix(rbinom(n = nrow * ncol, size = 1, prob = prob), ncol = ncol)
-}
-
-set.seed(1337); bitdata <- bitm(nrow = 10, ncol = 160)
-set.seed(1337); bit_rnn <- nnd_knn(bitdata, 4, use_cpp = TRUE, metric = "hamming")
-expect_equal(bit_rnn$idx, expected_hamm_idx, check.attributes = FALSE)
-expect_equal(bit_rnn$dist, expected_hamm_dist, check.attributes = FALSE)
 
 # C++ with set backing
 set.seed(1337); rnnd <- nn_descent(ui10, i10_ridx, i10_rdist, verbose = FALSE, use_set = TRUE)
@@ -210,19 +156,5 @@ expect_equal(sum(iris_nnd$dist), 1016.834, tol = 1e-3)
 set.seed(1337); uiris_rnn <- nnd_knn(uirism, 15, use_cpp = TRUE, use_set = TRUE)
 expect_equal(sum(uiris_rnn$dist), 1016.834, tol = 1e-3)
 
-# Cosine distance
-set.seed(1337); uiris_rnn <- nnd_knn(uirism, 15, use_cpp = TRUE, use_set = TRUE, metric = "cosine")
-# expected sum from RcppHNSW
-expect_equal(sum(uiris_rnn$dist), 1.347357, tol = 1e-3)
 
-# Manhattan
-set.seed(1337); juiris_rnn <- nnd_knn(juirism, 15, use_cpp = TRUE, use_set = TRUE, metric = "manhattan")
-# expected sum from Annoy
-expect_equal(sum(juiris_rnn$dist), 1674.102, tol = 1e-3)
-
-# Hamming
-set.seed(1337); bitdata <- bitm(nrow = 10, ncol = 160)
-set.seed(1337); bit_rnn <- nnd_knn(bitdata, 4, use_cpp = TRUE, use_set = TRUE, metric = "hamming")
-expect_equal(bit_rnn$idx, expected_hamm_idx, check.attributes = FALSE)
-expect_equal(bit_rnn$dist, expected_hamm_dist, check.attributes = FALSE)
 
