@@ -74,9 +74,9 @@ heap_push <- function(heap, row, weight, index, flag) {
       }
     }
 
-    weights[i + 1] = weights[i_swap + 1]
-    indices[i + 1] = indices[i_swap + 1]
-    is_new[i + 1] = is_new[i_swap + 1]
+    weights[i + 1] <- weights[i_swap + 1]
+    indices[i + 1] <- indices[i_swap + 1]
+    is_new[i + 1] <- is_new[i_swap + 1]
 
     i <- i_swap
   }
@@ -244,7 +244,6 @@ nn_to_heapl <- function(l) {
 
 build_candidates <- function(current_graph, n_vertices, n_neighbors,
                              max_candidates = 50) {
-
   candidate_neighbors <- make_heap(n_vertices, max_candidates)
   for (i in 1:n_vertices) {
     for (j in 1:n_neighbors) {
@@ -262,8 +261,10 @@ build_candidates <- function(current_graph, n_vertices, n_neighbors,
     }
   }
 
-  list(candidate_neighbors = candidate_neighbors,
-       current_graph = current_graph)
+  list(
+    candidate_neighbors = candidate_neighbors,
+    current_graph = current_graph
+  )
 }
 
 
@@ -277,15 +278,16 @@ nn_descent_opt <- function(data, metric, indices, dist, n_iters = 10, max_candid
   for (iter in 1:n_iters) {
     tsmessage(iter, " / ", n_iters, " ", formatC(sum(current_graph[2, , ])))
 
-    res <- build_candidates(current_graph, n_vertices, n_neighbors,
-                            max_candidates)
+    res <- build_candidates(
+      current_graph, n_vertices, n_neighbors,
+      max_candidates
+    )
     candidate_neighbors <- res$candidate_neighbors
     current_graph <- res$current_graph
 
     c <- 0
     for (i in 1:n_vertices) {
       for (j in 1:max_candidates) {
-
         p <- candidate_neighbors[1, i, j]
 
         if (p < 0 || stats::runif(1) < rho) {
@@ -295,8 +297,7 @@ nn_descent_opt <- function(data, metric, indices, dist, n_iters = 10, max_candid
         for (k in 1:max_candidates) {
           q <- candidate_neighbors[1, i, k]
           if (q < 0 || candidate_neighbors[3, i, j] == 0 &&
-              candidate_neighbors[3, i, k] == 0)
-          {
+            candidate_neighbors[3, i, k] == 0) {
             next
           }
           d <- dist_fn(data, p + 1, q + 1)
@@ -325,27 +326,28 @@ nn_descent_optl <- function(data, l, metric = "euclidean", n_iters = 10,
                             delta = 0.001, rho = 0.5,
                             verbose = FALSE) {
   nn_descent_opt(data, metric, l$indices, l$dist,
-                 n_iters = n_iters, max_candidates = max_candidates,
-                 delta = delta, rho = rho,
-                 verbose = verbose)
+    n_iters = n_iters, max_candidates = max_candidates,
+    delta = delta, rho = rho,
+    verbose = verbose
+  )
 }
 
 create_dist_fn <- function(metric) {
   switch(metric,
-         l2 = l2_dist,
-         euclidean = euc_dist,
-         cosine = cos_dist,
-         manhattan = manhattan_dist,
-         hamming = hamming_dist,
-         stop("Unknown metric '", metric, "'")
+    l2 = l2_dist,
+    euclidean = euc_dist,
+    cosine = cos_dist,
+    manhattan = manhattan_dist,
+    hamming = hamming_dist,
+    stop("Unknown metric '", metric, "'")
   )
 }
 
 det_nbrs <- function(X, k, metric = "euclidean") {
   dist_fn <- create_dist_fn(metric)
-  nr = nrow(X)
-  indices = matrix(0, nrow = nr, ncol = k)
-  dist = matrix(Inf, nrow = nr, ncol = k)
+  nr <- nrow(X)
+  indices <- matrix(0, nrow = nr, ncol = k)
+  dist <- matrix(Inf, nrow = nr, ncol = k)
 
   for (i in 1:nr) {
     for (j in 1:k) {
@@ -362,9 +364,9 @@ det_nbrs <- function(X, k, metric = "euclidean") {
 }
 
 random_nbrs <- function(X, k, metric = "euclidean") {
-  nr = nrow(X)
-  indices = matrix(0, nrow = nr, ncol = k)
-  dist = matrix(Inf, nrow = nr, ncol = k)
+  nr <- nrow(X)
+  indices <- matrix(0, nrow = nr, ncol = k)
+  dist <- matrix(Inf, nrow = nr, ncol = k)
   dist_fn <- create_dist_fn(metric)
 
   for (i in 1:nr) {
@@ -431,17 +433,19 @@ nnd_knn <- function(data, k,
 
   if (use_cpp) {
     res <- nn_descent(data, init$indices, init$dist,
-                      metric = actual_metric,
-                      n_iters = n_iters, max_candidates = max_candidates,
-                      delta = delta, rho = rho, use_set = use_set,
-                      verbose = verbose)
+      metric = actual_metric,
+      n_iters = n_iters, max_candidates = max_candidates,
+      delta = delta, rho = rho, use_set = use_set,
+      verbose = verbose
+    )
   }
   else {
-    res <- nn_descent_optl(data, init, metric = actual_metric, n_iters = n_iters,
-                           max_candidates = max_candidates,
-                           delta = delta, rho = rho, verbose = verbose)
+    res <- nn_descent_optl(data, init,
+      metric = actual_metric, n_iters = n_iters,
+      max_candidates = max_candidates,
+      delta = delta, rho = rho, verbose = verbose
+    )
     res$idx <- res$idx + 1
-
   }
   if (metric == "euclidean") {
     res$dist <- sqrt(res$dist)
