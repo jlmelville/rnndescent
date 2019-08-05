@@ -22,7 +22,7 @@
 
 #include <unordered_set>
 
-#include <boost/functional/hash.hpp>
+//#include <boost/functional/hash.hpp>
 
 #include "heap.h"
 
@@ -34,11 +34,19 @@ struct pair_hash
       const std::pair<T, T>& p
   ) const
   {
-    std::size_t seed = 0;
-    boost::hash_combine(seed, p.first);
-    boost::hash_combine(seed, p.second);
+    // std::size_t seed = 0;
+    // boost::hash_combine(seed, p.first);
+    // boost::hash_combine(seed, p.second);
+    // return seed;
 
-    return seed;
+
+    constexpr std::size_t prime = 31;
+    constexpr std::size_t pprime = 31 * 31;
+    //std::size_t result = 1;
+    //result = prime + p.first;
+    //result =
+    return pprime + prime * p.first + p.second;
+    //return prime * (prime + p.first) + p.second;
   }
 };
 

@@ -14,6 +14,6 @@ Suggests:
     testthat
 RoxygenNote: 6.1.1
 LinkingTo: 
-    Rcpp, BH
+    Rcpp
 Imports: 
     Rcpp, methods
