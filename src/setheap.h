@@ -30,6 +30,9 @@
 template <typename T>
 struct pair_hash
 {
+  static constexpr std::size_t prime = 31;
+  static constexpr std::size_t pprime = 31 * 31;
+
   std::size_t operator()(
       const std::pair<T, T>& p
   ) const
@@ -40,8 +43,7 @@ struct pair_hash
     // return seed;
 
 
-    constexpr std::size_t prime = 31;
-    constexpr std::size_t pprime = 31 * 31;
+
     //std::size_t result = 1;
     //result = prime + p.first;
     //result =
