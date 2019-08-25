@@ -26,40 +26,25 @@
 
 #include "heap.h"
 
-// Heap function for a pair
-template <typename T>
-struct pair_hash
-{
-  std::size_t operator()(
-      const std::pair<T, T>& p
-  ) const
-  {
-    std::size_t seed = 0;
-    boost::hash_combine(seed, p.first);
-    boost::hash_combine(seed, p.second);
-    return seed;
-  }
-};
+using pair = std::pair<std::size_t, std::size_t>;
+
 
 // Checks for duplicates by storing a set of already-seen pairs. Takes up more
 // memory but might be faster if lots of duplicate pairs are expected
 template <typename WeightMeasure>
 struct SetHeap
 {
-
   NeighborHeap neighbor_heap;
   WeightMeasure weight_measure;
   std::unordered_set<std::pair<std::size_t, std::size_t>,
-                     pair_hash<std::size_t>> seen;
-  std::size_t npairs;
+                     boost::hash<pair>> seen;
 
   SetHeap(WeightMeasure& weight_measure,
           const std::size_t n_points,
           const std::size_t size)
     : neighbor_heap(n_points, size),
       weight_measure(weight_measure),
-      seen(),
-      npairs(0)
+      seen()
     {}
 
   unsigned int add_pair(
@@ -67,13 +52,11 @@ struct SetHeap
       std::size_t j,
       bool flag)
   {
-    ++npairs;
-
     if (i > j) {
       std::swap(i, j);
     }
 
-    std::pair<std::size_t, std::size_t> p(i, j);
+    pair p(i, j);
     if (seen.find(p) != seen.end()) {
       return 0;
     }
