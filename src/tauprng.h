@@ -22,6 +22,7 @@
 #ifndef rnndescent_TAUPRNG_H
 #define rnndescent_TAUPRNG_H
 
+#include <cmath>
 #include <limits>
 #include "Rcpp.h"
 
@@ -40,6 +41,9 @@ class tau_prng {
   static constexpr uint64_t MAGIC2 = static_cast<uint64_t>(4294967280);
 
 public:
+
+  static constexpr double DINT_MAX = static_cast<double>(std::numeric_limits<int>::max());
+
   tau_prng() {
     state0 = random64();
     state1 = random64();
@@ -58,6 +62,22 @@ public:
       ((((state2 << 3) & 0xffffffff) ^ state2) >> 11);
 
     return state0 ^ state1 ^ state2;
+  }
+
+  double rand() {
+    return std::abs(operator()() / DINT_MAX);
+  }
+};
+
+struct TauRand {
+
+  tau_prng prng;
+
+  TauRand(): prng() {}
+
+  // a random uniform value between 0 and 1
+  double unif() {
+    return prng.rand();
   }
 };
 
