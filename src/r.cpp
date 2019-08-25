@@ -23,6 +23,31 @@
 #include "heap.h"
 #include "nndescent.h"
 #include "setheap.h"
+#include "tauprng.h"
+
+#define NNDS(DistType, RandType, use_set)                         \
+if (use_set) {                                                    \
+  return nn_descent_impl<SetHeap,                                 \
+                         DistType,                                \
+                         RandType,                                \
+                         RProgress>                               \
+  (data, idx, dist, max_candidates, n_iters, delta, rho, verbose);\
+}                                                                 \
+else {                                                            \
+  return nn_descent_impl<ArrayHeap,                               \
+                         DistType,                                \
+                         RandType,                                \
+                         RProgress>                               \
+  (data, idx, dist, max_candidates, n_iters, delta, rho, verbose);\
+}
+
+#define NNDR(DistType, use_set, use_fast_rand)                 \
+if (use_fast_rand) {                                           \
+  NNDS(DistType, TauRand, use_set)                             \
+}                                                              \
+else {                                                         \
+  NNDS(DistType, RRand, use_set);                              \
+}
 
 struct RRand {
   // a random uniform value between 0 and 1
@@ -47,6 +72,11 @@ struct RProgress {
   }
   void check_interrupt() {
     Rcpp::checkUserInterrupt();
+  }
+  template<typename PHeap>
+  void report(PHeap& heap)
+  {
+    Rcpp::Rcout << heap.report() << std::endl;
   }
 };
 
@@ -140,89 +170,33 @@ Rcpp::List nn_descent(
     const double delta = 0.001,
     const double rho = 0.5,
     bool use_set = false,
+    bool fast_rand = false,
     bool verbose = false) {
 
   if (metric == "euclidean") {
-    if (use_set) {
-      return nn_descent_impl<SetHeap,
-                             Euclidean<float, float>,
-                             RRand,
-                             RProgress>
-      (data, idx, dist, max_candidates, n_iters, delta, rho, verbose);
-    }
-    else {
-      return nn_descent_impl<ArrayHeap,
-                             Euclidean<float, float>,
-                             RRand,
-                             RProgress>
-      (data, idx, dist, max_candidates, n_iters, delta, rho, verbose);
-    }
+    using dist_type = Euclidean<float, float>;
+    NNDR(dist_type, use_set, fast_rand)
   }
   else if (metric == "l2") {
-    if (use_set) {
-      return nn_descent_impl<SetHeap,
-                             L2<float, float>,
-                             RRand,
-                             RProgress>
-      (data, idx, dist, max_candidates, n_iters, delta, rho, verbose);
-    }
-    else {
-      return nn_descent_impl<ArrayHeap,
-                             L2<float, float>,
-                             RRand,
-                             RProgress>
-      (data, idx, dist, max_candidates, n_iters, delta, rho, verbose);
-    }
+    using dist_type = L2<float, float>;
+    NNDR(dist_type, use_set, fast_rand)
   }
   else if (metric == "cosine") {
-    if (use_set) {
-      return nn_descent_impl<SetHeap,
-                             Cosine<float, float>,
-                             RRand,
-                             RProgress>
-      (data, idx, dist, max_candidates, n_iters, delta, rho, verbose);
-    }
-    else {
-      return nn_descent_impl<ArrayHeap,
-                             Cosine<float, float>,
-                             RRand,
-                             RProgress>
-      (data, idx, dist, max_candidates, n_iters, delta, rho, verbose);
-    }
+    using dist_type = Cosine<float, float>;
+    NNDR(dist_type, use_set, fast_rand)
   }
   else if (metric == "manhattan") {
-    if (use_set) {
-      return nn_descent_impl<SetHeap,
-                             Manhattan<float, float>,
-                             RRand,
-                             RProgress>
-      (data, idx, dist, max_candidates, n_iters, delta, rho, verbose);
-    }
-    else {
-      return nn_descent_impl<ArrayHeap,
-                             Manhattan<float, float>,
-                             RRand,
-                             RProgress>
-      (data, idx, dist, max_candidates, n_iters, delta, rho, verbose);
-    }
+    using dist_type = Manhattan<float, float>;
+    NNDR(dist_type, use_set, fast_rand)
   }
   else if (metric == "hamming") {
-    if (use_set) {
-      return nn_descent_impl<SetHeap,
-                             Hamming<uint8_t, std::size_t>,
-                             RRand,
-                             RProgress>
-      (data, idx, dist, max_candidates, n_iters, delta, rho, verbose);
-    }
-    else {
-      return nn_descent_impl<ArrayHeap,
-                             Hamming<uint8_t, std::size_t>,
-                             RRand,
-                             RProgress>
-      (data, idx, dist, max_candidates, n_iters, delta, rho, verbose);
-    }
+    using dist_type = Hamming<uint8_t, std::size_t>;
+    NNDR(dist_type, use_set, fast_rand)
   }
   else {
     Rcpp::stop("Bad metric");
   }
 }
+
+
+

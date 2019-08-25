@@ -403,6 +403,9 @@ random_nbrs <- function(X, k, metric = "euclidean") {
 #' @param use_cpp If \code{TRUE}, use the faster C++ code path.
 #' @param use_set If \code{TRUE}, cache pair lookups in a set. This increases
 #'   speed at the cost of a memory use. Applies only if \code{use_cpp = TRUE}.
+#' @param fast_rand If \code{TRUE}, use a faster random number generator than
+#'   the R PRNG. Probably acceptable for the needs of the NN descent algorithm.
+#'   Applies only if \code{use_cpp = TRUE}.
 #' @param verbose If \code{TRUE}, log information to the console.
 #' @return a list containing:
 #' \itemize{
@@ -418,6 +421,7 @@ nnd_knn <- function(data, k,
                     delta = 0.001, rho = 0.5,
                     use_cpp = TRUE,
                     use_set = FALSE,
+                    fast_rand = FALSE,
                     verbose = FALSE) {
   # As a minor optimization, we will use L2 internally if the user asks for
   # Euclidean and only take the square root of the final distances.
@@ -435,7 +439,7 @@ nnd_knn <- function(data, k,
     res <- nn_descent(data, init$indices, init$dist,
       metric = actual_metric,
       n_iters = n_iters, max_candidates = max_candidates,
-      delta = delta, rho = rho, use_set = use_set,
+      delta = delta, rho = rho, use_set = use_set, fast_rand = fast_rand,
       verbose = verbose
     )
   }

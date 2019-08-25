@@ -6,7 +6,7 @@
 \usage{
 nnd_knn(data, k, metric = "euclidean", n_iters = 10,
   max_candidates = 50, delta = 0.001, rho = 0.5, use_cpp = TRUE,
-  use_set = FALSE, verbose = FALSE)
+  use_set = FALSE, fast_rand = FALSE, verbose = FALSE)
 }
 \arguments{
 \item{data}{Matrix of \code{n} items to search.}
@@ -33,6 +33,10 @@ local join stage.}
 
 \item{use_set}{If \code{TRUE}, cache pair lookups in a set. This increases
 speed at the cost of a memory use. Applies only if \code{use_cpp = TRUE}.}
+
+\item{fast_rand}{If \code{TRUE}, use a faster random number generator than
+the R PRNG. Probably acceptable for the needs of the NN descent algorithm.
+Applies only if \code{use_cpp = TRUE}.}
 
 \item{verbose}{If \code{TRUE}, log information to the console.}
 }

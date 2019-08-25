@@ -219,7 +219,7 @@ struct RandomWeight
 {
   Rand rand;
 
-  RandomWeight() { }
+  RandomWeight(Rand& rand) : rand(rand) { }
 
   double operator()(
       std::size_t i,

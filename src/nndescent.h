@@ -32,10 +32,11 @@ NeighborHeap build_candidates(
     NeighborHeap& current_graph,
     std::size_t max_candidates,
     const std::size_t npoints,
-    const std::size_t nnbrs)
+    const std::size_t nnbrs,
+    Rand& rand)
 {
 
-  RandomWeight<Rand> weight_measure;
+  RandomWeight<Rand> weight_measure(rand);
   RandomHeap<Rand> candidate_neighbors(weight_measure, npoints, max_candidates);
 
   for (std::size_t i = 0; i < npoints; i++) {
@@ -55,8 +56,7 @@ NeighborHeap build_candidates(
   return candidate_neighbors.neighbor_heap;
 }
 
-template <typename Heap,
-          typename Rand>
+template <typename Rand>
 void build_candidates_full(
     NeighborHeap& current_graph,
     RandomHeap<Rand>& new_candidate_neighbors,
@@ -64,10 +64,9 @@ void build_candidates_full(
     std::size_t npoints,
     std::size_t nnbrs,
     std::size_t max_candidates,
-    double rho)
+    double rho,
+    Rand& rand)
 {
-  Rand rand;
-
   for (std::size_t i = 0; i < npoints; i++) {
     for (std::size_t j = 0; j < nnbrs; j++) {
       if (current_graph.idx[i][j] < 0) {
@@ -102,7 +101,7 @@ void nnd(
     const std::size_t n_iters,
     const std::size_t npoints,
     const std::size_t nnbrs,
-    Rand rand,
+    Rand& rand,
     Progress progress,
     const double rho,
     const double tol,
@@ -114,7 +113,7 @@ void nnd(
     }
 
     NeighborHeap candidate_neighbors = build_candidates<Rand>(
-      current_graph.neighbor_heap, max_candidates, npoints, nnbrs);
+      current_graph.neighbor_heap, max_candidates, npoints, nnbrs, rand);
 
     std::size_t c = 0;
     for (std::size_t i = 0; i < npoints; i++) {
@@ -163,13 +162,13 @@ void nnd_full(
     const std::size_t n_iters,
     const std::size_t npoints,
     const std::size_t nnbrs,
-    Rand rand,
+    Rand& rand,
     Progress progress,
     const double rho,
     const double tol,
     bool verbose)
 {
-  RandomWeight<Rand> weight_measure;
+  RandomWeight<Rand> weight_measure(rand);
 
   for (std::size_t n = 0; n < n_iters; n++) {
     if (verbose) {
@@ -184,7 +183,8 @@ void nnd_full(
     build_candidates_full<Rand>(current_graph.neighbor_heap,
                                 new_candidate_neighbors,
                                 old_candidate_neighbors,
-                                npoints, nnbrs, max_candidates, rho);
+                                npoints, nnbrs, max_candidates, rho,
+                                rand);
     std::size_t c = 0;
     for (std::size_t i = 0; i < npoints; i++) {
       for (std::size_t j = 0; j < max_candidates; j++) {
