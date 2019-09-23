@@ -41,16 +41,16 @@ NeighborHeap build_candidates(
 
   for (std::size_t i = 0; i < npoints; i++) {
     for (std::size_t j = 0; j < nnbrs; j++) {
-      if (current_graph.idx[i][j] < 0) {
+      if (current_graph.index(i, j) < 0) {
         continue;
       }
-      std::size_t idx = current_graph.idx[i][j];
-      bool isn = current_graph.flags[i][j];
+      std::size_t idx = current_graph.index(i, j);
+      bool isn = current_graph.flags(i, j) == 1;
 
       candidate_neighbors.add_pair(i, idx, isn);
       // incremental search: mark this object false to indicate it has
       // participated in the local join
-      current_graph.flags[i][j] = false;
+      current_graph.flags(i, j) = 0;
     }
   }
   return candidate_neighbors.neighbor_heap;
@@ -68,15 +68,15 @@ void build_candidates_full(
 {
   for (std::size_t i = 0; i < npoints; i++) {
     for (std::size_t j = 0; j < nnbrs; j++) {
-      std::size_t idx = current_graph.idx[i][j];
+      std::size_t idx = current_graph.index(i, j);
       if (idx == NeighborHeap::npos || rand.unif() >= rho) {
         continue;
       }
-      bool isn = current_graph.flags[i][j] == 1;
+      bool isn = current_graph.flag(i, j) == 1;
       if (isn) {
         unsigned int c = new_candidate_neighbors.add_pair(i, idx, isn);
         if (c > 0) {
-          current_graph.flags[i][j] = 0;
+          current_graph.flag(i, j) = 0;
         }
       }
       else {
@@ -118,17 +118,17 @@ void nnd(
       // of i, calculate dist(p, q) and update neighbor list of p and q
       // NB: the neighbor list of i is unchanged by this operation
       for (std::size_t j = 0; j < max_candidates; j++) {
-        int p = candidate_neighbors.idx[i][j];
-        if (p < 0 || rand.unif() < rho) {
+        int p = candidate_neighbors.index(i, j);
+        if (p == NeighborHeap::npos || rand.unif() < rho) {
           // only sample rho * max_candidates of the general neighbors
           continue;
         }
 
         for (std::size_t k = 0; k < max_candidates; k++) {
-          std::size_t q = candidate_neighbors.idx[i][k];
+          std::size_t q = candidate_neighbors.index(i, k);
           if (q == NeighborHeap::npos ||
-              (!candidate_neighbors.flags[i][j] &&
-              !candidate_neighbors.flags[i][k]))
+              (candidate_neighbors.flags(i, j) == 0 &&
+               candidate_neighbors.flags(i, k) == 0))
           {
             // incremental search: two objects are only compared if at least
             // one of them is new
@@ -190,12 +190,12 @@ void nnd_full(
     std::size_t c = 0;
     for (std::size_t i = 0; i < npoints; i++) {
       for (std::size_t j = 0; j < max_candidates; j++) {
-        std::size_t p = new_nbrs.idx[i][j];
+        std::size_t p = new_nbrs.index(i, j);
         if (p == NeighborHeap::npos) {
           continue;
         }
         for (std::size_t k = j; k < max_candidates; k++) {
-          std::size_t q = new_nbrs.idx[i][k];
+          std::size_t q = new_nbrs.index(i, k);
           if (q == NeighborHeap::npos) {
             continue;
           }
@@ -203,7 +203,7 @@ void nnd_full(
         }
 
         for (std::size_t k = 0; k < max_candidates; k++) {
-          std::size_t q = old_nbrs.idx[i][k];
+          std::size_t q = old_nbrs.index(i, k);
           if (q == NeighborHeap::npos) {
             continue;
           }

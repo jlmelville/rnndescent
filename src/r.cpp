@@ -60,9 +60,9 @@ struct RProgress {
   template <typename Heap>
   void iter(std::size_t n, std::size_t n_iters, const Heap& heap) {
     double sum = 0.0;
-    for (std::size_t i = 0; i < heap.dist.size(); i++) {
-      for (std::size_t j = 0; j < heap.dist[i].size(); j++) {
-        sum += heap.dist[i][j];
+    for (std::size_t i = 0; i < heap.n_points; i++) {
+      for (std::size_t j = 0; j < heap.n_nbrs; j++) {
+        sum += heap.distance(i, j);
       }
     }
     Rcpp::Rcout << (n + 1) << " / " << n_iters << " " << sum << std::endl;
@@ -106,15 +106,15 @@ Heap<Distance> r_to_heap(
 
 // transfer data into R Matrices
 Rcpp::List heap_to_r(const NeighborHeap& heap) {
-  const std::size_t npoints = heap.idx.size();
-  const std::size_t nnbrs = heap.idx[0].size();
+  const std::size_t npoints = heap.n_points;
+  const std::size_t nnbrs = heap.n_nbrs;
 
   Rcpp::IntegerMatrix idxres(npoints, nnbrs);
   Rcpp::NumericMatrix distres(npoints, nnbrs);
   for (std::size_t i = 0; i < npoints; i++) {
     for (std::size_t j = 0; j < nnbrs; j++) {
-      idxres(i, j) = heap.idx[i][j] + 1;
-      distres(i, j) = heap.dist[i][j];
+      idxres(i, j) = heap.index(i, j) + 1;
+      distres(i, j) = heap.distance(i, j);
     }
   }
 

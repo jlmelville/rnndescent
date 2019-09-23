@@ -65,10 +65,10 @@ struct SetHeap
     double d = weight_measure(i, j);
 
     unsigned int c = 0;
-    if (d < neighbor_heap.dist[i][0]) {
+    if (d < neighbor_heap.distance(i, 0)) {
       c += neighbor_heap.unchecked_push(i, d, j, flag);
     }
-    if (i != j && d < neighbor_heap.dist[j][0]) {
+    if (i != j && d < neighbor_heap.distance(j, 0)) {
       c += neighbor_heap.unchecked_push(j, d, i, flag);
     }
 
