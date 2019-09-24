@@ -41,7 +41,7 @@ NeighborHeap build_candidates(
 
   for (std::size_t i = 0; i < npoints; i++) {
     for (std::size_t j = 0; j < nnbrs; j++) {
-      if (current_graph.index(i, j) < 0) {
+      if (current_graph.index(i, j) == NeighborHeap::npos) {
         continue;
       }
       std::size_t idx = current_graph.index(i, j);
@@ -118,7 +118,7 @@ void nnd(
       // of i, calculate dist(p, q) and update neighbor list of p and q
       // NB: the neighbor list of i is unchanged by this operation
       for (std::size_t j = 0; j < max_candidates; j++) {
-        int p = candidate_neighbors.index(i, j);
+        std::size_t p = candidate_neighbors.index(i, j);
         if (p == NeighborHeap::npos || rand.unif() < rho) {
           // only sample rho * max_candidates of the general neighbors
           continue;
@@ -179,7 +179,7 @@ void nnd_full(
     build_candidates_full<Rand>(current_graph.neighbor_heap,
                                 new_candidate_neighbors,
                                 old_candidate_neighbors,
-                                rho,rand);
+                                rho, rand);
 
     NeighborHeap& new_nbrs = new_candidate_neighbors.neighbor_heap;
     NeighborHeap& old_nbrs = old_candidate_neighbors.neighbor_heap;
