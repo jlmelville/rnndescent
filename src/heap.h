@@ -62,8 +62,8 @@ struct NeighborHeap
     std::size_t i = 0;
     std::size_t i_swap = 0;
     while (true) {
-      std::size_t ic1 = 2 * i + 1;
-      std::size_t ic2 = ic1 + 1;
+      const std::size_t ic1 = 2 * i + 1;
+      const std::size_t ic2 = ic1 + 1;
 
       if (ic1 >= n_nbrs) {
         break;
@@ -93,38 +93,45 @@ struct NeighborHeap
         }
       }
 
-      dist[r0 + i] = dist[r0 + i_swap];
-      idx[r0 + i] = idx[r0 + i_swap];
-      flags[r0 + i] = flags[r0 + i_swap];
+      const std::size_t r0i = r0 + i;
+      const std::size_t r0is = r0 + i_swap;
+      dist[r0i] = dist[r0is];
+      idx[r0i] = idx[r0is];
+      flags[r0i] = flags[r0is];
 
       i = i_swap;
     }
 
-    dist[r0 + i] = weight;
-    idx[r0 + i] = index;
-    flags[r0 + i] = flag ? 1 : 0;
+    const std::size_t r0i = r0 + i;
+    dist[r0i] = weight;
+    idx[r0i] = index;
+    flags[r0i] = flag ? 1 : 0;
 
     return 1;
   }
 
   void deheap_sort() {
+    const std::size_t nnbrs1 = n_nbrs - 1;
+
     for (std::size_t i = 0; i < n_points; i++) {
       const std::size_t r0 = i * n_nbrs;
-      for (std::size_t j = 0; j < n_nbrs - 1; j++) {
-        std::swap(idx[r0], idx[r0 + (n_nbrs - j - 1)]);
-        std::swap(dist[r0], dist[r0 + (n_nbrs - j - 1)]);
-        siftdown(r0, n_nbrs - j - 1, 0);
+      for (std::size_t j = 0; j < nnbrs1; j++) {
+        const std::size_t r0nn1 = r0 + nnbrs1 - j;
+        std::swap(idx[r0], idx[r0nn1]);
+        std::swap(dist[r0], dist[r0nn1]);
+        siftdown(r0, nnbrs1 - j);
       }
     }
   }
 
   void siftdown(const std::size_t r0,
-                const std::size_t len,
-                std::size_t elt) {
+                const std::size_t len) {
+    std::size_t elt = 0;
+    std::size_t e21 = elt * 2 + 1;
 
-    while (elt * 2 + 1 < len) {
-      std::size_t left_child = elt * 2 + 1;
-      std::size_t right_child = left_child + 1;
+    while (e21 < len) {
+      const std::size_t left_child = e21;
+      const std::size_t right_child = left_child + 1;
       std::size_t swap = elt;
 
       if (dist[r0 + swap] < dist[r0 + left_child]) {
@@ -143,6 +150,7 @@ struct NeighborHeap
         std::swap(idx[r0 + elt], idx[r0 + swap]);
         elt = swap;
       }
+      e21 = elt * 2 + 1;
     }
   }
 
