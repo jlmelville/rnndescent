@@ -29,21 +29,21 @@ struct NeighborHeap
   // to represent not found
   static constexpr std::size_t npos = static_cast<std::size_t>(-1);
 
-  std::vector<std::vector<std::size_t>> idx;
-  std::vector<std::vector<double>> dist;
-  std::vector<std::vector<bool>> flags; // vector of bool, yes ugh
+  const std::size_t n_points;
+  const std::size_t n_nbrs;
+  std::vector<std::size_t> idx;
+  std::vector<double> dist;
+  std::vector<char> flags;
 
   NeighborHeap(
     const std::size_t n_points,
-    const std::size_t size)
-  {
-    for (std::size_t i = 0; i < n_points; i++) {
-      idx.push_back(std::vector<std::size_t>(size, npos));
-      dist.push_back(std::vector<double>(size,
-                                         std::numeric_limits<double>::max()));
-      flags.push_back(std::vector<bool>(size, false));
-    }
-  }
+    const std::size_t n_nbrs) :
+    n_points(n_points),
+    n_nbrs(n_nbrs),
+    idx(n_points * n_nbrs, npos),
+    dist(n_points * n_nbrs, std::numeric_limits<double>::max()),
+    flags(n_points * n_nbrs, 0)
+  { }
 
   unsigned int unchecked_push(
       std::size_t row,
@@ -51,37 +51,33 @@ struct NeighborHeap
       std::size_t index,
       bool flag)
   {
-    std::vector<std::size_t>& indices = idx[row];
-    std::vector<double>& weights = dist[row];
-    std::vector<bool>& is_new = flags[row];
-
-    const std::size_t n_nbrs = indices.size();
+    const std::size_t r0 = row * n_nbrs;
 
     // insert val at position zero
-    weights[0] = weight;
-    indices[0] = index;
-    is_new[0] = flag;
+    dist[r0] = weight;
+    idx[r0] = index;
+    flags[r0] = flag ? 1 : 0;
 
     // descend the heap, swapping values until the max heap criterion is met
     std::size_t i = 0;
     std::size_t i_swap = 0;
     while (true) {
-      std::size_t ic1 = 2 * i + 1;
-      std::size_t ic2 = ic1 + 1;
+      const std::size_t ic1 = 2 * i + 1;
+      const std::size_t ic2 = ic1 + 1;
 
       if (ic1 >= n_nbrs) {
         break;
       }
       else if (ic2 >= n_nbrs) {
-        if (weights[ic1] >= weight) {
+        if (dist[r0 + ic1] >= weight) {
           i_swap = ic1;
         }
         else {
           break;
         }
       }
-      else if (weights[ic1] >= weights[ic2]) {
-        if (weight < weights[ic1]) {
+      else if (dist[r0 + ic1] >= dist[r0 + ic2]) {
+        if (weight < dist[r0 + ic1]) {
           i_swap = ic1;
         }
         else {
@@ -89,7 +85,7 @@ struct NeighborHeap
         }
       }
       else {
-        if (weight < weights[ic2]) {
+        if (weight < dist[r0 + ic2]) {
           i_swap = ic2;
         }
         else {
@@ -97,51 +93,52 @@ struct NeighborHeap
         }
       }
 
-      weights[i] = weights[i_swap];
-      indices[i] = indices[i_swap];
-      is_new[i] = is_new[i_swap];
+      const std::size_t r0i = r0 + i;
+      const std::size_t r0is = r0 + i_swap;
+      dist[r0i] = dist[r0is];
+      idx[r0i] = idx[r0is];
+      flags[r0i] = flags[r0is];
 
       i = i_swap;
     }
 
-    weights[i] = weight;
-    indices[i] = index;
-    is_new[i] = flag;
+    const std::size_t r0i = r0 + i;
+    dist[r0i] = weight;
+    idx[r0i] = index;
+    flags[r0i] = flag ? 1 : 0;
 
     return 1;
   }
 
   void deheap_sort() {
-    const std::size_t npoints = idx.size();
+    const std::size_t nnbrs1 = n_nbrs - 1;
 
-    for (std::size_t i = 0; i < npoints; i++) {
-      std::vector<std::size_t>& ind_heap = idx[i];
-      std::vector<double>& dist_heap = dist[i];
-
-      const std::size_t nnbrs = ind_heap.size();
-      for (std::size_t j = 0; j < nnbrs - 1; j++) {
-        std::swap(ind_heap[0], ind_heap[nnbrs - j - 1]);
-        std::swap(dist_heap[0], dist_heap[nnbrs - j - 1]);
-        siftdown(dist_heap, ind_heap, nnbrs - j - 1, 0);
+    for (std::size_t i = 0; i < n_points; i++) {
+      const std::size_t r0 = i * n_nbrs;
+      for (std::size_t j = 0; j < nnbrs1; j++) {
+        const std::size_t r0nn1 = r0 + nnbrs1 - j;
+        std::swap(idx[r0], idx[r0nn1]);
+        std::swap(dist[r0], dist[r0nn1]);
+        siftdown(r0, nnbrs1 - j);
       }
     }
   }
 
-  void siftdown(std::vector<double>& dist_heap,
-                std::vector<std::size_t>& ind_heap,
-                const std::size_t len,
-                std::size_t elt) {
+  void siftdown(const std::size_t r0,
+                const std::size_t len) {
+    std::size_t elt = 0;
+    std::size_t e21 = elt * 2 + 1;
 
-    while (elt * 2 + 1 < len) {
-      std::size_t left_child = elt * 2 + 1;
-      std::size_t right_child = left_child + 1;
+    while (e21 < len) {
+      const std::size_t left_child = e21;
+      const std::size_t right_child = left_child + 1;
       std::size_t swap = elt;
 
-      if (dist_heap[swap] < dist_heap[left_child]) {
+      if (dist[r0 + swap] < dist[r0 + left_child]) {
         swap = left_child;
       }
 
-      if (right_child < len && dist_heap[swap] < dist_heap[right_child]) {
+      if (right_child < len && dist[r0 + swap] < dist[r0 + right_child]) {
         swap = right_child;
       }
 
@@ -149,11 +146,33 @@ struct NeighborHeap
         break;
       }
       else {
-        std::swap(dist_heap[elt], dist_heap[swap]);
-        std::swap(ind_heap[elt], ind_heap[swap]);
+        std::swap(dist[r0 + elt], dist[r0 + swap]);
+        std::swap(idx[r0 + elt], idx[r0 + swap]);
         elt = swap;
       }
+      e21 = elt * 2 + 1;
     }
+  }
+
+  std::size_t index(std::size_t i, std::size_t j) const {
+    return idx[i * n_nbrs + j];
+  }
+  std::size_t& index(std::size_t i, std::size_t j) {
+    return idx[i * n_nbrs + j];
+  }
+
+  double distance(std::size_t i, std::size_t j) const {
+    return dist[i * n_nbrs + j];
+  }
+  double& distance(std::size_t i, std::size_t j) {
+    return dist[i * n_nbrs + j];
+  }
+
+  char flag(std::size_t i, std::size_t j) const {
+    return flags[i * n_nbrs + j];
+  }
+  char& flag(std::size_t i, std::size_t j) {
+    return flags[i * n_nbrs + j];
   }
 };
 
@@ -197,15 +216,14 @@ struct ArrayHeap
       std::size_t index,
       bool flag)
   {
-    if (weight >= neighbor_heap.dist[row][0]) {
+    if (weight >= neighbor_heap.distance(row, 0)) {
       return 0;
     }
 
     // break if we already have this element
-    std::vector<std::size_t>& indices = neighbor_heap.idx[row];
-    const std::size_t n_nbrs = indices.size();
+    const std::size_t n_nbrs = neighbor_heap.n_nbrs;
     for (std::size_t i = 0; i < n_nbrs; i++) {
-      if (index == indices[i]) {
+      if (index == neighbor_heap.index(row, i)) {
         return 0;
       }
     }
