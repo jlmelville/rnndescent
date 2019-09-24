@@ -151,8 +151,7 @@ Rcpp::List nn_descent_impl(
 
   const double tol = delta * nnbrs * npoints;
 
-  nnd_full(heap, max_candidates, n_iters, npoints, nnbrs, rand, progress, rho,
-           tol, verbose);
+  nnd_full(heap, max_candidates, n_iters, rand, progress, rho, tol, verbose);
 
   heap.neighbor_heap.deheap_sort();
 

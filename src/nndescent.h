@@ -61,11 +61,12 @@ void build_candidates_full(
     NeighborHeap& current_graph,
     RandomHeap<Rand>& new_candidate_neighbors,
     RandomHeap<Rand>& old_candidate_neighbors,
-    std::size_t npoints,
-    std::size_t nnbrs,
     double rho,
     Rand& rand)
 {
+  const std::size_t npoints = current_graph.n_points;
+  const std::size_t nnbrs = current_graph.n_nbrs;
+
   for (std::size_t i = 0; i < npoints; i++) {
     for (std::size_t j = 0; j < nnbrs; j++) {
       std::size_t idx = current_graph.index(i, j);
@@ -85,7 +86,6 @@ void build_candidates_full(
     }
   }
 }
-
 
 // Closer to the basic NNDescent algorithm (#1 in the paper)
 template <template<typename> class Heap,
@@ -157,8 +157,6 @@ void nnd_full(
     Heap<Distance>& current_graph,
     const std::size_t max_candidates,
     const std::size_t n_iters,
-    const std::size_t npoints,
-    const std::size_t nnbrs,
     Rand& rand,
     Progress progress,
     const double rho,
@@ -166,6 +164,7 @@ void nnd_full(
     bool verbose)
 {
   RandomWeight<Rand> weight_measure(rand);
+  const std::size_t npoints = current_graph.neighbor_heap.n_points;
 
   for (std::size_t n = 0; n < n_iters; n++) {
     if (verbose) {
@@ -180,12 +179,10 @@ void nnd_full(
     build_candidates_full<Rand>(current_graph.neighbor_heap,
                                 new_candidate_neighbors,
                                 old_candidate_neighbors,
-                                npoints, nnbrs, rho,
-                                rand);
+                                rho,rand);
 
-
-    NeighborHeap& old_nbrs = old_candidate_neighbors.neighbor_heap;
     NeighborHeap& new_nbrs = new_candidate_neighbors.neighbor_heap;
+    NeighborHeap& old_nbrs = old_candidate_neighbors.neighbor_heap;
 
     std::size_t c = 0;
     for (std::size_t i = 0; i < npoints; i++) {
