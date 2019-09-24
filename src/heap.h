@@ -45,7 +45,7 @@ struct NeighborHeap
     flags(n_points * n_nbrs, 0)
   { }
 
-  unsigned int unchecked_push(
+  std::size_t unchecked_push(
       std::size_t row,
       double weight,
       std::size_t index,
@@ -194,14 +194,14 @@ struct ArrayHeap
   weight_measure(weight_measure)
     {}
 
-  unsigned int add_pair(
+  std::size_t add_pair(
       std::size_t i,
       std::size_t j,
       bool flag)
   {
     double d = weight_measure(i, j);
 
-    unsigned int c = 0;
+    std::size_t c = 0;
     c += push(i, d, j, flag);
     if (i != j) {
       c += push(j, d, i, flag);
@@ -210,7 +210,7 @@ struct ArrayHeap
     return c;
   }
 
-  unsigned int push(
+  std::size_t push(
       std::size_t row,
       double weight,
       std::size_t index,

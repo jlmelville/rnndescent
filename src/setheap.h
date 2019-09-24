@@ -47,7 +47,7 @@ struct SetHeap
       seen()
     {}
 
-  unsigned int add_pair(
+  std::size_t add_pair(
       std::size_t i,
       std::size_t j,
       bool flag)
@@ -64,7 +64,7 @@ struct SetHeap
 
     double d = weight_measure(i, j);
 
-    unsigned int c = 0;
+    std::size_t c = 0;
     if (d < neighbor_heap.distance(i, 0)) {
       c += neighbor_heap.unchecked_push(i, d, j, flag);
     }

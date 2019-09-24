@@ -75,7 +75,7 @@ void build_candidates_full(
       }
       bool isn = current_graph.flag(i, j) == 1;
       if (isn) {
-        unsigned int c = new_candidate_neighbors.add_pair(i, idx, isn);
+        std::size_t c = new_candidate_neighbors.add_pair(i, idx, isn);
         if (c > 0) {
           current_graph.flag(i, j) = 0;
         }
