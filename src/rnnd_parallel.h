@@ -20,29 +20,42 @@
 #ifndef RNND_PARALLEL_H
 #define RNND_PARALLEL_H
 
+#include <unordered_set>
 #include <Rcpp.h>
 // [[Rcpp::depends(RcppParallel)]]
 #include <RcppParallel.h>
+#include "tauprng.h"
+
 
 template <template<typename> class Heap,
           typename Distance>
 struct NNDWorker : public RcppParallel::Worker {
   const Heap<Distance>& current_graph;
   Heap<Distance> updated_graph;
-
   const std::size_t n_points;
   const std::size_t n_nbrs;
+  const double rho;
   std::size_t n_updates;
+  tthread::mutex mutex;
 
-  NNDWorker(const Heap<Distance>& current_graph) :
+  NNDWorker(const Heap<Distance>& current_graph, const double rho) :
     current_graph(current_graph),
     updated_graph(current_graph),
     n_points(current_graph.neighbor_heap.n_points),
     n_nbrs(current_graph.neighbor_heap.n_nbrs),
+    rho(rho),
     n_updates(0)
     {}
 
   void operator()(std::size_t begin, std::size_t end) {
+    std::unique_ptr<TauRand> rand(nullptr);
+    // Each window gets its own PRNG state, to prevent locking inside the loop.
+    {
+      tthread::lock_guard<tthread::mutex> guard(mutex);
+      rand.reset(new TauRand());
+    }
+    std::size_t n_local_updates = 0;
+    std::unordered_set<std::size_t> seen(static_cast<std::size_t>(rho * n_nbrs * n_nbrs));
     for (std::size_t i = begin; i < end; i++) {
       for (std::size_t j = 0; j < n_nbrs; j++) {
         std::size_t p = current_graph.neighbor_heap.index(i, j);
@@ -51,12 +64,23 @@ struct NNDWorker : public RcppParallel::Worker {
         }
         for (std::size_t k = 0; k < n_nbrs; k++) {
           std::size_t q = current_graph.neighbor_heap.index(p, k);
-          if (i == q || q == NeighborHeap::npos) {
+          if (i == q || q == NeighborHeap::npos || rand->unif() >= rho) {
             continue;
           }
-          n_updates += updated_graph.add_pair_asymm(i, q, true);
+          if (seen.find(q) == seen.end()) {
+            seen.insert(q);
+            {
+              tthread::lock_guard<tthread::mutex> guard(mutex);
+              n_local_updates += updated_graph.add_pair_asymm(i, q, true);
+            }
+          }
         }
       }
+      seen.clear();
+    }
+    {
+      tthread::lock_guard<tthread::mutex> guard(mutex);
+      n_updates += n_local_updates;
     }
   }
 };
@@ -84,7 +108,7 @@ void nnd_parallel(
     if (verbose) {
       progress.iter(n, n_iters, current_graph.neighbor_heap);
     }
-    NNDWorker<Heap, Distance> worker(current_graph);
+    NNDWorker<Heap, Distance> worker(current_graph, rho);
     RcppParallel::parallelFor(0, n_points, worker, grain_size);
     current_graph = worker.updated_graph;
 
