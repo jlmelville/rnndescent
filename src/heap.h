@@ -29,8 +29,8 @@ struct NeighborHeap
   // to represent not found
   static constexpr std::size_t npos = static_cast<std::size_t>(-1);
 
-  const std::size_t n_points;
-  const std::size_t n_nbrs;
+  std::size_t n_points;
+  std::size_t n_nbrs;
   std::vector<std::size_t> idx;
   std::vector<double> dist;
   std::vector<char> flags;
@@ -44,6 +44,10 @@ struct NeighborHeap
     dist(n_points * n_nbrs, std::numeric_limits<double>::max()),
     flags(n_points * n_nbrs, 0)
   { }
+
+  NeighborHeap(const NeighborHeap&) = default;
+  ~NeighborHeap() = default;
+  NeighborHeap& operator=(const NeighborHeap &) = default;
 
   std::size_t unchecked_push(
       std::size_t row,
@@ -194,6 +198,10 @@ struct ArrayHeap
   weight_measure(weight_measure)
     {}
 
+  ArrayHeap(const ArrayHeap&) = default;
+  ~ArrayHeap() = default;
+  ArrayHeap& operator=(const ArrayHeap &) = default;
+
   std::size_t add_pair(
       std::size_t i,
       std::size_t j,
@@ -206,6 +214,19 @@ struct ArrayHeap
     if (i != j) {
       c += push(j, d, i, flag);
     }
+
+    return c;
+  }
+
+  std::size_t add_pair_asymm(
+      std::size_t i,
+      std::size_t j,
+      bool flag)
+  {
+    double d = weight_measure(i, j);
+
+    std::size_t c = 0;
+    c += push(i, d, j, flag);
 
     return c;
   }

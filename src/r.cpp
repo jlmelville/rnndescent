@@ -22,31 +22,33 @@
 #include "distance.h"
 #include "heap.h"
 #include "nndescent.h"
+#include "rnnd_parallel.h"
 #include "setheap.h"
 #include "tauprng.h"
 
-#define NNDS(DistType, RandType, use_set)                         \
+
+#define NNDS(DistType, RandType, use_set, parallelize)            \
 if (use_set) {                                                    \
   return nn_descent_impl<SetHeap,                                 \
                          DistType,                                \
                          RandType,                                \
                          RProgress>                               \
-  (data, idx, dist, max_candidates, n_iters, delta, rho, verbose);\
+  (data, idx, dist, max_candidates, n_iters, delta, rho, false, verbose);\
 }                                                                 \
 else {                                                            \
   return nn_descent_impl<ArrayHeap,                               \
                          DistType,                                \
                          RandType,                                \
                          RProgress>                               \
-  (data, idx, dist, max_candidates, n_iters, delta, rho, verbose);\
+  (data, idx, dist, max_candidates, n_iters, delta, rho, parallelize, verbose);\
 }
 
-#define NNDR(DistType, use_set, use_fast_rand)                 \
+#define NNDR(DistType, use_set, use_fast_rand, parallelize)    \
 if (use_fast_rand) {                                           \
-  NNDS(DistType, TauRand, use_set)                             \
+  NNDS(DistType, TauRand, use_set, parallelize)                \
 }                                                              \
 else {                                                         \
-  NNDS(DistType, RRand, use_set);                              \
+  NNDS(DistType, RRand, use_set, parallelize)                  \
 }
 
 struct RRand {
@@ -136,6 +138,7 @@ Rcpp::List nn_descent_impl(
     const std::size_t n_iters = 10,
     const double delta = 0.001,
     const double rho = 0.5,
+    bool parallelize = false,
     bool verbose = false) {
   const std::size_t npoints = idx.nrow();
   const std::size_t nnbrs = idx.ncol();
@@ -149,11 +152,15 @@ Rcpp::List nn_descent_impl(
   Distance distance(data_vec, ndim);
   Heap<Distance> heap = r_to_heap<Heap, Distance>(distance, idx, dist);
 
+
   const double tol = delta * nnbrs * npoints;
-
-  nnd_full(heap, max_candidates, n_iters, rand, progress, rho, tol, verbose);
-
-  heap.neighbor_heap.deheap_sort();
+  if (parallelize) {
+    // FIXME: add grain_size param
+    nnd_parallel(heap, max_candidates, n_iters, rand, progress, rho, tol, 1, verbose);
+  }
+  else {
+    nnd_full(heap, max_candidates, n_iters, rand, progress, rho, tol, verbose);
+  }
 
   return heap_to_r(heap.neighbor_heap);
 }
@@ -170,27 +177,28 @@ Rcpp::List nn_descent(
     const double rho = 0.5,
     bool use_set = false,
     bool fast_rand = false,
+    bool parallelize = false,
     bool verbose = false) {
 
   if (metric == "euclidean") {
     using dist_type = Euclidean<float, float>;
-    NNDR(dist_type, use_set, fast_rand)
+    NNDR(dist_type, use_set, fast_rand, parallelize)
   }
   else if (metric == "l2") {
     using dist_type = L2<float, float>;
-    NNDR(dist_type, use_set, fast_rand)
+    NNDR(dist_type, use_set, fast_rand, parallelize)
   }
   else if (metric == "cosine") {
     using dist_type = Cosine<float, float>;
-    NNDR(dist_type, use_set, fast_rand)
+    NNDR(dist_type, use_set, fast_rand, parallelize)
   }
   else if (metric == "manhattan") {
     using dist_type = Manhattan<float, float>;
-    NNDR(dist_type, use_set, fast_rand)
+    NNDR(dist_type, use_set, fast_rand, parallelize)
   }
   else if (metric == "hamming") {
     using dist_type = Hamming<uint8_t, std::size_t>;
-    NNDR(dist_type, use_set, fast_rand)
+    NNDR(dist_type, use_set, fast_rand, parallelize)
   }
   else {
     Rcpp::stop("Bad metric");

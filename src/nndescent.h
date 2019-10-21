@@ -23,7 +23,6 @@
 #include "heap.h"
 #include "setheap.h"
 
-
 // Builds the general neighbors of each object, keeping up to max_candidates
 // per object. The objects are associated with a random number rather than
 // the true distance, and hence are stored in random order.
@@ -92,7 +91,7 @@ template <template<typename> class Heap,
           typename Distance,
           typename Rand,
           typename Progress>
-void nnd(
+void nnd_basic(
     Heap<Distance>& current_graph,
     const std::size_t max_candidates,
     const std::size_t n_iters,
@@ -146,6 +145,7 @@ void nnd(
       break;
     }
   }
+  current_graph.neighbor_heap.deheap_sort();
 }
 
 // Closer to the NNDescentFull algorithm (#2 in the paper)
@@ -216,6 +216,7 @@ void nnd_full(
       break;
     }
   }
+  current_graph.neighbor_heap.deheap_sort();
 }
 
 #endif // RNND_NNDESCENT_H

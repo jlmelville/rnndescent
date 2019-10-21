@@ -113,7 +113,7 @@ struct Cosine
   }
 
   std::vector<In> data;
-  const std::size_t ndim;
+  std::size_t ndim;
 
   typedef In in_type;
 };

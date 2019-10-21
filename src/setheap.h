@@ -47,6 +47,10 @@ struct SetHeap
       seen()
     {}
 
+  SetHeap(const SetHeap&) = default;
+  ~SetHeap() = default;
+  SetHeap& operator=(const SetHeap &) = default;
+
   std::size_t add_pair(
       std::size_t i,
       std::size_t j,
@@ -70,6 +74,27 @@ struct SetHeap
     }
     if (i != j && d < neighbor_heap.distance(j, 0)) {
       c += neighbor_heap.unchecked_push(j, d, i, flag);
+    }
+
+    return c;
+  }
+
+  std::size_t add_pair_asymm(
+      std::size_t i,
+      std::size_t j,
+      bool flag)
+  {
+    pair p(i, j);
+    if (seen.find(p) != seen.end()) {
+      return 0;
+    }
+    seen.insert(p);
+
+    double d = weight_measure(i, j);
+
+    std::size_t c = 0;
+    if (d < neighbor_heap.distance(i, 0)) {
+      c += neighbor_heap.unchecked_push(i, d, j, flag);
     }
 
     return c;

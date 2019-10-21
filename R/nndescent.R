@@ -422,6 +422,7 @@ nnd_knn <- function(data, k,
                     use_cpp = TRUE,
                     use_set = FALSE,
                     fast_rand = FALSE,
+                    n_threads = 0,
                     verbose = FALSE) {
   # As a minor optimization, we will use L2 internally if the user asks for
   # Euclidean and only take the square root of the final distances.
@@ -436,10 +437,16 @@ nnd_knn <- function(data, k,
   init$indices <- init$indices - 1
 
   if (use_cpp) {
+    parallelize <- n_threads > 0
+    if (parallelize) {
+      RcppParallel::setThreadOptions(numThreads = n_threads)
+    }
+
     res <- nn_descent(data, init$indices, init$dist,
       metric = actual_metric,
       n_iters = n_iters, max_candidates = max_candidates,
       delta = delta, rho = rho, use_set = use_set, fast_rand = fast_rand,
+      parallelize = parallelize,
       verbose = verbose
     )
   }
