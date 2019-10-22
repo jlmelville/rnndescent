@@ -69,10 +69,7 @@ struct NNDWorker : public RcppParallel::Worker {
           }
           if (seen.find(q) == seen.end()) {
             seen.insert(q);
-            {
-              tthread::lock_guard<tthread::mutex> guard(mutex);
-              n_local_updates += updated_graph.add_pair_asymm(i, q, true);
-            }
+            n_local_updates += updated_graph.add_pair_asymm(i, q, true);
           }
         }
       }
