@@ -74,6 +74,8 @@ struct TauRand {
   tau_prng prng;
 
   TauRand(): prng() {}
+  TauRand(uint64_t state0, uint64_t state1, uint64_t state2) :
+    prng(state0, state1, state2) {}
 
   // a random uniform value between 0 and 1
   double unif() {
