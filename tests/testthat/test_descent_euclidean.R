@@ -161,7 +161,7 @@ expect_equal(rnnd$dist, expected_dist, check.attributes = FALSE, tol = 1e-6)
 
 set.seed(1337)
 iris_nbrs <- random_nbrs(uirism, 15)
-iris_nnd <- nn_descent(uirism, iris_nbrs$indices - 1, iris_nbrs$dist, verbose = FALSE)
+iris_nnd <- nn_descent(uirism, iris_nbrs$idx - 1, iris_nbrs$dist, verbose = FALSE)
 expect_equal(sum(iris_nnd$dist), 1016.834, tol = 1e-3)
 
 set.seed(1337)
@@ -177,7 +177,7 @@ expect_equal(rnnd$dist, expected_dist, check.attributes = FALSE, tol = 1e-6)
 
 set.seed(1337)
 iris_nbrs <- random_nbrs(uirism, 15)
-iris_nnd <- nn_descent(uirism, iris_nbrs$indices - 1, iris_nbrs$dist, verbose = FALSE, use_set = TRUE)
+iris_nnd <- nn_descent(uirism, iris_nbrs$idx - 1, iris_nbrs$dist, verbose = FALSE, use_set = TRUE)
 expect_equal(sum(iris_nnd$dist), 1016.834, tol = 1e-3)
 
 set.seed(1337)
@@ -192,7 +192,7 @@ expect_equal(rnnd$dist, expected_dist, check.attributes = FALSE, tol = 1e-6)
 
 set.seed(1337)
 iris_nbrs <- random_nbrs(uirism, 15)
-iris_nnd <- nn_descent(uirism, iris_nbrs$indices - 1, iris_nbrs$dist, verbose = FALSE, use_set = FALSE, fast_rand = TRUE)
+iris_nnd <- nn_descent(uirism, iris_nbrs$idx - 1, iris_nbrs$dist, verbose = FALSE, use_set = FALSE, fast_rand = TRUE)
 expect_equal(sum(iris_nnd$dist), 1016.834, tol = 1e-3)
 
 set.seed(1337)
@@ -202,5 +202,5 @@ expect_equal(rnnd$dist, expected_dist, check.attributes = FALSE, tol = 1e-6)
 
 set.seed(1337)
 iris_nbrs <- random_nbrs(uirism, 15)
-iris_nnd <- nn_descent(uirism, iris_nbrs$indices - 1, iris_nbrs$dist, verbose = FALSE, use_set = TRUE, fast_rand = TRUE)
+iris_nnd <- nn_descent(uirism, iris_nbrs$idx - 1, iris_nbrs$dist, verbose = FALSE, use_set = TRUE, fast_rand = TRUE)
 expect_equal(sum(iris_nnd$dist), 1016.834, tol = 1e-3)

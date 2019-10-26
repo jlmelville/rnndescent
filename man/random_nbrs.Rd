@@ -23,7 +23,7 @@ or \code{"hamming"}.}
 \value{
 a list containing:
 \itemize{
-  \item \code{indices} an n by k matrix containing the nearest neighbor
+  \item \code{idx} an n by k matrix containing the nearest neighbor
   indices.
   \item \code{dist} an n by k matrix containing the nearest neighbor
    distances.

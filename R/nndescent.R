@@ -325,7 +325,7 @@ nn_descent_optl <- function(data, l, metric = "euclidean", n_iters = 10,
                             max_candidates = 50,
                             delta = 0.001, rho = 0.5,
                             verbose = FALSE) {
-  nn_descent_opt(data, metric, l$indices, l$dist,
+  nn_descent_opt(data, metric, l$idx, l$dist,
     n_iters = n_iters, max_candidates = max_candidates,
     delta = delta, rho = rho,
     verbose = verbose
@@ -365,7 +365,7 @@ det_nbrs <- function(X, k, metric = "euclidean") {
 
 random_nbrs_R <- function(X, k, metric = "euclidean") {
   nr <- nrow(X)
-  indices <- matrix(0, nrow = nr, ncol = k)
+  idx <- matrix(0, nrow = nr, ncol = k)
   dist <- matrix(Inf, nrow = nr, ncol = k)
   dist_fn <- create_dist_fn(metric)
 
@@ -375,13 +375,13 @@ random_nbrs_R <- function(X, k, metric = "euclidean") {
     # same as sampling from 1:(nr - 1) and adding one if its >= i
     idxi <- sample.int(nr - 1, k - 1)
     idxi[idxi >= i] <- idxi[idxi >= i] + 1
-    indices[i, ] <- c(i, idxi)
+    idx[i, ] <- c(i, idxi)
     for (j in 2:k) {
-      dist[i, j] <- dist_fn(X, i, indices[i, j])
+      dist[i, j] <- dist_fn(X, i, idx[i, j])
     }
   }
   dist[, 1] <- 0.0
-  list(indices = indices, dist = dist)
+  list(idx = idx, dist = dist)
 }
 
 #' Randomly select nearest neighbors.
@@ -395,7 +395,7 @@ random_nbrs_R <- function(X, k, metric = "euclidean") {
 #' @param n_threads Number of threads to use. Ignored if \code{use_cpp = FALSE}.
 #' @return a list containing:
 #' \itemize{
-#'   \item \code{indices} an n by k matrix containing the nearest neighbor
+#'   \item \code{idx} an n by k matrix containing the nearest neighbor
 #'   indices.
 #'   \item \code{dist} an n by k matrix containing the nearest neighbor
 #'    distances.
@@ -466,7 +466,7 @@ nnd_knn <- function(data, k,
   init <- random_nbrs(data, k, metric = actual_metric, use_cpp = use_cpp,
                       n_threads = n_threads)
   tsmessage("Init dsum = ", formatC(sum(init$dist)))
-  init$indices <- init$indices - 1
+  init$idx <- init$idx - 1
 
   if (use_cpp) {
     parallelize <- n_threads > 0
@@ -474,7 +474,7 @@ nnd_knn <- function(data, k,
       RcppParallel::setThreadOptions(numThreads = n_threads)
     }
 
-    res <- nn_descent(data, init$indices, init$dist,
+    res <- nn_descent(data, init$idx, init$dist,
       metric = actual_metric,
       n_iters = n_iters, max_candidates = max_candidates,
       delta = delta, rho = rho, use_set = use_set, fast_rand = fast_rand,

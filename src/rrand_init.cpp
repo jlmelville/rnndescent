@@ -90,7 +90,7 @@ Rcpp::List random_nbrs_parallel(
   RcppParallel::parallelFor(0, nr, worker, grain_size);
 
   return Rcpp::List::create(
-    Rcpp::Named("indices") = Rcpp::transpose(indices),
+    Rcpp::Named("idx") = Rcpp::transpose(indices),
     Rcpp::Named("dist") = Rcpp::transpose(dist)
   );
 }
@@ -125,7 +125,7 @@ Rcpp::List random_nbrs_impl(
   }
 
   return Rcpp::List::create(
-    Rcpp::Named("indices") = Rcpp::transpose(indices),
+    Rcpp::Named("idx") = Rcpp::transpose(indices),
     Rcpp::Named("dist") = Rcpp::transpose(dist)
   );
 }
