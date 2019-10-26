@@ -61,10 +61,10 @@ struct SetHeap
     }
 
     pair p(i, j);
-    if (seen.find(p) != seen.end()) {
+    auto res = seen.emplace(p);
+    if (!res.second) {
       return 0;
     }
-    seen.insert(p);
 
     double d = weight_measure(i, j);
 
