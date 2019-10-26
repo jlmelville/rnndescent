@@ -5,6 +5,10 @@ nn_descent <- function(data, idx, dist, metric = "euclidean", max_candidates = 5
     .Call(`_rnndescent_nn_descent`, data, idx, dist, metric, max_candidates, n_iters, delta, rho, use_set, fast_rand, parallelize, verbose)
 }
 
+rnn_brute_force <- function(data, k, metric = "euclidean", parallelize = FALSE, grain_size = 1L, verbose = FALSE) {
+    .Call(`_rnndescent_rnn_brute_force`, data, k, metric, parallelize, grain_size, verbose)
+}
+
 random_nbrs_cpp <- function(data, k, metric = "euclidean", parallelize = FALSE, grain_size = 1L) {
     .Call(`_rnndescent_random_nbrs_cpp`, data, k, metric, parallelize, grain_size)
 }

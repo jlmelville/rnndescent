@@ -27,6 +27,22 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rnn_brute_force
+Rcpp::List rnn_brute_force(Rcpp::NumericMatrix data, int k, const std::string& metric, bool parallelize, std::size_t grain_size, bool verbose);
+RcppExport SEXP _rnndescent_rnn_brute_force(SEXP dataSEXP, SEXP kSEXP, SEXP metricSEXP, SEXP parallelizeSEXP, SEXP grain_sizeSEXP, SEXP verboseSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< int >::type k(kSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
+    Rcpp::traits::input_parameter< bool >::type parallelize(parallelizeSEXP);
+    Rcpp::traits::input_parameter< std::size_t >::type grain_size(grain_sizeSEXP);
+    Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
+    rcpp_result_gen = Rcpp::wrap(rnn_brute_force(data, k, metric, parallelize, grain_size, verbose));
+    return rcpp_result_gen;
+END_RCPP
+}
 // random_nbrs_cpp
 Rcpp::List random_nbrs_cpp(Rcpp::NumericMatrix data, int k, const std::string& metric, bool parallelize, std::size_t grain_size);
 RcppExport SEXP _rnndescent_random_nbrs_cpp(SEXP dataSEXP, SEXP kSEXP, SEXP metricSEXP, SEXP parallelizeSEXP, SEXP grain_sizeSEXP) {
@@ -45,6 +61,7 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_rnndescent_nn_descent", (DL_FUNC) &_rnndescent_nn_descent, 12},
+    {"_rnndescent_rnn_brute_force", (DL_FUNC) &_rnndescent_rnn_brute_force, 6},
     {"_rnndescent_random_nbrs_cpp", (DL_FUNC) &_rnndescent_random_nbrs_cpp, 5},
     {NULL, NULL, 0}
 };

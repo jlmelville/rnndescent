@@ -23,6 +23,8 @@
 #include "heap.h"
 #include "nndescent.h"
 #include "rnnd_parallel.h"
+#include "nn_brute_force.h"
+#include "rnn_brute_force_parallel.h"
 #include "setheap.h"
 #include "tauprng.h"
 
@@ -152,7 +154,6 @@ Rcpp::List nn_descent_impl(
   Distance distance(data_vec, ndim);
   Heap<Distance> heap = r_to_heap<Heap, Distance>(distance, idx, dist);
 
-
   const double tol = delta * nnbrs * npoints;
   if (parallelize) {
     // FIXME: add grain_size param
@@ -199,6 +200,71 @@ Rcpp::List nn_descent(
   else if (metric == "hamming") {
     using dist_type = Hamming<uint8_t, std::size_t>;
     NNDR(dist_type, use_set, fast_rand, parallelize)
+  }
+  else {
+    Rcpp::stop("Bad metric");
+  }
+}
+
+template <typename Distance,
+          typename Progress>
+Rcpp::List rnn_brute_force_impl(
+    Rcpp::NumericMatrix data,
+    int k,
+    bool parallelize = false,
+    std::size_t grain_size = 1,
+    bool verbose = false)
+{
+  const std::size_t n_points = data.nrow();
+  const std::size_t n_nbrs = k;
+
+  const std::size_t ndim = data.ncol();
+  data = Rcpp::transpose(data);
+  auto data_vec = Rcpp::as<std::vector<typename Distance::in_type>>(data);
+
+  Progress progress;
+  Distance distance(data_vec, ndim);
+  ArrayHeap<Distance> heap(distance, n_points, n_nbrs);
+
+  if (parallelize) {
+    nnbf_parallel(heap, progress, grain_size, verbose);
+  }
+  else {
+    nnbf(heap, progress, verbose);
+  }
+
+  return heap_to_r(heap.neighbor_heap);
+}
+
+
+// [[Rcpp::export]]
+Rcpp::List rnn_brute_force(
+    Rcpp::NumericMatrix data,
+    int k,
+    const std::string& metric = "euclidean",
+    bool parallelize = false,
+    std::size_t grain_size = 1,
+    bool verbose = false)
+{
+  if (metric == "euclidean") {
+    using dist_type = Euclidean<float, float>;
+    return rnn_brute_force_impl<dist_type, RProgress>(data, k, parallelize, grain_size, verbose);
+  }
+  else if (metric == "l2") {
+    using dist_type = L2<float, float>;
+    return rnn_brute_force_impl<dist_type, RProgress>(data, k, parallelize, grain_size, verbose);
+  }
+  else if (metric == "cosine") {
+    using dist_type = Cosine<float, float>;
+    return rnn_brute_force_impl<dist_type, RProgress>(data, k, parallelize, grain_size, verbose);
+  }
+  else if (metric == "manhattan") {
+    using dist_type = Manhattan<float, float>;
+    return rnn_brute_force_impl<dist_type, RProgress>(data, k, parallelize, grain_size, verbose);
+  }
+  else if (metric == "hamming") {
+    using dist_type = Hamming<uint8_t, std::size_t>;
+    return rnn_brute_force_impl<dist_type, RProgress>(data, k, parallelize, grain_size, verbose);
   }
   else {
     Rcpp::stop("Bad metric");

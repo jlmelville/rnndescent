@@ -4,6 +4,17 @@
   library.dynam.unload("rnndescent", libpath)
 }
 
+# convert data frame to matrix using numeric columns
+x2m <- function(X) {
+  if (!methods::is(X, "matrix")) {
+    m <- as.matrix(X[, which(vapply(X, is.numeric, logical(1)))])
+  }
+  else {
+    m <- X
+  }
+  m
+}
+
 # 3 matrices
 # 0: candidate indices
 # 1: distances
@@ -384,6 +395,42 @@ random_nbrs_R <- function(X, k, metric = "euclidean") {
   list(idx = idx, dist = dist)
 }
 
+#' Calculate exact nearest neighbors by brute force.
+#'
+#' @param data Matrix of \code{n} items to generate random neighbors for.
+#' @param k Number of nearest neighbors to return.
+#' @param metric Type of distance calculation to use. One of \code{"euclidean"},
+#'   \code{"l2"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"}
+#'   or \code{"hamming"}.
+#' @param n_threads Number of threads to use.
+#' @param grain_size Minimum batch size for multithreading. If the number of
+#'   items to process in a thread falls below this number, then no threads will
+#'   be used. Ignored if \code{n_threads < 1}.
+#' @param verbose If \code{TRUE}, log information to the console.
+#' @return a list containing:
+#' \itemize{
+#'   \item \code{idx} an n by k matrix containing the nearest neighbor
+#'   indices.
+#'   \item \code{dist} an n by k matrix containing the nearest neighbor
+#'    distances.
+#' }
+#' @export
+nn_brute_force <- function(
+  data,
+  k,
+  metric = "euclidean",
+  n_threads = 0,
+  grain_size = 1,
+  verbose = FALSE)
+{
+  data <- x2m(data)
+  parallelize <- n_threads > 0
+  if (parallelize) {
+    RcppParallel::setThreadOptions(numThreads = n_threads)
+  }
+  rnn_brute_force(data, k, metric, parallelize, grain_size, verbose)
+}
+
 #' Randomly select nearest neighbors.
 #'
 #' @param data Matrix of \code{n} items to generate random neighbors for.
@@ -403,6 +450,7 @@ random_nbrs_R <- function(X, k, metric = "euclidean") {
 #' @export
 random_nbrs <- function(data, k, metric = "euclidean", use_cpp = FALSE,
                         n_threads = 0) {
+  data <- x2m(data)
   if (use_cpp) {
     parallelize <- n_threads > 0
     if (parallelize) {
@@ -455,6 +503,8 @@ nnd_knn <- function(data, k,
                     fast_rand = FALSE,
                     n_threads = 0,
                     verbose = FALSE) {
+  data <- x2m(data)
+
   # As a minor optimization, we will use L2 internally if the user asks for
   # Euclidean and only take the square root of the final distances.
   actual_metric <- metric
