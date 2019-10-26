@@ -14,7 +14,7 @@ Suggests:
     testthat
 RoxygenNote: 6.1.1
 LinkingTo: 
-    Rcpp, BH, RcppParallel
+    Rcpp, BH, RcppParallel, dqrng
 Imports: 
     Rcpp, methods, RcppParallel
 SystemRequirements: GNU make

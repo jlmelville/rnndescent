@@ -27,9 +27,25 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// random_nbrs_cpp
+Rcpp::List random_nbrs_cpp(Rcpp::NumericMatrix data, int k, const std::string& metric, bool parallelize, std::size_t grain_size);
+RcppExport SEXP _rnndescent_random_nbrs_cpp(SEXP dataSEXP, SEXP kSEXP, SEXP metricSEXP, SEXP parallelizeSEXP, SEXP grain_sizeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< int >::type k(kSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
+    Rcpp::traits::input_parameter< bool >::type parallelize(parallelizeSEXP);
+    Rcpp::traits::input_parameter< std::size_t >::type grain_size(grain_sizeSEXP);
+    rcpp_result_gen = Rcpp::wrap(random_nbrs_cpp(data, k, metric, parallelize, grain_size));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_rnndescent_nn_descent", (DL_FUNC) &_rnndescent_nn_descent, 12},
+    {"_rnndescent_random_nbrs_cpp", (DL_FUNC) &_rnndescent_random_nbrs_cpp, 5},
     {NULL, NULL, 0}
 };
 

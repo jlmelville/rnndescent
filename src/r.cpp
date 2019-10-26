@@ -204,6 +204,3 @@ Rcpp::List nn_descent(
     Rcpp::stop("Bad metric");
   }
 }
-
-
-

@@ -363,7 +363,7 @@ det_nbrs <- function(X, k, metric = "euclidean") {
   list(indices = indices, dist = dist)
 }
 
-random_nbrs <- function(X, k, metric = "euclidean") {
+random_nbrs_R <- function(X, k, metric = "euclidean") {
   nr <- nrow(X)
   indices <- matrix(0, nrow = nr, ncol = k)
   dist <- matrix(Inf, nrow = nr, ncol = k)
@@ -384,6 +384,18 @@ random_nbrs <- function(X, k, metric = "euclidean") {
   list(indices = indices, dist = dist)
 }
 
+random_nbrs <- function(X, k, metric = "euclidean", use_cpp = FALSE, n_threads = 0) {
+  if (use_cpp) {
+    parallelize <- n_threads > 0
+    if (parallelize) {
+      RcppParallel::setThreadOptions(numThreads = n_threads)
+    }
+    random_nbrs_cpp(X, k, metric, parallelize)
+  }
+  else {
+    random_nbrs_R(X = X, k = k, metric = metric)
+  }
+}
 
 #' Find Nearest Neighbors and Distances
 #'
@@ -406,6 +418,7 @@ random_nbrs <- function(X, k, metric = "euclidean") {
 #' @param fast_rand If \code{TRUE}, use a faster random number generator than
 #'   the R PRNG. Probably acceptable for the needs of the NN descent algorithm.
 #'   Applies only if \code{use_cpp = TRUE}.
+#' @param n_threads Number of threads to use.
 #' @param verbose If \code{TRUE}, log information to the console.
 #' @return a list containing:
 #' \itemize{
@@ -432,7 +445,8 @@ nnd_knn <- function(data, k,
   }
 
   tsmessage("Initializing from random neighbors")
-  init <- random_nbrs(data, k, metric = actual_metric)
+  init <- random_nbrs(data, k, metric = actual_metric, use_cpp = use_cpp,
+                      n_threads = n_threads)
   tsmessage("Init dsum = ", formatC(sum(init$dist)))
   init$indices <- init$indices - 1
 
@@ -458,6 +472,7 @@ nnd_knn <- function(data, k,
     )
     res$idx <- res$idx + 1
   }
+
   if (metric == "euclidean") {
     res$dist <- sqrt(res$dist)
   }
