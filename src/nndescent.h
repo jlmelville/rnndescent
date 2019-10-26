@@ -55,6 +55,16 @@ NeighborHeap build_candidates(
   return candidate_neighbors.neighbor_heap;
 }
 
+// This corresponds to the construction of new, old, new' and old' in
+// Algorithm 2, with some minor differences:
+// 1. old' and new' (the reverse candidates) are build at the same time as old
+// and new respectively, based on the fact that if j is a candidate of new[i],
+// then i is a reverse candidate of new[j]. This saves on building the entire
+// reverse candidates list and then down-sampling.
+// 2. Not all old members of current KNN are placed in old, nor are rho * K
+// new candidates sampled. Instead, rho * K total candidates are sampled from
+// the KNN and these are assigned into old and new based on their flag value,
+// i.e. the total number of sampled candidates (old + new) is rho * K.
 template <typename Rand>
 void build_candidates_full(
     NeighborHeap& current_graph,
@@ -63,11 +73,11 @@ void build_candidates_full(
     double rho,
     Rand& rand)
 {
-  const std::size_t npoints = current_graph.n_points;
-  const std::size_t nnbrs = current_graph.n_nbrs;
+  const std::size_t n_points = current_graph.n_points;
+  const std::size_t n_nbrs = current_graph.n_nbrs;
 
-  for (std::size_t i = 0; i < npoints; i++) {
-    for (std::size_t j = 0; j < nnbrs; j++) {
+  for (std::size_t i = 0; i < n_points; i++) {
+    for (std::size_t j = 0; j < n_nbrs; j++) {
       std::size_t idx = current_graph.index(i, j);
       if (idx == NeighborHeap::npos || rand.unif() >= rho) {
         continue;
@@ -158,22 +168,22 @@ void nnd_full(
     const std::size_t max_candidates,
     const std::size_t n_iters,
     Rand& rand,
-    Progress progress,
+    Progress& progress,
     const double rho,
     const double tol,
     bool verbose)
 {
   RandomWeight<Rand> weight_measure(rand);
-  const std::size_t npoints = current_graph.neighbor_heap.n_points;
+  const std::size_t n_points = current_graph.neighbor_heap.n_points;
 
   for (std::size_t n = 0; n < n_iters; n++) {
     if (verbose) {
       progress.iter(n, n_iters, current_graph.neighbor_heap);
     }
 
-    RandomHeap<Rand> new_candidate_neighbors(weight_measure, npoints,
+    RandomHeap<Rand> new_candidate_neighbors(weight_measure, n_points,
                                              max_candidates);
-    RandomHeap<Rand> old_candidate_neighbors(weight_measure, npoints,
+    RandomHeap<Rand> old_candidate_neighbors(weight_measure, n_points,
                                              max_candidates);
 
     build_candidates_full<Rand>(current_graph.neighbor_heap,
@@ -184,31 +194,9 @@ void nnd_full(
     NeighborHeap& new_nbrs = new_candidate_neighbors.neighbor_heap;
     NeighborHeap& old_nbrs = old_candidate_neighbors.neighbor_heap;
 
-    std::size_t c = 0;
-    for (std::size_t i = 0; i < npoints; i++) {
-      for (std::size_t j = 0; j < max_candidates; j++) {
-        std::size_t p = new_nbrs.index(i, j);
-        if (p == NeighborHeap::npos) {
-          continue;
-        }
-        for (std::size_t k = j; k < max_candidates; k++) {
-          std::size_t q = new_nbrs.index(i, k);
-          if (q == NeighborHeap::npos) {
-            continue;
-          }
-          c += current_graph.add_pair(p, q, true);
-        }
+    std::size_t c = local_join(current_graph, new_nbrs, old_nbrs, n_points,
+                               max_candidates, progress);
 
-        for (std::size_t k = 0; k < max_candidates; k++) {
-          std::size_t q = old_nbrs.index(i, k);
-          if (q == NeighborHeap::npos) {
-            continue;
-          }
-          c += current_graph.add_pair(p, q, true);
-        }
-      }
-      progress.check_interrupt();
-    }
     if (static_cast<double>(c) <= tol) {
       if (verbose) {
         progress.converged(c, tol);
@@ -217,6 +205,48 @@ void nnd_full(
     }
   }
   current_graph.neighbor_heap.deheap_sort();
+}
+
+// Local join update: instead of updating item i with the neighbors of the
+// candidates of i, explore pairs (p, q) of candidates and treat q as a
+// candidate for p, and vice versa.
+template <template<typename> class Heap,
+          typename Distance,
+          typename Progress>
+std::size_t local_join(
+    Heap<Distance>& current_graph,
+    const NeighborHeap& new_nbrs,
+    const NeighborHeap& old_nbrs,
+    const std::size_t n_points,
+    const std::size_t max_candidates,
+    Progress& progress)
+{
+  std::size_t c = 0;
+  for (std::size_t i = 0; i < n_points; i++) {
+    for (std::size_t j = 0; j < max_candidates; j++) {
+      std::size_t p = new_nbrs.index(i, j);
+      if (p == NeighborHeap::npos) {
+        continue;
+      }
+      for (std::size_t k = j; k < max_candidates; k++) {
+        std::size_t q = new_nbrs.index(i, k);
+        if (q == NeighborHeap::npos) {
+          continue;
+        }
+        c += current_graph.add_pair(p, q, true);
+      }
+
+      for (std::size_t k = 0; k < max_candidates; k++) {
+        std::size_t q = old_nbrs.index(i, k);
+        if (q == NeighborHeap::npos) {
+          continue;
+        }
+        c += current_graph.add_pair(p, q, true);
+      }
+    }
+    progress.check_interrupt();
+  }
+  return c;
 }
 
 #endif // RNND_NNDESCENT_H
