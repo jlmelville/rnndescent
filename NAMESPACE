@@ -2,5 +2,6 @@
 
 export(nn_descent)
 export(nnd_knn)
+export(random_nbrs)
 importFrom(Rcpp,sourceCpp)
 useDynLib(rnndescent, .registration = TRUE)

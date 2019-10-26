@@ -384,16 +384,34 @@ random_nbrs_R <- function(X, k, metric = "euclidean") {
   list(indices = indices, dist = dist)
 }
 
-random_nbrs <- function(X, k, metric = "euclidean", use_cpp = FALSE, n_threads = 0) {
+#' Randomly select nearest neighbors.
+#'
+#' @param data Matrix of \code{n} items to generate random neighbors for.
+#' @param k Number of nearest neighbors to return.
+#' @param metric Type of distance calculation to use. One of \code{"euclidean"},
+#'   \code{"l2"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"}
+#'   or \code{"hamming"}.
+#' @param use_cpp If \code{TRUE}, use the faster C++ code path.
+#' @param n_threads Number of threads to use. Ignored if \code{use_cpp = FALSE}.
+#' @return a list containing:
+#' \itemize{
+#'   \item \code{indices} an n by k matrix containing the nearest neighbor
+#'   indices.
+#'   \item \code{dist} an n by k matrix containing the nearest neighbor
+#'    distances.
+#' }
+#' @export
+random_nbrs <- function(data, k, metric = "euclidean", use_cpp = FALSE,
+                        n_threads = 0) {
   if (use_cpp) {
     parallelize <- n_threads > 0
     if (parallelize) {
       RcppParallel::setThreadOptions(numThreads = n_threads)
     }
-    random_nbrs_cpp(X, k, metric, parallelize)
+    random_nbrs_cpp(data, k, metric, parallelize)
   }
   else {
-    random_nbrs_R(X = X, k = k, metric = metric)
+    random_nbrs_R(X = data, k = k, metric = metric)
   }
 }
 
