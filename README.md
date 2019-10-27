@@ -1,5 +1,7 @@
 # rnndescent
 
+[![Travis-CI Build Status](https://travis-ci.org/jlmelville/rnndescent.svg?branch=master)](https://travis-ci.org/jlmelville/rnndescent) [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/jlmelville/rnndescent?branch=master&svg=true)](https://ci.appveyor.com/project/jlmelville/rnndescent) [![Coverage Status](https://img.shields.io/codecov/c/github/jlmelville/rnndescent/master.svg)](https://codecov.io/github/jlmelville/rnndescent?branch=master)
+
 An R package implementing the Nearest Neighbor Descent method 
 ([Dong et al., 2011](https://doi.org/10.1145/1963405.1963487)) for finding
 approximate nearest neighbors, based on the Python library 
