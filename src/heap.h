@@ -184,6 +184,12 @@ struct NeighborHeap
   std::size_t& index(std::size_t i, std::size_t j) {
     return idx[i * n_nbrs + j];
   }
+  std::size_t index(std::size_t ij) const {
+    return idx[ij];
+  }
+  std::size_t& index(std::size_t ij) {
+    return idx[ij];
+  }
 
   double distance(std::size_t i, std::size_t j) const {
     return dist[i * n_nbrs + j];
@@ -191,12 +197,35 @@ struct NeighborHeap
   double& distance(std::size_t i, std::size_t j) {
     return dist[i * n_nbrs + j];
   }
+  double distance(std::size_t ij) const {
+    return dist[ij];
+  }
+  double& distance(std::size_t ij) {
+    return dist[ij];
+  }
 
   char flag(std::size_t i, std::size_t j) const {
     return flags[i * n_nbrs + j];
   }
   char& flag(std::size_t i, std::size_t j) {
     return flags[i * n_nbrs + j];
+  }
+  char flag(std::size_t ij) const {
+    return flags[ij];
+  }
+  char& flag(std::size_t ij) {
+    return flags[ij];
+  }
+
+  void df(std::size_t i, std::size_t j,
+          double& distance, bool& flag) const {
+    auto pos = i * n_nbrs + j;
+    distance = dist[pos];
+    flag = flags[pos] == 1;
+  }
+  void df(std::size_t ij, double& distance, bool& flag) const {
+    distance = dist[ij];
+    flag = flags[ij] == 1;
   }
 };
 
@@ -255,11 +284,12 @@ struct ArrayHeap
     return neighbor_heap.unchecked_push(i, weight, j, flag);
   }
 
-  bool contains(std::size_t row, std::size_t index)
+  bool contains(std::size_t row, std::size_t index) const
   {
     const std::size_t n_nbrs = neighbor_heap.n_nbrs;
+    const std::size_t rnnbrs = row * n_nbrs;
     for (std::size_t i = 0; i < n_nbrs; i++) {
-      if (index == neighbor_heap.index(row, i)) {
+      if (index == neighbor_heap.index(rnnbrs + i)) {
         return true;
       }
     }

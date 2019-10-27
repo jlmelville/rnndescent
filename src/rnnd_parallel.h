@@ -26,6 +26,7 @@
 #include <RcppParallel.h>
 #include "heap.h"
 #include "tauprng.h"
+#include "nndescent.h"
 
 struct CandidatesWorker : public RcppParallel::Worker {
   NeighborHeap& current_graph;
@@ -59,17 +60,19 @@ struct CandidatesWorker : public RcppParallel::Worker {
     }
 
     for (std::size_t i = begin; i < end; i++) {
+      std::size_t innbrs = i * n_nbrs;
       for (std::size_t j = 0; j < n_nbrs; j++) {
-        std::size_t idx = current_graph.index(i, j);
+        std::size_t ij = innbrs + j;
+        std::size_t idx = current_graph.index(ij);
         if (idx == NeighborHeap::npos || rand->unif() >= rho) {
           continue;
         }
         double d = rand->unif();
-        bool isn = current_graph.flag(i, j) == 1;
+        bool isn = current_graph.flag(ij) == 1;
         if (isn) {
           std::size_t c = new_candidate_neighbors.checked_push(i, d, idx, isn);
           if (c > 0) {
-            current_graph.flag(i, j) = 0;
+            current_graph.flag(ij) = 0;
           }
         }
         else {
@@ -100,22 +103,21 @@ struct ReverseCandidatesWorker : public RcppParallel::Worker {
   {}
 
   void operator()(std::size_t begin, std::size_t end) {
+    std::size_t idx;
     double d;
     bool isn;
-    std::size_t idx;
     for (std::size_t i = 0; i < n_points; i++) {
+      std::size_t innbrs = i * max_candidates;
       for (std::size_t j = 0; j < max_candidates; j++) {
-        idx = new_candidate_neighbors.index(i, j);
+        std::size_t ij = innbrs + j;
+        idx = new_candidate_neighbors.index(ij);
         if (idx != NeighborHeap::npos && idx >= begin && idx < end) {
-          d = new_candidate_neighbors.distance(i, j);
-          isn = new_candidate_neighbors.flag(i, j) == 1;
+          new_candidate_neighbors.df(ij, d, isn);
           reverse_new_candidate_neighbors.checked_push(idx, d, i, isn);
         }
-
-        idx = old_candidate_neighbors.index(i, j);
+        idx = old_candidate_neighbors.index(ij);
         if (idx != NeighborHeap::npos && idx >= begin && idx < end) {
-          d = old_candidate_neighbors.distance(i, j);
-          isn = old_candidate_neighbors.flag(i, j) == 1;
+          old_candidate_neighbors.df(ij, d, isn);
           reverse_old_candidate_neighbors.checked_push(idx, d, i, isn);
         }
       }
@@ -149,28 +151,31 @@ struct NoNSearchWorker : public RcppParallel::Worker {
 
   void operator()(std::size_t begin, std::size_t end) {
     std::size_t n_local_updates = 0;
-    std::size_t p = 0;
-    std::size_t q = 0;
-    std::unordered_set<std::size_t> seen;
+    std::size_t p;
+    std::size_t pnnbrs;
+
+    std::unordered_set<std::size_t> seen(new_nbrs.n_points);
     for (std::size_t i = begin; i < end; i++) {
+      std::size_t innbrs = i * max_candidates;
       for (std::size_t j = 0; j < max_candidates; j++) {
-        p = new_nbrs.index(i, j);
+        std::size_t ij = innbrs + j;
+        p = new_nbrs.index(ij);
         if (p != NeighborHeap::npos) {
+          pnnbrs = p * max_candidates;
           for (std::size_t k = 0; k < max_candidates; k++) {
-            q = new_nbrs.index(p, k);
-            n_local_updates += try_add(i, q, seen);
-            q = old_nbrs.index(p, k);
-            n_local_updates += try_add(i, q, seen);
+            std::size_t pk = pnnbrs + k;
+            n_local_updates += try_add(i, new_nbrs.index(pk), seen);
+            n_local_updates += try_add(i, old_nbrs.index(pk), seen);
           }
         }
 
-        p = old_nbrs.index(i, j);
+        p = old_nbrs.index(ij);
         if (p == NeighborHeap::npos) {
           continue;
         }
+        pnnbrs = p * max_candidates;
         for (std::size_t k = 0; k < max_candidates; k++) {
-          q = new_nbrs.index(p, k);
-          n_local_updates += try_add(i, q, seen);
+          n_local_updates += try_add(i, new_nbrs.index(pnnbrs + k), seen);
         }
       }
       seen.clear();
@@ -212,25 +217,41 @@ void nnd_parallel(
 )
 {
   const std::size_t n_points = current_graph.neighbor_heap.n_points;
+  RandomWeight<Rand> weight_measure(rand);
 
   for (std::size_t n = 0; n < n_iters; n++) {
     if (verbose) {
       progress.iter(n, n_iters, current_graph.neighbor_heap);
     }
 
-    CandidatesWorker candidates_worker(current_graph.neighbor_heap, max_candidates, rho);
-    RcppParallel::parallelFor(0, n_points, candidates_worker, grain_size);
-    current_graph.neighbor_heap = candidates_worker.current_graph;
+    RandomHeap<Rand> new_candidate_neighbors(weight_measure, n_points,
+                                             max_candidates);
+    RandomHeap<Rand> old_candidate_neighbors(weight_measure, n_points,
+                                             max_candidates);
 
-    ReverseCandidatesWorker reverse_candidates_worker(
-        candidates_worker.new_candidate_neighbors,
-        candidates_worker.old_candidate_neighbors);
-    RcppParallel::parallelFor(0, n_points, reverse_candidates_worker, grain_size);
+    build_candidates_full<Rand>(current_graph.neighbor_heap,
+                                new_candidate_neighbors,
+                                old_candidate_neighbors,
+                                rho, rand);
+
+    NeighborHeap& new_nbrs = new_candidate_neighbors.neighbor_heap;
+    NeighborHeap& old_nbrs = old_candidate_neighbors.neighbor_heap;
+
+    // CandidatesWorker candidates_worker(current_graph.neighbor_heap, max_candidates, rho);
+    // RcppParallel::parallelFor(0, n_points, candidates_worker, grain_size);
+    // current_graph.neighbor_heap = candidates_worker.current_graph;
+    //
+    // ReverseCandidatesWorker reverse_candidates_worker(
+    //     candidates_worker.new_candidate_neighbors,
+    //     candidates_worker.old_candidate_neighbors);
+    // RcppParallel::parallelFor(0, n_points, reverse_candidates_worker, grain_size);
 
     NoNSearchWorker<Heap, Distance> non_search_worker(
         current_graph,
-        reverse_candidates_worker.reverse_new_candidate_neighbors,
-        reverse_candidates_worker.reverse_old_candidate_neighbors
+        // reverse_candidates_worker.reverse_new_candidate_neighbors,
+        // reverse_candidates_worker.reverse_old_candidate_neighbors
+        new_nbrs,
+        old_nbrs
     );
     RcppParallel::parallelFor(0, n_points, non_search_worker, grain_size);
     current_graph = non_search_worker.updated_graph;

@@ -78,16 +78,18 @@ void build_candidates_full(
   const std::size_t n_nbrs = current_graph.n_nbrs;
 
   for (std::size_t i = 0; i < n_points; i++) {
+    std::size_t innbrs = i * n_nbrs;
     for (std::size_t j = 0; j < n_nbrs; j++) {
-      std::size_t idx = current_graph.index(i, j);
+      std::size_t ij = innbrs + j;
+      std::size_t idx = current_graph.index(ij);
       if (idx == NeighborHeap::npos || rand.unif() >= rho) {
         continue;
       }
-      bool isn = current_graph.flag(i, j) == 1;
+      bool isn = current_graph.flag(ij) == 1;
       if (isn) {
         std::size_t c = new_candidate_neighbors.add_pair(i, idx, isn);
         if (c > 0) {
-          current_graph.flag(i, j) = 0;
+          current_graph.flag(ij) = 0;
         }
       }
       else {

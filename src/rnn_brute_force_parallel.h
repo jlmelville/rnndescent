@@ -29,19 +29,27 @@ template<typename Distance>
 struct BruteForceWorker : public RcppParallel::Worker {
 
   ArrayHeap<Distance> heap;
-  std::size_t n_points;
+  const std::size_t n_points;
+  const std::size_t n_nbrs;
 
   BruteForceWorker(
     ArrayHeap<Distance>& heap
   ) :
     heap(heap),
-    n_points(heap.neighbor_heap.n_points)
+    n_points(heap.neighbor_heap.n_points),
+    n_nbrs(heap.neighbor_heap.n_nbrs)
   {}
 
   void operator()(std::size_t begin, std::size_t end) {
+    auto& neighbor_heap = heap.neighbor_heap;
     for (std::size_t i = begin; i < end; i++) {
+      const std::size_t i0 = i * n_nbrs;
       for (std::size_t j = 0; j < n_points; j++) {
-        heap.add_pair_asymm(i, j, true);
+        double weight = heap.weight_measure(i, j);
+        if (weight >= neighbor_heap.distance(i0)) {
+          continue;
+        }
+        neighbor_heap.unchecked_push(i, weight, j, true);
       }
     }
   }

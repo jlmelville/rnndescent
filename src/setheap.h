@@ -61,8 +61,7 @@ struct SetHeap
     }
 
     pair p(i, j);
-    auto res = seen.emplace(p);
-    if (!res.second) {
+    if (!seen.emplace(p).second) {
       return 0;
     }
 
@@ -82,13 +81,13 @@ struct SetHeap
   std::size_t add_pair_asymm(
       std::size_t i,
       std::size_t j,
-      bool flag)
+      bool flag
+    )
   {
     pair p(i, j);
-    if (seen.find(p) != seen.end()) {
+    if (!seen.emplace(p).second) {
       return 0;
     }
-    seen.insert(p);
 
     double d = weight_measure(i, j);
 
