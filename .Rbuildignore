@@ -1,3 +1,10 @@
-^LICENSE\.md$
+^CRAN-RELEASE$
+^cran-comments\.md$
 ^.*\.Rproj$
 ^\.Rproj\.user$
+^README\.md$
+^LICENSE\.md$
+^\.travis\.yml$
+^appveyor\.yml$
+^codecov\.yml$
+^.*\/*DONTCHECKMEIN.*$
