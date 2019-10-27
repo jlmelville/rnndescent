@@ -6,8 +6,8 @@
 using namespace Rcpp;
 
 // nn_descent
-Rcpp::List nn_descent(Rcpp::NumericMatrix data, Rcpp::IntegerMatrix idx, Rcpp::NumericMatrix dist, const std::string metric, const std::size_t max_candidates, const std::size_t n_iters, const double delta, const double rho, bool use_set, bool fast_rand, bool parallelize, bool verbose);
-RcppExport SEXP _rnndescent_nn_descent(SEXP dataSEXP, SEXP idxSEXP, SEXP distSEXP, SEXP metricSEXP, SEXP max_candidatesSEXP, SEXP n_itersSEXP, SEXP deltaSEXP, SEXP rhoSEXP, SEXP use_setSEXP, SEXP fast_randSEXP, SEXP parallelizeSEXP, SEXP verboseSEXP) {
+Rcpp::List nn_descent(Rcpp::NumericMatrix data, Rcpp::IntegerMatrix idx, Rcpp::NumericMatrix dist, const std::string metric, const std::size_t max_candidates, const std::size_t n_iters, const double delta, const double rho, bool use_set, bool fast_rand, bool parallelize, std::size_t grain_size, bool verbose);
+RcppExport SEXP _rnndescent_nn_descent(SEXP dataSEXP, SEXP idxSEXP, SEXP distSEXP, SEXP metricSEXP, SEXP max_candidatesSEXP, SEXP n_itersSEXP, SEXP deltaSEXP, SEXP rhoSEXP, SEXP use_setSEXP, SEXP fast_randSEXP, SEXP parallelizeSEXP, SEXP grain_sizeSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -22,8 +22,9 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< bool >::type use_set(use_setSEXP);
     Rcpp::traits::input_parameter< bool >::type fast_rand(fast_randSEXP);
     Rcpp::traits::input_parameter< bool >::type parallelize(parallelizeSEXP);
+    Rcpp::traits::input_parameter< std::size_t >::type grain_size(grain_sizeSEXP);
     Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
-    rcpp_result_gen = Rcpp::wrap(nn_descent(data, idx, dist, metric, max_candidates, n_iters, delta, rho, use_set, fast_rand, parallelize, verbose));
+    rcpp_result_gen = Rcpp::wrap(nn_descent(data, idx, dist, metric, max_candidates, n_iters, delta, rho, use_set, fast_rand, parallelize, grain_size, verbose));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -60,7 +61,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_rnndescent_nn_descent", (DL_FUNC) &_rnndescent_nn_descent, 12},
+    {"_rnndescent_nn_descent", (DL_FUNC) &_rnndescent_nn_descent, 13},
     {"_rnndescent_rnn_brute_force", (DL_FUNC) &_rnndescent_rnn_brute_force, 6},
     {"_rnndescent_random_nbrs_cpp", (DL_FUNC) &_rnndescent_random_nbrs_cpp, 5},
     {NULL, NULL, 0}

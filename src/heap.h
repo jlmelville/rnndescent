@@ -49,6 +49,26 @@ struct NeighborHeap
   ~NeighborHeap() = default;
   NeighborHeap& operator=(const NeighborHeap &) = default;
 
+  std::size_t checked_push(
+      std::size_t row,
+      double weight,
+      std::size_t idx,
+      bool flag)
+  {
+    if (weight >= distance(row, 0)) {
+      return 0;
+    }
+
+    // break if we already have this element
+    for (std::size_t i = 0; i < n_nbrs; i++) {
+      if (idx == index(row, i)) {
+        return 0;
+      }
+    }
+
+    return unchecked_push(row, weight, idx, flag);
+  }
+
   std::size_t unchecked_push(
       std::size_t row,
       double weight,
@@ -209,8 +229,7 @@ struct ArrayHeap
   {
     double d = weight_measure(i, j);
 
-    std::size_t c = 0;
-    c += push(i, d, j, flag);
+    std::size_t c = push(i, d, j, flag);
     if (i != j) {
       c += push(j, d, i, flag);
     }
@@ -223,12 +242,28 @@ struct ArrayHeap
       std::size_t j,
       bool flag)
   {
-    double d = weight_measure(i, j);
+    if (contains(i, j)) {
+      return 0;
+    }
 
-    std::size_t c = 0;
-    c += push(i, d, j, flag);
+    double weight = weight_measure(i, j);
 
-    return c;
+    if (weight >= neighbor_heap.distance(i, 0)) {
+      return 0;
+    }
+
+    return neighbor_heap.unchecked_push(i, weight, j, flag);
+  }
+
+  bool contains(std::size_t row, std::size_t index)
+  {
+    const std::size_t n_nbrs = neighbor_heap.n_nbrs;
+    for (std::size_t i = 0; i < n_nbrs; i++) {
+      if (index == neighbor_heap.index(row, i)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   std::size_t push(
@@ -242,11 +277,8 @@ struct ArrayHeap
     }
 
     // break if we already have this element
-    const std::size_t n_nbrs = neighbor_heap.n_nbrs;
-    for (std::size_t i = 0; i < n_nbrs; i++) {
-      if (index == neighbor_heap.index(row, i)) {
-        return 0;
-      }
+    if (contains(row, index)) {
+      return 0;
     }
 
     return neighbor_heap.unchecked_push(row, weight, index, flag);

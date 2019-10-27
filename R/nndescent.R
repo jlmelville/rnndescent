@@ -485,6 +485,9 @@ random_nbrs <- function(data, k, metric = "euclidean", use_cpp = FALSE,
 #'   the R PRNG. Probably acceptable for the needs of the NN descent algorithm.
 #'   Applies only if \code{use_cpp = TRUE}.
 #' @param n_threads Number of threads to use.
+#' @param grain_size Minimum batch size for multithreading. If the number of
+#'   items to process in a thread falls below this number, then no threads will
+#'   be used. Ignored if \code{n_threads < 1}.
 #' @param verbose If \code{TRUE}, log information to the console.
 #' @return a list containing:
 #' \itemize{
@@ -502,6 +505,7 @@ nnd_knn <- function(data, k,
                     use_set = FALSE,
                     fast_rand = FALSE,
                     n_threads = 0,
+                    grain_size = 1,
                     verbose = FALSE) {
   data <- x2m(data)
 
@@ -528,7 +532,7 @@ nnd_knn <- function(data, k,
       metric = actual_metric,
       n_iters = n_iters, max_candidates = max_candidates,
       delta = delta, rho = rho, use_set = use_set, fast_rand = fast_rand,
-      parallelize = parallelize,
+      parallelize = parallelize, grain_size = grain_size,
       verbose = verbose
     )
   }

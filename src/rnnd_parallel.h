@@ -19,33 +19,36 @@
 
 #ifndef RNND_PARALLEL_H
 #define RNND_PARALLEL_H
-
 #include <unordered_set>
+
 #include <Rcpp.h>
 // [[Rcpp::depends(RcppParallel)]]
 #include <RcppParallel.h>
+#include "heap.h"
 #include "tauprng.h"
 
-
-template <template<typename> class Heap,
-          typename Distance>
-struct NNDWorker : public RcppParallel::Worker {
-  const Heap<Distance>& current_graph;
-  Heap<Distance> updated_graph;
+struct CandidatesWorker : public RcppParallel::Worker {
+  NeighborHeap& current_graph;
   const std::size_t n_points;
   const std::size_t n_nbrs;
+  const std::size_t max_candidates;
   const double rho;
-  std::size_t n_updates;
+  NeighborHeap new_candidate_neighbors;
+  NeighborHeap old_candidate_neighbors;
   tthread::mutex mutex;
 
-  NNDWorker(const Heap<Distance>& current_graph, const double rho) :
+  CandidatesWorker(
+    NeighborHeap& current_graph,
+    const std::size_t max_candidates,
+    const double rho) :
     current_graph(current_graph),
-    updated_graph(current_graph),
-    n_points(current_graph.neighbor_heap.n_points),
-    n_nbrs(current_graph.neighbor_heap.n_nbrs),
+    n_points(current_graph.n_points),
+    n_nbrs(current_graph.n_nbrs),
+    max_candidates(max_candidates),
     rho(rho),
-    n_updates(0)
-    {}
+    new_candidate_neighbors(n_points, max_candidates),
+    old_candidate_neighbors(n_points, max_candidates)
+  {}
 
   void operator()(std::size_t begin, std::size_t end) {
     std::unique_ptr<TauRand> rand(nullptr);
@@ -54,23 +57,120 @@ struct NNDWorker : public RcppParallel::Worker {
       tthread::lock_guard<tthread::mutex> guard(mutex);
       rand.reset(new TauRand());
     }
-    std::size_t n_local_updates = 0;
-    std::unordered_set<std::size_t> seen(static_cast<std::size_t>(rho * n_nbrs * n_nbrs));
+
     for (std::size_t i = begin; i < end; i++) {
       for (std::size_t j = 0; j < n_nbrs; j++) {
-        std::size_t p = current_graph.neighbor_heap.index(i, j);
+        std::size_t idx = current_graph.index(i, j);
+        if (idx == NeighborHeap::npos || rand->unif() >= rho) {
+          continue;
+        }
+        double d = rand->unif();
+        bool isn = current_graph.flag(i, j) == 1;
+        if (isn) {
+          std::size_t c = new_candidate_neighbors.checked_push(i, d, idx, isn);
+          if (c > 0) {
+            current_graph.flag(i, j) = 0;
+          }
+        }
+        else {
+          old_candidate_neighbors.checked_push(i, d, idx, isn);
+        }
+      }
+    }
+  }
+};
+
+struct ReverseCandidatesWorker : public RcppParallel::Worker {
+  const std::size_t n_points;
+  const std::size_t max_candidates;
+  const NeighborHeap& new_candidate_neighbors;
+  const NeighborHeap& old_candidate_neighbors;
+  NeighborHeap reverse_new_candidate_neighbors;
+  NeighborHeap reverse_old_candidate_neighbors;
+
+  ReverseCandidatesWorker(
+    const NeighborHeap& new_candidate_neighbors,
+    const NeighborHeap& old_candidate_neighbors) :
+    n_points(new_candidate_neighbors.n_points),
+    max_candidates(new_candidate_neighbors.n_nbrs),
+    new_candidate_neighbors(new_candidate_neighbors),
+    old_candidate_neighbors(old_candidate_neighbors),
+    reverse_new_candidate_neighbors(new_candidate_neighbors),
+    reverse_old_candidate_neighbors(old_candidate_neighbors)
+  {}
+
+  void operator()(std::size_t begin, std::size_t end) {
+    double d;
+    bool isn;
+    std::size_t idx;
+    for (std::size_t i = 0; i < n_points; i++) {
+      for (std::size_t j = 0; j < max_candidates; j++) {
+        idx = new_candidate_neighbors.index(i, j);
+        if (idx != NeighborHeap::npos && idx >= begin && idx < end) {
+          d = new_candidate_neighbors.distance(i, j);
+          isn = new_candidate_neighbors.flag(i, j) == 1;
+          reverse_new_candidate_neighbors.checked_push(idx, d, i, isn);
+        }
+
+        idx = old_candidate_neighbors.index(i, j);
+        if (idx != NeighborHeap::npos && idx >= begin && idx < end) {
+          d = old_candidate_neighbors.distance(i, j);
+          isn = old_candidate_neighbors.flag(i, j) == 1;
+          reverse_old_candidate_neighbors.checked_push(idx, d, i, isn);
+        }
+      }
+    }
+  }
+};
+
+template <template<typename> class Heap,
+          typename Distance>
+struct NoNSearchWorker : public RcppParallel::Worker {
+  Heap<Distance>& updated_graph;
+  const NeighborHeap& new_nbrs;
+  const NeighborHeap& old_nbrs;
+  const std::size_t n_points;
+  const std::size_t max_candidates;
+  std::size_t n_updates;
+  tthread::mutex mutex;
+
+  NoNSearchWorker(
+    Heap<Distance>& current_graph,
+    const NeighborHeap& new_nbrs,
+    const NeighborHeap& old_nbrs
+  ) :
+    updated_graph(current_graph),
+    new_nbrs(new_nbrs),
+    old_nbrs(old_nbrs),
+    n_points(current_graph.neighbor_heap.n_points),
+    max_candidates(new_nbrs.n_nbrs),
+    n_updates(0)
+  {}
+
+  void operator()(std::size_t begin, std::size_t end) {
+    std::size_t n_local_updates = 0;
+    std::size_t p = 0;
+    std::size_t q = 0;
+    std::unordered_set<std::size_t> seen;
+    for (std::size_t i = begin; i < end; i++) {
+      for (std::size_t j = 0; j < max_candidates; j++) {
+        p = new_nbrs.index(i, j);
+        if (p != NeighborHeap::npos) {
+          for (std::size_t k = 0; k < max_candidates; k++) {
+            q = new_nbrs.index(p, k);
+            n_local_updates += try_add(i, q, seen);
+            q = old_nbrs.index(p, k);
+            n_local_updates += try_add(i, q, seen);
+          }
+        }
+
+        p = old_nbrs.index(i, j);
         if (p == NeighborHeap::npos) {
           continue;
         }
-        for (std::size_t k = 0; k < n_nbrs; k++) {
-          std::size_t q = current_graph.neighbor_heap.index(p, k);
-          if (i == q || q == NeighborHeap::npos || rand->unif() >= rho) {
-            continue;
-          }
-          if (seen.find(q) == seen.end()) {
-            seen.insert(q);
-            n_local_updates += updated_graph.add_pair_asymm(i, q, true);
-          }
+        for (std::size_t k = 0; k < max_candidates; k++) {
+          q = new_nbrs.index(p, k);
+          n_local_updates += try_add(i, q, seen);
         }
       }
       seen.clear();
@@ -79,6 +179,19 @@ struct NNDWorker : public RcppParallel::Worker {
       tthread::lock_guard<tthread::mutex> guard(mutex);
       n_updates += n_local_updates;
     }
+  }
+
+  std::size_t try_add
+    (
+        std::size_t i,
+        std::size_t q,
+        std::unordered_set<std::size_t>& seen
+    )
+  {
+    if (q == NeighborHeap::npos || !seen.emplace(q).second) {
+      return 0;
+    }
+    return updated_graph.add_pair_asymm(i, q, true);
   }
 };
 
@@ -99,30 +212,31 @@ void nnd_parallel(
 )
 {
   const std::size_t n_points = current_graph.neighbor_heap.n_points;
-  const std::size_t n_nbrs = current_graph.neighbor_heap.n_nbrs;
 
   for (std::size_t n = 0; n < n_iters; n++) {
     if (verbose) {
       progress.iter(n, n_iters, current_graph.neighbor_heap);
     }
-    NNDWorker<Heap, Distance> worker(current_graph, rho);
-    RcppParallel::parallelFor(0, n_points, worker, grain_size);
-    current_graph = worker.updated_graph;
 
-    // resymmetrize
-    for (std::size_t i = 0; i < n_points; i++) {
-      for (std::size_t j = 0; j < n_nbrs; j++) {
-        std::size_t p = current_graph.neighbor_heap.index(i, j);
-        if (p == NeighborHeap::npos) {
-          continue;
-        }
-        current_graph.add_pair_asymm(p, i, true);
-      }
-    }
+    CandidatesWorker candidates_worker(current_graph.neighbor_heap, max_candidates, rho);
+    RcppParallel::parallelFor(0, n_points, candidates_worker, grain_size);
+    current_graph.neighbor_heap = candidates_worker.current_graph;
 
+    ReverseCandidatesWorker reverse_candidates_worker(
+        candidates_worker.new_candidate_neighbors,
+        candidates_worker.old_candidate_neighbors);
+    RcppParallel::parallelFor(0, n_points, reverse_candidates_worker, grain_size);
+
+    NoNSearchWorker<Heap, Distance> non_search_worker(
+        current_graph,
+        reverse_candidates_worker.reverse_new_candidate_neighbors,
+        reverse_candidates_worker.reverse_old_candidate_neighbors
+    );
+    RcppParallel::parallelFor(0, n_points, non_search_worker, grain_size);
+    current_graph = non_search_worker.updated_graph;
     progress.check_interrupt();
 
-    const std::size_t c = worker.n_updates;
+    const std::size_t c = non_search_worker.n_updates;
     if (static_cast<double>(c) <= tol) {
       if (verbose) {
         progress.converged(c, tol);
@@ -132,6 +246,5 @@ void nnd_parallel(
   }
   current_graph.neighbor_heap.deheap_sort();
 }
-
 
 #endif // RNND_PARALLEL_H

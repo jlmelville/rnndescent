@@ -7,7 +7,7 @@
 nnd_knn(data, k, metric = "euclidean", n_iters = 10,
   max_candidates = 50, delta = 0.001, rho = 0.5, use_cpp = TRUE,
   use_set = FALSE, fast_rand = FALSE, n_threads = 0,
-  verbose = FALSE)
+  grain_size = 1, verbose = FALSE)
 }
 \arguments{
 \item{data}{Matrix of \code{n} items to search.}
@@ -40,6 +40,10 @@ the R PRNG. Probably acceptable for the needs of the NN descent algorithm.
 Applies only if \code{use_cpp = TRUE}.}
 
 \item{n_threads}{Number of threads to use.}
+
+\item{grain_size}{Minimum batch size for multithreading. If the number of
+items to process in a thread falls below this number, then no threads will
+be used. Ignored if \code{n_threads < 1}.}
 
 \item{verbose}{If \code{TRUE}, log information to the console.}
 }

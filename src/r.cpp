@@ -35,14 +35,16 @@ if (use_set) {                                                    \
                          DistType,                                \
                          RandType,                                \
                          RProgress>                               \
-  (data, idx, dist, max_candidates, n_iters, delta, rho, false, verbose);\
+  (data, idx, dist, max_candidates, n_iters, delta, rho, false,   \
+   grain_size, verbose);                                          \
 }                                                                 \
 else {                                                            \
   return nn_descent_impl<ArrayHeap,                               \
                          DistType,                                \
                          RandType,                                \
                          RProgress>                               \
-  (data, idx, dist, max_candidates, n_iters, delta, rho, parallelize, verbose);\
+  (data, idx, dist, max_candidates, n_iters, delta, rho,          \
+   parallelize, grain_size, verbose);                             \
 }
 
 #define NNDR(DistType, use_set, use_fast_rand, parallelize)    \
@@ -141,6 +143,7 @@ Rcpp::List nn_descent_impl(
     const double delta = 0.001,
     const double rho = 0.5,
     bool parallelize = false,
+    std::size_t grain_size = 1,
     bool verbose = false) {
   const std::size_t npoints = idx.nrow();
   const std::size_t nnbrs = idx.ncol();
@@ -179,6 +182,7 @@ Rcpp::List nn_descent(
     bool use_set = false,
     bool fast_rand = false,
     bool parallelize = false,
+    std::size_t grain_size = 1,
     bool verbose = false) {
 
   if (metric == "euclidean") {
