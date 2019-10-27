@@ -68,10 +68,22 @@ random_nbrs <- function(data, k, metric = "euclidean", use_cpp = TRUE,
 #' Find Nearest Neighbors and Distances
 #'
 #' @param data Matrix of \code{n} items to search.
-#' @param k Number of nearest neighbors to return.
+#' @param k Number of nearest neighbors to return. Optional if \code{init} is
+#'   specified.
 #' @param metric Type of distance calculation to use. One of \code{"euclidean"},
 #'   \code{"l2"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"}
 #'   or \code{"hamming"}.
+#' @param init Initial data to optimize. If not provided, \code{k} random
+#'   neighbors are created. The input format should be the same as the return
+#'   value: a list containing:
+#' \itemize{
+#'   \item \code{idx} an n by k matrix containing the nearest neighbor indices.
+#'   \item \code{dist} an n by k matrix containing the nearest neighbor
+#'   distances.
+#' }
+#' If \code{k} and \code{init} are provided then \code{k} must be equal to or
+#' smaller than the number of neighbors provided in \code{init}. If smaller,
+#' only the \code{k} closest value in \code{init} are retained.
 #' @param n_iters Number of iterations of nearest neighbor descent to carry out.
 #' @param max_candidates Maximum number of candidate neighbors to try for each
 #'   item.
@@ -98,8 +110,9 @@ random_nbrs <- function(data, k, metric = "euclidean", use_cpp = TRUE,
 #'    distances.
 #' }
 #' @export
-nnd_knn <- function(data, k,
+nnd_knn <- function(data, k = NULL,
                     metric = "euclidean",
+                    init = NULL,
                     n_iters = 10,
                     max_candidates = 50,
                     delta = 0.001, rho = 0.5,
@@ -118,11 +131,28 @@ nnd_knn <- function(data, k,
     actual_metric <- "l2"
   }
 
-  tsmessage("Initializing from random neighbors")
-  init <- random_nbrs(data, k,
-    metric = actual_metric, use_cpp = use_cpp,
-    n_threads = n_threads
-  )
+  if (is.null(init)) {
+    if (is.null(k)) {
+      stop("Must provide k")
+    }
+    tsmessage("Initializing from random neighbors")
+    init <- random_nbrs(data, k,
+      metric = actual_metric, use_cpp = use_cpp,
+      n_threads = n_threads
+    )
+  }
+  else {
+    if (is.null(k)) {
+      k <- ncol(init$idx)
+    }
+    else if (k != ncol(init$idx)) {
+      if (k > ncol(init$idx)) {
+        stop("Not enough initial neighbors provided for k = ", k)
+      }
+      init$idx <- init$idx[, 1:k]
+      init$dist <- init$dist[, 1:k]
+    }
+  }
   tsmessage("Init dsum = ", formatC(sum(init$dist)))
   init$idx <- init$idx - 1
 

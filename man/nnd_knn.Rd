@@ -4,19 +4,32 @@
 \alias{nnd_knn}
 \title{Find Nearest Neighbors and Distances}
 \usage{
-nnd_knn(data, k, metric = "euclidean", n_iters = 10,
-  max_candidates = 50, delta = 0.001, rho = 0.5, use_cpp = TRUE,
-  use_set = FALSE, fast_rand = FALSE, n_threads = 0,
-  grain_size = 1, verbose = FALSE)
+nnd_knn(data, k = NULL, metric = "euclidean", init = NULL,
+  n_iters = 10, max_candidates = 50, delta = 0.001, rho = 0.5,
+  use_cpp = TRUE, use_set = FALSE, fast_rand = FALSE,
+  n_threads = 0, grain_size = 1, verbose = FALSE)
 }
 \arguments{
 \item{data}{Matrix of \code{n} items to search.}
 
-\item{k}{Number of nearest neighbors to return.}
+\item{k}{Number of nearest neighbors to return. Optional if \code{init} is
+specified.}
 
 \item{metric}{Type of distance calculation to use. One of \code{"euclidean"},
 \code{"l2"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"}
 or \code{"hamming"}.}
+
+\item{init}{Initial data to optimize. If not provided, \code{k} random
+  neighbors are created. The input format should be the same as the return
+  value: a list containing:
+\itemize{
+  \item \code{idx} an n by k matrix containing the nearest neighbor indices.
+  \item \code{dist} an n by k matrix containing the nearest neighbor
+  distances.
+}
+If \code{k} and \code{init} are provided then \code{k} must be equal to or
+smaller than the number of neighbors provided in \code{init}. If smaller,
+only the \code{k} closest value in \code{init} are retained.}
 
 \item{n_iters}{Number of iterations of nearest neighbor descent to carry out.}
 
