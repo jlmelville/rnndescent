@@ -53,12 +53,12 @@ NeighborHeap build_candidates(
         continue;
       }
       std::size_t idx = current_graph.index(i, j);
-      bool isn = current_graph.flags(i, j) == 1;
+      bool isn = current_graph.flag(i, j) == 1;
 
       candidate_neighbors.add_pair(i, idx, isn);
       // incremental search: mark this object false to indicate it has
       // participated in the local join
-      current_graph.flags(i, j) = 0;
+      current_graph.flag(i, j) = 0;
     }
   }
   return candidate_neighbors.neighbor_heap;
@@ -147,8 +147,8 @@ void nnd_basic(
         for (std::size_t k = 0; k < max_candidates; k++) {
           std::size_t q = candidate_neighbors.index(i, k);
           if (q == NeighborHeap::npos() ||
-              (candidate_neighbors.flags(i, j) == 0 &&
-               candidate_neighbors.flags(i, k) == 0))
+              (candidate_neighbors.flag(i, j) == 0 &&
+               candidate_neighbors.flag(i, k) == 0))
           {
             // incremental search: two objects are only compared if at least
             // one of them is new
