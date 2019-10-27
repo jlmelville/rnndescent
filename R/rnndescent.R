@@ -19,13 +19,12 @@
 #' }
 #' @export
 nn_brute_force <- function(
-  data,
-  k,
-  metric = "euclidean",
-  n_threads = 0,
-  grain_size = 1,
-  verbose = FALSE)
-{
+                           data,
+                           k,
+                           metric = "euclidean",
+                           n_threads = 0,
+                           grain_size = 1,
+                           verbose = FALSE) {
   data <- x2m(data)
   parallelize <- n_threads > 0
   if (parallelize) {
@@ -120,8 +119,10 @@ nnd_knn <- function(data, k,
   }
 
   tsmessage("Initializing from random neighbors")
-  init <- random_nbrs(data, k, metric = actual_metric, use_cpp = use_cpp,
-                      n_threads = n_threads)
+  init <- random_nbrs(data, k,
+    metric = actual_metric, use_cpp = use_cpp,
+    n_threads = n_threads
+  )
   tsmessage("Init dsum = ", formatC(sum(init$dist)))
   init$idx <- init$idx - 1
 
@@ -132,18 +133,18 @@ nnd_knn <- function(data, k,
     }
 
     res <- nn_descent(data, init$idx, init$dist,
-                      metric = actual_metric,
-                      n_iters = n_iters, max_candidates = max_candidates,
-                      delta = delta, rho = rho, use_set = use_set, fast_rand = fast_rand,
-                      parallelize = parallelize, grain_size = grain_size,
-                      verbose = verbose
+      metric = actual_metric,
+      n_iters = n_iters, max_candidates = max_candidates,
+      delta = delta, rho = rho, use_set = use_set, fast_rand = fast_rand,
+      parallelize = parallelize, grain_size = grain_size,
+      verbose = verbose
     )
   }
   else {
     res <- nn_descent_optl(data, init,
-                           metric = actual_metric, n_iters = n_iters,
-                           max_candidates = max_candidates,
-                           delta = delta, rho = rho, verbose = verbose
+      metric = actual_metric, n_iters = n_iters,
+      max_candidates = max_candidates,
+      delta = delta, rho = rho, verbose = verbose
     )
     res$idx <- res$idx + 1
   }
@@ -216,12 +217,12 @@ random_nbrs_R <- function(X, k, metric = "euclidean") {
 
 create_dist_fn <- function(metric) {
   switch(metric,
-         l2 = l2_dist,
-         euclidean = euc_dist,
-         cosine = cos_dist,
-         manhattan = manhattan_dist,
-         hamming = hamming_dist,
-         stop("Unknown metric '", metric, "'")
+    l2 = l2_dist,
+    euclidean = euc_dist,
+    cosine = cos_dist,
+    manhattan = manhattan_dist,
+    hamming = hamming_dist,
+    stop("Unknown metric '", metric, "'")
   )
 }
 
@@ -251,4 +252,3 @@ det_nbrs <- function(X, k, metric = "euclidean") {
 .onUnload <- function(libpath) {
   library.dynam.unload("rnndescent", libpath)
 }
-

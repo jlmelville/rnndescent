@@ -52,7 +52,7 @@ nn_descent_opt <- function(data, metric, indices, dist, n_iters = 10, max_candid
         for (k in 1:max_candidates) {
           q <- candidate_neighbors[1, i, k]
           if (q < 0 || candidate_neighbors[3, i, j] == 0 &&
-              candidate_neighbors[3, i, k] == 0) {
+            candidate_neighbors[3, i, k] == 0) {
             next
           }
           d <- dist_fn(data, p + 1, q + 1)
@@ -81,8 +81,8 @@ nn_descent_optl <- function(data, l, metric = "euclidean", n_iters = 10,
                             delta = 0.001, rho = 0.5,
                             verbose = FALSE) {
   nn_descent_opt(data, metric, l$idx, l$dist,
-                 n_iters = n_iters, max_candidates = max_candidates,
-                 delta = delta, rho = rho,
-                 verbose = verbose
+    n_iters = n_iters, max_candidates = max_candidates,
+    delta = delta, rho = rho,
+    verbose = verbose
   )
 }
