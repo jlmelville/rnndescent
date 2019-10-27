@@ -4,7 +4,7 @@
 \alias{random_nbrs}
 \title{Randomly select nearest neighbors.}
 \usage{
-random_nbrs(data, k, metric = "euclidean", use_cpp = FALSE,
+random_nbrs(data, k, metric = "euclidean", use_cpp = TRUE,
   n_threads = 0)
 }
 \arguments{

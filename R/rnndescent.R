@@ -50,11 +50,11 @@ nn_brute_force <- function(
 #'    distances.
 #' }
 #' @export
-random_nbrs <- function(data, k, metric = "euclidean", use_cpp = FALSE,
+random_nbrs <- function(data, k, metric = "euclidean", use_cpp = TRUE,
                         n_threads = 0) {
   data <- x2m(data)
-  if (use_cpp) {
-    parallelize <- n_threads > 0
+  parallelize <- n_threads > 0
+  if (use_cpp || parallelize) {
     if (parallelize) {
       RcppParallel::setThreadOptions(numThreads = n_threads)
     }
