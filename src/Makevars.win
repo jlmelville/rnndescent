@@ -1,5 +1,6 @@
 # Turn on C++11 support
 CXX_STD = CXX11
+PKG_CPPFLAGS = -I../inst/include/
 
 # RcppParallel
 PKG_CXXFLAGS += -DRCPP_PARALLEL_USE_TBB=1 -DSTRICT_R_HEADERS

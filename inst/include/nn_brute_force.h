@@ -20,9 +20,7 @@
 #ifndef RNND_NN_BRUTE_FORCE_H
 #define RNND_NN_BRUTE_FORCE_H
 
-#include <Rcpp.h>
-
-#include "heap.h"
+#include "arrayheap.h"
 
 template <typename Distance,
           typename Progress>

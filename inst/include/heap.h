@@ -27,7 +27,11 @@ struct NeighborHeap
 {
   // used in analogy with std::string::npos as used in std::string::find
   // to represent not found
-  static constexpr std::size_t npos = static_cast<std::size_t>(-1);
+  // static constexpr std::size_t npos =
+
+  static constexpr std::size_t npos() { return static_cast<std::size_t>(-1); }
+
+  // constexpr std::size_t NeighborHeap::npos;
 
   std::size_t n_points;
   std::size_t n_nbrs;
@@ -40,7 +44,7 @@ struct NeighborHeap
     const std::size_t n_nbrs) :
     n_points(n_points),
     n_nbrs(n_nbrs),
-    idx(n_points * n_nbrs, npos),
+    idx(n_points * n_nbrs, npos()),
     dist(n_points * n_nbrs, std::numeric_limits<double>::max()),
     flags(n_points * n_nbrs, 0)
   { }
@@ -228,109 +232,5 @@ struct NeighborHeap
     flag = flags[ij] == 1;
   }
 };
-
-constexpr std::size_t NeighborHeap::npos;
-
-
-// Checks for duplicates by iterating over the entire array of stored indexes
-template <typename WeightMeasure>
-struct ArrayHeap
-{
-  NeighborHeap neighbor_heap;
-  WeightMeasure weight_measure;
-
-  ArrayHeap(
-    WeightMeasure& weight_measure,
-    const std::size_t n_points,
-    const std::size_t size) :
-  neighbor_heap(n_points, size),
-  weight_measure(weight_measure)
-    {}
-
-  ArrayHeap(const ArrayHeap&) = default;
-  ~ArrayHeap() = default;
-  ArrayHeap& operator=(const ArrayHeap &) = default;
-
-  std::size_t add_pair(
-      std::size_t i,
-      std::size_t j,
-      bool flag)
-  {
-    double d = weight_measure(i, j);
-
-    std::size_t c = push(i, d, j, flag);
-    if (i != j) {
-      c += push(j, d, i, flag);
-    }
-
-    return c;
-  }
-
-  std::size_t add_pair_asymm(
-      std::size_t i,
-      std::size_t j,
-      bool flag)
-  {
-    if (contains(i, j)) {
-      return 0;
-    }
-
-    double weight = weight_measure(i, j);
-
-    if (weight >= neighbor_heap.distance(i, 0)) {
-      return 0;
-    }
-
-    return neighbor_heap.unchecked_push(i, weight, j, flag);
-  }
-
-  bool contains(std::size_t row, std::size_t index) const
-  {
-    const std::size_t n_nbrs = neighbor_heap.n_nbrs;
-    const std::size_t rnnbrs = row * n_nbrs;
-    for (std::size_t i = 0; i < n_nbrs; i++) {
-      if (index == neighbor_heap.index(rnnbrs + i)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  std::size_t push(
-      std::size_t row,
-      double weight,
-      std::size_t index,
-      bool flag)
-  {
-    if (weight >= neighbor_heap.distance(row, 0)) {
-      return 0;
-    }
-
-    // break if we already have this element
-    if (contains(row, index)) {
-      return 0;
-    }
-
-    return neighbor_heap.unchecked_push(row, weight, index, flag);
-  }
-};
-
-template <typename Rand>
-struct RandomWeight
-{
-  Rand rand;
-
-  RandomWeight(Rand& rand) : rand(rand) { }
-
-  double operator()(
-      std::size_t i,
-      std::size_t j)
-  {
-    return rand.unif();
-  }
-};
-
-template <typename Rand>
-using RandomHeap = ArrayHeap<RandomWeight<Rand>>;
 
 #endif // RNDD_HEAP_H

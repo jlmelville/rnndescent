@@ -25,7 +25,7 @@
 // [[Rcpp::depends(RcppParallel)]]
 #include <RcppParallel.h>
 #include "heap.h"
-#include "tauprng.h"
+#include "rrand.h"
 #include "nndescent.h"
 
 struct CandidatesWorker : public RcppParallel::Worker {
@@ -64,7 +64,7 @@ struct CandidatesWorker : public RcppParallel::Worker {
       for (std::size_t j = 0; j < n_nbrs; j++) {
         std::size_t ij = innbrs + j;
         std::size_t idx = current_graph.index(ij);
-        if (idx == NeighborHeap::npos || rand->unif() >= rho) {
+        if (idx == NeighborHeap::npos() || rand->unif() >= rho) {
           continue;
         }
         double d = rand->unif();
@@ -111,12 +111,12 @@ struct ReverseCandidatesWorker : public RcppParallel::Worker {
       for (std::size_t j = 0; j < max_candidates; j++) {
         std::size_t ij = innbrs + j;
         idx = new_candidate_neighbors.index(ij);
-        if (idx != NeighborHeap::npos && idx >= begin && idx < end) {
+        if (idx != NeighborHeap::npos() && idx >= begin && idx < end) {
           new_candidate_neighbors.df(ij, d, isn);
           reverse_new_candidate_neighbors.checked_push(idx, d, i, isn);
         }
         idx = old_candidate_neighbors.index(ij);
-        if (idx != NeighborHeap::npos && idx >= begin && idx < end) {
+        if (idx != NeighborHeap::npos() && idx >= begin && idx < end) {
           old_candidate_neighbors.df(ij, d, isn);
           reverse_old_candidate_neighbors.checked_push(idx, d, i, isn);
         }
@@ -160,7 +160,7 @@ struct NoNSearchWorker : public RcppParallel::Worker {
       for (std::size_t j = 0; j < max_candidates; j++) {
         std::size_t ij = innbrs + j;
         p = new_nbrs.index(ij);
-        if (p != NeighborHeap::npos) {
+        if (p != NeighborHeap::npos()) {
           pnnbrs = p * max_candidates;
           for (std::size_t k = 0; k < max_candidates; k++) {
             std::size_t pk = pnnbrs + k;
@@ -170,7 +170,7 @@ struct NoNSearchWorker : public RcppParallel::Worker {
         }
 
         p = old_nbrs.index(ij);
-        if (p == NeighborHeap::npos) {
+        if (p == NeighborHeap::npos()) {
           continue;
         }
         pnnbrs = p * max_candidates;
@@ -193,7 +193,7 @@ struct NoNSearchWorker : public RcppParallel::Worker {
         std::unordered_set<std::size_t>& seen
     )
   {
-    if (q == NeighborHeap::npos || !seen.emplace(q).second) {
+    if (q == NeighborHeap::npos() || !seen.emplace(q).second) {
       return 0;
     }
     return updated_graph.add_pair_asymm(i, q, true);

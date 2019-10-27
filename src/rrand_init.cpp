@@ -16,83 +16,19 @@
 //
 //  You should have received a copy of the GNU General Public License
 //  along with rnndescent.  If not, see <http://www.gnu.org/licenses/>.
+
 #include <Rcpp.h>
-// [[Rcpp::depends(RcppParallel)]]
-#include <RcppParallel.h>
-#include "dqrng.h"
+// [[Rcpp::depends(dqrng)]]
+#include <dqrng.h>
 #include "distance.h"
+#include "rrand_init_parallel.h"
 
-template<typename Distance>
-struct RandomNbrWorker : public RcppParallel::Worker {
-
-  const std::vector<typename Distance::in_type> data_vec;
-  Distance distance;
-  const int nr1;
-  const int n_to_sample;
-
-  RcppParallel::RMatrix<int> indices;
-  RcppParallel::RMatrix<double> dist;
-
-  tthread::mutex mutex;
-
-  RandomNbrWorker(
-    Rcpp::NumericMatrix data,
-    int k,
-    Rcpp::IntegerMatrix output_indices,
-    Rcpp::NumericMatrix output_dist
-    ) :
-    data_vec(Rcpp::as<std::vector<typename Distance::in_type>>(Rcpp::transpose(data))),
-    distance(data_vec, data.ncol()),
-    nr1(data.nrow() - 1),
-    n_to_sample(k - 1),
-    indices(output_indices),
-    dist(output_dist)
-  {}
-
-  void operator()(std::size_t begin, std::size_t end) {
-    for (int i = static_cast<int>(begin); i < static_cast<int>(end); i++) {
-      indices(0, i) = i + 1;
-      std::unique_ptr<Rcpp::IntegerVector> idxi(nullptr);
-      {
-        tthread::lock_guard<tthread::mutex> guard(mutex);
-        idxi.reset(new Rcpp::IntegerVector(dqrng::dqsample_int(nr1, n_to_sample)));
-      }
-      for (auto j = 0; j < n_to_sample; j++) {
-        auto& val = (*idxi)[j];
-        // shift to 1-index and ensure i isn't in the sample
-        indices(j + 1, i) = val >= i ? val + 2 : val + 1;
-        dist(j + 1, i) = distance(i, val); // distance calcs are 0-indexed
-      }
-    }
-  }
-};
-
-
-void set_seed() {
-  dqrng::dqRNGkind("Xoroshiro128+");
-  auto seed = Rcpp::IntegerVector::create(R::runif(0, 1) * std::numeric_limits<int>::max());
-  dqrng::dqset_seed(seed);
-}
-
-template<typename Distance>
-Rcpp::List random_nbrs_parallel(
-    Rcpp::NumericMatrix data,
-    int k,
-    std::size_t grain_size)
-{
-  set_seed();
-
-  const auto nr = data.nrow();
-  Rcpp::IntegerMatrix indices(k, nr);
-  Rcpp::NumericMatrix dist(k, nr);
-
-  RandomNbrWorker<Distance> worker(data, k, indices, dist);
-  RcppParallel::parallelFor(0, nr, worker, grain_size);
-
-  return Rcpp::List::create(
-    Rcpp::Named("idx") = Rcpp::transpose(indices),
-    Rcpp::Named("dist") = Rcpp::transpose(dist)
-  );
+#define RandomNbrs(DistType)                                      \
+if (parallelize) {                                                \
+  return random_nbrs_parallel<DistType>(data, k, grain_size);     \
+}                                                                 \
+else {                                                            \
+  return random_nbrs_impl<DistType>(data, k);                     \
 }
 
 template<typename Distance>
@@ -140,49 +76,24 @@ Rcpp::List random_nbrs_cpp(
 )
 {
   if (metric == "euclidean") {
-    using dist_type = Euclidean<float, float>;
-    if (parallelize) {
-      return random_nbrs_parallel<dist_type>(data, k, grain_size);
-    }
-    else {
-      return random_nbrs_impl<dist_type>(data, k);
-    }
+    using DistType = Euclidean<float, float>;
+    RandomNbrs(DistType)
   }
   else if (metric == "l2") {
-    using dist_type = L2<float, float>;
-    if (parallelize) {
-      return random_nbrs_parallel<dist_type>(data, k, grain_size);
-    }
-    else {
-      return random_nbrs_impl<dist_type>(data, k);
-    }
+    using DistType = L2<float, float>;
+    RandomNbrs(DistType)
   }
   else if (metric == "cosine") {
-    using dist_type = Cosine<float, float>;
-    if (parallelize) {
-      return random_nbrs_parallel<dist_type>(data, k, grain_size);
-    }
-    else {
-      return random_nbrs_impl<dist_type>(data, k);
-    }
+    using DistType = Cosine<float, float>;
+    RandomNbrs(DistType)
   }
   else if (metric == "manhattan") {
-    using dist_type = Manhattan<float, float>;
-    if (parallelize) {
-      return random_nbrs_parallel<dist_type>(data, k, grain_size);
-    }
-    else {
-      return random_nbrs_impl<dist_type>(data, k);
-    }
+    using DistType = Manhattan<float, float>;
+    RandomNbrs(DistType)
   }
   else if (metric == "hamming") {
-    using dist_type = Hamming<uint8_t, std::size_t>;
-    if (parallelize) {
-      return random_nbrs_parallel<dist_type>(data, k, grain_size);
-    }
-    else {
-      return random_nbrs_impl<dist_type>(data, k);
-    }
+    using DistType = Hamming<uint8_t, std::size_t>;
+    RandomNbrs(DistType)
   }
   else {
     Rcpp::stop("Bad metric");

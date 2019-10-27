@@ -22,6 +22,7 @@
 
 #include <unordered_set>
 
+#include "arrayheap.h"
 #include "heap.h"
 
 // Builds the general neighbors of each object, keeping up to max_candidates
@@ -41,7 +42,7 @@ NeighborHeap build_candidates(
 
   for (std::size_t i = 0; i < npoints; i++) {
     for (std::size_t j = 0; j < nnbrs; j++) {
-      if (current_graph.index(i, j) == NeighborHeap::npos) {
+      if (current_graph.index(i, j) == NeighborHeap::npos()) {
         continue;
       }
       std::size_t idx = current_graph.index(i, j);
@@ -82,7 +83,7 @@ void build_candidates_full(
     for (std::size_t j = 0; j < n_nbrs; j++) {
       std::size_t ij = innbrs + j;
       std::size_t idx = current_graph.index(ij);
-      if (idx == NeighborHeap::npos || rand.unif() >= rho) {
+      if (idx == NeighborHeap::npos() || rand.unif() >= rho) {
         continue;
       }
       bool isn = current_graph.flag(ij) == 1;
@@ -131,14 +132,14 @@ void nnd_basic(
       // NB: the neighbor list of i is unchanged by this operation
       for (std::size_t j = 0; j < max_candidates; j++) {
         std::size_t p = candidate_neighbors.index(i, j);
-        if (p == NeighborHeap::npos || rand.unif() < rho) {
+        if (p == NeighborHeap::npos() || rand.unif() < rho) {
           // only sample rho * max_candidates of the general neighbors
           continue;
         }
 
         for (std::size_t k = 0; k < max_candidates; k++) {
           std::size_t q = candidate_neighbors.index(i, k);
-          if (q == NeighborHeap::npos ||
+          if (q == NeighborHeap::npos() ||
               (candidate_neighbors.flags(i, j) == 0 &&
                candidate_neighbors.flags(i, k) == 0))
           {
@@ -230,12 +231,12 @@ std::size_t local_join(
   for (std::size_t i = 0; i < n_points; i++) {
     for (std::size_t j = 0; j < max_candidates; j++) {
       std::size_t p = new_nbrs.index(i, j);
-      if (p == NeighborHeap::npos) {
+      if (p == NeighborHeap::npos()) {
         continue;
       }
       for (std::size_t k = j; k < max_candidates; k++) {
         std::size_t q = new_nbrs.index(i, k);
-        if (q == NeighborHeap::npos) {
+        if (q == NeighborHeap::npos()) {
           continue;
         }
         c += current_graph.add_pair(p, q, true);
@@ -243,7 +244,7 @@ std::size_t local_join(
 
       for (std::size_t k = 0; k < max_candidates; k++) {
         std::size_t q = old_nbrs.index(i, k);
-        if (q == NeighborHeap::npos) {
+        if (q == NeighborHeap::npos()) {
           continue;
         }
         c += current_graph.add_pair(p, q, true);
@@ -267,7 +268,7 @@ std::size_t try_add(
     std::unordered_set<std::size_t>& seen
 )
 {
-  if (q > i || q == NeighborHeap::npos || !seen.emplace(q).second) {
+  if (q > i || q == NeighborHeap::npos() || !seen.emplace(q).second) {
     return 0;
   }
   return current_graph.add_pair(i, q, true);
@@ -297,7 +298,7 @@ std::size_t non_join(
   for (std::size_t i = 0; i < n_points; i++) {
     for (std::size_t j = 0; j < max_candidates; j++) {
       p = new_nbrs.index(i, j);
-      if (p != NeighborHeap::npos) {
+      if (p != NeighborHeap::npos()) {
         for (std::size_t k = 0; k < max_candidates; k++) {
           q = new_nbrs.index(p, k);
           c += try_add(current_graph, i, q, seen);
@@ -307,7 +308,7 @@ std::size_t non_join(
       }
 
       p = old_nbrs.index(i, j);
-      if (p == NeighborHeap::npos) {
+      if (p == NeighborHeap::npos()) {
         continue;
       }
       for (std::size_t k = 0; k < max_candidates; k++) {

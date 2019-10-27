@@ -19,17 +19,11 @@
 
 // Three-component combined Tausworthe "taus88" PRNG from L'Ecuyer 1996.
 
-#ifndef rnndescent_TAUPRNG_H
-#define rnndescent_TAUPRNG_H
+#ifndef RNND_TAUPRNG_H
+#define RNND_TAUPRNG_H
 
 #include <cmath>
 #include <limits>
-#include "Rcpp.h"
-
-// based on code in the dqsample package
-uint64_t random64() {
-  return R::runif(0, 1) * std::numeric_limits<uint64_t>::max();
-}
 
 class tau_prng {
   uint64_t state0;
@@ -43,12 +37,6 @@ class tau_prng {
 public:
 
   static constexpr double DINT_MAX = static_cast<double>(std::numeric_limits<int>::max());
-
-  tau_prng() {
-    state0 = random64();
-    state1 = random64();
-    state2 = random64();
-  }
 
   tau_prng(uint64_t state0, uint64_t state1, uint64_t state2)
     : state0(state0), state1(state1), state2(state2) {}
@@ -69,18 +57,4 @@ public:
   }
 };
 
-struct TauRand {
-
-  tau_prng prng;
-
-  TauRand(): prng() {}
-  TauRand(uint64_t state0, uint64_t state1, uint64_t state2) :
-    prng(state0, state1, state2) {}
-
-  // a random uniform value between 0 and 1
-  double unif() {
-    return prng.rand();
-  }
-};
-
-#endif // rnndescent_TAUPRNG_H
+#endif // RNND_TAUPRNG_H
