@@ -20,8 +20,9 @@
 #ifndef RNND_NNDESCENT_H
 #define RNND_NNDESCENT_H
 
+#include <unordered_set>
+
 #include "heap.h"
-#include "setheap.h"
 
 // Builds the general neighbors of each object, keeping up to max_candidates
 // per object. The objects are associated with a random number rather than
@@ -197,6 +198,7 @@ void nnd_full(
     std::size_t c = local_join(current_graph, new_nbrs, old_nbrs, n_points,
                                max_candidates, progress);
 
+    progress.check_interrupt();
     if (static_cast<double>(c) <= tol) {
       if (verbose) {
         progress.converged(c, tol);
@@ -219,7 +221,8 @@ std::size_t local_join(
     const NeighborHeap& old_nbrs,
     const std::size_t n_points,
     const std::size_t max_candidates,
-    Progress& progress)
+    Progress& progress
+  )
 {
   std::size_t c = 0;
   for (std::size_t i = 0; i < n_points; i++) {
@@ -245,6 +248,73 @@ std::size_t local_join(
       }
     }
     progress.check_interrupt();
+  }
+  return c;
+}
+
+
+// Attempt to add q to i's knn, and vice versa
+// If q is invalid or already seen or q > i, the addition is not attempted
+// Used by neighbor-of-neighbor search
+template <template<typename> class Heap,
+          typename Distance>
+std::size_t try_add(
+    Heap<Distance>& current_graph,
+    std::size_t i,
+    std::size_t q,
+    std::unordered_set<std::size_t>& seen
+)
+{
+  if (q > i || q == NeighborHeap::npos || !seen.emplace(q).second) {
+    return 0;
+  }
+  return current_graph.add_pair(i, q, true);
+}
+
+
+// Use neighbor-of-neighbor search rather than local join to update the kNN.
+// To implement incremental search, for a new candidate, both its new and
+// old candidates will be searched. For an old candidate, only the new
+// candidates are used.
+template <template<typename> class Heap,
+          typename Distance,
+          typename Progress>
+std::size_t non_join(
+    Heap<Distance>& current_graph,
+    const NeighborHeap& new_nbrs,
+    const NeighborHeap& old_nbrs,
+    const std::size_t n_points,
+    const std::size_t max_candidates,
+    Progress& progress
+  )
+{
+  std::size_t c = 0;
+  std::size_t p = 0;
+  std::size_t q = 0;
+  std::unordered_set<std::size_t> seen;
+  for (std::size_t i = 0; i < n_points; i++) {
+    for (std::size_t j = 0; j < max_candidates; j++) {
+      p = new_nbrs.index(i, j);
+      if (p != NeighborHeap::npos) {
+        for (std::size_t k = 0; k < max_candidates; k++) {
+          q = new_nbrs.index(p, k);
+          c += try_add(current_graph, i, q, seen);
+          q = old_nbrs.index(p, k);
+          c += try_add(current_graph, i, q, seen);
+        }
+      }
+
+      p = old_nbrs.index(i, j);
+      if (p == NeighborHeap::npos) {
+        continue;
+      }
+      for (std::size_t k = 0; k < max_candidates; k++) {
+        q = new_nbrs.index(p, k);
+        c += try_add(current_graph, i, q, seen);
+      }
+    }
+    progress.check_interrupt();
+    seen.clear();
   }
   return c;
 }
