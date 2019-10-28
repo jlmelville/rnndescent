@@ -53,6 +53,10 @@ nn_brute_force <- function(
 random_nbrs <- function(data, k, metric = "euclidean", use_cpp = TRUE,
                         n_threads = 0) {
   data <- x2m(data)
+  nr <- nrow(data)
+  if (k > nr) {
+    stop("k must be <= ", nr)
+  }
   parallelize <- n_threads > 0
   if (use_cpp || parallelize) {
     if (parallelize) {
