@@ -54,8 +54,8 @@ Rcpp::List random_nbrs_impl(
     auto idxi = dqrng::dqsample_int(nr1, n_to_sample); // 0-indexed
     for (auto j = 0; j < n_to_sample; j++) {
       auto& val = idxi[j];
-      // shift to 1-index and ensure i isn't in the sample
-      indices(j + 1, i) = val >= i ? val + 2 : val + 1;
+      val = val >= i ? val + 1 : val; // ensure i isn't in the sample
+      indices(j + 1, i) = val + 1; // store val as 1-index
       dist(j + 1, i) = distance(i, val); // distance calcs are 0-indexed
     }
   }
