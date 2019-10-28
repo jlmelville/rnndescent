@@ -16,7 +16,8 @@ check_nbrs_dist <- function(nn, expected_dist, tol = .Machine$double.eps) {
   for (i in 1:nr) {
     for (j in 1:n_nbrs) {
       testthat::expect_equal(nn$dist[i, j], expected_dist[i, nn$idx[i, j]],
-                   tol = tol, label = paste0(i, ", ", j),)
+        tol = tol, label = paste0(i, ", ", j),
+      )
     }
   }
 }
