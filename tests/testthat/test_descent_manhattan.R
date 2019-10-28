@@ -24,6 +24,7 @@ set.seed(1337)
 juiris_rnn <- nnd_knn(juirism, 15, use_cpp = TRUE, metric = "manhattan", fast_rand = TRUE)
 expect_equal(sum(juiris_rnn$dist), expected_sum, tol = 1e-3)
 
+# multi-threading
 set.seed(1337)
-juiris_rnn <- nnd_knn(juirism, 15, use_cpp = TRUE, use_set = TRUE, metric = "manhattan", fast_rand = TRUE)
+juiris_rnn <- nnd_knn(juirism, 15, use_cpp = TRUE, metric = "manhattan", n_threads = 1)
 expect_equal(sum(juiris_rnn$dist), expected_sum, tol = 1e-3)

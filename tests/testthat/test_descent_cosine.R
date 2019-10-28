@@ -22,3 +22,8 @@ expect_equal(sum(uiris_rnn$dist), 1.347357, tol = 1e-3)
 set.seed(1337)
 uiris_rnn <- nnd_knn(uirism, 15, use_cpp = TRUE, use_set = TRUE, metric = "cosine", fast_rand = TRUE)
 expect_equal(sum(uiris_rnn$dist), 1.347357, tol = 1e-3)
+
+# multi-threading
+set.seed(1337)
+uiris_rnn <- nnd_knn(uirism, 15, use_cpp = TRUE, metric = "cosine", n_threads = 1)
+expect_equal(sum(uiris_rnn$dist), 1.347357, tol = 1e-3)
