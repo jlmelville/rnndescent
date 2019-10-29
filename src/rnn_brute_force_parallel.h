@@ -23,7 +23,8 @@
 #include <Rcpp.h>
 // [[Rcpp::depends(RcppParallel)]]
 #include <RcppParallel.h>
-#include "heap.h"
+#include "rnn_parallel.h"
+#include "arrayheap.h"
 
 template<typename Distance>
 struct BruteForceWorker : public RcppParallel::Worker {
@@ -65,7 +66,9 @@ void nnbf_parallel(
     )
 {
   BruteForceWorker<Distance> worker(heap);
-  RcppParallel::parallelFor(0, worker.n_points, worker, grain_size);
+
+  batch_parallel_for(worker, progress, worker.n_points, 64, grain_size);
+
   heap = worker.heap;
   heap.neighbor_heap.deheap_sort();
 }
