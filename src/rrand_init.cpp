@@ -18,18 +18,16 @@
 //  along with rnndescent.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <Rcpp.h>
-// [[Rcpp::depends(dqrng)]]
-#include <dqrng.h>
 #include "distance.h"
 #include "rnn.h"
 #include "rrand_init_parallel.h"
 
-#define RandomNbrs(DistType)                                      \
-if (parallelize) {                                                \
-  return random_nbrs_parallel<DistType>(data, k, grain_size);     \
-}                                                                 \
-else {                                                            \
-  return random_nbrs_impl<DistType, RProgress>(data, k);          \
+#define RandomNbrs(DistType)                                                 \
+if (parallelize) {                                                           \
+  return random_nbrs_parallel<DistType, RProgress>(data, k, grain_size);     \
+}                                                                            \
+else {                                                                       \
+  return random_nbrs_impl<DistType, RProgress>(data, k);                     \
 }
 
 template<typename Distance,

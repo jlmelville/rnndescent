@@ -78,7 +78,8 @@ struct RandomNbrWorker : public RcppParallel::Worker {
   }
 };
 
-template<typename Distance>
+template<typename Distance,
+         typename Progress>
 Rcpp::List random_nbrs_parallel(
     Rcpp::NumericMatrix data,
     int k,
@@ -91,8 +92,28 @@ Rcpp::List random_nbrs_parallel(
   Rcpp::NumericMatrix dist(k, nr);
 
   RandomNbrWorker<Distance> worker(data, k, indices, dist);
-  RcppParallel::parallelFor(0, nr, worker, grain_size);
 
+  Progress progress;
+  const constexpr std::size_t min_batch = 4096;
+  const std::size_t nrs = static_cast<std::size_t>(nr);
+  if (nrs <= min_batch) {
+    RcppParallel::parallelFor(0, nr, worker, grain_size);
+  }
+  else {
+    std::size_t begin = 0;
+    std::size_t end = min_batch;
+    while (true) {
+      if (begin >= nrs) {
+        break;
+      }
+      RcppParallel::parallelFor(begin, end, worker, grain_size);
+      progress.check_interrupt();
+
+      begin += min_batch;
+      end += min_batch;
+      end = std::min(end, nrs);
+    }
+  }
   return Rcpp::List::create(
     Rcpp::Named("idx") = Rcpp::transpose(indices),
     Rcpp::Named("dist") = Rcpp::transpose(dist)
