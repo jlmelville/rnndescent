@@ -95,15 +95,28 @@ Rcpp::List random_nbrs_parallel(
 
   Progress progress;
   const constexpr std::size_t min_batch = 4096;
-  const std::size_t nrs = static_cast<std::size_t>(nr);
-  if (nrs <= min_batch) {
-    RcppParallel::parallelFor(0, nr, worker, grain_size);
+  batch_parallel_for(worker, progress, nr, min_batch, grain_size);
+  return Rcpp::List::create(
+    Rcpp::Named("idx") = Rcpp::transpose(indices),
+    Rcpp::Named("dist") = Rcpp::transpose(dist)
+  );
+}
+
+template <typename Progress>
+void batch_parallel_for(
+    RcppParallel::Worker& worker,
+    Progress& progress,
+    std::size_t n,
+    std::size_t min_batch,
+    std::size_t grain_size) {
+  if (n <= min_batch) {
+    RcppParallel::parallelFor(0, n, worker, grain_size);
   }
   else {
     std::size_t begin = 0;
     std::size_t end = min_batch;
     while (true) {
-      if (begin >= nrs) {
+      if (begin >= n) {
         break;
       }
       RcppParallel::parallelFor(begin, end, worker, grain_size);
@@ -111,13 +124,9 @@ Rcpp::List random_nbrs_parallel(
 
       begin += min_batch;
       end += min_batch;
-      end = std::min(end, nrs);
+      end = std::min(end, n);
     }
   }
-  return Rcpp::List::create(
-    Rcpp::Named("idx") = Rcpp::transpose(indices),
-    Rcpp::Named("dist") = Rcpp::transpose(dist)
-  );
 }
 
 #endif // RNND_RRAND_INIT_H
