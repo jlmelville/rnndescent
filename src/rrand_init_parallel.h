@@ -26,6 +26,7 @@
 // [[Rcpp::depends(dqrng)]]
 #include <dqrng.h>
 #include "distance.h"
+#include "rnn_parallel.h"
 
 void set_seed() {
   dqrng::dqRNGkind("Xoroshiro128+");
@@ -100,33 +101,6 @@ Rcpp::List random_nbrs_parallel(
     Rcpp::Named("idx") = Rcpp::transpose(indices),
     Rcpp::Named("dist") = Rcpp::transpose(dist)
   );
-}
-
-template <typename Progress>
-void batch_parallel_for(
-    RcppParallel::Worker& worker,
-    Progress& progress,
-    std::size_t n,
-    std::size_t min_batch,
-    std::size_t grain_size) {
-  if (n <= min_batch) {
-    RcppParallel::parallelFor(0, n, worker, grain_size);
-  }
-  else {
-    std::size_t begin = 0;
-    std::size_t end = min_batch;
-    while (true) {
-      if (begin >= n) {
-        break;
-      }
-      RcppParallel::parallelFor(begin, end, worker, grain_size);
-      progress.check_interrupt();
-
-      begin += min_batch;
-      end += min_batch;
-      end = std::min(end, n);
-    }
-  }
 }
 
 #endif // RNND_RRAND_INIT_H
