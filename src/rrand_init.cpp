@@ -21,6 +21,7 @@
 // [[Rcpp::depends(dqrng)]]
 #include <dqrng.h>
 #include "distance.h"
+#include "rnn.h"
 #include "rrand_init_parallel.h"
 
 #define RandomNbrs(DistType)                                      \
@@ -28,10 +29,11 @@ if (parallelize) {                                                \
   return random_nbrs_parallel<DistType>(data, k, grain_size);     \
 }                                                                 \
 else {                                                            \
-  return random_nbrs_impl<DistType>(data, k);                     \
+  return random_nbrs_impl<DistType, RProgress>(data, k);          \
 }
 
-template<typename Distance>
+template<typename Distance,
+         typename Progress>
 Rcpp::List random_nbrs_impl(
     Rcpp::NumericMatrix data,
     int k)
@@ -46,6 +48,7 @@ Rcpp::List random_nbrs_impl(
 
   auto data_vec = Rcpp::as<std::vector<typename Distance::in_type>>(Rcpp::transpose(data));
   Distance distance(data_vec, ndim);
+  Progress progress;
 
   const auto nr1 = nr - 1;
   const auto n_to_sample = k - 1;
@@ -58,6 +61,7 @@ Rcpp::List random_nbrs_impl(
       indices(j + 1, i) = val + 1; // store val as 1-index
       dist(j + 1, i) = distance(i, val); // distance calcs are 0-indexed
     }
+    progress.check_interrupt();
   }
 
   return Rcpp::List::create(
