@@ -34,11 +34,7 @@ struct NeighborHeap
 {
   // used in analogy with std::string::npos as used in std::string::find
   // to represent not found
-  // static constexpr std::size_t npos =
-
   static constexpr std::size_t npos() { return static_cast<std::size_t>(-1); }
-
-  // constexpr std::size_t NeighborHeap::npos;
 
   std::size_t n_points;
   std::size_t n_nbrs;
@@ -264,25 +260,6 @@ struct SimpleNeighborHeap
   ~SimpleNeighborHeap() = default;
   SimpleNeighborHeap& operator=(const SimpleNeighborHeap &) = default;
 
-  std::size_t checked_push(
-      std::size_t row,
-      double weight,
-      std::size_t idx)
-  {
-    if (weight >= distance(row, 0)) {
-      return 0;
-    }
-
-    // break if we already have this element
-    for (std::size_t i = 0; i < n_nbrs; i++) {
-      if (idx == index(row, i)) {
-        return 0;
-      }
-    }
-
-    return unchecked_push(row, weight, idx);
-  }
-
   std::size_t unchecked_push(
       std::size_t row,
       double weight,
@@ -391,26 +368,12 @@ struct SimpleNeighborHeap
   std::size_t index(std::size_t i, std::size_t j) const {
     return idx[i * n_nbrs + j];
   }
-  std::size_t& index(std::size_t i, std::size_t j) {
-    return idx[i * n_nbrs + j];
-  }
-  std::size_t index(std::size_t ij) const {
-    return idx[ij];
-  }
-  std::size_t& index(std::size_t ij) {
-    return idx[ij];
-  }
 
   double distance(std::size_t i, std::size_t j) const {
     return dist[i * n_nbrs + j];
   }
-  double& distance(std::size_t i, std::size_t j) {
-    return dist[i * n_nbrs + j];
-  }
+
   double distance(std::size_t ij) const {
-    return dist[ij];
-  }
-  double& distance(std::size_t ij) {
     return dist[ij];
   }
 };
