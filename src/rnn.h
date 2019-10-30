@@ -22,10 +22,8 @@
 
 #include <Rcpp.h>
 
-// #include "distance.h"
 #include "heap.h"
-// #include "setheap.h"
-// #include "tauprng.h"
+
 
 struct RRand {
   // a random uniform value between 0 and 1
@@ -82,7 +80,25 @@ Heap<Distance> r_to_heap(
   return heap;
 }
 
-// transfer data into R Matrices
-Rcpp::List heap_to_r(const NeighborHeap& heap);
+template <typename NbrHeap>
+Rcpp::List heap_to_r(const NbrHeap& heap)
+{
+  const std::size_t npoints = heap.n_points;
+  const std::size_t nnbrs = heap.n_nbrs;
+
+  Rcpp::IntegerMatrix idxres(npoints, nnbrs);
+  Rcpp::NumericMatrix distres(npoints, nnbrs);
+  for (std::size_t i = 0; i < npoints; i++) {
+    for (std::size_t j = 0; j < nnbrs; j++) {
+      idxres(i, j) = heap.index(i, j) + 1;
+      distres(i, j) = heap.distance(i, j);
+    }
+  }
+
+  return Rcpp::List::create(
+    Rcpp::Named("idx") = idxres,
+    Rcpp::Named("dist") = distres
+  );
+}
 
 #endif // RNND_RNN_H

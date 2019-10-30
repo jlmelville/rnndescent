@@ -46,16 +46,16 @@ Rcpp::List rnn_brute_force_impl(
 
   Progress progress;
   Distance distance(data_vec, ndim);
-  ArrayHeap<Distance> heap(distance, n_points, n_nbrs);
+  SimpleNeighborHeap neighbor_heap(n_points, n_nbrs);
 
   if (parallelize) {
-    nnbf_parallel(heap, progress, grain_size, verbose);
+    nnbf_parallel(neighbor_heap, distance, progress, grain_size, verbose);
   }
   else {
-    nnbf(heap, progress, verbose);
+    nnbf(neighbor_heap, distance, progress, verbose);
   }
 
-  return heap_to_r(heap.neighbor_heap);
+  return heap_to_r(neighbor_heap);
 }
 
 // [[Rcpp::export]]

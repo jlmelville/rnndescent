@@ -27,27 +27,27 @@
 #ifndef NND_NN_BRUTE_FORCE_H
 #define NND_NN_BRUTE_FORCE_H
 
-#include "arrayheap.h"
+#include "heap.h"
 
 template <typename Distance,
           typename Progress>
 void nnbf(
-    ArrayHeap<Distance>& heap,
+    SimpleNeighborHeap& neighbor_heap,
+    Distance& distance,
     Progress& progress,
     bool verbose = false)
 {
-  auto& neighbor_heap = heap.neighbor_heap;
   const std::size_t n_points = neighbor_heap.n_points;
   const std::size_t n_nbrs = neighbor_heap.n_nbrs;
   for (std::size_t i = 0; i < n_points; i++) {
     const std::size_t i0 = i * n_nbrs;
     for (std::size_t j = i; j < n_points; j++) {
-      double weight = heap.weight_measure(i, j);
+      double weight = distance(i, j);
       if (weight < neighbor_heap.distance(i0)) {
-        neighbor_heap.unchecked_push(i, weight, j, true);
+        neighbor_heap.unchecked_push(i, weight, j);
       }
       if (i != j && weight < neighbor_heap.distance(j * n_nbrs)) {
-        neighbor_heap.unchecked_push(j, weight, i, true);
+        neighbor_heap.unchecked_push(j, weight, i);
       }
     }
     progress.check_interrupt();

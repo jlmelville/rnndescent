@@ -24,33 +24,35 @@
 // [[Rcpp::depends(RcppParallel)]]
 #include <RcppParallel.h>
 #include "rnn_parallel.h"
-#include "arrayheap.h"
+#include "heap.h"
 
 template<typename Distance>
 struct BruteForceWorker : public RcppParallel::Worker {
 
-  ArrayHeap<Distance> heap;
+  SimpleNeighborHeap neighbor_heap;
+  Distance distance;
   const std::size_t n_points;
   const std::size_t n_nbrs;
 
   BruteForceWorker(
-    ArrayHeap<Distance>& heap
+    SimpleNeighborHeap& neighbor_heap,
+    Distance& distance
   ) :
-    heap(heap),
-    n_points(heap.neighbor_heap.n_points),
-    n_nbrs(heap.neighbor_heap.n_nbrs)
+    neighbor_heap(neighbor_heap),
+    distance(distance),
+    n_points(neighbor_heap.n_points),
+    n_nbrs(neighbor_heap.n_nbrs)
   {}
 
   void operator()(std::size_t begin, std::size_t end) {
-    auto& neighbor_heap = heap.neighbor_heap;
     for (std::size_t i = begin; i < end; i++) {
       const std::size_t i0 = i * n_nbrs;
       for (std::size_t j = 0; j < n_points; j++) {
-        double weight = heap.weight_measure(i, j);
+        double weight = distance(i, j);
         if (weight >= neighbor_heap.distance(i0)) {
           continue;
         }
-        neighbor_heap.unchecked_push(i, weight, j, true);
+        neighbor_heap.unchecked_push(i, weight, j);
       }
     }
   }
@@ -59,18 +61,19 @@ struct BruteForceWorker : public RcppParallel::Worker {
 template <typename Distance,
           typename Progress>
 void nnbf_parallel(
-    ArrayHeap<Distance>& heap,
+    SimpleNeighborHeap& neighbor_heap,
+    Distance& distance,
     Progress& progress,
     std::size_t grain_size = 1,
     bool verbose = false
     )
 {
-  BruteForceWorker<Distance> worker(heap);
+  BruteForceWorker<Distance> worker(neighbor_heap, distance);
 
   batch_parallel_for(worker, progress, worker.n_points, 64, grain_size);
 
-  heap = worker.heap;
-  heap.neighbor_heap.deheap_sort();
+  neighbor_heap = worker.neighbor_heap;
+  neighbor_heap.deheap_sort();
 }
 
 #endif // RNND_RNN_BRUTE_FORCE_PARALLEL_H
