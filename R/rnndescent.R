@@ -33,12 +33,12 @@
 #' iris_nn <- brute_force_knn(iris, k = 4, metric = "euclidean", verbose = TRUE)
 #' @export
 brute_force_knn <- function(
-                           data,
-                           k,
-                           metric = "euclidean",
-                           n_threads = 0,
-                           grain_size = 1,
-                           verbose = FALSE) {
+                            data,
+                            k,
+                            metric = "euclidean",
+                            n_threads = 0,
+                            grain_size = 1,
+                            verbose = FALSE) {
   data <- x2m(data)
   parallelize <- n_threads > 0
   if (parallelize) {
@@ -87,7 +87,7 @@ brute_force_knn <- function(
 #' iris_nn <- nnd_knn(iris, init = iris_nn, metric = "euclidean", verbose = TRUE)
 #' @export
 random_knn <- function(data, k, metric = "euclidean", use_cpp = TRUE,
-                        n_threads = 0, grain_size = 1, verbose = FALSE) {
+                       n_threads = 0, grain_size = 1, verbose = FALSE) {
   data <- x2m(data)
   nr <- nrow(data)
   if (k > nr) {
@@ -185,7 +185,6 @@ random_knn <- function(data, k, metric = "euclidean", use_cpp = TRUE,
 #' # To ensure that descent only stops if no improvements are made, set delta = 0
 #' set.seed(1337)
 #' iris_nn <- nnd_knn(iris, k = 4, metric = "euclidean", n_iters = 5, delta = 0)
-#'
 #' @references
 #' Dong, W., Moses, C., & Li, K. (2011, March).
 #' Efficient k-nearest neighbor graph construction for generic similarity measures.
