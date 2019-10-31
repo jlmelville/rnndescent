@@ -24,14 +24,14 @@
 
 #define RandomNbrs(DistType)                                                 \
 if (parallelize) {                                                           \
-  return random_nbrs_parallel<DistType>(data, k, grain_size, verbose);       \
+  return random_knn_parallel<DistType>(data, k, grain_size, verbose);        \
 }                                                                            \
 else {                                                                       \
-  return random_nbrs_impl<DistType>(data, k, verbose);                       \
+  return random_knn_impl<DistType>(data, k, verbose);                        \
 }
 
 template<typename Distance>
-Rcpp::List random_nbrs_impl(
+Rcpp::List random_knn_impl(
     Rcpp::NumericMatrix data,
     int k,
     bool verbose)
@@ -72,7 +72,7 @@ Rcpp::List random_nbrs_impl(
 }
 
 // [[Rcpp::export]]
-Rcpp::List random_nbrs_cpp(
+Rcpp::List random_knn_cpp(
     Rcpp::NumericMatrix data,
     int k,
     const std::string& metric = "euclidean",

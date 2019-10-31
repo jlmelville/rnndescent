@@ -2,7 +2,7 @@
 
 export(brute_force_knn)
 export(nnd_knn)
-export(random_nbrs)
+export(random_knn)
 importFrom(Rcpp,sourceCpp)
 importFrom(RcppParallel,RcppParallelLibs)
 useDynLib(rnndescent, .registration = TRUE)

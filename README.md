@@ -91,7 +91,7 @@ irism <- as.matrix(iris[, -5])
 res <- nnd_knn(irism, k = 15, metric = "euclidean", n_threads = 4)
 
 # if you want the random indices and their distances:
-iris_rand_nn <- random_nbrs(irism, k = 15, metric = "euclidean", n_threads = 4)
+iris_rand_nn <- random_knn(irism, k = 15, metric = "euclidean", n_threads = 4)
 ```
 
 Although the initialization can also be multi-threaded (and at least has speed

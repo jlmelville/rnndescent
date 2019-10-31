@@ -54,7 +54,7 @@ brute_force_knn <- function(
 #'    distances.
 #' }
 #' @export
-random_nbrs <- function(data, k, metric = "euclidean", use_cpp = TRUE,
+random_knn <- function(data, k, metric = "euclidean", use_cpp = TRUE,
                         n_threads = 0, grain_size = 1, verbose = FALSE) {
   data <- x2m(data)
   nr <- nrow(data)
@@ -66,10 +66,10 @@ random_nbrs <- function(data, k, metric = "euclidean", use_cpp = TRUE,
     if (parallelize) {
       RcppParallel::setThreadOptions(numThreads = n_threads)
     }
-    random_nbrs_cpp(data, k, metric, parallelize, grain_size = grain_size, verbose = verbose)
+    random_knn_cpp(data, k, metric, parallelize, grain_size = grain_size, verbose = verbose)
   }
   else {
-    random_nbrs_R(X = data, k = k, metric = metric)
+    random_knn_R(X = data, k = k, metric = metric)
   }
 }
 
@@ -144,7 +144,7 @@ nnd_knn <- function(data, k = NULL,
       stop("Must provide k")
     }
     tsmessage("Initializing from random neighbors")
-    init <- random_nbrs(data, k,
+    init <- random_knn(data, k,
       metric = actual_metric, use_cpp = use_cpp,
       n_threads = n_threads
     )
@@ -197,7 +197,7 @@ nnd_knn <- function(data, k = NULL,
 # Internals ---------------------------------------------------------------
 
 
-random_nbrs_R <- function(X, k, metric = "euclidean") {
+random_knn_R <- function(X, k, metric = "euclidean") {
   nr <- nrow(X)
   idx <- matrix(0, nrow = nr, ncol = k)
   dist <- matrix(Inf, nrow = nr, ncol = k)

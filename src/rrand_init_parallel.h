@@ -80,7 +80,7 @@ struct RandomNbrWorker : public RcppParallel::Worker {
 };
 
 template<typename Distance>
-Rcpp::List random_nbrs_parallel(
+Rcpp::List random_knn_parallel(
     Rcpp::NumericMatrix data,
     int k,
     std::size_t grain_size = 1,
