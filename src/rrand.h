@@ -17,6 +17,9 @@
 //  You should have received a copy of the GNU General Public License
 //  along with rnndescent.  If not, see <http://www.gnu.org/licenses/>.
 
+#ifndef RNND_RRAND_H
+#define RNND_RRAND_H
+
 #include "Rcpp.h"
 #include "tauprng.h"
 
@@ -38,3 +41,5 @@ struct TauRand {
     return prng.rand();
   }
 };
+
+#endif // RNND_RRAND_H
