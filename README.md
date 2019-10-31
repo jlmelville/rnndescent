@@ -98,14 +98,14 @@ Although the initialization can also be multi-threaded (and at least has speed
 in its favor), the descent stage will take more iterations to get to a good
 result and may converge to a less optimal result.
 
-For comparison with exact results, there is also a `nn_brute_force` function,
+For comparison with exact results, there is also a `brute_force_knn` function,
 that will generate the exact nearest neighbors by the simple process of trying
 every possible pair in the dataset. Obviously this becomes a very time consuming
 process as your dataset grows in size, even with multithreading (although the
 `iris` dataset in the example below doesn't present any issues).
 
 ```R
-iris_exact_nn <- nn_brute_force(irism, k = 15, metric = "euclidean", n_threads = 4)
+iris_exact_nn <- brute_force_knn(irism, k = 15, metric = "euclidean", n_threads = 4)
 ```
 
 ## Supported Metrics

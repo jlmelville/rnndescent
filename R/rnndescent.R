@@ -18,7 +18,7 @@
 #'    distances.
 #' }
 #' @export
-nn_brute_force <- function(
+brute_force_knn <- function(
                            data,
                            k,
                            metric = "euclidean",
