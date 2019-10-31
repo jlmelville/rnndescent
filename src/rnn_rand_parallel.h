@@ -17,8 +17,8 @@
 //  You should have received a copy of the GNU General Public License
 //  along with rnndescent.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef RNND_RRAND_INIT_H
-#define RNND_RRAND_INIT_H
+#ifndef RNND_RNN_RAND_PARALLEL_H
+#define RNND_RNN_RAND_PARALLEL_H
 
 #include <Rcpp.h>
 // [[Rcpp::depends(RcppParallel)]]
@@ -104,4 +104,4 @@ Rcpp::List random_knn_parallel(
   );
 }
 
-#endif // RNND_RRAND_INIT_H
+#endif // RNND_RNN_RAND_PARALLEL_H

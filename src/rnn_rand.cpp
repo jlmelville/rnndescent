@@ -20,7 +20,7 @@
 #include <Rcpp.h>
 #include "distance.h"
 #include "rnn.h"
-#include "rrand_init_parallel.h"
+#include "rnn_rand_parallel.h"
 
 #define RandomNbrs(DistType)                                                 \
 if (parallelize) {                                                           \
