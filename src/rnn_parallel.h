@@ -19,8 +19,8 @@
 
 // Generic parallel helper code
 
-#ifndef RNN_RPARALLEL_H
-#define RNN_RPARALLEL_H
+#ifndef RNND_RNN_PARALLEL_H
+#define RNND_RNN_PARALLEL_H
 
 #include <Rcpp.h>
 // [[Rcpp::depends(RcppParallel)]]
@@ -55,4 +55,4 @@ void batch_parallel_for(
   }
 }
 
-#endif // RNN_RPARALLEL_H
+#endif // RNND_RNN_PARALLEL_H
