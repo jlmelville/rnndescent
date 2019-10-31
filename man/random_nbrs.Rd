@@ -5,7 +5,7 @@
 \title{Randomly select nearest neighbors.}
 \usage{
 random_nbrs(data, k, metric = "euclidean", use_cpp = TRUE,
-  n_threads = 0)
+  n_threads = 0, grain_size = 1, verbose = FALSE)
 }
 \arguments{
 \item{data}{Matrix of \code{n} items to generate random neighbors for.}
@@ -19,6 +19,12 @@ or \code{"hamming"}.}
 \item{use_cpp}{If \code{TRUE}, use the faster C++ code path.}
 
 \item{n_threads}{Number of threads to use. Ignored if \code{use_cpp = FALSE}.}
+
+\item{grain_size}{Minimum batch size for multithreading. If the number of
+items to process in a thread falls below this number, then no threads will
+be used. Ignored if \code{n_threads < 1}.}
+
+\item{verbose}{If \code{TRUE}, log information to the console.}
 }
 \value{
 a list containing:

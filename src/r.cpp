@@ -30,32 +30,29 @@
 if (use_set) {                                                    \
   return nn_descent_impl<SetHeap,                                 \
                          DistType,                                \
-                         RandType,                                \
-                         RProgress>                               \
+                         RandType>                               \
   (data, idx, dist, max_candidates, n_iters, delta, rho, false,   \
    grain_size, verbose);                                          \
 }                                                                 \
 else {                                                            \
   return nn_descent_impl<ArrayHeap,                               \
                          DistType,                                \
-                         RandType,                                \
-                         RProgress>                               \
+                         RandType>                                \
   (data, idx, dist, max_candidates, n_iters, delta, rho,          \
    parallelize, grain_size, verbose);                             \
 }
 
-#define NNDR(DistType, use_set, use_fast_rand, parallelize)    \
-if (use_fast_rand) {                                           \
-  NNDS(DistType, TauRand, use_set, parallelize)                \
-}                                                              \
-else {                                                         \
-  NNDS(DistType, RRand, use_set, parallelize)                  \
+#define NNDR(DistType, use_set, use_fast_rand, parallelize)       \
+if (use_fast_rand) {                                              \
+  NNDS(DistType, TauRand, use_set, parallelize)                   \
+}                                                                 \
+else {                                                            \
+  NNDS(DistType, RRand, use_set, parallelize)                     \
 }
 
 template <template<typename> class Heap,
           typename Distance,
-          typename Rand,
-          typename Progress>
+          typename Rand>
 Rcpp::List nn_descent_impl(
     Rcpp::NumericMatrix data,
     Rcpp::IntegerMatrix idx,
@@ -74,7 +71,7 @@ Rcpp::List nn_descent_impl(
   data = Rcpp::transpose(data);
   auto data_vec = Rcpp::as<std::vector<typename Distance::in_type>>(data);
 
-  Progress progress;
+  RProgress progress(n_iters, verbose);
   Rand rand;
   Distance distance(data_vec, ndim);
   Heap<Distance> heap = r_to_heap<Heap, Distance>(distance, idx, dist);
@@ -82,10 +79,10 @@ Rcpp::List nn_descent_impl(
   const double tol = delta * nnbrs * npoints;
   if (parallelize) {
     nnd_parallel(heap, max_candidates, n_iters, rand, progress, rho, tol,
-                 grain_size, verbose);
+                 grain_size);
   }
   else {
-    nnd_full(heap, max_candidates, n_iters, rand, progress, rho, tol, verbose);
+    nnd_full(heap, max_candidates, n_iters, rand, progress, rho, tol);
   }
 
   return heap_to_r(heap.neighbor_heap);

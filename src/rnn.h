@@ -21,7 +21,8 @@
 #define RNND_RNN_H
 
 #include <Rcpp.h>
-
+// [[Rcpp::depends(RcppProgress)]]
+#include <progress.hpp>
 #include "heap.h"
 
 
@@ -33,26 +34,70 @@ struct RRand {
 };
 
 struct RProgress {
-  template <typename Heap>
-  void iter(std::size_t n, std::size_t n_iters, const Heap& heap) {
-    double sum = 0.0;
-    for (std::size_t i = 0; i < heap.n_points; i++) {
-      for (std::size_t j = 0; j < heap.n_nbrs; j++) {
-        sum += heap.distance(i, j);
-      }
+  const std::size_t n_iters;
+  bool verbose;
+
+  RProgress(
+    std::size_t n_iters,
+    bool verbose
+    ) :
+    n_iters(n_iters),
+    verbose(verbose)
+  {}
+
+  void update(std::size_t n) {
+    if (verbose) {
+      Rcpp::Rcout << (n + 1) << " / " << n_iters << std::endl;
     }
-    Rcpp::Rcout << (n + 1) << " / " << n_iters << " " << sum << std::endl;
   }
   void converged(const std::size_t c, const double tol) {
-    Rcpp::Rcout << "c = " << c << " tol = " << tol << std::endl;
+    if (verbose) {
+      Rcpp::Rcout << "c = " << c << " tol = " << tol << std::endl;
+    }
   }
-  void check_interrupt() {
-    Rcpp::checkUserInterrupt();
+  bool check_interrupt() {
+    try {
+      Rcpp::checkUserInterrupt();
+    }
+    catch (Rcpp::internal::InterruptedException&) {
+      return true;
+    }
+    return false;
   }
-  template<typename PHeap>
-  void report(PHeap& heap)
-  {
-    Rcpp::Rcout << heap.report() << std::endl;
+};
+
+struct RPProgress {
+
+  Progress progress;
+  const std::size_t n_iters;
+  bool verbose;
+
+  RPProgress(
+    std::size_t n_iters,
+    bool verbose) :
+    progress(n_iters, verbose),
+    n_iters(n_iters),
+    verbose(verbose)
+  {}
+
+  void increment(std::size_t amount = 1) {
+    progress.increment(amount);
+  }
+  void update(std::size_t current) {
+    progress.update(current);
+  }
+  void converged(const std::size_t c, const double tol) {
+    progress.update(n_iters);
+    if (verbose) {
+      Rcpp::Rcout << "c = " << c << " tol = " << tol << std::endl;
+    }
+  }
+  bool check_interrupt() {
+    if (Progress::check_abort()) {
+      progress.cleanup();
+      return true;
+    }
+    return false;
   }
 };
 

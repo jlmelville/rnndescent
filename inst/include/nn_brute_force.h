@@ -34,8 +34,7 @@ template <typename Distance,
 void nnbf(
     SimpleNeighborHeap& neighbor_heap,
     Distance& distance,
-    Progress& progress,
-    bool verbose = false)
+    Progress& progress)
 {
   const std::size_t n_points = neighbor_heap.n_points;
   const std::size_t n_nbrs = neighbor_heap.n_nbrs;
@@ -50,7 +49,10 @@ void nnbf(
         neighbor_heap.unchecked_push(j, weight, i);
       }
     }
-    progress.check_interrupt();
+    progress.increment();
+    if (progress.check_interrupt()) {
+      break;
+    };
   }
 
   neighbor_heap.deheap_sort();

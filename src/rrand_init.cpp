@@ -24,17 +24,17 @@
 
 #define RandomNbrs(DistType)                                                 \
 if (parallelize) {                                                           \
-  return random_nbrs_parallel<DistType, RProgress>(data, k, grain_size);     \
+  return random_nbrs_parallel<DistType>(data, k, grain_size, verbose);       \
 }                                                                            \
 else {                                                                       \
-  return random_nbrs_impl<DistType, RProgress>(data, k);                     \
+  return random_nbrs_impl<DistType>(data, k, verbose);                       \
 }
 
-template<typename Distance,
-         typename Progress>
+template<typename Distance>
 Rcpp::List random_nbrs_impl(
     Rcpp::NumericMatrix data,
-    int k)
+    int k,
+    bool verbose)
 {
   set_seed();
 
@@ -46,7 +46,7 @@ Rcpp::List random_nbrs_impl(
 
   auto data_vec = Rcpp::as<std::vector<typename Distance::in_type>>(Rcpp::transpose(data));
   Distance distance(data_vec, ndim);
-  Progress progress;
+  RPProgress progress(nr, verbose);
 
   const auto nr1 = nr - 1;
   const auto n_to_sample = k - 1;
@@ -59,7 +59,10 @@ Rcpp::List random_nbrs_impl(
       indices(j + 1, i) = val + 1; // store val as 1-index
       dist(j + 1, i) = distance(i, val); // distance calcs are 0-indexed
     }
-    progress.check_interrupt();
+    progress.increment();
+    if (progress.check_interrupt()) {
+      break;
+    };
   }
 
   return Rcpp::List::create(
@@ -74,7 +77,8 @@ Rcpp::List random_nbrs_cpp(
     int k,
     const std::string& metric = "euclidean",
     bool parallelize = false,
-    std::size_t grain_size = 1
+    std::size_t grain_size = 1,
+    bool verbose = false
 )
 {
   if (metric == "euclidean") {

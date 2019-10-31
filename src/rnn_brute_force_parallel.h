@@ -64,8 +64,7 @@ void nnbf_parallel(
     SimpleNeighborHeap& neighbor_heap,
     Distance& distance,
     Progress& progress,
-    std::size_t grain_size = 1,
-    bool verbose = false
+    std::size_t grain_size = 1
     )
 {
   BruteForceWorker<Distance> worker(neighbor_heap, distance);

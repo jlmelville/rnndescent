@@ -119,16 +119,11 @@ void nnd_basic(
     const std::size_t npoints,
     const std::size_t nnbrs,
     Rand& rand,
-    Progress progress,
+    Progress& progress,
     const double rho,
-    const double tol,
-    bool verbose)
+    const double tol)
 {
   for (std::size_t n = 0; n < n_iters; n++) {
-    if (verbose) {
-      progress.iter(n, n_iters, current_graph.neighbor_heap);
-    }
-
     NeighborHeap candidate_neighbors = build_candidates<Rand>(
       current_graph.neighbor_heap, max_candidates, npoints, nnbrs, rand);
 
@@ -157,12 +152,13 @@ void nnd_basic(
           c += current_graph.add_pair(p, q, true);
         }
       }
-      progress.check_interrupt();
+      progress.update(n);
+      if (progress.check_interrupt()) {
+        break;
+      };
     }
     if (static_cast<double>(c) <= tol) {
-      if (verbose) {
-        progress.converged(c, tol);
-      }
+      progress.converged(c, tol);
       break;
     }
   }
@@ -181,17 +177,12 @@ void nnd_full(
     Rand& rand,
     Progress& progress,
     const double rho,
-    const double tol,
-    bool verbose)
+    const double tol)
 {
   RandomWeight<Rand> weight_measure(rand);
   const std::size_t n_points = current_graph.neighbor_heap.n_points;
 
   for (std::size_t n = 0; n < n_iters; n++) {
-    if (verbose) {
-      progress.iter(n, n_iters, current_graph.neighbor_heap);
-    }
-
     RandomHeap<Rand> new_candidate_neighbors(weight_measure, n_points,
                                              max_candidates);
     RandomHeap<Rand> old_candidate_neighbors(weight_measure, n_points,
@@ -208,11 +199,12 @@ void nnd_full(
     std::size_t c = local_join(current_graph, new_nbrs, old_nbrs, n_points,
                                max_candidates, progress);
 
-    progress.check_interrupt();
+    progress.update(n);
+    if (progress.check_interrupt()) {
+      break;
+    };
     if (static_cast<double>(c) <= tol) {
-      if (verbose) {
-        progress.converged(c, tol);
-      }
+      progress.converged(c, tol);
       break;
     }
   }

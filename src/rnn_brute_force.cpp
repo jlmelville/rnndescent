@@ -25,17 +25,17 @@
 #include "rnn_brute_force_parallel.h"
 
 #define BruteForce(DistType)                                      \
-return rnn_brute_force_impl<DistType, RProgress>(                 \
+return rnn_brute_force_impl<DistType>(                            \
     data, k, parallelize, grain_size, verbose);
 
-template <typename Distance,
-          typename Progress>
+template <typename Distance>
 Rcpp::List rnn_brute_force_impl(
     Rcpp::NumericMatrix data,
     int k,
     bool parallelize = false,
     std::size_t grain_size = 1,
-    bool verbose = false)
+    bool verbose = false
+  )
 {
   const std::size_t n_points = data.nrow();
   const std::size_t n_nbrs = k;
@@ -44,15 +44,15 @@ Rcpp::List rnn_brute_force_impl(
   data = Rcpp::transpose(data);
   auto data_vec = Rcpp::as<std::vector<typename Distance::in_type>>(data);
 
-  Progress progress;
+  RPProgress progress(n_points, verbose);
   Distance distance(data_vec, ndim);
   SimpleNeighborHeap neighbor_heap(n_points, n_nbrs);
 
   if (parallelize) {
-    nnbf_parallel(neighbor_heap, distance, progress, grain_size, verbose);
+    nnbf_parallel(neighbor_heap, distance, progress, grain_size);
   }
   else {
-    nnbf(neighbor_heap, distance, progress, verbose);
+    nnbf(neighbor_heap, distance, progress);
   }
 
   return heap_to_r(neighbor_heap);

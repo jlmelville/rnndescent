@@ -42,6 +42,10 @@ nn_brute_force <- function(
 #'   or \code{"hamming"}.
 #' @param use_cpp If \code{TRUE}, use the faster C++ code path.
 #' @param n_threads Number of threads to use. Ignored if \code{use_cpp = FALSE}.
+#' @param grain_size Minimum batch size for multithreading. If the number of
+#'   items to process in a thread falls below this number, then no threads will
+#'   be used. Ignored if \code{n_threads < 1}.
+#' @param verbose If \code{TRUE}, log information to the console.
 #' @return a list containing:
 #' \itemize{
 #'   \item \code{idx} an n by k matrix containing the nearest neighbor
@@ -51,7 +55,7 @@ nn_brute_force <- function(
 #' }
 #' @export
 random_nbrs <- function(data, k, metric = "euclidean", use_cpp = TRUE,
-                        n_threads = 0) {
+                        n_threads = 0, grain_size = 1, verbose = FALSE) {
   data <- x2m(data)
   nr <- nrow(data)
   if (k > nr) {
@@ -62,7 +66,7 @@ random_nbrs <- function(data, k, metric = "euclidean", use_cpp = TRUE,
     if (parallelize) {
       RcppParallel::setThreadOptions(numThreads = n_threads)
     }
-    random_nbrs_cpp(data, k, metric, parallelize)
+    random_nbrs_cpp(data, k, metric, parallelize, grain_size = grain_size, verbose = verbose)
   }
   else {
     random_nbrs_R(X = data, k = k, metric = metric)

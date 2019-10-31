@@ -209,21 +209,16 @@ void nnd_parallel(
     const std::size_t max_candidates,
     const std::size_t n_iters,
     Rand& rand,
-    Progress progress,
+    Progress& progress,
     const double rho,
     const double tol,
-    std::size_t grain_size = 1,
-    bool verbose = false
+    std::size_t grain_size = 1
 )
 {
   const std::size_t n_points = current_graph.neighbor_heap.n_points;
   RandomWeight<Rand> weight_measure(rand);
 
   for (std::size_t n = 0; n < n_iters; n++) {
-    if (verbose) {
-      progress.iter(n, n_iters, current_graph.neighbor_heap);
-    }
-
     RandomHeap<Rand> new_candidate_neighbors(weight_measure, n_points,
                                              max_candidates);
     RandomHeap<Rand> old_candidate_neighbors(weight_measure, n_points,
@@ -255,13 +250,14 @@ void nnd_parallel(
     );
     RcppParallel::parallelFor(0, n_points, non_search_worker, grain_size);
     current_graph = non_search_worker.updated_graph;
-    progress.check_interrupt();
 
+    progress.update(n);
+    if (progress.check_interrupt()) {
+      break;
+    };
     const std::size_t c = non_search_worker.n_updates;
     if (static_cast<double>(c) <= tol) {
-      if (verbose) {
-        progress.converged(c, tol);
-      }
+      progress.converged(c, tol);
       break;
     }
   }

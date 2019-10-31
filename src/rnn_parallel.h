@@ -44,8 +44,10 @@ void batch_parallel_for(
         break;
       }
       RcppParallel::parallelFor(begin, end, worker, grain_size);
-      progress.check_interrupt();
-
+      progress.update(end);
+      if (progress.check_interrupt()) {
+        break;
+      };
       begin += min_batch;
       end += min_batch;
       end = std::min(end, n);
