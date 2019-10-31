@@ -38,3 +38,22 @@ a list containing:
 \description{
 Randomly select nearest neighbors.
 }
+\examples{
+# Find 4 random neighbors and calculate their Euclidean distance
+# If you pass a data frame, non-numeric columns are removed
+iris_nn <- random_knn(iris, k = 4, metric = "euclidean")
+
+# Manhattan (l1) distance
+iris_nn <- random_knn(iris, k = 4, metric = "manhattan")
+
+# Multi-threading: you can choose the number of threads to use: in real
+# usage, you will want to set n_threads to at least 2
+iris_nn <- random_knn(iris, k = 4, metric = "manhattan", n_threads = 1)
+
+# Use verbose flag to see information about progress
+iris_nn <- random_knn(iris, k = 4, metric = "euclidean", verbose = TRUE)
+
+# These results can be improved by nearest neighbors descent. You don't need
+# to specify k here because this is worked out from the initial input
+iris_nn <- nnd_knn(iris, init = iris_nn, metric = "euclidean", verbose = TRUE)
+}

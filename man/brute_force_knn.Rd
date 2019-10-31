@@ -36,3 +36,18 @@ a list containing:
 \description{
 Calculate exact nearest neighbors by brute force.
 }
+\examples{
+# Find the 4 nearest neighbors using Euclidean distance
+# If you pass a data frame, non-numeric columns are removed
+iris_nn <- brute_force_knn(iris, k = 4, metric = "euclidean")
+
+# Manhattan (l1) distance
+iris_nn <- brute_force_knn(iris, k = 4, metric = "manhattan")
+
+# Multi-threading: you can choose the number of threads to use: in real
+# usage, you will want to set n_threads to at least 2
+iris_nn <- brute_force_knn(iris, k = 4, metric = "manhattan", n_threads = 1)
+
+# Use verbose flag to see information about progress
+iris_nn <- brute_force_knn(iris, k = 4, metric = "euclidean", verbose = TRUE)
+}

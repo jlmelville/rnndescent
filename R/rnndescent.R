@@ -17,6 +17,20 @@
 #'   \item \code{dist} an n by k matrix containing the nearest neighbor
 #'    distances.
 #' }
+#' @examples
+#' # Find the 4 nearest neighbors using Euclidean distance
+#' # If you pass a data frame, non-numeric columns are removed
+#' iris_nn <- brute_force_knn(iris, k = 4, metric = "euclidean")
+#'
+#' # Manhattan (l1) distance
+#' iris_nn <- brute_force_knn(iris, k = 4, metric = "manhattan")
+#'
+#' # Multi-threading: you can choose the number of threads to use: in real
+#' # usage, you will want to set n_threads to at least 2
+#' iris_nn <- brute_force_knn(iris, k = 4, metric = "manhattan", n_threads = 1)
+#'
+#' # Use verbose flag to see information about progress
+#' iris_nn <- brute_force_knn(iris, k = 4, metric = "euclidean", verbose = TRUE)
 #' @export
 brute_force_knn <- function(
                            data,
@@ -53,6 +67,24 @@ brute_force_knn <- function(
 #'   \item \code{dist} an n by k matrix containing the nearest neighbor
 #'    distances.
 #' }
+#' @examples
+#' # Find 4 random neighbors and calculate their Euclidean distance
+#' # If you pass a data frame, non-numeric columns are removed
+#' iris_nn <- random_knn(iris, k = 4, metric = "euclidean")
+#'
+#' # Manhattan (l1) distance
+#' iris_nn <- random_knn(iris, k = 4, metric = "manhattan")
+#'
+#' # Multi-threading: you can choose the number of threads to use: in real
+#' # usage, you will want to set n_threads to at least 2
+#' iris_nn <- random_knn(iris, k = 4, metric = "manhattan", n_threads = 1)
+#'
+#' # Use verbose flag to see information about progress
+#' iris_nn <- random_knn(iris, k = 4, metric = "euclidean", verbose = TRUE)
+#'
+#' # These results can be improved by nearest neighbors descent. You don't need
+#' # to specify k here because this is worked out from the initial input
+#' iris_nn <- nnd_knn(iris, init = iris_nn, metric = "euclidean", verbose = TRUE)
 #' @export
 random_knn <- function(data, k, metric = "euclidean", use_cpp = TRUE,
                         n_threads = 0, grain_size = 1, verbose = FALSE) {
@@ -117,6 +149,50 @@ random_knn <- function(data, k, metric = "euclidean", use_cpp = TRUE,
 #'   \item \code{dist} an n by k matrix containing the nearest neighbor
 #'    distances.
 #' }
+#' @examples
+#' # Find 4 (approximate) nearest neighbors using Euclidean distance
+#' # If you pass a data frame, non-numeric columns are removed
+#' iris_nn <- nnd_knn(iris, k = 4, metric = "euclidean")
+#'
+#' # Manhattan (l1) distance
+#' iris_nn <- nnd_knn(iris, k = 4, metric = "manhattan")
+#'
+#' # Multi-threading: you can choose the number of threads to use: in real
+#' # usage, you will want to set n_threads to at least 2
+#' iris_nn <- nnd_knn(iris, k = 4, metric = "manhattan", n_threads = 1)
+#'
+#' # Use verbose flag to see information about progress
+#' iris_nn <- nnd_knn(iris, k = 4, metric = "euclidean", verbose = TRUE)
+#'
+#' # Nearest neighbor descent uses random initialization, but you can pass any
+#' # approximation using the init argument (as long as the metrics used to
+#' # calculate the initialization are compatible with the metric options used
+#' # by nnd_knn).
+#' iris_nn <- random_knn(iris, k = 4, metric = "euclidean")
+#' iris_nn <- nnd_knn(iris, init = iris_nn, metric = "euclidean", verbose = TRUE)
+#'
+#' # Number of iterations controls how much optimization is attempted. A smaller
+#' # value will run faster but give poorer results
+#' iris_nn <- nnd_knn(iris, k = 4, metric = "euclidean", n_iters = 2)
+#'
+#' # Optimization may also stop early if not much progress is being made. This
+#' # convergence criterion can be controlled via delta. A larger value will
+#' # stop progress earlier. The verbose flag will provide some information if
+#' # convergence is occurring before all iterations are carried out.
+#' set.seed(1337)
+#' iris_nn <- nnd_knn(iris, k = 4, metric = "euclidean", n_iters = 5, delta = 0.5)
+#'
+#' # To ensure that descent only stops if no improvements are made, set delta = 0
+#' set.seed(1337)
+#' iris_nn <- nnd_knn(iris, k = 4, metric = "euclidean", n_iters = 5, delta = 0)
+#'
+#' @references
+#' Dong, W., Moses, C., & Li, K. (2011, March).
+#' Efficient k-nearest neighbor graph construction for generic similarity measures.
+#' In \emph{Proceedings of the 20th international conference on World Wide Web}
+#' (pp. 577-586).
+#' ACM.
+#' \url{doi.org/10.1145/1963405.1963487}.
 #' @export
 nnd_knn <- function(data, k = NULL,
                     metric = "euclidean",
