@@ -95,13 +95,29 @@ void build_candidates_full(
       }
       bool isn = current_graph.flag(ij) == 1;
       if (isn) {
-        std::size_t c = new_candidate_neighbors.add_pair(i, idx, isn);
-        if (c > 0) {
-          current_graph.flag(ij) = 0;
-        }
+        new_candidate_neighbors.add_pair(i, idx, isn);
       }
       else {
         old_candidate_neighbors.add_pair(i, idx, isn);
+      }
+    }
+  }
+
+  // mark any neighbor in the current graph that was retained in the new
+  // candidates as true
+  const auto& new_neighbor_heap = new_candidate_neighbors.neighbor_heap;
+  const std::size_t max_candidates = new_neighbor_heap.n_nbrs;
+  for (std::size_t i = 0; i < n_points; i++) {
+    std::size_t innbrs = i * n_nbrs;
+    std::size_t innbrs_new = i * max_candidates;
+    for (std::size_t j = 0; j < n_nbrs; j++) {
+      std::size_t ij = innbrs + j;
+      std::size_t idx = current_graph.index(ij);
+      for (std::size_t k = 0; k < max_candidates; k++) {
+        if (new_neighbor_heap.index(innbrs_new + k) == idx) {
+          current_graph.flag(ij) = 1;
+          break;
+        }
       }
     }
   }
