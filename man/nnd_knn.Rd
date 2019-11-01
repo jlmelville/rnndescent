@@ -107,7 +107,6 @@ iris_nn <- nnd_knn(iris, k = 4, metric = "euclidean", n_iters = 5, delta = 0.5)
 # To ensure that descent only stops if no improvements are made, set delta = 0
 set.seed(1337)
 iris_nn <- nnd_knn(iris, k = 4, metric = "euclidean", n_iters = 5, delta = 0)
-
 }
 \references{
 Dong, W., Moses, C., & Li, K. (2011, March).
