@@ -20,9 +20,12 @@
 #ifndef RNND_RNN_H
 #define RNND_RNN_H
 
+#include <time.h>
+
 #include <Rcpp.h>
 // [[Rcpp::depends(RcppProgress)]]
 #include <progress.hpp>
+
 #include "heap.h"
 
 inline std::string time_unit(int u)
