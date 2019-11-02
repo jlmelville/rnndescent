@@ -155,7 +155,7 @@ struct LocalJoinWorker : public RcppParallel::Worker {
   const NeighborHeap& current_graph;
   const NeighborHeap& new_nbrs;
   const NeighborHeap& old_nbrs;
-  Distance& distance;
+  const Distance& distance;
   const std::size_t n_nbrs;
   const std::size_t max_candidates;
   std::vector<std::vector<Update>>& updates;
@@ -164,7 +164,7 @@ struct LocalJoinWorker : public RcppParallel::Worker {
     const NeighborHeap& current_graph,
     const NeighborHeap& new_nbrs,
     const NeighborHeap& old_nbrs,
-    Distance& distance,
+    const Distance& distance,
     std::vector<std::vector<Update>>& updates
   ) :
     current_graph(current_graph),

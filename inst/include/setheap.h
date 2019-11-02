@@ -42,11 +42,11 @@ template <typename WeightMeasure>
 struct SetHeap
 {
   NeighborHeap neighbor_heap;
-  WeightMeasure weight_measure;
+  const WeightMeasure& weight_measure;
   std::unordered_set<std::pair<std::size_t, std::size_t>,
                      boost::hash<pair>> seen;
 
-  SetHeap(WeightMeasure& weight_measure,
+  SetHeap(const WeightMeasure& weight_measure,
           const std::size_t n_points,
           const std::size_t size)
     : neighbor_heap(n_points, size),

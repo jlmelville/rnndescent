@@ -37,7 +37,7 @@ struct Euclidean
   Euclidean(const std::vector<In>& data, std::size_t ndim)
     : data(data), ndim(ndim) { }
 
-  Out operator()(std::size_t i, std::size_t j) {
+  Out operator()(std::size_t i, std::size_t j) const {
     Out sum = 0.0;
     const std::size_t di = ndim * i;
     const std::size_t dj = ndim * j;
@@ -50,8 +50,8 @@ struct Euclidean
     return std::sqrt(sum);
   }
 
-  std::vector<In> data;
-  std::size_t ndim;
+  const std::vector<In> data;
+  const std::size_t ndim;
 
   typedef In in_type;
 };
@@ -62,7 +62,7 @@ struct L2
   L2(const std::vector<In>& data, std::size_t ndim)
     : data(data), ndim(ndim) { }
 
-  Out operator()(std::size_t i, std::size_t j) {
+  Out operator()(std::size_t i, std::size_t j) const {
     Out sum = 0.0;
     const std::size_t di = ndim * i;
     const std::size_t dj = ndim * j;
@@ -75,8 +75,8 @@ struct L2
     return sum;
   }
 
-  std::vector<In> data;
-  std::size_t ndim;
+  const std::vector<In> data;
+  const std::size_t ndim;
 
   typedef In in_type;
 };
@@ -107,7 +107,7 @@ struct Cosine
     }
   }
 
-  Out operator()(std::size_t i, std::size_t j) {
+  Out operator()(std::size_t i, std::size_t j) const {
     const std::size_t di = ndim * i;
     const std::size_t dj = ndim * j;
 
@@ -120,7 +120,7 @@ struct Cosine
   }
 
   std::vector<In> data;
-  std::size_t ndim;
+  const std::size_t ndim;
 
   typedef In in_type;
 };
@@ -129,11 +129,10 @@ struct Cosine
 template <typename In, typename Out>
 struct Manhattan
 {
-
   Manhattan(const std::vector<In>& data, std::size_t ndim)
     : data(data), ndim(ndim) { }
 
-  Out operator()(std::size_t i, std::size_t j) {
+  Out operator()(std::size_t i, std::size_t j) const {
     Out sum = 0.0;
     const std::size_t di = ndim * i;
     const std::size_t dj = ndim * j;
@@ -145,8 +144,8 @@ struct Manhattan
     return sum;
   }
 
-  std::vector<In> data;
-  std::size_t ndim;
+  const std::vector<In> data;
+  const std::size_t ndim;
 
   typedef In in_type;
 };
@@ -187,7 +186,7 @@ struct Hamming
     ndim = std::ceil(vndim / 64.0);
   }
 
-  Out operator()(std::size_t i, std::size_t j) {
+  Out operator()(std::size_t i, std::size_t j) const {
     Out sum = 0;
     const std::size_t di = ndim * i;
     const std::size_t dj = ndim * j;
