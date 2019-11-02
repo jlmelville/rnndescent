@@ -76,10 +76,11 @@ Rcpp::List nn_descent_impl(
   Heap<Distance> heap = r_to_heap<Heap, Distance>(distance, idx, dist);
   HeapSumProgress progress(heap.neighbor_heap, n_iters, verbose);
 
+  const std::size_t block_size = 16384;
   const double tol = delta * nnbrs * npoints;
   if (parallelize) {
     nnd_parallel(heap, max_candidates, n_iters, rand, progress, rho, tol,
-                 grain_size, verbose);
+                 grain_size, block_size, verbose);
   }
   else {
     nnd_full(heap, max_candidates, n_iters, rand, progress, rho, tol, verbose);

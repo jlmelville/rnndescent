@@ -47,7 +47,7 @@ void batch_parallel_for(
       progress.update(end);
       if (progress.check_interrupt()) {
         break;
-      };
+      }
       begin += min_batch;
       end += min_batch;
       end = std::min(end, n);
