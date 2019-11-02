@@ -25,6 +25,32 @@
 #include <progress.hpp>
 #include "heap.h"
 
+inline std::string time_unit(int u)
+{
+  std::string ustr(std::to_string(u));
+  return u < 10 ? "0" + ustr : ustr;
+}
+
+inline void print_time(bool print_date = false) {
+  std::time_t current_time;
+  struct tm now;
+
+  time(&current_time);
+  localtime_s(&now, &current_time);
+  if (print_date) {
+    Rcpp::Rcout << (now.tm_year + 1900) << '-'
+                << time_unit(now.tm_mon + 1) << ":" << '-'
+                << time_unit(now.tm_mday) << " ";
+  }
+  Rcpp::Rcout << time_unit(now.tm_hour) << ":"
+              << time_unit(now.tm_min) << ":"
+              << time_unit(now.tm_sec) << " ";
+}
+
+inline void ts(const std::string& msg) {
+  print_time();
+  Rcpp::Rcout << msg << std::endl;
+}
 
 struct RRand {
   // a random uniform value between 0 and 1
@@ -33,27 +59,41 @@ struct RRand {
   }
 };
 
-struct RProgress {
+// Sums the distances in a neighbor heap as a way of measuring progress.
+// Useful for diagnostic purposes
+struct HeapSumProgress {
+  NeighborHeap& neighbor_heap;
   const std::size_t n_iters;
   bool verbose;
 
-  RProgress(
+  HeapSumProgress(
+    NeighborHeap& neighbor_heap,
     std::size_t n_iters,
     bool verbose
     ) :
+    neighbor_heap(neighbor_heap),
     n_iters(n_iters),
     verbose(verbose)
   {}
 
   void update(std::size_t n) {
     if (verbose) {
-      Rcpp::Rcout << (n + 1) << " / " << n_iters << std::endl;
+      const std::size_t n_points = neighbor_heap.n_points;
+      const std::size_t n_nbrs = neighbor_heap.n_nbrs;
+      double sum = 0.0;
+      for (std::size_t i = 0; i < n_points; i++) {
+        const std::size_t innbrs = i * n_nbrs;
+        for (std::size_t j = 0; j < n_nbrs; j++) {
+          sum += neighbor_heap.distance(innbrs + j);
+        }
+      }
+
+      std::ostringstream os;
+      os << (n + 1) << " / " << n_iters << " " << sum;
+      ts(os.str());
     }
   }
-  void converged(const std::size_t c, const double tol) {
-    if (verbose) {
-      Rcpp::Rcout << "c = " << c << " tol = " << tol << std::endl;
-    }
+  void stopping_early() {
   }
   bool check_interrupt() {
     try {
@@ -86,11 +126,8 @@ struct RPProgress {
   void update(std::size_t current) {
     progress.update(current);
   }
-  void converged(const std::size_t c, const double tol) {
+  void stopping_early() {
     progress.update(n_iters);
-    if (verbose) {
-      Rcpp::Rcout << "c = " << c << " tol = " << tol << std::endl;
-    }
   }
   bool check_interrupt() {
     if (Progress::check_abort()) {
