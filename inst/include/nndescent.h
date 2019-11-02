@@ -137,7 +137,8 @@ void nnd_basic(
     Rand& rand,
     Progress& progress,
     const double rho,
-    const double tol)
+    const double tol,
+    bool verbose = false)
 {
   for (std::size_t n = 0; n < n_iters; n++) {
     NeighborHeap candidate_neighbors = build_candidates<Rand>(
@@ -171,12 +172,16 @@ void nnd_basic(
       progress.update(n);
       if (progress.check_interrupt()) {
         break;
-      };
+      }
     }
     if (static_cast<double>(c) <= tol) {
-      progress.converged(c, tol);
+      if (verbose) {
+        Rcpp::Rcout << "c = " << c << " tol = " << tol << std::endl;
+      }
+      progress.stopping_early();
       break;
     }
+
   }
   current_graph.neighbor_heap.deheap_sort();
 }
@@ -193,7 +198,8 @@ void nnd_full(
     Rand& rand,
     Progress& progress,
     const double rho,
-    const double tol)
+    const double tol,
+    bool verbose)
 {
   RandomWeight<Rand> weight_measure(rand);
   const std::size_t n_points = current_graph.neighbor_heap.n_points;
@@ -218,9 +224,12 @@ void nnd_full(
     progress.update(n);
     if (progress.check_interrupt()) {
       break;
-    };
+    }
     if (static_cast<double>(c) <= tol) {
-      progress.converged(c, tol);
+      if (verbose) {
+        Rcpp::Rcout << "c = " << c << " tol = " << tol << std::endl;
+      }
+      progress.stopping_early();
       break;
     }
   }

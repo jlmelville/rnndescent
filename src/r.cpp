@@ -71,18 +71,18 @@ Rcpp::List nn_descent_impl(
   data = Rcpp::transpose(data);
   auto data_vec = Rcpp::as<std::vector<typename Distance::in_type>>(data);
 
-  RProgress progress(n_iters, verbose);
   Rand rand;
   Distance distance(data_vec, ndim);
   Heap<Distance> heap = r_to_heap<Heap, Distance>(distance, idx, dist);
+  HeapSumProgress progress(heap.neighbor_heap, n_iters, verbose);
 
   const double tol = delta * nnbrs * npoints;
   if (parallelize) {
     nnd_parallel(heap, max_candidates, n_iters, rand, progress, rho, tol,
-                 grain_size);
+                 grain_size, verbose);
   }
   else {
-    nnd_full(heap, max_candidates, n_iters, rand, progress, rho, tol);
+    nnd_full(heap, max_candidates, n_iters, rand, progress, rho, tol, verbose);
   }
 
   return heap_to_r(heap.neighbor_heap);
