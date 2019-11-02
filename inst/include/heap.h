@@ -56,21 +56,30 @@ struct NeighborHeap
   ~NeighborHeap() = default;
   NeighborHeap& operator=(const NeighborHeap &) = default;
 
+  bool contains(std::size_t row, std::size_t idx) const
+  {
+    const std::size_t rnnbrs = row * n_nbrs;
+    for (std::size_t i = 0; i < n_nbrs; i++) {
+      if (idx == index(rnnbrs + i)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   std::size_t checked_push(
       std::size_t row,
       double weight,
       std::size_t idx,
       bool flag)
   {
-    if (weight >= distance(row, 0)) {
+    if (weight >= distance(row * n_nbrs)) {
       return 0;
     }
 
     // break if we already have this element
-    for (std::size_t i = 0; i < n_nbrs; i++) {
-      if (idx == index(row, i)) {
-        return 0;
-      }
+    if (contains(row, idx)) {
+      return 0;
     }
 
     return unchecked_push(row, weight, idx, flag);
