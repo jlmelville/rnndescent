@@ -28,7 +28,7 @@
 #include "rrand.h"
 #include "nndescent.h"
 
-struct CandidatesWorker : public RcppParallel::Worker {
+struct LockingCandidatesWorker : public RcppParallel::Worker {
   NeighborHeap& current_graph;
   const std::size_t n_points;
   const std::size_t n_nbrs;
@@ -38,7 +38,7 @@ struct CandidatesWorker : public RcppParallel::Worker {
   NeighborHeap old_candidate_neighbors;
   tthread::mutex mutex;
 
-  CandidatesWorker(
+  LockingCandidatesWorker(
     NeighborHeap& current_graph,
     const std::size_t max_candidates,
     const double rho) :
@@ -64,139 +64,206 @@ struct CandidatesWorker : public RcppParallel::Worker {
       for (std::size_t j = 0; j < n_nbrs; j++) {
         std::size_t ij = innbrs + j;
         std::size_t idx = current_graph.index(ij);
-        if (idx == NeighborHeap::npos() || rand->unif() >= rho) {
+        if (rand->unif() >= rho) {
           continue;
         }
         double d = rand->unif();
         bool isn = current_graph.flag(ij) == 1;
         if (isn) {
-          std::size_t c = new_candidate_neighbors.checked_push(i, d, idx, isn);
-          if (c > 0) {
-            current_graph.flag(ij) = 0;
+          {
+            tthread::lock_guard<tthread::mutex> guard(mutex);
+            new_candidate_neighbors.checked_push(i, d, idx, isn);
+            new_candidate_neighbors.checked_push(idx, d, i, isn);
           }
         }
         else {
-          old_candidate_neighbors.checked_push(i, d, idx, isn);
+          {
+            tthread::lock_guard<tthread::mutex> guard(mutex);
+            old_candidate_neighbors.checked_push(i, d, idx, isn);
+            old_candidate_neighbors.checked_push(idx, d, i, isn);
+          }
         }
       }
     }
   }
 };
 
-struct ReverseCandidatesWorker : public RcppParallel::Worker {
+// mark any neighbor in the current graph that was retained in the new
+// candidates as true
+struct NewCandidatesWorker : public RcppParallel::Worker {
+  const NeighborHeap new_candidate_neighbors;
+  NeighborHeap& current_graph;
   const std::size_t n_points;
+  const std::size_t n_nbrs;
   const std::size_t max_candidates;
-  const NeighborHeap& new_candidate_neighbors;
-  const NeighborHeap& old_candidate_neighbors;
-  NeighborHeap reverse_new_candidate_neighbors;
-  NeighborHeap reverse_old_candidate_neighbors;
 
-  ReverseCandidatesWorker(
+  NewCandidatesWorker(
     const NeighborHeap& new_candidate_neighbors,
-    const NeighborHeap& old_candidate_neighbors) :
-    n_points(new_candidate_neighbors.n_points),
-    max_candidates(new_candidate_neighbors.n_nbrs),
+    NeighborHeap& current_graph
+  ) :
     new_candidate_neighbors(new_candidate_neighbors),
-    old_candidate_neighbors(old_candidate_neighbors),
-    reverse_new_candidate_neighbors(new_candidate_neighbors),
-    reverse_old_candidate_neighbors(old_candidate_neighbors)
+    current_graph(current_graph),
+    n_points(current_graph.n_points),
+    n_nbrs(current_graph.n_nbrs),
+    max_candidates(new_candidate_neighbors.n_nbrs)
+  {}
+
+  void operator()(std::size_t begin, std::size_t end)
+  {
+    for (std::size_t i = begin; i < end; i++) {
+      std::size_t innbrs = i * n_nbrs;
+      std::size_t innbrs_new = i * max_candidates;
+      for (std::size_t j = 0; j < n_nbrs; j++) {
+        std::size_t ij = innbrs + j;
+        std::size_t idx = current_graph.index(ij);
+        for (std::size_t k = 0; k < max_candidates; k++) {
+          if (new_candidate_neighbors.index(innbrs_new + k) == idx) {
+            current_graph.flag(ij) = 1;
+            break;
+          }
+        }
+      }
+    }
+  }
+};
+
+struct Update {
+  const std::size_t p;
+  const std::size_t q;
+  const double d;
+
+  Update() :
+    p(0),
+    q(0),
+    d(0) {}
+
+  Update(
+    const std::size_t p,
+    const std::size_t q,
+    const double d
+  ) :
+    p(p),
+    q(q),
+    d(d)
+  {}
+
+  Update(Update&&) = default;
+};
+
+template <typename Distance>
+struct LocalJoinWorker : public RcppParallel::Worker {
+  const NeighborHeap& current_graph;
+  const NeighborHeap& new_nbrs;
+  const NeighborHeap& old_nbrs;
+  Distance& distance;
+  const std::size_t max_candidates;
+  std::vector<std::vector<Update>>& updates;
+
+  LocalJoinWorker(
+    const NeighborHeap& current_graph,
+    const NeighborHeap& new_nbrs,
+    const NeighborHeap& old_nbrs,
+    Distance& distance,
+    std::vector<std::vector<Update>>& updates
+  ) :
+    current_graph(current_graph),
+    new_nbrs(new_nbrs),
+    old_nbrs(old_nbrs),
+    distance(distance),
+    max_candidates(new_nbrs.n_nbrs),
+    updates(updates)
   {}
 
   void operator()(std::size_t begin, std::size_t end) {
-    std::size_t idx;
-    double d;
-    bool isn;
-    for (std::size_t i = 0; i < n_points; i++) {
-      std::size_t innbrs = i * max_candidates;
+    // also interleave blocks of updates with applications?
+    const std::size_t n_nbrs = current_graph.n_nbrs;
+    for (std::size_t i = begin; i < end; i++) {
+      const std::size_t innbrs = i * max_candidates;
       for (std::size_t j = 0; j < max_candidates; j++) {
-        std::size_t ij = innbrs + j;
-        idx = new_candidate_neighbors.index(ij);
-        if (idx != NeighborHeap::npos() && idx >= begin && idx < end) {
-          new_candidate_neighbors.df(ij, d, isn);
-          reverse_new_candidate_neighbors.checked_push(idx, d, i, isn);
+        std::size_t p = new_nbrs.index(innbrs + j);
+        if (p == NeighborHeap::npos()) {
+          continue;
         }
-        idx = old_candidate_neighbors.index(ij);
-        if (idx != NeighborHeap::npos() && idx >= begin && idx < end) {
-          old_candidate_neighbors.df(ij, d, isn);
-          reverse_old_candidate_neighbors.checked_push(idx, d, i, isn);
+        const std::size_t pnnbrs = p * n_nbrs;
+        for (std::size_t k = j; k < max_candidates; k++) {
+          std::size_t q = new_nbrs.index(innbrs + k);
+          if (q == NeighborHeap::npos()) {
+            continue;
+          }
+          double d = distance(p, q);
+          if (d < current_graph.distance(pnnbrs) || d < current_graph.distance(q * n_nbrs)) {
+            updates[i].emplace_back(p, q, d);
+          }
+        }
+
+        for (std::size_t k = 0; k < max_candidates; k++) {
+          std::size_t q = old_nbrs.index(innbrs + k);
+          if (q == NeighborHeap::npos()) {
+            continue;
+          }
+          double d = distance(p, q);
+          if (d < current_graph.distance(pnnbrs) || d < current_graph.distance(q * n_nbrs)) {
+            updates[i].emplace_back(q, p, d);
+          }
         }
       }
     }
   }
 };
 
-template <template<typename> class Heap,
-          typename Distance>
-struct NoNSearchWorker : public RcppParallel::Worker {
-  Heap<Distance>& updated_graph;
-  const NeighborHeap& new_nbrs;
-  const NeighborHeap& old_nbrs;
-  const std::size_t n_points;
-  const std::size_t max_candidates;
+size_t apply_updates(
+    NeighborHeap& current_graph,
+    std::vector<std::vector<Update>>& updates)
+{
+  std::size_t c = 0;
+  const std::size_t n_points = updates.size();
+  for (std::size_t i = 0; i < n_points; i++) {
+    const std::size_t n_updates = updates[i].size();
+    for (std::size_t j = 0; j < n_updates; j++) {
+      const auto& update = updates[i][j];
+      c += current_graph.checked_push(update.p, update.d, update.q, true);
+      c += current_graph.checked_push(update.q, update.d, update.p, true);
+    }
+    updates[i].clear();
+  }
+  return c;
+}
+
+
+struct UpdateWorker : RcppParallel::Worker {
+  NeighborHeap& current_graph;
+  const std::vector<std::vector<std::unique_ptr<Update>>>& updates;
   std::size_t n_updates;
   tthread::mutex mutex;
 
-  NoNSearchWorker(
-    Heap<Distance>& current_graph,
-    const NeighborHeap& new_nbrs,
-    const NeighborHeap& old_nbrs
+  UpdateWorker(
+    NeighborHeap& current_graph,
+    const std::vector<std::vector<std::unique_ptr<Update>>>& updates
   ) :
-    updated_graph(current_graph),
-    new_nbrs(new_nbrs),
-    old_nbrs(old_nbrs),
-    n_points(current_graph.neighbor_heap.n_points),
-    max_candidates(new_nbrs.n_nbrs),
+    current_graph(current_graph),
+    updates(updates),
     n_updates(0)
   {}
 
   void operator()(std::size_t begin, std::size_t end) {
-    std::size_t n_local_updates = 0;
-    std::size_t p;
-    std::size_t pnnbrs;
-
-    std::unordered_set<std::size_t> seen(new_nbrs.n_points);
+    std::size_t c = 0;
     for (std::size_t i = begin; i < end; i++) {
-      std::size_t innbrs = i * max_candidates;
-      for (std::size_t j = 0; j < max_candidates; j++) {
-        std::size_t ij = innbrs + j;
-        p = new_nbrs.index(ij);
-        if (p != NeighborHeap::npos()) {
-          pnnbrs = p * max_candidates;
-          for (std::size_t k = 0; k < max_candidates; k++) {
-            std::size_t pk = pnnbrs + k;
-            n_local_updates += try_add(i, new_nbrs.index(pk), seen);
-            n_local_updates += try_add(i, old_nbrs.index(pk), seen);
+      const std::size_t n_updates = updates[i].size();
+      for (std::size_t j = 0; j < n_updates; j++) {
+        const auto& update = *(updates[i][j]);
+        {
+          tthread::lock_guard<tthread::mutex> guard(mutex);
+          c += current_graph.checked_push(update.p, update.d, update.q, true);
+          if (update.p != update.q) {
+            c += current_graph.checked_push(update.q, update.d, update.p, true);
           }
         }
-
-        p = old_nbrs.index(ij);
-        if (p == NeighborHeap::npos()) {
-          continue;
-        }
-        pnnbrs = p * max_candidates;
-        for (std::size_t k = 0; k < max_candidates; k++) {
-          n_local_updates += try_add(i, new_nbrs.index(pnnbrs + k), seen);
-        }
       }
-      seen.clear();
     }
     {
       tthread::lock_guard<tthread::mutex> guard(mutex);
-      n_updates += n_local_updates;
+      n_updates += c;
     }
-  }
-
-  std::size_t try_add
-    (
-        std::size_t i,
-        std::size_t q,
-        std::unordered_set<std::size_t>& seen
-    )
-  {
-    if (q == NeighborHeap::npos() || !seen.emplace(q).second) {
-      return 0;
-    }
-    return updated_graph.add_pair_asymm(i, q, true);
   }
 };
 
@@ -212,52 +279,60 @@ void nnd_parallel(
     Progress& progress,
     const double rho,
     const double tol,
-    std::size_t grain_size = 1
+    std::size_t grain_size = 1,
+    bool verbose = false
 )
 {
   const std::size_t n_points = current_graph.neighbor_heap.n_points;
-  RandomWeight<Rand> weight_measure(rand);
+  std::vector<std::vector<Update>> updates(n_points);
 
   for (std::size_t n = 0; n < n_iters; n++) {
-    RandomHeap<Rand> new_candidate_neighbors(weight_measure, n_points,
-                                             max_candidates);
-    RandomHeap<Rand> old_candidate_neighbors(weight_measure, n_points,
-                                             max_candidates);
+    // ts("Creating candidates (locking)");
+    LockingCandidatesWorker candidates_worker(current_graph.neighbor_heap,
+                                              max_candidates, rho);
+    RcppParallel::parallelFor(0, n_points, candidates_worker, grain_size);
+    auto& new_candidate_neighbors = candidates_worker.new_candidate_neighbors;
+    auto& old_candidate_neighbors = candidates_worker.old_candidate_neighbors;
 
-    build_candidates_full<Rand>(current_graph.neighbor_heap,
-                                new_candidate_neighbors,
-                                old_candidate_neighbors,
-                                rho, rand);
+    // ts("Marking candidates (parallel)");
+    NewCandidatesWorker new_candidates_worker(
+        new_candidate_neighbors,
+        candidates_worker.current_graph);
+    RcppParallel::parallelFor(0, n_points, new_candidates_worker, grain_size);
 
-    NeighborHeap& new_nbrs = new_candidate_neighbors.neighbor_heap;
-    NeighborHeap& old_nbrs = old_candidate_neighbors.neighbor_heap;
-
-    // CandidatesWorker candidates_worker(current_graph.neighbor_heap, max_candidates, rho);
-    // RcppParallel::parallelFor(0, n_points, candidates_worker, grain_size);
-    // current_graph.neighbor_heap = candidates_worker.current_graph;
-    //
-    // ReverseCandidatesWorker reverse_candidates_worker(
-    //     candidates_worker.new_candidate_neighbors,
-    //     candidates_worker.old_candidate_neighbors);
-    // RcppParallel::parallelFor(0, n_points, reverse_candidates_worker, grain_size);
-
-    NoNSearchWorker<Heap, Distance> non_search_worker(
-        current_graph,
-        // reverse_candidates_worker.reverse_new_candidate_neighbors,
-        // reverse_candidates_worker.reverse_old_candidate_neighbors
-        new_nbrs,
-        old_nbrs
+    // ts("Local join updates (parallel)");
+    LocalJoinWorker<Distance> local_join_worker(
+        current_graph.neighbor_heap,
+        new_candidate_neighbors,
+        old_candidate_neighbors,
+        current_graph.weight_measure,
+        updates
     );
-    RcppParallel::parallelFor(0, n_points, non_search_worker, grain_size);
-    current_graph = non_search_worker.updated_graph;
+    RcppParallel::parallelFor(0, n_points, local_join_worker, grain_size);
+
+    // ts("Apply updates (serial)");
+    std::size_t c = apply_updates(
+      current_graph.neighbor_heap,
+      updates
+    );
+
+    // ts("Apply updates (locking)");
+    // UpdateWorker update_worker(
+    //     current_graph.neighbor_heap,
+    //     local_join_worker.updates
+    // );
+    // RcppParallel::parallelFor(0, n_points, update_worker, grain_size);
+    // const std::size_t c = update_worker.n_updates;
 
     progress.update(n);
     if (progress.check_interrupt()) {
       break;
-    };
-    const std::size_t c = non_search_worker.n_updates;
+    }
     if (static_cast<double>(c) <= tol) {
-      progress.converged(c, tol);
+      if (verbose) {
+        Rcpp::Rcout << "c = " << c << " tol = " << tol << std::endl;
+      }
+      progress.stopping_early();
       break;
     }
   }
