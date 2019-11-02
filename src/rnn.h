@@ -20,7 +20,7 @@
 #ifndef RNND_RNN_H
 #define RNND_RNN_H
 
-#include <time.h>
+#include <chrono>
 
 #include <Rcpp.h>
 // [[Rcpp::depends(RcppProgress)]]
@@ -35,19 +35,18 @@ inline std::string time_unit(int u)
 }
 
 inline void print_time(bool print_date = false) {
-  std::time_t current_time;
-  struct tm now;
+  auto now = std::chrono::system_clock::now();
+  auto duration = now.time_since_epoch();
+  auto secs = std::chrono::duration_cast<std::chrono::seconds>(duration).count();
 
-  time(&current_time);
-  localtime_s(&now, &current_time);
-  if (print_date) {
-    Rcpp::Rcout << (now.tm_year + 1900) << '-'
-                << time_unit(now.tm_mon + 1) << ":" << '-'
-                << time_unit(now.tm_mday) << " ";
+  std::string fmt = print_date ? "%Y-%m-%d %H:%M:%S" : "%H:%M:%S";
+  Rcpp::Datetime dt(secs);
+  std::string dt_str = dt.format(fmt.c_str());
+  // for some reason format always adds ".000000", so remove it
+  if (dt_str.size() >= 7) {
+    dt_str = dt_str.substr(0, dt_str.size() - 7);
   }
-  Rcpp::Rcout << time_unit(now.tm_hour) << ":"
-              << time_unit(now.tm_min) << ":"
-              << time_unit(now.tm_sec) << " ";
+  Rcpp::Rcout << dt_str << " ";
 }
 
 inline void ts(const std::string& msg) {
