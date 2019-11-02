@@ -30,16 +30,16 @@
 if (use_set) {                                                    \
   return nn_descent_impl<SetHeap,                                 \
                          DistType,                                \
-                         RandType>                               \
+                         RandType>                                \
   (data, idx, dist, max_candidates, n_iters, delta, rho, false,   \
-   grain_size, verbose);                                          \
+   grain_size, block_size, verbose);                              \
 }                                                                 \
 else {                                                            \
   return nn_descent_impl<ArrayHeap,                               \
                          DistType,                                \
                          RandType>                                \
   (data, idx, dist, max_candidates, n_iters, delta, rho,          \
-   parallelize, grain_size, verbose);                             \
+   parallelize, grain_size, block_size, verbose);                 \
 }
 
 #define NNDR(DistType, use_set, use_fast_rand, parallelize)       \
@@ -63,6 +63,7 @@ Rcpp::List nn_descent_impl(
     const double rho = 0.5,
     bool parallelize = false,
     std::size_t grain_size = 1,
+    std::size_t block_size = 16384,
     bool verbose = false) {
   const std::size_t npoints = idx.nrow();
   const std::size_t nnbrs = idx.ncol();
@@ -76,7 +77,6 @@ Rcpp::List nn_descent_impl(
   Heap<Distance> heap = r_to_heap<Heap, Distance>(distance, idx, dist);
   HeapSumProgress progress(heap.neighbor_heap, n_iters, verbose);
 
-  const std::size_t block_size = 16384;
   const double tol = delta * nnbrs * npoints;
   if (parallelize) {
     nnd_parallel(heap, max_candidates, n_iters, rand, progress, rho, tol,
@@ -103,6 +103,7 @@ Rcpp::List nn_descent(
     bool fast_rand = false,
     bool parallelize = false,
     std::size_t grain_size = 1,
+    std::size_t block_size = 16384,
     bool verbose = false) {
 
   if (metric == "euclidean") {

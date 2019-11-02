@@ -139,6 +139,10 @@ random_knn <- function(data, k, metric = "euclidean", use_cpp = TRUE,
 #'   the R PRNG. Probably acceptable for the needs of the NN descent algorithm.
 #'   Applies only if \code{use_cpp = TRUE}.
 #' @param n_threads Number of threads to use.
+#' @param block_size Batch size for creating/applying local join updates. A
+#'  smaller value will apply the update more often, which may help reduce the
+#'  number of unnecessary distance calculations, at the cost of more overhead
+#'  associated with multi-threading code. Ignored if \code{n_threads < 1}.
 #' @param grain_size Minimum batch size for multithreading. If the number of
 #'   items to process in a thread falls below this number, then no threads will
 #'   be used. Ignored if \code{n_threads < 1}.
@@ -203,6 +207,7 @@ nnd_knn <- function(data, k = NULL,
                     use_set = FALSE,
                     fast_rand = FALSE,
                     n_threads = 0,
+                    block_size = 16384,
                     grain_size = 1,
                     verbose = FALSE) {
   data <- x2m(data)
@@ -250,7 +255,7 @@ nnd_knn <- function(data, k = NULL,
       n_iters = n_iters, max_candidates = max_candidates,
       delta = delta, rho = rho, use_set = use_set, fast_rand = fast_rand,
       parallelize = parallelize, grain_size = grain_size,
-      verbose = verbose
+      block_size = block_size, verbose = verbose
     )
   }
   else {
