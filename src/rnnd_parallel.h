@@ -151,7 +151,8 @@ struct Update {
   Update(Update&&) = default;
 };
 
-template <typename Distance>
+template <typename Distance,
+          typename GraphUpdaterT>
 struct LocalJoinWorker : public RcppParallel::Worker {
   const NeighborHeap& current_graph;
   const NeighborHeap& new_nbrs;
@@ -159,6 +160,7 @@ struct LocalJoinWorker : public RcppParallel::Worker {
   const Distance& distance;
   const std::size_t n_nbrs;
   const std::size_t max_candidates;
+  const GraphUpdaterT& graph_updater;
   std::vector<std::vector<Update>>& updates;
 
   LocalJoinWorker(
@@ -166,6 +168,7 @@ struct LocalJoinWorker : public RcppParallel::Worker {
     const NeighborHeap& new_nbrs,
     const NeighborHeap& old_nbrs,
     const Distance& distance,
+    const GraphUpdaterT& graph_updater,
     std::vector<std::vector<Update>>& updates
   ) :
     current_graph(current_graph),
@@ -174,6 +177,7 @@ struct LocalJoinWorker : public RcppParallel::Worker {
     distance(distance),
     n_nbrs(current_graph.n_nbrs),
     max_candidates(new_nbrs.n_nbrs),
+    graph_updater(graph_updater),
     updates(updates)
   {}
 
@@ -192,6 +196,9 @@ struct LocalJoinWorker : public RcppParallel::Worker {
           if (q == NeighborHeap::npos()) {
             continue;
           }
+          if (graph_updater.contains(p, q) && graph_updater.contains(q, p)) {
+            continue;
+          }
           double d = distance(p, q);
           if (d < dist[pnnbrs] || d < dist[q * n_nbrs]) {
             updates[i].emplace_back(p, q, d);
@@ -201,6 +208,9 @@ struct LocalJoinWorker : public RcppParallel::Worker {
         for (std::size_t k = 0; k < max_candidates; k++) {
           std::size_t q = old_nbrs.idx[imaxc + k];
           if (q == NeighborHeap::npos()) {
+            continue;
+          }
+          if (graph_updater.contains(p, q) && graph_updater.contains(q, p)) {
             continue;
           }
           double d = distance(p, q);
@@ -247,6 +257,11 @@ struct GraphUpdater {
   // Purposely do nothing with the neighbors
   GraphUpdater(const NeighborHeap&) {}
 
+  bool contains(std::size_t p, std::size_t q) const
+  {
+    return false;
+  }
+
   size_t apply_updates(
       NeighborHeap& current_graph,
       std::vector<std::vector<Update>>& updates
@@ -278,6 +293,11 @@ struct GraphUpdaterHiMem {
   ) :
     seen(neighbor_heap)
   {}
+
+  bool contains(std::size_t p, std::size_t q) const
+  {
+    return seen.contains(p, q);
+  }
 
   size_t apply_updates(
       NeighborHeap& current_graph,
@@ -394,11 +414,12 @@ void nnd_parallel(
       const auto block_start = i * block_size;
       const auto block_end = std::min<std::size_t>(n_points, (i + 1) * block_size);
 
-      LocalJoinWorker<Distance> local_join_worker(
+      LocalJoinWorker<Distance, GraphUpdaterT> local_join_worker(
           current_graph.neighbor_heap,
           new_candidate_neighbors,
           old_candidate_neighbors,
           current_graph.weight_measure,
+          graph_updater,
           updates
       );
       RcppParallel::parallelFor(block_start, block_end, local_join_worker, grain_size);
