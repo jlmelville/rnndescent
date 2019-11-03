@@ -226,7 +226,7 @@ nnd_knn <- function(data, k = NULL,
     tsmessage("Initializing from random neighbors")
     init <- random_knn(data, k,
       metric = actual_metric, use_cpp = use_cpp,
-      n_threads = n_threads
+      n_threads = n_threads, verbose = verbose
     )
   }
   else {
