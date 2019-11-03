@@ -103,9 +103,9 @@ expect_equal(bit_rnn$dist, expected_hamm_dist, check.attributes = FALSE)
 # multi-threading
 set.seed(1337)
 bit_rnn <- nnd_knn(bitdata, 4,
-                   use_cpp = TRUE,
-                   metric = "hamming",
-                   n_threads = 1, low_memory = FALSE
+  use_cpp = TRUE,
+  metric = "hamming",
+  n_threads = 1, low_memory = FALSE
 )
 expect_equal(bit_rnn$idx, expected_hamm_idx, check.attributes = FALSE)
 expect_equal(bit_rnn$dist, expected_hamm_dist, check.attributes = FALSE)
