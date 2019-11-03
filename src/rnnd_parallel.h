@@ -182,7 +182,6 @@ struct LocalJoinWorker : public RcppParallel::Worker {
   {}
 
   void operator()(std::size_t begin, std::size_t end) {
-    const auto& dist = current_graph.dist;
     for (std::size_t i = begin; i < end; i++) {
       const std::size_t imaxc = i * max_candidates;
       for (std::size_t j = 0; j < max_candidates; j++) {
@@ -196,13 +195,8 @@ struct LocalJoinWorker : public RcppParallel::Worker {
           if (q == NeighborHeap::npos()) {
             continue;
           }
-          if (graph_updater.contains(p, q) && graph_updater.contains(q, p)) {
-            continue;
-          }
-          double d = distance(p, q);
-          if (d < dist[pnnbrs] || d < dist[q * n_nbrs]) {
-            updates[i].emplace_back(p, q, d);
-          }
+          graph_updater.generate(current_graph, distance, i, p, q,
+                                 n_nbrs, pnnbrs, updates);
         }
 
         for (std::size_t k = 0; k < max_candidates; k++) {
@@ -210,13 +204,8 @@ struct LocalJoinWorker : public RcppParallel::Worker {
           if (q == NeighborHeap::npos()) {
             continue;
           }
-          if (graph_updater.contains(p, q) && graph_updater.contains(q, p)) {
-            continue;
-          }
-          double d = distance(p, q);
-          if (d < dist[pnnbrs] || d < dist[q * n_nbrs]) {
-            updates[i].emplace_back(p, q, d);
-          }
+          graph_updater.generate(current_graph, distance, i, p, q, n_nbrs,
+                                 pnnbrs, updates);
         }
       }
     }
@@ -234,22 +223,27 @@ struct GraphCache {
     const std::size_t n_nbrs = neighbor_heap.n_nbrs;
     for (std::size_t i = 0; i < n_points; i++) {
       const std::size_t innbrs = i * n_nbrs;
-      auto& seeni = seen[i];
       for (std::size_t j = 0; j < n_nbrs; j++) {
-        const auto& p = neighbor_heap.idx[innbrs + j];
-        seeni.emplace(p);
+        std::size_t p = neighbor_heap.idx[innbrs + j];
+        if (i > p) {
+          seen[p].emplace(i);
+        }
+        else {
+          seen[i].emplace(p);
+        }
       }
     }
   }
 
-  bool contains(std::size_t p, std::size_t q) const
+  bool contains(const std::size_t& p,
+                const std::size_t& q) const
   {
     return seen[p].find(q) != seen[p].end();
   }
 
-  void insert(std::size_t p, std::size_t q)
+  bool insert(std::size_t p, std::size_t q)
   {
-    seen[p].emplace(q);
+    return !seen[p].emplace(q).second;
   }
 };
 
@@ -257,12 +251,25 @@ struct GraphUpdater {
   // Purposely do nothing with the neighbors
   GraphUpdater(const NeighborHeap&) {}
 
-  bool contains(std::size_t p, std::size_t q) const
+  template<typename Distance>
+  void generate(
+      const NeighborHeap& current_graph,
+      const Distance& distance,
+      const std::size_t i,
+      const std::size_t p,
+      const std::size_t q,
+      const std::size_t n_nbrs,
+      const std::size_t pnnbrs,
+      std::vector<std::vector<Update>>& updates
+  ) const
   {
-    return false;
+    double d = distance(p, q);
+    if (d < current_graph.dist[pnnbrs] || d < current_graph.dist[q * n_nbrs]) {
+      updates[i].emplace_back(p, q, d);
+    }
   }
 
-  size_t apply_updates(
+  size_t apply(
       NeighborHeap& current_graph,
       std::vector<std::vector<Update>>& updates
   )
@@ -294,12 +301,32 @@ struct GraphUpdaterHiMem {
     seen(neighbor_heap)
   {}
 
-  bool contains(std::size_t p, std::size_t q) const
+  template<typename Distance>
+  void generate(
+      const NeighborHeap& current_graph,
+      const Distance& distance,
+      const std::size_t i,
+      const std::size_t p,
+      const std::size_t q,
+      const std::size_t n_nbrs,
+      const std::size_t pnnbrs,
+      std::vector<std::vector<Update>>& updates
+    ) const
   {
-    return seen.contains(p, q);
+    // canonicalize the order of (p, q) so that qq >= pp
+    std::size_t pp = p > q ? q : p;
+    std::size_t qq = pp == p ? q : p;
+
+    if (seen.contains(p, q)) {
+      return;
+    }
+    double d = distance(p, q);
+    if (d < current_graph.dist[pnnbrs] || d < current_graph.dist[q * n_nbrs]) {
+      updates[i].emplace_back(pp, qq, d);
+    }
   }
 
-  size_t apply_updates(
+  size_t apply(
       NeighborHeap& current_graph,
       std::vector<std::vector<Update>>& updates
   )
@@ -313,22 +340,18 @@ struct GraphUpdaterHiMem {
         const auto& p = update.p;
         const auto& q = update.q;
         const auto& d = update.d;
-        const bool qinp = seen.contains(p, q);
-        const bool pinq = seen.contains(q, p);
-
-        if (qinp && pinq) {
+        if (seen.insert(p, q)) {
           continue;
         }
-        if (!qinp && d < current_graph.distance(p, 0)) {
+
+        if (d < current_graph.distance(p, 0)) {
           current_graph.unchecked_push(p, d, q, true);
           c += 1;
-          seen.insert(p, q);
         }
 
-        if (p != q && !pinq && d < current_graph.distance(q, 0)) {
+        if (p != q && d < current_graph.distance(q, 0)) {
           current_graph.unchecked_push(q, d, p, true);
           c += 1;
-          seen.insert(q, p);
         }
       }
       updates[i].clear();
@@ -424,7 +447,7 @@ void nnd_parallel(
       );
       RcppParallel::parallelFor(block_start, block_end, local_join_worker, grain_size);
 
-      c += graph_updater.apply_updates(current_graph.neighbor_heap, updates);
+      c += graph_updater.apply(current_graph.neighbor_heap, updates);
 
       if (progress.check_interrupt()) {
         break;
