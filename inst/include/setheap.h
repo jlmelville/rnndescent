@@ -67,8 +67,7 @@ struct SetHeap
       std::swap(i, j);
     }
 
-    pair p(i, j);
-    if (!seen.emplace(p).second) {
+    if (!seen.emplace(i, j).second) {
       return 0;
     }
 
