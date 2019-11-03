@@ -48,7 +48,9 @@ local join stage.}
 
 \item{low_memory}{If \code{TRUE}, use a lower memory, but more
 computationally expensive approach to index construction. Applies only if
-\code{use_cpp = TRUE}.}
+\code{use_cpp = TRUE}. This can use a \emph{lot} of memory, so is
+recommended only for small datasets and situations where you can't use
+multiple threads.}
 
 \item{fast_rand}{If \code{TRUE}, use a faster random number generator than
 the R PRNG. Probably acceptable for the needs of the NN descent algorithm.
