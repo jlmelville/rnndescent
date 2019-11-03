@@ -254,7 +254,7 @@ nnd_knn <- function(data, k = NULL,
     res <- nn_descent(data, init$idx, init$dist,
       metric = actual_metric,
       n_iters = n_iters, max_candidates = max_candidates,
-      delta = delta, rho = rho, use_set = !low_memory, fast_rand = fast_rand,
+      delta = delta, rho = rho, low_memory = low_memory, fast_rand = fast_rand,
       parallelize = parallelize, grain_size = grain_size,
       block_size = block_size, verbose = verbose
     )

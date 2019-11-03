@@ -26,33 +26,33 @@
 #include "rnnd_parallel.h"
 #include "setheap.h"
 
-#define NNDS(DistType, RandType, use_set, parallelize)                    \
+#define NNDS(DistType, RandType, low_memory, parallelize)                 \
 if (parallelize) {                                                        \
-  if (use_set) {                                                          \
-    return nn_descent_impl<ArrayHeap,                                     \
-                           DistType,                                      \
-                           RandType>                                      \
-    (data, idx, dist, max_candidates, n_iters, delta, rho, false, true,   \
-     grain_size, block_size, verbose);                                    \
-  }                                                                       \
-  else {                                                                  \
+  if (low_memory) {                                                       \
     return nn_descent_impl<ArrayHeap,                                     \
                            DistType,                                      \
                            RandType>                                      \
     (data, idx, dist, max_candidates, n_iters, delta, rho, true, true,    \
      grain_size, block_size, verbose);                                    \
   }                                                                       \
+  else {                                                                  \
+    return nn_descent_impl<ArrayHeap,                                     \
+                           DistType,                                      \
+                           RandType>                                      \
+      (data, idx, dist, max_candidates, n_iters, delta, rho, false, true, \
+       grain_size, block_size, verbose);                                  \
+  }                                                                       \
 }                                                                         \
 else {                                                                    \
-  if (use_set) {                                                          \
-    return nn_descent_impl<SetHeap,                                       \
+  if (low_memory) {                                                       \
+    return nn_descent_impl<ArrayHeap,                                     \
                            DistType,                                      \
                            RandType>                                      \
     (data, idx, dist, max_candidates, n_iters, delta, rho, false, false,  \
      grain_size, block_size, verbose);                                    \
   }                                                                       \
   else {                                                                  \
-    return nn_descent_impl<ArrayHeap,                                     \
+    return nn_descent_impl<SetHeap,                                       \
                            DistType,                                      \
                            RandType>                                      \
     (data, idx, dist, max_candidates, n_iters, delta, rho, false, false,  \
@@ -60,12 +60,12 @@ else {                                                                    \
   }                                                                       \
 }
 
-#define NNDR(DistType, use_set, use_fast_rand, parallelize)       \
+#define NNDR(DistType, low_memory, use_fast_rand, parallelize)    \
 if (use_fast_rand) {                                              \
-  NNDS(DistType, TauRand, use_set, parallelize)                   \
+  NNDS(DistType, TauRand, low_memory, parallelize)                \
 }                                                                 \
 else {                                                            \
-  NNDS(DistType, RRand, use_set, parallelize)                     \
+  NNDS(DistType, RRand, low_memory, parallelize)                  \
 }
 
 template <template<typename> class Heap,
@@ -129,7 +129,7 @@ Rcpp::List nn_descent(
     const std::size_t n_iters = 10,
     const double delta = 0.001,
     const double rho = 0.5,
-    bool use_set = false,
+    bool low_memory = true,
     bool fast_rand = false,
     bool parallelize = false,
     std::size_t grain_size = 1,
@@ -138,23 +138,23 @@ Rcpp::List nn_descent(
 
   if (metric == "euclidean") {
     using DistType = Euclidean<float, float>;
-    NNDR(DistType, use_set, fast_rand, parallelize)
+    NNDR(DistType, low_memory, fast_rand, parallelize)
   }
   else if (metric == "l2") {
     using DistType = L2<float, float>;
-    NNDR(DistType, use_set, fast_rand, parallelize)
+    NNDR(DistType, low_memory, fast_rand, parallelize)
   }
   else if (metric == "cosine") {
     using DistType = Cosine<float, float>;
-    NNDR(DistType, use_set, fast_rand, parallelize)
+    NNDR(DistType, low_memory, fast_rand, parallelize)
   }
   else if (metric == "manhattan") {
     using DistType = Manhattan<float, float>;
-    NNDR(DistType, use_set, fast_rand, parallelize)
+    NNDR(DistType, low_memory, fast_rand, parallelize)
   }
   else if (metric == "hamming") {
     using DistType = Hamming<uint8_t, std::size_t>;
-    NNDR(DistType, use_set, fast_rand, parallelize)
+    NNDR(DistType, low_memory, fast_rand, parallelize)
   }
   else {
     Rcpp::stop("Bad metric: " + metric);

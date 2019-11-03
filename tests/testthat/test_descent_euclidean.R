@@ -171,13 +171,13 @@ expect_equal(sum(uiris_rnn$dist), 1016.834, tol = 1e-3)
 
 # C++ with set backing
 set.seed(1337)
-rnnd <- nn_descent(ui10, i10_ridx, i10_rdist, verbose = FALSE, use_set = TRUE)
+rnnd <- nn_descent(ui10, i10_ridx, i10_rdist, verbose = FALSE, low_memory = FALSE)
 expect_equal(rnnd$idx, expected_idx, check.attributes = FALSE)
 expect_equal(rnnd$dist, expected_dist, check.attributes = FALSE, tol = 1e-6)
 
 set.seed(1337)
 iris_nbrs <- random_knn(uirism, 15)
-iris_nnd <- nn_descent(uirism, iris_nbrs$idx - 1, iris_nbrs$dist, verbose = FALSE, use_set = TRUE)
+iris_nnd <- nn_descent(uirism, iris_nbrs$idx - 1, iris_nbrs$dist, verbose = FALSE, low_memory = FALSE)
 expect_equal(sum(iris_nnd$dist), 1016.834, tol = 1e-3)
 
 set.seed(1337)
@@ -186,23 +186,23 @@ expect_equal(sum(uiris_rnn$dist), 1016.834, tol = 1e-3)
 
 # fast random
 set.seed(1337)
-rnnd <- nn_descent(ui10, i10_ridx, i10_rdist, verbose = FALSE, use_set = FALSE, fast_rand = TRUE)
+rnnd <- nn_descent(ui10, i10_ridx, i10_rdist, verbose = FALSE, low_memory = TRUE, fast_rand = TRUE)
 expect_equal(rnnd$idx, expected_idx, check.attributes = FALSE)
 expect_equal(rnnd$dist, expected_dist, check.attributes = FALSE, tol = 1e-6)
 
 set.seed(1337)
 iris_nbrs <- random_knn(uirism, 15)
-iris_nnd <- nn_descent(uirism, iris_nbrs$idx - 1, iris_nbrs$dist, verbose = FALSE, use_set = FALSE, fast_rand = TRUE)
+iris_nnd <- nn_descent(uirism, iris_nbrs$idx - 1, iris_nbrs$dist, verbose = FALSE, low_memory = TRUE, fast_rand = TRUE)
 expect_equal(sum(iris_nnd$dist), 1016.834, tol = 1e-3)
 
 set.seed(1337)
-rnnd <- nn_descent(ui10, i10_ridx, i10_rdist, verbose = FALSE, use_set = TRUE, fast_rand = TRUE)
+rnnd <- nn_descent(ui10, i10_ridx, i10_rdist, verbose = FALSE, low_memory = FALSE, fast_rand = TRUE)
 expect_equal(rnnd$idx, expected_idx, check.attributes = FALSE)
 expect_equal(rnnd$dist, expected_dist, check.attributes = FALSE, tol = 1e-6)
 
 set.seed(1337)
 iris_nbrs <- random_knn(uirism, 15)
-iris_nnd <- nn_descent(uirism, iris_nbrs$idx - 1, iris_nbrs$dist, verbose = FALSE, use_set = TRUE, fast_rand = TRUE)
+iris_nnd <- nn_descent(uirism, iris_nbrs$idx - 1, iris_nbrs$dist, verbose = FALSE, low_memory = FALSE, fast_rand = TRUE)
 expect_equal(sum(iris_nnd$dist), 1016.834, tol = 1e-3)
 
 # multi-threading
