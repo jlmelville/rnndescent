@@ -63,24 +63,6 @@ struct ArrayHeap
     return c;
   }
 
-  std::size_t add_pair_asymm(
-      std::size_t i,
-      std::size_t j,
-      bool flag)
-  {
-    if (contains(i, j)) {
-      return 0;
-    }
-
-    double weight = weight_measure(i, j);
-
-    if (weight >= neighbor_heap.distance(i, 0)) {
-      return 0;
-    }
-
-    return neighbor_heap.unchecked_push(i, weight, j, flag);
-  }
-
   bool contains(std::size_t row, std::size_t index) const
   {
     const std::size_t n_nbrs = neighbor_heap.n_nbrs;

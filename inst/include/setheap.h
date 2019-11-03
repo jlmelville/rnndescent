@@ -28,13 +28,9 @@
 #define NND_SETHEAP_H
 
 #include <unordered_set>
-
-#include <boost/functional/hash.hpp>
+#include <vector>
 
 #include "heap.h"
-
-using pair = std::pair<std::size_t, std::size_t>;
-
 
 // Checks for duplicates by storing a set of already-seen pairs. Takes up more
 // memory but might be faster if lots of duplicate pairs are expected
@@ -43,15 +39,14 @@ struct SetHeap
 {
   NeighborHeap neighbor_heap;
   const WeightMeasure& weight_measure;
-  std::unordered_set<std::pair<std::size_t, std::size_t>,
-                     boost::hash<pair>> seen;
+  std::vector<std::unordered_set<std::size_t>> seen;
 
   SetHeap(const WeightMeasure& weight_measure,
           const std::size_t n_points,
           const std::size_t size)
     : neighbor_heap(n_points, size),
       weight_measure(weight_measure),
-      seen()
+      seen(n_points)
     {}
 
   SetHeap(const SetHeap&) = default;
@@ -67,7 +62,7 @@ struct SetHeap
       std::swap(i, j);
     }
 
-    if (!seen.emplace(i, j).second) {
+    if (!seen[i].emplace(j).second) {
       return 0;
     }
 
@@ -79,27 +74,6 @@ struct SetHeap
     }
     if (i != j && d < neighbor_heap.distance(j, 0)) {
       c += neighbor_heap.unchecked_push(j, d, i, flag);
-    }
-
-    return c;
-  }
-
-  std::size_t add_pair_asymm(
-      std::size_t i,
-      std::size_t j,
-      bool flag
-    )
-  {
-    pair p(i, j);
-    if (!seen.emplace(p).second) {
-      return 0;
-    }
-
-    double d = weight_measure(i, j);
-
-    std::size_t c = 0;
-    if (d < neighbor_heap.distance(i, 0)) {
-      c += neighbor_heap.unchecked_push(i, d, j, flag);
     }
 
     return c;

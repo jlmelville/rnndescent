@@ -19,6 +19,8 @@ opposite meaning. It now also works when using multiple threads. In order to get
 a noticeable performance improvement in C++ code, the memory usage is much more
 aggressive than in pynndescent, so it should be used with care. Therefore,
 `low_memory = TRUE` by default in this implementation.
+* The `low_memory = FALSE` implementation for `n_threads = 0` (originally 
+equivalent to `use_set = TRUE`) is faster.
 * New parameter `block_size`, which balances interleaving of queuing updates 
 versus applying them to the current graph.
 
@@ -29,6 +31,7 @@ for the new candidate list even if they were later removed due to the finite
 size of the candidates heap. Now, only those indices that are still retained
 after candidate building are marked as new.
 * Improved man pages (examples plus link to nearest neighbor descent reference).
+* Removed dependency on Boost headers.
 
 # rnndescent 0.0.1 (27 October 2019)
 
