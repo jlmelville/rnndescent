@@ -227,21 +227,19 @@ struct GraphCache {
       auto& seeni = seen[i];
       for (std::size_t j = 0; j < n_nbrs; j++) {
         const auto& p = neighbor_heap.idx[innbrs + j];
-        if (p != NeighborHeap::npos()) {
-          seeni.insert(p);
-        }
+        seeni.insert(p);
       }
     }
   }
 
   bool contains(std::size_t p, std::size_t q) const
   {
-    return seen[p].find(q) != std::end(seen[p]);
+    return seen[p].find(q) != seen[p].end();
   }
 
   void insert(std::size_t p, std::size_t q)
   {
-    seen[p].emplace(q);
+    seen[p].insert(q);
   }
 };
 
@@ -301,22 +299,16 @@ struct GraphUpdaterHiMem {
         if (qinp && pinq) {
           continue;
         }
-        if (!qinp) {
-          std::size_t cpq = current_graph.checked_push(p, d, q, true);
-          if (cpq > 0)
-          {
-            c += cpq;
-            seen.insert(p, q);
-          }
+        if (!qinp && d < current_graph.distance(p, 0)) {
+          current_graph.unchecked_push(p, d, q, true);
+          c += 1;
+          seen.insert(p, q);
         }
 
-        if (p != q && !pinq) {
-          std::size_t cqp = current_graph.checked_push(q, d, p, true);
-          if (cqp > 0)
-          {
-            c += cqp;
-            seen.insert(q, p);
-          }
+        if (p != q && !pinq && d < current_graph.distance(q, 0)) {
+          current_graph.unchecked_push(q, d, p, true);
+          c += 1;
+          seen.insert(q, p);
         }
       }
       updates[i].clear();

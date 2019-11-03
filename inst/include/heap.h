@@ -85,6 +85,7 @@ struct NeighborHeap
     return unchecked_push(row, weight, idx, flag);
   }
 
+  // This differs from the pynndescent version as it is truly unchecked
   std::size_t unchecked_push(
       std::size_t row,
       double weight,
