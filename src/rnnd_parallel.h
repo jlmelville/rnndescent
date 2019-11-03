@@ -227,7 +227,7 @@ struct GraphCache {
       auto& seeni = seen[i];
       for (std::size_t j = 0; j < n_nbrs; j++) {
         const auto& p = neighbor_heap.idx[innbrs + j];
-        seeni.insert(p);
+        seeni.emplace(p);
       }
     }
   }
@@ -239,7 +239,7 @@ struct GraphCache {
 
   void insert(std::size_t p, std::size_t q)
   {
-    seen[p].insert(q);
+    seen[p].emplace(q);
   }
 };
 
