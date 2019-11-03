@@ -181,7 +181,7 @@ iris_nnd <- nn_descent(uirism, iris_nbrs$idx - 1, iris_nbrs$dist, verbose = FALS
 expect_equal(sum(iris_nnd$dist), 1016.834, tol = 1e-3)
 
 set.seed(1337)
-uiris_rnn <- nnd_knn(uirism, 15, use_cpp = TRUE, use_set = TRUE)
+uiris_rnn <- nnd_knn(uirism, 15, use_cpp = TRUE, low_memory = FALSE)
 expect_equal(sum(uiris_rnn$dist), 1016.834, tol = 1e-3)
 
 # fast random

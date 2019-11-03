@@ -65,7 +65,7 @@ expect_equal(bit_rnn$dist, expected_hamm_dist, check.attributes = FALSE)
 
 set.seed(1337)
 bit_rnn <- nnd_knn(bitdata, 4,
-  use_cpp = TRUE, use_set = TRUE,
+  use_cpp = TRUE, low_memory = FALSE,
   rho = 0.9, metric = "hamming"
 )
 expect_equal(bit_rnn$idx, expected_hamm_idx, check.attributes = FALSE)
@@ -84,7 +84,7 @@ expect_equal(bit_rnn$dist, expected_hamm_dist, check.attributes = FALSE)
 
 set.seed(1337)
 bit_rnn <- nnd_knn(bitdata, 4,
-  use_cpp = TRUE, use_set = TRUE,
+  use_cpp = TRUE, low_memory = FALSE,
   rho = 0.9, metric = "hamming",
   fast_rand = TRUE
 )

@@ -133,8 +133,9 @@ random_knn <- function(data, k, metric = "euclidean", use_cpp = TRUE,
 #' @param rho Sample rate. This fraction of possible items will be used in the
 #'   local join stage.
 #' @param use_cpp If \code{TRUE}, use the faster C++ code path.
-#' @param use_set If \code{TRUE}, cache pair lookups in a set. This increases
-#'   speed at the cost of a memory use. Applies only if \code{use_cpp = TRUE}.
+#' @param low_memory If \code{TRUE}, use a lower memory, but more
+#' computationally expensive approach to index construction. Applies only if
+#' \code{use_cpp = TRUE}.
 #' @param fast_rand If \code{TRUE}, use a faster random number generator than
 #'   the R PRNG. Probably acceptable for the needs of the NN descent algorithm.
 #'   Applies only if \code{use_cpp = TRUE}.
@@ -204,7 +205,7 @@ nnd_knn <- function(data, k = NULL,
                     max_candidates = 50,
                     delta = 0.001, rho = 0.5,
                     use_cpp = TRUE,
-                    use_set = FALSE,
+                    low_memory = TRUE,
                     fast_rand = FALSE,
                     n_threads = 0,
                     block_size = 16384,
@@ -253,7 +254,7 @@ nnd_knn <- function(data, k = NULL,
     res <- nn_descent(data, init$idx, init$dist,
       metric = actual_metric,
       n_iters = n_iters, max_candidates = max_candidates,
-      delta = delta, rho = rho, use_set = use_set, fast_rand = fast_rand,
+      delta = delta, rho = rho, use_set = !low_memory, fast_rand = fast_rand,
       parallelize = parallelize, grain_size = grain_size,
       block_size = block_size, verbose = verbose
     )

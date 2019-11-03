@@ -26,20 +26,38 @@
 #include "rnnd_parallel.h"
 #include "setheap.h"
 
-#define NNDS(DistType, RandType, use_set, parallelize)            \
-if (use_set) {                                                    \
-  return nn_descent_impl<SetHeap,                                 \
-                         DistType,                                \
-                         RandType>                                \
-  (data, idx, dist, max_candidates, n_iters, delta, rho, false,   \
-   grain_size, block_size, verbose);                              \
-}                                                                 \
-else {                                                            \
-  return nn_descent_impl<ArrayHeap,                               \
-                         DistType,                                \
-                         RandType>                                \
-  (data, idx, dist, max_candidates, n_iters, delta, rho,          \
-   parallelize, grain_size, block_size, verbose);                 \
+#define NNDS(DistType, RandType, use_set, parallelize)                    \
+if (parallelize) {                                                        \
+  if (use_set) {                                                          \
+    return nn_descent_impl<ArrayHeap,                                     \
+                           DistType,                                      \
+                           RandType>                                      \
+    (data, idx, dist, max_candidates, n_iters, delta, rho, false, true,   \
+     grain_size, block_size, verbose);                                    \
+  }                                                                       \
+  else {                                                                  \
+    return nn_descent_impl<ArrayHeap,                                     \
+                           DistType,                                      \
+                           RandType>                                      \
+    (data, idx, dist, max_candidates, n_iters, delta, rho, true, true,    \
+     grain_size, block_size, verbose);                                    \
+  }                                                                       \
+}                                                                         \
+else {                                                                    \
+  if (use_set) {                                                          \
+    return nn_descent_impl<SetHeap,                                       \
+                           DistType,                                      \
+                           RandType>                                      \
+    (data, idx, dist, max_candidates, n_iters, delta, rho, false, false,  \
+     grain_size, block_size, verbose);                                    \
+  }                                                                       \
+  else {                                                                  \
+    return nn_descent_impl<ArrayHeap,                                     \
+                           DistType,                                      \
+                           RandType>                                      \
+    (data, idx, dist, max_candidates, n_iters, delta, rho, false, false,  \
+     grain_size, block_size, verbose);                                    \
+  }                                                                       \
 }
 
 #define NNDR(DistType, use_set, use_fast_rand, parallelize)       \
@@ -61,6 +79,7 @@ Rcpp::List nn_descent_impl(
     const std::size_t n_iters = 10,
     const double delta = 0.001,
     const double rho = 0.5,
+    bool low_memory = false,
     bool parallelize = false,
     std::size_t grain_size = 1,
     std::size_t block_size = 16384,
@@ -74,19 +93,30 @@ Rcpp::List nn_descent_impl(
 
   Rand rand;
   Distance distance(data_vec, ndim);
-  Heap<Distance> heap = r_to_heap<Heap, Distance>(distance, idx, dist);
-  HeapSumProgress progress(heap.neighbor_heap, n_iters, verbose);
+  Heap<Distance> current_graph = r_to_heap<Heap, Distance>(distance, idx, dist);
+  HeapSumProgress progress(current_graph.neighbor_heap, n_iters, verbose);
 
   const double tol = delta * nnbrs * npoints;
   if (parallelize) {
-    nnd_parallel(heap, max_candidates, n_iters, rand, progress, rho, tol,
-                 grain_size, block_size, verbose);
+    if (low_memory) {
+      GraphUpdater graph_updater(current_graph.neighbor_heap);
+
+      nnd_parallel(current_graph, max_candidates, n_iters, graph_updater, rand, progress,
+                   rho, tol, grain_size, block_size, verbose);
+    }
+    else {
+      GraphUpdaterHiMem graph_updater(current_graph.neighbor_heap);
+
+      nnd_parallel(current_graph, max_candidates, n_iters, graph_updater, rand, progress,
+                   rho, tol, grain_size, block_size, verbose);
+    }
   }
   else {
-    nnd_full(heap, max_candidates, n_iters, rand, progress, rho, tol, verbose);
+    nnd_full(current_graph, max_candidates, n_iters, rand, progress, rho, tol,
+             verbose);
   }
 
-  return heap_to_r(heap.neighbor_heap);
+  return heap_to_r(current_graph.neighbor_heap);
 }
 
 // [[Rcpp::export]]

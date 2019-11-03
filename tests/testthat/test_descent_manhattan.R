@@ -14,7 +14,7 @@ expect_equal(sum(juiris_rnn$dist), expected_sum, tol = 1e-3)
 
 # Manhattan
 set.seed(1337)
-juiris_rnn <- nnd_knn(juirism, 15, use_cpp = TRUE, use_set = TRUE, metric = "manhattan")
+juiris_rnn <- nnd_knn(juirism, 15, use_cpp = TRUE, low_memory = FALSE, metric = "manhattan")
 # expected sum from Annoy
 expect_equal(sum(juiris_rnn$dist), expected_sum, tol = 1e-3)
 
