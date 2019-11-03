@@ -23,8 +23,8 @@ build_candidates <- function(current_graph, n_vertices, n_neighbors,
   )
 }
 
-nn_descent_opt <- function(data, metric, indices, dist, n_iters = 10, max_candidates = 50,
-                           delta = 0.001, rho = 0.5,
+nn_descent_opt <- function(data, metric, indices, dist, n_iters = 10,
+                           max_candidates = 20, delta = 0.001,
                            verbose = FALSE) {
   dist_fn <- create_dist_fn(metric)
   n_vertices <- nrow(indices)
@@ -45,7 +45,7 @@ nn_descent_opt <- function(data, metric, indices, dist, n_iters = 10, max_candid
       for (j in 1:max_candidates) {
         p <- candidate_neighbors[1, i, j]
 
-        if (p < 0 || stats::runif(1) < rho) {
+        if (p < 0) {
           next
         }
 
@@ -77,12 +77,10 @@ nn_descent_opt <- function(data, metric, indices, dist, n_iters = 10, max_candid
 }
 
 nn_descent_optl <- function(data, l, metric = "euclidean", n_iters = 10,
-                            max_candidates = 50,
-                            delta = 0.001, rho = 0.5,
-                            verbose = FALSE) {
+                            max_candidates = 20,
+                            delta = 0.001, verbose = FALSE) {
   nn_descent_opt(data, metric, l$idx, l$dist,
     n_iters = n_iters, max_candidates = max_candidates,
-    delta = delta, rho = rho,
-    verbose = verbose
+    delta = delta, verbose = verbose
   )
 }

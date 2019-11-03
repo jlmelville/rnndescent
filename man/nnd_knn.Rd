@@ -5,10 +5,9 @@
 \title{Find Nearest Neighbors and Distances}
 \usage{
 nnd_knn(data, k = NULL, metric = "euclidean", init = NULL,
-  n_iters = 10, max_candidates = 50, delta = 0.001, rho = 0.5,
-  use_cpp = TRUE, low_memory = TRUE, fast_rand = FALSE,
-  n_threads = 0, block_size = 16384, grain_size = 1,
-  verbose = FALSE)
+  n_iters = 10, max_candidates = 20, delta = 0.001, use_cpp = TRUE,
+  low_memory = TRUE, fast_rand = FALSE, n_threads = 0,
+  block_size = 16384, grain_size = 1, verbose = FALSE)
 }
 \arguments{
 \item{data}{Matrix of \code{n} items to search.}
@@ -35,14 +34,12 @@ only the \code{k} closest value in \code{init} are retained.}
 \item{n_iters}{Number of iterations of nearest neighbor descent to carry out.}
 
 \item{max_candidates}{Maximum number of candidate neighbors to try for each
-item.}
+item in each iteration. Use relative to \code{k} to emulate the "rho"
+sampling parameter in the nearest neighbor descent paper.}
 
 \item{delta}{precision parameter. Routine will terminate early if
 fewer than \eqn{\delta k N}{delta x k x n} updates are made to the nearest
 neighbor list in a given iteration.}
-
-\item{rho}{Sample rate. This fraction of possible items will be used in the
-local join stage.}
 
 \item{use_cpp}{If \code{TRUE}, use the faster C++ code path.}
 
@@ -105,6 +102,10 @@ iris_nn <- nnd_knn(iris, init = iris_nn, metric = "euclidean", verbose = TRUE)
 # Number of iterations controls how much optimization is attempted. A smaller
 # value will run faster but give poorer results
 iris_nn <- nnd_knn(iris, k = 4, metric = "euclidean", n_iters = 2)
+
+# You can also control the amount of work done within an iteration by
+# setting max_candidates
+iris_nn <- nnd_knn(iris, k = 4, metric = "euclidean", max_candidates = 50)
 
 # Optimization may also stop early if not much progress is being made. This
 # convergence criterion can be controlled via delta. A larger value will

@@ -205,6 +205,12 @@ iris_nbrs <- random_knn(uirism, 15)
 iris_nnd <- nn_descent(uirism, iris_nbrs$idx - 1, iris_nbrs$dist, verbose = FALSE, low_memory = FALSE, fast_rand = TRUE)
 expect_equal(sum(iris_nnd$dist), 1016.834, tol = 1e-3)
 
+# max candidates
+set.seed(1337)
+iris_nbrs <- random_knn(uirism, 15)
+iris_nnd <- nn_descent(uirism, iris_nbrs$idx - 1, iris_nbrs$dist, verbose = FALSE, max_candidates = 10)
+expect_equal(sum(iris_nnd$dist), 1016.834, tol = 1e-3)
+
 # multi-threading
 set.seed(1337)
 uiris_rnn <- nnd_knn(uirism, 15, use_cpp = TRUE, n_threads = 1)

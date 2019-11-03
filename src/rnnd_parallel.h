@@ -33,21 +33,18 @@ struct LockingCandidatesWorker : public RcppParallel::Worker {
   const std::size_t n_points;
   const std::size_t n_nbrs;
   const std::size_t max_candidates;
-  const double rho;
   NeighborHeap new_candidate_neighbors;
   NeighborHeap old_candidate_neighbors;
   tthread::mutex mutex;
 
   LockingCandidatesWorker(
     NeighborHeap& current_graph,
-    const std::size_t max_candidates,
-    const double rho
+    const std::size_t max_candidates
   ) :
     current_graph(current_graph),
     n_points(current_graph.n_points),
     n_nbrs(current_graph.n_nbrs),
     max_candidates(max_candidates),
-    rho(rho),
     new_candidate_neighbors(n_points, max_candidates),
     old_candidate_neighbors(n_points, max_candidates)
   {}
@@ -65,9 +62,6 @@ struct LockingCandidatesWorker : public RcppParallel::Worker {
       for (std::size_t j = 0; j < n_nbrs; j++) {
         std::size_t ij = innbrs + j;
         std::size_t idx = current_graph.index(ij);
-        if (rand->unif() >= rho) {
-          continue;
-        }
         double d = rand->unif();
         bool isn = current_graph.flag(ij) == 1;
         if (isn) {
@@ -409,7 +403,6 @@ void nnd_parallel(
     GraphUpdaterT& graph_updater,
     Rand& rand,
     Progress& progress,
-    const double rho,
     const double tol,
     std::size_t grain_size = 1,
     const std::size_t block_size = 16384,
@@ -422,7 +415,7 @@ void nnd_parallel(
 
   for (std::size_t n = 0; n < n_iters; n++) {
     LockingCandidatesWorker candidates_worker(current_graph.neighbor_heap,
-                                              max_candidates, rho);
+                                              max_candidates);
     RcppParallel::parallelFor(0, n_points, candidates_worker, grain_size);
     auto& new_candidate_neighbors = candidates_worker.new_candidate_neighbors;
     auto& old_candidate_neighbors = candidates_worker.old_candidate_neighbors;

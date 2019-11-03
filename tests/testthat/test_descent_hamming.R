@@ -52,12 +52,11 @@ expect_equal(bit_rnn$idx, expected_hamm_idx, check.attributes = FALSE)
 expect_equal(bit_rnn$dist, expected_hamm_dist, check.attributes = FALSE)
 
 # For some reason, get a different set of random numbers when run via testthat
-# vs the same code in the console. Changing rho to do more sampling ensures
-# convergence.
+# vs the same code in the console: currently code doesn't rely on RNG as much,
+# but if issues return, possibly max_candidates needs to be increased.
 set.seed(1337)
 bit_rnn <- nnd_knn(bitdata, 4,
   use_cpp = TRUE,
-  rho = 0.9,
   metric = "hamming"
 )
 expect_equal(bit_rnn$idx, expected_hamm_idx, check.attributes = FALSE)
@@ -66,7 +65,7 @@ expect_equal(bit_rnn$dist, expected_hamm_dist, check.attributes = FALSE)
 set.seed(1337)
 bit_rnn <- nnd_knn(bitdata, 4,
   use_cpp = TRUE, low_memory = FALSE,
-  rho = 0.9, metric = "hamming"
+  metric = "hamming"
 )
 expect_equal(bit_rnn$idx, expected_hamm_idx, check.attributes = FALSE)
 expect_equal(bit_rnn$dist, expected_hamm_dist, check.attributes = FALSE)
@@ -75,7 +74,6 @@ expect_equal(bit_rnn$dist, expected_hamm_dist, check.attributes = FALSE)
 set.seed(1337)
 bit_rnn <- nnd_knn(bitdata, 4,
   use_cpp = TRUE,
-  rho = 0.9,
   metric = "hamming",
   fast_rand = TRUE,
 )
@@ -85,7 +83,7 @@ expect_equal(bit_rnn$dist, expected_hamm_dist, check.attributes = FALSE)
 set.seed(1337)
 bit_rnn <- nnd_knn(bitdata, 4,
   use_cpp = TRUE, low_memory = FALSE,
-  rho = 0.9, metric = "hamming",
+  metric = "hamming",
   fast_rand = TRUE
 )
 expect_equal(bit_rnn$idx, expected_hamm_idx, check.attributes = FALSE)
@@ -95,7 +93,7 @@ expect_equal(bit_rnn$dist, expected_hamm_dist, check.attributes = FALSE)
 set.seed(1337)
 bit_rnn <- nnd_knn(bitdata, 4,
   use_cpp = TRUE,
-  rho = 0.9, metric = "hamming",
+  metric = "hamming",
   n_threads = 1
 )
 expect_equal(bit_rnn$idx, expected_hamm_idx, check.attributes = FALSE)
@@ -106,7 +104,7 @@ expect_equal(bit_rnn$dist, expected_hamm_dist, check.attributes = FALSE)
 set.seed(1337)
 bit_rnn <- nnd_knn(bitdata, 4,
                    use_cpp = TRUE,
-                   rho = 0.9, metric = "hamming",
+                   metric = "hamming",
                    n_threads = 1, low_memory = FALSE
 )
 expect_equal(bit_rnn$idx, expected_hamm_idx, check.attributes = FALSE)

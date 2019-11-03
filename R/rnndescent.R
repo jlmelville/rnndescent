@@ -126,12 +126,11 @@ random_knn <- function(data, k, metric = "euclidean", use_cpp = TRUE,
 #' only the \code{k} closest value in \code{init} are retained.
 #' @param n_iters Number of iterations of nearest neighbor descent to carry out.
 #' @param max_candidates Maximum number of candidate neighbors to try for each
-#'   item.
+#'   item in each iteration. Use relative to \code{k} to emulate the "rho"
+#'   sampling parameter in the nearest neighbor descent paper.
 #' @param delta precision parameter. Routine will terminate early if
 #'   fewer than \eqn{\delta k N}{delta x k x n} updates are made to the nearest
 #'   neighbor list in a given iteration.
-#' @param rho Sample rate. This fraction of possible items will be used in the
-#'   local join stage.
 #' @param use_cpp If \code{TRUE}, use the faster C++ code path.
 #' @param low_memory If \code{TRUE}, use a lower memory, but more
 #'   computationally expensive approach to index construction. Applies only if
@@ -182,6 +181,10 @@ random_knn <- function(data, k, metric = "euclidean", use_cpp = TRUE,
 #' # value will run faster but give poorer results
 #' iris_nn <- nnd_knn(iris, k = 4, metric = "euclidean", n_iters = 2)
 #'
+#' # You can also control the amount of work done within an iteration by
+#' # setting max_candidates
+#' iris_nn <- nnd_knn(iris, k = 4, metric = "euclidean", max_candidates = 50)
+#'
 #' # Optimization may also stop early if not much progress is being made. This
 #' # convergence criterion can be controlled via delta. A larger value will
 #' # stop progress earlier. The verbose flag will provide some information if
@@ -204,8 +207,8 @@ nnd_knn <- function(data, k = NULL,
                     metric = "euclidean",
                     init = NULL,
                     n_iters = 10,
-                    max_candidates = 50,
-                    delta = 0.001, rho = 0.5,
+                    max_candidates = 20,
+                    delta = 0.001,
                     use_cpp = TRUE,
                     low_memory = TRUE,
                     fast_rand = FALSE,
@@ -256,7 +259,7 @@ nnd_knn <- function(data, k = NULL,
     res <- nn_descent(data, init$idx, init$dist,
       metric = actual_metric,
       n_iters = n_iters, max_candidates = max_candidates,
-      delta = delta, rho = rho, low_memory = low_memory, fast_rand = fast_rand,
+      delta = delta, low_memory = low_memory, fast_rand = fast_rand,
       parallelize = parallelize, grain_size = grain_size,
       block_size = block_size, verbose = verbose
     )
@@ -265,7 +268,7 @@ nnd_knn <- function(data, k = NULL,
     res <- nn_descent_optl(data, init,
       metric = actual_metric, n_iters = n_iters,
       max_candidates = max_candidates,
-      delta = delta, rho = rho, verbose = verbose
+      delta = delta, verbose = verbose
     )
     res$idx <- res$idx + 1
   }

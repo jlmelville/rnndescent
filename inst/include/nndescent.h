@@ -70,16 +70,15 @@ NeighborHeap build_candidates(
 // and new respectively, based on the fact that if j is a candidate of new[i],
 // then i is a reverse candidate of new[j]. This saves on building the entire
 // reverse candidates list and then down-sampling.
-// 2. Not all old members of current KNN are placed in old, nor are rho * K
-// new candidates sampled. Instead, rho * K total candidates are sampled from
-// the KNN and these are assigned into old and new based on their flag value,
-// i.e. the total number of sampled candidates (old + new) is rho * K.
+// 2. Not all old members of current KNN are retained in the old candidates
+// list, nor are rho * K new candidates sampled. Instead, the current members
+// of the KNN are assigned into old and new based on their flag value, with the
+// size of the final candidate list controlled by max_candidates.
 template <typename Rand>
 void build_candidates_full(
     NeighborHeap& current_graph,
     RandomHeap<Rand>& new_candidate_neighbors,
     RandomHeap<Rand>& old_candidate_neighbors,
-    double rho,
     Rand& rand)
 {
   const std::size_t n_points = current_graph.n_points;
@@ -90,7 +89,7 @@ void build_candidates_full(
     for (std::size_t j = 0; j < n_nbrs; j++) {
       std::size_t ij = innbrs + j;
       std::size_t idx = current_graph.index(ij);
-      if (idx == NeighborHeap::npos() || rand.unif() >= rho) {
+      if (idx == NeighborHeap::npos()) {
         continue;
       }
       bool isn = current_graph.flag(ij) == 1;
@@ -136,7 +135,6 @@ void nnd_basic(
     const std::size_t nnbrs,
     Rand& rand,
     Progress& progress,
-    const double rho,
     const double tol,
     bool verbose = false)
 {
@@ -151,8 +149,7 @@ void nnd_basic(
       // NB: the neighbor list of i is unchanged by this operation
       for (std::size_t j = 0; j < max_candidates; j++) {
         std::size_t p = candidate_neighbors.index(i, j);
-        if (p == NeighborHeap::npos() || rand.unif() < rho) {
-          // only sample rho * max_candidates of the general neighbors
+        if (p == NeighborHeap::npos()) {
           continue;
         }
 
@@ -197,7 +194,6 @@ void nnd_full(
     const std::size_t n_iters,
     Rand& rand,
     Progress& progress,
-    const double rho,
     const double tol,
     bool verbose)
 {
@@ -213,7 +209,7 @@ void nnd_full(
     build_candidates_full<Rand>(current_graph.neighbor_heap,
                                 new_candidate_neighbors,
                                 old_candidate_neighbors,
-                                rho, rand);
+                                rand);
 
     NeighborHeap& new_nbrs = new_candidate_neighbors.neighbor_heap;
     NeighborHeap& old_nbrs = old_candidate_neighbors.neighbor_heap;

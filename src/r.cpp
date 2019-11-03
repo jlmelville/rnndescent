@@ -32,14 +32,14 @@ if (parallelize) {                                                        \
     return nn_descent_impl<ArrayHeap,                                     \
                            DistType,                                      \
                            RandType>                                      \
-    (data, idx, dist, max_candidates, n_iters, delta, rho, true, true,    \
+    (data, idx, dist, max_candidates, n_iters, delta, true, true,         \
      grain_size, block_size, verbose);                                    \
   }                                                                       \
   else {                                                                  \
     return nn_descent_impl<ArrayHeap,                                     \
                            DistType,                                      \
                            RandType>                                      \
-      (data, idx, dist, max_candidates, n_iters, delta, rho, false, true, \
+      (data, idx, dist, max_candidates, n_iters, delta, false, true,      \
        grain_size, block_size, verbose);                                  \
   }                                                                       \
 }                                                                         \
@@ -48,14 +48,14 @@ else {                                                                    \
     return nn_descent_impl<ArrayHeap,                                     \
                            DistType,                                      \
                            RandType>                                      \
-    (data, idx, dist, max_candidates, n_iters, delta, rho, false, false,  \
+    (data, idx, dist, max_candidates, n_iters, delta, false, false,       \
      grain_size, block_size, verbose);                                    \
   }                                                                       \
   else {                                                                  \
     return nn_descent_impl<SetHeap,                                       \
                            DistType,                                      \
                            RandType>                                      \
-    (data, idx, dist, max_candidates, n_iters, delta, rho, false, false,  \
+    (data, idx, dist, max_candidates, n_iters, delta, false, false,       \
      grain_size, block_size, verbose);                                    \
   }                                                                       \
 }
@@ -78,7 +78,6 @@ Rcpp::List nn_descent_impl(
     const std::size_t max_candidates = 50,
     const std::size_t n_iters = 10,
     const double delta = 0.001,
-    const double rho = 0.5,
     bool low_memory = false,
     bool parallelize = false,
     std::size_t grain_size = 1,
@@ -101,18 +100,18 @@ Rcpp::List nn_descent_impl(
     if (low_memory) {
       GraphUpdater graph_updater(current_graph.neighbor_heap);
 
-      nnd_parallel(current_graph, max_candidates, n_iters, graph_updater, rand, progress,
-                   rho, tol, grain_size, block_size, verbose);
+      nnd_parallel(current_graph, max_candidates, n_iters, graph_updater, rand,
+                   progress, tol, grain_size, block_size, verbose);
     }
     else {
       GraphUpdaterHiMem graph_updater(current_graph.neighbor_heap);
 
-      nnd_parallel(current_graph, max_candidates, n_iters, graph_updater, rand, progress,
-                   rho, tol, grain_size, block_size, verbose);
+      nnd_parallel(current_graph, max_candidates, n_iters, graph_updater, rand,
+                   progress, tol, grain_size, block_size, verbose);
     }
   }
   else {
-    nnd_full(current_graph, max_candidates, n_iters, rand, progress, rho, tol,
+    nnd_full(current_graph, max_candidates, n_iters, rand, progress, tol,
              verbose);
   }
 
@@ -128,7 +127,6 @@ Rcpp::List nn_descent(
     const std::size_t max_candidates = 50,
     const std::size_t n_iters = 10,
     const double delta = 0.001,
-    const double rho = 0.5,
     bool low_memory = true,
     bool fast_rand = false,
     bool parallelize = false,
