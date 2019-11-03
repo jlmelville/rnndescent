@@ -28,3 +28,8 @@ expect_equal(sum(juiris_rnn$dist), expected_sum, tol = 1e-3)
 set.seed(1337)
 juiris_rnn <- nnd_knn(juirism, 15, use_cpp = TRUE, metric = "manhattan", n_threads = 1)
 expect_equal(sum(juiris_rnn$dist), expected_sum, tol = 1e-3)
+
+# high memory
+set.seed(1337)
+juiris_rnn <- nnd_knn(juirism, 15, use_cpp = TRUE, metric = "manhattan", n_threads = 1, low_memory = FALSE)
+expect_equal(sum(juiris_rnn$dist), expected_sum, tol = 1e-3)
