@@ -100,13 +100,15 @@ Rcpp::List nn_descent_impl(
     if (low_memory) {
       GraphUpdater graph_updater(current_graph.neighbor_heap);
 
-      nnd_parallel(current_graph, max_candidates, n_iters, graph_updater, rand,
+      nnd_parallel(current_graph.neighbor_heap, current_graph.weight_measure,
+                   max_candidates, n_iters, graph_updater, rand,
                    progress, tol, grain_size, block_size, verbose);
     }
     else {
       GraphUpdaterHiMem graph_updater(current_graph.neighbor_heap);
 
-      nnd_parallel(current_graph, max_candidates, n_iters, graph_updater, rand,
+      nnd_parallel(current_graph.neighbor_heap, current_graph.weight_measure,
+                   max_candidates, n_iters, graph_updater, rand,
                    progress, tol, grain_size, block_size, verbose);
     }
   }

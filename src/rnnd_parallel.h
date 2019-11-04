@@ -33,20 +33,21 @@ struct LockingCandidatesWorker : public RcppParallel::Worker {
   const std::size_t n_points;
   const std::size_t n_nbrs;
   const std::size_t max_candidates;
-  NeighborHeap new_candidate_neighbors;
-  NeighborHeap old_candidate_neighbors;
+  NeighborHeap& new_candidate_neighbors;
+  NeighborHeap& old_candidate_neighbors;
   tthread::mutex mutex;
 
   LockingCandidatesWorker(
     const NeighborHeap& current_graph,
-    const std::size_t max_candidates
+    NeighborHeap& new_candidate_neighbors,
+    NeighborHeap& old_candidate_neighbors
   ) :
     current_graph(current_graph),
     n_points(current_graph.n_points),
     n_nbrs(current_graph.n_nbrs),
-    max_candidates(max_candidates),
-    new_candidate_neighbors(n_points, max_candidates),
-    old_candidate_neighbors(n_points, max_candidates)
+    max_candidates(new_candidate_neighbors.n_nbrs),
+    new_candidate_neighbors(new_candidate_neighbors),
+    old_candidate_neighbors(old_candidate_neighbors)
   {}
 
   void operator()(std::size_t begin, std::size_t end) {
@@ -67,15 +68,13 @@ struct LockingCandidatesWorker : public RcppParallel::Worker {
         if (isn) {
           {
             tthread::lock_guard<tthread::mutex> guard(mutex);
-            new_candidate_neighbors.checked_push(i, d, idx, isn);
-            new_candidate_neighbors.checked_push(idx, d, i, isn);
+            new_candidate_neighbors.checked_push_pair(i, d, idx, isn);
           }
         }
         else {
           {
             tthread::lock_guard<tthread::mutex> guard(mutex);
-            old_candidate_neighbors.checked_push(i, d, idx, isn);
-            old_candidate_neighbors.checked_push(idx, d, i, isn);
+            old_candidate_neighbors.checked_push_pair(i, d, idx, isn);
           }
         }
       }
@@ -274,10 +273,7 @@ struct GraphUpdater {
       const std::size_t n_updates = updates[i].size();
       for (std::size_t j = 0; j < n_updates; j++) {
         const auto& update = updates[i][j];
-        c += current_graph.checked_push(update.p, update.d, update.q, true);
-        if (update.p != update.q) {
-          c += current_graph.checked_push(update.q, update.d, update.p, true);
-        }
+        c += current_graph.checked_push_pair(update.p, update.d, update.q, true);
       }
       updates[i].clear();
     }
@@ -377,10 +373,7 @@ struct UpdateWorker : RcppParallel::Worker {
         const auto& update = updates[i][j];
         {
           tthread::lock_guard<tthread::mutex> guard(mutex);
-          c += current_graph.checked_push(update.p, update.d, update.q, true);
-          if (update.p != update.q) {
-            c += current_graph.checked_push(update.q, update.d, update.p, true);
-          }
+          c += current_graph.checked_push_pair(update.p, update.d, update.q, true);
         }
       }
     }
@@ -391,13 +384,13 @@ struct UpdateWorker : RcppParallel::Worker {
   }
 };
 
-template <template<typename> class Heap,
-          typename Distance,
+template <typename Distance,
           typename Rand,
           typename Progress,
           typename GraphUpdaterT>
 void nnd_parallel(
-    Heap<Distance>& current_graph,
+    NeighborHeap& current_graph,
+    const Distance& distance,
     const std::size_t max_candidates,
     const std::size_t n_iters,
     GraphUpdaterT& graph_updater,
@@ -409,20 +402,24 @@ void nnd_parallel(
     bool verbose = false
 )
 {
-  const std::size_t n_points = current_graph.neighbor_heap.n_points;
+  const std::size_t n_points = current_graph.n_points;
   const auto n_blocks = (n_points / block_size) + 1;
   std::vector<std::vector<Update>> updates(n_points);
 
   for (std::size_t n = 0; n < n_iters; n++) {
-    LockingCandidatesWorker candidates_worker(current_graph.neighbor_heap,
-                                              max_candidates);
+    NeighborHeap new_candidate_neighbors(n_points, max_candidates);
+    NeighborHeap old_candidate_neighbors(n_points, max_candidates);
+
+    LockingCandidatesWorker candidates_worker(
+        current_graph,
+        new_candidate_neighbors,
+        old_candidate_neighbors);
     RcppParallel::parallelFor(0, n_points, candidates_worker, grain_size);
-    auto& new_candidate_neighbors = candidates_worker.new_candidate_neighbors;
-    auto& old_candidate_neighbors = candidates_worker.old_candidate_neighbors;
+
 
     NewCandidatesWorker new_candidates_worker(
         new_candidate_neighbors,
-        current_graph.neighbor_heap);
+        current_graph);
     RcppParallel::parallelFor(0, n_points, new_candidates_worker, grain_size);
 
     std::size_t c = 0;
@@ -431,16 +428,16 @@ void nnd_parallel(
       const auto block_end = std::min<std::size_t>(n_points, (i + 1) * block_size);
 
       LocalJoinWorker<Distance, GraphUpdaterT> local_join_worker(
-          current_graph.neighbor_heap,
+          current_graph,
           new_candidate_neighbors,
           old_candidate_neighbors,
-          current_graph.weight_measure,
+          distance,
           graph_updater,
           updates
       );
       RcppParallel::parallelFor(block_start, block_end, local_join_worker, grain_size);
 
-      c += graph_updater.apply(current_graph.neighbor_heap, updates);
+      c += graph_updater.apply(current_graph, updates);
 
       if (progress.check_interrupt()) {
         break;
@@ -456,7 +453,7 @@ void nnd_parallel(
       break;
     }
   }
-  current_graph.neighbor_heap.deheap_sort();
+  current_graph.deheap_sort();
 }
 
 #endif // RNND_PARALLEL_H

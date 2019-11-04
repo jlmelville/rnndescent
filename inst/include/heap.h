@@ -67,6 +67,19 @@ struct NeighborHeap
     return false;
   }
 
+  std::size_t checked_push_pair(
+      std::size_t row,
+      double weight,
+      std::size_t idx,
+      bool flag)
+  {
+    std::size_t c = checked_push(row, weight, idx, flag);
+    if (row != idx) {
+      c += checked_push(idx, weight, row, flag);
+    }
+    return c;
+  }
+
   std::size_t checked_push(
       std::size_t row,
       double weight,
