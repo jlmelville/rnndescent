@@ -97,7 +97,7 @@ struct ArrayHeap
 template <typename Rand>
 struct RandomWeight
 {
-  Rand rand;
+  Rand& rand;
 
   RandomWeight(Rand& rand) : rand(rand) { }
 
