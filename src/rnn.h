@@ -86,7 +86,7 @@ struct HeapSumProgress {
       for (std::size_t i = 0; i < n_points; i++) {
         const std::size_t innbrs = i * n_nbrs;
         for (std::size_t j = 0; j < n_nbrs; j++) {
-          sum += neighbor_heap.distance(innbrs + j);
+          sum += neighbor_heap.dist[innbrs + j];
         }
       }
 

@@ -55,8 +55,8 @@ void build_candidates_full(
     std::size_t innbrs = i * n_nbrs;
     for (std::size_t j = 0; j < n_nbrs; j++) {
       std::size_t ij = innbrs + j;
-      std::size_t idx = current_graph.index(ij);
-      bool isn = current_graph.flag(ij) == 1;
+      std::size_t idx = current_graph.idx[ij];
+      bool isn = current_graph.flags[ij] == 1;
       if (isn) {
         new_candidate_neighbors.add_pair(i, idx, isn);
       }
@@ -75,10 +75,10 @@ void build_candidates_full(
     std::size_t innbrs_new = i * max_candidates;
     for (std::size_t j = 0; j < n_nbrs; j++) {
       std::size_t ij = innbrs + j;
-      std::size_t idx = current_graph.index(ij);
+      std::size_t idx = current_graph.idx[ij];
       for (std::size_t k = 0; k < max_candidates; k++) {
-        if (new_neighbor_heap.index(innbrs_new + k) == idx) {
-          current_graph.flag(ij) = 1;
+        if (new_neighbor_heap.idx[innbrs_new + k] == idx) {
+          current_graph.flags[ij] = 1;
           break;
         }
       }

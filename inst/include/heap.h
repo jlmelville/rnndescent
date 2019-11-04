@@ -56,11 +56,11 @@ struct NeighborHeap
   ~NeighborHeap() = default;
   NeighborHeap& operator=(const NeighborHeap &) = default;
 
-  bool contains(std::size_t row, std::size_t idx) const
+  bool contains(std::size_t row, std::size_t index) const
   {
     const std::size_t rnnbrs = row * n_nbrs;
     for (std::size_t i = 0; i < n_nbrs; i++) {
-      if (idx == index(rnnbrs + i)) {
+      if (index == idx[rnnbrs + i]) {
         return true;
       }
     }
@@ -73,12 +73,7 @@ struct NeighborHeap
       std::size_t idx,
       bool flag)
   {
-    if (weight >= distance(row * n_nbrs)) {
-      return 0;
-    }
-
-    // break if we already have this element
-    if (contains(row, idx)) {
+    if (weight >= dist[row * n_nbrs] || contains(row, idx)) {
       return 0;
     }
 
@@ -201,12 +196,6 @@ struct NeighborHeap
   std::size_t& index(std::size_t i, std::size_t j) {
     return idx[i * n_nbrs + j];
   }
-  std::size_t index(std::size_t ij) const {
-    return idx[ij];
-  }
-  std::size_t& index(std::size_t ij) {
-    return idx[ij];
-  }
 
   double distance(std::size_t i, std::size_t j) const {
     return dist[i * n_nbrs + j];
@@ -214,24 +203,12 @@ struct NeighborHeap
   double& distance(std::size_t i, std::size_t j) {
     return dist[i * n_nbrs + j];
   }
-  double distance(std::size_t ij) const {
-    return dist[ij];
-  }
-  double& distance(std::size_t ij) {
-    return dist[ij];
-  }
 
   char flag(std::size_t i, std::size_t j) const {
     return flags[i * n_nbrs + j];
   }
   char& flag(std::size_t i, std::size_t j) {
     return flags[i * n_nbrs + j];
-  }
-  char flag(std::size_t ij) const {
-    return flags[ij];
-  }
-  char& flag(std::size_t ij) {
-    return flags[ij];
   }
 
   void df(std::size_t i, std::size_t j,

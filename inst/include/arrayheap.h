@@ -55,9 +55,9 @@ struct ArrayHeap
   {
     double d = weight_measure(i, j);
 
-    std::size_t c = push(i, d, j, flag);
+    std::size_t c = neighbor_heap.checked_push(i, d, j, flag);
     if (i != j) {
-      c += push(j, d, i, flag);
+      c += neighbor_heap.checked_push(j, d, i, flag);
     }
 
     return c;
@@ -68,29 +68,11 @@ struct ArrayHeap
     const std::size_t n_nbrs = neighbor_heap.n_nbrs;
     const std::size_t rnnbrs = row * n_nbrs;
     for (std::size_t i = 0; i < n_nbrs; i++) {
-      if (index == neighbor_heap.index(rnnbrs + i)) {
+      if (index == neighbor_heap.idx[rnnbrs + i]) {
         return true;
       }
     }
     return false;
-  }
-
-  std::size_t push(
-      std::size_t row,
-      double weight,
-      std::size_t index,
-      bool flag)
-  {
-    if (weight >= neighbor_heap.distance(row, 0)) {
-      return 0;
-    }
-
-    // break if we already have this element
-    if (contains(row, index)) {
-      return 0;
-    }
-
-    return neighbor_heap.unchecked_push(row, weight, index, flag);
   }
 };
 
