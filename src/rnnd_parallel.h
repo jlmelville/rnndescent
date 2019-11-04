@@ -19,15 +19,16 @@
 
 #ifndef RNND_PARALLEL_H
 #define RNND_PARALLEL_H
-#include <unordered_set>
+
+#include <vector>
 
 #include <Rcpp.h>
 // [[Rcpp::depends(RcppParallel)]]
 #include <RcppParallel.h>
 
+#include "graph_update.h"
 #include "heap.h"
 #include "nndescent.h"
-#include "update.h"
 
 #include "rrand.h"
 
@@ -125,33 +126,27 @@ struct NewCandidatesWorker : public RcppParallel::Worker {
 };
 
 template <typename Distance,
-          typename GraphUpdaterT>
+          template<typename> class GraphUpdaterT>
 struct LocalJoinWorker : public RcppParallel::Worker {
   const NeighborHeap& current_graph;
   const NeighborHeap& new_nbrs;
   const NeighborHeap& old_nbrs;
-  const Distance& distance;
   const std::size_t n_nbrs;
   const std::size_t max_candidates;
-  const GraphUpdaterT& graph_updater;
-  std::vector<std::vector<Update>>& updates;
+  GraphUpdaterT<Distance>& graph_updater;
 
   LocalJoinWorker(
     const NeighborHeap& current_graph,
     const NeighborHeap& new_nbrs,
     const NeighborHeap& old_nbrs,
-    const Distance& distance,
-    const GraphUpdaterT& graph_updater,
-    std::vector<std::vector<Update>>& updates
+    GraphUpdaterT<Distance>& graph_updater
   ) :
     current_graph(current_graph),
     new_nbrs(new_nbrs),
     old_nbrs(old_nbrs),
-    distance(distance),
     n_nbrs(current_graph.n_nbrs),
     max_candidates(new_nbrs.n_nbrs),
-    graph_updater(graph_updater),
-    updates(updates)
+    graph_updater(graph_updater)
   {}
 
   void operator()(std::size_t begin, std::size_t end) {
@@ -168,8 +163,7 @@ struct LocalJoinWorker : public RcppParallel::Worker {
           if (q == NeighborHeap::npos()) {
             continue;
           }
-          graph_updater.generate(current_graph, distance, i, p, q,
-                                 n_nbrs, pnnbrs, updates);
+          graph_updater.generate(current_graph, i, p, q, n_nbrs, pnnbrs);
         }
 
         for (std::size_t k = 0; k < max_candidates; k++) {
@@ -177,8 +171,7 @@ struct LocalJoinWorker : public RcppParallel::Worker {
           if (q == NeighborHeap::npos()) {
             continue;
           }
-          graph_updater.generate(current_graph, distance, i, p, q, n_nbrs,
-                                 pnnbrs, updates);
+          graph_updater.generate(current_graph, i, p, q, n_nbrs, pnnbrs);
         }
       }
     }
@@ -222,13 +215,12 @@ struct UpdateWorker : RcppParallel::Worker {
 template <typename Distance,
           typename Rand,
           typename Progress,
-          typename GraphUpdaterT>
+          template<typename> class GraphUpdaterT>
 void nnd_parallel(
     NeighborHeap& current_graph,
-    const Distance& distance,
     const std::size_t max_candidates,
     const std::size_t n_iters,
-    GraphUpdaterT& graph_updater,
+    GraphUpdaterT<Distance>& graph_updater,
     Rand& rand,
     Progress& progress,
     const double tol,
@@ -239,7 +231,6 @@ void nnd_parallel(
 {
   const std::size_t n_points = current_graph.n_points;
   const auto n_blocks = (n_points / block_size) + 1;
-  std::vector<std::vector<Update>> updates(n_points);
 
   for (std::size_t n = 0; n < n_iters; n++) {
     NeighborHeap new_candidate_neighbors(n_points, max_candidates);
@@ -250,7 +241,6 @@ void nnd_parallel(
         new_candidate_neighbors,
         old_candidate_neighbors);
     RcppParallel::parallelFor(0, n_points, candidates_worker, grain_size);
-
 
     NewCandidatesWorker new_candidates_worker(
         new_candidate_neighbors,
@@ -266,13 +256,11 @@ void nnd_parallel(
           current_graph,
           new_candidate_neighbors,
           old_candidate_neighbors,
-          distance,
-          graph_updater,
-          updates
+          graph_updater
       );
       RcppParallel::parallelFor(block_start, block_end, local_join_worker, grain_size);
 
-      c += graph_updater.apply(current_graph, updates);
+      c += graph_updater.apply(current_graph);
 
       if (progress.check_interrupt()) {
         break;

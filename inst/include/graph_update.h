@@ -27,6 +27,9 @@
 #ifndef NND_UPDATE_H
 #define NND_UPDATE_H
 
+#include <unordered_set>
+#include <vector>
+
 #include "heap.h"
 
 struct Update {
@@ -86,26 +89,29 @@ struct GraphCache {
   }
 };
 
+template <typename Distance>
 struct GraphUpdaterHiMem {
   GraphCache seen;
+  const Distance& distance;
+  std::vector<std::vector<Update>> updates;
 
   GraphUpdaterHiMem(
-    const NeighborHeap& neighbor_heap
+    const NeighborHeap& neighbor_heap,
+    const Distance& distance
   ) :
-    seen(neighbor_heap)
+    seen(neighbor_heap),
+    distance(distance),
+    updates(neighbor_heap.n_points)
   {}
 
-  template<typename Distance>
   void generate(
       const NeighborHeap& current_graph,
-      const Distance& distance,
       const std::size_t i,
       const std::size_t p,
       const std::size_t q,
       const std::size_t n_nbrs,
-      const std::size_t pnnbrs,
-      std::vector<std::vector<Update>>& updates
-  ) const
+      const std::size_t pnnbrs
+  )
   {
     // canonicalize the order of (p, q) so that qq >= pp
     std::size_t pp = p > q ? q : p;
@@ -121,8 +127,7 @@ struct GraphUpdaterHiMem {
   }
 
   size_t apply(
-      NeighborHeap& current_graph,
-      std::vector<std::vector<Update>>& updates
+      NeighborHeap& current_graph
   )
   {
     std::size_t c = 0;
@@ -154,21 +159,27 @@ struct GraphUpdaterHiMem {
   }
 };
 
+template <typename Distance>
 struct GraphUpdater {
-  // Purposely do nothing with the neighbors
-  GraphUpdater(const NeighborHeap&) {}
+  const Distance& distance;
+  std::vector<std::vector<Update>> updates;
 
-  template<typename Distance>
+  GraphUpdater(
+    const NeighborHeap& neighbor_heap,
+    const Distance& distance
+  ) :
+    distance(distance),
+    updates(neighbor_heap.n_points)
+  {}
+
   void generate(
       const NeighborHeap& current_graph,
-      const Distance& distance,
       const std::size_t i,
       const std::size_t p,
       const std::size_t q,
       const std::size_t n_nbrs,
-      const std::size_t pnnbrs,
-      std::vector<std::vector<Update>>& updates
-  ) const
+      const std::size_t pnnbrs
+  )
   {
     double d = distance(p, q);
     if (d < current_graph.dist[pnnbrs] || d < current_graph.dist[q * n_nbrs]) {
@@ -177,8 +188,7 @@ struct GraphUpdater {
   }
 
   size_t apply(
-      NeighborHeap& current_graph,
-      std::vector<std::vector<Update>>& updates
+      NeighborHeap& current_graph
   )
   {
     std::size_t c = 0;

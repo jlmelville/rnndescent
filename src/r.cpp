@@ -98,18 +98,20 @@ Rcpp::List nn_descent_impl(
   const double tol = delta * nnbrs * npoints;
   if (parallelize) {
     if (low_memory) {
-      GraphUpdater graph_updater(current_graph.neighbor_heap);
+      GraphUpdater<Distance> graph_updater(current_graph.neighbor_heap,
+                                           current_graph.weight_measure);
 
-      nnd_parallel(current_graph.neighbor_heap, current_graph.weight_measure,
-                   max_candidates, n_iters, graph_updater, rand,
-                   progress, tol, grain_size, block_size, verbose);
+      nnd_parallel(current_graph.neighbor_heap, max_candidates, n_iters,
+                   graph_updater, rand, progress, tol, grain_size, block_size,
+                   verbose);
     }
     else {
-      GraphUpdaterHiMem graph_updater(current_graph.neighbor_heap);
+      GraphUpdaterHiMem<Distance> graph_updater(current_graph.neighbor_heap,
+                                                current_graph.weight_measure);
 
-      nnd_parallel(current_graph.neighbor_heap, current_graph.weight_measure,
-                   max_candidates, n_iters, graph_updater, rand,
-                   progress, tol, grain_size, block_size, verbose);
+      nnd_parallel(current_graph.neighbor_heap, max_candidates, n_iters,
+                   graph_updater, rand, progress, tol, grain_size, block_size,
+                   verbose);
     }
   }
   else {
