@@ -29,7 +29,7 @@
 #include "nndescent.h"
 
 struct LockingCandidatesWorker : public RcppParallel::Worker {
-  NeighborHeap& current_graph;
+  const NeighborHeap& current_graph;
   const std::size_t n_points;
   const std::size_t n_nbrs;
   const std::size_t max_candidates;
@@ -38,7 +38,7 @@ struct LockingCandidatesWorker : public RcppParallel::Worker {
   tthread::mutex mutex;
 
   LockingCandidatesWorker(
-    NeighborHeap& current_graph,
+    const NeighborHeap& current_graph,
     const std::size_t max_candidates
   ) :
     current_graph(current_graph),
@@ -86,7 +86,7 @@ struct LockingCandidatesWorker : public RcppParallel::Worker {
 // mark any neighbor in the current graph that was retained in the new
 // candidates as true
 struct NewCandidatesWorker : public RcppParallel::Worker {
-  const NeighborHeap new_candidate_neighbors;
+  const NeighborHeap& new_candidate_neighbors;
   NeighborHeap& current_graph;
   const std::size_t n_points;
   const std::size_t n_nbrs;
@@ -422,7 +422,7 @@ void nnd_parallel(
 
     NewCandidatesWorker new_candidates_worker(
         new_candidate_neighbors,
-        candidates_worker.current_graph);
+        current_graph.neighbor_heap);
     RcppParallel::parallelFor(0, n_points, new_candidates_worker, grain_size);
 
     std::size_t c = 0;
