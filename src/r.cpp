@@ -101,16 +101,16 @@ Rcpp::List nn_descent_impl(
       GraphUpdater<Distance> graph_updater(current_graph.neighbor_heap,
                                            current_graph.weight_measure);
 
-      nnd_parallel(current_graph.neighbor_heap, max_candidates, n_iters,
-                   graph_updater, rand, progress, tol, grain_size, block_size,
+      nnd_parallel(current_graph.neighbor_heap, graph_updater, max_candidates,
+                   n_iters, rand, progress, tol, grain_size, block_size,
                    verbose);
     }
     else {
       GraphUpdaterHiMem<Distance> graph_updater(current_graph.neighbor_heap,
                                                 current_graph.weight_measure);
 
-      nnd_parallel(current_graph.neighbor_heap, max_candidates, n_iters,
-                   graph_updater, rand, progress, tol, grain_size, block_size,
+      nnd_parallel(current_graph.neighbor_heap, graph_updater, max_candidates,
+                   n_iters, rand, progress, tol, grain_size, block_size,
                    verbose);
     }
   }

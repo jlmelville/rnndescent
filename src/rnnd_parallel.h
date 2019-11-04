@@ -163,7 +163,7 @@ struct LocalJoinWorker : public RcppParallel::Worker {
           if (q == NeighborHeap::npos()) {
             continue;
           }
-          graph_updater.generate(current_graph, i, p, q, n_nbrs, pnnbrs);
+          graph_updater.generate(current_graph, i, p, q, pnnbrs);
         }
 
         for (std::size_t k = 0; k < max_candidates; k++) {
@@ -171,7 +171,7 @@ struct LocalJoinWorker : public RcppParallel::Worker {
           if (q == NeighborHeap::npos()) {
             continue;
           }
-          graph_updater.generate(current_graph, i, p, q, n_nbrs, pnnbrs);
+          graph_updater.generate(current_graph, i, p, q, pnnbrs);
         }
       }
     }
@@ -218,9 +218,9 @@ template <typename Distance,
           template<typename> class GraphUpdaterT>
 void nnd_parallel(
     NeighborHeap& current_graph,
+    GraphUpdaterT<Distance>& graph_updater,
     const std::size_t max_candidates,
     const std::size_t n_iters,
-    GraphUpdaterT<Distance>& graph_updater,
     Rand& rand,
     Progress& progress,
     const double tol,

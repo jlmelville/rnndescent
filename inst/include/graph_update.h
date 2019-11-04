@@ -91,17 +91,20 @@ struct GraphCache {
 
 template <typename Distance>
 struct GraphUpdaterHiMem {
-  GraphCache seen;
   const Distance& distance;
+  const std::size_t n_nbrs;
+
+  GraphCache seen;
   std::vector<std::vector<Update>> updates;
 
   GraphUpdaterHiMem(
-    const NeighborHeap& neighbor_heap,
+    const NeighborHeap& current_graph,
     const Distance& distance
   ) :
-    seen(neighbor_heap),
     distance(distance),
-    updates(neighbor_heap.n_points)
+    n_nbrs(current_graph.n_nbrs),
+    seen(current_graph),
+    updates(current_graph.n_points)
   {}
 
   void generate(
@@ -109,7 +112,6 @@ struct GraphUpdaterHiMem {
       const std::size_t i,
       const std::size_t p,
       const std::size_t q,
-      const std::size_t n_nbrs,
       const std::size_t pnnbrs
   )
   {
@@ -162,14 +164,17 @@ struct GraphUpdaterHiMem {
 template <typename Distance>
 struct GraphUpdater {
   const Distance& distance;
+  const std::size_t n_nbrs;
+
   std::vector<std::vector<Update>> updates;
 
   GraphUpdater(
-    const NeighborHeap& neighbor_heap,
+    const NeighborHeap& current_graph,
     const Distance& distance
   ) :
     distance(distance),
-    updates(neighbor_heap.n_points)
+    n_nbrs(current_graph.n_nbrs),
+    updates(current_graph.n_points)
   {}
 
   void generate(
@@ -177,7 +182,6 @@ struct GraphUpdater {
       const std::size_t i,
       const std::size_t p,
       const std::size_t q,
-      const std::size_t n_nbrs,
       const std::size_t pnnbrs
   )
   {
