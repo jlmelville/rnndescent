@@ -119,7 +119,7 @@ struct GraphUpdaterHiMem {
     std::size_t pp = p > q ? q : p;
     std::size_t qq = pp == p ? q : p;
 
-    if (seen.contains(p, q)) {
+    if (seen.contains(pp, qq)) {
       return;
     }
     double d = distance(p, q);
