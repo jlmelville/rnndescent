@@ -157,13 +157,12 @@ struct LocalJoinWorker : public RcppParallel::Worker {
         if (p == NeighborHeap::npos()) {
           continue;
         }
-        const std::size_t pnnbrs = p * n_nbrs;
         for (std::size_t k = j; k < max_candidates; k++) {
           std::size_t q = new_nbrs.idx[imaxc + k];
           if (q == NeighborHeap::npos()) {
             continue;
           }
-          graph_updater.generate(current_graph, i, p, q, pnnbrs);
+          graph_updater.generate(p, q, i);
         }
 
         for (std::size_t k = 0; k < max_candidates; k++) {
@@ -171,7 +170,7 @@ struct LocalJoinWorker : public RcppParallel::Worker {
           if (q == NeighborHeap::npos()) {
             continue;
           }
-          graph_updater.generate(current_graph, i, p, q, pnnbrs);
+          graph_updater.generate(p, q, i);
         }
       }
     }
@@ -260,7 +259,7 @@ void nnd_parallel(
       );
       RcppParallel::parallelFor(block_start, block_end, local_join_worker, grain_size);
 
-      c += graph_updater.apply(current_graph);
+      c += graph_updater.apply();
 
       if (progress.check_interrupt()) {
         break;

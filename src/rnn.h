@@ -80,21 +80,28 @@ struct HeapSumProgress {
 
   void update(std::size_t n) {
     if (verbose) {
-      const std::size_t n_points = neighbor_heap.n_points;
-      const std::size_t n_nbrs = neighbor_heap.n_nbrs;
-      double sum = 0.0;
-      for (std::size_t i = 0; i < n_points; i++) {
-        const std::size_t innbrs = i * n_nbrs;
-        for (std::size_t j = 0; j < n_nbrs; j++) {
-          sum += neighbor_heap.dist[innbrs + j];
-        }
-      }
-
       std::ostringstream os;
-      os << (n + 1) << " / " << n_iters << " " << sum;
+      os << (n + 1) << " / " << n_iters << " " << dist_sum();
       ts(os.str());
     }
   }
+
+  double dist_sum() const
+  {
+    const std::size_t n_points = neighbor_heap.n_points;
+    const std::size_t n_nbrs = neighbor_heap.n_nbrs;
+    double sum = 0.0;
+    for (std::size_t i = 0; i < n_points; i++) {
+      const std::size_t innbrs = i * n_nbrs;
+      for (std::size_t j = 0; j < n_nbrs; j++) {
+        sum += neighbor_heap.dist[innbrs + j];
+      }
+    }
+
+    return sum;
+  }
+
+
   void stopping_early() {
   }
   bool check_interrupt() {
@@ -140,29 +147,29 @@ struct RPProgress {
   }
 };
 
-template <template<typename> class Heap, typename Distance>
-Heap<Distance> r_to_heap(
-    Distance& distance,
+template <template<typename> class GraphUpdater,
+          typename Distance>
+void
+  r_to_heap(
+    GraphUpdater<Distance>& graph_updater,
     Rcpp::IntegerMatrix idx,
     Rcpp::NumericMatrix dist
-) {
-  const std::size_t npoints = idx.nrow();
-  const std::size_t nnbrs = idx.ncol();
+  ) {
+    const std::size_t n_points = idx.nrow();
+    const std::size_t n_nbrs = idx.ncol();
 
-  Heap<Distance> heap(distance, npoints, nnbrs);
-  const int max_idx = npoints - 1; // internally we need to be 0-indexed
-  for (std::size_t i = 0; i < npoints; i++) {
-    for (std::size_t j = 0; j < nnbrs; j++) {
-      const int k = idx(i, j);
-      if (k < 0 || k > max_idx) {
-        Rcpp::stop("Bad indexes in input");
+    const int max_idx = n_points - 1; // internally we need to be 0-indexed
+    for (std::size_t i = 0; i < n_points; i++) {
+      for (std::size_t j = 0; j < n_nbrs; j++) {
+        const int k = idx(i, j);
+        if (k < 0 || k > max_idx) {
+          Rcpp::stop("Bad indexes in input");
+        }
+        graph_updater.generate(i, k, i);
+        graph_updater.apply();
       }
-      heap.add_pair(i, k, true);
     }
   }
-
-  return heap;
-}
 
 template <typename NbrHeap>
 Rcpp::List heap_to_r(const NbrHeap& heap)

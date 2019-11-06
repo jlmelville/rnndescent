@@ -29,7 +29,6 @@
 
 #include <unordered_set>
 
-#include "arrayheap.h"
 #include "heap.h"
 
 // This corresponds to the construction of new, old, new' and old' in
@@ -45,8 +44,10 @@
 template <typename Rand>
 void build_candidates_full(
     NeighborHeap& current_graph,
-    RandomHeap<Rand>& new_candidate_neighbors,
-    RandomHeap<Rand>& old_candidate_neighbors)
+    Rand& rand,
+    NeighborHeap& new_candidate_neighbors,
+    NeighborHeap& old_candidate_neighbors
+  )
 {
   const std::size_t n_points = current_graph.n_points;
   const std::size_t n_nbrs = current_graph.n_nbrs;
@@ -56,20 +57,21 @@ void build_candidates_full(
     for (std::size_t j = 0; j < n_nbrs; j++) {
       std::size_t ij = innbrs + j;
       std::size_t idx = current_graph.idx[ij];
+
+      double d = rand.unif();
       bool isn = current_graph.flags[ij] == 1;
       if (isn) {
-        new_candidate_neighbors.add_pair(i, idx, isn);
+        new_candidate_neighbors.checked_push_pair(i, d, idx, isn);
       }
       else {
-        old_candidate_neighbors.add_pair(i, idx, isn);
+        old_candidate_neighbors.checked_push_pair(i, d, idx, isn);
       }
     }
   }
 
   // mark any neighbor in the current graph that was retained in the new
   // candidates as true
-  const auto& new_neighbor_heap = new_candidate_neighbors.neighbor_heap;
-  const std::size_t max_candidates = new_neighbor_heap.n_nbrs;
+  const std::size_t max_candidates = new_candidate_neighbors.n_nbrs;
   for (std::size_t i = 0; i < n_points; i++) {
     std::size_t innbrs = i * n_nbrs;
     std::size_t innbrs_new = i * max_candidates;
@@ -77,7 +79,7 @@ void build_candidates_full(
       std::size_t ij = innbrs + j;
       std::size_t idx = current_graph.idx[ij];
       for (std::size_t k = 0; k < max_candidates; k++) {
-        if (new_neighbor_heap.idx[innbrs_new + k] == idx) {
+        if (new_candidate_neighbors.idx[innbrs_new + k] == idx) {
           current_graph.flags[ij] = 1;
           break;
         }
@@ -87,12 +89,13 @@ void build_candidates_full(
 }
 
 // Pretty close to the NNDescentFull algorithm (#2 in the paper)
-template <template<typename> class Heap,
+template <template<typename> class GraphUpdaterT,
           typename Distance,
           typename Rand,
           typename Progress>
 void nnd_full(
-    Heap<Distance>& current_graph,
+    NeighborHeap& current_graph,
+    GraphUpdaterT<Distance>& graph_updater,
     const std::size_t max_candidates,
     const std::size_t n_iters,
     Rand& rand,
@@ -100,24 +103,15 @@ void nnd_full(
     const double tol,
     bool verbose)
 {
-  const std::size_t n_points = current_graph.neighbor_heap.n_points;
-  RandomWeight<Rand> weight_measure(rand);
+  const std::size_t n_points = current_graph.n_points;
 
   for (std::size_t n = 0; n < n_iters; n++) {
-    RandomHeap<Rand> new_candidate_neighbors(weight_measure, n_points,
-                                             max_candidates);
-    RandomHeap<Rand> old_candidate_neighbors(weight_measure, n_points,
-                                             max_candidates);
+    NeighborHeap new_nbrs(n_points, max_candidates);
+    NeighborHeap old_nbrs(n_points, max_candidates);
 
-    build_candidates_full(current_graph.neighbor_heap,
-                          new_candidate_neighbors,
-                          old_candidate_neighbors);
-
-    NeighborHeap& new_nbrs = new_candidate_neighbors.neighbor_heap;
-    NeighborHeap& old_nbrs = old_candidate_neighbors.neighbor_heap;
-
-    std::size_t c = local_join(current_graph, new_nbrs, old_nbrs, n_points,
-                               max_candidates, progress);
+    build_candidates_full(current_graph, rand, new_nbrs, old_nbrs);
+    std::size_t c = local_join(current_graph, graph_updater, new_nbrs, old_nbrs,
+                               n_points, max_candidates, progress);
 
     progress.update(n);
     if (progress.check_interrupt()) {
@@ -131,17 +125,19 @@ void nnd_full(
       break;
     }
   }
-  current_graph.neighbor_heap.deheap_sort();
+  current_graph.deheap_sort();
 }
 
 // Local join update: instead of updating item i with the neighbors of the
 // candidates of i, explore pairs (p, q) of candidates and treat q as a
 // candidate for p, and vice versa.
-template <template<typename> class Heap,
+template <
+  template<typename> class GraphUpdaterT,
           typename Distance,
           typename Progress>
 std::size_t local_join(
-    Heap<Distance>& current_graph,
+    NeighborHeap& current_graph,
+    GraphUpdaterT<Distance>& graph_updater,
     const NeighborHeap& new_nbrs,
     const NeighborHeap& old_nbrs,
     const std::size_t n_points,
@@ -161,7 +157,8 @@ std::size_t local_join(
         if (q == NeighborHeap::npos()) {
           continue;
         }
-        c += current_graph.add_pair(p, q, true);
+        graph_updater.generate(p, q, i);
+        c += graph_updater.apply();
       }
 
       for (std::size_t k = 0; k < max_candidates; k++) {
@@ -169,7 +166,8 @@ std::size_t local_join(
         if (q == NeighborHeap::npos()) {
           continue;
         }
-        c += current_graph.add_pair(p, q, true);
+        graph_updater.generate(p, q, i);
+        c += graph_updater.apply();
       }
     }
     progress.check_interrupt();

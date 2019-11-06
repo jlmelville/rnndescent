@@ -67,6 +67,10 @@ struct NeighborHeap
     return false;
   }
 
+  bool belongs(std::size_t p, std::size_t q, double d) const {
+    return d < dist[p * n_nbrs] || (p != q && d < dist[q * n_nbrs]);
+  }
+
   std::size_t checked_push_pair(
       std::size_t row,
       double weight,
