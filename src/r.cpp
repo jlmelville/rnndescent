@@ -86,8 +86,8 @@ Rcpp::List nn_descent_impl(
   Rand rand;
   Distance distance(data_vec, ndim);
   NeighborHeap current_graph(n_points, n_nbrs);
+  r_to_heap(current_graph, distance, idx, dist);
   GraphUpdaterT graph_updater(current_graph, distance);
-  r_to_heap(graph_updater, idx, dist);
   HeapSumProgress progress(current_graph, n_iters, verbose);
 
   const double tol = delta * n_nbrs * n_points;

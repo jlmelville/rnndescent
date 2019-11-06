@@ -26,6 +26,7 @@
 // [[Rcpp::depends(RcppProgress)]]
 #include <progress.hpp>
 
+#include "graph_update.h"
 #include "heap.h"
 
 inline std::string time_unit(int u)
@@ -147,14 +148,16 @@ struct RPProgress {
   }
 };
 
-template <template<typename> class GraphUpdater,
-          typename Distance>
+template <typename Distance>
 void
   r_to_heap(
-    GraphUpdater<Distance>& graph_updater,
+    NeighborHeap& current_graph,
+    Distance& distance,
     Rcpp::IntegerMatrix idx,
     Rcpp::NumericMatrix dist
   ) {
+    SerialGraphUpdater<Distance> heap_initializer(current_graph, distance);
+
     const std::size_t n_points = idx.nrow();
     const std::size_t n_nbrs = idx.ncol();
 
@@ -165,8 +168,8 @@ void
         if (k < 0 || k > max_idx) {
           Rcpp::stop("Bad indexes in input");
         }
-        graph_updater.generate(i, k, i);
-        graph_updater.apply();
+        heap_initializer.generate(i, k, i);
+        heap_initializer.apply();
       }
     }
   }
