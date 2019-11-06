@@ -247,6 +247,7 @@ void nnd_parallel(
     RcppParallel::parallelFor(0, n_points, new_candidates_worker, grain_size);
 
     std::size_t c = 0;
+    bool interrupted = false;
     for (std::size_t i = 0; i < n_blocks; i++) {
       const auto block_start = i * block_size;
       const auto block_end = std::min<std::size_t>(n_points, (i + 1) * block_size);
@@ -262,11 +263,15 @@ void nnd_parallel(
       c += graph_updater.apply();
 
       if (progress.check_interrupt()) {
+        interrupted = true;
         break;
       }
     }
-    progress.update(n);
 
+    progress.update(n);
+    if (interrupted) {
+      break;
+    }
     if (static_cast<double>(c) <= tol) {
       if (verbose) {
         Rcpp::Rcout << "c = " << c << " tol = " << tol << std::endl;
