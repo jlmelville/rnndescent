@@ -28,6 +28,7 @@
 #define NND_HEAP_H
 
 #include <limits>
+#include <vector>
 
 // Base class storing neighbor data as a series of heaps
 struct NeighborHeap {

@@ -17,9 +17,9 @@
 //  You should have received a copy of the GNU General Public License
 //  along with rnndescent.  If not, see <http://www.gnu.org/licenses/>.
 
+#include "bruteforce.h"
 #include "distance.h"
 #include "heap.h"
-#include "bruteforce.h"
 #include "rnn.h"
 #include "rnn_bruteforceparallel.h"
 #include <Rcpp.h>

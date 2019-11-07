@@ -20,8 +20,6 @@
 #ifndef RNND_RNN_H
 #define RNND_RNN_H
 
-#include <chrono>
-
 #include <Rcpp.h>
 // [[Rcpp::depends(RcppProgress)]]
 #include <progress.hpp>
@@ -29,31 +27,9 @@
 #include "graphupdate.h"
 #include "heap.h"
 
-inline std::string time_unit(int u) {
-  std::string ustr(std::to_string(u));
-  return u < 10 ? "0" + ustr : ustr;
-}
-
-inline void print_time(bool print_date = false) {
-  auto now = std::chrono::system_clock::now();
-  auto duration = now.time_since_epoch();
-  auto secs =
-      std::chrono::duration_cast<std::chrono::seconds>(duration).count();
-
-  std::string fmt = print_date ? "%Y-%m-%d %H:%M:%S" : "%H:%M:%S";
-  Rcpp::Datetime dt(secs);
-  std::string dt_str = dt.format(fmt.c_str());
-  // for some reason format always adds ".000000", so remove it
-  if (dt_str.size() >= 7) {
-    dt_str = dt_str.substr(0, dt_str.size() - 7);
-  }
-  Rcpp::Rcout << dt_str << " ";
-}
-
-inline void ts(const std::string &msg) {
-  print_time();
-  Rcpp::Rcout << msg << std::endl;
-}
+std::string time_unit(int u);
+void print_time(bool print_date = false);
+void ts(const std::string &msg);
 
 struct RRand {
   // a random uniform value between 0 and 1

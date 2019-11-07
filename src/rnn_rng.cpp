@@ -18,24 +18,19 @@
 //  You should have received a copy of the GNU General Public License
 //  along with rnndescent.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef RNN_RNG_H
-#define RNN_RNG_H
+#include "Rcpp.h"
+// [[Rcpp::depends(dqrng)]]
+#include "rnn_rng.h"
+#include <dqrng.h>
 
-#include "tauprng.h"
+void set_seed() {
+  dqrng::dqRNGkind("Xoroshiro128+");
+  auto seed = Rcpp::IntegerVector::create(R::runif(0, 1) *
+                                          std::numeric_limits<int>::max());
+  dqrng::dqset_seed(seed);
+}
 
-void set_seed();
-uint64_t random64();
-
-struct TauRand {
-
-  tau_prng prng;
-
-  TauRand() : prng(random64(), random64(), random64()) {}
-  TauRand(uint64_t state0, uint64_t state1, uint64_t state2)
-      : prng(state0, state1, state2) {}
-
-  // a random uniform value between 0 and 1
-  double unif() { return prng.rand(); }
-};
-
-#endif // RNN_RNG_H
+// based on code in the dqsample package
+uint64_t random64() {
+  return R::runif(0, 1) * std::numeric_limits<uint64_t>::max();
+}

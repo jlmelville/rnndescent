@@ -17,8 +17,8 @@
 //  You should have received a copy of the GNU General Public License
 //  along with rnndescent.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef RNND_PARALLEL_H
-#define RNND_PARALLEL_H
+#ifndef RNN_NNDPARALLEL_H
+#define RNN_NNDPARALLEL_H
 
 #include <vector>
 
@@ -248,4 +248,4 @@ void nnd_parallel(NeighborHeap &current_graph,
   current_graph.deheap_sort();
 }
 
-#endif // RNND_PARALLEL_H
+#endif // RNN_NNDPARALLEL_H

@@ -17,23 +17,17 @@
 //  You should have received a copy of the GNU General Public License
 //  along with rnndescent.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef RNND_RNN_RAND_PARALLEL_H
-#define RNND_RNN_RAND_PARALLEL_H
+#ifndef RNN_RANDPARALLEL_H
+#define RNN_RANDPARALLEL_H
 
 #include <Rcpp.h>
 // [[Rcpp::depends(RcppParallel)]]
-#include <RcppParallel.h>
-// [[Rcpp::depends(dqrng)]]
 #include "distance.h"
 #include "rnn_parallel.h"
+#include "rnn_rng.h"
+#include <RcppParallel.h>
+// [[Rcpp::depends(dqrng)]]
 #include <dqrng.h>
-
-void set_seed() {
-  dqrng::dqRNGkind("Xoroshiro128+");
-  auto seed = Rcpp::IntegerVector::create(R::runif(0, 1) *
-                                          std::numeric_limits<int>::max());
-  dqrng::dqset_seed(seed);
-}
 
 template <typename Distance>
 struct RandomNbrWorker : public RcppParallel::Worker {
@@ -94,4 +88,4 @@ Rcpp::List random_knn_parallel(Rcpp::NumericMatrix data, int k,
                             Rcpp::Named("dist") = Rcpp::transpose(dist));
 }
 
-#endif // RNND_RNN_RAND_PARALLEL_H
+#endif // RNN_RANDPARALLEL_H

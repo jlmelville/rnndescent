@@ -17,8 +17,8 @@
 //  You should have received a copy of the GNU General Public License
 //  along with rnndescent.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef RNND_RNN_BRUTE_FORCE_PARALLEL_H
-#define RNND_RNN_BRUTE_FORCE_PARALLEL_H
+#ifndef RNN_BRUTEFORCEPARALLEL_H
+#define RNN_BRUTEFORCEPARALLEL_H
 
 #include <Rcpp.h>
 // [[Rcpp::depends(RcppParallel)]]
@@ -63,4 +63,4 @@ void nnbf_parallel(SimpleNeighborHeap &neighbor_heap, Distance &distance,
   neighbor_heap.deheap_sort();
 }
 
-#endif // RNND_RNN_BRUTE_FORCE_PARALLEL_H
+#endif // RNND_BRUTEFORCEPARALLEL_H
