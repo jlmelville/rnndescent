@@ -40,13 +40,11 @@ struct BruteForceWorker : public RcppParallel::Worker {
 
   void operator()(std::size_t begin, std::size_t end) {
     for (std::size_t i = begin; i < end; i++) {
-      const std::size_t i0 = i * n_nbrs;
       for (std::size_t j = 0; j < n_points; j++) {
-        double weight = distance(i, j);
-        if (weight >= neighbor_heap.dist[i0]) {
-          continue;
+        double d = distance(i, j);
+        if (neighbor_heap.accepts(i, d)) {
+          neighbor_heap.unchecked_push(i, d, j);
         }
-        neighbor_heap.unchecked_push(i, weight, j);
       }
     }
   }

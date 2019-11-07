@@ -61,13 +61,12 @@ struct NeighborHeap {
     return false;
   }
 
-  // returns true if either p or q would be successfully offered to the heap
-  // with value d
+  // returns true if either p or q would accept a neighbor with distance d
   bool accepts_either(std::size_t p, std::size_t q, double d) const {
     return d < dist[p * n_nbrs] || (p != q && d < dist[q * n_nbrs]);
   }
 
-  // returns true if p would be successfully offered to the heap with value d
+  // returns true if p would accept a neighbor with distance d
   bool accepts(std::size_t p, double d) const { return d < dist[p * n_nbrs]; }
 
   std::size_t checked_push_pair(std::size_t row, double weight, std::size_t idx,
@@ -232,6 +231,14 @@ struct SimpleNeighborHeap {
   SimpleNeighborHeap(const SimpleNeighborHeap &) = default;
   ~SimpleNeighborHeap() = default;
   SimpleNeighborHeap &operator=(const SimpleNeighborHeap &) = default;
+
+  // returns true if either p or q would accept a neighbor with distance d
+  bool accepts_either(std::size_t p, std::size_t q, double d) const {
+    return d < dist[p * n_nbrs] || (p != q && d < dist[q * n_nbrs]);
+  }
+
+  // returns true if p would accept a neighbor with distance d
+  bool accepts(std::size_t p, double d) const { return d < dist[p * n_nbrs]; }
 
   std::size_t unchecked_push(std::size_t row, double weight,
                              std::size_t index) {

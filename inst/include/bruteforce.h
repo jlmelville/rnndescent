@@ -33,16 +33,14 @@ template <typename Distance, typename Progress>
 void nnbf(SimpleNeighborHeap &neighbor_heap, Distance &distance,
           Progress &progress) {
   const std::size_t n_points = neighbor_heap.n_points;
-  const std::size_t n_nbrs = neighbor_heap.n_nbrs;
   for (std::size_t i = 0; i < n_points; i++) {
-    const std::size_t i0 = i * n_nbrs;
     for (std::size_t j = i; j < n_points; j++) {
-      double weight = distance(i, j);
-      if (weight < neighbor_heap.dist[i0]) {
-        neighbor_heap.unchecked_push(i, weight, j);
+      double d = distance(i, j);
+      if (neighbor_heap.accepts(i, d)) {
+        neighbor_heap.unchecked_push(i, d, j);
       }
-      if (i != j && weight < neighbor_heap.dist[j * n_nbrs]) {
-        neighbor_heap.unchecked_push(j, weight, i);
+      if (i != j && neighbor_heap.accepts(j, d)) {
+        neighbor_heap.unchecked_push(j, d, i);
       }
     }
     progress.increment();
