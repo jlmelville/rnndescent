@@ -31,11 +31,6 @@ std::string time_unit(int u);
 void print_time(bool print_date = false);
 void ts(const std::string &msg);
 
-struct RRand {
-  // a random uniform value between 0 and 1
-  double unif();
-};
-
 // Sums the distances in a neighbor heap as a way of measuring progress.
 // Useful for diagnostic purposes
 struct HeapSumProgress {

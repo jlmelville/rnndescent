@@ -26,6 +26,13 @@
 void set_seed();
 uint64_t random64();
 
+// Use R API for RNG
+struct RRand {
+  // a random uniform value between 0 and 1
+  double unif();
+};
+
+// Use Taus88 RNG
 struct TauRand {
   tau_prng prng;
   TauRand();

@@ -51,8 +51,6 @@ void ts(const std::string &msg) {
   Rcpp::Rcout << msg << std::endl;
 }
 
-double RRand::unif() { return Rcpp::runif(1, 0.0, 1.0)[0]; }
-
 HeapSumProgress::HeapSumProgress(NeighborHeap &neighbor_heap,
                                  std::size_t n_iters, bool verbose)
     : neighbor_heap(neighbor_heap), n_iters(n_iters), verbose(verbose) {}

@@ -35,6 +35,8 @@ uint64_t random64() {
   return R::runif(0, 1) * std::numeric_limits<uint64_t>::max();
 }
 
+double RRand::unif() { return Rcpp::runif(1, 0.0, 1.0)[0]; }
+
 TauRand::TauRand() : prng(random64(), random64(), random64()) {}
 TauRand::TauRand(uint64_t state0, uint64_t state1, uint64_t state2)
     : prng(state0, state1, state2) {}
