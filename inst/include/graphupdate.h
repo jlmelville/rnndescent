@@ -95,7 +95,7 @@ template <typename Distance> struct BatchGraphUpdater {
   void generate(const std::size_t p, const std::size_t q,
                 const std::size_t key) {
     double d = distance(p, q);
-    if (current_graph.either_belongs(p, q, d)) {
+    if (current_graph.accepts_either(p, q, d)) {
       updates[key].emplace_back(p, q, d);
     }
   }
@@ -139,7 +139,7 @@ template <typename Distance> struct BatchGraphUpdaterHiMem {
       return;
     }
     double d = distance(p, q);
-    if (current_graph.either_belongs(p, q, d)) {
+    if (current_graph.accepts_either(p, q, d)) {
       updates[key].emplace_back(pp, qq, d);
     }
   }
@@ -155,8 +155,8 @@ template <typename Distance> struct BatchGraphUpdaterHiMem {
         const auto &q = update.q;
         const auto &d = update.d;
 
-        const bool bad_pd = d >= current_graph.distance(p, 0);
-        const bool bad_qd = d >= current_graph.distance(q, 0);
+        const bool bad_pd = !current_graph.accepts(p, d);
+        const bool bad_qd = !current_graph.accepts(q, d);
         if ((bad_pd && bad_qd) || seen.contains(p, q)) {
           continue;
         }
@@ -204,7 +204,7 @@ template <typename Distance> struct SerialGraphUpdater {
 
   void generate(const std::size_t p, const std::size_t q, const std::size_t) {
     double d = distance(p, q);
-    if (current_graph.either_belongs(p, q, d)) {
+    if (current_graph.accepts_either(p, q, d)) {
       upd_p = p;
       upd_q = q;
       upd_d = d;
@@ -258,12 +258,12 @@ template <typename Distance> struct SerialGraphUpdaterHiMem {
 
     double d = distance(upd_p, upd_q);
 
-    if (d < current_graph.distance(upd_p, 0)) {
+    if (current_graph.accepts(upd_p, d)) {
       current_graph.unchecked_push(upd_p, d, upd_q, true);
       c += 1;
     }
 
-    if (upd_p != upd_q && d < current_graph.distance(upd_q, 0)) {
+    if (upd_p != upd_q && current_graph.accepts(upd_q, d)) {
       current_graph.unchecked_push(upd_q, d, upd_p, true);
       c += 1;
     }
@@ -315,13 +315,12 @@ template <typename Distance> struct SerialGraphUpdaterVeryHiMem {
     }
 
     double d = distance(upd_p, upd_q);
-
-    if (d < current_graph.distance(upd_p, 0)) {
+    if (current_graph.accepts(upd_p, d)) {
       current_graph.unchecked_push(upd_p, d, upd_q, true);
       c += 1;
     }
 
-    if (upd_p != upd_q && d < current_graph.distance(upd_q, 0)) {
+    if (upd_p != upd_q && current_graph.accepts(upd_q, d)) {
       current_graph.unchecked_push(upd_q, d, upd_p, true);
       c += 1;
     }
@@ -355,7 +354,7 @@ template <typename Distance> struct BatchGraphUpdaterVeryHiMem {
       return;
     }
     double d = distance(p, q);
-    if (current_graph.either_belongs(p, q, d)) {
+    if (current_graph.accepts_either(p, q, d)) {
       updates[key].emplace_back(pp, qq, d);
     }
   }
@@ -374,12 +373,12 @@ template <typename Distance> struct BatchGraphUpdaterVeryHiMem {
           continue;
         }
 
-        if (d < current_graph.distance(p, 0)) {
+        if (current_graph.accepts(p, d)) {
           current_graph.unchecked_push(p, d, q, true);
           c += 1;
         }
 
-        if (p != q && d < current_graph.distance(q, 0)) {
+        if (p != q && current_graph.accepts(q, d)) {
           current_graph.unchecked_push(q, d, p, true);
           c += 1;
         }
