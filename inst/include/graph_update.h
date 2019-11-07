@@ -90,14 +90,14 @@ struct GraphCache {
 };
 
 template <typename Distance>
-struct GraphUpdater {
+struct BatchGraphUpdater {
   NeighborHeap& current_graph;
   const Distance& distance;
   const std::size_t n_nbrs;
 
   std::vector<std::vector<Update>> updates;
 
-  GraphUpdater(
+  BatchGraphUpdater(
     NeighborHeap& current_graph,
     const Distance& distance
   ) :
@@ -137,7 +137,7 @@ struct GraphUpdater {
 
 
 template <typename Distance>
-struct GraphUpdaterHiMem {
+struct BatchGraphUpdaterHiMem {
   NeighborHeap& current_graph;
   const Distance& distance;
   const std::size_t n_nbrs;
@@ -145,7 +145,7 @@ struct GraphUpdaterHiMem {
   GraphCache seen;
   std::vector<std::vector<Update>> updates;
 
-  GraphUpdaterHiMem(
+  BatchGraphUpdaterHiMem(
     NeighborHeap& current_graph,
     const Distance& distance
   ) :

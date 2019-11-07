@@ -22,12 +22,12 @@
 #include "rnn.h"
 #include "rnn_rand_parallel.h"
 
-#define RandomNbrs(DistType)                                                 \
+#define RandomNbrs(Distance)                                                 \
 if (parallelize) {                                                           \
-  return random_knn_parallel<DistType>(data, k, grain_size, verbose);        \
+  return random_knn_parallel<Distance>(data, k, grain_size, verbose);        \
 }                                                                            \
 else {                                                                       \
-  return random_knn_impl<DistType>(data, k, verbose);                        \
+  return random_knn_impl<Distance>(data, k, verbose);                        \
 }
 
 template<typename Distance>
@@ -82,24 +82,24 @@ Rcpp::List random_knn_cpp(
 )
 {
   if (metric == "euclidean") {
-    using DistType = Euclidean<float, float>;
-    RandomNbrs(DistType)
+    using Distance = Euclidean<float, float>;
+    RandomNbrs(Distance)
   }
   else if (metric == "l2") {
-    using DistType = L2<float, float>;
-    RandomNbrs(DistType)
+    using Distance = L2<float, float>;
+    RandomNbrs(Distance)
   }
   else if (metric == "cosine") {
-    using DistType = Cosine<float, float>;
-    RandomNbrs(DistType)
+    using Distance = Cosine<float, float>;
+    RandomNbrs(Distance)
   }
   else if (metric == "manhattan") {
-    using DistType = Manhattan<float, float>;
-    RandomNbrs(DistType)
+    using Distance = Manhattan<float, float>;
+    RandomNbrs(Distance)
   }
   else if (metric == "hamming") {
-    using DistType = Hamming<uint8_t, std::size_t>;
-    RandomNbrs(DistType)
+    using Distance = Hamming<uint8_t, std::size_t>;
+    RandomNbrs(Distance)
   }
   else {
     Rcpp::stop("Bad metric");

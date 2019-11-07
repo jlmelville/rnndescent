@@ -89,13 +89,13 @@ void build_candidates_full(
 }
 
 // Pretty close to the NNDescentFull algorithm (#2 in the paper)
-template <template<typename> class GraphUpdaterT,
+template <template<typename> class GraphUpdater,
           typename Distance,
           typename Rand,
           typename Progress>
 void nnd_full(
     NeighborHeap& current_graph,
-    GraphUpdaterT<Distance>& graph_updater,
+    GraphUpdater<Distance>& graph_updater,
     const std::size_t max_candidates,
     const std::size_t n_iters,
     Rand& rand,
@@ -132,12 +132,12 @@ void nnd_full(
 // candidates of i, explore pairs (p, q) of candidates and treat q as a
 // candidate for p, and vice versa.
 template <
-  template<typename> class GraphUpdaterT,
+  template<typename> class GraphUpdater,
           typename Distance,
           typename Progress>
 std::size_t local_join(
     NeighborHeap& current_graph,
-    GraphUpdaterT<Distance>& graph_updater,
+    GraphUpdater<Distance>& graph_updater,
     const NeighborHeap& new_nbrs,
     const NeighborHeap& old_nbrs,
     const std::size_t n_points,

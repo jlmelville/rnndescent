@@ -24,8 +24,8 @@
 #include "rnn.h"
 #include "rnn_brute_force_parallel.h"
 
-#define BruteForce(DistType)                                      \
-return rnn_brute_force_impl<DistType>(                            \
+#define BruteForce(Distance)                                      \
+return rnn_brute_force_impl<Distance>(                            \
     data, k, parallelize, grain_size, verbose);
 
 template <typename Distance>
@@ -68,24 +68,24 @@ Rcpp::List rnn_brute_force(
     bool verbose = false)
 {
   if (metric == "euclidean") {
-    using DistType = Euclidean<float, float>;
-    BruteForce(DistType)
+    using Distance = Euclidean<float, float>;
+    BruteForce(Distance)
   }
   else if (metric == "l2") {
-    using DistType = L2<float, float>;
-    BruteForce(DistType)
+    using Distance = L2<float, float>;
+    BruteForce(Distance)
   }
   else if (metric == "cosine") {
-    using DistType = Cosine<float, float>;
-    BruteForce(DistType)
+    using Distance = Cosine<float, float>;
+    BruteForce(Distance)
   }
   else if (metric == "manhattan") {
-    using DistType = Manhattan<float, float>;
-    BruteForce(DistType)
+    using Distance = Manhattan<float, float>;
+    BruteForce(Distance)
   }
   else if (metric == "hamming") {
-    using DistType = Hamming<uint8_t, std::size_t>;
-    BruteForce(DistType)
+    using Distance = Hamming<uint8_t, std::size_t>;
+    BruteForce(Distance)
   }
   else {
     Rcpp::stop("Bad metric");

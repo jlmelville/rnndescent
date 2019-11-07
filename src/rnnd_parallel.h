@@ -126,20 +126,20 @@ struct NewCandidatesWorker : public RcppParallel::Worker {
 };
 
 template <typename Distance,
-          template<typename> class GraphUpdaterT>
+          template<typename> class GraphUpdater>
 struct LocalJoinWorker : public RcppParallel::Worker {
   const NeighborHeap& current_graph;
   const NeighborHeap& new_nbrs;
   const NeighborHeap& old_nbrs;
   const std::size_t n_nbrs;
   const std::size_t max_candidates;
-  GraphUpdaterT<Distance>& graph_updater;
+  GraphUpdater<Distance>& graph_updater;
 
   LocalJoinWorker(
     const NeighborHeap& current_graph,
     const NeighborHeap& new_nbrs,
     const NeighborHeap& old_nbrs,
-    GraphUpdaterT<Distance>& graph_updater
+    GraphUpdater<Distance>& graph_updater
   ) :
     current_graph(current_graph),
     new_nbrs(new_nbrs),
@@ -214,10 +214,10 @@ struct UpdateWorker : RcppParallel::Worker {
 template <typename Distance,
           typename Rand,
           typename Progress,
-          template<typename> class GraphUpdaterT>
+          template<typename> class GraphUpdater>
 void nnd_parallel(
     NeighborHeap& current_graph,
-    GraphUpdaterT<Distance>& graph_updater,
+    GraphUpdater<Distance>& graph_updater,
     const std::size_t max_candidates,
     const std::size_t n_iters,
     Rand& rand,
@@ -252,7 +252,7 @@ void nnd_parallel(
       const auto block_start = i * block_size;
       const auto block_end = std::min<std::size_t>(n_points, (i + 1) * block_size);
 
-      LocalJoinWorker<Distance, GraphUpdaterT> local_join_worker(
+      LocalJoinWorker<Distance, GraphUpdater> local_join_worker(
           current_graph,
           new_candidate_neighbors,
           old_candidate_neighbors,
