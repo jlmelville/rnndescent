@@ -71,6 +71,14 @@ struct GraphCache {
   bool insert(std::size_t p, std::size_t q) {
     return !seen[p].emplace(q).second;
   }
+
+  std::size_t size() const {
+    std::size_t sum = 0;
+    for (std::size_t i = 0; i < seen.size(); i++) {
+      sum += seen[i].size();
+    }
+    return sum;
+  }
 };
 
 template <typename Distance> struct BatchGraphUpdater {
@@ -146,18 +154,27 @@ template <typename Distance> struct BatchGraphUpdaterHiMem {
         const auto &p = update.p;
         const auto &q = update.q;
         const auto &d = update.d;
-        if (seen.insert(p, q)) {
+
+        const bool bad_pd = d >= current_graph.distance(p, 0);
+        const bool bad_qd = d >= current_graph.distance(q, 0);
+        if ((bad_pd && bad_qd) || seen.contains(p, q)) {
           continue;
         }
 
-        if (d < current_graph.distance(p, 0)) {
+        std::size_t local_c = 0;
+        if (!bad_pd) {
           current_graph.unchecked_push(p, d, q, true);
-          c += 1;
+          local_c += 1;
         }
 
-        if (p != q && d < current_graph.distance(q, 0)) {
+        if (p != q && !bad_qd) {
           current_graph.unchecked_push(q, d, p, true);
-          c += 1;
+          local_c += 1;
+        }
+
+        if (local_c > 0) {
+          seen.insert(p, q);
+          c += local_c;
         }
       }
       updates[i].clear();
@@ -219,11 +236,69 @@ template <typename Distance> struct SerialGraphUpdaterHiMem {
         upd_p(NeighborHeap::npos()), upd_q(NeighborHeap::npos()) {}
 
   std::size_t generate_and_apply(const std::size_t p, const std::size_t q) {
-    generate(p, q, p);
+    generate(p, q);
     return apply();
   }
 
-  void generate(const std::size_t p, const std::size_t q, const std::size_t) {
+  void generate(const std::size_t p, const std::size_t q) {
+    // canonicalize the order of (p, q) so that qq >= pp
+    std::size_t pp = p > q ? q : p;
+    std::size_t qq = pp == p ? q : p;
+
+    upd_p = pp;
+    upd_q = qq;
+  }
+
+  std::size_t apply() {
+    std::size_t c = 0;
+
+    if (seen.contains(upd_p, upd_q)) {
+      return c;
+    }
+
+    double d = distance(upd_p, upd_q);
+
+    if (d < current_graph.distance(upd_p, 0)) {
+      current_graph.unchecked_push(upd_p, d, upd_q, true);
+      c += 1;
+    }
+
+    if (upd_p != upd_q && d < current_graph.distance(upd_q, 0)) {
+      current_graph.unchecked_push(upd_q, d, upd_p, true);
+      c += 1;
+    }
+
+    if (c > 0) {
+      seen.insert(upd_p, upd_q);
+    }
+    return c;
+  }
+};
+
+// Caches all seen pairs. Compared to HiMem, it's a bit faster (~25%) but stores
+// 6-7 times the number of items when tested on MNIST (70,000 items), k = 15,
+// max_candidates = 20
+template <typename Distance> struct SerialGraphUpdaterVeryHiMem {
+  NeighborHeap &current_graph;
+  const Distance &distance;
+  const std::size_t n_nbrs;
+
+  GraphCache seen;
+  std::size_t upd_p;
+  std::size_t upd_q;
+
+  SerialGraphUpdaterVeryHiMem(NeighborHeap &current_graph,
+                              const Distance &distance)
+      : current_graph(current_graph), distance(distance),
+        n_nbrs(current_graph.n_nbrs), seen(current_graph),
+        upd_p(NeighborHeap::npos()), upd_q(NeighborHeap::npos()) {}
+
+  std::size_t generate_and_apply(const std::size_t p, const std::size_t q) {
+    generate(p, q);
+    return apply();
+  }
+
+  void generate(const std::size_t p, const std::size_t q) {
     // canonicalize the order of (p, q) so that qq >= pp
     std::size_t pp = p > q ? q : p;
     std::size_t qq = pp == p ? q : p;
@@ -249,6 +324,67 @@ template <typename Distance> struct SerialGraphUpdaterHiMem {
     if (upd_p != upd_q && d < current_graph.distance(upd_q, 0)) {
       current_graph.unchecked_push(upd_q, d, upd_p, true);
       c += 1;
+    }
+    return c;
+  }
+};
+
+// Not quite as memory hungry as SerialGraphUpdaterVeryHiMem, only storing
+// ~30% more items, but shows negligible performance improvement.
+template <typename Distance> struct BatchGraphUpdaterVeryHiMem {
+  NeighborHeap &current_graph;
+  const Distance &distance;
+  const std::size_t n_nbrs;
+
+  GraphCache seen;
+  std::vector<std::vector<Update>> updates;
+
+  BatchGraphUpdaterVeryHiMem(NeighborHeap &current_graph,
+                             const Distance &distance)
+      : current_graph(current_graph), distance(distance),
+        n_nbrs(current_graph.n_nbrs), seen(current_graph),
+        updates(current_graph.n_points) {}
+
+  void generate(const std::size_t p, const std::size_t q,
+                const std::size_t key) {
+    // canonicalize the order of (p, q) so that qq >= pp
+    std::size_t pp = p > q ? q : p;
+    std::size_t qq = pp == p ? q : p;
+
+    if (seen.contains(pp, qq)) {
+      return;
+    }
+    double d = distance(p, q);
+    if (current_graph.belongs(p, q, d)) {
+      updates[key].emplace_back(pp, qq, d);
+    }
+  }
+
+  size_t apply() {
+    std::size_t c = 0;
+    const std::size_t n_points = updates.size();
+    for (std::size_t i = 0; i < n_points; i++) {
+      const std::size_t n_updates = updates[i].size();
+      for (std::size_t j = 0; j < n_updates; j++) {
+        const auto &update = updates[i][j];
+        const auto &p = update.p;
+        const auto &q = update.q;
+        const auto &d = update.d;
+        if (seen.insert(p, q)) {
+          continue;
+        }
+
+        if (d < current_graph.distance(p, 0)) {
+          current_graph.unchecked_push(p, d, q, true);
+          c += 1;
+        }
+
+        if (p != q && d < current_graph.distance(q, 0)) {
+          current_graph.unchecked_push(q, d, p, true);
+          c += 1;
+        }
+      }
+      updates[i].clear();
     }
     return c;
   }
