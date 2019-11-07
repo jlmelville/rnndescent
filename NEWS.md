@@ -14,11 +14,10 @@ Also, a number of changes inspired by recent work in
 * The `rho` sampling parameter has been removed. The size of the candidates
 (general neighbors) list is now controlled entirely by `max_candidates`.
 * Default `max_candidates` has been reduced to 20.
-* The `use_set` logical flag has been replaced by `low_memory`, which has the 
-opposite meaning. It now also works when using multiple threads. In order to get
-a noticeable performance improvement in C++ code, the memory usage is much more
-aggressive than in pynndescent, so it should be used with care. Therefore,
-`low_memory = TRUE` by default in this implementation.
+* The `use_set` logical flag has been replaced by `low_memory`, which has the
+opposite meaning. It now also works when using multiple threads. While it
+follows the pynndescent implementation, it's still experimental, so
+`low_memory = TRUE` by default for the moment.
 * The `low_memory = FALSE` implementation for `n_threads = 0` (originally 
 equivalent to `use_set = TRUE`) is faster.
 * New parameter `block_size`, which balances interleaving of queuing updates 
