@@ -29,8 +29,7 @@
 #include "graph_update.h"
 #include "heap.h"
 
-inline std::string time_unit(int u)
-{
+inline std::string time_unit(int u) {
   std::string ustr(std::to_string(u));
   return u < 10 ? "0" + ustr : ustr;
 }
@@ -38,7 +37,8 @@ inline std::string time_unit(int u)
 inline void print_time(bool print_date = false) {
   auto now = std::chrono::system_clock::now();
   auto duration = now.time_since_epoch();
-  auto secs = std::chrono::duration_cast<std::chrono::seconds>(duration).count();
+  auto secs =
+      std::chrono::duration_cast<std::chrono::seconds>(duration).count();
 
   std::string fmt = print_date ? "%Y-%m-%d %H:%M:%S" : "%H:%M:%S";
   Rcpp::Datetime dt(secs);
@@ -50,34 +50,26 @@ inline void print_time(bool print_date = false) {
   Rcpp::Rcout << dt_str << " ";
 }
 
-inline void ts(const std::string& msg) {
+inline void ts(const std::string &msg) {
   print_time();
   Rcpp::Rcout << msg << std::endl;
 }
 
 struct RRand {
   // a random uniform value between 0 and 1
-  double unif() {
-    return Rcpp::runif(1, 0.0, 1.0)[0];
-  }
+  double unif() { return Rcpp::runif(1, 0.0, 1.0)[0]; }
 };
 
 // Sums the distances in a neighbor heap as a way of measuring progress.
 // Useful for diagnostic purposes
 struct HeapSumProgress {
-  NeighborHeap& neighbor_heap;
+  NeighborHeap &neighbor_heap;
   const std::size_t n_iters;
   bool verbose;
 
-  HeapSumProgress(
-    NeighborHeap& neighbor_heap,
-    std::size_t n_iters,
-    bool verbose
-    ) :
-    neighbor_heap(neighbor_heap),
-    n_iters(n_iters),
-    verbose(verbose)
-  {}
+  HeapSumProgress(NeighborHeap &neighbor_heap, std::size_t n_iters,
+                  bool verbose)
+      : neighbor_heap(neighbor_heap), n_iters(n_iters), verbose(verbose) {}
 
   void update(std::size_t n) {
     if (verbose) {
@@ -87,8 +79,7 @@ struct HeapSumProgress {
     }
   }
 
-  double dist_sum() const
-  {
+  double dist_sum() const {
     const std::size_t n_points = neighbor_heap.n_points;
     const std::size_t n_nbrs = neighbor_heap.n_nbrs;
     double sum = 0.0;
@@ -102,14 +93,11 @@ struct HeapSumProgress {
     return sum;
   }
 
-
-  void stopping_early() {
-  }
+  void stopping_early() {}
   bool check_interrupt() {
     try {
       Rcpp::checkUserInterrupt();
-    }
-    catch (Rcpp::internal::InterruptedException&) {
+    } catch (Rcpp::internal::InterruptedException &) {
       return true;
     }
     return false;
@@ -122,23 +110,12 @@ struct RPProgress {
   const std::size_t n_iters;
   bool verbose;
 
-  RPProgress(
-    std::size_t n_iters,
-    bool verbose) :
-    progress(n_iters, verbose),
-    n_iters(n_iters),
-    verbose(verbose)
-  {}
+  RPProgress(std::size_t n_iters, bool verbose)
+      : progress(n_iters, verbose), n_iters(n_iters), verbose(verbose) {}
 
-  void increment(std::size_t amount = 1) {
-    progress.increment(amount);
-  }
-  void update(std::size_t current) {
-    progress.update(current);
-  }
-  void stopping_early() {
-    progress.update(n_iters);
-  }
+  void increment(std::size_t amount = 1) { progress.increment(amount); }
+  void update(std::size_t current) { progress.update(current); }
+  void stopping_early() { progress.update(n_iters); }
   bool check_interrupt() {
     if (Progress::check_abort()) {
       progress.cleanup();
@@ -149,33 +126,26 @@ struct RPProgress {
 };
 
 template <typename Distance>
-void
-  r_to_heap(
-    NeighborHeap& current_graph,
-    Distance& distance,
-    Rcpp::IntegerMatrix idx,
-    Rcpp::NumericMatrix dist
-  ) {
-    SerialGraphUpdater<Distance> heap_initializer(current_graph, distance);
+void r_to_heap(NeighborHeap &current_graph, Distance &distance,
+               Rcpp::IntegerMatrix idx, Rcpp::NumericMatrix dist) {
+  SerialGraphUpdater<Distance> heap_initializer(current_graph, distance);
 
-    const std::size_t n_points = idx.nrow();
-    const std::size_t n_nbrs = idx.ncol();
+  const std::size_t n_points = idx.nrow();
+  const std::size_t n_nbrs = idx.ncol();
 
-    const int max_idx = n_points - 1; // internally we need to be 0-indexed
-    for (std::size_t i = 0; i < n_points; i++) {
-      for (std::size_t j = 0; j < n_nbrs; j++) {
-        const int k = idx(i, j);
-        if (k < 0 || k > max_idx) {
-          Rcpp::stop("Bad indexes in input");
-        }
-        heap_initializer.generate_and_apply(i, k);
+  const int max_idx = n_points - 1; // internally we need to be 0-indexed
+  for (std::size_t i = 0; i < n_points; i++) {
+    for (std::size_t j = 0; j < n_nbrs; j++) {
+      const int k = idx(i, j);
+      if (k < 0 || k > max_idx) {
+        Rcpp::stop("Bad indexes in input");
       }
+      heap_initializer.generate_and_apply(i, k);
     }
   }
+}
 
-template <typename NbrHeap>
-Rcpp::List heap_to_r(const NbrHeap& heap)
-{
+template <typename NbrHeap> Rcpp::List heap_to_r(const NbrHeap &heap) {
   const std::size_t npoints = heap.n_points;
   const std::size_t nnbrs = heap.n_nbrs;
 
@@ -188,10 +158,8 @@ Rcpp::List heap_to_r(const NbrHeap& heap)
     }
   }
 
-  return Rcpp::List::create(
-    Rcpp::Named("idx") = idxres,
-    Rcpp::Named("dist") = distres
-  );
+  return Rcpp::List::create(Rcpp::Named("idx") = idxres,
+                            Rcpp::Named("dist") = distres);
 }
 
 #endif // RNND_RNN_H

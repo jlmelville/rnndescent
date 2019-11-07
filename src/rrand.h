@@ -1,4 +1,5 @@
-//  rnndescent -- Nearest Neighbor Descent method for approximate nearest neighbors
+//  rnndescent -- Nearest Neighbor Descent method for approximate nearest
+//  neighbors
 //
 //  Copyright (C) 2019 James Melville
 //
@@ -32,14 +33,12 @@ struct TauRand {
 
   tau_prng prng;
 
-  TauRand(): prng(random64(), random64(), random64()) {}
-  TauRand(uint64_t state0, uint64_t state1, uint64_t state2) :
-    prng(state0, state1, state2) {}
+  TauRand() : prng(random64(), random64(), random64()) {}
+  TauRand(uint64_t state0, uint64_t state1, uint64_t state2)
+      : prng(state0, state1, state2) {}
 
   // a random uniform value between 0 and 1
-  double unif() {
-    return prng.rand();
-  }
+  double unif() { return prng.rand(); }
 };
 
 #endif // RNND_RRAND_H

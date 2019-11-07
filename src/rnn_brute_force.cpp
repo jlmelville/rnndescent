@@ -17,26 +17,21 @@
 //  You should have received a copy of the GNU General Public License
 //  along with rnndescent.  If not, see <http://www.gnu.org/licenses/>.
 
-#include <Rcpp.h>
-#include "heap.h"
 #include "distance.h"
+#include "heap.h"
 #include "nn_brute_force.h"
 #include "rnn.h"
 #include "rnn_brute_force_parallel.h"
+#include <Rcpp.h>
 
-#define BruteForce(Distance)                                      \
-return rnn_brute_force_impl<Distance>(                            \
-    data, k, parallelize, grain_size, verbose);
+#define BruteForce(Distance)                                                   \
+  return rnn_brute_force_impl<Distance>(data, k, parallelize, grain_size,      \
+                                        verbose);
 
 template <typename Distance>
-Rcpp::List rnn_brute_force_impl(
-    Rcpp::NumericMatrix data,
-    int k,
-    bool parallelize = false,
-    std::size_t grain_size = 1,
-    bool verbose = false
-  )
-{
+Rcpp::List
+rnn_brute_force_impl(Rcpp::NumericMatrix data, int k, bool parallelize = false,
+                     std::size_t grain_size = 1, bool verbose = false) {
   const std::size_t n_points = data.nrow();
   const std::size_t n_nbrs = k;
 
@@ -50,8 +45,7 @@ Rcpp::List rnn_brute_force_impl(
 
   if (parallelize) {
     nnbf_parallel(neighbor_heap, distance, progress, grain_size);
-  }
-  else {
+  } else {
     nnbf(neighbor_heap, distance, progress);
   }
 
@@ -59,35 +53,26 @@ Rcpp::List rnn_brute_force_impl(
 }
 
 // [[Rcpp::export]]
-Rcpp::List rnn_brute_force(
-    Rcpp::NumericMatrix data,
-    int k,
-    const std::string& metric = "euclidean",
-    bool parallelize = false,
-    std::size_t grain_size = 1,
-    bool verbose = false)
-{
+Rcpp::List rnn_brute_force(Rcpp::NumericMatrix data, int k,
+                           const std::string &metric = "euclidean",
+                           bool parallelize = false, std::size_t grain_size = 1,
+                           bool verbose = false) {
   if (metric == "euclidean") {
     using Distance = Euclidean<float, float>;
     BruteForce(Distance)
-  }
-  else if (metric == "l2") {
+  } else if (metric == "l2") {
     using Distance = L2<float, float>;
     BruteForce(Distance)
-  }
-  else if (metric == "cosine") {
+  } else if (metric == "cosine") {
     using Distance = Cosine<float, float>;
     BruteForce(Distance)
-  }
-  else if (metric == "manhattan") {
+  } else if (metric == "manhattan") {
     using Distance = Manhattan<float, float>;
     BruteForce(Distance)
-  }
-  else if (metric == "hamming") {
+  } else if (metric == "hamming") {
     using Distance = Hamming<uint8_t, std::size_t>;
     BruteForce(Distance)
-  }
-  else {
+  } else {
     Rcpp::stop("Bad metric");
   }
 }

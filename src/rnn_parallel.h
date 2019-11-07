@@ -27,16 +27,12 @@
 #include <RcppParallel.h>
 
 template <typename Progress>
-void batch_parallel_for(
-    RcppParallel::Worker& worker,
-    Progress& progress,
-    std::size_t n,
-    std::size_t min_batch,
-    std::size_t grain_size) {
+void batch_parallel_for(RcppParallel::Worker &worker, Progress &progress,
+                        std::size_t n, std::size_t min_batch,
+                        std::size_t grain_size) {
   if (n <= min_batch) {
     RcppParallel::parallelFor(0, n, worker, grain_size);
-  }
-  else {
+  } else {
     std::size_t begin = 0;
     std::size_t end = min_batch;
     while (true) {

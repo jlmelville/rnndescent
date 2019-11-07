@@ -22,11 +22,11 @@
 
 #include <Rcpp.h>
 // [[Rcpp::depends(RcppParallel)]]
-#include <RcppParallel.h>
-#include "rnn_parallel.h"
 #include "heap.h"
+#include "rnn_parallel.h"
+#include <RcppParallel.h>
 
-template<typename Distance>
+template <typename Distance>
 struct BruteForceWorker : public RcppParallel::Worker {
 
   SimpleNeighborHeap neighbor_heap;
@@ -34,15 +34,9 @@ struct BruteForceWorker : public RcppParallel::Worker {
   const std::size_t n_points;
   const std::size_t n_nbrs;
 
-  BruteForceWorker(
-    SimpleNeighborHeap& neighbor_heap,
-    Distance& distance
-  ) :
-    neighbor_heap(neighbor_heap),
-    distance(distance),
-    n_points(neighbor_heap.n_points),
-    n_nbrs(neighbor_heap.n_nbrs)
-  {}
+  BruteForceWorker(SimpleNeighborHeap &neighbor_heap, Distance &distance)
+      : neighbor_heap(neighbor_heap), distance(distance),
+        n_points(neighbor_heap.n_points), n_nbrs(neighbor_heap.n_nbrs) {}
 
   void operator()(std::size_t begin, std::size_t end) {
     for (std::size_t i = begin; i < end; i++) {
@@ -58,15 +52,9 @@ struct BruteForceWorker : public RcppParallel::Worker {
   }
 };
 
-template <typename Distance,
-          typename Progress>
-void nnbf_parallel(
-    SimpleNeighborHeap& neighbor_heap,
-    Distance& distance,
-    Progress& progress,
-    std::size_t grain_size = 1
-    )
-{
+template <typename Distance, typename Progress>
+void nnbf_parallel(SimpleNeighborHeap &neighbor_heap, Distance &distance,
+                   Progress &progress, std::size_t grain_size = 1) {
   BruteForceWorker<Distance> worker(neighbor_heap, distance);
 
   batch_parallel_for(worker, progress, worker.n_points, 64, grain_size);
