@@ -19,9 +19,9 @@
 
 #include "distance.h"
 #include "heap.h"
-#include "nn_brute_force.h"
+#include "bruteforce.h"
 #include "rnn.h"
-#include "rnn_brute_force_parallel.h"
+#include "rnn_bruteforceparallel.h"
 #include <Rcpp.h>
 
 #define BruteForce(Distance)                                                   \

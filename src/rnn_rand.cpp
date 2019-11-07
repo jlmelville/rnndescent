@@ -19,7 +19,7 @@
 
 #include "distance.h"
 #include "rnn.h"
-#include "rnn_rand_parallel.h"
+#include "rnn_randparallel.h"
 #include <Rcpp.h>
 
 #define RandomNbrs(Distance)                                                   \

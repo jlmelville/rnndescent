@@ -26,7 +26,7 @@
 // [[Rcpp::depends(RcppProgress)]]
 #include <progress.hpp>
 
-#include "graph_update.h"
+#include "graphupdate.h"
 #include "heap.h"
 
 inline std::string time_unit(int u) {

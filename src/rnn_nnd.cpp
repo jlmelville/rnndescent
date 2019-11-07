@@ -20,10 +20,10 @@
 #include <Rcpp.h>
 
 #include "distance.h"
-#include "graph_update.h"
+#include "graphupdate.h"
 #include "nndescent.h"
 #include "rnn.h"
-#include "rnnd_parallel.h"
+#include "rnn_nndparallel.h"
 
 #define NND_IMPL(NNDImpl, Distance, Rand, GraphUpdater)                        \
   return nn_descent_impl<NNDImpl, GraphUpdater, Distance, Rand>(               \

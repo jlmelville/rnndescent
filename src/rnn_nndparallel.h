@@ -26,11 +26,11 @@
 // [[Rcpp::depends(RcppParallel)]]
 #include <RcppParallel.h>
 
-#include "graph_update.h"
+#include "graphupdate.h"
 #include "heap.h"
 #include "nndescent.h"
 
-#include "rrand.h"
+#include "rnn_rng.h"
 
 struct LockingCandidatesWorker : public RcppParallel::Worker {
   const NeighborHeap &current_graph;
