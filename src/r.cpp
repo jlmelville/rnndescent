@@ -25,32 +25,35 @@
 #include "rnn.h"
 #include "rnnd_parallel.h"
 
-#define NND_IMPL(DistType, RandType, GraphUpdaterType)            \
-return nn_descent_impl<GraphUpdaterType,                          \
+#define NND_IMPL(NNDImplT, DistType, RandType, GraphUpdaterType)  \
+return nn_descent_impl<NNDImplT, GraphUpdaterType,                \
                        DistType,                                  \
                        RandType>                                  \
-  (data, idx, dist, max_candidates, n_iters, delta, parallelize,  \
-   grain_size, block_size, verbose);
+  (data, idx, dist, nnd_impl, max_candidates, n_iters, delta, verbose);
 
 #define NND_UPDATER(DistType, RandType, low_memory, parallelize)  \
 if (parallelize) {                                                \
+  using NNDImplT = NNDParallel;                                   \
+  NNDImplT nnd_impl(block_size, grain_size);                      \
   if (low_memory) {                                               \
     using GraphUpdaterType = GraphUpdater<DistType>;              \
-    NND_IMPL(DistType, RandType, GraphUpdaterType)                \
+    NND_IMPL(NNDImplT, DistType, RandType, GraphUpdaterType)      \
   }                                                               \
   else {                                                          \
     using GraphUpdaterType = GraphUpdaterHiMem<DistType>;         \
-    NND_IMPL(DistType, RandType, GraphUpdaterType)                \
+    NND_IMPL(NNDImplT, DistType, RandType, GraphUpdaterType)      \
   }                                                               \
 }                                                                 \
 else {                                                            \
+  using NNDImplT = NNDSerial;                                     \
+  NNDImplT nnd_impl;                                              \
   if (low_memory) {                                               \
     using GraphUpdaterType = SerialGraphUpdater<DistType>;        \
-    NND_IMPL(DistType, RandType, GraphUpdaterType)                \
+    NND_IMPL(NNDImplT, DistType, RandType, GraphUpdaterType)      \
   }                                                               \
   else {                                                          \
     using GraphUpdaterType = SerialGraphUpdaterHiMem<DistType>;   \
-    NND_IMPL(DistType, RandType, GraphUpdaterType)                \
+    NND_IMPL(NNDImplT, DistType, RandType, GraphUpdaterType)      \
   }                                                               \
 }
 
@@ -62,19 +65,76 @@ else {                                                            \
   NND_UPDATER(DistType, RRand, low_memory, parallelize)           \
 }
 
-template <typename GraphUpdaterT,
+
+struct NNDSerial {
+  template <template<typename> class GraphUpdaterT,
+            typename Distance,
+            typename Rand,
+            typename Progress>
+  void operator()
+  (
+      NeighborHeap& current_graph,
+      GraphUpdaterT<Distance>& graph_updater,
+      const std::size_t max_candidates,
+      const std::size_t n_iters,
+      Rand& rand,
+      Progress& progress,
+      const double tol,
+      bool verbose
+  )
+  {
+    nnd_full(current_graph, graph_updater, max_candidates, n_iters, rand,
+             progress, tol, verbose);
+  }
+};
+
+
+
+struct NNDParallel {
+  std::size_t block_size;
+  std::size_t grain_size;
+
+  NNDParallel(
+    std::size_t block_size,
+    std::size_t grain_size
+  ) :
+    block_size(block_size),
+    grain_size(grain_size)
+  {}
+
+  template <template<typename> class GraphUpdaterT,
+            typename Distance,
+            typename Rand,
+            typename Progress>
+  void operator()
+  (
+      NeighborHeap& current_graph,
+      GraphUpdaterT<Distance>& graph_updater,
+      const std::size_t max_candidates,
+      const std::size_t n_iters,
+      Rand& rand,
+      Progress& progress,
+      const double tol,
+      bool verbose
+  )
+  {
+    nnd_parallel(current_graph, graph_updater, max_candidates, n_iters, rand,
+                 progress, tol, grain_size, block_size, verbose);
+  }
+};
+
+template <typename NNDImplT,
+          typename GraphUpdaterT,
           typename Distance,
           typename Rand>
 Rcpp::List nn_descent_impl(
     Rcpp::NumericMatrix data,
     Rcpp::IntegerMatrix idx,
     Rcpp::NumericMatrix dist,
+    NNDImplT& nnd_impl,
     const std::size_t max_candidates = 50,
     const std::size_t n_iters = 10,
     const double delta = 0.001,
-    bool parallelize = false,
-    std::size_t grain_size = 1,
-    std::size_t block_size = 16384,
     bool verbose = false) {
   const std::size_t n_points = idx.nrow();
   const std::size_t n_nbrs = idx.ncol();
@@ -89,16 +149,10 @@ Rcpp::List nn_descent_impl(
   r_to_heap(current_graph, distance, idx, dist);
   GraphUpdaterT graph_updater(current_graph, distance);
   HeapSumProgress progress(current_graph, n_iters, verbose);
-
   const double tol = delta * n_nbrs * n_points;
-  if (parallelize) {
-    nnd_parallel(current_graph, graph_updater, max_candidates, n_iters, rand,
-                 progress, tol, grain_size, block_size, verbose);
-  }
-  else {
-    nnd_full(current_graph, graph_updater, max_candidates, n_iters, rand,
-             progress, tol, verbose);
-  }
+
+  nnd_impl(current_graph, graph_updater, max_candidates, n_iters, rand,
+           progress, tol, verbose);
 
   return heap_to_r(current_graph);
 }

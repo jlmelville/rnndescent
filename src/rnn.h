@@ -168,8 +168,7 @@ void
         if (k < 0 || k > max_idx) {
           Rcpp::stop("Bad indexes in input");
         }
-        heap_initializer.generate(i, k, i);
-        heap_initializer.apply();
+        heap_initializer.generate_and_apply(i, k);
       }
     }
   }

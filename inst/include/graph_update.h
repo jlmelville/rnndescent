@@ -229,6 +229,15 @@ struct SerialGraphUpdater {
     upd_d(0)
   {}
 
+  std::size_t generate_and_apply(
+      const std::size_t p,
+      const std::size_t q
+  )
+  {
+    generate(p, q, p);
+    return apply();
+  }
+
   void generate(
       const std::size_t p,
       const std::size_t q,
@@ -277,6 +286,15 @@ struct SerialGraphUpdaterHiMem {
     upd_q(NeighborHeap::npos())
   {}
 
+  std::size_t generate_and_apply(
+      const std::size_t p,
+      const std::size_t q
+  )
+  {
+    generate(p, q, p);
+    return apply();
+  }
+
   void generate(
       const std::size_t p,
       const std::size_t q,
@@ -291,7 +309,7 @@ struct SerialGraphUpdaterHiMem {
     upd_q = qq;
   }
 
-  size_t apply()
+  std::size_t apply()
   {
     std::size_t c = 0;
 

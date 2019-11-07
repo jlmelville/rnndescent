@@ -157,8 +157,7 @@ std::size_t local_join(
         if (q == NeighborHeap::npos()) {
           continue;
         }
-        graph_updater.generate(p, q, i);
-        c += graph_updater.apply();
+        c += graph_updater.generate_and_apply(p, q);
       }
 
       for (std::size_t k = 0; k < max_candidates; k++) {
@@ -166,8 +165,7 @@ std::size_t local_join(
         if (q == NeighborHeap::npos()) {
           continue;
         }
-        graph_updater.generate(p, q, i);
-        c += graph_updater.apply();
+        c += graph_updater.generate_and_apply(p, q);
       }
     }
     progress.check_interrupt();
