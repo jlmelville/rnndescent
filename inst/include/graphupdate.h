@@ -95,7 +95,7 @@ template <typename Distance> struct BatchGraphUpdater {
   void generate(const std::size_t p, const std::size_t q,
                 const std::size_t key) {
     double d = distance(p, q);
-    if (current_graph.belongs(p, q, d)) {
+    if (current_graph.either_belongs(p, q, d)) {
       updates[key].emplace_back(p, q, d);
     }
   }
@@ -139,7 +139,7 @@ template <typename Distance> struct BatchGraphUpdaterHiMem {
       return;
     }
     double d = distance(p, q);
-    if (current_graph.belongs(p, q, d)) {
+    if (current_graph.either_belongs(p, q, d)) {
       updates[key].emplace_back(pp, qq, d);
     }
   }
@@ -204,7 +204,7 @@ template <typename Distance> struct SerialGraphUpdater {
 
   void generate(const std::size_t p, const std::size_t q, const std::size_t) {
     double d = distance(p, q);
-    if (current_graph.belongs(p, q, d)) {
+    if (current_graph.either_belongs(p, q, d)) {
       upd_p = p;
       upd_q = q;
       upd_d = d;
@@ -355,7 +355,7 @@ template <typename Distance> struct BatchGraphUpdaterVeryHiMem {
       return;
     }
     double d = distance(p, q);
-    if (current_graph.belongs(p, q, d)) {
+    if (current_graph.either_belongs(p, q, d)) {
       updates[key].emplace_back(pp, qq, d);
     }
   }
