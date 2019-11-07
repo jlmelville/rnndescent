@@ -27,15 +27,11 @@ void set_seed();
 uint64_t random64();
 
 struct TauRand {
-
   tau_prng prng;
-
-  TauRand() : prng(random64(), random64(), random64()) {}
-  TauRand(uint64_t state0, uint64_t state1, uint64_t state2)
-      : prng(state0, state1, state2) {}
-
+  TauRand();
+  TauRand(uint64_t state0, uint64_t state1, uint64_t state2);
   // a random uniform value between 0 and 1
-  double unif() { return prng.rand(); }
+  double unif();
 };
 
 #endif // RNN_RNG_H

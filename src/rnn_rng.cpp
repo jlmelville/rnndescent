@@ -34,3 +34,8 @@ void set_seed() {
 uint64_t random64() {
   return R::runif(0, 1) * std::numeric_limits<uint64_t>::max();
 }
+
+TauRand::TauRand() : prng(random64(), random64(), random64()) {}
+TauRand::TauRand(uint64_t state0, uint64_t state1, uint64_t state2)
+    : prng(state0, state1, state2) {}
+double TauRand::unif() { return prng.rand(); }

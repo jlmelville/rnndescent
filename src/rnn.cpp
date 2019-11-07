@@ -20,6 +20,8 @@
 #include <chrono>
 
 #include <Rcpp.h>
+// [[Rcpp::depends(RcppProgress)]]
+#include <progress.hpp>
 
 #include "rnn.h"
 
@@ -47,4 +49,51 @@ void print_time(bool print_date) {
 void ts(const std::string &msg) {
   print_time();
   Rcpp::Rcout << msg << std::endl;
+}
+
+double RRand::unif() { return Rcpp::runif(1, 0.0, 1.0)[0]; }
+
+HeapSumProgress::HeapSumProgress(NeighborHeap &neighbor_heap,
+                                 std::size_t n_iters, bool verbose)
+    : neighbor_heap(neighbor_heap), n_iters(n_iters), verbose(verbose) {}
+void HeapSumProgress::update(std::size_t n) {
+  if (verbose) {
+    std::ostringstream os;
+    os << (n + 1) << " / " << n_iters << " " << dist_sum();
+    ts(os.str());
+  }
+}
+double HeapSumProgress::dist_sum() const {
+  const std::size_t n_points = neighbor_heap.n_points;
+  const std::size_t n_nbrs = neighbor_heap.n_nbrs;
+  double sum = 0.0;
+  for (std::size_t i = 0; i < n_points; i++) {
+    const std::size_t innbrs = i * n_nbrs;
+    for (std::size_t j = 0; j < n_nbrs; j++) {
+      sum += neighbor_heap.dist[innbrs + j];
+    }
+  }
+  return sum;
+}
+void HeapSumProgress::stopping_early() {}
+bool HeapSumProgress::check_interrupt() {
+  try {
+    Rcpp::checkUserInterrupt();
+  } catch (Rcpp::internal::InterruptedException &) {
+    return true;
+  }
+  return false;
+}
+
+RPProgress::RPProgress(std::size_t n_iters, bool verbose)
+    : progress(n_iters, verbose), n_iters(n_iters), verbose(verbose) {}
+void RPProgress::increment(std::size_t amount) { progress.increment(amount); }
+void RPProgress::update(std::size_t current) { progress.update(current); }
+void RPProgress::stopping_early() { progress.update(n_iters); }
+bool RPProgress::check_interrupt() {
+  if (Progress::check_abort()) {
+    progress.cleanup();
+    return true;
+  }
+  return false;
 }

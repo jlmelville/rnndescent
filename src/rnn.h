@@ -33,7 +33,7 @@ void ts(const std::string &msg);
 
 struct RRand {
   // a random uniform value between 0 and 1
-  double unif() { return Rcpp::runif(1, 0.0, 1.0)[0]; }
+  double unif();
 };
 
 // Sums the distances in a neighbor heap as a way of measuring progress.
@@ -44,61 +44,23 @@ struct HeapSumProgress {
   bool verbose;
 
   HeapSumProgress(NeighborHeap &neighbor_heap, std::size_t n_iters,
-                  bool verbose)
-      : neighbor_heap(neighbor_heap), n_iters(n_iters), verbose(verbose) {}
-
-  void update(std::size_t n) {
-    if (verbose) {
-      std::ostringstream os;
-      os << (n + 1) << " / " << n_iters << " " << dist_sum();
-      ts(os.str());
-    }
-  }
-
-  double dist_sum() const {
-    const std::size_t n_points = neighbor_heap.n_points;
-    const std::size_t n_nbrs = neighbor_heap.n_nbrs;
-    double sum = 0.0;
-    for (std::size_t i = 0; i < n_points; i++) {
-      const std::size_t innbrs = i * n_nbrs;
-      for (std::size_t j = 0; j < n_nbrs; j++) {
-        sum += neighbor_heap.dist[innbrs + j];
-      }
-    }
-
-    return sum;
-  }
-
-  void stopping_early() {}
-  bool check_interrupt() {
-    try {
-      Rcpp::checkUserInterrupt();
-    } catch (Rcpp::internal::InterruptedException &) {
-      return true;
-    }
-    return false;
-  }
+                  bool verbose);
+  void update(std::size_t n);
+  double dist_sum() const;
+  void stopping_early();
+  bool check_interrupt();
 };
 
 struct RPProgress {
-
   Progress progress;
   const std::size_t n_iters;
   bool verbose;
 
-  RPProgress(std::size_t n_iters, bool verbose)
-      : progress(n_iters, verbose), n_iters(n_iters), verbose(verbose) {}
-
-  void increment(std::size_t amount = 1) { progress.increment(amount); }
-  void update(std::size_t current) { progress.update(current); }
-  void stopping_early() { progress.update(n_iters); }
-  bool check_interrupt() {
-    if (Progress::check_abort()) {
-      progress.cleanup();
-      return true;
-    }
-    return false;
-  }
+  RPProgress(std::size_t n_iters, bool verbose);
+  void increment(std::size_t amount = 1);
+  void update(std::size_t current);
+  void stopping_early();
+  bool check_interrupt();
 };
 
 template <typename Distance>
