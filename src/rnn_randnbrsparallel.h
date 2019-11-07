@@ -17,8 +17,8 @@
 //  You should have received a copy of the GNU General Public License
 //  along with rnndescent.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef RNN_RANDPARALLEL_H
-#define RNN_RANDPARALLEL_H
+#ifndef RNN_RANDNBRSPARALLEL_H
+#define RNN_RANDNBRSPARALLEL_H
 
 #include <Rcpp.h>
 // [[Rcpp::depends(RcppParallel)]]
@@ -88,4 +88,4 @@ Rcpp::List random_knn_parallel(Rcpp::NumericMatrix data, int k,
                             Rcpp::Named("dist") = Rcpp::transpose(dist));
 }
 
-#endif // RNN_RANDPARALLEL_H
+#endif // RNN_RANDNBRSPARALLEL_H
