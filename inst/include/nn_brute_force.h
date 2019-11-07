@@ -29,13 +29,9 @@
 
 #include "heap.h"
 
-template <typename Distance,
-          typename Progress>
-void nnbf(
-    SimpleNeighborHeap& neighbor_heap,
-    Distance& distance,
-    Progress& progress)
-{
+template <typename Distance, typename Progress>
+void nnbf(SimpleNeighborHeap &neighbor_heap, Distance &distance,
+          Progress &progress) {
   const std::size_t n_points = neighbor_heap.n_points;
   const std::size_t n_nbrs = neighbor_heap.n_nbrs;
   for (std::size_t i = 0; i < n_points; i++) {

@@ -30,8 +30,7 @@
 #include <limits>
 
 // Base class storing neighbor data as a series of heaps
-struct NeighborHeap
-{
+struct NeighborHeap {
   // used in analogy with std::string::npos as used in std::string::find
   // to represent not found
   static constexpr std::size_t npos() { return static_cast<std::size_t>(-1); }
@@ -42,22 +41,16 @@ struct NeighborHeap
   std::vector<double> dist;
   std::vector<char> flags;
 
-  NeighborHeap(
-    const std::size_t n_points,
-    const std::size_t n_nbrs) :
-    n_points(n_points),
-    n_nbrs(n_nbrs),
-    idx(n_points * n_nbrs, npos()),
-    dist(n_points * n_nbrs, std::numeric_limits<double>::max()),
-    flags(n_points * n_nbrs, 0)
-  { }
+  NeighborHeap(const std::size_t n_points, const std::size_t n_nbrs)
+      : n_points(n_points), n_nbrs(n_nbrs), idx(n_points * n_nbrs, npos()),
+        dist(n_points * n_nbrs, std::numeric_limits<double>::max()),
+        flags(n_points * n_nbrs, 0) {}
 
-  NeighborHeap(const NeighborHeap&) = default;
+  NeighborHeap(const NeighborHeap &) = default;
   ~NeighborHeap() = default;
-  NeighborHeap& operator=(const NeighborHeap &) = default;
+  NeighborHeap &operator=(const NeighborHeap &) = default;
 
-  bool contains(std::size_t row, std::size_t index) const
-  {
+  bool contains(std::size_t row, std::size_t index) const {
     const std::size_t rnnbrs = row * n_nbrs;
     for (std::size_t i = 0; i < n_nbrs; i++) {
       if (index == idx[rnnbrs + i]) {
@@ -71,12 +64,8 @@ struct NeighborHeap
     return d < dist[p * n_nbrs] || (p != q && d < dist[q * n_nbrs]);
   }
 
-  std::size_t checked_push_pair(
-      std::size_t row,
-      double weight,
-      std::size_t idx,
-      bool flag)
-  {
+  std::size_t checked_push_pair(std::size_t row, double weight, std::size_t idx,
+                                bool flag) {
     std::size_t c = checked_push(row, weight, idx, flag);
     if (row != idx) {
       c += checked_push(idx, weight, row, flag);
@@ -84,12 +73,8 @@ struct NeighborHeap
     return c;
   }
 
-  std::size_t checked_push(
-      std::size_t row,
-      double weight,
-      std::size_t idx,
-      bool flag)
-  {
+  std::size_t checked_push(std::size_t row, double weight, std::size_t idx,
+                           bool flag) {
     if (weight >= dist[row * n_nbrs] || contains(row, idx)) {
       return 0;
     }
@@ -98,12 +83,8 @@ struct NeighborHeap
   }
 
   // This differs from the pynndescent version as it is truly unchecked
-  std::size_t unchecked_push(
-      std::size_t row,
-      double weight,
-      std::size_t index,
-      bool flag)
-  {
+  std::size_t unchecked_push(std::size_t row, double weight, std::size_t index,
+                             bool flag) {
     const std::size_t r0 = row * n_nbrs;
 
     // insert val at position zero
@@ -120,28 +101,22 @@ struct NeighborHeap
 
       if (ic1 >= n_nbrs) {
         break;
-      }
-      else if (ic2 >= n_nbrs) {
+      } else if (ic2 >= n_nbrs) {
         if (dist[r0 + ic1] >= weight) {
           i_swap = ic1;
-        }
-        else {
+        } else {
           break;
         }
-      }
-      else if (dist[r0 + ic1] >= dist[r0 + ic2]) {
+      } else if (dist[r0 + ic1] >= dist[r0 + ic2]) {
         if (weight < dist[r0 + ic1]) {
           i_swap = ic1;
-        }
-        else {
+        } else {
           break;
         }
-      }
-      else {
+      } else {
         if (weight < dist[r0 + ic2]) {
           i_swap = ic2;
-        }
-        else {
+        } else {
           break;
         }
       }
@@ -177,8 +152,7 @@ struct NeighborHeap
     }
   }
 
-  void siftdown(const std::size_t r0,
-                const std::size_t len) {
+  void siftdown(const std::size_t r0, const std::size_t len) {
     std::size_t elt = 0;
     std::size_t e21 = elt * 2 + 1;
 
@@ -197,8 +171,7 @@ struct NeighborHeap
 
       if (swap == elt) {
         break;
-      }
-      else {
+      } else {
         std::swap(dist[r0 + elt], dist[r0 + swap]);
         std::swap(idx[r0 + elt], idx[r0 + swap]);
         elt = swap;
@@ -210,40 +183,35 @@ struct NeighborHeap
   std::size_t index(std::size_t i, std::size_t j) const {
     return idx[i * n_nbrs + j];
   }
-  std::size_t& index(std::size_t i, std::size_t j) {
+  std::size_t &index(std::size_t i, std::size_t j) {
     return idx[i * n_nbrs + j];
   }
 
   double distance(std::size_t i, std::size_t j) const {
     return dist[i * n_nbrs + j];
   }
-  double& distance(std::size_t i, std::size_t j) {
+  double &distance(std::size_t i, std::size_t j) {
     return dist[i * n_nbrs + j];
   }
 
   char flag(std::size_t i, std::size_t j) const {
     return flags[i * n_nbrs + j];
   }
-  char& flag(std::size_t i, std::size_t j) {
-    return flags[i * n_nbrs + j];
-  }
+  char &flag(std::size_t i, std::size_t j) { return flags[i * n_nbrs + j]; }
 
-  void df(std::size_t i, std::size_t j,
-          double& distance, bool& flag) const {
+  void df(std::size_t i, std::size_t j, double &distance, bool &flag) const {
     auto pos = i * n_nbrs + j;
     distance = dist[pos];
     flag = flags[pos] == 1;
   }
-  void df(std::size_t ij, double& distance, bool& flag) const {
+  void df(std::size_t ij, double &distance, bool &flag) const {
     distance = dist[ij];
     flag = flags[ij] == 1;
   }
 };
 
-
 // Like NeighborHeap, but no flag vector
-struct SimpleNeighborHeap
-{
+struct SimpleNeighborHeap {
   static constexpr std::size_t npos() { return static_cast<std::size_t>(-1); }
 
   std::size_t n_points;
@@ -251,24 +219,16 @@ struct SimpleNeighborHeap
   std::vector<std::size_t> idx;
   std::vector<double> dist;
 
-  SimpleNeighborHeap(
-    const std::size_t n_points,
-    const std::size_t n_nbrs) :
-    n_points(n_points),
-    n_nbrs(n_nbrs),
-    idx(n_points * n_nbrs, npos()),
-    dist(n_points * n_nbrs, std::numeric_limits<double>::max())
-  { }
+  SimpleNeighborHeap(const std::size_t n_points, const std::size_t n_nbrs)
+      : n_points(n_points), n_nbrs(n_nbrs), idx(n_points * n_nbrs, npos()),
+        dist(n_points * n_nbrs, std::numeric_limits<double>::max()) {}
 
-  SimpleNeighborHeap(const SimpleNeighborHeap&) = default;
+  SimpleNeighborHeap(const SimpleNeighborHeap &) = default;
   ~SimpleNeighborHeap() = default;
-  SimpleNeighborHeap& operator=(const SimpleNeighborHeap &) = default;
+  SimpleNeighborHeap &operator=(const SimpleNeighborHeap &) = default;
 
-  std::size_t unchecked_push(
-      std::size_t row,
-      double weight,
-      std::size_t index)
-  {
+  std::size_t unchecked_push(std::size_t row, double weight,
+                             std::size_t index) {
     const std::size_t r0 = row * n_nbrs;
 
     // insert val at position zero
@@ -284,28 +244,22 @@ struct SimpleNeighborHeap
 
       if (ic1 >= n_nbrs) {
         break;
-      }
-      else if (ic2 >= n_nbrs) {
+      } else if (ic2 >= n_nbrs) {
         if (dist[r0 + ic1] >= weight) {
           i_swap = ic1;
-        }
-        else {
+        } else {
           break;
         }
-      }
-      else if (dist[r0 + ic1] >= dist[r0 + ic2]) {
+      } else if (dist[r0 + ic1] >= dist[r0 + ic2]) {
         if (weight < dist[r0 + ic1]) {
           i_swap = ic1;
-        }
-        else {
+        } else {
           break;
         }
-      }
-      else {
+      } else {
         if (weight < dist[r0 + ic2]) {
           i_swap = ic2;
-        }
-        else {
+        } else {
           break;
         }
       }
@@ -339,8 +293,7 @@ struct SimpleNeighborHeap
     }
   }
 
-  void siftdown(const std::size_t r0,
-                const std::size_t len) {
+  void siftdown(const std::size_t r0, const std::size_t len) {
     std::size_t elt = 0;
     std::size_t e21 = elt * 2 + 1;
 
@@ -359,8 +312,7 @@ struct SimpleNeighborHeap
 
       if (swap == elt) {
         break;
-      }
-      else {
+      } else {
         std::swap(dist[r0 + elt], dist[r0 + swap]);
         std::swap(idx[r0 + elt], idx[r0 + swap]);
         elt = swap;
@@ -377,9 +329,7 @@ struct SimpleNeighborHeap
     return dist[i * n_nbrs + j];
   }
 
-  double distance(std::size_t ij) const {
-    return dist[ij];
-  }
+  double distance(std::size_t ij) const { return dist[ij]; }
 };
 
 #endif // NDD_HEAP_H

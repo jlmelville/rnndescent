@@ -42,26 +42,24 @@ class tau_prng {
   static constexpr uint64_t MAGIC2 = static_cast<uint64_t>(4294967280);
 
 public:
-
-  static constexpr double DINT_MAX = static_cast<double>(std::numeric_limits<int>::max());
+  static constexpr double DINT_MAX =
+      static_cast<double>(std::numeric_limits<int>::max());
 
   tau_prng(uint64_t state0, uint64_t state1, uint64_t state2)
-    : state0(state0), state1(state1), state2(state2) {}
+      : state0(state0), state1(state1), state2(state2) {}
 
   int32_t operator()() {
     state0 = (((state0 & MAGIC0) << 12) & 0xffffffff) ^
-      ((((state0 << 13) & 0xffffffff) ^ state0) >> 19);
+             ((((state0 << 13) & 0xffffffff) ^ state0) >> 19);
     state1 = (((state1 & MAGIC1) << 4) & 0xffffffff) ^
-      ((((state1 << 2) & 0xffffffff) ^ state1) >> 25);
+             ((((state1 << 2) & 0xffffffff) ^ state1) >> 25);
     state2 = (((state2 & MAGIC2) << 17) & 0xffffffff) ^
-      ((((state2 << 3) & 0xffffffff) ^ state2) >> 11);
+             ((((state2 << 3) & 0xffffffff) ^ state2) >> 11);
 
     return state0 ^ state1 ^ state2;
   }
 
-  double rand() {
-    return std::abs(operator()() / DINT_MAX);
-  }
+  double rand() { return std::abs(operator()() / DINT_MAX); }
 };
 
 #endif // NND_TAUPRNG_H

@@ -31,11 +31,9 @@
 #include <cmath>
 #include <vector>
 
-template <typename In, typename Out>
-struct Euclidean
-{
-  Euclidean(const std::vector<In>& data, std::size_t ndim)
-    : data(data), ndim(ndim) { }
+template <typename In, typename Out> struct Euclidean {
+  Euclidean(const std::vector<In> &data, std::size_t ndim)
+      : data(data), ndim(ndim) {}
 
   Out operator()(std::size_t i, std::size_t j) const {
     Out sum = 0.0;
@@ -56,11 +54,8 @@ struct Euclidean
   typedef In in_type;
 };
 
-template <typename In, typename Out>
-struct L2
-{
-  L2(const std::vector<In>& data, std::size_t ndim)
-    : data(data), ndim(ndim) { }
+template <typename In, typename Out> struct L2 {
+  L2(const std::vector<In> &data, std::size_t ndim) : data(data), ndim(ndim) {}
 
   Out operator()(std::size_t i, std::size_t j) const {
     Out sum = 0.0;
@@ -81,13 +76,9 @@ struct L2
   typedef In in_type;
 };
 
-
-
-template <typename In, typename Out>
-struct Cosine
-{
-  Cosine(const std::vector<In>& _data, std::size_t ndim)
-    : data(_data), ndim(ndim)
+template <typename In, typename Out> struct Cosine {
+  Cosine(const std::vector<In> &_data, std::size_t ndim)
+      : data(_data), ndim(ndim)
 
   {
     // normalize data on input
@@ -125,12 +116,9 @@ struct Cosine
   typedef In in_type;
 };
 
-
-template <typename In, typename Out>
-struct Manhattan
-{
-  Manhattan(const std::vector<In>& data, std::size_t ndim)
-    : data(data), ndim(ndim) { }
+template <typename In, typename Out> struct Manhattan {
+  Manhattan(const std::vector<In> &data, std::size_t ndim)
+      : data(data), ndim(ndim) {}
 
   Out operator()(std::size_t i, std::size_t j) const {
     Out sum = 0.0;
@@ -150,10 +138,8 @@ struct Manhattan
   typedef In in_type;
 };
 
-template<typename In, typename Out>
-struct Hamming
-{
-  Hamming(const std::vector<In>& vdata, std::size_t vndim) {
+template <typename In, typename Out> struct Hamming {
+  Hamming(const std::vector<In> &vdata, std::size_t vndim) {
     // Instead of storing each bit as an element, we will pack them
     // into a series of 64-bit bitsets. Possibly compilers are smart enough
     // to use built in integer popcount routines for the bitset count()

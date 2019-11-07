@@ -37,30 +37,18 @@ struct Update {
   const std::size_t q;
   const double d;
 
-  Update() :
-    p(0),
-    q(0),
-    d(0) {}
+  Update() : p(0), q(0), d(0) {}
 
-  Update(
-    const std::size_t p,
-    const std::size_t q,
-    const double d
-  ) :
-    p(p),
-    q(q),
-    d(d)
-  {}
+  Update(const std::size_t p, const std::size_t q, const double d)
+      : p(p), q(q), d(d) {}
 
-  Update(Update&&) = default;
+  Update(Update &&) = default;
 };
 
 struct GraphCache {
   std::vector<std::unordered_set<std::size_t>> seen;
 
-  GraphCache(const NeighborHeap& neighbor_heap) :
-    seen(neighbor_heap.n_points)
-  {
+  GraphCache(const NeighborHeap &neighbor_heap) : seen(neighbor_heap.n_points) {
     const std::size_t n_points = neighbor_heap.n_points;
     const std::size_t n_nbrs = neighbor_heap.n_nbrs;
     for (std::size_t i = 0; i < n_points; i++) {
@@ -69,65 +57,50 @@ struct GraphCache {
         std::size_t p = neighbor_heap.idx[innbrs + j];
         if (i > p) {
           seen[p].emplace(i);
-        }
-        else {
+        } else {
           seen[i].emplace(p);
         }
       }
     }
   }
 
-  bool contains(const std::size_t& p,
-                const std::size_t& q) const
-  {
+  bool contains(const std::size_t &p, const std::size_t &q) const {
     return seen[p].find(q) != seen[p].end();
   }
 
-  bool insert(std::size_t p, std::size_t q)
-  {
+  bool insert(std::size_t p, std::size_t q) {
     return !seen[p].emplace(q).second;
   }
 };
 
-template <typename Distance>
-struct BatchGraphUpdater {
-  NeighborHeap& current_graph;
-  const Distance& distance;
+template <typename Distance> struct BatchGraphUpdater {
+  NeighborHeap &current_graph;
+  const Distance &distance;
   const std::size_t n_nbrs;
 
   std::vector<std::vector<Update>> updates;
 
-  BatchGraphUpdater(
-    NeighborHeap& current_graph,
-    const Distance& distance
-  ) :
-    current_graph(current_graph),
-    distance(distance),
-    n_nbrs(current_graph.n_nbrs),
-    updates(current_graph.n_points)
-  {}
+  BatchGraphUpdater(NeighborHeap &current_graph, const Distance &distance)
+      : current_graph(current_graph), distance(distance),
+        n_nbrs(current_graph.n_nbrs), updates(current_graph.n_points) {}
 
-  void generate(
-      const std::size_t p,
-      const std::size_t q,
-      const std::size_t key
-  )
-  {
+  void generate(const std::size_t p, const std::size_t q,
+                const std::size_t key) {
     double d = distance(p, q);
     if (current_graph.belongs(p, q, d)) {
       updates[key].emplace_back(p, q, d);
     }
   }
 
-  size_t apply()
-  {
+  size_t apply() {
     std::size_t c = 0;
     const std::size_t n_points = updates.size();
     for (std::size_t i = 0; i < n_points; i++) {
       const std::size_t n_updates = updates[i].size();
       for (std::size_t j = 0; j < n_updates; j++) {
-        const auto& update = updates[i][j];
-        c += current_graph.checked_push_pair(update.p, update.d, update.q, true);
+        const auto &update = updates[i][j];
+        c +=
+            current_graph.checked_push_pair(update.p, update.d, update.q, true);
       }
       updates[i].clear();
     }
@@ -135,33 +108,21 @@ struct BatchGraphUpdater {
   }
 };
 
-
-template <typename Distance>
-struct BatchGraphUpdaterHiMem {
-  NeighborHeap& current_graph;
-  const Distance& distance;
+template <typename Distance> struct BatchGraphUpdaterHiMem {
+  NeighborHeap &current_graph;
+  const Distance &distance;
   const std::size_t n_nbrs;
 
   GraphCache seen;
   std::vector<std::vector<Update>> updates;
 
-  BatchGraphUpdaterHiMem(
-    NeighborHeap& current_graph,
-    const Distance& distance
-  ) :
-    current_graph(current_graph),
-    distance(distance),
-    n_nbrs(current_graph.n_nbrs),
-    seen(current_graph),
-    updates(current_graph.n_points)
-  {}
+  BatchGraphUpdaterHiMem(NeighborHeap &current_graph, const Distance &distance)
+      : current_graph(current_graph), distance(distance),
+        n_nbrs(current_graph.n_nbrs), seen(current_graph),
+        updates(current_graph.n_points) {}
 
-  void generate(
-      const std::size_t p,
-      const std::size_t q,
-      const std::size_t key
-  )
-  {
+  void generate(const std::size_t p, const std::size_t q,
+                const std::size_t key) {
     // canonicalize the order of (p, q) so that qq >= pp
     std::size_t pp = p > q ? q : p;
     std::size_t qq = pp == p ? q : p;
@@ -175,17 +136,16 @@ struct BatchGraphUpdaterHiMem {
     }
   }
 
-  size_t apply()
-  {
+  size_t apply() {
     std::size_t c = 0;
     const std::size_t n_points = updates.size();
     for (std::size_t i = 0; i < n_points; i++) {
       const std::size_t n_updates = updates[i].size();
       for (std::size_t j = 0; j < n_updates; j++) {
-        const auto& update = updates[i][j];
-        const auto& p = update.p;
-        const auto& q = update.q;
-        const auto& d = update.d;
+        const auto &update = updates[i][j];
+        const auto &p = update.p;
+        const auto &q = update.q;
+        const auto &d = update.d;
         if (seen.insert(p, q)) {
           continue;
         }
@@ -206,57 +166,37 @@ struct BatchGraphUpdaterHiMem {
   }
 };
 
-
-template <typename Distance>
-struct SerialGraphUpdater {
-  NeighborHeap& current_graph;
-  const Distance& distance;
+template <typename Distance> struct SerialGraphUpdater {
+  NeighborHeap &current_graph;
+  const Distance &distance;
   const std::size_t n_nbrs;
 
   std::size_t upd_p;
   std::size_t upd_q;
   double upd_d;
 
-  SerialGraphUpdater(
-    NeighborHeap& current_graph,
-    const Distance& distance
-  ) :
-    current_graph(current_graph),
-    distance(distance),
-    n_nbrs(current_graph.n_nbrs),
-    upd_p(NeighborHeap::npos()),
-    upd_q(NeighborHeap::npos()),
-    upd_d(0)
-  {}
+  SerialGraphUpdater(NeighborHeap &current_graph, const Distance &distance)
+      : current_graph(current_graph), distance(distance),
+        n_nbrs(current_graph.n_nbrs), upd_p(NeighborHeap::npos()),
+        upd_q(NeighborHeap::npos()), upd_d(0) {}
 
-  std::size_t generate_and_apply(
-      const std::size_t p,
-      const std::size_t q
-  )
-  {
+  std::size_t generate_and_apply(const std::size_t p, const std::size_t q) {
     generate(p, q, p);
     return apply();
   }
 
-  void generate(
-      const std::size_t p,
-      const std::size_t q,
-      const std::size_t
-    )
-  {
+  void generate(const std::size_t p, const std::size_t q, const std::size_t) {
     double d = distance(p, q);
     if (current_graph.belongs(p, q, d)) {
       upd_p = p;
       upd_q = q;
       upd_d = d;
-    }
-    else {
+    } else {
       upd_p = NeighborHeap::npos();
     }
   }
 
-  size_t apply()
-  {
+  size_t apply() {
     if (upd_p == NeighborHeap::npos()) {
       return 0;
     }
@@ -264,43 +204,26 @@ struct SerialGraphUpdater {
   }
 };
 
-template <typename Distance>
-struct SerialGraphUpdaterHiMem {
-  NeighborHeap& current_graph;
-  const Distance& distance;
+template <typename Distance> struct SerialGraphUpdaterHiMem {
+  NeighborHeap &current_graph;
+  const Distance &distance;
   const std::size_t n_nbrs;
 
   GraphCache seen;
   std::size_t upd_p;
   std::size_t upd_q;
 
-  SerialGraphUpdaterHiMem(
-    NeighborHeap& current_graph,
-    const Distance& distance
-  ) :
-    current_graph(current_graph),
-    distance(distance),
-    n_nbrs(current_graph.n_nbrs),
-    seen(current_graph),
-    upd_p(NeighborHeap::npos()),
-    upd_q(NeighborHeap::npos())
-  {}
+  SerialGraphUpdaterHiMem(NeighborHeap &current_graph, const Distance &distance)
+      : current_graph(current_graph), distance(distance),
+        n_nbrs(current_graph.n_nbrs), seen(current_graph),
+        upd_p(NeighborHeap::npos()), upd_q(NeighborHeap::npos()) {}
 
-  std::size_t generate_and_apply(
-      const std::size_t p,
-      const std::size_t q
-  )
-  {
+  std::size_t generate_and_apply(const std::size_t p, const std::size_t q) {
     generate(p, q, p);
     return apply();
   }
 
-  void generate(
-      const std::size_t p,
-      const std::size_t q,
-      const std::size_t
-  )
-  {
+  void generate(const std::size_t p, const std::size_t q, const std::size_t) {
     // canonicalize the order of (p, q) so that qq >= pp
     std::size_t pp = p > q ? q : p;
     std::size_t qq = pp == p ? q : p;
@@ -309,8 +232,7 @@ struct SerialGraphUpdaterHiMem {
     upd_q = qq;
   }
 
-  std::size_t apply()
-  {
+  std::size_t apply() {
     std::size_t c = 0;
 
     if (seen.insert(upd_p, upd_q)) {
@@ -331,6 +253,5 @@ struct SerialGraphUpdaterHiMem {
     return c;
   }
 };
-
 
 #endif // NND_UPDATE_H
