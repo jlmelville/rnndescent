@@ -134,9 +134,9 @@ random_knn <- function(data, k, metric = "euclidean", use_cpp = TRUE,
 #' @param use_cpp If \code{TRUE}, use the faster C++ code path.
 #' @param low_memory If \code{TRUE}, use a lower memory, but more
 #'   computationally expensive approach to index construction. Applies only if
-#'   \code{use_cpp = TRUE}. This can use a \emph{lot} of memory, so is
-#'   recommended only for small datasets and situations where you can't use
-#'   multiple threads.
+#'   \code{use_cpp = TRUE}. If set to \code{FALSE}, you should see a noticeable
+#'   speed improvement, especially when using a smaller number of threads, so
+#'   this is worth trying if you have the memory to spare.
 #' @param fast_rand If \code{TRUE}, use a faster random number generator than
 #'   the R PRNG. Probably acceptable for the needs of the NN descent algorithm.
 #'   Applies only if \code{use_cpp = TRUE}.
@@ -195,6 +195,12 @@ random_knn <- function(data, k, metric = "euclidean", use_cpp = TRUE,
 #' # To ensure that descent only stops if no improvements are made, set delta = 0
 #' set.seed(1337)
 #' iris_nn <- nnd_knn(iris, k = 4, metric = "euclidean", n_iters = 5, delta = 0)
+#'
+#' # A faster version of the algorithm is available that avoids repeated
+#' # distance calculations at the cost of using more RAM. Set low_memory to
+#' # FALSE to try it.
+#' set.seed(1337)
+#' iris_nn <- nnd_knn(iris, k = 4, metric = "euclidean", low_memory = FALSE)
 #' @references
 #' Dong, W., Moses, C., & Li, K. (2011, March).
 #' Efficient k-nearest neighbor graph construction for generic similarity measures.

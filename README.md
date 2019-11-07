@@ -75,6 +75,11 @@ res <- nnd_knn(irism, metric = "euclidean", init = iris_hnsw_nn, verbose = TRUE)
 
 # search can be multi-threaded
 res <- nnd_knn(irism, metric = "euclidean", init = iris_hnsw_nn, verbose = TRUE, n_threads = 4)
+
+# a faster version of the algorithm is available that avoids some repeated distance
+# calculations at the cost of using more memory. Currently off by default.
+res <- nnd_knn(irism, metric = "euclidean", init = iris_hnsw_nn, verbose = TRUE, n_threads = 4, 
+               low_memory = FALSE)
 ```
 
 Currently, only the nearest neighbor descent part of PyNNDescent is implemented,
