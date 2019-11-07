@@ -329,8 +329,6 @@ struct SimpleNeighborHeap {
   double distance(std::size_t i, std::size_t j) const {
     return dist[i * n_nbrs + j];
   }
-
-  double distance(std::size_t ij) const { return dist[ij]; }
 };
 
 #endif // NDD_HEAP_H

@@ -38,10 +38,10 @@ void nnbf(SimpleNeighborHeap &neighbor_heap, Distance &distance,
     const std::size_t i0 = i * n_nbrs;
     for (std::size_t j = i; j < n_points; j++) {
       double weight = distance(i, j);
-      if (weight < neighbor_heap.distance(i0)) {
+      if (weight < neighbor_heap.dist[i0]) {
         neighbor_heap.unchecked_push(i, weight, j);
       }
-      if (i != j && weight < neighbor_heap.distance(j * n_nbrs)) {
+      if (i != j && weight < neighbor_heap.dist[j * n_nbrs]) {
         neighbor_heap.unchecked_push(j, weight, i);
       }
     }
