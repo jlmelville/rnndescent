@@ -148,7 +148,6 @@ std::size_t local_join(NeighborHeap &current_graph,
         c += graph_updater.generate_and_apply(p, q);
       }
     }
-    progress.check_interrupt();
   }
   return c;
 }
