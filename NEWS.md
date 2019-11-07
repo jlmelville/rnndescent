@@ -6,6 +6,8 @@
 * Random nearest neighbors has been renamed to `random_knn`.
 * Brute force and random nearest neighbors are now interruptible.
 * Progress bar will be shown if `verbose = TRUE`.
+* `fast_rand` option has been removed, as it only applied to single-threading,
+and had a negligible effect.
 
 Also, a number of changes inspired by recent work in
 <https://github.com/lmcinnes/pynndescent>:

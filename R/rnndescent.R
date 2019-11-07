@@ -137,9 +137,6 @@ random_knn <- function(data, k, metric = "euclidean", use_cpp = TRUE,
 #'   \code{use_cpp = TRUE}. If set to \code{FALSE}, you should see a noticeable
 #'   speed improvement, especially when using a smaller number of threads, so
 #'   this is worth trying if you have the memory to spare.
-#' @param fast_rand If \code{TRUE}, use a faster random number generator than
-#'   the R PRNG. Probably acceptable for the needs of the NN descent algorithm.
-#'   Applies only if \code{use_cpp = TRUE}.
 #' @param n_threads Number of threads to use.
 #' @param block_size Batch size for creating/applying local join updates. A
 #'  smaller value will apply the update more often, which may help reduce the
@@ -217,7 +214,6 @@ nnd_knn <- function(data, k = NULL,
                     delta = 0.001,
                     use_cpp = TRUE,
                     low_memory = TRUE,
-                    fast_rand = FALSE,
                     n_threads = 0,
                     block_size = 16384,
                     grain_size = 1,
@@ -265,7 +261,7 @@ nnd_knn <- function(data, k = NULL,
     res <- nn_descent(data, init$idx, init$dist,
       metric = actual_metric,
       n_iters = n_iters, max_candidates = max_candidates,
-      delta = delta, low_memory = low_memory, fast_rand = fast_rand,
+      delta = delta, low_memory = low_memory,
       parallelize = parallelize, grain_size = grain_size,
       block_size = block_size, verbose = verbose
     )

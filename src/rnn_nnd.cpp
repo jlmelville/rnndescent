@@ -52,13 +52,6 @@
     }                                                                          \
   }
 
-#define NNDR(Distance, low_memory, use_fast_rand, parallelize)                 \
-  if (use_fast_rand) {                                                         \
-    NND_UPDATER(Distance, TauRand, low_memory, parallelize)                    \
-  } else {                                                                     \
-    NND_UPDATER(Distance, RRand, low_memory, parallelize)                      \
-  }
-
 struct NNDSerial {
   template <template <typename> class GraphUpdater, typename Distance,
             typename Rand, typename Progress>
@@ -124,25 +117,24 @@ Rcpp::List nn_descent(Rcpp::NumericMatrix data, Rcpp::IntegerMatrix idx,
                       const std::size_t max_candidates = 50,
                       const std::size_t n_iters = 10,
                       const double delta = 0.001, bool low_memory = true,
-                      bool fast_rand = false, bool parallelize = false,
-                      std::size_t grain_size = 1,
+                      bool parallelize = false, std::size_t grain_size = 1,
                       std::size_t block_size = 16384, bool verbose = false) {
 
   if (metric == "euclidean") {
     using Distance = Euclidean<float, float>;
-    NNDR(Distance, low_memory, fast_rand, parallelize)
+    NND_UPDATER(Distance, RRand, low_memory, parallelize)
   } else if (metric == "l2") {
     using Distance = L2<float, float>;
-    NNDR(Distance, low_memory, fast_rand, parallelize)
+    NND_UPDATER(Distance, RRand, low_memory, parallelize)
   } else if (metric == "cosine") {
     using Distance = Cosine<float, float>;
-    NNDR(Distance, low_memory, fast_rand, parallelize)
+    NND_UPDATER(Distance, RRand, low_memory, parallelize)
   } else if (metric == "manhattan") {
     using Distance = Manhattan<float, float>;
-    NNDR(Distance, low_memory, fast_rand, parallelize)
+    NND_UPDATER(Distance, RRand, low_memory, parallelize)
   } else if (metric == "hamming") {
     using Distance = Hamming<uint8_t, std::size_t>;
-    NNDR(Distance, low_memory, fast_rand, parallelize)
+    NND_UPDATER(Distance, RRand, low_memory, parallelize)
   } else {
     Rcpp::stop("Bad metric: " + metric);
   }
