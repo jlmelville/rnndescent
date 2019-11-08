@@ -28,6 +28,10 @@
   return rnn_brute_force_impl<Distance>(data, k, parallelize, grain_size,      \
                                         verbose);
 
+#define BruteForceQuery(Distance)                                              \
+  return rnn_brute_force_query_impl<Distance>(x, y, k, parallelize,            \
+                                              grain_size, verbose);
+
 template <typename Distance>
 Rcpp::List
 rnn_brute_force_impl(Rcpp::NumericMatrix data, int k, bool parallelize = false,
@@ -72,6 +76,61 @@ Rcpp::List rnn_brute_force(Rcpp::NumericMatrix data, int k,
   } else if (metric == "hamming") {
     using Distance = Hamming<uint8_t, std::size_t>;
     BruteForce(Distance)
+  } else {
+    Rcpp::stop("Bad metric");
+  }
+}
+
+template <typename Distance>
+Rcpp::List
+rnn_brute_force_query_impl(Rcpp::NumericMatrix x, Rcpp::NumericMatrix y, int k,
+                           bool parallelize = false, std::size_t grain_size = 1,
+                           bool verbose = false) {
+  const std::size_t n_xpoints = x.nrow();
+  const std::size_t n_ypoints = y.nrow();
+  const std::size_t n_nbrs = k;
+
+  const std::size_t ndim = x.ncol();
+  x = Rcpp::transpose(x);
+  auto x_vec = Rcpp::as<std::vector<typename Distance::in_type>>(x);
+
+  y = Rcpp::transpose(y);
+  auto y_vec = Rcpp::as<std::vector<typename Distance::in_type>>(y);
+
+  RPProgress progress(n_ypoints, verbose);
+  Distance distance(x_vec, y_vec, ndim);
+  SimpleNeighborHeap neighbor_heap(n_ypoints, n_nbrs);
+
+  if (parallelize) {
+    nnbf_query(neighbor_heap, distance, n_xpoints, progress);
+  } else {
+    nnbf_query(neighbor_heap, distance, n_xpoints, progress);
+  }
+
+  return heap_to_r(neighbor_heap);
+}
+
+// [[Rcpp::export]]
+Rcpp::List rnn_brute_force_query(Rcpp::NumericMatrix x, Rcpp::NumericMatrix y,
+                                 int k, const std::string &metric = "euclidean",
+                                 bool parallelize = false,
+                                 std::size_t grain_size = 1,
+                                 bool verbose = false) {
+  if (metric == "euclidean") {
+    using Distance = Euclidean<float, float>;
+    BruteForceQuery(Distance)
+  } else if (metric == "l2") {
+    using Distance = L2<float, float>;
+    BruteForceQuery(Distance)
+  } else if (metric == "cosine") {
+    using Distance = Cosine<float, float>;
+    BruteForceQuery(Distance)
+  } else if (metric == "manhattan") {
+    using Distance = Manhattan<float, float>;
+    BruteForceQuery(Distance)
+  } else if (metric == "hamming") {
+    using Distance = Hamming<uint8_t, std::size_t>;
+    BruteForceQuery(Distance)
   } else {
     Rcpp::stop("Bad metric");
   }
