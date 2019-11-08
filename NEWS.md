@@ -1,4 +1,6 @@
-# rnndescent 0.0.2
+# rnndescent 0.0.3
+
+# rnndescent 0.0.2 (7 November 2019)
 
 ## New features
 
