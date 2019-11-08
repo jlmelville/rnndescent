@@ -52,4 +52,25 @@ void nnbf(SimpleNeighborHeap &neighbor_heap, Distance &distance,
   neighbor_heap.deheap_sort();
 }
 
+template <typename Distance, typename Progress>
+void nnbf_query(SimpleNeighborHeap &neighbor_heap, Distance &distance,
+                const std::size_t n_ref_points,
+                Progress &progress) {
+  const std::size_t n_points = neighbor_heap.n_points;
+  for (std::size_t i = 0; i < n_ref_points; i++) {
+    for (std::size_t j = 0; j < n_points; j++) {
+      double d = distance(i, j);
+      if (neighbor_heap.accepts(j, d)) {
+        neighbor_heap.unchecked_push(j, d, i);
+      }
+    }
+    progress.increment();
+    if (progress.check_interrupt()) {
+      break;
+    };
+  }
+
+  neighbor_heap.deheap_sort();
+}
+
 #endif // NND_NN_BRUTE_FORCE_H
