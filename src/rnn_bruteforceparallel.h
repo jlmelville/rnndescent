@@ -29,8 +29,8 @@
 template <typename Distance>
 struct BruteForceWorker : public RcppParallel::Worker {
 
-  SimpleNeighborHeap neighbor_heap;
-  Distance distance;
+  SimpleNeighborHeap& neighbor_heap;
+  Distance& distance;
   const std::size_t n_points;
   const std::size_t n_nbrs;
 
