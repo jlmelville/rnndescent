@@ -29,11 +29,16 @@
 
 #include <bitset>
 #include <cmath>
+#include <memory>
 #include <vector>
 
 template <typename In, typename Out> struct Euclidean {
   Euclidean(const std::vector<In> &data, std::size_t ndim)
-      : data(data), ndim(ndim) {}
+      : x(data), y(data), ndim(ndim) {}
+
+  Euclidean(const std::vector<In> &x, const std::vector<In> &y,
+            std::size_t ndim)
+      : x(x), y(y), ndim(ndim) {}
 
   Out operator()(std::size_t i, std::size_t j) const {
     Out sum = 0.0;
@@ -41,21 +46,25 @@ template <typename In, typename Out> struct Euclidean {
     const std::size_t dj = ndim * j;
 
     for (std::size_t d = 0; d < ndim; d++) {
-      const Out diff = data[di + d] - data[dj + d];
+      const Out diff = x[di + d] - y[dj + d];
       sum += diff * diff;
     }
 
     return std::sqrt(sum);
   }
 
-  const std::vector<In> data;
+  const std::vector<In> &x;
+  const std::vector<In> &y;
   const std::size_t ndim;
 
   typedef In in_type;
 };
 
 template <typename In, typename Out> struct L2 {
-  L2(const std::vector<In> &data, std::size_t ndim) : data(data), ndim(ndim) {}
+  L2(const std::vector<In> &data, std::size_t ndim)
+      : x(data), y(data), ndim(ndim) {}
+  L2(const std::vector<In> &x, const std::vector<In> &y, std::size_t ndim)
+      : x(x), y(y), ndim(ndim) {}
 
   Out operator()(std::size_t i, std::size_t j) const {
     Out sum = 0.0;
@@ -63,40 +72,44 @@ template <typename In, typename Out> struct L2 {
     const std::size_t dj = ndim * j;
 
     for (std::size_t d = 0; d < ndim; d++) {
-      const Out diff = data[di + d] - data[dj + d];
+      const Out diff = x[di + d] - y[dj + d];
       sum += diff * diff;
     }
 
     return sum;
   }
 
-  const std::vector<In> data;
+  const std::vector<In> &x;
+  const std::vector<In> &y;
   const std::size_t ndim;
 
   typedef In in_type;
 };
 
-template <typename In, typename Out> struct Cosine {
-  Cosine(const std::vector<In> &_data, std::size_t ndim)
-      : data(_data), ndim(ndim)
+template <typename T>
+void normalize(const std::vector<T> &vec, std::size_t ndim,
+               std::vector<T> &normalized) {
+  const std::size_t npoints = vec.size() / ndim;
+  for (std::size_t i = 0; i < npoints; i++) {
+    const std::size_t di = ndim * i;
+    T norm = 0.0;
 
-  {
-    // normalize data on input
-    const std::size_t npoints = data.size() / ndim;
-    for (std::size_t i = 0; i < npoints; i++) {
-      const std::size_t di = ndim * i;
-      In norm = 0.0;
-
-      for (std::size_t d = 0; d < ndim; d++) {
-        const auto val = data[di + d];
-        norm += val * val;
-      }
-      norm = 1.0 / (std::sqrt(norm) + 1e-30);
-      for (std::size_t d = 0; d < ndim; d++) {
-        data[di + d] *= norm;
-      }
+    for (std::size_t d = 0; d < ndim; d++) {
+      const auto val = vec[di + d];
+      norm += val * val;
+    }
+    norm = std::sqrt(norm) + 1e-30;
+    for (std::size_t d = 0; d < ndim; d++) {
+      normalized[di + d] = vec[di + d] / norm;
     }
   }
+}
+
+template <typename In, typename Out> struct CosineN {
+  CosineN(const std::vector<In> &data, std::size_t ndim)
+      : x(data), y(data), ndim(ndim) {}
+  CosineN(const std::vector<In> &x, const std::vector<In> &y, std::size_t ndim)
+      : x(x), y(y), ndim(ndim) {}
 
   Out operator()(std::size_t i, std::size_t j) const {
     const std::size_t di = ndim * i;
@@ -104,21 +117,53 @@ template <typename In, typename Out> struct Cosine {
 
     Out sum = 0.0;
     for (std::size_t d = 0; d < ndim; d++) {
-      sum += data[di + d] * data[dj + d];
+      sum += x[di + d] * y[dj + d];
     }
 
     return 1.0 - sum;
   }
 
-  std::vector<In> data;
+  const std::vector<In> x;
+  const std::vector<In> y;
   const std::size_t ndim;
+
+  typedef In in_type;
+};
+
+// normalize data on input
+template <typename In, typename Out> struct Cosine {
+  Cosine(const std::vector<In> &data, std::size_t ndim) : cosine_norm(nullptr) {
+    std::vector<In> xn(data.size());
+    normalize(data, ndim, xn);
+    const auto &yn = xn;
+    cosine_norm.reset(new CosineN<In, Out>(xn, yn, ndim));
+  }
+
+  Cosine(const std::vector<In> &x, const std::vector<In> &y, std::size_t ndim)
+      : cosine_norm(nullptr) {
+    std::vector<In> xn(x.size());
+    normalize(x, ndim, xn);
+
+    std::vector<In> yn(y.size());
+    normalize(y, ndim, yn);
+    cosine_norm.reset(new CosineN<In, Out>(xn, yn, ndim));
+  }
+
+  Out operator()(std::size_t i, std::size_t j) const {
+    return (*cosine_norm)(i, j);
+  }
+
+  std::unique_ptr<CosineN<In, Out>> cosine_norm;
 
   typedef In in_type;
 };
 
 template <typename In, typename Out> struct Manhattan {
   Manhattan(const std::vector<In> &data, std::size_t ndim)
-      : data(data), ndim(ndim) {}
+      : x(data), y(data), ndim(ndim) {}
+  Manhattan(const std::vector<In> &x, const std::vector<In> &y,
+            std::size_t ndim)
+      : x(x), y(y), ndim(ndim) {}
 
   Out operator()(std::size_t i, std::size_t j) const {
     Out sum = 0.0;
@@ -126,51 +171,54 @@ template <typename In, typename Out> struct Manhattan {
     const std::size_t dj = ndim * j;
 
     for (std::size_t d = 0; d < ndim; d++) {
-      sum += std::abs(data[di + d] - data[dj + d]);
+      sum += std::abs(x[di + d] - y[dj + d]);
     }
 
     return sum;
   }
 
-  const std::vector<In> data;
+  const std::vector<In> &x;
+  const std::vector<In> &y;
   const std::size_t ndim;
 
   typedef In in_type;
 };
 
-template <typename In, typename Out> struct Hamming {
-  Hamming(const std::vector<In> &vdata, std::size_t vndim) {
-    // Instead of storing each bit as an element, we will pack them
-    // into a series of 64-bit bitsets. Possibly compilers are smart enough
-    // to use built in integer popcount routines for the bitset count()
-    // method.
-    std::bitset<64> bits;
-    std::size_t bit_count = 0;
-    std::size_t vd_count = 0;
+template <typename T>
+void to_bitset(const std::vector<T> &vec, std::size_t ndim,
+               std::vector<std::bitset<64>> &bitvec) {
+  std::bitset<64> bits;
+  std::size_t bit_count = 0;
+  std::size_t vd_count = 0;
 
-    for (std::size_t i = 0; i < vdata.size(); i++) {
-      if (bit_count == 64 || vd_count == vndim) {
-        // filled up current bitset
-        data.push_back(bits);
-        bit_count = 0;
-        bits.reset();
+  for (std::size_t i = 0; i < vec.size(); i++) {
+    if (bit_count == 64 || vd_count == ndim) {
+      // filled up current bitset
+      bitvec.push_back(bits);
+      bit_count = 0;
+      bits.reset();
 
-        if (vd_count == vndim) {
-          // end of item
-          vd_count = 0;
-        }
+      if (vd_count == ndim) {
+        // end of item
+        vd_count = 0;
       }
-      bits[bit_count] = vdata[i];
-
-      ++vd_count;
-      ++bit_count;
     }
-    if (bit_count > 0) {
-      data.push_back(bits);
-    }
+    bits[bit_count] = vec[i];
 
-    ndim = std::ceil(vndim / 64.0);
+    ++vd_count;
+    ++bit_count;
   }
+  if (bit_count > 0) {
+    bitvec.push_back(bits);
+  }
+}
+
+template <typename Out> struct HammingB {
+  HammingB(const std::vector<std::bitset<64>> &data, std::size_t ndim)
+      : x(data), y(data), ndim(ndim) {}
+  HammingB(const std::vector<std::bitset<64>> &x,
+           const std::vector<std::bitset<64>> &y, std::size_t ndim)
+      : x(x), y(y), ndim(ndim) {}
 
   Out operator()(std::size_t i, std::size_t j) const {
     Out sum = 0;
@@ -178,14 +226,49 @@ template <typename In, typename Out> struct Hamming {
     const std::size_t dj = ndim * j;
 
     for (std::size_t d = 0; d < ndim; d++) {
-      sum += (data[di + d] ^ data[dj + d]).count();
+      sum += (x[di + d] ^ y[dj + d]).count();
     }
 
     return sum;
   }
 
-  std::vector<std::bitset<64>> data;
-  std::size_t ndim;
+  const std::vector<std::bitset<64>> x;
+  const std::vector<std::bitset<64>> y;
+  const std::size_t ndim;
+};
+
+template <typename In, typename Out> struct Hamming {
+  // Instead of storing each bit as an element, we will pack them
+  // into a series of 64-bit bitsets. Possibly compilers are smart enough
+  // to use built in integer popcount routines for the bitset count()
+  // method.
+  Hamming(const std::vector<In> &vdata, const std::size_t vndim)
+      : hammingb(nullptr) {
+    std::vector<std::bitset<64>> x;
+    to_bitset(vdata, vndim, x);
+    const auto &y = x;
+    const auto ndim = std::ceil(vndim / 64.0);
+    hammingb.reset(new HammingB<Out>(x, y, ndim));
+  }
+
+  Hamming(const std::vector<In> &x, const std::vector<In> &y,
+          const std::size_t vndim)
+      : hammingb(nullptr) {
+    std::vector<std::bitset<64>> bx;
+    to_bitset(x, vndim, bx);
+
+    std::vector<std::bitset<64>> by;
+    to_bitset(y, vndim, by);
+
+    const auto ndim = std::ceil(vndim / 64.0);
+    hammingb.reset(new HammingB<Out>(std::move(bx), std::move(by), ndim));
+  }
+
+  Out operator()(std::size_t i, std::size_t j) const {
+    return (*hammingb)(i, j);
+  }
+
+  std::unique_ptr<HammingB<Out>> hammingb;
 
   typedef In in_type;
 };
