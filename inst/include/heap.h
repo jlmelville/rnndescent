@@ -203,16 +203,6 @@ struct NeighborHeap {
     return flags[i * n_nbrs + j];
   }
   char &flag(std::size_t i, std::size_t j) { return flags[i * n_nbrs + j]; }
-
-  void df(std::size_t i, std::size_t j, double &distance, bool &flag) const {
-    auto pos = i * n_nbrs + j;
-    distance = dist[pos];
-    flag = flags[pos] == 1;
-  }
-  void df(std::size_t ij, double &distance, bool &flag) const {
-    distance = dist[ij];
-    flag = flags[ij] == 1;
-  }
 };
 
 // Like NeighborHeap, but no flag vector
