@@ -1,3 +1,5 @@
+# kNN Construction --------------------------------------------------------
+
 #' Calculate exact nearest neighbors by brute force.
 #'
 #' @param data Matrix of \code{n} items to generate random neighbors for.
@@ -281,6 +283,72 @@ nnd_knn <- function(data, k = NULL,
   tsmessage("Final dsum = ", formatC(sum(res$dist)))
   res
 }
+
+
+# kNN Queries -------------------------------------------------------------
+
+#' Query exact nearest neighbors by brute force.
+#'
+#' @param reference Matrix of \code{m} reference items. The nearest neighbors to the
+#'   queries are calculated from this data.
+#' @param query Matrix of \code{n} query items.
+#' @param k Number of nearest neighbors to return.
+#' @param metric Type of distance calculation to use. One of \code{"euclidean"},
+#'   \code{"l2"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"}
+#'   or \code{"hamming"}.
+#' @param n_threads Number of threads to use.
+#' @param grain_size Minimum batch size for multithreading. If the number of
+#'   items to process in a thread falls below this number, then no threads will
+#'   be used. Ignored if \code{n_threads < 1}.
+#' @param verbose If \code{TRUE}, log information to the console.
+#' @return a list containing:
+#' \itemize{
+#'   \item \code{idx} an n by k matrix containing the nearest neighbor
+#'   indices in \code{reference}.
+#'   \item \code{dist} an n by k matrix containing the nearest neighbor
+#'    distances to the items in \code{reference}.
+#' }
+#' @examples
+#' # 100 reference iris items
+#' iris_ref <- iris[iris$Species %in% c("setosa", "versicolor"), ]
+#'
+#' # 50 query items
+#' iris_query <- iris[iris$Species == "versicolor", ]
+#'
+#' # For each item in iris_query find the 4 nearest neighbors in iris_ref
+#' # If you pass a data frame, non-numeric columns are removed
+#' # set verbose = TRUE to get details on the progress being made
+#' iris_query_nn <- brute_force_knn_query(iris_ref, iris_query, k = 4, metric = "euclidean",
+#'                                        verbose = TRUE)
+#'
+#' # Manhattan (l1) distance
+#' iris_query_nn <- brute_force_knn_query(iris_ref, iris_query, k = 4, metric = "manhattan")
+#'
+#' @export
+brute_force_knn_query <- function(
+  reference,
+  query,
+  k,
+  metric = "euclidean",
+  n_threads = 0,
+  grain_size = 1,
+  verbose = FALSE) {
+
+  reference <- x2m(reference)
+  query <- x2m(query)
+
+  if (k > nrow(reference)) {
+    stop(k, " neighbors asked for, but only ", nrow(reference),
+         " items in the reference data")
+  }
+
+  parallelize <- n_threads > 0
+  if (parallelize) {
+    RcppParallel::setThreadOptions(numThreads = n_threads)
+  }
+  rnn_brute_force_query(reference, query, k, metric, parallelize, grain_size, verbose)
+}
+
 
 # Internals ---------------------------------------------------------------
 
