@@ -55,8 +55,8 @@ void build_candidates_full(NeighborHeap &current_graph, Rand &rand,
       std::size_t idx = current_graph.idx[ij];
 
       double d = rand.unif();
-      bool isn = current_graph.flags[ij] == 1;
-      if (isn) {
+      char isn = current_graph.flags[ij];
+      if (isn == 1) {
         new_candidate_neighbors.checked_push_pair(i, d, idx, isn);
       } else {
         old_candidate_neighbors.checked_push_pair(i, d, idx, isn);
@@ -161,7 +161,7 @@ std::size_t try_add(Heap<Distance> &current_graph, std::size_t i, std::size_t q,
   if (q > i || q == NeighborHeap::npos() || !seen.emplace(q).second) {
     return 0;
   }
-  return current_graph.add_pair(i, q, true);
+  return current_graph.add_pair(i, q, 1);
 }
 
 // Use neighbor-of-neighbor search rather than local join to update the kNN.

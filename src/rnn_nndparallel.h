@@ -64,8 +64,8 @@ struct LockingCandidatesWorker : public RcppParallel::Worker {
         std::size_t ij = innbrs + j;
         std::size_t idx = current_graph.idx[ij];
         double d = rand->unif();
-        bool isn = current_graph.flags[ij] == 1;
-        if (isn) {
+        char isn = current_graph.flags[ij];
+        if (isn == 1) {
           {
             tthread::lock_guard<tthread::mutex> guard(mutex);
             new_candidate_neighbors.checked_push_pair(i, d, idx, isn);

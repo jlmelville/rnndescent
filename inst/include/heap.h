@@ -70,7 +70,7 @@ struct NeighborHeap {
   bool accepts(std::size_t p, double d) const { return d < dist[p * n_nbrs]; }
 
   std::size_t checked_push_pair(std::size_t row, double weight, std::size_t idx,
-                                bool flag) {
+                                char flag) {
     std::size_t c = checked_push(row, weight, idx, flag);
     if (row != idx) {
       c += checked_push(idx, weight, row, flag);
@@ -79,8 +79,8 @@ struct NeighborHeap {
   }
 
   std::size_t checked_push(std::size_t row, double weight, std::size_t idx,
-                           bool flag) {
-    if (weight >= dist[row * n_nbrs] || contains(row, idx)) {
+                           char flag) {
+    if (!accepts(row, weight) || contains(row, idx)) {
       return 0;
     }
 
@@ -89,13 +89,13 @@ struct NeighborHeap {
 
   // This differs from the pynndescent version as it is truly unchecked
   std::size_t unchecked_push(std::size_t row, double weight, std::size_t index,
-                             bool flag) {
+                             char flag) {
     const std::size_t r0 = row * n_nbrs;
 
     // insert val at position zero
     dist[r0] = weight;
     idx[r0] = index;
-    flags[r0] = flag ? 1 : 0;
+    flags[r0] = flag;
 
     // descend the heap, swapping values until the max heap criterion is met
     std::size_t i = 0;
@@ -138,7 +138,7 @@ struct NeighborHeap {
     const std::size_t r0i = r0 + i;
     dist[r0i] = weight;
     idx[r0i] = index;
-    flags[r0i] = flag ? 1 : 0;
+    flags[r0i] = flag;
 
     return 1;
   }
