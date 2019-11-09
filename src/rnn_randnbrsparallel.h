@@ -88,4 +88,66 @@ Rcpp::List random_knn_parallel(Rcpp::NumericMatrix data, int k,
                             Rcpp::Named("dist") = Rcpp::transpose(dist));
 }
 
+template <typename Distance>
+struct RandomNbrQueryWorker : public RcppParallel::Worker {
+
+  const std::vector<typename Distance::in_type> reference_vec;
+  const std::vector<typename Distance::in_type> query_vec;
+
+  Distance distance;
+  const int nrefs;
+  const int k;
+
+  RcppParallel::RMatrix<int> indices;
+  RcppParallel::RMatrix<double> dist;
+
+  tthread::mutex mutex;
+
+  RandomNbrQueryWorker(Rcpp::NumericMatrix reference, Rcpp::NumericMatrix query,
+                       int k, Rcpp::IntegerMatrix output_indices,
+                       Rcpp::NumericMatrix output_dist)
+      : reference_vec(Rcpp::as<std::vector<typename Distance::in_type>>(
+            Rcpp::transpose(reference))),
+        query_vec(Rcpp::as<std::vector<typename Distance::in_type>>(
+            Rcpp::transpose(query))),
+        distance(reference_vec, query_vec, query.ncol()),
+        nrefs(reference.nrow()), k(k), indices(output_indices),
+        dist(output_dist) {}
+
+  void operator()(std::size_t begin, std::size_t end) {
+    for (int i = static_cast<int>(begin); i < static_cast<int>(end); i++) {
+      std::unique_ptr<Rcpp::IntegerVector> idxi(nullptr);
+      {
+        tthread::lock_guard<tthread::mutex> guard(mutex);
+        idxi.reset(new Rcpp::IntegerVector(dqrng::dqsample_int(nrefs, k)));
+      }
+      for (auto j = 0; j < k; j++) {
+        auto &ref_idx = (*idxi)[j];
+        indices(j, i) = ref_idx + 1;       // store val as 1-index
+        dist(j, i) = distance(ref_idx, i); // distance calcs are 0-indexed
+      }
+    }
+  }
+};
+
+template <typename Distance>
+Rcpp::List random_knn_query_parallel(Rcpp::NumericMatrix reference,
+                                     Rcpp::NumericMatrix query, int k,
+                                     std::size_t grain_size = 1,
+                                     bool verbose = false) {
+  set_seed();
+
+  const auto nr = query.nrow();
+  Rcpp::IntegerMatrix indices(k, nr);
+  Rcpp::NumericMatrix dist(k, nr);
+
+  RandomNbrQueryWorker<Distance> worker(reference, query, k, indices, dist);
+
+  RPProgress progress(nr, verbose);
+  const constexpr std::size_t min_batch = 4096;
+  batch_parallel_for(worker, progress, nr, min_batch, grain_size);
+  return Rcpp::List::create(Rcpp::Named("idx") = Rcpp::transpose(indices),
+                            Rcpp::Named("dist") = Rcpp::transpose(dist));
+}
+
 #endif // RNN_RANDNBRSPARALLEL_H

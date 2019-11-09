@@ -17,3 +17,7 @@ random_knn_cpp <- function(data, k, metric = "euclidean", parallelize = FALSE, g
     .Call(`_rnndescent_random_knn_cpp`, data, k, metric, parallelize, grain_size, verbose)
 }
 
+random_knn_query_cpp <- function(reference, query, k, metric = "euclidean", parallelize = FALSE, grain_size = 1L, verbose = FALSE) {
+    .Call(`_rnndescent_random_knn_query_cpp`, reference, query, k, metric, parallelize, grain_size, verbose)
+}
+

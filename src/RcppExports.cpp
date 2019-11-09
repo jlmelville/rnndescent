@@ -76,12 +76,30 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// random_knn_query_cpp
+Rcpp::List random_knn_query_cpp(Rcpp::NumericMatrix reference, Rcpp::NumericMatrix query, int k, const std::string& metric, bool parallelize, std::size_t grain_size, bool verbose);
+RcppExport SEXP _rnndescent_random_knn_query_cpp(SEXP referenceSEXP, SEXP querySEXP, SEXP kSEXP, SEXP metricSEXP, SEXP parallelizeSEXP, SEXP grain_sizeSEXP, SEXP verboseSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type reference(referenceSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type query(querySEXP);
+    Rcpp::traits::input_parameter< int >::type k(kSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
+    Rcpp::traits::input_parameter< bool >::type parallelize(parallelizeSEXP);
+    Rcpp::traits::input_parameter< std::size_t >::type grain_size(grain_sizeSEXP);
+    Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
+    rcpp_result_gen = Rcpp::wrap(random_knn_query_cpp(reference, query, k, metric, parallelize, grain_size, verbose));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_rnndescent_rnn_brute_force", (DL_FUNC) &_rnndescent_rnn_brute_force, 6},
     {"_rnndescent_rnn_brute_force_query", (DL_FUNC) &_rnndescent_rnn_brute_force_query, 7},
     {"_rnndescent_nn_descent", (DL_FUNC) &_rnndescent_nn_descent, 12},
     {"_rnndescent_random_knn_cpp", (DL_FUNC) &_rnndescent_random_knn_cpp, 6},
+    {"_rnndescent_random_knn_query_cpp", (DL_FUNC) &_rnndescent_random_knn_query_cpp, 7},
     {NULL, NULL, 0}
 };
 

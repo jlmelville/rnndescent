@@ -90,3 +90,75 @@ Rcpp::List random_knn_cpp(Rcpp::NumericMatrix data, int k,
     Rcpp::stop("Bad metric");
   }
 }
+
+#define RandomNbrsQuery(Distance)                                              \
+  if (parallelize) {                                                           \
+    return random_knn_query_parallel<Distance>(reference, query, k,            \
+                                               grain_size, verbose);           \
+  } else {                                                                     \
+    return random_knn_query_impl<Distance>(reference, query, k, verbose);      \
+  }
+
+template <typename Distance>
+Rcpp::List random_knn_query_impl(Rcpp::NumericMatrix reference,
+                                 Rcpp::NumericMatrix query, int k,
+                                 bool verbose) {
+  set_seed();
+
+  const auto nr = query.nrow();
+  const auto ndim = query.ncol();
+  const auto nrefs = reference.nrow();
+
+  Rcpp::IntegerMatrix indices(k, nr);
+  Rcpp::NumericMatrix dist(k, nr);
+
+  auto reference_vec = Rcpp::as<std::vector<typename Distance::in_type>>(
+      Rcpp::transpose(reference));
+  auto query_vec =
+      Rcpp::as<std::vector<typename Distance::in_type>>(Rcpp::transpose(query));
+  Distance distance(reference_vec, query_vec, ndim);
+  RPProgress progress(nr, verbose);
+
+  for (auto i = 0; i < nr; i++) {
+    auto idxi = dqrng::dqsample_int(nrefs, k); // 0-indexed
+    for (auto j = 0; j < k; j++) {
+      auto &ref_idx = idxi[j];
+      indices(j, i) = ref_idx + 1;       // store val as 1-index
+      dist(j, i) = distance(ref_idx, i); // distance calcs are 0-indexed
+    }
+    progress.increment();
+    if (progress.check_interrupt()) {
+      break;
+    };
+  }
+
+  return Rcpp::List::create(Rcpp::Named("idx") = Rcpp::transpose(indices),
+                            Rcpp::Named("dist") = Rcpp::transpose(dist));
+}
+
+// [[Rcpp::export]]
+Rcpp::List random_knn_query_cpp(Rcpp::NumericMatrix reference,
+                                Rcpp::NumericMatrix query, int k,
+                                const std::string &metric = "euclidean",
+                                bool parallelize = false,
+                                std::size_t grain_size = 1,
+                                bool verbose = false) {
+  if (metric == "euclidean") {
+    using Distance = Euclidean<float, float>;
+    RandomNbrsQuery(Distance)
+  } else if (metric == "l2") {
+    using Distance = L2<float, float>;
+    RandomNbrsQuery(Distance)
+  } else if (metric == "cosine") {
+    using Distance = Cosine<float, float>;
+    RandomNbrsQuery(Distance)
+  } else if (metric == "manhattan") {
+    using Distance = Manhattan<float, float>;
+    RandomNbrsQuery(Distance)
+  } else if (metric == "hamming") {
+    using Distance = Hamming<uint8_t, std::size_t>;
+    RandomNbrsQuery(Distance)
+  } else {
+    Rcpp::stop("Bad metric");
+  }
+}
