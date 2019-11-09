@@ -54,8 +54,7 @@ void nnbf(SimpleNeighborHeap &neighbor_heap, Distance &distance,
 
 template <typename Distance, typename Progress>
 void nnbf_query(SimpleNeighborHeap &neighbor_heap, Distance &distance,
-                const std::size_t n_ref_points,
-                Progress &progress) {
+                const std::size_t n_ref_points, Progress &progress) {
   const std::size_t n_points = neighbor_heap.n_points;
   for (std::size_t i = 0; i < n_ref_points; i++) {
     for (std::size_t j = 0; j < n_points; j++) {

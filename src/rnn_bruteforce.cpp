@@ -102,7 +102,8 @@ rnn_brute_force_query_impl(Rcpp::NumericMatrix x, Rcpp::NumericMatrix y, int k,
   SimpleNeighborHeap neighbor_heap(n_ypoints, n_nbrs);
 
   if (parallelize) {
-    nnbf_query(neighbor_heap, distance, n_xpoints, progress);
+    nnbf_parallel_query(neighbor_heap, distance, n_xpoints, progress,
+                        grain_size);
   } else {
     nnbf_query(neighbor_heap, distance, n_xpoints, progress);
   }

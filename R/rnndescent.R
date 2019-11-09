@@ -318,28 +318,30 @@ nnd_knn <- function(data, k = NULL,
 #' # For each item in iris_query find the 4 nearest neighbors in iris_ref
 #' # If you pass a data frame, non-numeric columns are removed
 #' # set verbose = TRUE to get details on the progress being made
-#' iris_query_nn <- brute_force_knn_query(iris_ref, iris_query, k = 4, metric = "euclidean",
-#'                                        verbose = TRUE)
+#' iris_query_nn <- brute_force_knn_query(iris_ref, iris_query,
+#'   k = 4, metric = "euclidean",
+#'   verbose = TRUE
+#' )
 #'
 #' # Manhattan (l1) distance
 #' iris_query_nn <- brute_force_knn_query(iris_ref, iris_query, k = 4, metric = "manhattan")
-#'
 #' @export
 brute_force_knn_query <- function(
-  reference,
-  query,
-  k,
-  metric = "euclidean",
-  n_threads = 0,
-  grain_size = 1,
-  verbose = FALSE) {
-
+                                  reference,
+                                  query,
+                                  k,
+                                  metric = "euclidean",
+                                  n_threads = 0,
+                                  grain_size = 1,
+                                  verbose = FALSE) {
   reference <- x2m(reference)
   query <- x2m(query)
 
   if (k > nrow(reference)) {
-    stop(k, " neighbors asked for, but only ", nrow(reference),
-         " items in the reference data")
+    stop(
+      k, " neighbors asked for, but only ", nrow(reference),
+      " items in the reference data"
+    )
   }
 
   parallelize <- n_threads > 0

@@ -29,8 +29,8 @@
 template <typename Distance>
 struct BruteForceWorker : public RcppParallel::Worker {
 
-  SimpleNeighborHeap& neighbor_heap;
-  Distance& distance;
+  SimpleNeighborHeap &neighbor_heap;
+  Distance &distance;
   const std::size_t n_points;
   const std::size_t n_nbrs;
 
@@ -57,7 +57,41 @@ void nnbf_parallel(SimpleNeighborHeap &neighbor_heap, Distance &distance,
 
   batch_parallel_for(worker, progress, worker.n_points, 64, grain_size);
 
-  neighbor_heap = worker.neighbor_heap;
+  neighbor_heap.deheap_sort();
+}
+
+template <typename Distance>
+struct BruteForceQueryWorker : public RcppParallel::Worker {
+
+  SimpleNeighborHeap &neighbor_heap;
+  Distance &distance;
+  const std::size_t n_points;
+  const std::size_t n_nbrs;
+
+  BruteForceQueryWorker(SimpleNeighborHeap &neighbor_heap, Distance &distance)
+      : neighbor_heap(neighbor_heap), distance(distance),
+        n_points(neighbor_heap.n_points), n_nbrs(neighbor_heap.n_nbrs) {}
+
+  void operator()(std::size_t begin, std::size_t end) {
+    for (std::size_t i = begin; i < end; i++) {
+      for (std::size_t j = 0; j < n_points; j++) {
+        double d = distance(i, j);
+        if (neighbor_heap.accepts(j, d)) {
+          neighbor_heap.unchecked_push(j, d, i);
+        }
+      }
+    }
+  }
+};
+
+template <typename Distance, typename Progress>
+void nnbf_parallel_query(SimpleNeighborHeap &neighbor_heap, Distance &distance,
+                         const std::size_t n_ref_points, Progress &progress,
+                         std::size_t grain_size = 1) {
+  BruteForceQueryWorker<Distance> worker(neighbor_heap, distance);
+
+  batch_parallel_for(worker, progress, n_ref_points, 64, grain_size);
+
   neighbor_heap.deheap_sort();
 }
 

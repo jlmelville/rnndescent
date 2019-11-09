@@ -57,8 +57,8 @@ check_query_nbrs_dist <- function(nn, expected_dist, ref_range, query_range, tol
   for (i in 1:n_queries) {
     for (j in 1:n_nbrs) {
       testthat::expect_equal(nn$dist[i, j],
-                             expected_dist[query_range[i], ref_range[nn$idx[i, j]]],
-                             tol = tol, label = paste0(i, ", ", j),
+        expected_dist[query_range[i], ref_range[nn$idx[i, j]]],
+        tol = tol, label = paste0(i, ", ", j),
       )
     }
   }
