@@ -2,7 +2,7 @@
 % Please edit documentation in R/rnndescent.R
 \name{random_knn_query}
 \alias{random_knn_query}
-\title{Search for nearest neighbors by random selection.}
+\title{Nearest Neighbors Query by Random Selection}
 \usage{
 random_knn_query(reference, query, k, metric = "euclidean",
   n_threads = 0, grain_size = 1, verbose = FALSE)
@@ -37,7 +37,7 @@ a list containing:
 }
 }
 \description{
-Search for nearest neighbors by random selection.
+Nearest Neighbors Query by Random Selection
 }
 \examples{
 # 100 reference iris items

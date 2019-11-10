@@ -388,4 +388,42 @@ template <typename Distance> struct BatchGraphUpdaterVeryHiMem {
   }
 };
 
+template <typename Distance> struct QuerySerialGraphUpdater {
+  NeighborHeap &current_graph;
+  const Distance &distance;
+  const std::size_t n_nbrs;
+
+  std::size_t upd_p;
+  std::size_t upd_q;
+  double upd_d;
+
+  QuerySerialGraphUpdater(NeighborHeap &current_graph, const Distance &distance)
+      : current_graph(current_graph), distance(distance),
+        n_nbrs(current_graph.n_nbrs), upd_p(NeighborHeap::npos()),
+        upd_q(NeighborHeap::npos()), upd_d(0) {}
+
+  std::size_t generate_and_apply(const std::size_t p, const std::size_t q) {
+    generate(p, q, p);
+    return apply();
+  }
+
+  void generate(const std::size_t p, const std::size_t q, const std::size_t) {
+    double d = distance(q, p);
+    if (current_graph.accepts(p, d)) {
+      upd_p = p;
+      upd_q = q;
+      upd_d = d;
+    } else {
+      upd_p = NeighborHeap::npos();
+    }
+  }
+
+  size_t apply() {
+    if (upd_p == NeighborHeap::npos()) {
+      return 0;
+    }
+    return current_graph.checked_push(upd_p, upd_d, upd_q, 1);
+  }
+};
+
 #endif // NND_UPDATE_H

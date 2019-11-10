@@ -58,15 +58,15 @@ struct RPProgress {
   bool check_interrupt();
 };
 
-template <typename Distance>
+template <template <typename> class GraphUpdater, typename Distance>
 void r_to_heap(NeighborHeap &current_graph, Distance &distance,
-               Rcpp::IntegerMatrix idx, Rcpp::NumericMatrix dist) {
-  SerialGraphUpdater<Distance> heap_initializer(current_graph, distance);
+               Rcpp::IntegerMatrix idx, Rcpp::NumericMatrix dist,
+               const int max_idx) {
+  GraphUpdater<Distance> heap_initializer(current_graph, distance);
 
   const std::size_t n_points = idx.nrow();
   const std::size_t n_nbrs = idx.ncol();
 
-  const int max_idx = n_points - 1; // internally we need to be 0-indexed
   for (std::size_t i = 0; i < n_points; i++) {
     for (std::size_t j = 0; j < n_nbrs; j++) {
       const int k = idx(i, j);

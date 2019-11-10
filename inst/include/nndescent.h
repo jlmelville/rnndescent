@@ -38,7 +38,8 @@
 // 2. Not all old members of current KNN are retained in the old candidates
 // list, nor are rho * K new candidates sampled. Instead, the current members
 // of the KNN are assigned into old and new based on their flag value, with the
-// size of the final candidate list controlled by max_candidates.
+// size of the final candidate list controlled by the maximum size of
+// the candidates neighbors lists.
 template <typename Rand>
 void build_candidates_full(NeighborHeap &current_graph, Rand &rand,
                            NeighborHeap &new_candidate_neighbors,
@@ -146,6 +147,128 @@ std::size_t local_join(NeighborHeap &current_graph,
         c += graph_updater.generate_and_apply(p, q);
       }
     }
+  }
+  return c;
+}
+
+template <template <typename> class GraphUpdater, typename Distance,
+          typename Rand, typename Progress>
+void nnd_query(NeighborHeap &current_graph,
+               GraphUpdater<Distance> &graph_updater,
+               const std::vector<std::size_t> &reference_idx,
+               const std::size_t max_candidates, const std::size_t n_iters,
+               Rand &rand, Progress &progress, const double tol, bool verbose) {
+  const std::size_t n_points = current_graph.n_points;
+
+  for (std::size_t n = 0; n < n_iters; n++) {
+    NeighborHeap new_nbrs(n_points, max_candidates);
+    build_query_candidates(current_graph, rand, new_nbrs);
+
+    std::size_t c =
+        non_search_query(current_graph, graph_updater, new_nbrs, reference_idx,
+                         n_points, max_candidates, progress);
+
+    progress.update(n);
+    if (progress.check_interrupt()) {
+      break;
+    }
+    if (static_cast<double>(c) <= tol) {
+      if (verbose) {
+        Rcpp::Rcout << "c = " << c << " tol = " << tol << std::endl;
+      }
+      progress.stopping_early();
+      break;
+    }
+  }
+  current_graph.deheap_sort();
+}
+
+// Attempt to add q to i's knn
+// If q is invalid or already seen the addition is not attempted
+template <template <typename> class GraphUpdater, typename Distance>
+std::size_t try_add(GraphUpdater<Distance> &graph_updater, std::size_t i,
+                    std::size_t q, std::unordered_set<std::size_t> &seen) {
+  if (q == NeighborHeap::npos() || !seen.emplace(q).second) {
+    return 0;
+  }
+  return graph_updater.generate_and_apply(i, q);
+}
+
+template <typename Rand>
+void build_query_candidates(NeighborHeap &current_graph, Rand &rand,
+                            NeighborHeap &new_candidate_neighbors) {
+  const std::size_t n_points = current_graph.n_points;
+  const std::size_t n_nbrs = current_graph.n_nbrs;
+  const std::size_t max_candidates = new_candidate_neighbors.n_nbrs;
+
+  // if the candidate heap size is as large or larger than the number of
+  // neighbors then we definitely know anything that is added won't be evicted
+  // due to size, so we can mark at the same time as we add
+  bool mark_true_on_add = max_candidates >= n_nbrs;
+
+  for (std::size_t i = 0; i < n_points; i++) {
+    std::size_t innbrs = i * n_nbrs;
+    for (std::size_t j = 0; j < n_nbrs; j++) {
+      std::size_t ij = innbrs + j;
+      char isn = current_graph.flags[ij];
+      if (isn == 1) {
+        double d = rand.unif();
+        new_candidate_neighbors.checked_push(i, d, current_graph.idx[ij], isn);
+        if (mark_true_on_add) {
+          current_graph.flags[ij] = 1;
+        }
+      }
+    }
+  }
+
+  // Can't be sure all candidates that were pushed were retained, so we
+  // check now: mark any neighbor in the current graph that was retained in the
+  // new candidates
+  if (!mark_true_on_add) {
+    for (std::size_t i = 0; i < n_points; i++) {
+      std::size_t innbrs = i * n_nbrs;
+      for (std::size_t j = 0; j < n_nbrs; j++) {
+        std::size_t ij = innbrs + j;
+        std::size_t idx = current_graph.idx[ij];
+
+        if (new_candidate_neighbors.contains(i, idx)) {
+          current_graph.flags[ij] = 1;
+        }
+      }
+    }
+  }
+}
+
+// Use neighbor-of-neighbor search rather than local join to update the kNN.
+// To implement incremental search, for a new candidate, both its new and
+// old candidates will be searched. For an old candidate, only the new
+// candidates are used.
+template <template <typename> class GraphUpdater, typename Distance,
+          typename Progress>
+std::size_t non_search_query(NeighborHeap &current_graph,
+                             GraphUpdater<Distance> &graph_updater,
+                             const NeighborHeap &new_nbrs,
+                             const std::vector<std::size_t> &reference_idx,
+                             const std::size_t n_points,
+                             const std::size_t max_candidates,
+                             Progress &progress) {
+  std::size_t c = 0;
+  std::size_t p = 0;
+  std::size_t q = 0;
+  std::unordered_set<std::size_t> seen;
+  const std::size_t n_nbrs = current_graph.n_nbrs;
+  for (std::size_t i = 0; i < n_points; i++) {
+    for (std::size_t j = 0; j < max_candidates; j++) {
+      p = new_nbrs.index(i, j);
+      if (p != NeighborHeap::npos()) {
+        for (std::size_t k = 0; k < n_nbrs; k++) {
+          q = reference_idx[p * n_nbrs + k];
+          c += try_add(graph_updater, i, q, seen);
+        }
+      }
+    }
+    progress.check_interrupt();
+    seen.clear();
   }
   return c;
 }

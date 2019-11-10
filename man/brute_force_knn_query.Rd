@@ -2,7 +2,7 @@
 % Please edit documentation in R/rnndescent.R
 \name{brute_force_knn_query}
 \alias{brute_force_knn_query}
-\title{Query exact nearest neighbors by brute force.}
+\title{Query Exact Nearest Neighbors by Brute Force}
 \usage{
 brute_force_knn_query(reference, query, k, metric = "euclidean",
   n_threads = 0, grain_size = 1, verbose = FALSE)
@@ -37,7 +37,7 @@ a list containing:
 }
 }
 \description{
-Query exact nearest neighbors by brute force.
+Query Exact Nearest Neighbors by Brute Force
 }
 \examples{
 # 100 reference iris items

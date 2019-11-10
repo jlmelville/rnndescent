@@ -204,3 +204,20 @@ expect_equal(sum(uiris_rnn$dist), 1016.834, tol = 1e-3)
 set.seed(1337)
 uiris_rnn <- nnd_knn(uirism, 15, use_cpp = TRUE, n_threads = 1, block_size = 3)
 expect_equal(sum(uiris_rnn$dist), 1016.834, tol = 1e-3)
+
+
+# Queries -----------------------------------------------------------------
+
+context("NND queries")
+ui6 <- ui10[1:6, ]
+ui4 <- ui10[7:10, ]
+
+set.seed(1337)
+ui6_nnd <- nnd_knn(ui6, k = 4, use_cpp = TRUE)
+qnbrs4 <- nnd_knn_query(reference = ui6, reference_idx = ui6_nnd$idx, query = ui4, k = 4)
+check_query_nbrs(nn = qnbrs4, query = ui4, ref_range = 1:6, query_range = 7:10, k = 4, expected_dist = ui10_eucd, tol = 1e-6)
+
+set.seed(1337)
+ui4_nnd <- nnd_knn(ui4, k = 4, use_cpp = TRUE)
+qnbrs6 <- nnd_knn_query(reference = ui4, reference_idx = ui4_nnd$idx, query = ui6, k = 4)
+check_query_nbrs(nn = qnbrs6, query = ui6, ref_range = 7:10, query_range = 1:6, k = 4, expected_dist = ui10_eucd, tol = 1e-6)

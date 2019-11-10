@@ -1,6 +1,6 @@
 # kNN Construction --------------------------------------------------------
 
-#' Calculate exact nearest neighbors by brute force.
+#' Calculate Exact Nearest Neighbors by Brute Force
 #'
 #' @param data Matrix of \code{n} items to generate random neighbors for.
 #' @param k Number of nearest neighbors to return.
@@ -287,7 +287,7 @@ nnd_knn <- function(data, k = NULL,
 
 # kNN Queries -------------------------------------------------------------
 
-#' Query exact nearest neighbors by brute force.
+#' Query Exact Nearest Neighbors by Brute Force
 #'
 #' @param reference Matrix of \code{m} reference items. The nearest neighbors to the
 #'   queries are calculated from this data.
@@ -351,7 +351,7 @@ brute_force_knn_query <- function(
   rnn_brute_force_query(reference, query, k, metric, parallelize, grain_size, verbose)
 }
 
-#' Search for nearest neighbors by random selection.
+#' Nearest Neighbors Query by Random Selection
 #'
 #' @param reference Matrix of \code{m} reference items. The nearest neighbors to the
 #'   queries are randomly selected from this data.
@@ -405,6 +405,153 @@ random_knn_query <- function(reference, query, k, metric = "euclidean",
     RcppParallel::setThreadOptions(numThreads = n_threads)
   }
   random_knn_query_cpp(reference, query, k, metric, parallelize, grain_size = grain_size, verbose = verbose)
+}
+
+
+#' Find Nearest Neighbors and Distances
+#'
+#' @param reference Matrix of \code{m} reference items. The nearest neighbors to the
+#'   queries are calculated from this data.
+#' @param reference_idx Matrix of \code{m} by \code{k} integer indices
+#'   representing the (possibly approximate) \code{k}-nearest neighbors graph
+#'   of the \code{reference} data.
+#' @param query Matrix of \code{n} query items.
+#' @param k Number of nearest neighbors to return. Optional if \code{init} is
+#'   specified.
+#' @param metric Type of distance calculation to use. One of \code{"euclidean"},
+#'   \code{"l2"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"}
+#'   or \code{"hamming"}.
+#' @param init Initial data to optimize. If not provided, \code{k} random
+#'   neighbors are created. The input format should be the same as the return
+#'   value: a list containing:
+#' \itemize{
+#'   \item \code{idx} an n by k matrix containing the nearest neighbor indices
+#'   of the data in \code{reference}.
+#'   \item \code{dist} an n by k matrix containing the nearest neighbor
+#'   distances.
+#' }
+#' If \code{k} and \code{init} are provided then \code{k} must be equal to or
+#' smaller than the number of neighbors provided in \code{init}. If smaller,
+#' only the \code{k} closest value in \code{init} are retained.
+#' @param n_iters Number of iterations of nearest neighbor descent to carry out.
+#' @param max_candidates Maximum number of candidate neighbors to try for each
+#'   item in each iteration. Use relative to \code{k} to emulate the "rho"
+#'   sampling parameter in the nearest neighbor descent paper.
+#' @param delta precision parameter. Routine will terminate early if
+#'   fewer than \eqn{\delta k N}{delta x k x n} updates are made to the nearest
+#'   neighbor list in a given iteration.
+#' @param low_memory If \code{TRUE}, use a lower memory, but more
+#'   computationally expensive approach to index construction. If set to
+#'   \code{FALSE}, you should see a noticeable speed improvement, especially
+#'   when using a smaller number of threads, so this is worth trying if you
+#'   have the memory to spare.
+#' @param n_threads Number of threads to use.
+#' @param block_size Batch size for creating/applying local join updates. A
+#'  smaller value will apply the update more often, which may help reduce the
+#'  number of unnecessary distance calculations, at the cost of more overhead
+#'  associated with multi-threading code. Ignored if \code{n_threads < 1}.
+#' @param grain_size Minimum batch size for multithreading. If the number of
+#'   items to process in a thread falls below this number, then no threads will
+#'   be used. Ignored if \code{n_threads < 1}.
+#' @param verbose If \code{TRUE}, log information to the console.
+#' @return a list containing:
+#' \itemize{
+#'   \item \code{idx} an n by k matrix containing the nearest neighbor indices.
+#'   \item \code{dist} an n by k matrix containing the nearest neighbor
+#'    distances.
+#' }
+#' @examples
+#' # 100 reference iris items
+#' iris_ref <- iris[iris$Species %in% c("setosa", "versicolor"), ]
+#'
+#' # 50 query items
+#' iris_query <- iris[iris$Species == "versicolor", ]
+#'
+#' # First, find the approximate 4-nearest neighbor graph for the references:
+#' iris_ref_knn <- nnd_knn(iris_ref, k = 4, use_cpp = TRUE)
+#'
+#' # For each item in iris_query find the 4 nearest neighbors in iris_ref.
+#' # You need to pass both the reference data and the knn graph indices (the
+#' # 'idx' matrix in the return value of nnd_knn).
+#' # If you pass a data frame, non-numeric columns are removed.
+#' # set verbose = TRUE to get details on the progress being made
+#' iris_query_nn <- nnd_knn_query(iris_ref, iris_ref_knn$idx, iris_query,
+#'   k = 4, metric = "euclidean",
+#'   verbose = TRUE
+#' )
+#' @references
+#' Dong, W., Moses, C., & Li, K. (2011, March).
+#' Efficient k-nearest neighbor graph construction for generic similarity measures.
+#' In \emph{Proceedings of the 20th international conference on World Wide Web}
+#' (pp. 577-586).
+#' ACM.
+#' \url{doi.org/10.1145/1963405.1963487}.
+#' @export
+nnd_knn_query <- function(reference, reference_idx, query, k = NULL,
+                          metric = "euclidean",
+                          init = NULL,
+                          n_iters = 10,
+                          max_candidates = 20,
+                          delta = 0.001,
+                          low_memory = TRUE,
+                          n_threads = 0,
+                          block_size = 16384,
+                          grain_size = 1,
+                          verbose = FALSE) {
+  reference <- x2m(reference)
+  query <- x2m(query)
+
+  # As a minor optimization, we will use L2 internally if the user asks for
+  # Euclidean and only take the square root of the final distances.
+  actual_metric <- metric
+  if (metric == "euclidean") {
+    actual_metric <- "l2"
+  }
+
+  if (is.null(init)) {
+    if (is.null(k)) {
+      stop("Must provide k")
+    }
+    tsmessage("Initializing from random neighbors")
+    init <- random_knn_query(reference, query, k,
+      metric = actual_metric, n_threads = n_threads,
+      verbose = verbose
+    )
+  }
+  else {
+    if (is.null(k)) {
+      k <- ncol(init$idx)
+    }
+    else if (k != ncol(init$idx)) {
+      if (k > ncol(init$idx)) {
+        stop("Not enough initial neighbors provided for k = ", k)
+      }
+      init$idx <- init$idx[, 1:k]
+      init$dist <- init$dist[, 1:k]
+    }
+  }
+  tsmessage("Init dsum = ", formatC(sum(init$dist)))
+  init$idx <- init$idx - 1
+  reference_idx <- reference_idx - 1
+
+  parallelize <- n_threads > 0
+  if (parallelize) {
+    RcppParallel::setThreadOptions(numThreads = n_threads)
+  }
+
+  res <- nn_descent_query(reference, reference_idx, query, init$idx, init$dist,
+    metric = actual_metric,
+    n_iters = n_iters, max_candidates = max_candidates,
+    delta = delta, low_memory = low_memory,
+    parallelize = parallelize, grain_size = grain_size,
+    block_size = block_size, verbose = verbose
+  )
+
+  if (metric == "euclidean") {
+    res$dist <- sqrt(res$dist)
+  }
+  tsmessage("Final dsum = ", formatC(sum(res$dist)))
+  res
 }
 
 
@@ -468,4 +615,53 @@ det_nbrs <- function(X, k, metric = "euclidean") {
 #' @importFrom RcppParallel RcppParallelLibs
 .onUnload <- function(libpath) {
   library.dynam.unload("rnndescent", libpath)
+}
+
+
+nn_accuracy <- function(idx, ref_idx, k = NULL, include_self = TRUE) {
+  if (is.list(idx)) {
+    idx <- idx$idx
+  }
+  if (is.list(ref_idx)) {
+    ref_idx <- ref_idx$idx
+  }
+
+  if (is.null(k)) {
+    k <- min(ncol(idx), ncol(ref_idx))
+    message("Using k = ", k)
+  }
+
+  if (ncol(ref_idx) < k) {
+    stop("Not enough columns in ref_idx for k = ", k)
+  }
+
+  n <- nrow(idx)
+  if (nrow(ref_idx) != n) {
+    stop("Not enough rows in ref_idx")
+  }
+
+  nbr_start <- 1
+  nbr_end <- k
+
+  ref_start <- nbr_start
+  ref_end <- nbr_end
+  if (!include_self) {
+    ref_start <- ref_start + 1
+    if (nbr_end < ncol(ref_idx)) {
+      ref_end <- ref_end + 1
+    }
+    else {
+      nbr_end <- nbr_end - 1
+    }
+  }
+
+  nbr_range <- nbr_start:nbr_end
+  ref_range <- ref_start:ref_end
+
+  total_intersect <- 0
+  for (i in 1:n) {
+    total_intersect <- total_intersect + length(intersect(idx[i, nbr_range], ref_idx[i, ref_range]))
+  }
+
+  total_intersect / (n * k)
 }

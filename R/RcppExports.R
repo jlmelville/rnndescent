@@ -13,6 +13,10 @@ nn_descent <- function(data, idx, dist, metric = "euclidean", max_candidates = 5
     .Call(`_rnndescent_nn_descent`, data, idx, dist, metric, max_candidates, n_iters, delta, low_memory, parallelize, grain_size, block_size, verbose)
 }
 
+nn_descent_query <- function(reference, reference_idx, query, idx, dist, metric = "euclidean", max_candidates = 50L, n_iters = 10L, delta = 0.001, low_memory = TRUE, parallelize = FALSE, grain_size = 1L, block_size = 16384L, verbose = FALSE) {
+    .Call(`_rnndescent_nn_descent_query`, reference, reference_idx, query, idx, dist, metric, max_candidates, n_iters, delta, low_memory, parallelize, grain_size, block_size, verbose)
+}
+
 random_knn_cpp <- function(data, k, metric = "euclidean", parallelize = FALSE, grain_size = 1L, verbose = FALSE) {
     .Call(`_rnndescent_random_knn_cpp`, data, k, metric, parallelize, grain_size, verbose)
 }

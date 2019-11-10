@@ -2,7 +2,7 @@
 % Please edit documentation in R/rnndescent.R
 \name{brute_force_knn}
 \alias{brute_force_knn}
-\title{Calculate exact nearest neighbors by brute force.}
+\title{Calculate Exact Nearest Neighbors by Brute Force}
 \usage{
 brute_force_knn(data, k, metric = "euclidean", n_threads = 0,
   grain_size = 1, verbose = FALSE)
@@ -34,7 +34,7 @@ a list containing:
 }
 }
 \description{
-Calculate exact nearest neighbors by brute force.
+Calculate Exact Nearest Neighbors by Brute Force
 }
 \examples{
 # Find the 4 nearest neighbors using Euclidean distance
