@@ -253,18 +253,23 @@ std::size_t non_search_query(NeighborHeap &current_graph,
                              const std::size_t max_candidates,
                              Progress &progress) {
   std::size_t c = 0;
-  std::size_t p = 0;
-  std::size_t q = 0;
+  std::size_t ref_idx = 0;
+  std::size_t nbr_ref_idx = 0;
   std::unordered_set<std::size_t> seen;
   const std::size_t n_nbrs = current_graph.n_nbrs;
-  for (std::size_t i = 0; i < n_points; i++) {
+  for (std::size_t query_idx = 0; query_idx < n_points; query_idx++) {
     for (std::size_t j = 0; j < max_candidates; j++) {
-      p = new_nbrs.index(i, j);
-      if (p != NeighborHeap::npos()) {
-        for (std::size_t k = 0; k < n_nbrs; k++) {
-          q = reference_idx[p * n_nbrs + k];
-          c += try_add(graph_updater, i, q, seen);
+      ref_idx = new_nbrs.index(query_idx, j);
+      if (ref_idx == NeighborHeap::npos()) {
+        continue;
+      }
+      for (std::size_t k = 0; k < n_nbrs; k++) {
+        nbr_ref_idx = reference_idx[ref_idx * n_nbrs + k];
+        if (nbr_ref_idx == NeighborHeap::npos() ||
+            !seen.emplace(nbr_ref_idx).second) {
+          continue;
         }
+        c += graph_updater.generate_and_apply(query_idx, nbr_ref_idx);
       }
     }
     progress.check_interrupt();

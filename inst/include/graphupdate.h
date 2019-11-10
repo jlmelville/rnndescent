@@ -45,10 +45,9 @@ struct Update {
   Update(Update &&) = default;
 };
 
-struct GraphCache {
-  std::vector<std::unordered_set<std::size_t>> seen;
-
-  GraphCache(const NeighborHeap &neighbor_heap) : seen(neighbor_heap.n_points) {
+struct GraphCacheConstructionInit {
+  static void init(const NeighborHeap &neighbor_heap,
+                   std::vector<std::unordered_set<std::size_t>> &seen) {
     const std::size_t n_points = neighbor_heap.n_points;
     const std::size_t n_nbrs = neighbor_heap.n_nbrs;
     for (std::size_t i = 0; i < n_points; i++) {
@@ -62,6 +61,44 @@ struct GraphCache {
         }
       }
     }
+  }
+};
+
+struct GraphCacheQueryInit {
+  static void init(const NeighborHeap &neighbor_heap,
+                   std::vector<std::unordered_set<std::size_t>> &seen) {
+    const std::size_t n_points = neighbor_heap.n_points;
+    const std::size_t n_nbrs = neighbor_heap.n_nbrs;
+    for (std::size_t q = 0; q < n_points; q++) {
+      const std::size_t qnnbrs = q * n_nbrs;
+      for (std::size_t k = 0; k < n_nbrs; k++) {
+        std::size_t r = neighbor_heap.idx[qnnbrs + k];
+        seen[q].emplace(r);
+      }
+    }
+  }
+};
+
+template <typename GraphCacheInit = GraphCacheConstructionInit>
+struct GraphCache {
+  std::vector<std::unordered_set<std::size_t>> seen;
+
+  GraphCache(const NeighborHeap &neighbor_heap) : seen(neighbor_heap.n_points) {
+    GraphCacheInit::init(neighbor_heap, seen);
+    //
+    // const std::size_t n_points = neighbor_heap.n_points;
+    // const std::size_t n_nbrs = neighbor_heap.n_nbrs;
+    // for (std::size_t i = 0; i < n_points; i++) {
+    //   const std::size_t innbrs = i * n_nbrs;
+    //   for (std::size_t j = 0; j < n_nbrs; j++) {
+    //     std::size_t p = neighbor_heap.idx[innbrs + j];
+    //     if (i > p) {
+    //       seen[p].emplace(i);
+    //     } else {
+    //       seen[i].emplace(p);
+    //     }
+    //   }
+    // }
   }
 
   bool contains(const std::size_t &p, const std::size_t &q) const {
@@ -120,7 +157,7 @@ template <typename Distance> struct BatchGraphUpdaterHiMem {
   const Distance &distance;
   const std::size_t n_nbrs;
 
-  GraphCache seen;
+  GraphCache<> seen;
   std::vector<std::vector<Update>> updates;
 
   BatchGraphUpdaterHiMem(NeighborHeap &current_graph, const Distance &distance)
@@ -225,7 +262,7 @@ template <typename Distance> struct SerialGraphUpdaterHiMem {
   const Distance &distance;
   const std::size_t n_nbrs;
 
-  GraphCache seen;
+  GraphCache<> seen;
   std::size_t upd_p;
   std::size_t upd_q;
 
@@ -282,7 +319,7 @@ template <typename Distance> struct SerialGraphUpdaterVeryHiMem {
   const Distance &distance;
   const std::size_t n_nbrs;
 
-  GraphCache seen;
+  GraphCache<> seen;
   std::size_t upd_p;
   std::size_t upd_q;
 
@@ -334,7 +371,7 @@ template <typename Distance> struct BatchGraphUpdaterVeryHiMem {
   const Distance &distance;
   const std::size_t n_nbrs;
 
-  GraphCache seen;
+  GraphCache<> seen;
   std::vector<std::vector<Update>> updates;
 
   BatchGraphUpdaterVeryHiMem(NeighborHeap &current_graph,
@@ -423,6 +460,48 @@ template <typename Distance> struct QuerySerialGraphUpdater {
       return 0;
     }
     return current_graph.checked_push(upd_p, upd_d, upd_q, 1);
+  }
+};
+
+template <typename Distance> struct QuerySerialGraphUpdaterHiMem {
+  NeighborHeap &current_graph;
+  const Distance &distance;
+  const std::size_t n_nbrs;
+
+  GraphCache<GraphCacheQueryInit> seen;
+  std::size_t ref_;
+  std::size_t query_;
+
+  QuerySerialGraphUpdaterHiMem(NeighborHeap &current_graph,
+                               const Distance &distance)
+      : current_graph(current_graph), distance(distance),
+        n_nbrs(current_graph.n_nbrs), seen(current_graph),
+        ref_(NeighborHeap::npos()), query_(NeighborHeap::npos()) {}
+
+  std::size_t generate_and_apply(const std::size_t query_idx,
+                                 const std::size_t ref_idx) {
+    generate(query_idx, ref_idx, 0);
+    return apply();
+  }
+
+  void generate(const std::size_t query_idx, const std::size_t ref_idx,
+                const std::size_t) {
+    ref_ = ref_idx;
+    query_ = query_idx;
+  }
+
+  size_t apply() {
+    std::size_t c = 0;
+    if (seen.contains(query_, ref_)) {
+      return c;
+    }
+
+    double d = distance(ref_, query_);
+    c += current_graph.checked_push(query_, d, ref_, 1);
+    if (c > 0) {
+      seen.insert(query_, ref_);
+    }
+    return c;
   }
 };
 

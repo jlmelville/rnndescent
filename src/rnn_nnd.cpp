@@ -164,7 +164,7 @@ Rcpp::List nn_descent(Rcpp::NumericMatrix data, Rcpp::IntegerMatrix idx,
       using GraphUpdater = QuerySerialGraphUpdater<Distance>;                  \
       NND_QUERY_IMPL(NNDImpl, Distance, Rand, GraphUpdater)                    \
     } else {                                                                   \
-      using GraphUpdater = QuerySerialGraphUpdater<Distance>;                  \
+      using GraphUpdater = QuerySerialGraphUpdaterHiMem<Distance>;             \
       NND_QUERY_IMPL(NNDImpl, Distance, Rand, GraphUpdater)                    \
     }                                                                          \
   }
