@@ -2,74 +2,38 @@ library(rnndescent)
 context("NN descent Euclidean")
 
 
-i10_rdist <- matrix(
-  c(
-    0.812403840463596, 0.346410161513775, 0.994987437106621, 1.45945195193264,
-    0.479583152331272, 0.547722557505166, 0.489897948556636, 0.424264068711929,
-    0.787400787401181, 0.424264068711929, 0.469041575982343, 0.223606797749979,
-    0.346410161513776, 0.547722557505166, 0.424264068711928, 1.45945195193264,
-    1.3114877048604, 0.728010988928052, 0.33166247903554, 0.479583152331272,
-    1.36747943311773, 0.678232998312527, 0.346410161513775, 0.932737905308882,
-    0.678232998312527, 0.818535277187245, 0.458257569495584, 1.2328828005938,
-    0.173205080756888, 0.58309518948453, 0.458257569495584, 1.16189500386223,
-    0.818535277187245, 0.616441400296897, 1.36747943311773, 0.346410161513776,
-    1.80831413200251, 0.58309518948453, 1.04403065089105, 1.36014705087354
+i10_rinit <- list(
+  dist = matrix(
+    c(
+      0.812403840463596, 0.346410161513775, 0.994987437106621, 1.45945195193264,
+      0.479583152331272, 0.547722557505166, 0.489897948556636, 0.424264068711929,
+      0.787400787401181, 0.424264068711929, 0.469041575982343, 0.223606797749979,
+      0.346410161513776, 0.547722557505166, 0.424264068711928, 1.45945195193264,
+      1.3114877048604, 0.728010988928052, 0.33166247903554, 0.479583152331272,
+      1.36747943311773, 0.678232998312527, 0.346410161513775, 0.932737905308882,
+      0.678232998312527, 0.818535277187245, 0.458257569495584, 1.2328828005938,
+      0.173205080756888, 0.58309518948453, 0.458257569495584, 1.16189500386223,
+      0.818535277187245, 0.616441400296897, 1.36747943311773, 0.346410161513776,
+      1.80831413200251, 0.58309518948453, 1.04403065089105, 1.36014705087354
+    ),
+    byrow = TRUE, nrow = 10, ncol = 4
   ),
-  byrow = TRUE, nrow = 10, ncol = 4
+  idx = matrix(
+    c(
+      6, 5, 1, 3,
+      4, 3, 7, 2,
+      3, 1, 7, 6,
+      8, 1, 7, 0,
+      9, 8, 2, 1,
+      8, 6, 0, 7,
+      5, 8, 7, 9,
+      4, 8, 6, 0,
+      6, 1, 5, 3,
+      8, 5, 2, 1
+    ) + 1,
+    byrow = TRUE, nrow = 10, ncol = 4
+  )
 )
-
-i10_ridx <- matrix(
-  c(
-    6, 5, 1, 3,
-    4, 3, 7, 2,
-    3, 1, 7, 6,
-    8, 1, 7, 0,
-    9, 8, 2, 1,
-    8, 6, 0, 7,
-    5, 8, 7, 9,
-    4, 8, 6, 0,
-    6, 1, 5, 3,
-    8, 5, 2, 1
-  ),
-  byrow = TRUE, nrow = 10, ncol = 4
-)
-
-expected_heap_idx <- matrix(
-  c(
-    7, 6, 1, 5,
-    3, 7, 2, 4,
-    7, 1, 4, 6,
-    2, 1, 7, 8,
-    8, 1, 7, 2,
-    7, 9, 6, 0,
-    0, 7, 5, 2,
-    2, 6, 3, 4,
-    4, 1, 7, 3,
-    4, 6, 5, 2
-  ),
-  byrow = TRUE, nrow = 10, ncol = 4
-)
-
-expected_heap_dist <- matrix(
-  c(
-    1.16189500386223, 0.812403840463596, 0.994987437106621, 0.346410161513775,
-    0.547722557505166, 0.489897948556636, 0.424264068711929, 0.479583152331272,
-    0.469041575982343, 0.424264068711929, 0.33166247903554, 0.223606797749979,
-    0.787400787401181, 0.547722557505166, 0.424264068711928, 0.346410161513776,
-    0.728010988928052, 0.479583152331272, 0.173205080756888, 0.33166247903554,
-    0.932737905308882, 0.58309518948453, 0.678232998312527, 0.346410161513775,
-    0.812403840463596, 0.458257569495584, 0.678232998312527, 0.223606797749979,
-    0.469041575982343, 0.458257569495584, 0.424264068711928, 0.173205080756888,
-    0.728010988928052, 0.616441400296897, 0.58309518948453, 0.346410161513776,
-    1.3114877048604, 1.2328828005938, 0.58309518948453, 1.04403065089105
-  ),
-  byrow = TRUE, nrow = 10, ncol = 4
-)
-
-heap <- nn_to_heap(i10_ridx, i10_rdist)
-expect_equal(heap[1, , ], expected_heap_idx, check.attributes = FALSE)
-expect_equal(heap[2, , ], expected_heap_dist, check.attributes = FALSE)
-expect_equal(heap[3, , ], matrix(rep(1, 40), nrow = 10), check.attributes = FALSE)
 
 expected_heap_sort_idx <- matrix(
   c(
@@ -83,7 +47,7 @@ expected_heap_sort_idx <- matrix(
     4, 3, 6, 2,
     3, 7, 1, 4,
     5, 2, 6, 4
-  ),
+  ) + 1,
   byrow = TRUE, nrow = 10, ncol = 4
 )
 
@@ -103,10 +67,9 @@ expected_heap_sort_dist <- matrix(
   byrow = TRUE, nrow = 10, ncol = 4
 )
 
-heap_sorted <- deheap_sort(heap)
+heap_sorted <- nnd_knn(ui10, 4, n_iters = 0, init = i10_rinit)
 expect_equal(heap_sorted$idx, expected_heap_sort_idx, check.attributes = FALSE)
-expect_equal(heap_sorted$dist, expected_heap_sort_dist, check.attributes = FALSE)
-
+expect_equal(heap_sorted$dist, expected_heap_sort_dist, check.attributes = FALSE, tol = 1e-6)
 
 expected_idx <- matrix(
   c(
@@ -142,67 +105,54 @@ expected_dist <- matrix(
 )
 
 set.seed(1337)
-rnn <- nnd_knn(ui10, 4, use_cpp = FALSE, verbose = FALSE)
+rnn <- nnd_knn(ui10, 4)
 expect_equal(rnn$idx, expected_idx, check.attributes = FALSE)
-expect_equal(rnn$dist, expected_dist, check.attributes = FALSE, tol = 1e-7)
+expect_equal(rnn$dist, expected_dist, check.attributes = FALSE, tol = 1e-6)
 
 
+# default
 set.seed(1337)
-uiris_rnn <- nnd_knn(uirism, 15, use_cpp = FALSE)
+uiris_rnn <- nnd_knn(uirism, 15)
 # treat sum of distances an objective function
 # expected sum from sum(FNN::get.knn(uirism, 14)$nn.dist)
 expect_equal(sum(uiris_rnn$dist), 1016.834, tol = 1e-3)
 
-set.seed(1337)
-rnnd <- nn_descent(ui10, i10_ridx, i10_rdist, verbose = FALSE)
-expect_equal(rnnd$idx, expected_idx, check.attributes = FALSE)
-expect_equal(rnnd$dist, expected_dist, check.attributes = FALSE, tol = 1e-6)
-
-
+# Create external initialization
 set.seed(1337)
 iris_nbrs <- random_knn(uirism, 15)
-iris_nnd <- nn_descent(uirism, iris_nbrs$idx - 1, iris_nbrs$dist, verbose = FALSE)
+
+# initialize from existing knn graph
+iris_nnd <- nnd_knn(uirism, init = iris_nbrs)
 expect_equal(sum(iris_nnd$dist), 1016.834, tol = 1e-3)
 
+# high memory mode
 set.seed(1337)
-uiris_rnn <- nnd_knn(uirism, 15, use_cpp = TRUE)
-expect_equal(sum(uiris_rnn$dist), 1016.834, tol = 1e-3)
-
-
-# C++ with set backing
-set.seed(1337)
-rnnd <- nn_descent(ui10, i10_ridx, i10_rdist, verbose = FALSE, low_memory = FALSE)
-expect_equal(rnnd$idx, expected_idx, check.attributes = FALSE)
-expect_equal(rnnd$dist, expected_dist, check.attributes = FALSE, tol = 1e-6)
-
-set.seed(1337)
-iris_nbrs <- random_knn(uirism, 15)
-iris_nnd <- nn_descent(uirism, iris_nbrs$idx - 1, iris_nbrs$dist, verbose = FALSE, low_memory = FALSE)
+iris_nnd <- nnd_knn(uirism, init = iris_nbrs, low_memory = FALSE)
 expect_equal(sum(iris_nnd$dist), 1016.834, tol = 1e-3)
 
+# init default with high memory
 set.seed(1337)
-uiris_rnn <- nnd_knn(uirism, 15, use_cpp = TRUE, low_memory = FALSE)
+uiris_rnn <- nnd_knn(uirism, 15, low_memory = FALSE)
 expect_equal(sum(uiris_rnn$dist), 1016.834, tol = 1e-3)
 
 # max candidates
 set.seed(1337)
-iris_nbrs <- random_knn(uirism, 15)
-iris_nnd <- nn_descent(uirism, iris_nbrs$idx - 1, iris_nbrs$dist, verbose = FALSE, max_candidates = 10)
+iris_nnd <- nnd_knn(uirism, init = iris_nbrs, max_candidates = 10)
 expect_equal(sum(iris_nnd$dist), 1016.834, tol = 1e-3)
 
 # multi-threading
 set.seed(1337)
-uiris_rnn <- nnd_knn(uirism, 15, use_cpp = TRUE, n_threads = 1)
+uiris_rnn <- nnd_knn(uirism, 15, n_threads = 1)
 expect_equal(sum(uiris_rnn$dist), 1016.834, tol = 1e-3)
 
 # with caching
 set.seed(1337)
-uiris_rnn <- nnd_knn(uirism, 15, use_cpp = TRUE, n_threads = 1, low_memory = FALSE)
+uiris_rnn <- nnd_knn(uirism, 15, n_threads = 1, low_memory = FALSE)
 expect_equal(sum(uiris_rnn$dist), 1016.834, tol = 1e-3)
 
 # block_size
 set.seed(1337)
-uiris_rnn <- nnd_knn(uirism, 15, use_cpp = TRUE, n_threads = 1, block_size = 3)
+uiris_rnn <- nnd_knn(uirism, 15, n_threads = 1, block_size = 3)
 expect_equal(sum(uiris_rnn$dist), 1016.834, tol = 1e-3)
 
 
@@ -213,11 +163,11 @@ ui6 <- ui10[1:6, ]
 ui4 <- ui10[7:10, ]
 
 set.seed(1337)
-ui6_nnd <- nnd_knn(ui6, k = 4, use_cpp = TRUE)
+ui6_nnd <- nnd_knn(ui6, k = 4)
 qnbrs4 <- nnd_knn_query(reference = ui6, reference_idx = ui6_nnd$idx, query = ui4, k = 4)
 check_query_nbrs(nn = qnbrs4, query = ui4, ref_range = 1:6, query_range = 7:10, k = 4, expected_dist = ui10_eucd, tol = 1e-6)
 
 set.seed(1337)
-ui4_nnd <- nnd_knn(ui4, k = 4, use_cpp = TRUE)
+ui4_nnd <- nnd_knn(ui4, k = 4)
 qnbrs6 <- nnd_knn_query(reference = ui4, reference_idx = ui4_nnd$idx, query = ui6, k = 4)
 check_query_nbrs(nn = qnbrs6, query = ui6, ref_range = 7:10, query_range = 1:6, k = 4, expected_dist = ui10_eucd, tol = 1e-6)

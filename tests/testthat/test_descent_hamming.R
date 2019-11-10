@@ -43,50 +43,31 @@ set.seed(1337)
 bitdata <- bitm(nrow = 10, ncol = 160)
 expect_equal(sum(bitdata), 790)
 
-set.seed(1337)
-bit_rnn <- nnd_knn(bitdata, 4,
-  use_cpp = FALSE,
-  metric = "hamming", verbose = TRUE
-)
-expect_equal(bit_rnn$idx, expected_hamm_idx, check.attributes = FALSE)
-expect_equal(bit_rnn$dist, expected_hamm_dist, check.attributes = FALSE)
-
 # For some reason, get a different set of random numbers when run via testthat
 # vs the same code in the console: currently code doesn't rely on RNG as much,
 # but if issues return, possibly max_candidates needs to be increased.
 set.seed(1337)
-bit_rnn <- nnd_knn(bitdata, 4,
-  use_cpp = TRUE,
-  metric = "hamming"
-)
+bit_rnn <- nnd_knn(bitdata, 4, metric = "hamming")
 expect_equal(bit_rnn$idx, expected_hamm_idx, check.attributes = FALSE)
 expect_equal(bit_rnn$dist, expected_hamm_dist, check.attributes = FALSE)
 
+# high memory
 set.seed(1337)
-bit_rnn <- nnd_knn(bitdata, 4,
-  use_cpp = TRUE, low_memory = FALSE,
-  metric = "hamming"
-)
+bit_rnn <- nnd_knn(bitdata, 4, low_memory = FALSE, metric = "hamming")
 expect_equal(bit_rnn$idx, expected_hamm_idx, check.attributes = FALSE)
 expect_equal(bit_rnn$dist, expected_hamm_dist, check.attributes = FALSE)
 
 # multi-threading
 set.seed(1337)
-bit_rnn <- nnd_knn(bitdata, 4,
-  use_cpp = TRUE,
-  metric = "hamming",
-  n_threads = 1
-)
+bit_rnn <- nnd_knn(bitdata, 4, metric = "hamming", n_threads = 1)
 expect_equal(bit_rnn$idx, expected_hamm_idx, check.attributes = FALSE)
 expect_equal(bit_rnn$dist, expected_hamm_dist, check.attributes = FALSE)
 
-
-# multi-threading
+# multi-threading high memory
 set.seed(1337)
 bit_rnn <- nnd_knn(bitdata, 4,
-  use_cpp = TRUE,
-  metric = "hamming",
-  n_threads = 1, low_memory = FALSE
+  metric = "hamming", n_threads = 1,
+  low_memory = FALSE
 )
 expect_equal(bit_rnn$idx, expected_hamm_idx, check.attributes = FALSE)
 expect_equal(bit_rnn$dist, expected_hamm_dist, check.attributes = FALSE)

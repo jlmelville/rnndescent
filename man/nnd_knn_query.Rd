@@ -88,7 +88,7 @@ iris_ref <- iris[iris$Species \%in\% c("setosa", "versicolor"), ]
 iris_query <- iris[iris$Species == "versicolor", ]
 
 # First, find the approximate 4-nearest neighbor graph for the references:
-iris_ref_knn <- nnd_knn(iris_ref, k = 4, use_cpp = TRUE)
+iris_ref_knn <- nnd_knn(iris_ref, k = 4)
 
 # For each item in iris_query find the 4 nearest neighbors in iris_ref.
 # You need to pass both the reference data and the knn graph indices (the

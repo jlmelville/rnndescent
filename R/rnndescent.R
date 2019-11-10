@@ -56,8 +56,7 @@ brute_force_knn <- function(
 #' @param metric Type of distance calculation to use. One of \code{"euclidean"},
 #'   \code{"l2"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"}
 #'   or \code{"hamming"}.
-#' @param use_cpp If \code{TRUE}, use the faster C++ code path.
-#' @param n_threads Number of threads to use. Ignored if \code{use_cpp = FALSE}.
+#' @param n_threads Number of threads to use..
 #' @param grain_size Minimum batch size for multithreading. If the number of
 #'   items to process in a thread falls below this number, then no threads will
 #'   be used. Ignored if \code{n_threads < 1}.
@@ -88,7 +87,7 @@ brute_force_knn <- function(
 #' # to specify k here because this is worked out from the initial input
 #' iris_nn <- nnd_knn(iris, init = iris_nn, metric = "euclidean", verbose = TRUE)
 #' @export
-random_knn <- function(data, k, metric = "euclidean", use_cpp = TRUE,
+random_knn <- function(data, k, metric = "euclidean",
                        n_threads = 0, grain_size = 1, verbose = FALSE) {
   data <- x2m(data)
   nr <- nrow(data)
@@ -96,15 +95,10 @@ random_knn <- function(data, k, metric = "euclidean", use_cpp = TRUE,
     stop("k must be <= ", nr)
   }
   parallelize <- n_threads > 0
-  if (use_cpp || parallelize) {
-    if (parallelize) {
-      RcppParallel::setThreadOptions(numThreads = n_threads)
-    }
-    random_knn_cpp(data, k, metric, parallelize, grain_size = grain_size, verbose = verbose)
+  if (parallelize) {
+    RcppParallel::setThreadOptions(numThreads = n_threads)
   }
-  else {
-    random_knn_R(X = data, k = k, metric = metric)
-  }
+  random_knn_cpp(data, k, metric, parallelize, grain_size = grain_size, verbose = verbose)
 }
 
 #' Find Nearest Neighbors and Distances
@@ -133,12 +127,11 @@ random_knn <- function(data, k, metric = "euclidean", use_cpp = TRUE,
 #' @param delta precision parameter. Routine will terminate early if
 #'   fewer than \eqn{\delta k N}{delta x k x n} updates are made to the nearest
 #'   neighbor list in a given iteration.
-#' @param use_cpp If \code{TRUE}, use the faster C++ code path.
 #' @param low_memory If \code{TRUE}, use a lower memory, but more
-#'   computationally expensive approach to index construction. Applies only if
-#'   \code{use_cpp = TRUE}. If set to \code{FALSE}, you should see a noticeable
-#'   speed improvement, especially when using a smaller number of threads, so
-#'   this is worth trying if you have the memory to spare.
+#'   computationally expensive approach to index construction. If set to
+#'   \code{FALSE}, you should see a noticeable speed improvement, especially
+#'   when using a smaller number of threads, so this is worth trying if you have
+#'   the memory to spare.
 #' @param n_threads Number of threads to use.
 #' @param block_size Batch size for creating/applying local join updates. A
 #'  smaller value will apply the update more often, which may help reduce the
@@ -214,7 +207,6 @@ nnd_knn <- function(data, k = NULL,
                     n_iters = 10,
                     max_candidates = 20,
                     delta = 0.001,
-                    use_cpp = TRUE,
                     low_memory = TRUE,
                     n_threads = 0,
                     block_size = 16384,
@@ -235,7 +227,7 @@ nnd_knn <- function(data, k = NULL,
     }
     tsmessage("Initializing from random neighbors")
     init <- random_knn(data, k,
-      metric = actual_metric, use_cpp = use_cpp,
+      metric = actual_metric,
       n_threads = n_threads, verbose = verbose
     )
   }
@@ -254,28 +246,18 @@ nnd_knn <- function(data, k = NULL,
   tsmessage("Init dsum = ", formatC(sum(init$dist)))
   init$idx <- init$idx - 1
 
-  if (use_cpp) {
-    parallelize <- n_threads > 0
-    if (parallelize) {
-      RcppParallel::setThreadOptions(numThreads = n_threads)
-    }
+  parallelize <- n_threads > 0
+  if (parallelize) {
+    RcppParallel::setThreadOptions(numThreads = n_threads)
+  }
 
-    res <- nn_descent(data, init$idx, init$dist,
-      metric = actual_metric,
-      n_iters = n_iters, max_candidates = max_candidates,
-      delta = delta, low_memory = low_memory,
-      parallelize = parallelize, grain_size = grain_size,
-      block_size = block_size, verbose = verbose
-    )
-  }
-  else {
-    res <- nn_descent_optl(data, init,
-      metric = actual_metric, n_iters = n_iters,
-      max_candidates = max_candidates,
-      delta = delta, verbose = verbose
-    )
-    res$idx <- res$idx + 1
-  }
+  res <- nn_descent(data, init$idx, init$dist,
+    metric = actual_metric,
+    n_iters = n_iters, max_candidates = max_candidates,
+    delta = delta, low_memory = low_memory,
+    parallelize = parallelize, grain_size = grain_size,
+    block_size = block_size, verbose = verbose
+  )
 
   if (metric == "euclidean") {
     res$dist <- sqrt(res$dist)
@@ -468,7 +450,7 @@ random_knn_query <- function(reference, query, k, metric = "euclidean",
 #' iris_query <- iris[iris$Species == "versicolor", ]
 #'
 #' # First, find the approximate 4-nearest neighbor graph for the references:
-#' iris_ref_knn <- nnd_knn(iris_ref, k = 4, use_cpp = TRUE)
+#' iris_ref_knn <- nnd_knn(iris_ref, k = 4)
 #'
 #' # For each item in iris_query find the 4 nearest neighbors in iris_ref.
 #' # You need to pass both the reference data and the knn graph indices (the
@@ -557,111 +539,9 @@ nnd_knn_query <- function(reference, reference_idx, query, k = NULL,
 
 # Internals ---------------------------------------------------------------
 
-
-random_knn_R <- function(X, k, metric = "euclidean") {
-  nr <- nrow(X)
-  idx <- matrix(0, nrow = nr, ncol = k)
-  dist <- matrix(Inf, nrow = nr, ncol = k)
-  dist_fn <- create_dist_fn(metric)
-
-  for (i in 1:nr) {
-    # we include i as its own neighbor
-    # now sample k - 1  from 1:nr, excluding i
-    # same as sampling from 1:(nr - 1) and adding one if its >= i
-    idxi <- sample.int(nr - 1, k - 1)
-    idxi[idxi >= i] <- idxi[idxi >= i] + 1
-    idx[i, ] <- c(i, idxi)
-    for (j in 2:k) {
-      dist[i, j] <- dist_fn(X, i, idx[i, j])
-    }
-  }
-  dist[, 1] <- 0.0
-  list(idx = idx, dist = dist)
-}
-
-create_dist_fn <- function(metric) {
-  switch(metric,
-    l2 = l2_dist,
-    euclidean = euc_dist,
-    cosine = cos_dist,
-    manhattan = manhattan_dist,
-    hamming = hamming_dist,
-    stop("Unknown metric '", metric, "'")
-  )
-}
-
-det_nbrs <- function(X, k, metric = "euclidean") {
-  dist_fn <- create_dist_fn(metric)
-  nr <- nrow(X)
-  indices <- matrix(0, nrow = nr, ncol = k)
-  dist <- matrix(Inf, nrow = nr, ncol = k)
-
-  for (i in 1:nr) {
-    for (j in 1:k) {
-      idx <- i + j
-      if (idx > nr) {
-        idx <- idx %% nr
-      }
-      indices[i, j] <- idx
-      dist[i, j] <- dist_fn(X, i, idx)
-    }
-  }
-
-  list(indices = indices, dist = dist)
-}
-
 #' @useDynLib rnndescent, .registration = TRUE
 #' @importFrom Rcpp sourceCpp
 #' @importFrom RcppParallel RcppParallelLibs
 .onUnload <- function(libpath) {
   library.dynam.unload("rnndescent", libpath)
-}
-
-
-nn_accuracy <- function(idx, ref_idx, k = NULL, include_self = TRUE) {
-  if (is.list(idx)) {
-    idx <- idx$idx
-  }
-  if (is.list(ref_idx)) {
-    ref_idx <- ref_idx$idx
-  }
-
-  if (is.null(k)) {
-    k <- min(ncol(idx), ncol(ref_idx))
-    message("Using k = ", k)
-  }
-
-  if (ncol(ref_idx) < k) {
-    stop("Not enough columns in ref_idx for k = ", k)
-  }
-
-  n <- nrow(idx)
-  if (nrow(ref_idx) != n) {
-    stop("Not enough rows in ref_idx")
-  }
-
-  nbr_start <- 1
-  nbr_end <- k
-
-  ref_start <- nbr_start
-  ref_end <- nbr_end
-  if (!include_self) {
-    ref_start <- ref_start + 1
-    if (nbr_end < ncol(ref_idx)) {
-      ref_end <- ref_end + 1
-    }
-    else {
-      nbr_end <- nbr_end - 1
-    }
-  }
-
-  nbr_range <- nbr_start:nbr_end
-  ref_range <- ref_start:ref_end
-
-  total_intersect <- 0
-  for (i in 1:n) {
-    total_intersect <- total_intersect + length(intersect(idx[i, nbr_range], ref_idx[i, ref_range]))
-  }
-
-  total_intersect / (n * k)
 }

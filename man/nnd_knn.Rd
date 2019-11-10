@@ -5,7 +5,7 @@
 \title{Find Nearest Neighbors and Distances}
 \usage{
 nnd_knn(data, k = NULL, metric = "euclidean", init = NULL,
-  n_iters = 10, max_candidates = 20, delta = 0.001, use_cpp = TRUE,
+  n_iters = 10, max_candidates = 20, delta = 0.001,
   low_memory = TRUE, n_threads = 0, block_size = 16384,
   grain_size = 1, verbose = FALSE)
 }
@@ -41,13 +41,11 @@ sampling parameter in the nearest neighbor descent paper.}
 fewer than \eqn{\delta k N}{delta x k x n} updates are made to the nearest
 neighbor list in a given iteration.}
 
-\item{use_cpp}{If \code{TRUE}, use the faster C++ code path.}
-
 \item{low_memory}{If \code{TRUE}, use a lower memory, but more
-computationally expensive approach to index construction. Applies only if
-\code{use_cpp = TRUE}. If set to \code{FALSE}, you should see a noticeable
-speed improvement, especially when using a smaller number of threads, so
-this is worth trying if you have the memory to spare.}
+computationally expensive approach to index construction. If set to
+\code{FALSE}, you should see a noticeable speed improvement, especially
+when using a smaller number of threads, so this is worth trying if you have
+the memory to spare.}
 
 \item{n_threads}{Number of threads to use.}
 
