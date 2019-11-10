@@ -183,17 +183,6 @@ void nnd_query(NeighborHeap &current_graph,
   current_graph.deheap_sort();
 }
 
-// Attempt to add q to i's knn
-// If q is invalid or already seen the addition is not attempted
-template <template <typename> class GraphUpdater, typename Distance>
-std::size_t try_add(GraphUpdater<Distance> &graph_updater, std::size_t i,
-                    std::size_t q, std::unordered_set<std::size_t> &seen) {
-  if (q == NeighborHeap::npos() || !seen.emplace(q).second) {
-    return 0;
-  }
-  return graph_updater.generate_and_apply(i, q);
-}
-
 template <typename Rand>
 void build_query_candidates(NeighborHeap &current_graph, Rand &rand,
                             NeighborHeap &new_candidate_neighbors) {
@@ -240,9 +229,6 @@ void build_query_candidates(NeighborHeap &current_graph, Rand &rand,
 }
 
 // Use neighbor-of-neighbor search rather than local join to update the kNN.
-// To implement incremental search, for a new candidate, both its new and
-// old candidates will be searched. For an old candidate, only the new
-// candidates are used.
 template <template <typename> class GraphUpdater, typename Distance,
           typename Progress>
 std::size_t non_search_query(NeighborHeap &current_graph,
@@ -255,16 +241,17 @@ std::size_t non_search_query(NeighborHeap &current_graph,
   std::size_t c = 0;
   std::size_t ref_idx = 0;
   std::size_t nbr_ref_idx = 0;
-  std::unordered_set<std::size_t> seen;
   const std::size_t n_nbrs = current_graph.n_nbrs;
+  std::unordered_set<std::size_t> seen(n_nbrs);
   for (std::size_t query_idx = 0; query_idx < n_points; query_idx++) {
     for (std::size_t j = 0; j < max_candidates; j++) {
       ref_idx = new_nbrs.index(query_idx, j);
       if (ref_idx == NeighborHeap::npos()) {
         continue;
       }
+      const std::size_t rnidx = ref_idx * n_nbrs;
       for (std::size_t k = 0; k < n_nbrs; k++) {
-        nbr_ref_idx = reference_idx[ref_idx * n_nbrs + k];
+        nbr_ref_idx = reference_idx[rnidx + k];
         if (nbr_ref_idx == NeighborHeap::npos() ||
             !seen.emplace(nbr_ref_idx).second) {
           continue;
