@@ -122,7 +122,13 @@ set.seed(1337)
 iris_nbrs <- random_knn(uirism, 15)
 
 # initialize from existing knn graph
+set.seed(1337)
 iris_nnd <- nnd_knn(uirism, init = iris_nbrs)
+expect_equal(sum(iris_nnd$dist), 1016.834, tol = 1e-3)
+
+# Use larger initialization for smaller k
+set.seed(1337)
+iris_nnd <- nnd_knn(uirism, init =  random_knn(uirism, 20), k = 15)
 expect_equal(sum(iris_nnd$dist), 1016.834, tol = 1e-3)
 
 # high memory mode
@@ -155,6 +161,9 @@ set.seed(1337)
 uiris_rnn <- nnd_knn(uirism, 15, n_threads = 1, block_size = 3)
 expect_equal(sum(uiris_rnn$dist), 1016.834, tol = 1e-3)
 
+# errors
+expect_error(nnd_knn(ui10, k = 11), "k must be")
+expect_error(nnd_knn(uirism, init = iris_nbrs, k = 20), "Not enough")
 
 # Queries -----------------------------------------------------------------
 

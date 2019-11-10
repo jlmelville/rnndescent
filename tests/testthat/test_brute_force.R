@@ -7,6 +7,10 @@ check_nbrs(rnbrs, ui10_eucd, tol = 1e-6)
 rnbrs <- brute_force_knn(ui10, k = 4, n_threads = 1)
 check_nbrs(rnbrs, ui10_eucd, tol = 1e-6)
 
+# Error
+expect_error(brute_force_knn(ui10, k = 11), "k must be")
+
+
 # Queries -----------------------------------------------------------------
 
 context("Brute force queries")

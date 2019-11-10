@@ -11,6 +11,9 @@ rnbrs <- random_knn(ui10, k = 4, n_threads = 1)
 check_nbrs_idx(rnbrs$idx)
 check_nbrs_dist(rnbrs, ui10_eucd, tol = 1e-6)
 
+# errors
+expect_error(random_knn(ui10, k = 11), "k must be")
+
 # Queries -----------------------------------------------------------------
 
 context("Random neighbor queries")

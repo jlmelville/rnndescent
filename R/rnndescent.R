@@ -42,6 +42,7 @@ brute_force_knn <- function(
                             grain_size = 1,
                             verbose = FALSE) {
   data <- x2m(data)
+  check_k(k, nrow(data))
   parallelize <- n_threads > 0
   if (parallelize) {
     RcppParallel::setThreadOptions(numThreads = n_threads)
@@ -90,10 +91,7 @@ brute_force_knn <- function(
 random_knn <- function(data, k, metric = "euclidean",
                        n_threads = 0, grain_size = 1, verbose = FALSE) {
   data <- x2m(data)
-  nr <- nrow(data)
-  if (k > nr) {
-    stop("k must be <= ", nr)
-  }
+  check_k(k, nrow(data))
   parallelize <- n_threads > 0
   if (parallelize) {
     RcppParallel::setThreadOptions(numThreads = n_threads)
@@ -235,12 +233,8 @@ nnd_knn <- function(data, k = NULL,
     if (is.null(k)) {
       k <- ncol(init$idx)
     }
-    else if (k != ncol(init$idx)) {
-      if (k > ncol(init$idx)) {
-        stop("Not enough initial neighbors provided for k = ", k)
-      }
-      init$idx <- init$idx[, 1:k]
-      init$dist <- init$dist[, 1:k]
+    else {
+      init <- prepare_graph(init, k)
     }
   }
   tsmessage("Init dsum = ", formatC(sum(init$dist)))
@@ -504,12 +498,8 @@ nnd_knn_query <- function(reference, reference_idx, query, k = NULL,
     if (is.null(k)) {
       k <- ncol(init$idx)
     }
-    else if (k != ncol(init$idx)) {
-      if (k > ncol(init$idx)) {
-        stop("Not enough initial neighbors provided for k = ", k)
-      }
-      init$idx <- init$idx[, 1:k]
-      init$dist <- init$dist[, 1:k]
+    else {
+      init <- prepare_graph(init, k)
     }
   }
   tsmessage("Init dsum = ", formatC(sum(init$dist)))
@@ -545,3 +535,21 @@ nnd_knn_query <- function(reference, reference_idx, query, k = NULL,
 .onUnload <- function(libpath) {
   library.dynam.unload("rnndescent", libpath)
 }
+
+check_k <- function(k, max_k) {
+  if (k > max_k) {
+    stop("k must be <= ", max_k)
+  }
+}
+
+prepare_graph <- function(nn, k) {
+  if (k != ncol(nn$idx)) {
+    if (k > ncol(nn$idx)) {
+      stop("Not enough initial neighbors provided for k = ", k)
+    }
+    nn$idx <- nn$idx[, 1:k]
+    nn$dist <- nn$dist[, 1:k]
+  }
+  nn
+}
+
