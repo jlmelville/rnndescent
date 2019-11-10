@@ -552,4 +552,3 @@ prepare_graph <- function(nn, k) {
   }
   nn
 }
-

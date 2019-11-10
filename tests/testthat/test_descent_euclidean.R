@@ -105,9 +105,12 @@ expected_dist <- matrix(
 )
 
 set.seed(1337)
-rnn <- nnd_knn(ui10, 4)
+output <- capture_everything({
+  rnn <- nnd_knn(ui10, 4, verbose = FALSE)
+})
 expect_equal(rnn$idx, expected_idx, check.attributes = FALSE)
 expect_equal(rnn$dist, expected_dist, check.attributes = FALSE, tol = 1e-6)
+expect_equal(output, "character(0)")
 
 
 # default
@@ -128,7 +131,7 @@ expect_equal(sum(iris_nnd$dist), 1016.834, tol = 1e-3)
 
 # Use larger initialization for smaller k
 set.seed(1337)
-iris_nnd <- nnd_knn(uirism, init =  random_knn(uirism, 20), k = 15)
+iris_nnd <- nnd_knn(uirism, init = random_knn(uirism, 20), k = 15)
 expect_equal(sum(iris_nnd$dist), 1016.834, tol = 1e-3)
 
 # high memory mode
@@ -164,6 +167,10 @@ expect_equal(sum(uiris_rnn$dist), 1016.834, tol = 1e-3)
 # errors
 expect_error(nnd_knn(ui10, k = 11), "k must be")
 expect_error(nnd_knn(uirism, init = iris_nbrs, k = 20), "Not enough")
+
+# verbosity
+expect_message(capture_everything(nnd_knn(ui10, 4, verbose = TRUE)), "Initializing")
+
 
 # Queries -----------------------------------------------------------------
 

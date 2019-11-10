@@ -76,3 +76,7 @@ check_query_nbrs <- function(nn, query, ref_range, query_range, k, expected_dist
   check_query_nbrs_idx(nn$idx, nref)
   check_query_nbrs_dist(nn, expected_dist, ref_range, query_range, tol)
 }
+
+capture_everything <- function(code) {
+  capture.output(type = "output", capture.output(type = "message", code))
+}
