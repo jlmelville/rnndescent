@@ -85,20 +85,6 @@ struct GraphCache {
 
   GraphCache(const NeighborHeap &neighbor_heap) : seen(neighbor_heap.n_points) {
     GraphCacheInit::init(neighbor_heap, seen);
-    //
-    // const std::size_t n_points = neighbor_heap.n_points;
-    // const std::size_t n_nbrs = neighbor_heap.n_nbrs;
-    // for (std::size_t i = 0; i < n_points; i++) {
-    //   const std::size_t innbrs = i * n_nbrs;
-    //   for (std::size_t j = 0; j < n_nbrs; j++) {
-    //     std::size_t p = neighbor_heap.idx[innbrs + j];
-    //     if (i > p) {
-    //       seen[p].emplace(i);
-    //     } else {
-    //       seen[i].emplace(p);
-    //     }
-    //   }
-    // }
   }
 
   bool contains(const std::size_t &p, const std::size_t &q) const {
@@ -137,7 +123,7 @@ template <typename Distance> struct BatchGraphUpdater {
     }
   }
 
-  size_t apply() {
+  std::size_t apply() {
     std::size_t c = 0;
     const std::size_t n_points = updates.size();
     for (std::size_t i = 0; i < n_points; i++) {
@@ -180,7 +166,7 @@ template <typename Distance> struct BatchGraphUpdaterHiMem {
     }
   }
 
-  size_t apply() {
+  std::size_t apply() {
     std::size_t c = 0;
     const std::size_t n_points = updates.size();
     for (std::size_t i = 0; i < n_points; i++) {
@@ -249,7 +235,7 @@ template <typename Distance> struct SerialGraphUpdater {
     }
   }
 
-  size_t apply() {
+  std::size_t apply() {
     if (upd_p == NeighborHeap::npos()) {
       return 0;
     }
@@ -395,7 +381,7 @@ template <typename Distance> struct BatchGraphUpdaterVeryHiMem {
     }
   }
 
-  size_t apply() {
+  std::size_t apply() {
     std::size_t c = 0;
     const std::size_t n_points = updates.size();
     for (std::size_t i = 0; i < n_points; i++) {
@@ -457,7 +443,7 @@ template <typename Distance> struct QuerySerialGraphUpdater {
     }
   }
 
-  size_t apply() {
+  std::size_t apply() {
     if (ref == NeighborHeap::npos()) {
       return 0;
     }
@@ -492,7 +478,7 @@ template <typename Distance> struct QuerySerialGraphUpdaterHiMem {
     query_ = query_idx;
   }
 
-  size_t apply() {
+  std::size_t apply() {
     std::size_t c = 0;
     if (seen.contains(query_, ref_)) {
       return c;
