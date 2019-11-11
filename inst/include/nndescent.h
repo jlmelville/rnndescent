@@ -32,11 +32,10 @@
 // mark any neighbor in the current graph that was retained in the new
 // candidates as false
 void flag_retained_new_candidates(NeighborHeap &current_graph,
-                                  const NeighborHeap &new_candidate_neighbors) {
-  const std::size_t n_points = current_graph.n_points;
+                                  const NeighborHeap &new_candidate_neighbors,
+                                  std::size_t begin, std::size_t end) {
   const std::size_t n_nbrs = current_graph.n_nbrs;
-
-  for (std::size_t i = 0; i < n_points; i++) {
+  for (std::size_t i = begin; i < end; i++) {
     std::size_t innbrs = i * n_nbrs;
     for (std::size_t j = 0; j < n_nbrs; j++) {
       std::size_t ij = innbrs + j;
@@ -47,6 +46,13 @@ void flag_retained_new_candidates(NeighborHeap &current_graph,
       }
     }
   }
+}
+
+// overload for serial processing case which does entire graph in one chunk
+void flag_retained_new_candidates(NeighborHeap &current_graph,
+                                  const NeighborHeap &new_candidate_neighbors) {
+  flag_retained_new_candidates(current_graph, new_candidate_neighbors, 0,
+                               current_graph.n_points);
 }
 
 // This corresponds to the construction of new, old, new' and old' in
