@@ -29,6 +29,26 @@
 
 #include "heap.h"
 
+// mark any neighbor in the current graph that was retained in the new
+// candidates as false
+void flag_retained_new_candidates(NeighborHeap &current_graph,
+                                  const NeighborHeap &new_candidate_neighbors) {
+  const std::size_t n_points = current_graph.n_points;
+  const std::size_t n_nbrs = current_graph.n_nbrs;
+
+  for (std::size_t i = 0; i < n_points; i++) {
+    std::size_t innbrs = i * n_nbrs;
+    for (std::size_t j = 0; j < n_nbrs; j++) {
+      std::size_t ij = innbrs + j;
+      std::size_t idx = current_graph.idx[ij];
+
+      if (new_candidate_neighbors.contains(i, idx)) {
+        current_graph.flags[ij] = 0;
+      }
+    }
+  }
+}
+
 // This corresponds to the construction of new, old, new' and old' in
 // Algorithm 2, with some minor differences:
 // 1. old' and new' (the reverse candidates) are build at the same time as old
@@ -62,24 +82,7 @@ void build_candidates_full(NeighborHeap &current_graph, Rand &rand,
       }
     }
   }
-
-  // mark any neighbor in the current graph that was retained in the new
-  // candidates as true
-  const std::size_t max_candidates = new_candidate_neighbors.n_nbrs;
-  for (std::size_t i = 0; i < n_points; i++) {
-    std::size_t innbrs = i * n_nbrs;
-    std::size_t innbrs_new = i * max_candidates;
-    for (std::size_t j = 0; j < n_nbrs; j++) {
-      std::size_t ij = innbrs + j;
-      std::size_t idx = current_graph.idx[ij];
-      for (std::size_t k = 0; k < max_candidates; k++) {
-        if (new_candidate_neighbors.idx[innbrs_new + k] == idx) {
-          current_graph.flags[ij] = 0;
-          break;
-        }
-      }
-    }
-  }
+  flag_retained_new_candidates(current_graph, new_candidate_neighbors);
 }
 
 // Pretty close to the NNDescentFull algorithm (#2 in the paper)
@@ -214,17 +217,7 @@ void build_query_candidates(NeighborHeap &current_graph, Rand &rand,
   // check now: mark any neighbor in the current graph that was retained in the
   // new candidates
   if (!mark_true_on_add) {
-    for (std::size_t i = 0; i < n_points; i++) {
-      std::size_t innbrs = i * n_nbrs;
-      for (std::size_t j = 0; j < n_nbrs; j++) {
-        std::size_t ij = innbrs + j;
-        std::size_t idx = current_graph.idx[ij];
-
-        if (new_candidate_neighbors.contains(i, idx)) {
-          current_graph.flags[ij] = 0;
-        }
-      }
-    }
+    flag_retained_new_candidates(current_graph, new_candidate_neighbors);
   }
 }
 
