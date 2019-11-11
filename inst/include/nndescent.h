@@ -207,11 +207,11 @@ void nnd_query(NeighborHeap &current_graph,
 template <typename Rand>
 void build_query_candidates(NeighborHeap &current_graph, Rand &rand,
                             NeighborHeap &new_candidate_neighbors,
+                            std::size_t begin, std::size_t end,
                             bool flag_on_add) {
-  const std::size_t n_points = current_graph.n_points;
   const std::size_t n_nbrs = current_graph.n_nbrs;
 
-  for (std::size_t i = 0; i < n_points; i++) {
+  for (std::size_t i = begin; i < end; i++) {
     std::size_t innbrs = i * n_nbrs;
     for (std::size_t j = 0; j < n_nbrs; j++) {
       std::size_t ij = innbrs + j;
@@ -225,6 +225,15 @@ void build_query_candidates(NeighborHeap &current_graph, Rand &rand,
       }
     }
   }
+}
+
+template <typename Rand>
+void build_query_candidates(NeighborHeap &current_graph, Rand &rand,
+                            NeighborHeap &new_candidate_neighbors,
+                            bool flag_on_add) {
+  const std::size_t n_points = current_graph.n_points;
+  build_query_candidates(current_graph, rand, new_candidate_neighbors,
+                         flag_on_add, 0, n_points);
 }
 
 // Use neighbor-of-neighbor search rather than local join to update the kNN.
