@@ -74,7 +74,7 @@ void build_candidates_full(NeighborHeap &current_graph, Rand &rand,
       std::size_t idx = current_graph.idx[ij];
       for (std::size_t k = 0; k < max_candidates; k++) {
         if (new_candidate_neighbors.idx[innbrs_new + k] == idx) {
-          current_graph.flags[ij] = 1;
+          current_graph.flags[ij] = 0;
           break;
         }
       }
@@ -204,7 +204,7 @@ void build_query_candidates(NeighborHeap &current_graph, Rand &rand,
         double d = rand.unif();
         new_candidate_neighbors.checked_push(i, d, current_graph.idx[ij], isn);
         if (mark_true_on_add) {
-          current_graph.flags[ij] = 1;
+          current_graph.flags[ij] = 0;
         }
       }
     }
@@ -221,7 +221,7 @@ void build_query_candidates(NeighborHeap &current_graph, Rand &rand,
         std::size_t idx = current_graph.idx[ij];
 
         if (new_candidate_neighbors.contains(i, idx)) {
-          current_graph.flags[ij] = 1;
+          current_graph.flags[ij] = 0;
         }
       }
     }
