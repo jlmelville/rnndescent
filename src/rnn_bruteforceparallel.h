@@ -52,10 +52,11 @@ struct BruteForceWorker : public RcppParallel::Worker {
 
 template <typename Distance, typename Progress>
 void nnbf_parallel(SimpleNeighborHeap &neighbor_heap, Distance &distance,
-                   Progress &progress, std::size_t grain_size = 1) {
+                   Progress &progress, std::size_t block_size = 64,
+                   std::size_t grain_size = 1) {
   BruteForceWorker<Distance> worker(neighbor_heap, distance);
 
-  batch_parallel_for(worker, progress, worker.n_points, 64, grain_size);
+  batch_parallel_for(worker, progress, worker.n_points, block_size, grain_size);
 
   neighbor_heap.deheap_sort();
 }
@@ -87,10 +88,11 @@ struct BruteForceQueryWorker : public RcppParallel::Worker {
 template <typename Distance, typename Progress>
 void nnbf_parallel_query(SimpleNeighborHeap &neighbor_heap, Distance &distance,
                          const std::size_t n_ref_points, Progress &progress,
+                         std::size_t block_size = 64,
                          std::size_t grain_size = 1) {
   BruteForceQueryWorker<Distance> worker(neighbor_heap, distance);
 
-  batch_parallel_for(worker, progress, n_ref_points, 64, grain_size);
+  batch_parallel_for(worker, progress, n_ref_points, block_size, grain_size);
 
   neighbor_heap.deheap_sort();
 }

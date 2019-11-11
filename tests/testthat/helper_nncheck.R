@@ -3,17 +3,21 @@
 
 # i should not appear in the "true" neighbors (i.e. it should be the first
 # neighbor), indexes should be in the range (1, nr) and indexes should be unique
-are_valid_neighbors <- function(nnidx, i) {
+check_nbri <- function(nnidx, i) {
   nr <- nrow(nnidx)
   nc <- ncol(nnidx)
   true_nbrs <- nnidx[i, 2:nc]
+  expect_true(all(i != true_nbrs), label = i)
+  expect_true(all(true_nbrs > 0), label = i)
+  expect_true(all(true_nbrs <= nr), label = i)
+  expect_true(length(unique(true_nbrs)) == nc - 1)
   all(i != true_nbrs & true_nbrs > 0 & true_nbrs <= nr) && length(unique(true_nbrs)) == nc - 1
 }
 
 check_nbrs_idx <- function(nnidx) {
   nr <- nrow(nnidx)
   for (i in 1:nr) {
-    testthat::expect_true(all(are_valid_neighbors(nnidx, i), label = i))
+    check_nbri(nnidx, i)
   }
 }
 

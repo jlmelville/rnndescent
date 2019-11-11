@@ -25,7 +25,8 @@
 
 #define RandomNbrs(Distance)                                                   \
   if (parallelize) {                                                           \
-    return random_knn_parallel<Distance>(data, k, grain_size, verbose);        \
+    return random_knn_parallel<Distance>(data, k, block_size, grain_size,      \
+                                         verbose);                             \
   } else {                                                                     \
     return random_knn_impl<Distance>(data, k, verbose);                        \
   }
@@ -69,8 +70,9 @@ Rcpp::List random_knn_impl(Rcpp::NumericMatrix data, int k, bool verbose) {
 // [[Rcpp::export]]
 Rcpp::List random_knn_cpp(Rcpp::NumericMatrix data, int k,
                           const std::string &metric = "euclidean",
-                          bool parallelize = false, std::size_t grain_size = 1,
-                          bool verbose = false) {
+                          bool parallelize = false,
+                          std::size_t block_size = 4096,
+                          std::size_t grain_size = 1, bool verbose = false) {
   if (metric == "euclidean") {
     using Distance = Euclidean<float, float>;
     RandomNbrs(Distance)
@@ -93,8 +95,8 @@ Rcpp::List random_knn_cpp(Rcpp::NumericMatrix data, int k,
 
 #define RandomNbrsQuery(Distance)                                              \
   if (parallelize) {                                                           \
-    return random_knn_query_parallel<Distance>(reference, query, k,            \
-                                               grain_size, verbose);           \
+    return random_knn_query_parallel<Distance>(                                \
+        reference, query, k, block_size, grain_size, verbose);                 \
   } else {                                                                     \
     return random_knn_query_impl<Distance>(reference, query, k, verbose);      \
   }
@@ -137,12 +139,11 @@ Rcpp::List random_knn_query_impl(Rcpp::NumericMatrix reference,
 }
 
 // [[Rcpp::export]]
-Rcpp::List random_knn_query_cpp(Rcpp::NumericMatrix reference,
-                                Rcpp::NumericMatrix query, int k,
-                                const std::string &metric = "euclidean",
-                                bool parallelize = false,
-                                std::size_t grain_size = 1,
-                                bool verbose = false) {
+Rcpp::List
+random_knn_query_cpp(Rcpp::NumericMatrix reference, Rcpp::NumericMatrix query,
+                     int k, const std::string &metric = "euclidean",
+                     bool parallelize = false, std::size_t block_size = 4096,
+                     std::size_t grain_size = 1, bool verbose = false) {
   if (metric == "euclidean") {
     using Distance = Euclidean<float, float>;
     RandomNbrsQuery(Distance)

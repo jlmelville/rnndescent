@@ -25,17 +25,18 @@
 #include <Rcpp.h>
 
 #define BruteForce(Distance)                                                   \
-  return rnn_brute_force_impl<Distance>(data, k, parallelize, grain_size,      \
-                                        verbose);
+  return rnn_brute_force_impl<Distance>(data, k, parallelize, block_size,      \
+                                        grain_size, verbose);
 
 #define BruteForceQuery(Distance)                                              \
-  return rnn_brute_force_query_impl<Distance>(x, y, k, parallelize,            \
-                                              grain_size, verbose);
+  return rnn_brute_force_query_impl<Distance>(                                 \
+      x, y, k, parallelize, block_size, grain_size, verbose);
 
 template <typename Distance>
 Rcpp::List
 rnn_brute_force_impl(Rcpp::NumericMatrix data, int k, bool parallelize = false,
-                     std::size_t grain_size = 1, bool verbose = false) {
+                     std::size_t block_size = 64, std::size_t grain_size = 1,
+                     bool verbose = false) {
   const std::size_t n_points = data.nrow();
   const std::size_t n_nbrs = k;
 
@@ -48,7 +49,7 @@ rnn_brute_force_impl(Rcpp::NumericMatrix data, int k, bool parallelize = false,
   SimpleNeighborHeap neighbor_heap(n_points, n_nbrs);
 
   if (parallelize) {
-    nnbf_parallel(neighbor_heap, distance, progress, grain_size);
+    nnbf_parallel(neighbor_heap, distance, progress, block_size, grain_size);
   } else {
     nnbf(neighbor_heap, distance, progress);
   }
@@ -59,8 +60,9 @@ rnn_brute_force_impl(Rcpp::NumericMatrix data, int k, bool parallelize = false,
 // [[Rcpp::export]]
 Rcpp::List rnn_brute_force(Rcpp::NumericMatrix data, int k,
                            const std::string &metric = "euclidean",
-                           bool parallelize = false, std::size_t grain_size = 1,
-                           bool verbose = false) {
+                           bool parallelize = false,
+                           std::size_t block_size = 64,
+                           std::size_t grain_size = 1, bool verbose = false) {
   if (metric == "euclidean") {
     using Distance = Euclidean<float, float>;
     BruteForce(Distance)
@@ -84,8 +86,9 @@ Rcpp::List rnn_brute_force(Rcpp::NumericMatrix data, int k,
 template <typename Distance>
 Rcpp::List
 rnn_brute_force_query_impl(Rcpp::NumericMatrix x, Rcpp::NumericMatrix y, int k,
-                           bool parallelize = false, std::size_t grain_size = 1,
-                           bool verbose = false) {
+                           bool parallelize = false,
+                           std::size_t block_size = 64,
+                           std::size_t grain_size = 1, bool verbose = false) {
   const std::size_t n_xpoints = x.nrow();
   const std::size_t n_ypoints = y.nrow();
   const std::size_t n_nbrs = k;
@@ -103,7 +106,7 @@ rnn_brute_force_query_impl(Rcpp::NumericMatrix x, Rcpp::NumericMatrix y, int k,
 
   if (parallelize) {
     nnbf_parallel_query(neighbor_heap, distance, n_xpoints, progress,
-                        grain_size);
+                        block_size, grain_size);
   } else {
     nnbf_query(neighbor_heap, distance, n_xpoints, progress);
   }
@@ -115,6 +118,7 @@ rnn_brute_force_query_impl(Rcpp::NumericMatrix x, Rcpp::NumericMatrix y, int k,
 Rcpp::List rnn_brute_force_query(Rcpp::NumericMatrix x, Rcpp::NumericMatrix y,
                                  int k, const std::string &metric = "euclidean",
                                  bool parallelize = false,
+                                 std::size_t block_size = 64,
                                  std::size_t grain_size = 1,
                                  bool verbose = false) {
   if (metric == "euclidean") {

@@ -71,7 +71,8 @@ struct RandomNbrWorker : public RcppParallel::Worker {
 
 template <typename Distance>
 Rcpp::List random_knn_parallel(Rcpp::NumericMatrix data, int k,
-                               std::size_t grain_size = 1,
+                               const std::size_t block_size = 4096,
+                               const std::size_t grain_size = 1,
                                bool verbose = false) {
   set_seed();
 
@@ -82,8 +83,7 @@ Rcpp::List random_knn_parallel(Rcpp::NumericMatrix data, int k,
   RandomNbrWorker<Distance> worker(data, k, indices, dist);
 
   RPProgress progress(nr, verbose);
-  const constexpr std::size_t min_batch = 4096;
-  batch_parallel_for(worker, progress, nr, min_batch, grain_size);
+  batch_parallel_for(worker, progress, nr, block_size, grain_size);
   return Rcpp::List::create(Rcpp::Named("idx") = Rcpp::transpose(indices),
                             Rcpp::Named("dist") = Rcpp::transpose(dist));
 }
@@ -133,6 +133,7 @@ struct RandomNbrQueryWorker : public RcppParallel::Worker {
 template <typename Distance>
 Rcpp::List random_knn_query_parallel(Rcpp::NumericMatrix reference,
                                      Rcpp::NumericMatrix query, int k,
+                                     std::size_t block_size = 4096,
                                      std::size_t grain_size = 1,
                                      bool verbose = false) {
   set_seed();
@@ -144,8 +145,7 @@ Rcpp::List random_knn_query_parallel(Rcpp::NumericMatrix reference,
   RandomNbrQueryWorker<Distance> worker(reference, query, k, indices, dist);
 
   RPProgress progress(nr, verbose);
-  const constexpr std::size_t min_batch = 4096;
-  batch_parallel_for(worker, progress, nr, min_batch, grain_size);
+  batch_parallel_for(worker, progress, nr, block_size, grain_size);
   return Rcpp::List::create(Rcpp::Named("idx") = Rcpp::transpose(indices),
                             Rcpp::Named("dist") = Rcpp::transpose(dist));
 }

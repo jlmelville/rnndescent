@@ -8,6 +8,14 @@
 #'   \code{"l2"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"}
 #'   or \code{"hamming"}.
 #' @param n_threads Number of threads to use.
+#' @param block_size Number of items to generate neighbors for in each
+#'   multi-threaded batch. Reducing this number will increase the frequency
+#'   with which R will check for cancellation, and if \code{verbose = TRUE},
+#'   the frequency with which progress will be logged to the console. This value
+#'   should not be set too low (and not lower than \code{grain_size}), or the
+#'   overhead of cancellation checking and other multi-threaded house keeping
+#'   will reduce the efficiency of the parallel computation. Ignored if
+#'   \code{n_threads < 1}.
 #' @param grain_size Minimum batch size for multithreading. If the number of
 #'   items to process in a thread falls below this number, then no threads will
 #'   be used. Ignored if \code{n_threads < 1}.
@@ -39,6 +47,7 @@ brute_force_knn <- function(
                             k,
                             metric = "euclidean",
                             n_threads = 0,
+                            block_size = 64,
                             grain_size = 1,
                             verbose = FALSE) {
   data <- x2m(data)
@@ -47,7 +56,7 @@ brute_force_knn <- function(
   if (parallelize) {
     RcppParallel::setThreadOptions(numThreads = n_threads)
   }
-  rnn_brute_force(data, k, metric, parallelize, grain_size, verbose)
+  rnn_brute_force(data, k, metric, parallelize, block_size, grain_size, verbose)
 }
 
 #' Randomly select nearest neighbors.
@@ -57,7 +66,15 @@ brute_force_knn <- function(
 #' @param metric Type of distance calculation to use. One of \code{"euclidean"},
 #'   \code{"l2"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"}
 #'   or \code{"hamming"}.
-#' @param n_threads Number of threads to use..
+#' @param n_threads Number of threads to use.
+#' @param block_size Number of items to generate neighbors for in each
+#'   multi-threaded batch. Reducing this number will increase the frequency
+#'   with which R will check for cancellation, and if \code{verbose = TRUE},
+#'   the frequency with which progress will be logged to the console. This value
+#'   should not be set too low (and not lower than \code{grain_size}), or the
+#'   overhead of cancellation checking and other multi-threaded house keeping
+#'   will reduce the efficiency of the parallel computation. Ignored if
+#'   \code{n_threads < 1}.
 #' @param grain_size Minimum batch size for multithreading. If the number of
 #'   items to process in a thread falls below this number, then no threads will
 #'   be used. Ignored if \code{n_threads < 1}.
@@ -89,14 +106,15 @@ brute_force_knn <- function(
 #' iris_nn <- nnd_knn(iris, init = iris_nn, metric = "euclidean", verbose = TRUE)
 #' @export
 random_knn <- function(data, k, metric = "euclidean",
-                       n_threads = 0, grain_size = 1, verbose = FALSE) {
+                       n_threads = 0, block_size = 4096, grain_size = 1,
+                       verbose = FALSE) {
   data <- x2m(data)
   check_k(k, nrow(data))
   parallelize <- n_threads > 0
   if (parallelize) {
     RcppParallel::setThreadOptions(numThreads = n_threads)
   }
-  random_knn_cpp(data, k, metric, parallelize, grain_size = grain_size, verbose = verbose)
+  random_knn_cpp(data, k, metric, parallelize, block_size, grain_size, verbose)
 }
 
 #' Find Nearest Neighbors and Distances
@@ -226,7 +244,10 @@ nnd_knn <- function(data, k = NULL,
     tsmessage("Initializing from random neighbors")
     init <- random_knn(data, k,
       metric = actual_metric,
-      n_threads = n_threads, verbose = verbose
+      n_threads = n_threads,
+      block_size = block_size,
+      grain_size = grain_size,
+      verbose = verbose
     )
   }
   else {
@@ -273,6 +294,14 @@ nnd_knn <- function(data, k = NULL,
 #'   \code{"l2"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"}
 #'   or \code{"hamming"}.
 #' @param n_threads Number of threads to use.
+#' @param block_size Number of items to generate neighbors for in each
+#'   multi-threaded batch. Reducing this number will increase the frequency
+#'   with which R will check for cancellation, and if \code{verbose = TRUE},
+#'   the frequency with which progress will be logged to the console. This value
+#'   should not be set too low (and not lower than \code{grain_size}), or the
+#'   overhead of cancellation checking and other multi-threaded house keeping
+#'   will reduce the efficiency of the parallel computation. Ignored if
+#'   \code{n_threads < 1}.
 #' @param grain_size Minimum batch size for multithreading. If the number of
 #'   items to process in a thread falls below this number, then no threads will
 #'   be used. Ignored if \code{n_threads < 1}.
@@ -308,6 +337,7 @@ brute_force_knn_query <- function(
                                   k,
                                   metric = "euclidean",
                                   n_threads = 0,
+                                  block_size = 64,
                                   grain_size = 1,
                                   verbose = FALSE) {
   reference <- x2m(reference)
@@ -324,7 +354,10 @@ brute_force_knn_query <- function(
   if (parallelize) {
     RcppParallel::setThreadOptions(numThreads = n_threads)
   }
-  rnn_brute_force_query(reference, query, k, metric, parallelize, grain_size, verbose)
+  rnn_brute_force_query(
+    reference, query, k, metric, parallelize, block_size,
+    grain_size, verbose
+  )
 }
 
 #' Nearest Neighbors Query by Random Selection
@@ -337,6 +370,14 @@ brute_force_knn_query <- function(
 #'   \code{"l2"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"}
 #'   or \code{"hamming"}.
 #' @param n_threads Number of threads to use.
+#' @param block_size Number of items to generate neighbors for in each
+#'   multi-threaded batch. Reducing this number will increase the frequency
+#'   with which R will check for cancellation, and if \code{verbose = TRUE},
+#'   the frequency with which progress will be logged to the console. This value
+#'   should not be set too low (and not lower than \code{grain_size}), or the
+#'   overhead of cancellation checking and other multi-threaded house keeping
+#'   will reduce the efficiency of the parallel computation. Ignored if
+#'   \code{n_threads < 1}.
 #' @param grain_size Minimum batch size for multithreading. If the number of
 #'   items to process in a thread falls below this number, then no threads will
 #'   be used. Ignored if \code{n_threads < 1}.
@@ -366,7 +407,8 @@ brute_force_knn_query <- function(
 #' iris_query_random_nbrs <- random_knn_query(iris_ref, iris_query, k = 4, metric = "manhattan")
 #' @export
 random_knn_query <- function(reference, query, k, metric = "euclidean",
-                             n_threads = 0, grain_size = 1, verbose = FALSE) {
+                             n_threads = 0, block_size = 4096, grain_size = 1,
+                             verbose = FALSE) {
   reference <- x2m(reference)
   query <- x2m(query)
   nr <- nrow(reference)
@@ -380,7 +422,10 @@ random_knn_query <- function(reference, query, k, metric = "euclidean",
   if (parallelize) {
     RcppParallel::setThreadOptions(numThreads = n_threads)
   }
-  random_knn_query_cpp(reference, query, k, metric, parallelize, grain_size = grain_size, verbose = verbose)
+  random_knn_query_cpp(
+    reference, query, k, metric, parallelize, block_size,
+    grain_size, verbose
+  )
 }
 
 
@@ -490,7 +535,7 @@ nnd_knn_query <- function(reference, reference_idx, query, k = NULL,
     }
     tsmessage("Initializing from random neighbors")
     init <- random_knn_query(reference, query, k,
-      metric = actual_metric, n_threads = n_threads,
+      metric = actual_metric, n_threads,
       verbose = verbose
     )
   }

@@ -28,13 +28,13 @@
 
 template <typename Progress>
 void batch_parallel_for(RcppParallel::Worker &worker, Progress &progress,
-                        std::size_t n, std::size_t min_batch,
+                        std::size_t n, std::size_t block_size,
                         std::size_t grain_size) {
-  if (n <= min_batch) {
+  if (n <= block_size) {
     RcppParallel::parallelFor(0, n, worker, grain_size);
   } else {
     std::size_t begin = 0;
-    std::size_t end = min_batch;
+    std::size_t end = block_size;
     while (true) {
       if (begin >= n) {
         break;
@@ -44,8 +44,8 @@ void batch_parallel_for(RcppParallel::Worker &worker, Progress &progress,
       if (progress.check_interrupt()) {
         break;
       }
-      begin += min_batch;
-      end += min_batch;
+      begin += block_size;
+      end += block_size;
       end = std::min(end, n);
     }
   }
