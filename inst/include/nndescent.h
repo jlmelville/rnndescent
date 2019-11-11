@@ -185,9 +185,8 @@ void nnd_query(NeighborHeap &current_graph,
       flag_retained_new_candidates(current_graph, new_nbrs);
     }
 
-    std::size_t c =
-        non_search_query(current_graph, graph_updater, new_nbrs, reference_idx,
-                         n_points, max_candidates, progress);
+    std::size_t c = non_search_query(current_graph, graph_updater, new_nbrs,
+                                     reference_idx, max_candidates, progress);
 
     progress.update(n);
     if (progress.check_interrupt()) {
@@ -243,15 +242,16 @@ std::size_t non_search_query(NeighborHeap &current_graph,
                              GraphUpdater<Distance> &graph_updater,
                              const NeighborHeap &new_nbrs,
                              const std::vector<std::size_t> &reference_idx,
-                             const std::size_t n_points,
                              const std::size_t max_candidates,
+                             const std::size_t begin, const std::size_t end,
                              Progress &progress) {
   std::size_t c = 0;
   std::size_t ref_idx = 0;
   std::size_t nbr_ref_idx = 0;
   const std::size_t n_nbrs = current_graph.n_nbrs;
   std::unordered_set<std::size_t> seen(n_nbrs);
-  for (std::size_t query_idx = 0; query_idx < n_points; query_idx++) {
+
+  for (std::size_t query_idx = begin; query_idx < end; query_idx++) {
     for (std::size_t j = 0; j < max_candidates; j++) {
       ref_idx = new_nbrs.index(query_idx, j);
       if (ref_idx == NeighborHeap::npos()) {
@@ -271,6 +271,19 @@ std::size_t non_search_query(NeighborHeap &current_graph,
     seen.clear();
   }
   return c;
+}
+
+template <template <typename> class GraphUpdater, typename Distance,
+          typename Progress>
+std::size_t non_search_query(NeighborHeap &current_graph,
+                             GraphUpdater<Distance> &graph_updater,
+                             const NeighborHeap &new_nbrs,
+                             const std::vector<std::size_t> &reference_idx,
+                             const std::size_t max_candidates,
+                             Progress &progress) {
+  const std::size_t n_points = current_graph.n_points;
+  return non_search_query(current_graph, graph_updater, new_nbrs, reference_idx,
+                          max_candidates, 0, n_points, progress);
 }
 
 #endif // NND_NNDESCENT_H
