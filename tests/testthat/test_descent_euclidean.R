@@ -120,6 +120,11 @@ uiris_rnn <- nnd_knn(uirism, 15)
 # expected sum from sum(FNN::get.knn(uirism, 14)$nn.dist)
 expect_equal(sum(uiris_rnn$dist), 1016.834, tol = 1e-3)
 
+# data frame can be input
+set.seed(1337)
+uiris_rnn <- nnd_knn(uiris, 15)
+expect_equal(sum(uiris_rnn$dist), 1016.834, tol = 1e-3)
+
 # Create external initialization
 set.seed(1337)
 iris_nbrs <- random_knn(uirism, 15)
