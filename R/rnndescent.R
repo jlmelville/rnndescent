@@ -234,7 +234,7 @@ nnd_knn <- function(data, k = NULL,
       k <- ncol(init$idx)
     }
     else {
-      init <- prepare_graph(init, k)
+      init <- prepare_init_graph(init, k)
     }
   }
   tsmessage("Init dsum = ", formatC(sum(init$dist)))
@@ -499,9 +499,10 @@ nnd_knn_query <- function(reference, reference_idx, query, k = NULL,
       k <- ncol(init$idx)
     }
     else {
-      init <- prepare_graph(init, k)
+      init <- prepare_init_graph(init, k)
     }
   }
+  reference_idx <- prepare_ref_idx(reference_idx, k)
   tsmessage("Init dsum = ", formatC(sum(init$dist)))
   init$idx <- init$idx - 1
   reference_idx <- reference_idx - 1
@@ -542,7 +543,7 @@ check_k <- function(k, max_k) {
   }
 }
 
-prepare_graph <- function(nn, k) {
+prepare_init_graph <- function(nn, k) {
   if (k != ncol(nn$idx)) {
     if (k > ncol(nn$idx)) {
       stop("Not enough initial neighbors provided for k = ", k)
@@ -551,4 +552,14 @@ prepare_graph <- function(nn, k) {
     nn$dist <- nn$dist[, 1:k]
   }
   nn
+}
+
+prepare_ref_idx <- function(idx, k) {
+  if (k != ncol(idx)) {
+    if (k > ncol(idx)) {
+      stop("Not enough reference indices provided for k = ", k)
+    }
+    idx <- idx[, 1:k]
+  }
+  idx
 }
