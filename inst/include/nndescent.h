@@ -168,10 +168,22 @@ void nnd_query(NeighborHeap &current_graph,
                const std::size_t max_candidates, const std::size_t n_iters,
                Rand &rand, Progress &progress, const double tol, bool verbose) {
   const std::size_t n_points = current_graph.n_points;
+  const std::size_t n_nbrs = current_graph.n_nbrs;
+  // if the candidate heap size is as large or larger than the number of
+  // neighbors then we definitely know anything that is added won't be evicted
+  // due to size, so we can mark at the same time as we add
+  const bool flag_on_add = max_candidates >= n_nbrs;
 
   for (std::size_t n = 0; n < n_iters; n++) {
     NeighborHeap new_nbrs(n_points, max_candidates);
-    build_query_candidates(current_graph, rand, new_nbrs);
+
+    build_query_candidates(current_graph, rand, new_nbrs, flag_on_add);
+    if (!flag_on_add) {
+      // Can't be sure all candidates that were pushed were retained, so we
+      // check now: mark any neighbor in the current graph that was retained in
+      // the new candidates
+      flag_retained_new_candidates(current_graph, new_nbrs);
+    }
 
     std::size_t c =
         non_search_query(current_graph, graph_updater, new_nbrs, reference_idx,
@@ -194,15 +206,10 @@ void nnd_query(NeighborHeap &current_graph,
 
 template <typename Rand>
 void build_query_candidates(NeighborHeap &current_graph, Rand &rand,
-                            NeighborHeap &new_candidate_neighbors) {
+                            NeighborHeap &new_candidate_neighbors,
+                            bool flag_on_add) {
   const std::size_t n_points = current_graph.n_points;
   const std::size_t n_nbrs = current_graph.n_nbrs;
-  const std::size_t max_candidates = new_candidate_neighbors.n_nbrs;
-
-  // if the candidate heap size is as large or larger than the number of
-  // neighbors then we definitely know anything that is added won't be evicted
-  // due to size, so we can mark at the same time as we add
-  bool mark_true_on_add = max_candidates >= n_nbrs;
 
   for (std::size_t i = 0; i < n_points; i++) {
     std::size_t innbrs = i * n_nbrs;
@@ -212,18 +219,11 @@ void build_query_candidates(NeighborHeap &current_graph, Rand &rand,
       if (isn == 1) {
         double d = rand.unif();
         new_candidate_neighbors.checked_push(i, d, current_graph.idx[ij], isn);
-        if (mark_true_on_add) {
+        if (flag_on_add) {
           current_graph.flags[ij] = 0;
         }
       }
     }
-  }
-
-  // Can't be sure all candidates that were pushed were retained, so we
-  // check now: mark any neighbor in the current graph that was retained in the
-  // new candidates
-  if (!mark_true_on_add) {
-    flag_retained_new_candidates(current_graph, new_candidate_neighbors);
   }
 }
 
