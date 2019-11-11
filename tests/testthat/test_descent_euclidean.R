@@ -157,6 +157,7 @@ expect_equal(sum(iris_nnd$dist), 1016.834, tol = 1e-3)
 # errors
 expect_error(nnd_knn(ui10, k = 11), "k must be")
 expect_error(nnd_knn(uirism, init = iris_nbrs, k = 20), "Not enough")
+expect_error(nnd_knn(uirism, k = 15, metric = "not-a-real metric"), "metric")
 
 # verbosity
 expect_message(capture_everything(nnd_knn(ui10, 4, verbose = TRUE)), "Initializing")
@@ -227,3 +228,4 @@ expect_error(nnd_knn_query(reference = ui4, reference_idx = ui4_nnd$idx, query =
 expect_error(nnd_knn_query(reference = ui4, reference_idx = ui4_nnd$idx, query = ui6, k = 5), "items in the reference data")
 expect_error(nnd_knn_query(reference = ui6, reference_idx = ui6_nnd$idx, query = ui4, init = rnbrs5, k = 6), "Not enough initial")
 expect_error(nnd_knn_query(reference = ui6, reference_idx = ui6_nnd$idx, query = ui4, init = rnbrs5, k = 5), "Not enough reference")
+expect_error(nnd_knn_query(reference = ui4, reference_idx = ui4_nnd$idx, query = ui6, k = 4, metric = "not-a-real metric"), "metric")

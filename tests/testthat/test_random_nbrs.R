@@ -13,6 +13,7 @@ check_nbrs_dist(rnbrs, ui10_eucd, tol = 1e-6)
 
 # errors
 expect_error(random_knn(ui10, k = 11), "k must be")
+expect_error(random_knn(ui10, k = 4, metric = "not-a-real metric"), "metric")
 
 # Queries -----------------------------------------------------------------
 
