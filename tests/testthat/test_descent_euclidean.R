@@ -155,6 +155,7 @@ iris_nnd <- nnd_knn(uirism, init = iris_nbrs, max_candidates = 10)
 expect_equal(sum(iris_nnd$dist), 1016.834, tol = 1e-3)
 
 # errors
+expect_error(nnd_knn(ui10), "provide k")
 expect_error(nnd_knn(ui10, k = 11), "k must be")
 expect_error(nnd_knn(uirism, init = iris_nbrs, k = 20), "Not enough")
 expect_error(nnd_knn(uirism, k = 15, metric = "not-a-real metric"), "metric")

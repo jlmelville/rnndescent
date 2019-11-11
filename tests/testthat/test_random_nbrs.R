@@ -37,3 +37,7 @@ check_query_nbrs(nn = qnbrs4, query = ui4, ref_range = 1:6, query_range = 7:10, 
 set.seed(1337)
 qnbrs6 <- random_knn_query(reference = ui4, query = ui6, k = 4, n_threads = 1)
 check_query_nbrs(nn = qnbrs6, query = ui6, ref_range = 7:10, query_range = 1:6, k = 4, expected_dist = ui10_eucd, tol = 1e-6)
+
+# Errors
+
+expect_error(random_knn_query(reference = ui4, query = ui6, k = 7), "items in the reference data")
