@@ -230,8 +230,8 @@ void build_query_candidates(NeighborHeap &current_graph, Rand &rand,
                             NeighborHeap &new_candidate_neighbors,
                             bool flag_on_add) {
   const std::size_t n_points = current_graph.n_points;
-  build_query_candidates(current_graph, rand, new_candidate_neighbors,
-                         0, n_points, flag_on_add);
+  build_query_candidates(current_graph, rand, new_candidate_neighbors, 0,
+                         n_points, flag_on_add);
 }
 
 // Use neighbor-of-neighbor search rather than local join to update the kNN.
