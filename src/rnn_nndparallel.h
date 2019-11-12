@@ -263,9 +263,8 @@ struct QueryCandidatesWorker : public RcppParallel::Worker {
       tthread::lock_guard<tthread::mutex> guard(mutex);
       rand.reset(new TauRand());
     }
-
-    build_query_candidates(current_graph, *rand, new_candidate_neighbors,
-                           flag_on_add, begin, end);
+    build_query_candidates(current_graph, *rand, new_candidate_neighbors, begin,
+                           end, flag_on_add);
   }
 };
 
@@ -309,15 +308,13 @@ void nnd_query_parallel(
     Progress &progress, const double tol, std::size_t grain_size = 1,
     const std::size_t block_size = 16384, bool verbose = false) {
   const std::size_t n_points = current_graph.n_points;
-  const std::size_t n_nbrs = current_graph.n_nbrs;
-  const bool flag_on_add = max_candidates >= n_nbrs;
 
   for (std::size_t n = 0; n < n_iters; n++) {
     NeighborHeap new_nbrs(n_points, max_candidates);
     QueryCandidatesWorker query_candidates_worker(current_graph, new_nbrs);
     RcppParallel::parallelFor(0, n_points, query_candidates_worker, grain_size);
 
-    if (!flag_on_add) {
+    if (!query_candidates_worker.flag_on_add) {
       NewCandidatesWorker new_candidates_worker(new_nbrs, current_graph);
       RcppParallel::parallelFor(0, n_points, new_candidates_worker, grain_size);
     }
@@ -326,6 +323,7 @@ void nnd_query_parallel(
         current_graph, graph_updater, new_nbrs, reference_idx, max_candidates);
     batch_parallel_for(query_non_search_worker, progress, n_points, block_size,
                        grain_size);
+
     std::size_t c = query_non_search_worker.n_updates;
 
     progress.update(n);
