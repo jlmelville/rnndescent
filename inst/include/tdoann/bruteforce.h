@@ -29,6 +29,7 @@
 
 #include "heap.h"
 
+namespace tdoann {
 template <typename Distance, typename Progress>
 void nnbf(SimpleNeighborHeap &neighbor_heap, Distance &distance,
           Progress &progress) {
@@ -71,5 +72,5 @@ void nnbf_query(SimpleNeighborHeap &neighbor_heap, Distance &distance,
 
   neighbor_heap.deheap_sort();
 }
-
+} // namespace tdoann
 #endif // TDOANN_BRUTE_FORCE_H

@@ -23,7 +23,11 @@
 // [[Rcpp::depends(RcppProgress)]]
 #include <progress.hpp>
 
+#include "tdoann/heap.h"
+
 #include "rnn.h"
+
+using namespace tdoann;
 
 std::string time_unit(int u) {
   std::string ustr(std::to_string(u));

@@ -34,11 +34,11 @@ void ts(const std::string &msg);
 // Sums the distances in a neighbor heap as a way of measuring progress.
 // Useful for diagnostic purposes
 struct HeapSumProgress {
-  NeighborHeap &neighbor_heap;
+  tdoann::NeighborHeap &neighbor_heap;
   const std::size_t n_iters;
   bool verbose;
 
-  HeapSumProgress(NeighborHeap &neighbor_heap, std::size_t n_iters,
+  HeapSumProgress(tdoann::NeighborHeap &neighbor_heap, std::size_t n_iters,
                   bool verbose);
   void update(std::size_t n);
   double dist_sum() const;
@@ -59,7 +59,7 @@ struct RPProgress {
 };
 
 template <template <typename> class GraphUpdater, typename Distance>
-void r_to_heap(NeighborHeap &current_graph, Distance &distance,
+void r_to_heap(tdoann::NeighborHeap &current_graph, Distance &distance,
                Rcpp::IntegerMatrix idx, Rcpp::NumericMatrix dist,
                const int max_idx) {
   GraphUpdater<Distance> heap_initializer(current_graph, distance);

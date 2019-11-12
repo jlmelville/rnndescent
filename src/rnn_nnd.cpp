@@ -23,7 +23,10 @@
 #include "rnn_nndparallel.h"
 #include "tdoann/distance.h"
 #include "tdoann/graphupdate.h"
+#include "tdoann/heap.h"
 #include "tdoann/nndescent.h"
+
+using namespace tdoann;
 
 #define NND_IMPL(NNDImpl, Distance, Rand, GraphUpdater)                        \
   return nn_descent_impl<NNDImpl, GraphUpdater, Distance, Rand>(               \

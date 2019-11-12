@@ -24,7 +24,6 @@
 // [[Rcpp::depends(RcppParallel)]]
 #include "rnn_parallel.h"
 #include "rnn_rng.h"
-#include "tdoann/distance.h"
 #include <RcppParallel.h>
 // [[Rcpp::depends(dqrng)]]
 #include <dqrng.h>

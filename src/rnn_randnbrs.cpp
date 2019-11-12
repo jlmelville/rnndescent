@@ -23,6 +23,8 @@
 #include "tdoann/distance.h"
 #include <Rcpp.h>
 
+using namespace tdoann;
+
 #define RandomNbrs(Distance)                                                   \
   if (parallelize) {                                                           \
     return random_knn_parallel<Distance>(data, k, block_size, grain_size,      \

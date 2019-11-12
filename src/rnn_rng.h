@@ -34,7 +34,7 @@ struct RRand {
 
 // Use Taus88 RNG
 struct TauRand {
-  tau_prng prng;
+  tdoann::tau_prng prng;
   TauRand();
   TauRand(uint64_t state0, uint64_t state1, uint64_t state2);
   // a random uniform value between 0 and 1

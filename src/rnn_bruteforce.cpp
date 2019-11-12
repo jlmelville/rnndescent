@@ -46,7 +46,7 @@ rnn_brute_force_impl(Rcpp::NumericMatrix data, int k, bool parallelize = false,
 
   RPProgress progress(n_points, verbose);
   Distance distance(data_vec, ndim);
-  SimpleNeighborHeap neighbor_heap(n_points, n_nbrs);
+  tdoann::SimpleNeighborHeap neighbor_heap(n_points, n_nbrs);
 
   if (parallelize) {
     nnbf_parallel(neighbor_heap, distance, progress, block_size, grain_size);
@@ -64,19 +64,19 @@ Rcpp::List rnn_brute_force(Rcpp::NumericMatrix data, int k,
                            std::size_t block_size = 64,
                            std::size_t grain_size = 1, bool verbose = false) {
   if (metric == "euclidean") {
-    using Distance = Euclidean<float, float>;
+    using Distance = tdoann::Euclidean<float, float>;
     BruteForce(Distance)
   } else if (metric == "l2") {
-    using Distance = L2<float, float>;
+    using Distance = tdoann::L2<float, float>;
     BruteForce(Distance)
   } else if (metric == "cosine") {
-    using Distance = Cosine<float, float>;
+    using Distance = tdoann::Cosine<float, float>;
     BruteForce(Distance)
   } else if (metric == "manhattan") {
-    using Distance = Manhattan<float, float>;
+    using Distance = tdoann::Manhattan<float, float>;
     BruteForce(Distance)
   } else if (metric == "hamming") {
-    using Distance = Hamming<uint8_t, std::size_t>;
+    using Distance = tdoann::Hamming<uint8_t, std::size_t>;
     BruteForce(Distance)
   } else {
     Rcpp::stop("Bad metric");
@@ -102,7 +102,7 @@ rnn_brute_force_query_impl(Rcpp::NumericMatrix x, Rcpp::NumericMatrix y, int k,
 
   RPProgress progress(n_xpoints, verbose);
   Distance distance(x_vec, y_vec, ndim);
-  SimpleNeighborHeap neighbor_heap(n_ypoints, n_nbrs);
+  tdoann::SimpleNeighborHeap neighbor_heap(n_ypoints, n_nbrs);
 
   if (parallelize) {
     nnbf_parallel_query(neighbor_heap, distance, n_xpoints, progress,
@@ -122,19 +122,19 @@ Rcpp::List rnn_brute_force_query(Rcpp::NumericMatrix x, Rcpp::NumericMatrix y,
                                  std::size_t grain_size = 1,
                                  bool verbose = false) {
   if (metric == "euclidean") {
-    using Distance = Euclidean<float, float>;
+    using Distance = tdoann::Euclidean<float, float>;
     BruteForceQuery(Distance)
   } else if (metric == "l2") {
-    using Distance = L2<float, float>;
+    using Distance = tdoann::L2<float, float>;
     BruteForceQuery(Distance)
   } else if (metric == "cosine") {
-    using Distance = Cosine<float, float>;
+    using Distance = tdoann::Cosine<float, float>;
     BruteForceQuery(Distance)
   } else if (metric == "manhattan") {
-    using Distance = Manhattan<float, float>;
+    using Distance = tdoann::Manhattan<float, float>;
     BruteForceQuery(Distance)
   } else if (metric == "hamming") {
-    using Distance = Hamming<uint8_t, std::size_t>;
+    using Distance = tdoann::Hamming<uint8_t, std::size_t>;
     BruteForceQuery(Distance)
   } else {
     Rcpp::stop("Bad metric");

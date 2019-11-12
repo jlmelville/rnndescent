@@ -32,6 +32,7 @@
 #include <cmath>
 #include <limits>
 
+namespace tdoann {
 class tau_prng {
   uint64_t state0;
   uint64_t state1; // technically this needs to always be > 7
@@ -61,5 +62,5 @@ public:
 
   double rand() { return std::abs(operator()() / DINT_MAX); }
 };
-
+} // namespace tdoann
 #endif // TDOANN_TAUPRNG_H

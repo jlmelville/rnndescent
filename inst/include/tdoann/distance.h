@@ -32,6 +32,7 @@
 #include <memory>
 #include <vector>
 
+namespace tdoann {
 template <typename In, typename Out> struct Euclidean {
   Euclidean(const std::vector<In> &data, std::size_t ndim)
       : x(data), y(data), ndim(ndim) {}
@@ -272,5 +273,5 @@ template <typename In, typename Out> struct Hamming {
 
   typedef In in_type;
 };
-
+} // namespace tdoann
 #endif // TDOANN_DISTANCE_H

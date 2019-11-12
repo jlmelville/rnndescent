@@ -32,6 +32,7 @@
 
 #include "heap.h"
 
+namespace tdoann {
 struct Update {
   const std::size_t p;
   const std::size_t q;
@@ -492,5 +493,6 @@ template <typename Distance> struct QuerySerialGraphUpdaterHiMem {
     return c;
   }
 };
+} // namespace tdoann
 
 #endif // TDOANN_GRAPHUPDATE_H

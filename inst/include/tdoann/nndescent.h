@@ -29,6 +29,7 @@
 
 #include "heap.h"
 
+namespace tdoann {
 // mark any neighbor in the current graph that was retained in the new
 // candidates as false
 void flag_retained_new_candidates(NeighborHeap &current_graph,
@@ -284,5 +285,5 @@ std::size_t non_search_query(NeighborHeap &current_graph,
   return non_search_query(current_graph, graph_updater, new_nbrs, reference_idx,
                           max_candidates, 0, n_points, progress);
 }
-
+} // namespace tdoann
 #endif // TDOANN_NNDESCENT_H

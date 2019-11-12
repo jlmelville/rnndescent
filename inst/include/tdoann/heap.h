@@ -30,6 +30,7 @@
 #include <limits>
 #include <vector>
 
+namespace tdoann {
 // Base class storing neighbor data as a series of heaps
 struct NeighborHeap {
   // used in analogy with std::string::npos as used in std::string::find
@@ -332,5 +333,5 @@ struct SimpleNeighborHeap {
     return dist[i * n_nbrs + j];
   }
 };
-
+} // namespace tdoann
 #endif // TDOANN_HEAP_H
