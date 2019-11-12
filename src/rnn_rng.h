@@ -36,7 +36,6 @@ struct RRand {
 struct TauRand {
   tdoann::tau_prng prng;
   TauRand();
-  TauRand(uint64_t state0, uint64_t state1, uint64_t state2);
   // a random uniform value between 0 and 1
   double unif();
 };
