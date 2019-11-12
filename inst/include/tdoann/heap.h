@@ -24,8 +24,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // OF SUCH DAMAGE.
 
-#ifndef NND_HEAP_H
-#define NND_HEAP_H
+#ifndef TDOANN_HEAP_H
+#define TDOANN_HEAP_H
 
 #include <limits>
 #include <vector>
@@ -333,4 +333,4 @@ struct SimpleNeighborHeap {
   }
 };
 
-#endif // NDD_HEAP_H
+#endif // TDOANN_HEAP_H

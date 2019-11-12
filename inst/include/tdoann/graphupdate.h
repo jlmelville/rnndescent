@@ -24,8 +24,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // OF SUCH DAMAGE.
 
-#ifndef NND_UPDATE_H
-#define NND_UPDATE_H
+#ifndef TDOANN_GRAPHUPDATE_H
+#define TDOANN_GRAPHUPDATE_H
 
 #include <unordered_set>
 #include <vector>
@@ -493,4 +493,4 @@ template <typename Distance> struct QuerySerialGraphUpdaterHiMem {
   }
 };
 
-#endif // NND_UPDATE_H
+#endif // TDOANN_GRAPHUPDATE_H

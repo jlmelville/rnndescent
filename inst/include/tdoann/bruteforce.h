@@ -24,8 +24,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // OF SUCH DAMAGE.
 
-#ifndef NND_NN_BRUTE_FORCE_H
-#define NND_NN_BRUTE_FORCE_H
+#ifndef TDOANN_BRUTE_FORCE_H
+#define TDOANN_BRUTE_FORCE_H
 
 #include "heap.h"
 
@@ -72,4 +72,4 @@ void nnbf_query(SimpleNeighborHeap &neighbor_heap, Distance &distance,
   neighbor_heap.deheap_sort();
 }
 
-#endif // NND_NN_BRUTE_FORCE_H
+#endif // TDOANN_BRUTE_FORCE_H

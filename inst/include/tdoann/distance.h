@@ -24,8 +24,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // OF SUCH DAMAGE.
 
-#ifndef NND_DISTANCE_H
-#define NND_DISTANCE_H
+#ifndef TDOANN_DISTANCE_H
+#define TDOANN_DISTANCE_H
 
 #include <bitset>
 #include <cmath>
@@ -273,4 +273,4 @@ template <typename In, typename Out> struct Hamming {
   typedef In in_type;
 };
 
-#endif // NND_DISTANCE_H
+#endif // TDOANN_DISTANCE_H

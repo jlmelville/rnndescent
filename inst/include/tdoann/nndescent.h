@@ -24,8 +24,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // OF SUCH DAMAGE.
 
-#ifndef NND_NNDESCENT_H
-#define NND_NNDESCENT_H
+#ifndef TDOANN_NNDESCENT_H
+#define TDOANN_NNDESCENT_H
 
 #include "heap.h"
 
@@ -285,4 +285,4 @@ std::size_t non_search_query(NeighborHeap &current_graph,
                           max_candidates, 0, n_points, progress);
 }
 
-#endif // NND_NNDESCENT_H
+#endif // TDOANN_NNDESCENT_H

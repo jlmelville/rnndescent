@@ -1,5 +1,5 @@
-#ifndef NND_PROGRESS_H
-#define NND_PROGRESS_H
+#ifndef TDOANN_PROGRESS_H
+#define TDOANN_PROGRESS_H
 
 // Defines the methods required, but does nothing. Safe to use from
 // multi-threaded code if a dummy no-op version is needed.
@@ -12,4 +12,4 @@ struct NullProgress {
   bool check_interrupt() { return false; };
 };
 
-#endif // NND_PROGRESS_H
+#endif // TDOANN_PROGRESS_H

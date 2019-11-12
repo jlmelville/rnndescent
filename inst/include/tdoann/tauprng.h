@@ -26,8 +26,8 @@
 
 // Three-component combined Tausworthe "taus88" PRNG from L'Ecuyer 1996.
 
-#ifndef NND_TAUPRNG_H
-#define NND_TAUPRNG_H
+#ifndef TDOANN_TAUPRNG_H
+#define TDOANN_TAUPRNG_H
 
 #include <cmath>
 #include <limits>
@@ -62,4 +62,4 @@ public:
   double rand() { return std::abs(operator()() / DINT_MAX); }
 };
 
-#endif // NND_TAUPRNG_H
+#endif // TDOANN_TAUPRNG_H
