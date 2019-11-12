@@ -159,6 +159,8 @@ expect_error(nnd_knn(ui10), "provide k")
 expect_error(nnd_knn(ui10, k = 11), "k must be")
 expect_error(nnd_knn(uirism, init = iris_nbrs, k = 20), "Not enough")
 expect_error(nnd_knn(uirism, k = 15, metric = "not-a-real metric"), "metric")
+expect_error(nnd_knn(uirism, init = list(dist = iris_nbrs$dist, idx = iris_nbrs$idx - 1)), "Bad indexes")
+
 
 # verbosity
 expect_message(capture_everything(nnd_knn(ui10, 4, verbose = TRUE)), "Initializing")
