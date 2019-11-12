@@ -244,6 +244,11 @@ qnbrs4 <- nnd_knn_query(reference = ui6, reference_idx = ui6_nnd$idx, query = ui
 check_query_nbrs(nn = qnbrs4, query = ui4, ref_range = 1:6, query_range = 7:10, k = 4, expected_dist = ui10_eucd, tol = 1e-6)
 expect_equal(sum(qnbrs4$dist), ui4q_edsum)
 
+# reduce max_candidates and check separate mark on add code runs
+qnbrs4 <- nnd_knn_query(reference = ui6, reference_idx = ui6_nnd$idx, query = ui4, k = 4, n_threads = 1, max_candidates = 3)
+check_query_nbrs(nn = qnbrs4, query = ui4, ref_range = 1:6, query_range = 7:10, k = 4, expected_dist = ui10_eucd, tol = 1e-6)
+expect_equal(sum(qnbrs4$dist), ui4q_edsum)
+
 # multi-threading himem
 set.seed(1337)
 qnbrs6 <- nnd_knn_query(reference = ui4, reference_idx = ui4_nnd$idx, query = ui6, k = 4, n_threads = 1, low_memory = FALSE)
