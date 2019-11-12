@@ -84,15 +84,15 @@ struct LockingCandidatesWorker : public RcppParallel::Worker {
 
 // mark any neighbor in the current graph that was retained in the new
 // candidates as true
-struct NewCandidatesWorker : public RcppParallel::Worker {
+struct FlagNewCandidatesWorker : public RcppParallel::Worker {
   const tdoann::NeighborHeap &new_candidate_neighbors;
   tdoann::NeighborHeap &current_graph;
   const std::size_t n_points;
   const std::size_t n_nbrs;
   const std::size_t max_candidates;
 
-  NewCandidatesWorker(const tdoann::NeighborHeap &new_candidate_neighbors,
-                      tdoann::NeighborHeap &current_graph)
+  FlagNewCandidatesWorker(const tdoann::NeighborHeap &new_candidate_neighbors,
+                          tdoann::NeighborHeap &current_graph)
       : new_candidate_neighbors(new_candidate_neighbors),
         current_graph(current_graph), n_points(current_graph.n_points),
         n_nbrs(current_graph.n_nbrs),
@@ -149,36 +149,6 @@ struct LocalJoinWorker : public RcppParallel::Worker {
   }
 };
 
-struct UpdateWorker : RcppParallel::Worker {
-  tdoann::NeighborHeap &current_graph;
-  std::vector<std::vector<tdoann::Update>> &updates;
-  std::size_t n_updates;
-  tthread::mutex mutex;
-
-  UpdateWorker(tdoann::NeighborHeap &current_graph,
-               std::vector<std::vector<tdoann::Update>> &updates)
-      : current_graph(current_graph), updates(updates), n_updates(0) {}
-
-  void operator()(std::size_t begin, std::size_t end) {
-    std::size_t c = 0;
-    for (std::size_t i = begin; i < end; i++) {
-      const std::size_t n_updates = updates[i].size();
-      for (std::size_t j = 0; j < n_updates; j++) {
-        const auto &update = updates[i][j];
-        {
-          tthread::lock_guard<tthread::mutex> guard(mutex);
-          c += current_graph.checked_push_pair(update.p, update.d, update.q,
-                                               true);
-        }
-      }
-    }
-    {
-      tthread::lock_guard<tthread::mutex> guard(mutex);
-      n_updates += c;
-    }
-  }
-};
-
 template <typename Distance, typename Rand, typename Progress,
           template <typename> class GraphUpdater>
 void nnd_parallel(tdoann::NeighborHeap &current_graph,
@@ -198,11 +168,11 @@ void nnd_parallel(tdoann::NeighborHeap &current_graph,
         current_graph, new_candidate_neighbors, old_candidate_neighbors);
     RcppParallel::parallelFor(0, n_points, candidates_worker, grain_size);
 
-    NewCandidatesWorker new_candidates_worker(new_candidate_neighbors,
-                                              current_graph);
-    RcppParallel::parallelFor(0, n_points, new_candidates_worker, grain_size);
+    FlagNewCandidatesWorker flag_new_candidates_worker(new_candidate_neighbors,
+                                                       current_graph);
+    RcppParallel::parallelFor(0, n_points, flag_new_candidates_worker,
+                              grain_size);
 
-    // TODO: can we make this batch parallel?
     std::size_t c = 0;
     bool interrupted = false;
     for (std::size_t i = 0; i < n_blocks; i++) {
@@ -316,8 +286,10 @@ void nnd_query_parallel(
     RcppParallel::parallelFor(0, n_points, query_candidates_worker, grain_size);
 
     if (!query_candidates_worker.flag_on_add) {
-      NewCandidatesWorker new_candidates_worker(new_nbrs, current_graph);
-      RcppParallel::parallelFor(0, n_points, new_candidates_worker, grain_size);
+      FlagNewCandidatesWorker flag_new_candidates_worker(new_nbrs,
+                                                         current_graph);
+      RcppParallel::parallelFor(0, n_points, flag_new_candidates_worker,
+                                grain_size);
     }
 
     QueryNoNSearchWorker<Distance, GraphUpdater> query_non_search_worker(
