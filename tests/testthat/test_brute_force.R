@@ -34,3 +34,6 @@ check_query_nbrs(nn = qnbrs4, query = ui4, ref_range = 1:6, query_range = 7:10, 
 
 qnbrs6 <- brute_force_knn_query(reference = ui4, query = ui6, k = 4, n_threads = 1)
 check_query_nbrs(nn = qnbrs6, query = ui6, ref_range = 7:10, query_range = 1:6, k = 4, expected_dist = ui10_eucd, tol = 1e-6)
+
+# other metrics
+

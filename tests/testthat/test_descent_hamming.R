@@ -35,12 +35,7 @@ expected_hamm_dist <- matrix(
   byrow = TRUE, nrow = 10, ncol = 4
 )
 
-bitm <- function(nrow, ncol, prob = 0.5) {
-  matrix(rbinom(n = nrow * ncol, size = 1, prob = prob), ncol = ncol)
-}
 
-set.seed(1337)
-bitdata <- bitm(nrow = 10, ncol = 160)
 expect_equal(sum(bitdata), 790)
 
 # For some reason, get a different set of random numbers when run via testthat
@@ -77,21 +72,14 @@ expect_equal(bit_rnn$dist, expected_hamm_dist, check.attributes = FALSE)
 
 context("NN descent Hamming queries")
 
-bit6 <- bitdata[1:6, ]
-bit4 <- bitdata[7:10, ]
-
-# Taken from RcppAnnoy
-bit4q_dsum <- 1275
-bit6q_dsum <-  1986
-
 set.seed(1337)
 bit6_nnd <- nnd_knn(bit6, k = 4, metric = "hamming")
 qnbrs4 <- nnd_knn_query(reference = bit6, reference_idx = bit6_nnd$idx, query = bit4, k = 4, metric = "hamming")
 check_query_nbrs_idx(qnbrs4$idx, nref = nrow(bit6))
-expect_equal(sum(qnbrs4$dist), bit4q_dsum, tol = 1e-6)
+expect_equal(sum(qnbrs4$dist), bit4q_hdsum, tol = 1e-6)
 
 set.seed(1337)
 bit4_nnd <- nnd_knn(bit4, k = 4, metric = "manhattan")
 qnbrs6 <- nnd_knn_query(reference = bit4, reference_idx = bit4_nnd$idx, query = bit6, k = 4, metric = "hamming")
 check_query_nbrs_idx(qnbrs6$idx, nref = nrow(ui4))
-expect_equal(sum(qnbrs6$dist), bit6q_dsum, tol = 1e-6)
+expect_equal(sum(qnbrs6$dist), bit6q_hdsum, tol = 1e-6)
