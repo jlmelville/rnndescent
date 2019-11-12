@@ -29,11 +29,6 @@
 
 using namespace tdoann;
 
-std::string time_unit(int u) {
-  std::string ustr(std::to_string(u));
-  return u < 10 ? "0" + ustr : ustr;
-}
-
 void print_time(bool print_date) {
   auto now = std::chrono::system_clock::now();
   auto duration = now.time_since_epoch();

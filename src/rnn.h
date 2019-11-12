@@ -27,7 +27,6 @@
 #include "tdoann/graphupdate.h"
 #include "tdoann/heap.h"
 
-std::string time_unit(int u);
 void print_time(bool print_date = false);
 void ts(const std::string &msg);
 
