@@ -182,9 +182,7 @@ expect_equal(sum(uiris_rnn$dist), 1016.834, tol = 1e-3)
 
 # Queries -----------------------------------------------------------------
 
-context("NND queries")
-ui6 <- ui10[1:6, ]
-ui4 <- ui10[7:10, ]
+context("NN descent Euclidean queries")
 
 # sum(RcppHNSW::hnsw_search(ui4, RcppHNSW::hnsw_build(ui6), k = 4)$dist)
 ui4q_dsum <- 9.310494
