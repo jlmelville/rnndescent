@@ -78,8 +78,8 @@ Rcpp::List random_knn_cpp(Rcpp::NumericMatrix data, int k,
   if (metric == "euclidean") {
     using Distance = Euclidean<float, float>;
     RandomNbrs(Distance)
-  } else if (metric == "l2") {
-    using Distance = L2<float, float>;
+  } else if (metric == "l2sqr") {
+    using Distance = L2Sqr<float, float>;
     RandomNbrs(Distance)
   } else if (metric == "cosine") {
     using Distance = Cosine<float, float>;
@@ -149,8 +149,8 @@ random_knn_query_cpp(Rcpp::NumericMatrix reference, Rcpp::NumericMatrix query,
   if (metric == "euclidean") {
     using Distance = Euclidean<float, float>;
     RandomNbrsQuery(Distance)
-  } else if (metric == "l2") {
-    using Distance = L2<float, float>;
+  } else if (metric == "l2sqr") {
+    using Distance = L2Sqr<float, float>;
     RandomNbrsQuery(Distance)
   } else if (metric == "cosine") {
     using Distance = Cosine<float, float>;

@@ -13,7 +13,7 @@ brute_force_knn(data, k, metric = "euclidean", use_alt_metric = TRUE,
 \item{k}{Number of nearest neighbors to return.}
 
 \item{metric}{Type of distance calculation to use. One of \code{"euclidean"},
-\code{"l2"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"}
+\code{"l2sqr"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"}
 or \code{"hamming"}.}
 
 \item{use_alt_metric}{If \code{TRUE}, use faster metrics that maintain the

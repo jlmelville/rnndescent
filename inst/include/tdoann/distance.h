@@ -61,10 +61,10 @@ template <typename In, typename Out> struct Euclidean {
   typedef In in_type;
 };
 
-template <typename In, typename Out> struct L2 {
-  L2(const std::vector<In> &data, std::size_t ndim)
+template <typename In, typename Out> struct L2Sqr {
+  L2Sqr(const std::vector<In> &data, std::size_t ndim)
       : x(data), y(data), ndim(ndim) {}
-  L2(const std::vector<In> &x, const std::vector<In> &y, std::size_t ndim)
+  L2Sqr(const std::vector<In> &x, const std::vector<In> &y, std::size_t ndim)
       : x(x), y(y), ndim(ndim) {}
 
   Out operator()(std::size_t i, std::size_t j) const {

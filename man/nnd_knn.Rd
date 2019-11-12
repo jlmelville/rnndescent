@@ -16,7 +16,7 @@ nnd_knn(data, k = NULL, metric = "euclidean", init = NULL,
 specified.}
 
 \item{metric}{Type of distance calculation to use. One of \code{"euclidean"},
-\code{"l2"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"}
+\code{"l2sqr"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"}
 or \code{"hamming"}.}
 
 \item{init}{Initial data to optimize. If not provided, \code{k} random

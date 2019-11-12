@@ -127,8 +127,8 @@ Rcpp::List nn_descent(Rcpp::NumericMatrix data, Rcpp::IntegerMatrix idx,
   if (metric == "euclidean") {
     using Distance = Euclidean<float, float>;
     NND_UPDATER(Distance, RRand, low_memory, parallelize)
-  } else if (metric == "l2") {
-    using Distance = L2<float, float>;
+  } else if (metric == "l2sqr") {
+    using Distance = L2Sqr<float, float>;
     NND_UPDATER(Distance, RRand, low_memory, parallelize)
   } else if (metric == "cosine") {
     using Distance = Cosine<float, float>;
@@ -256,8 +256,8 @@ Rcpp::List nn_descent_query(
   if (metric == "euclidean") {
     using Distance = Euclidean<float, float>;
     NND_QUERY_UPDATER(Distance, RRand, low_memory, parallelize)
-  } else if (metric == "l2") {
-    using Distance = L2<float, float>;
+  } else if (metric == "l2sqr") {
+    using Distance = L2Sqr<float, float>;
     NND_QUERY_UPDATER(Distance, RRand, low_memory, parallelize)
   } else if (metric == "cosine") {
     using Distance = Cosine<float, float>;

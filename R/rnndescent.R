@@ -5,7 +5,7 @@
 #' @param data Matrix of \code{n} items to generate random neighbors for.
 #' @param k Number of nearest neighbors to return.
 #' @param metric Type of distance calculation to use. One of \code{"euclidean"},
-#'   \code{"l2"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"}
+#'   \code{"l2sqr"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"}
 #'   or \code{"hamming"}.
 #' @param use_alt_metric If \code{TRUE}, use faster metrics that maintain the
 #'   ordering of distances internally (e.g. squared Euclidean distances if using
@@ -85,7 +85,7 @@ brute_force_knn <- function(
 #' @param data Matrix of \code{n} items to generate random neighbors for.
 #' @param k Number of nearest neighbors to return.
 #' @param metric Type of distance calculation to use. One of \code{"euclidean"},
-#'   \code{"l2"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"}
+#'   \code{"l2sqr"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"}
 #'   or \code{"hamming"}.
 #' @param use_alt_metric If \code{TRUE}, use faster metrics that maintain the
 #'   ordering of distances internally (e.g. squared Euclidean distances if using
@@ -165,7 +165,7 @@ random_knn <- function(data, k, metric = "euclidean", use_alt_metric = TRUE,
 #' @param k Number of nearest neighbors to return. Optional if \code{init} is
 #'   specified.
 #' @param metric Type of distance calculation to use. One of \code{"euclidean"},
-#'   \code{"l2"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"}
+#'   \code{"l2sqr"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"}
 #'   or \code{"hamming"}.
 #' @param init Initial data to optimize. If not provided, \code{k} random
 #'   neighbors are created. The input format should be the same as the return
@@ -340,7 +340,7 @@ nnd_knn <- function(data, k = NULL,
 #' @param query Matrix of \code{n} query items.
 #' @param k Number of nearest neighbors to return.
 #' @param metric Type of distance calculation to use. One of \code{"euclidean"},
-#'   \code{"l2"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"}
+#'   \code{"l2sqr"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"}
 #'   or \code{"hamming"}.
 #' @param use_alt_metric If \code{TRUE}, use faster metrics that maintain the
 #'   ordering of distances internally (e.g. squared Euclidean distances if using
@@ -436,7 +436,7 @@ brute_force_knn_query <- function(
 #' @param query Matrix of \code{n} query items.
 #' @param k Number of nearest neighbors to return.
 #' @param metric Type of distance calculation to use. One of \code{"euclidean"},
-#'   \code{"l2"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"}
+#'   \code{"l2sqr"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"}
 #'   or \code{"hamming"}.
 #' @param use_alt_metric If \code{TRUE}, use faster metrics that maintain the
 #'   ordering of distances internally (e.g. squared Euclidean distances if using
@@ -530,7 +530,7 @@ random_knn_query <- function(reference, query, k, metric = "euclidean",
 #' @param k Number of nearest neighbors to return. Optional if \code{init} is
 #'   specified.
 #' @param metric Type of distance calculation to use. One of \code{"euclidean"},
-#'   \code{"l2"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"}
+#'   \code{"l2sqr"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"}
 #'   or \code{"hamming"}.
 #' @param use_alt_metric If \code{TRUE}, use faster metrics that maintain the
 #'   ordering of distances internally (e.g. squared Euclidean distances if using
@@ -710,7 +710,7 @@ prepare_ref_idx <- function(idx, k) {
 
 find_alt_metric <- function(metric) {
   switch(metric,
-    euclidean = "l2",
+    euclidean = "l2sqr",
     metric
   )
 }

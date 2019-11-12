@@ -66,8 +66,8 @@ Rcpp::List rnn_brute_force(Rcpp::NumericMatrix data, int k,
   if (metric == "euclidean") {
     using Distance = tdoann::Euclidean<float, float>;
     BruteForce(Distance)
-  } else if (metric == "l2") {
-    using Distance = tdoann::L2<float, float>;
+  } else if (metric == "l2sqr") {
+    using Distance = tdoann::L2Sqr<float, float>;
     BruteForce(Distance)
   } else if (metric == "cosine") {
     using Distance = tdoann::Cosine<float, float>;
@@ -124,8 +124,8 @@ Rcpp::List rnn_brute_force_query(Rcpp::NumericMatrix x, Rcpp::NumericMatrix y,
   if (metric == "euclidean") {
     using Distance = tdoann::Euclidean<float, float>;
     BruteForceQuery(Distance)
-  } else if (metric == "l2") {
-    using Distance = tdoann::L2<float, float>;
+  } else if (metric == "l2sqr") {
+    using Distance = tdoann::L2Sqr<float, float>;
     BruteForceQuery(Distance)
   } else if (metric == "cosine") {
     using Distance = tdoann::Cosine<float, float>;

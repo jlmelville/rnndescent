@@ -1,5 +1,16 @@
 # rnndescent 0.0.3
 
+## Bug fixes and minor improvements
+
+* The `l2` metric has been renamed to `l2sqr` to more accurately reflect what 
+it is: the square of the L2 (Euclidean) metric.
+* New option `use_alt_metric`. Set to `FALSE` if you don't want alternative, 
+faster metrics (which keep the distance ordering of `metric`) to be used in 
+internal calculations. Currently only applies to `metric = "euclidean"`, where
+the squared Euclidean distance is used internally. Only worth setting this to
+`FALSE` if you think the alternative is causing numerical issues (which is
+a bug, so please report it!).
+
 # rnndescent 0.0.2 (7 November 2019)
 
 ## New features
