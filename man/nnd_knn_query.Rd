@@ -7,8 +7,8 @@
 nnd_knn_query(reference, reference_idx, query, k = NULL,
   metric = "euclidean", init = NULL, n_iters = 10,
   max_candidates = 20, delta = 0.001, low_memory = TRUE,
-  n_threads = 0, block_size = 16384, grain_size = 1,
-  verbose = FALSE)
+  use_alt_metric = TRUE, n_threads = 0, block_size = 16384,
+  grain_size = 1, verbose = FALSE)
 }
 \arguments{
 \item{reference}{Matrix of \code{m} reference items. The nearest neighbors to the
@@ -55,6 +55,13 @@ computationally expensive approach to index construction. If set to
 \code{FALSE}, you should see a noticeable speed improvement, especially
 when using a smaller number of threads, so this is worth trying if you
 have the memory to spare.}
+
+\item{use_alt_metric}{If \code{TRUE}, use faster metrics that maintain the
+ordering of distances internally (e.g. squared Euclidean distances if using
+\code{metric = "euclidean"}), then apply a correction at the end. Probably
+the only reason to set this to \code{FALSE} is if you suspect that some
+sort of numeric issue is occuring with your data in the alternative code
+path.}
 
 \item{n_threads}{Number of threads to use.}
 

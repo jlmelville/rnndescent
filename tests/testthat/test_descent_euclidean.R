@@ -116,14 +116,12 @@ expect_equal(output, "character(0)")
 # default
 set.seed(1337)
 uiris_rnn <- nnd_knn(uirism, 15)
-# treat sum of distances an objective function
-# expected sum from sum(FNN::get.knn(uirism, 14)$nn.dist)
-expect_equal(sum(uiris_rnn$dist), 1016.834, tol = 1e-3)
+expect_equal(sum(uiris_rnn$dist), ui_edsum, tol = 1e-3)
 
 # data frame can be input
 set.seed(1337)
 uiris_rnn <- nnd_knn(uiris, 15)
-expect_equal(sum(uiris_rnn$dist), 1016.834, tol = 1e-3)
+expect_equal(sum(uiris_rnn$dist), ui_edsum, tol = 1e-3)
 
 # Create external initialization
 set.seed(1337)
@@ -132,35 +130,39 @@ iris_nbrs <- random_knn(uirism, 15)
 # initialize from existing knn graph
 set.seed(1337)
 iris_nnd <- nnd_knn(uirism, init = iris_nbrs)
-expect_equal(sum(iris_nnd$dist), 1016.834, tol = 1e-3)
+expect_equal(sum(iris_nnd$dist), ui_edsum, tol = 1e-3)
 
 # Use larger initialization for smaller k
 set.seed(1337)
 iris_nnd <- nnd_knn(uirism, init = random_knn(uirism, 20), k = 15)
-expect_equal(sum(iris_nnd$dist), 1016.834, tol = 1e-3)
+expect_equal(sum(iris_nnd$dist), ui_edsum, tol = 1e-3)
 
 # high memory mode
 set.seed(1337)
 iris_nnd <- nnd_knn(uirism, init = iris_nbrs, low_memory = FALSE)
-expect_equal(sum(iris_nnd$dist), 1016.834, tol = 1e-3)
+expect_equal(sum(iris_nnd$dist), ui_edsum, tol = 1e-3)
 
 # init default with high memory
 set.seed(1337)
 uiris_rnn <- nnd_knn(uirism, 15, low_memory = FALSE)
-expect_equal(sum(uiris_rnn$dist), 1016.834, tol = 1e-3)
+expect_equal(sum(uiris_rnn$dist), ui_edsum, tol = 1e-3)
 
 # max candidates
 set.seed(1337)
 iris_nnd <- nnd_knn(uirism, init = iris_nbrs, max_candidates = 10)
-expect_equal(sum(iris_nnd$dist), 1016.834, tol = 1e-3)
+expect_equal(sum(iris_nnd$dist), ui_edsum, tol = 1e-3)
+
+# turn off alt metric
+set.seed(1337)
+ui10_rnn <- nnd_knn(ui10, 4, use_alt_metric = FALSE)
+expect_equal(sum(ui10_rnn$dist), ui10_edsum, tol = 1e-3)
 
 # errors
 expect_error(nnd_knn(ui10), "provide k")
 expect_error(nnd_knn(ui10, k = 11), "k must be")
 expect_error(nnd_knn(uirism, init = iris_nbrs, k = 20), "Not enough")
-expect_error(nnd_knn(uirism, k = 15, metric = "not-a-real metric"), "metric")
+expect_error(nnd_knn(uirism, k = 15, init = iris_nbrs, metric = "not-a-real metric"), "metric")
 expect_error(nnd_knn(uirism, init = list(dist = iris_nbrs$dist, idx = iris_nbrs$idx - 1)), "Bad indexes")
-
 
 # verbosity
 expect_message(capture_everything(nnd_knn(ui10, 4, verbose = TRUE)), "Initializing")
@@ -170,17 +172,17 @@ expect_message(capture_everything(nnd_knn(ui10, 4, verbose = TRUE)), "Initializi
 # multi-threading
 set.seed(1337)
 uiris_rnn <- nnd_knn(uirism, 15, n_threads = 1)
-expect_equal(sum(uiris_rnn$dist), 1016.834, tol = 1e-3)
+expect_equal(sum(uiris_rnn$dist), ui_edsum, tol = 1e-3)
 
 # with caching
 set.seed(1337)
 uiris_rnn <- nnd_knn(uirism, 15, n_threads = 1, low_memory = FALSE)
-expect_equal(sum(uiris_rnn$dist), 1016.834, tol = 1e-3)
+expect_equal(sum(uiris_rnn$dist), ui_edsum, tol = 1e-3)
 
 # block_size
 set.seed(1337)
 uiris_rnn <- nnd_knn(uirism, 15, n_threads = 1, block_size = 3)
-expect_equal(sum(uiris_rnn$dist), 1016.834, tol = 1e-3)
+expect_equal(sum(uiris_rnn$dist), ui_edsum, tol = 1e-3)
 
 # Queries -----------------------------------------------------------------
 
@@ -201,6 +203,12 @@ expect_equal(sum(qnbrs6$dist), ui6q_edsum, tol = 1e-6)
 # max candidates
 set.seed(1337)
 qnbrs6 <- nnd_knn_query(reference = ui4, reference_idx = ui4_nnd$idx, query = ui6, k = 4, max_candidates = 3)
+check_query_nbrs(nn = qnbrs6, query = ui6, ref_range = 7:10, query_range = 1:6, k = 4, expected_dist = ui10_eucd, tol = 1e-6)
+expect_equal(sum(qnbrs6$dist), ui6q_edsum, tol = 1e-6)
+
+# turn off alt metric
+set.seed(1337)
+qnbrs6 <- nnd_knn_query(reference = ui4, reference_idx = ui4_nnd$idx, query = ui6, k = 4, use_alt_metric = FALSE)
 check_query_nbrs(nn = qnbrs6, query = ui6, ref_range = 7:10, query_range = 1:6, k = 4, expected_dist = ui10_eucd, tol = 1e-6)
 expect_equal(sum(qnbrs6$dist), ui6q_edsum, tol = 1e-6)
 

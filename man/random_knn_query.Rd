@@ -5,8 +5,8 @@
 \title{Nearest Neighbors Query by Random Selection}
 \usage{
 random_knn_query(reference, query, k, metric = "euclidean",
-  n_threads = 0, block_size = 4096, grain_size = 1,
-  verbose = FALSE)
+  use_alt_metric = TRUE, n_threads = 0, block_size = 4096,
+  grain_size = 1, verbose = FALSE)
 }
 \arguments{
 \item{reference}{Matrix of \code{m} reference items. The nearest neighbors to the
@@ -19,6 +19,13 @@ queries are randomly selected from this data.}
 \item{metric}{Type of distance calculation to use. One of \code{"euclidean"},
 \code{"l2"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"}
 or \code{"hamming"}.}
+
+\item{use_alt_metric}{If \code{TRUE}, use faster metrics that maintain the
+ordering of distances internally (e.g. squared Euclidean distances if using
+\code{metric = "euclidean"}), then apply a correction at the end. Probably
+the only reason to set this to \code{FALSE} is if you suspect that some
+sort of numeric issue is occuring with your data in the alternative code
+path.}
 
 \item{n_threads}{Number of threads to use.}
 

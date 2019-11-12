@@ -6,8 +6,8 @@
 \usage{
 nnd_knn(data, k = NULL, metric = "euclidean", init = NULL,
   n_iters = 10, max_candidates = 20, delta = 0.001,
-  low_memory = TRUE, n_threads = 0, block_size = 16384,
-  grain_size = 1, verbose = FALSE)
+  low_memory = TRUE, use_alt_metric = TRUE, n_threads = 0,
+  block_size = 16384, grain_size = 1, verbose = FALSE)
 }
 \arguments{
 \item{data}{Matrix of \code{n} items to search.}
@@ -37,7 +37,7 @@ only the \code{k} closest value in \code{init} are retained.}
 item in each iteration. Use relative to \code{k} to emulate the "rho"
 sampling parameter in the nearest neighbor descent paper.}
 
-\item{delta}{precision parameter. Routine will terminate early if
+\item{delta}{Precision parameter. Routine will terminate early if
 fewer than \eqn{\delta k N}{delta x k x n} updates are made to the nearest
 neighbor list in a given iteration.}
 
@@ -46,6 +46,13 @@ computationally expensive approach to index construction. If set to
 \code{FALSE}, you should see a noticeable speed improvement, especially
 when using a smaller number of threads, so this is worth trying if you have
 the memory to spare.}
+
+\item{use_alt_metric}{If \code{TRUE}, use faster metrics that maintain the
+ordering of distances internally (e.g. squared Euclidean distances if using
+\code{metric = "euclidean"}), then apply a correction at the end. Probably
+the only reason to set this to \code{FALSE} is if you suspect that some
+sort of numeric issue is occuring with your data in the alternative code
+path.}
 
 \item{n_threads}{Number of threads to use.}
 

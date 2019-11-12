@@ -4,8 +4,9 @@
 \alias{random_knn}
 \title{Randomly select nearest neighbors.}
 \usage{
-random_knn(data, k, metric = "euclidean", n_threads = 0,
-  block_size = 4096, grain_size = 1, verbose = FALSE)
+random_knn(data, k, metric = "euclidean", use_alt_metric = TRUE,
+  n_threads = 0, block_size = 4096, grain_size = 1,
+  verbose = FALSE)
 }
 \arguments{
 \item{data}{Matrix of \code{n} items to generate random neighbors for.}
@@ -15,6 +16,13 @@ random_knn(data, k, metric = "euclidean", n_threads = 0,
 \item{metric}{Type of distance calculation to use. One of \code{"euclidean"},
 \code{"l2"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"}
 or \code{"hamming"}.}
+
+\item{use_alt_metric}{If \code{TRUE}, use faster metrics that maintain the
+ordering of distances internally (e.g. squared Euclidean distances if using
+\code{metric = "euclidean"}), then apply a correction at the end. Probably
+the only reason to set this to \code{FALSE} is if you suspect that some
+sort of numeric issue is occuring with your data in the alternative code
+path.}
 
 \item{n_threads}{Number of threads to use.}
 

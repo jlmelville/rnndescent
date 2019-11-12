@@ -7,6 +7,12 @@
 #' @param metric Type of distance calculation to use. One of \code{"euclidean"},
 #'   \code{"l2"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"}
 #'   or \code{"hamming"}.
+#' @param use_alt_metric If \code{TRUE}, use faster metrics that maintain the
+#'   ordering of distances internally (e.g. squared Euclidean distances if using
+#'   \code{metric = "euclidean"}), then apply a correction at the end. Probably
+#'   the only reason to set this to \code{FALSE} is if you suspect that some
+#'   sort of numeric issue is occuring with your data in the alternative code
+#'   path.
 #' @param n_threads Number of threads to use.
 #' @param block_size Number of items to generate neighbors for in each
 #'   multi-threaded batch. Reducing this number will increase the frequency
@@ -46,17 +52,32 @@ brute_force_knn <- function(
                             data,
                             k,
                             metric = "euclidean",
+                            use_alt_metric = TRUE,
                             n_threads = 0,
                             block_size = 64,
                             grain_size = 1,
                             verbose = FALSE) {
   data <- x2m(data)
   check_k(k, nrow(data))
+
+  if (use_alt_metric) {
+    actual_metric <- find_alt_metric(metric)
+  }
+  else {
+    actual_metric <- metric
+  }
+
   parallelize <- n_threads > 0
   if (parallelize) {
     RcppParallel::setThreadOptions(numThreads = n_threads)
   }
-  rnn_brute_force(data, k, metric, parallelize, block_size, grain_size, verbose)
+  res <- rnn_brute_force(data, k, actual_metric, parallelize, block_size, grain_size, verbose)
+
+  if (use_alt_metric) {
+    res$dist <- apply_alt_metric_correction(metric, res$dist)
+  }
+
+  res
 }
 
 #' Randomly select nearest neighbors.
@@ -66,6 +87,12 @@ brute_force_knn <- function(
 #' @param metric Type of distance calculation to use. One of \code{"euclidean"},
 #'   \code{"l2"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"}
 #'   or \code{"hamming"}.
+#' @param use_alt_metric If \code{TRUE}, use faster metrics that maintain the
+#'   ordering of distances internally (e.g. squared Euclidean distances if using
+#'   \code{metric = "euclidean"}), then apply a correction at the end. Probably
+#'   the only reason to set this to \code{FALSE} is if you suspect that some
+#'   sort of numeric issue is occuring with your data in the alternative code
+#'   path.
 #' @param n_threads Number of threads to use.
 #' @param block_size Number of items to generate neighbors for in each
 #'   multi-threaded batch. Reducing this number will increase the frequency
@@ -105,16 +132,31 @@ brute_force_knn <- function(
 #' # to specify k here because this is worked out from the initial input
 #' iris_nn <- nnd_knn(iris, init = iris_nn, metric = "euclidean", verbose = TRUE)
 #' @export
-random_knn <- function(data, k, metric = "euclidean",
+random_knn <- function(data, k, metric = "euclidean", use_alt_metric = TRUE,
                        n_threads = 0, block_size = 4096, grain_size = 1,
                        verbose = FALSE) {
   data <- x2m(data)
   check_k(k, nrow(data))
+
+  if (use_alt_metric) {
+    actual_metric <- find_alt_metric(metric)
+  }
+  else {
+    actual_metric <- metric
+  }
+
   parallelize <- n_threads > 0
   if (parallelize) {
     RcppParallel::setThreadOptions(numThreads = n_threads)
   }
-  random_knn_cpp(data, k, metric, parallelize, block_size, grain_size, verbose)
+
+  res <- random_knn_cpp(data, k, actual_metric, parallelize, block_size, grain_size, verbose)
+
+  if (use_alt_metric) {
+    res$dist <- apply_alt_metric_correction(metric, res$dist)
+  }
+
+  res
 }
 
 #' Find Nearest Neighbors and Distances
@@ -140,7 +182,7 @@ random_knn <- function(data, k, metric = "euclidean",
 #' @param max_candidates Maximum number of candidate neighbors to try for each
 #'   item in each iteration. Use relative to \code{k} to emulate the "rho"
 #'   sampling parameter in the nearest neighbor descent paper.
-#' @param delta precision parameter. Routine will terminate early if
+#' @param delta Precision parameter. Routine will terminate early if
 #'   fewer than \eqn{\delta k N}{delta x k x n} updates are made to the nearest
 #'   neighbor list in a given iteration.
 #' @param low_memory If \code{TRUE}, use a lower memory, but more
@@ -148,6 +190,12 @@ random_knn <- function(data, k, metric = "euclidean",
 #'   \code{FALSE}, you should see a noticeable speed improvement, especially
 #'   when using a smaller number of threads, so this is worth trying if you have
 #'   the memory to spare.
+#' @param use_alt_metric If \code{TRUE}, use faster metrics that maintain the
+#'   ordering of distances internally (e.g. squared Euclidean distances if using
+#'   \code{metric = "euclidean"}), then apply a correction at the end. Probably
+#'   the only reason to set this to \code{FALSE} is if you suspect that some
+#'   sort of numeric issue is occuring with your data in the alternative code
+#'   path.
 #' @param n_threads Number of threads to use.
 #' @param block_size Batch size for creating/applying local join updates. A
 #'  smaller value will apply the update more often, which may help reduce the
@@ -224,17 +272,18 @@ nnd_knn <- function(data, k = NULL,
                     max_candidates = 20,
                     delta = 0.001,
                     low_memory = TRUE,
+                    use_alt_metric = TRUE,
                     n_threads = 0,
                     block_size = 16384,
                     grain_size = 1,
                     verbose = FALSE) {
   data <- x2m(data)
 
-  # As a minor optimization, we will use L2 internally if the user asks for
-  # Euclidean and only take the square root of the final distances.
-  actual_metric <- metric
-  if (metric == "euclidean") {
-    actual_metric <- "l2"
+  if (use_alt_metric) {
+    actual_metric <- find_alt_metric(metric)
+  }
+  else {
+    actual_metric <- metric
   }
 
   if (is.null(init)) {
@@ -274,8 +323,8 @@ nnd_knn <- function(data, k = NULL,
     block_size = block_size, verbose = verbose
   )
 
-  if (metric == "euclidean") {
-    res$dist <- sqrt(res$dist)
+  if (use_alt_metric) {
+    res$dist <- apply_alt_metric_correction(metric, res$dist)
   }
   tsmessage("Final dsum = ", formatC(sum(res$dist)))
   res
@@ -293,6 +342,12 @@ nnd_knn <- function(data, k = NULL,
 #' @param metric Type of distance calculation to use. One of \code{"euclidean"},
 #'   \code{"l2"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"}
 #'   or \code{"hamming"}.
+#' @param use_alt_metric If \code{TRUE}, use faster metrics that maintain the
+#'   ordering of distances internally (e.g. squared Euclidean distances if using
+#'   \code{metric = "euclidean"}), then apply a correction at the end. Probably
+#'   the only reason to set this to \code{FALSE} is if you suspect that some
+#'   sort of numeric issue is occuring with your data in the alternative code
+#'   path.
 #' @param n_threads Number of threads to use.
 #' @param block_size Number of items to generate neighbors for in each
 #'   multi-threaded batch. Reducing this number will increase the frequency
@@ -336,6 +391,7 @@ brute_force_knn_query <- function(
                                   query,
                                   k,
                                   metric = "euclidean",
+                                  use_alt_metric = TRUE,
                                   n_threads = 0,
                                   block_size = 64,
                                   grain_size = 1,
@@ -350,14 +406,27 @@ brute_force_knn_query <- function(
     )
   }
 
+  if (use_alt_metric) {
+    actual_metric <- find_alt_metric(metric)
+  }
+  else {
+    actual_metric <- metric
+  }
+
   parallelize <- n_threads > 0
   if (parallelize) {
     RcppParallel::setThreadOptions(numThreads = n_threads)
   }
-  rnn_brute_force_query(
-    reference, query, k, metric, parallelize, block_size,
+
+  res <- rnn_brute_force_query(
+    reference, query, k, actual_metric, parallelize, block_size,
     grain_size, verbose
   )
+
+  if (use_alt_metric) {
+    res$dist <- apply_alt_metric_correction(metric, res$dist)
+  }
+  res
 }
 
 #' Nearest Neighbors Query by Random Selection
@@ -369,6 +438,12 @@ brute_force_knn_query <- function(
 #' @param metric Type of distance calculation to use. One of \code{"euclidean"},
 #'   \code{"l2"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"}
 #'   or \code{"hamming"}.
+#' @param use_alt_metric If \code{TRUE}, use faster metrics that maintain the
+#'   ordering of distances internally (e.g. squared Euclidean distances if using
+#'   \code{metric = "euclidean"}), then apply a correction at the end. Probably
+#'   the only reason to set this to \code{FALSE} is if you suspect that some
+#'   sort of numeric issue is occuring with your data in the alternative code
+#'   path.
 #' @param n_threads Number of threads to use.
 #' @param block_size Number of items to generate neighbors for in each
 #'   multi-threaded batch. Reducing this number will increase the frequency
@@ -407,25 +482,40 @@ brute_force_knn_query <- function(
 #' iris_query_random_nbrs <- random_knn_query(iris_ref, iris_query, k = 4, metric = "manhattan")
 #' @export
 random_knn_query <- function(reference, query, k, metric = "euclidean",
+                             use_alt_metric = TRUE,
                              n_threads = 0, block_size = 4096, grain_size = 1,
                              verbose = FALSE) {
   reference <- x2m(reference)
   query <- x2m(query)
   nr <- nrow(reference)
+
   if (k > nr) {
     stop(
       k, " neighbors asked for, but only ", nrow(reference),
       " items in the reference data"
     )
   }
+
+  if (use_alt_metric) {
+    actual_metric <- find_alt_metric(metric)
+  }
+  else {
+    actual_metric <- metric
+  }
+
   parallelize <- n_threads > 0
   if (parallelize) {
     RcppParallel::setThreadOptions(numThreads = n_threads)
   }
-  random_knn_query_cpp(
-    reference, query, k, metric, parallelize, block_size,
+
+  res <- random_knn_query_cpp(
+    reference, query, k, actual_metric, parallelize, block_size,
     grain_size, verbose
   )
+  if (use_alt_metric) {
+    res$dist <- apply_alt_metric_correction(metric, res$dist)
+  }
+  res
 }
 
 
@@ -442,6 +532,12 @@ random_knn_query <- function(reference, query, k, metric = "euclidean",
 #' @param metric Type of distance calculation to use. One of \code{"euclidean"},
 #'   \code{"l2"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"}
 #'   or \code{"hamming"}.
+#' @param use_alt_metric If \code{TRUE}, use faster metrics that maintain the
+#'   ordering of distances internally (e.g. squared Euclidean distances if using
+#'   \code{metric = "euclidean"}), then apply a correction at the end. Probably
+#'   the only reason to set this to \code{FALSE} is if you suspect that some
+#'   sort of numeric issue is occuring with your data in the alternative code
+#'   path.
 #' @param init Initial data to optimize. If not provided, \code{k} random
 #'   neighbors are created. The input format should be the same as the return
 #'   value: a list containing:
@@ -515,6 +611,7 @@ nnd_knn_query <- function(reference, reference_idx, query, k = NULL,
                           max_candidates = 20,
                           delta = 0.001,
                           low_memory = TRUE,
+                          use_alt_metric = TRUE,
                           n_threads = 0,
                           block_size = 16384,
                           grain_size = 1,
@@ -522,11 +619,11 @@ nnd_knn_query <- function(reference, reference_idx, query, k = NULL,
   reference <- x2m(reference)
   query <- x2m(query)
 
-  # As a minor optimization, we will use L2 internally if the user asks for
-  # Euclidean and only take the square root of the final distances.
-  actual_metric <- metric
-  if (metric == "euclidean") {
-    actual_metric <- "l2"
+  if (use_alt_metric) {
+    actual_metric <- find_alt_metric(metric)
+  }
+  else {
+    actual_metric <- metric
   }
 
   if (is.null(init)) {
@@ -567,8 +664,8 @@ nnd_knn_query <- function(reference, reference_idx, query, k = NULL,
     block_size = block_size, verbose = verbose
   )
 
-  if (metric == "euclidean") {
-    res$dist <- sqrt(res$dist)
+  if (use_alt_metric) {
+    res$dist <- apply_alt_metric_correction(metric, res$dist)
   }
   tsmessage("Final dsum = ", formatC(sum(res$dist)))
   res
@@ -609,4 +706,18 @@ prepare_ref_idx <- function(idx, k) {
     idx <- idx[, 1:k]
   }
   idx
+}
+
+find_alt_metric <- function(metric) {
+  switch(metric,
+    euclidean = "l2",
+    metric
+  )
+}
+
+apply_alt_metric_correction <- function(metric, dist) {
+  switch(metric,
+    euclidean = sqrt(dist),
+    dist
+  )
 }
