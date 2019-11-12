@@ -17,10 +17,10 @@
 //  You should have received a copy of the GNU General Public License
 //  along with rnndescent.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "distance.h"
 #include "rnn.h"
 #include "rnn_randnbrsparallel.h"
 #include "rnn_rng.h"
+#include "tdoann/distance.h"
 #include <Rcpp.h>
 
 #define RandomNbrs(Distance)                                                   \

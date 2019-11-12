@@ -19,11 +19,11 @@
 
 #include <Rcpp.h>
 
-#include "distance.h"
-#include "graphupdate.h"
-#include "nndescent.h"
 #include "rnn.h"
 #include "rnn_nndparallel.h"
+#include "tdoann/distance.h"
+#include "tdoann/graphupdate.h"
+#include "tdoann/nndescent.h"
 
 #define NND_IMPL(NNDImpl, Distance, Rand, GraphUpdater)                        \
   return nn_descent_impl<NNDImpl, GraphUpdater, Distance, Rand>(               \

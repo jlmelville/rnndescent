@@ -22,8 +22,8 @@
 
 #include <Rcpp.h>
 // [[Rcpp::depends(RcppParallel)]]
-#include "heap.h"
 #include "rnn_parallel.h"
+#include "tdoann/heap.h"
 #include <RcppParallel.h>
 
 template <typename Distance>

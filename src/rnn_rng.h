@@ -21,7 +21,7 @@
 #ifndef RNN_RNG_H
 #define RNN_RNG_H
 
-#include "tauprng.h"
+#include "tdoann/tauprng.h"
 
 void set_seed();
 uint64_t random64();
