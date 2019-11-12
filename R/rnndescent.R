@@ -531,7 +531,8 @@ nnd_knn_query <- function(reference, reference_idx, query, k = NULL,
 
   if (is.null(init)) {
     if (is.null(k)) {
-      stop("Must provide k")
+      k <- ncol(reference_idx)
+      message("Using k = ", k, " from reference graph indices")
     }
     tsmessage("Initializing from random neighbors")
     init <- random_knn_query(reference, query, k,
@@ -542,6 +543,7 @@ nnd_knn_query <- function(reference, reference_idx, query, k = NULL,
   else {
     if (is.null(k)) {
       k <- ncol(init$idx)
+      message("Using k = ", k, " from initial graph")
     }
     else {
       init <- prepare_init_graph(init, k)
