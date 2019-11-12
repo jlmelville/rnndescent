@@ -148,8 +148,8 @@ Rcpp::List nn_descent(Rcpp::NumericMatrix data, Rcpp::IntegerMatrix idx,
 
 #define NND_QUERY_UPDATER(Distance, Rand, low_memory, parallelize)             \
   if (parallelize) {                                                           \
-    using NNDImpl = NNDQuerySerial;                                            \
-    NNDImpl nnd_impl;                                                          \
+    using NNDImpl = NNDQueryParallel;                                          \
+    NNDImpl nnd_impl(block_size, grain_size);                                  \
     if (low_memory) {                                                          \
       using GraphUpdater = QuerySerialGraphUpdater<Distance>;                  \
       NND_QUERY_IMPL(NNDImpl, Distance, Rand, GraphUpdater)                    \
@@ -179,6 +179,26 @@ struct NNDQuerySerial {
              Rand &rand, Progress &progress, const double tol, bool verbose) {
     nnd_query(current_graph, graph_updater, reference_idx_vec, max_candidates,
               n_iters, rand, progress, tol, verbose);
+  }
+};
+
+struct NNDQueryParallel {
+  std::size_t block_size;
+  std::size_t grain_size;
+
+  NNDQueryParallel(std::size_t block_size, std::size_t grain_size)
+      : block_size(block_size), grain_size(grain_size) {}
+
+  template <template <typename> class GraphUpdater, typename Distance,
+            typename Rand, typename Progress>
+  void
+  operator()(NeighborHeap &current_graph, GraphUpdater<Distance> &graph_updater,
+             const std::vector<std::size_t> &reference_idx_vec,
+             const std::size_t max_candidates, const std::size_t n_iters,
+             Rand &rand, Progress &progress, const double tol, bool verbose) {
+    nnd_query_parallel(current_graph, graph_updater, reference_idx_vec,
+                       max_candidates, n_iters, rand, progress, tol, block_size,
+                       grain_size, verbose);
   }
 };
 
