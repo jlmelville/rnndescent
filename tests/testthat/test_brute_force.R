@@ -24,6 +24,7 @@ check_query_nbrs(nn = qnbrs6, query = ui6, ref_range = 7:10, query_range = 1:6, 
 # Errors
 
 expect_error(brute_force_knn_query(reference = ui4, query = ui6, k = 7), "items in the reference data")
+expect_error(brute_force_knn_query(reference = ui4, query = ui6, k = 4, metric = "not-a-real metric"), "metric")
 
 # threads
 

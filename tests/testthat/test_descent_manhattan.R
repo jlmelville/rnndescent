@@ -45,4 +45,3 @@ ui4_nnd <- nnd_knn(ui4, k = 4, metric = "manhattan")
 qnbrs6 <- nnd_knn_query(reference = ui4, reference_idx = ui4_nnd$idx, query = ui6, k = 4, metric = "manhattan")
 check_query_nbrs_idx(qnbrs6$idx, nref = nrow(ui4))
 expect_equal(sum(qnbrs6$dist), ui6q_mdsum, tol = 1e-6)
-
