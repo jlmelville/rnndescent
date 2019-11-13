@@ -10,6 +10,7 @@ internal calculations. Currently only applies to `metric = "euclidean"`, where
 the squared Euclidean distance is used internally. Only worth setting this to
 `FALSE` if you think the alternative is causing numerical issues (which is
 a bug, so please report it!).
+* Random and brute force methods will use alternative metrics.
 
 # rnndescent 0.0.2 (7 November 2019)
 
