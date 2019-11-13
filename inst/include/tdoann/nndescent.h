@@ -92,6 +92,10 @@ void build_candidates_full(NeighborHeap &current_graph, Rand &rand,
   flag_retained_new_candidates(current_graph, new_candidate_neighbors);
 }
 
+bool is_converged(std::size_t n_updates, double tol) {
+  return static_cast<double>(n_updates) <= tol;
+}
+
 // Pretty close to the NNDescentFull algorithm (#2 in the paper)
 template <template <typename> class GraphUpdater, typename Distance,
           typename Rand, typename Progress>
@@ -113,11 +117,8 @@ void nnd_full(NeighborHeap &current_graph,
     if (progress.check_interrupt()) {
       break;
     }
-    if (static_cast<double>(c) <= tol) {
-      if (verbose) {
-        Rcpp::Rcout << "c = " << c << " tol = " << tol << std::endl;
-      }
-      progress.stopping_early();
+    if (is_converged(c, tol)) {
+      progress.converged(c, tol);
       break;
     }
   }
@@ -193,11 +194,8 @@ void nnd_query(NeighborHeap &current_graph,
     if (progress.check_interrupt()) {
       break;
     }
-    if (static_cast<double>(c) <= tol) {
-      if (verbose) {
-        Rcpp::Rcout << "c = " << c << " tol = " << tol << std::endl;
-      }
-      progress.stopping_early();
+    if (is_converged(c, tol)) {
+      progress.converged(c, tol);
       break;
     }
   }

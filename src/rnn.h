@@ -43,6 +43,7 @@ struct HeapSumProgress {
   double dist_sum() const;
   void stopping_early();
   bool check_interrupt();
+  void converged(std::size_t n_updates, double tol);
 };
 
 struct RPProgress {

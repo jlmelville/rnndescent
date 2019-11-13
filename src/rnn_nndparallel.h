@@ -198,11 +198,8 @@ void nnd_parallel(tdoann::NeighborHeap &current_graph,
     if (interrupted) {
       break;
     }
-    if (static_cast<double>(c) <= tol) {
-      if (verbose) {
-        Rcpp::Rcout << "c = " << c << " tol = " << tol << std::endl;
-      }
-      progress.stopping_early();
+    if (tdoann::is_converged(c, tol)) {
+      progress.converged(c, tol);
       break;
     }
   }
@@ -303,11 +300,8 @@ void nnd_query_parallel(
     if (progress.check_interrupt()) {
       break;
     }
-    if (static_cast<double>(c) <= tol) {
-      if (verbose) {
-        Rcpp::Rcout << "c = " << c << " tol = " << tol << std::endl;
-      }
-      progress.stopping_early();
+    if (tdoann::is_converged(c, tol)) {
+      progress.converged(c, tol);
       break;
     }
   }

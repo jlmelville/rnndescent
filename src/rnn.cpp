@@ -81,6 +81,12 @@ bool HeapSumProgress::check_interrupt() {
   }
   return false;
 }
+void HeapSumProgress::converged(std::size_t n_updates, double tol) {
+  if (verbose) {
+    Rcpp::Rcout << "c = " << n_updates << " tol = " << tol << std::endl;
+  }
+  stopping_early();
+}
 
 RPProgress::RPProgress(std::size_t n_iters, bool verbose)
     : progress(n_iters, verbose), n_iters(n_iters), verbose(verbose) {}
