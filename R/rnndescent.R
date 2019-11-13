@@ -307,7 +307,6 @@ nnd_knn <- function(data, k = NULL,
       init <- prepare_init_graph(init, k)
     }
   }
-  tsmessage("Init dsum = ", formatC(sum(init$dist)))
   init$idx <- init$idx - 1
 
   parallelize <- n_threads > 0
@@ -326,7 +325,6 @@ nnd_knn <- function(data, k = NULL,
   if (use_alt_metric) {
     res$dist <- apply_alt_metric_correction(metric, res$dist)
   }
-  tsmessage("Final dsum = ", formatC(sum(res$dist)))
   res
 }
 
@@ -647,7 +645,6 @@ nnd_knn_query <- function(reference, reference_idx, query, k = NULL,
     }
   }
   reference_idx <- prepare_ref_idx(reference_idx, k)
-  tsmessage("Init dsum = ", formatC(sum(init$dist)))
   init$idx <- init$idx - 1
   reference_idx <- reference_idx - 1
 
@@ -667,7 +664,6 @@ nnd_knn_query <- function(reference, reference_idx, query, k = NULL,
   if (use_alt_metric) {
     res$dist <- apply_alt_metric_correction(metric, res$dist)
   }
-  tsmessage("Final dsum = ", formatC(sum(res$dist)))
   res
 }
 
