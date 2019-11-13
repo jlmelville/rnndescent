@@ -80,8 +80,8 @@ Rcpp::List random_knn_parallel(Rcpp::NumericMatrix data, int k,
   Rcpp::NumericMatrix dist(k, nr);
 
   RandomNbrWorker<Distance> worker(data, k, indices, dist);
-
-  RPProgress progress(nr, verbose);
+  const auto n_blocks = (nr / block_size) + 1;
+  RPProgress progress(n_blocks, verbose);
   batch_parallel_for(worker, progress, nr, block_size, grain_size);
   return Rcpp::List::create(Rcpp::Named("idx") = Rcpp::transpose(indices),
                             Rcpp::Named("dist") = Rcpp::transpose(dist));
@@ -143,8 +143,9 @@ Rcpp::List random_knn_query_parallel(Rcpp::NumericMatrix reference,
   Rcpp::NumericMatrix dist(k, nr);
 
   RandomNbrQueryWorker<Distance> worker(reference, query, k, indices, dist);
+  const auto n_blocks = (nr / block_size) + 1;
+  RPProgress progress(n_blocks, verbose);
 
-  RPProgress progress(nr, verbose);
   batch_parallel_for(worker, progress, nr, block_size, grain_size);
   return Rcpp::List::create(Rcpp::Named("idx") = Rcpp::transpose(indices),
                             Rcpp::Named("dist") = Rcpp::transpose(dist));

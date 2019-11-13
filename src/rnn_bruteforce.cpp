@@ -44,13 +44,15 @@ rnn_brute_force_impl(Rcpp::NumericMatrix data, int k, bool parallelize = false,
   data = Rcpp::transpose(data);
   auto data_vec = Rcpp::as<std::vector<typename Distance::in_type>>(data);
 
-  RPProgress progress(n_points, verbose);
   Distance distance(data_vec, ndim);
   tdoann::SimpleNeighborHeap neighbor_heap(n_points, n_nbrs);
 
   if (parallelize) {
+    const auto n_blocks = (n_points / block_size) + 1;
+    RPProgress progress(n_blocks, verbose);
     nnbf_parallel(neighbor_heap, distance, progress, block_size, grain_size);
   } else {
+    RPProgress progress(n_points, verbose);
     nnbf(neighbor_heap, distance, progress);
   }
 

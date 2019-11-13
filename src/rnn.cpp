@@ -59,13 +59,14 @@ HeapSumProgress::HeapSumProgress(NeighborHeap &neighbor_heap,
     ts(os.str());
   }
 }
-void HeapSumProgress::update(std::size_t n) {
+void HeapSumProgress::iter(std::size_t n) {
   if (verbose) {
     std::ostringstream os;
     os << (n + 1) << " / " << n_iters << " " << dist_sum();
     ts(os.str());
   }
 }
+void HeapSumProgress::increment(std::size_t) {}
 double HeapSumProgress::dist_sum() const {
   const std::size_t n_points = neighbor_heap.n_points;
   const std::size_t n_nbrs = neighbor_heap.n_nbrs;
@@ -98,6 +99,7 @@ RPProgress::RPProgress(std::size_t n_iters, bool verbose)
     : progress(n_iters, verbose), n_iters(n_iters), verbose(verbose) {}
 void RPProgress::increment(std::size_t amount) { progress.increment(amount); }
 void RPProgress::update(std::size_t current) { progress.update(current); }
+void RPProgress::iter(std::size_t iter) {}
 void RPProgress::stopping_early() { progress.update(n_iters); }
 bool RPProgress::check_interrupt() {
   if (Progress::check_abort()) {

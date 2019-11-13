@@ -73,7 +73,7 @@ void batch_parallel_for(BatchParallelWorker &rnn_worker, Progress &progress,
     if (interrupted) {
       break;
     }
-    progress.update(end);
+    progress.increment();
   }
 }
 

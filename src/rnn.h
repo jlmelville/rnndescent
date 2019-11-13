@@ -39,7 +39,8 @@ struct HeapSumProgress {
 
   HeapSumProgress(tdoann::NeighborHeap &neighbor_heap, std::size_t n_iters,
                   bool verbose);
-  void update(std::size_t n);
+  void increment(std::size_t amount = 1);
+  void iter(std::size_t n);
   double dist_sum() const;
   void stopping_early();
   bool check_interrupt();
@@ -54,6 +55,7 @@ struct RPProgress {
   RPProgress(std::size_t n_iters, bool verbose);
   void increment(std::size_t amount = 1);
   void update(std::size_t current);
+  void iter(std::size_t iter);
   void stopping_early();
   bool check_interrupt();
 };
