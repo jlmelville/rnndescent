@@ -280,3 +280,4 @@ expect_error(nnd_knn_query(reference = ui4, reference_idx = ui4_nnd$idx, query =
 expect_error(nnd_knn_query(reference = ui6, reference_idx = ui6_nnd$idx, query = ui4, init = rnbrs5, k = 6), "Not enough initial")
 expect_error(nnd_knn_query(reference = ui6, reference_idx = ui6_nnd$idx, query = ui4, init = rnbrs5, k = 5), "Not enough reference")
 expect_error(nnd_knn_query(reference = ui4, reference_idx = ui4_nnd$idx, query = ui6, k = 4, metric = "not-a-real metric"), "metric")
+expect_error(nnd_knn_query(reference = ui4, reference_idx = ui4_nnd$idx, query = ui6, init = rnbrs5, k = 4, metric = "not-a-real metric"), "metric")
