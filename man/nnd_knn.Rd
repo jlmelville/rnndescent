@@ -29,7 +29,11 @@ or \code{"hamming"}.}
 }
 If \code{k} and \code{init} are provided then \code{k} must be equal to or
 smaller than the number of neighbors provided in \code{init}. If smaller,
-only the \code{k} closest value in \code{init} are retained.}
+only the \code{k} closest value in \code{init} are retained. The input
+distances may be ignored if \code{use_alt_metric = TRUE} and no
+transformation from the distances to the internal distance representation
+is available. In this case, the distances will be recalculated internally
+and only the contents of \code{init$idx} will be used.}
 
 \item{n_iters}{Number of iterations of nearest neighbor descent to carry out.}
 

@@ -177,7 +177,11 @@ random_knn <- function(data, k, metric = "euclidean", use_alt_metric = TRUE,
 #' }
 #' If \code{k} and \code{init} are provided then \code{k} must be equal to or
 #' smaller than the number of neighbors provided in \code{init}. If smaller,
-#' only the \code{k} closest value in \code{init} are retained.
+#' only the \code{k} closest value in \code{init} are retained. The input
+#' distances may be ignored if \code{use_alt_metric = TRUE} and no
+#' transformation from the distances to the internal distance representation
+#' is available. In this case, the distances will be recalculated internally
+#' and only the contents of \code{init$idx} will be used.
 #' @param n_iters Number of iterations of nearest neighbor descent to carry out.
 #' @param max_candidates Maximum number of candidate neighbors to try for each
 #'   item in each iteration. Use relative to \code{k} to emulate the "rho"
@@ -281,6 +285,9 @@ nnd_knn <- function(data, k = NULL,
 
   if (use_alt_metric) {
     actual_metric <- find_alt_metric(metric)
+    if (!(is.null(init))) {
+      init$dist <- apply_alt_metric_uncorrection(metric, init$dist)
+    }
   }
   else {
     actual_metric <- metric
@@ -547,7 +554,11 @@ random_knn_query <- function(reference, query, k, metric = "euclidean",
 #' }
 #' If \code{k} and \code{init} are provided then \code{k} must be equal to or
 #' smaller than the number of neighbors provided in \code{init}. If smaller,
-#' only the \code{k} closest value in \code{init} are retained.
+#' only the \code{k} closest value in \code{init} are retained. The input
+#' distances may be ignored if \code{use_alt_metric = TRUE} and no
+#' transformation from the distances to the internal distance representation
+#' is available. In this case, the distances will be recalculated internally
+#' and only the contents of \code{init$idx} will be used.
 #' @param n_iters Number of iterations of nearest neighbor descent to carry out.
 #' @param max_candidates Maximum number of candidate neighbors to try for each
 #'   item in each iteration. Use relative to \code{k} to emulate the "rho"
@@ -619,6 +630,9 @@ nnd_knn_query <- function(reference, reference_idx, query, k = NULL,
 
   if (use_alt_metric) {
     actual_metric <- find_alt_metric(metric)
+    if (!(is.null(init))) {
+      init$dist <- apply_alt_metric_uncorrection(metric, init$dist)
+    }
   }
   else {
     actual_metric <- metric
@@ -708,6 +722,13 @@ find_alt_metric <- function(metric) {
   switch(metric,
     euclidean = "l2sqr",
     metric
+  )
+}
+
+apply_alt_metric_uncorrection <- function(metric, dist) {
+  switch(metric,
+    euclidean = dist * dist,
+    dist
   )
 }
 
