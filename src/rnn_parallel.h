@@ -58,34 +58,20 @@ void batch_parallel_for(BatchParallelWorker &rnn_worker, Progress &progress,
                         std::size_t n, std::size_t block_size,
                         std::size_t grain_size, bool &interrupted) {
   interrupted = false;
-  if (n <= block_size) {
-    RcppParallel::parallelFor(0, n, rnn_worker.parallel_worker, grain_size);
-    if (progress.check_interrupt()) {
-      interrupted = true;
-      return;
+  const auto n_blocks = (n / block_size) + 1;
+  for (std::size_t i = 0; i < n_blocks; i++) {
+    const auto begin = i * block_size;
+    const auto end = std::min(n, begin + block_size);
+    RcppParallel::parallelFor(begin, end, rnn_worker.parallel_worker,
+                              grain_size);
+    interrupted = progress.check_interrupt();
+    if (interrupted) {
+      break;
     }
-    rnn_worker.after_parallel(0, n);
-    if (progress.check_interrupt()) {
-      interrupted = true;
-      return;
-    }
-  } else {
-    const auto n_blocks = (n / block_size) + 1;
-    for (std::size_t i = 0; i < n_blocks; i++) {
-      const auto begin = i * block_size;
-      const auto end = std::min(n, begin + block_size);
-
-      RcppParallel::parallelFor(begin, end, rnn_worker.parallel_worker,
-                                grain_size);
-      if (progress.check_interrupt()) {
-        interrupted = true;
-        break;
-      }
-      rnn_worker.after_parallel(begin, end);
-      if (progress.check_interrupt()) {
-        interrupted = true;
-        break;
-      }
+    rnn_worker.after_parallel(begin, end);
+    interrupted = progress.check_interrupt();
+    if (interrupted) {
+      break;
     }
   }
 }
