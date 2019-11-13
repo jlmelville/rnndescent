@@ -58,12 +58,23 @@ struct RPProgress {
   bool check_interrupt();
 };
 
-template <template <typename> class GraphUpdater, typename Distance>
-void r_to_heap(tdoann::NeighborHeap &current_graph, Distance &distance,
-               Rcpp::IntegerMatrix idx, Rcpp::NumericMatrix dist,
-               const int max_idx) {
-  GraphUpdater<Distance> heap_initializer(current_graph, distance);
+struct HeapAddSymmetric {
+  static void push(tdoann::NeighborHeap &current_graph, std::size_t ref,
+                   std::size_t query, double d) {
+    current_graph.checked_push_pair(ref, d, query, 1);
+  }
+};
 
+struct HeapAddQuery {
+  static void push(tdoann::NeighborHeap &current_graph, std::size_t ref,
+                   std::size_t query, double d) {
+    current_graph.checked_push(ref, d, query, 1);
+  }
+};
+
+template <typename HeapAdd>
+void r_to_heap(tdoann::NeighborHeap &current_graph, Rcpp::IntegerMatrix idx,
+               Rcpp::NumericMatrix dist, const int max_idx) {
   const std::size_t n_points = idx.nrow();
   const std::size_t n_nbrs = idx.ncol();
 
@@ -73,7 +84,8 @@ void r_to_heap(tdoann::NeighborHeap &current_graph, Distance &distance,
       if (k < 0 || k > max_idx) {
         Rcpp::stop("Bad indexes in input");
       }
-      heap_initializer.generate_and_apply(i, k);
+      double d = dist(i, j);
+      HeapAdd::push(current_graph, i, k, d);
     }
   }
 }

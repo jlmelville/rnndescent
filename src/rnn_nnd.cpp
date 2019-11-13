@@ -94,16 +94,14 @@ Rcpp::List nn_descent_impl(Rcpp::NumericMatrix data, Rcpp::IntegerMatrix idx,
                            const double delta = 0.001, bool verbose = false) {
   const std::size_t n_points = idx.nrow();
   const std::size_t n_nbrs = idx.ncol();
-
   const std::size_t ndim = data.ncol();
+
   data = Rcpp::transpose(data);
   auto data_vec = Rcpp::as<std::vector<typename Distance::in_type>>(data);
-
   Rand rand;
   Distance distance(data_vec, ndim);
   NeighborHeap current_graph(n_points, n_nbrs);
-  r_to_heap<SerialGraphUpdater, Distance>(current_graph, distance, idx, dist,
-                                          n_points - 1);
+  r_to_heap<HeapAddSymmetric>(current_graph, idx, dist, n_points - 1);
   GraphUpdater graph_updater(current_graph, distance);
   HeapSumProgress progress(current_graph, n_iters, verbose);
   const double tol = delta * n_nbrs * n_points;
@@ -218,10 +216,12 @@ Rcpp::List nn_descent_query_impl(
   const std::size_t n_ref_points = reference.nrow();
 
   const std::size_t ndim = reference.ncol();
+
   reference = Rcpp::transpose(reference);
   auto reference_vec =
       Rcpp::as<std::vector<typename Distance::in_type>>(reference);
-
+  NeighborHeap current_graph(n_points, n_nbrs);
+  r_to_heap<HeapAddQuery>(current_graph, idx, dist, n_ref_points - 1);
   reference_idx = Rcpp::transpose(reference_idx);
   auto reference_idx_vec = Rcpp::as<std::vector<std::size_t>>(reference_idx);
 
@@ -230,9 +230,7 @@ Rcpp::List nn_descent_query_impl(
 
   Rand rand;
   Distance distance(reference_vec, query_vec, ndim);
-  NeighborHeap current_graph(n_points, n_nbrs);
-  r_to_heap<QuerySerialGraphUpdater, Distance>(current_graph, distance, idx,
-                                               dist, n_ref_points - 1);
+
   GraphUpdater graph_updater(current_graph, distance);
   HeapSumProgress progress(current_graph, n_iters, verbose);
   const double tol = delta * n_nbrs * n_points;
