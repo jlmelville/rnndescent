@@ -100,7 +100,7 @@ rnn_brute_force_query_impl(Rcpp::NumericMatrix x, Rcpp::NumericMatrix y, int k,
   y = Rcpp::transpose(y);
   auto y_vec = Rcpp::as<std::vector<typename Distance::in_type>>(y);
 
-  RPProgress progress(n_xpoints, verbose);
+  RPProgress progress(n_ypoints, verbose);
   Distance distance(x_vec, y_vec, ndim);
   tdoann::SimpleNeighborHeap neighbor_heap(n_ypoints, n_nbrs);
 
