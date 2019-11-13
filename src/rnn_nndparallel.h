@@ -149,6 +149,21 @@ struct LocalJoinWorker : public RcppParallel::Worker {
   }
 };
 
+template <typename Distance, template <typename> class GraphUpdater>
+struct BatchLocalJoinWorker {
+  RcppParallel::Worker &parallel_worker;
+  GraphUpdater<Distance> &graph_updater;
+  std::size_t c;
+
+  BatchLocalJoinWorker(RcppParallel::Worker &parallel_worker,
+                       GraphUpdater<Distance> &graph_updater)
+      : parallel_worker(parallel_worker), graph_updater(graph_updater), c(0) {}
+
+  void after_parallel(std::size_t begin, std::size_t end) {
+    c += graph_updater.apply();
+  }
+};
+
 template <typename Distance, typename Rand, typename Progress,
           template <typename> class GraphUpdater>
 void nnd_parallel(tdoann::NeighborHeap &current_graph,
@@ -158,7 +173,6 @@ void nnd_parallel(tdoann::NeighborHeap &current_graph,
                   std::size_t grain_size = 1,
                   const std::size_t block_size = 16384, bool verbose = false) {
   const std::size_t n_points = current_graph.n_points;
-  const auto n_blocks = (n_points / block_size) + 1;
 
   for (std::size_t n = 0; n < n_iters; n++) {
     tdoann::NeighborHeap new_candidate_neighbors(n_points, max_candidates);
@@ -173,26 +187,15 @@ void nnd_parallel(tdoann::NeighborHeap &current_graph,
     RcppParallel::parallelFor(0, n_points, flag_new_candidates_worker,
                               grain_size);
 
-    std::size_t c = 0;
     bool interrupted = false;
-    for (std::size_t i = 0; i < n_blocks; i++) {
-      const auto block_start = i * block_size;
-      const auto block_end =
-          std::min<std::size_t>(n_points, (i + 1) * block_size);
-
-      LocalJoinWorker<Distance, GraphUpdater> local_join_worker(
-          current_graph, new_candidate_neighbors, old_candidate_neighbors,
-          graph_updater);
-      RcppParallel::parallelFor(block_start, block_end, local_join_worker,
-                                grain_size);
-
-      c += graph_updater.apply();
-
-      if (progress.check_interrupt()) {
-        interrupted = true;
-        break;
-      }
-    }
+    LocalJoinWorker<Distance, GraphUpdater> local_join_worker(
+        current_graph, new_candidate_neighbors, old_candidate_neighbors,
+        graph_updater);
+    BatchLocalJoinWorker<Distance, GraphUpdater> batch_local_join_worker(
+        local_join_worker, graph_updater);
+    batch_parallel_for(batch_local_join_worker, progress, n_points, block_size,
+                       grain_size, interrupted);
+    std::size_t c = batch_local_join_worker.c;
 
     progress.update(n);
     if (interrupted) {
