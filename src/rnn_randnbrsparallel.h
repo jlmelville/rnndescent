@@ -114,16 +114,17 @@ struct RandomNbrQueryWorker : public RcppParallel::Worker {
         dist(output_dist) {}
 
   void operator()(std::size_t begin, std::size_t end) {
-    for (int i = static_cast<int>(begin); i < static_cast<int>(end); i++) {
+    for (int query = static_cast<int>(begin); query < static_cast<int>(end);
+         query++) {
       std::unique_ptr<Rcpp::IntegerVector> idxi(nullptr);
       {
         tthread::lock_guard<tthread::mutex> guard(mutex);
         idxi.reset(new Rcpp::IntegerVector(dqrng::dqsample_int(nrefs, k)));
       }
       for (auto j = 0; j < k; j++) {
-        auto &ref_idx = (*idxi)[j];
-        indices(j, i) = ref_idx + 1;       // store val as 1-index
-        dist(j, i) = distance(ref_idx, i); // distance calcs are 0-indexed
+        auto &ref = (*idxi)[j];
+        indices(j, query) = ref + 1;           // store val as 1-index
+        dist(j, query) = distance(ref, query); // distance calcs are 0-indexed
       }
     }
   }
