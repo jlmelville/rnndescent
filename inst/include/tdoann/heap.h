@@ -223,6 +223,16 @@ struct SimpleNeighborHeap {
   ~SimpleNeighborHeap() = default;
   SimpleNeighborHeap &operator=(const SimpleNeighborHeap &) = default;
 
+  bool contains(std::size_t row, std::size_t index) const {
+    const std::size_t rnnbrs = row * n_nbrs;
+    for (std::size_t i = 0; i < n_nbrs; i++) {
+      if (index == idx[rnnbrs + i]) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   // returns true if either p or q would accept a neighbor with distance d
   bool accepts_either(std::size_t p, std::size_t q, double d) const {
     return d < dist[p * n_nbrs] || (p != q && d < dist[q * n_nbrs]);
@@ -230,6 +240,23 @@ struct SimpleNeighborHeap {
 
   // returns true if p would accept a neighbor with distance d
   bool accepts(std::size_t p, double d) const { return d < dist[p * n_nbrs]; }
+
+  std::size_t checked_push_pair(std::size_t row, double weight,
+                                std::size_t idx) {
+    std::size_t c = checked_push(row, weight, idx);
+    if (row != idx) {
+      c += checked_push(idx, weight, row);
+    }
+    return c;
+  }
+
+  std::size_t checked_push(std::size_t row, double weight, std::size_t idx) {
+    if (!accepts(row, weight) || contains(row, idx)) {
+      return 0;
+    }
+
+    return unchecked_push(row, weight, idx);
+  }
 
   std::size_t unchecked_push(std::size_t row, double weight,
                              std::size_t index) {
