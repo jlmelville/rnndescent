@@ -162,18 +162,37 @@ std::size_t local_join(NeighborHeap &current_graph,
   return c;
 }
 
+// No local join available when querying because there's no symmetry in the
+// distances to take advantage of, so this is similar to algo #1 in the NND
+// paper with the following differences:
+// 1. The existing "reference" knn graph doesn't get updated during a query,
+//    so each query item has no reverse neighbors, only the "forward" neighbors,
+//    i.e. the knn.
+// 2. The members of the query knn are from the reference knn and they *do* have
+//    reverse neighbors, so the overall search is: for each neighbor in the
+//    "forward" neighbors (the currnt query knn), try each of its general
+//    neighbors.
+// 3. Because the reference knn doesn't get updated during the query, the
+//    reference general neighbor list only needs to get built once.
+// 4. Incremental search is also simplified. Each member of the query knn
+//    is marked as new when it's selected for search as usual, but because of
+//    the static nature of the reference general neighbors, we don't need to
+//    keep track of old neighbors: if a neighbor is "new" we search all its
+//    general neighbors; otherwise, we don't search it at all because we must
+//    have already tried those candidates.
 template <template <typename> class GraphUpdater, typename Distance,
           typename Rand, typename Progress>
 void nnd_query(NeighborHeap &current_graph,
                GraphUpdater<Distance> &graph_updater,
                const std::vector<std::size_t> &reference_idx,
-               const std::size_t max_candidates, const std::size_t n_iters,
-               Rand &rand, Progress &progress, const double tol, bool verbose) {
+               const std::size_t n_ref_points, const std::size_t max_candidates,
+               const std::size_t n_iters, Rand &rand, Progress &progress,
+               const double tol, bool verbose) {
   const std::size_t n_points = current_graph.n_points;
   const std::size_t n_nbrs = current_graph.n_nbrs;
-  // if the candidate heap size is as large or larger than the number of
-  // neighbors then we definitely know anything that is added won't be evicted
-  // due to size, so we can mark at the same time as we add
+
+  NeighborHeap gn_graph(n_ref_points, max_candidates);
+  build_general_nbrs(reference_idx, gn_graph, rand, n_ref_points, n_nbrs);
   const bool flag_on_add = max_candidates >= n_nbrs;
 
   for (std::size_t n = 0; n < n_iters; n++) {
@@ -188,7 +207,7 @@ void nnd_query(NeighborHeap &current_graph,
     }
 
     std::size_t c = non_search_query(current_graph, graph_updater, new_nbrs,
-                                     reference_idx, max_candidates, progress);
+                                     gn_graph, max_candidates, progress);
 
     progress.iter(n);
     if (progress.check_interrupt()) {
@@ -200,6 +219,20 @@ void nnd_query(NeighborHeap &current_graph,
     }
   }
   current_graph.deheap_sort();
+}
+
+template <typename Rand>
+void build_general_nbrs(const std::vector<std::size_t> &reference_idx,
+                        tdoann::NeighborHeap &gn_graph, Rand &rand,
+                        const std::size_t n_points, const std::size_t n_nbrs) {
+  for (std::size_t i = 0; i < n_points; i++) {
+    std::size_t innbrs = i * n_nbrs;
+    for (std::size_t j = 0; j < n_nbrs; j++) {
+      double d = rand.unif();
+      std::size_t ref = reference_idx[innbrs + j];
+      gn_graph.checked_push_pair(i, d, ref);
+    }
+  }
 }
 
 template <typename Rand>
@@ -236,13 +269,12 @@ void build_query_candidates(NeighborHeap &current_graph, Rand &rand,
 // Use neighbor-of-neighbor search rather than local join to update the kNN.
 template <template <typename> class GraphUpdater, typename Distance,
           typename Progress>
-std::size_t non_search_query(NeighborHeap &current_graph,
-                             GraphUpdater<Distance> &graph_updater,
-                             const NeighborHeap &new_nbrs,
-                             const std::vector<std::size_t> &reference_idx,
-                             const std::size_t max_candidates,
-                             const std::size_t begin, const std::size_t end,
-                             Progress &progress) {
+std::size_t
+non_search_query(NeighborHeap &current_graph,
+                 GraphUpdater<Distance> &graph_updater,
+                 const NeighborHeap &new_nbrs, const NeighborHeap &gn_graph,
+                 const std::size_t max_candidates, const std::size_t begin,
+                 const std::size_t end, Progress &progress) {
   std::size_t c = 0;
   std::size_t ref_idx = 0;
   std::size_t nbr_ref_idx = 0;
@@ -255,9 +287,9 @@ std::size_t non_search_query(NeighborHeap &current_graph,
       if (ref_idx == NeighborHeap::npos()) {
         continue;
       }
-      const std::size_t rnidx = ref_idx * n_nbrs;
-      for (std::size_t k = 0; k < n_nbrs; k++) {
-        nbr_ref_idx = reference_idx[rnidx + k];
+      const std::size_t rnidx = ref_idx * max_candidates;
+      for (std::size_t k = 0; k < max_candidates; k++) {
+        nbr_ref_idx = gn_graph.idx[rnidx + k];
         if (nbr_ref_idx == NeighborHeap::npos() ||
             !seen.emplace(nbr_ref_idx).second) {
           continue;
@@ -273,14 +305,13 @@ std::size_t non_search_query(NeighborHeap &current_graph,
 
 template <template <typename> class GraphUpdater, typename Distance,
           typename Progress>
-std::size_t non_search_query(NeighborHeap &current_graph,
-                             GraphUpdater<Distance> &graph_updater,
-                             const NeighborHeap &new_nbrs,
-                             const std::vector<std::size_t> &reference_idx,
-                             const std::size_t max_candidates,
-                             Progress &progress) {
+std::size_t
+non_search_query(NeighborHeap &current_graph,
+                 GraphUpdater<Distance> &graph_updater,
+                 const NeighborHeap &new_nbrs, const NeighborHeap &gn_graph,
+                 const std::size_t max_candidates, Progress &progress) {
   const std::size_t n_points = current_graph.n_points;
-  return non_search_query(current_graph, graph_updater, new_nbrs, reference_idx,
+  return non_search_query(current_graph, graph_updater, new_nbrs, gn_graph,
                           max_candidates, 0, n_points, progress);
 }
 } // namespace tdoann

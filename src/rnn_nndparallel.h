@@ -244,7 +244,7 @@ struct QueryNoNSearchWorker : public RcppParallel::Worker {
   tdoann::NeighborHeap &current_graph;
   GraphUpdater<Distance> &graph_updater;
   const tdoann::NeighborHeap &new_nbrs;
-  const std::vector<std::size_t> &reference_idx;
+  const tdoann::NeighborHeap &gn_graph;
   const std::size_t max_candidates;
   tthread::mutex mutex;
   tdoann::NullProgress progress;
@@ -253,15 +253,15 @@ struct QueryNoNSearchWorker : public RcppParallel::Worker {
   QueryNoNSearchWorker(tdoann::NeighborHeap &current_graph,
                        GraphUpdater<Distance> &graph_updater,
                        const tdoann::NeighborHeap &new_nbrs,
-                       const std::vector<std::size_t> &reference_idx,
+                       const tdoann::NeighborHeap &gn_graph,
                        const std::size_t max_candidates)
       : current_graph(current_graph), graph_updater(graph_updater),
-        new_nbrs(new_nbrs), reference_idx(reference_idx),
-        max_candidates(max_candidates), progress(), n_updates(0) {}
+        new_nbrs(new_nbrs), gn_graph(gn_graph), max_candidates(max_candidates),
+        progress(), n_updates(0) {}
 
   void operator()(std::size_t begin, std::size_t end) {
     std::size_t local_c =
-        non_search_query(current_graph, graph_updater, new_nbrs, reference_idx,
+        non_search_query(current_graph, graph_updater, new_nbrs, gn_graph,
                          max_candidates, begin, end, progress);
     {
       tthread::lock_guard<tthread::mutex> guard(mutex);
@@ -275,10 +275,16 @@ template <typename Distance, typename Rand, typename Progress,
 void nnd_query_parallel(
     tdoann::NeighborHeap &current_graph, GraphUpdater<Distance> &graph_updater,
     const std::vector<std::size_t> &reference_idx,
-    const std::size_t max_candidates, const std::size_t n_iters, Rand &rand,
-    Progress &progress, const double tol, std::size_t grain_size = 1,
-    const std::size_t block_size = 16384, bool verbose = false) {
+    const std::size_t n_ref_points, const std::size_t max_candidates,
+    const std::size_t n_iters, Rand &rand, Progress &progress, const double tol,
+    std::size_t grain_size = 1, const std::size_t block_size = 16384,
+    bool verbose = false) {
   const std::size_t n_points = current_graph.n_points;
+
+  const std::size_t n_nbrs = current_graph.n_nbrs;
+  tdoann::NeighborHeap gn_graph(n_ref_points, max_candidates);
+  tdoann::build_general_nbrs(reference_idx, gn_graph, rand, n_ref_points,
+                             n_nbrs);
 
   for (std::size_t n = 0; n < n_iters; n++) {
     tdoann::NeighborHeap new_nbrs(n_points, max_candidates);
@@ -293,7 +299,7 @@ void nnd_query_parallel(
     }
 
     QueryNoNSearchWorker<Distance, GraphUpdater> query_non_search_worker(
-        current_graph, graph_updater, new_nbrs, reference_idx, max_candidates);
+        current_graph, graph_updater, new_nbrs, gn_graph, max_candidates);
     batch_parallel_for(query_non_search_worker, progress, n_points, block_size,
                        grain_size);
 

@@ -180,11 +180,12 @@ struct NNDQuerySerial {
   void operator()(NeighborHeap &current_graph,
                   GraphUpdater<Distance> &graph_updater,
                   const std::vector<std::size_t> &reference_idx_vec,
+                  const std::size_t n_ref_points,
                   const std::size_t max_candidates, const std::size_t n_iters,
                   Rand &rand, const double tol, bool verbose) {
     HeapSumProgress progress(current_graph, n_iters, 1, verbose);
-    nnd_query(current_graph, graph_updater, reference_idx_vec, max_candidates,
-              n_iters, rand, progress, tol, verbose);
+    nnd_query(current_graph, graph_updater, reference_idx_vec, n_ref_points,
+              max_candidates, n_iters, rand, progress, tol, verbose);
   }
 };
 
@@ -200,13 +201,14 @@ struct NNDQueryParallel {
   void operator()(NeighborHeap &current_graph,
                   GraphUpdater<Distance> &graph_updater,
                   const std::vector<std::size_t> &reference_idx_vec,
+                  const std::size_t n_ref_points,
                   const std::size_t max_candidates, const std::size_t n_iters,
                   Rand &rand, const double tol, bool verbose) {
     const auto n_blocks = (current_graph.n_points / block_size) + 1;
     HeapSumProgress progress(current_graph, n_iters, n_blocks, verbose);
     nnd_query_parallel(current_graph, graph_updater, reference_idx_vec,
-                       max_candidates, n_iters, rand, progress, tol, block_size,
-                       grain_size, verbose);
+                       n_ref_points, max_candidates, n_iters, rand, progress,
+                       tol, block_size, grain_size, verbose);
   }
 };
 
@@ -242,8 +244,8 @@ Rcpp::List nn_descent_query_impl(
   GraphUpdater graph_updater(current_graph, distance);
   const double tol = delta * n_nbrs * n_points;
 
-  nnd_impl(current_graph, graph_updater, reference_idx_vec, max_candidates,
-           n_iters, rand, tol, verbose);
+  nnd_impl(current_graph, graph_updater, reference_idx_vec, n_ref_points,
+           max_candidates, n_iters, rand, tol, verbose);
 
   return heap_to_r(current_graph);
 }
