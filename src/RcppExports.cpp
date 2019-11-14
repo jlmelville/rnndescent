@@ -105,8 +105,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // random_knn_query_cpp
-Rcpp::List random_knn_query_cpp(Rcpp::NumericMatrix reference, Rcpp::NumericMatrix query, int k, const std::string& metric, bool parallelize, std::size_t block_size, std::size_t grain_size, bool verbose);
-RcppExport SEXP _rnndescent_random_knn_query_cpp(SEXP referenceSEXP, SEXP querySEXP, SEXP kSEXP, SEXP metricSEXP, SEXP parallelizeSEXP, SEXP block_sizeSEXP, SEXP grain_sizeSEXP, SEXP verboseSEXP) {
+Rcpp::List random_knn_query_cpp(Rcpp::NumericMatrix reference, Rcpp::NumericMatrix query, int k, const std::string& metric, bool order_by_distance, bool parallelize, std::size_t block_size, std::size_t grain_size, bool verbose);
+RcppExport SEXP _rnndescent_random_knn_query_cpp(SEXP referenceSEXP, SEXP querySEXP, SEXP kSEXP, SEXP metricSEXP, SEXP order_by_distanceSEXP, SEXP parallelizeSEXP, SEXP block_sizeSEXP, SEXP grain_sizeSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -114,11 +114,12 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type query(querySEXP);
     Rcpp::traits::input_parameter< int >::type k(kSEXP);
     Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
+    Rcpp::traits::input_parameter< bool >::type order_by_distance(order_by_distanceSEXP);
     Rcpp::traits::input_parameter< bool >::type parallelize(parallelizeSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type block_size(block_sizeSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type grain_size(grain_sizeSEXP);
     Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
-    rcpp_result_gen = Rcpp::wrap(random_knn_query_cpp(reference, query, k, metric, parallelize, block_size, grain_size, verbose));
+    rcpp_result_gen = Rcpp::wrap(random_knn_query_cpp(reference, query, k, metric, order_by_distance, parallelize, block_size, grain_size, verbose));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -129,7 +130,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_rnndescent_nn_descent", (DL_FUNC) &_rnndescent_nn_descent, 12},
     {"_rnndescent_nn_descent_query", (DL_FUNC) &_rnndescent_nn_descent_query, 14},
     {"_rnndescent_random_knn_cpp", (DL_FUNC) &_rnndescent_random_knn_cpp, 8},
-    {"_rnndescent_random_knn_query_cpp", (DL_FUNC) &_rnndescent_random_knn_query_cpp, 8},
+    {"_rnndescent_random_knn_query_cpp", (DL_FUNC) &_rnndescent_random_knn_query_cpp, 9},
     {NULL, NULL, 0}
 };
 

@@ -454,6 +454,11 @@ brute_force_knn_query <- function(
 #'   the only reason to set this to \code{FALSE} is if you suspect that some
 #'   sort of numeric issue is occuring with your data in the alternative code
 #'   path.
+#' @param order_by_distance If \code{TRUE} (the default), then results for each
+#'   item are returned by increasing distance. If you don't need the results
+#'   sorted, e.g. you are going to pass the results as initialization to another
+#'   routine like \code{\link{nnd_knn_query}}, set this to \code{FALSE} to save a
+#'   small amount of computational time.
 #' @param n_threads Number of threads to use.
 #' @param block_size Number of items to generate neighbors for in each
 #'   multi-threaded batch. Reducing this number will increase the frequency
@@ -492,7 +497,7 @@ brute_force_knn_query <- function(
 #' iris_query_random_nbrs <- random_knn_query(iris_ref, iris_query, k = 4, metric = "manhattan")
 #' @export
 random_knn_query <- function(reference, query, k, metric = "euclidean",
-                             use_alt_metric = TRUE,
+                             use_alt_metric = TRUE, order_by_distance = TRUE,
                              n_threads = 0, block_size = 4096, grain_size = 1,
                              verbose = FALSE) {
   reference <- x2m(reference)
@@ -519,7 +524,7 @@ random_knn_query <- function(reference, query, k, metric = "euclidean",
   }
 
   res <- random_knn_query_cpp(
-    reference, query, k, actual_metric, parallelize, block_size,
+    reference, query, k, actual_metric, order_by_distance, parallelize, block_size,
     grain_size, verbose
   )
   if (use_alt_metric) {

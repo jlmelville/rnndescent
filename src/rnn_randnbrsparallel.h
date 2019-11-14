@@ -142,6 +142,7 @@ struct RandomNbrQueryWorker : public RcppParallel::Worker {
 template <typename Distance>
 Rcpp::List random_knn_query_parallel(Rcpp::NumericMatrix reference,
                                      Rcpp::NumericMatrix query, int k,
+                                     bool order_by_distance = true,
                                      std::size_t block_size = 4096,
                                      std::size_t grain_size = 1,
                                      bool verbose = false) {
@@ -156,8 +157,15 @@ Rcpp::List random_knn_query_parallel(Rcpp::NumericMatrix reference,
   RPProgress progress(n_blocks, verbose);
 
   batch_parallel_for(worker, progress, nr, block_size, grain_size);
-  return Rcpp::List::create(Rcpp::Named("idx") = Rcpp::transpose(indices),
-                            Rcpp::Named("dist") = Rcpp::transpose(dist));
+  indices = Rcpp::transpose(indices);
+  dist = Rcpp::transpose(dist);
+
+  if (order_by_distance) {
+    sort_knn_graph<HeapAddQuery>(indices, dist);
+  }
+
+  return Rcpp::List::create(Rcpp::Named("idx") = indices,
+                            Rcpp::Named("dist") = dist);
 }
 
 #endif // RNN_RANDNBRSPARALLEL_H

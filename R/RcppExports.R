@@ -21,7 +21,7 @@ random_knn_cpp <- function(data, k, metric = "euclidean", order_by_distance = TR
     .Call(`_rnndescent_random_knn_cpp`, data, k, metric, order_by_distance, parallelize, block_size, grain_size, verbose)
 }
 
-random_knn_query_cpp <- function(reference, query, k, metric = "euclidean", parallelize = FALSE, block_size = 4096L, grain_size = 1L, verbose = FALSE) {
-    .Call(`_rnndescent_random_knn_query_cpp`, reference, query, k, metric, parallelize, block_size, grain_size, verbose)
+random_knn_query_cpp <- function(reference, query, k, metric = "euclidean", order_by_distance = TRUE, parallelize = FALSE, block_size = 4096L, grain_size = 1L, verbose = FALSE) {
+    .Call(`_rnndescent_random_knn_query_cpp`, reference, query, k, metric, order_by_distance, parallelize, block_size, grain_size, verbose)
 }
 

@@ -77,12 +77,17 @@ check_nn_matrix_dim <- function(m, query, k) {
   expect_equal(ncol(m), k)
 }
 
-check_query_nbrs <- function(nn, query, ref_range, query_range, k, expected_dist, tol = .Machine$double.eps) {
+check_query_nbrs <- function(nn, query, ref_range, query_range, k, expected_dist, tol = .Machine$double.eps,
+                             check_order = TRUE) {
   check_nn_matrix_dim(nn$idx, query, k)
   check_nn_matrix_dim(nn$dist, query, k)
   nref <- length(ref_range)
   check_query_nbrs_idx(nn$idx, nref)
   check_query_nbrs_dist(nn, expected_dist, ref_range, query_range, tol)
+  if (check_order) {
+    # this checks that distances are in increasing order for each row
+    expect_true(all(apply(nn$dist, 1, order) == matrix(rep(1:ncol(nn$idx), times = nrow(nn$idx)), nrow = ncol(nn$idx))))
+  }
 }
 
 capture_everything <- function(code) {

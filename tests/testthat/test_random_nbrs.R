@@ -41,6 +41,11 @@ set.seed(1337)
 qnbrs6 <- random_knn_query(reference = ui4, query = ui6, k = 4, use_alt_metric = FALSE)
 check_query_nbrs(nn = qnbrs6, query = ui6, ref_range = 7:10, query_range = 1:6, k = 4, expected_dist = ui10_eucd, tol = 1e-6)
 
+# no reordering
+set.seed(1337)
+qnbrs6 <- random_knn_query(reference = ui4, query = ui6, k = 4, order_by_distance = FALSE)
+check_query_nbrs(nn = qnbrs6, query = ui6, ref_range = 7:10, query_range = 1:6, k = 4, expected_dist = ui10_eucd, tol = 1e-6, check_order = FALSE)
+
 # threads
 set.seed(1337)
 qnbrs4 <- random_knn_query(reference = ui6, query = ui4, k = 4, n_threads = 1)
@@ -49,6 +54,11 @@ check_query_nbrs(nn = qnbrs4, query = ui4, ref_range = 1:6, query_range = 7:10, 
 set.seed(1337)
 qnbrs6 <- random_knn_query(reference = ui4, query = ui6, k = 4, n_threads = 1)
 check_query_nbrs(nn = qnbrs6, query = ui6, ref_range = 7:10, query_range = 1:6, k = 4, expected_dist = ui10_eucd, tol = 1e-6)
+
+# no re-ordering
+set.seed(1337)
+qnbrs6 <- random_knn_query(reference = ui4, query = ui6, k = 4, n_threads = 1, order_by_distance = FALSE)
+check_query_nbrs(nn = qnbrs6, query = ui6, ref_range = 7:10, query_range = 1:6, k = 4, expected_dist = ui10_eucd, tol = 1e-6, check_order = FALSE)
 
 # Errors
 expect_error(random_knn_query(reference = ui4, query = ui6, k = 7), "items in the reference data")
