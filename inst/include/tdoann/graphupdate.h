@@ -131,7 +131,7 @@ template <typename Distance> struct BatchGraphUpdater {
       const std::size_t n_updates = updates[i].size();
       for (std::size_t j = 0; j < n_updates; j++) {
         const auto &update = updates[i][j];
-        c += current_graph.checked_push_pair(update.p, update.d, update.q, 1);
+        c += current_graph.checked_push_pair(update.p, update.d, update.q);
       }
       updates[i].clear();
     }
@@ -186,12 +186,12 @@ template <typename Distance> struct BatchGraphUpdaterHiMem {
 
         std::size_t local_c = 0;
         if (!bad_pd) {
-          current_graph.unchecked_push(p, d, q, 1);
+          current_graph.unchecked_push(p, d, q);
           local_c += 1;
         }
 
         if (p != q && !bad_qd) {
-          current_graph.unchecked_push(q, d, p, 1);
+          current_graph.unchecked_push(q, d, p);
           local_c += 1;
         }
 
@@ -240,7 +240,7 @@ template <typename Distance> struct SerialGraphUpdater {
     if (upd_p == NeighborHeap::npos()) {
       return 0;
     }
-    return current_graph.checked_push_pair(upd_p, upd_d, upd_q, 1);
+    return current_graph.checked_push_pair(upd_p, upd_d, upd_q);
   }
 };
 
@@ -282,12 +282,12 @@ template <typename Distance> struct SerialGraphUpdaterHiMem {
     double d = distance(upd_p, upd_q);
 
     if (current_graph.accepts(upd_p, d)) {
-      current_graph.unchecked_push(upd_p, d, upd_q, 1);
+      current_graph.unchecked_push(upd_p, d, upd_q);
       c += 1;
     }
 
     if (upd_p != upd_q && current_graph.accepts(upd_q, d)) {
-      current_graph.unchecked_push(upd_q, d, upd_p, 1);
+      current_graph.unchecked_push(upd_q, d, upd_p);
       c += 1;
     }
 
@@ -339,12 +339,12 @@ template <typename Distance> struct SerialGraphUpdaterVeryHiMem {
 
     double d = distance(upd_p, upd_q);
     if (current_graph.accepts(upd_p, d)) {
-      current_graph.unchecked_push(upd_p, d, upd_q, 1);
+      current_graph.unchecked_push(upd_p, d, upd_q);
       c += 1;
     }
 
     if (upd_p != upd_q && current_graph.accepts(upd_q, d)) {
-      current_graph.unchecked_push(upd_q, d, upd_p, 1);
+      current_graph.unchecked_push(upd_q, d, upd_p);
       c += 1;
     }
     return c;
@@ -397,12 +397,12 @@ template <typename Distance> struct BatchGraphUpdaterVeryHiMem {
         }
 
         if (current_graph.accepts(p, d)) {
-          current_graph.unchecked_push(p, d, q, 1);
+          current_graph.unchecked_push(p, d, q);
           c += 1;
         }
 
         if (p != q && current_graph.accepts(q, d)) {
-          current_graph.unchecked_push(q, d, p, 1);
+          current_graph.unchecked_push(q, d, p);
           c += 1;
         }
       }
@@ -448,7 +448,7 @@ template <typename Distance> struct QuerySerialGraphUpdater {
     if (ref == NeighborHeap::npos()) {
       return 0;
     }
-    return current_graph.checked_push(query, dist, ref, 1);
+    return current_graph.checked_push(query, dist, ref);
   }
 };
 
@@ -486,7 +486,7 @@ template <typename Distance> struct QuerySerialGraphUpdaterHiMem {
     }
 
     double d = distance(ref_, query_);
-    c += current_graph.checked_push(query_, d, ref_, 1);
+    c += current_graph.checked_push(query_, d, ref_);
     if (c > 0) {
       seen.insert(query_, ref_);
     }
