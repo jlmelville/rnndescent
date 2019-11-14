@@ -20,6 +20,8 @@
 #ifndef RNND_RNN_H
 #define RNND_RNN_H
 
+#include <limits>
+
 #include <Rcpp.h>
 // [[Rcpp::depends(RcppProgress)]]
 #include <progress.hpp>
@@ -61,28 +63,33 @@ struct RPProgress {
 };
 
 struct HeapAddSymmetric {
-  static void push(tdoann::NeighborHeap &current_graph, std::size_t ref,
-                   std::size_t query, double d) {
-    current_graph.checked_push_pair(ref, d, query, 1);
+  template <typename NbrHeap>
+  static void push(NbrHeap &current_graph, std::size_t ref, std::size_t query,
+                   double d) {
+    current_graph.checked_push_pair(ref, d, query);
   }
 };
 
 struct HeapAddQuery {
-  static void push(tdoann::NeighborHeap &current_graph, std::size_t ref,
-                   std::size_t query, double d) {
-    current_graph.checked_push(ref, d, query, 1);
+  template <typename NbrHeap>
+  static void push(NbrHeap &current_graph, std::size_t ref, std::size_t query,
+                   double d) {
+    current_graph.checked_push(ref, d, query);
   }
 };
 
-template <typename HeapAdd>
-void r_to_heap(tdoann::NeighborHeap &current_graph, Rcpp::IntegerMatrix idx,
-               Rcpp::NumericMatrix dist, const int max_idx) {
+// input idx R matrix is 1-indexed and transposed
+// output heap index is 0-indexed
+template <typename HeapAdd, typename NbrHeap>
+void r_to_heap(NbrHeap &current_graph, Rcpp::IntegerMatrix idx,
+               Rcpp::NumericMatrix dist,
+               const int max_idx = std::numeric_limits<int>::max()) {
   const std::size_t n_points = idx.nrow();
   const std::size_t n_nbrs = idx.ncol();
 
   for (std::size_t i = 0; i < n_points; i++) {
     for (std::size_t j = 0; j < n_nbrs; j++) {
-      const int k = idx(i, j);
+      const int k = idx(i, j) - 1;
       if (k < 0 || k > max_idx) {
         Rcpp::stop("Bad indexes in input");
       }
@@ -92,21 +99,35 @@ void r_to_heap(tdoann::NeighborHeap &current_graph, Rcpp::IntegerMatrix idx,
   }
 }
 
-template <typename NbrHeap> Rcpp::List heap_to_r(const NbrHeap &heap) {
-  const std::size_t npoints = heap.n_points;
-  const std::size_t nnbrs = heap.n_nbrs;
+// input heap index is 0-indexed
+// output idx R matrix is 1-indexed and untransposed
+template <typename NbrHeap>
+void heap_to_r(const NbrHeap &heap, Rcpp::IntegerMatrix idx,
+               Rcpp::NumericMatrix dist) {
+  const std::size_t n_points = heap.n_points;
+  const std::size_t n_nbrs = heap.n_nbrs;
 
-  Rcpp::IntegerMatrix idxres(npoints, nnbrs);
-  Rcpp::NumericMatrix distres(npoints, nnbrs);
-  for (std::size_t i = 0; i < npoints; i++) {
-    for (std::size_t j = 0; j < nnbrs; j++) {
-      idxres(i, j) = heap.index(i, j) + 1;
-      distres(i, j) = heap.distance(i, j);
+  for (std::size_t i = 0; i < n_points; i++) {
+    for (std::size_t j = 0; j < n_nbrs; j++) {
+      idx(i, j) = heap.index(i, j) + 1;
+      dist(i, j) = heap.distance(i, j);
     }
   }
+}
 
-  return Rcpp::List::create(Rcpp::Named("idx") = idxres,
-                            Rcpp::Named("dist") = distres);
+// input heap index is 0-indexed
+// output idx R matrix is 1-indexed and transposed
+template <typename NbrHeap> Rcpp::List heap_to_r(const NbrHeap &heap) {
+  const std::size_t n_points = heap.n_points;
+  const std::size_t n_nbrs = heap.n_nbrs;
+
+  Rcpp::IntegerMatrix idx(n_points, n_nbrs);
+  Rcpp::NumericMatrix dist(n_points, n_nbrs);
+
+  heap_to_r(heap, idx, dist);
+
+  return Rcpp::List::create(Rcpp::Named("idx") = idx,
+                            Rcpp::Named("dist") = dist);
 }
 
 #endif // RNND_RNN_H

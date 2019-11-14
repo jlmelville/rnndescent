@@ -314,7 +314,6 @@ nnd_knn <- function(data, k = NULL,
       init <- prepare_init_graph(init, k)
     }
   }
-  init$idx <- init$idx - 1
 
   parallelize <- n_threads > 0
   if (parallelize) {
@@ -658,9 +657,9 @@ nnd_knn_query <- function(reference, reference_idx, query, k = NULL,
       init <- prepare_init_graph(init, k)
     }
   }
-  reference_idx <- prepare_ref_idx(reference_idx, k)
-  init$idx <- init$idx - 1
-  reference_idx <- reference_idx - 1
+  # init indices are zero indexed in the C++ code
+  # reference indices need to be zero-indexed manually
+  reference_idx <- prepare_ref_idx(reference_idx, k) - 1
 
   parallelize <- n_threads > 0
   if (parallelize) {
