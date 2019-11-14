@@ -4,9 +4,17 @@
 \alias{brute_force_knn_query}
 \title{Query Exact Nearest Neighbors by Brute Force}
 \usage{
-brute_force_knn_query(reference, query, k, metric = "euclidean",
-  use_alt_metric = TRUE, n_threads = 0, block_size = 64,
-  grain_size = 1, verbose = FALSE)
+brute_force_knn_query(
+  reference,
+  query,
+  k,
+  metric = "euclidean",
+  use_alt_metric = TRUE,
+  n_threads = 0,
+  block_size = 64,
+  grain_size = 1,
+  verbose = FALSE
+)
 }
 \arguments{
 \item{reference}{Matrix of \code{m} reference items. The nearest neighbors to the

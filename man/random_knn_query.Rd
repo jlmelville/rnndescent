@@ -4,9 +4,17 @@
 \alias{random_knn_query}
 \title{Nearest Neighbors Query by Random Selection}
 \usage{
-random_knn_query(reference, query, k, metric = "euclidean",
-  use_alt_metric = TRUE, n_threads = 0, block_size = 4096,
-  grain_size = 1, verbose = FALSE)
+random_knn_query(
+  reference,
+  query,
+  k,
+  metric = "euclidean",
+  use_alt_metric = TRUE,
+  n_threads = 0,
+  block_size = 4096,
+  grain_size = 1,
+  verbose = FALSE
+)
 }
 \arguments{
 \item{reference}{Matrix of \code{m} reference items. The nearest neighbors to the

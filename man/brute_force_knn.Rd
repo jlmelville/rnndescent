@@ -4,8 +4,16 @@
 \alias{brute_force_knn}
 \title{Calculate Exact Nearest Neighbors by Brute Force}
 \usage{
-brute_force_knn(data, k, metric = "euclidean", use_alt_metric = TRUE,
-  n_threads = 0, block_size = 64, grain_size = 1, verbose = FALSE)
+brute_force_knn(
+  data,
+  k,
+  metric = "euclidean",
+  use_alt_metric = TRUE,
+  n_threads = 0,
+  block_size = 64,
+  grain_size = 1,
+  verbose = FALSE
+)
 }
 \arguments{
 \item{data}{Matrix of \code{n} items to generate random neighbors for.}

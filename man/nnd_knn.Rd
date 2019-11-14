@@ -4,10 +4,21 @@
 \alias{nnd_knn}
 \title{Find Nearest Neighbors and Distances}
 \usage{
-nnd_knn(data, k = NULL, metric = "euclidean", init = NULL,
-  n_iters = 10, max_candidates = 20, delta = 0.001,
-  low_memory = TRUE, use_alt_metric = TRUE, n_threads = 0,
-  block_size = 16384, grain_size = 1, verbose = FALSE)
+nnd_knn(
+  data,
+  k = NULL,
+  metric = "euclidean",
+  init = NULL,
+  n_iters = 10,
+  max_candidates = 20,
+  delta = 0.001,
+  low_memory = TRUE,
+  use_alt_metric = TRUE,
+  n_threads = 0,
+  block_size = 16384,
+  grain_size = 1,
+  verbose = FALSE
+)
 }
 \arguments{
 \item{data}{Matrix of \code{n} items to search.}
