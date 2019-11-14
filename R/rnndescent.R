@@ -306,6 +306,7 @@ nnd_knn <- function(data, k = NULL,
     tsmessage("Initializing from random neighbors")
     init <- random_knn(data, k,
       metric = actual_metric,
+      order_by_distance = FALSE,
       n_threads = n_threads,
       block_size = block_size,
       grain_size = grain_size,
@@ -655,7 +656,8 @@ nnd_knn_query <- function(reference, reference_idx, query, k = NULL,
     }
     tsmessage("Initializing from random neighbors")
     init <- random_knn_query(reference, query, k,
-      metric = actual_metric, n_threads,
+      order_by_distance = FALSE,
+      metric = actual_metric, n_threads = n_threads,
       verbose = verbose
     )
   }
