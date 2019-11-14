@@ -130,4 +130,15 @@ template <typename NbrHeap> Rcpp::List heap_to_r(const NbrHeap &heap) {
                             Rcpp::Named("dist") = dist);
 }
 
+template <typename HeapAdd>
+void sort_knn_graph(Rcpp::IntegerMatrix idx, Rcpp::NumericMatrix dist) {
+  const std::size_t n_points = idx.nrow();
+  const std::size_t n_nbrs = idx.ncol();
+
+  tdoann::SimpleNeighborHeap heap(n_points, n_nbrs);
+  r_to_heap<HeapAdd>(heap, idx, dist);
+  heap.deheap_sort();
+  heap_to_r(heap, idx, dist);
+}
+
 #endif // RNND_RNN_H

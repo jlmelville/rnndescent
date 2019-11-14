@@ -70,6 +70,7 @@ struct RandomNbrWorker : public RcppParallel::Worker {
 
 template <typename Distance>
 Rcpp::List random_knn_parallel(Rcpp::NumericMatrix data, int k,
+                               bool order_by_distance = true,
                                const std::size_t block_size = 4096,
                                const std::size_t grain_size = 1,
                                bool verbose = false) {
@@ -83,8 +84,16 @@ Rcpp::List random_knn_parallel(Rcpp::NumericMatrix data, int k,
   const auto n_blocks = (nr / block_size) + 1;
   RPProgress progress(n_blocks, verbose);
   batch_parallel_for(worker, progress, nr, block_size, grain_size);
-  return Rcpp::List::create(Rcpp::Named("idx") = Rcpp::transpose(indices),
-                            Rcpp::Named("dist") = Rcpp::transpose(dist));
+
+  indices = Rcpp::transpose(indices);
+  dist = Rcpp::transpose(dist);
+
+  if (order_by_distance) {
+    sort_knn_graph<HeapAddSymmetric>(indices, dist);
+  }
+
+  return Rcpp::List::create(Rcpp::Named("idx") = indices,
+                            Rcpp::Named("dist") = dist);
 }
 
 template <typename Distance>

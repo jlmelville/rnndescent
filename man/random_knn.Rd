@@ -9,6 +9,7 @@ random_knn(
   k,
   metric = "euclidean",
   use_alt_metric = TRUE,
+  order_by_distance = TRUE,
   n_threads = 0,
   block_size = 4096,
   grain_size = 1,
@@ -30,6 +31,12 @@ ordering of distances internally (e.g. squared Euclidean distances if using
 the only reason to set this to \code{FALSE} is if you suspect that some
 sort of numeric issue is occuring with your data in the alternative code
 path.}
+
+\item{order_by_distance}{If \code{TRUE} (the default), then results for each
+item are returned by increasing distance. If you don't need the results
+sorted, e.g. you are going to pass the results as initialization to another
+routine like \code{\link{nnd_knn}}, set this to \code{FALSE} to save a
+small amount of computational time.}
 
 \item{n_threads}{Number of threads to use.}
 

@@ -3,18 +3,22 @@ context("Random neighbors")
 
 set.seed(1337)
 rnbrs <- random_knn(ui10, k = 4, n_threads = 0)
-check_nbrs_idx(rnbrs$idx)
-check_nbrs_dist(rnbrs, ui10_eucd, tol = 1e-6)
+check_nbrs(rnbrs, ui10_eucd, tol = 1e-6)
 
 set.seed(1337)
 rnbrs <- random_knn(ui10, k = 4, n_threads = 1)
-check_nbrs_idx(rnbrs$idx)
-check_nbrs_dist(rnbrs, ui10_eucd, tol = 1e-6)
+check_nbrs(rnbrs, ui10_eucd, tol = 1e-6)
 
 # turn off alt metric
+set.seed(1337)
 rnbrs <- random_knn(ui10, k = 4, n_threads = 1, use_alt_metric = FALSE)
-check_nbrs_idx(rnbrs$idx)
-check_nbrs_dist(rnbrs, ui10_eucd, tol = 1e-6)
+check_nbrs(rnbrs, ui10_eucd, tol = 1e-6)
+
+# turn off ordering
+rnbrs <- random_knn(ui10, k = 4, order_by_distance = FALSE)
+check_nbrs(rnbrs, ui10_eucd, tol = 1e-6, check_order = FALSE)
+rnbrs <- random_knn(ui10, k = 4, order_by_distance = FALSE, n_threads = 1)
+check_nbrs(rnbrs, ui10_eucd, tol = 1e-6, check_order = FALSE)
 
 # errors
 expect_error(random_knn(ui10, k = 11), "k must be")

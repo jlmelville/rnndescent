@@ -27,14 +27,15 @@ using namespace tdoann;
 
 #define RandomNbrs(Distance)                                                   \
   if (parallelize) {                                                           \
-    return random_knn_parallel<Distance>(data, k, block_size, grain_size,      \
-                                         verbose);                             \
+    return random_knn_parallel<Distance>(data, k, order_by_distance,           \
+                                         block_size, grain_size, verbose);     \
   } else {                                                                     \
-    return random_knn_impl<Distance>(data, k, verbose);                        \
+    return random_knn_impl<Distance>(data, k, order_by_distance, verbose);     \
   }
 
 template <typename Distance>
-Rcpp::List random_knn_impl(Rcpp::NumericMatrix data, int k, bool verbose) {
+Rcpp::List random_knn_impl(Rcpp::NumericMatrix data, int k,
+                           bool order_by_distance, bool verbose) {
   set_seed();
 
   const auto nr = data.nrow();
@@ -65,13 +66,21 @@ Rcpp::List random_knn_impl(Rcpp::NumericMatrix data, int k, bool verbose) {
     };
   }
 
-  return Rcpp::List::create(Rcpp::Named("idx") = Rcpp::transpose(indices),
-                            Rcpp::Named("dist") = Rcpp::transpose(dist));
+  indices = Rcpp::transpose(indices);
+  dist = Rcpp::transpose(dist);
+
+  if (order_by_distance) {
+    sort_knn_graph<HeapAddSymmetric>(indices, dist);
+  }
+
+  return Rcpp::List::create(Rcpp::Named("idx") = indices,
+                            Rcpp::Named("dist") = dist);
 }
 
 // [[Rcpp::export]]
 Rcpp::List random_knn_cpp(Rcpp::NumericMatrix data, int k,
                           const std::string &metric = "euclidean",
+                          bool order_by_distance = true,
                           bool parallelize = false,
                           std::size_t block_size = 4096,
                           std::size_t grain_size = 1, bool verbose = false) {
