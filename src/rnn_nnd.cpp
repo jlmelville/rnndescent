@@ -62,7 +62,7 @@ struct NNDSerial {
                   GraphUpdater<Distance> &graph_updater,
                   const std::size_t max_candidates, const std::size_t n_iters,
                   Rand &rand, const double tol, bool verbose) {
-    HeapSumProgress progress(current_graph, n_iters, verbose);
+    HeapSumProgress progress(current_graph, n_iters, 1, verbose);
     nnd_full(current_graph, graph_updater, max_candidates, n_iters, rand,
              progress, tol, verbose);
   }
@@ -82,7 +82,7 @@ struct NNDParallel {
                   const std::size_t max_candidates, const std::size_t n_iters,
                   Rand &rand, const double tol, bool verbose) {
     const auto n_blocks = (current_graph.n_points / block_size) + 1;
-    HeapSumProgress progress(current_graph, n_blocks * n_iters, verbose);
+    HeapSumProgress progress(current_graph, n_iters, n_blocks, verbose);
     nnd_parallel(current_graph, graph_updater, max_candidates, n_iters, rand,
                  progress, tol, grain_size, block_size, verbose);
   }
@@ -182,7 +182,7 @@ struct NNDQuerySerial {
                   const std::vector<std::size_t> &reference_idx_vec,
                   const std::size_t max_candidates, const std::size_t n_iters,
                   Rand &rand, const double tol, bool verbose) {
-    HeapSumProgress progress(current_graph, n_iters, verbose);
+    HeapSumProgress progress(current_graph, n_iters, 1, verbose);
     nnd_query(current_graph, graph_updater, reference_idx_vec, max_candidates,
               n_iters, rand, progress, tol, verbose);
   }
@@ -203,7 +203,7 @@ struct NNDQueryParallel {
                   const std::size_t max_candidates, const std::size_t n_iters,
                   Rand &rand, const double tol, bool verbose) {
     const auto n_blocks = (current_graph.n_points / block_size) + 1;
-    HeapSumProgress progress(current_graph, n_blocks * n_iters, verbose);
+    HeapSumProgress progress(current_graph, n_iters, n_blocks, verbose);
     nnd_query_parallel(current_graph, graph_updater, reference_idx_vec,
                        max_candidates, n_iters, rand, progress, tol, block_size,
                        grain_size, verbose);

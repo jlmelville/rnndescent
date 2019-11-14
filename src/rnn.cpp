@@ -51,8 +51,10 @@ void ts(const std::string &msg) {
 }
 
 HeapSumProgress::HeapSumProgress(NeighborHeap &neighbor_heap,
-                                 std::size_t n_iters, bool verbose)
-    : neighbor_heap(neighbor_heap), n_iters(n_iters), verbose(verbose) {
+                                 std::size_t n_iters, std::size_t n_blocks,
+                                 bool verbose)
+    : neighbor_heap(neighbor_heap), n_iters(n_iters), n_blocks(n_blocks),
+      verbose(verbose) {
   if (verbose) {
     std::ostringstream os;
     os << "0 / " << n_iters << " " << dist_sum();

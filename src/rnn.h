@@ -37,10 +37,11 @@ void ts(const std::string &msg);
 struct HeapSumProgress {
   tdoann::NeighborHeap &neighbor_heap;
   const std::size_t n_iters;
+  const std::size_t n_blocks;
   bool verbose;
 
   HeapSumProgress(tdoann::NeighborHeap &neighbor_heap, std::size_t n_iters,
-                  bool verbose);
+                  std::size_t n_blocks = 1, bool verbose = false);
   void increment(std::size_t amount = 1);
   void iter(std::size_t n);
   double dist_sum() const;
