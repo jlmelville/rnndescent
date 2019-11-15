@@ -44,7 +44,7 @@ void nnbf(SimpleNeighborHeap &neighbor_heap, Distance &distance,
         neighbor_heap.unchecked_push(j, d, i);
       }
     }
-    progress.increment();
+    progress.iter_finished();
     if (progress.check_interrupt()) {
       break;
     };
@@ -64,7 +64,7 @@ void nnbf_query(SimpleNeighborHeap &neighbor_heap, Distance &distance,
         neighbor_heap.unchecked_push(j, d, i);
       }
     }
-    progress.increment();
+    progress.iter_finished();
     if (progress.check_interrupt()) {
       break;
     };

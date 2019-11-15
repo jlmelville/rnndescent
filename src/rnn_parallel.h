@@ -69,11 +69,11 @@ void batch_parallel_for(BatchParallelWorker &rnn_worker, Progress &progress,
       break;
     }
     rnn_worker.after_parallel(begin, end);
+    progress.block_finished();
     interrupted = progress.check_interrupt();
     if (interrupted) {
       break;
     }
-    progress.increment();
   }
 }
 

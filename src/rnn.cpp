@@ -18,6 +18,7 @@
 //  along with rnndescent.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <chrono>
+#include <cmath>
 
 #include <Rcpp.h>
 // [[Rcpp::depends(RcppProgress)]]
@@ -51,9 +52,8 @@ void ts(const std::string &msg) {
 }
 
 HeapSumProgress::HeapSumProgress(NeighborHeap &neighbor_heap,
-                                 std::size_t n_iters, std::size_t n_blocks,
-                                 bool verbose)
-    : neighbor_heap(neighbor_heap), n_iters(n_iters), n_blocks(n_blocks),
+                                 std::size_t n_iters, bool verbose)
+    : neighbor_heap(neighbor_heap), n_iters(n_iters), iter(0),
       verbose(verbose) {
   if (verbose) {
     std::ostringstream os;
@@ -61,25 +61,14 @@ HeapSumProgress::HeapSumProgress(NeighborHeap &neighbor_heap,
     ts(os.str());
   }
 }
-void HeapSumProgress::iter(std::size_t n) {
+void HeapSumProgress::block_finished() {}
+void HeapSumProgress::iter_finished() {
+  ++iter;
   if (verbose) {
     std::ostringstream os;
-    os << (n + 1) << " / " << n_iters << " " << dist_sum();
+    os << iter << " / " << n_iters << " " << dist_sum();
     ts(os.str());
   }
-}
-void HeapSumProgress::increment(std::size_t) {}
-double HeapSumProgress::dist_sum() const {
-  const std::size_t n_points = neighbor_heap.n_points;
-  const std::size_t n_nbrs = neighbor_heap.n_nbrs;
-  double sum = 0.0;
-  for (std::size_t i = 0; i < n_points; i++) {
-    const std::size_t innbrs = i * n_nbrs;
-    for (std::size_t j = 0; j < n_nbrs; j++) {
-      sum += neighbor_heap.dist[innbrs + j];
-    }
-  }
-  return sum;
 }
 void HeapSumProgress::stopping_early() {}
 bool HeapSumProgress::check_interrupt() {
@@ -94,14 +83,38 @@ void HeapSumProgress::converged(std::size_t n_updates, double tol) {
   if (verbose) {
     Rcpp::Rcout << "c = " << n_updates << " tol = " << tol << std::endl;
   }
-  stopping_early();
 }
-
+double HeapSumProgress::dist_sum() const {
+  const std::size_t n_points = neighbor_heap.n_points;
+  const std::size_t n_nbrs = neighbor_heap.n_nbrs;
+  double sum = 0.0;
+  for (std::size_t i = 0; i < n_points; i++) {
+    const std::size_t innbrs = i * n_nbrs;
+    for (std::size_t j = 0; j < n_nbrs; j++) {
+      sum += neighbor_heap.dist[innbrs + j];
+    }
+  }
+  return sum;
+}
+RPProgress::RPProgress(std::size_t n_iters, std::size_t n_blocks, bool verbose)
+    : scale(100), progress(scale, verbose), n_iters(n_iters),
+      n_blocks(n_blocks), verbose(verbose), iter(0), block(0) {}
 RPProgress::RPProgress(std::size_t n_iters, bool verbose)
-    : progress(n_iters, verbose), n_iters(n_iters), verbose(verbose) {}
-void RPProgress::increment(std::size_t amount) { progress.increment(amount); }
-void RPProgress::update(std::size_t current) { progress.update(current); }
-void RPProgress::iter(std::size_t iter) {}
+    : scale(100), progress(scale, verbose), n_iters(n_iters), n_blocks(0),
+      verbose(verbose), iter(0), block(0) {}
+void RPProgress::block_finished() {
+  if (verbose) {
+    ++block;
+    progress.update(scaled(iter + (block / n_blocks)));
+  }
+}
+void RPProgress::iter_finished() {
+  if (verbose) {
+    block = 0;
+    ++iter;
+    progress.update(scaled(iter));
+  }
+}
 void RPProgress::stopping_early() { progress.update(n_iters); }
 bool RPProgress::check_interrupt() {
   if (Progress::check_abort()) {
@@ -109,4 +122,9 @@ bool RPProgress::check_interrupt() {
     return true;
   }
   return false;
+}
+void RPProgress::converged(std::size_t n_updates, double tol) {}
+int RPProgress::scaled(double d) {
+  int res = std::nearbyint(scale * (d / n_iters));
+  return res;
 }

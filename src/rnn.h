@@ -37,30 +37,38 @@ void ts(const std::string &msg);
 struct HeapSumProgress {
   tdoann::NeighborHeap &neighbor_heap;
   const std::size_t n_iters;
-  const std::size_t n_blocks;
+  std::size_t iter;
   bool verbose;
 
   HeapSumProgress(tdoann::NeighborHeap &neighbor_heap, std::size_t n_iters,
-                  std::size_t n_blocks = 1, bool verbose = false);
-  void increment(std::size_t amount = 1);
-  void iter(std::size_t n);
-  double dist_sum() const;
+                  bool verbose = false);
+  void block_finished();
+  void iter_finished();
   void stopping_early();
   bool check_interrupt();
   void converged(std::size_t n_updates, double tol);
+  double dist_sum() const;
 };
 
 struct RPProgress {
+  const std::size_t scale;
   Progress progress;
   const std::size_t n_iters;
+  const double n_blocks;
   bool verbose;
 
+  std::size_t iter;
+  std::size_t block;
+
+  RPProgress(std::size_t n_iters, std::size_t n_blocks, bool verbose);
   RPProgress(std::size_t n_iters, bool verbose);
-  void increment(std::size_t amount = 1);
-  void update(std::size_t current);
-  void iter(std::size_t iter);
+  void block_finished();
+  void iter_finished();
   void stopping_early();
   bool check_interrupt();
+  void converged(std::size_t n_updates, double tol);
+  // convert float between 0...n_iters to int from 0...scale
+  int scaled(double d);
 };
 
 struct HeapAddSymmetric {

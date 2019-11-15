@@ -197,7 +197,7 @@ void nnd_parallel(tdoann::NeighborHeap &current_graph,
                        grain_size, interrupted);
     std::size_t c = batch_local_join_worker.c;
 
-    progress.iter(n);
+    progress.iter_finished();
     if (interrupted) {
       break;
     }
@@ -308,7 +308,7 @@ void nnd_query_parallel(tdoann::NeighborHeap &current_graph,
       break;
     }
     std::size_t c = query_non_search_worker.n_updates;
-    progress.iter(n);
+    progress.iter_finished();
     if (tdoann::is_converged(c, tol)) {
       progress.converged(c, tol);
       break;

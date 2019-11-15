@@ -62,7 +62,7 @@ struct NNDSerial {
                   GraphUpdater<Distance> &graph_updater,
                   const std::size_t max_candidates, const std::size_t n_iters,
                   Rand &rand, const double tol, bool verbose) {
-    HeapSumProgress progress(current_graph, n_iters, 1, verbose);
+    HeapSumProgress progress(current_graph, n_iters, verbose);
     nnd_full(current_graph, graph_updater, max_candidates, n_iters, rand,
              progress, tol, verbose);
   }
@@ -81,8 +81,7 @@ struct NNDParallel {
                   GraphUpdater<Distance> &graph_updater,
                   const std::size_t max_candidates, const std::size_t n_iters,
                   Rand &rand, const double tol, bool verbose) {
-    const auto n_blocks = (current_graph.n_points / block_size) + 1;
-    HeapSumProgress progress(current_graph, n_iters, n_blocks, verbose);
+    HeapSumProgress progress(current_graph, n_iters, verbose);
     nnd_parallel(current_graph, graph_updater, max_candidates, n_iters, rand,
                  progress, tol, block_size, grain_size, verbose);
   }
@@ -183,7 +182,7 @@ struct NNDQuerySerial {
                   const std::size_t n_ref_points,
                   const std::size_t max_candidates, const std::size_t n_iters,
                   Rand &rand, const double tol, bool verbose) {
-    HeapSumProgress progress(current_graph, n_iters, 1, verbose);
+    HeapSumProgress progress(current_graph, n_iters, verbose);
     nnd_query(current_graph, graph_updater, reference_idx_vec, n_ref_points,
               max_candidates, n_iters, rand, progress, tol, verbose);
   }
@@ -204,8 +203,7 @@ struct NNDQueryParallel {
                   const std::size_t n_ref_points,
                   const std::size_t max_candidates, const std::size_t n_iters,
                   Rand &rand, const double tol, bool verbose) {
-    const auto n_blocks = (current_graph.n_points / block_size) + 1;
-    HeapSumProgress progress(current_graph, n_iters, n_blocks, verbose);
+    HeapSumProgress progress(current_graph, n_iters, verbose);
     nnd_query_parallel(current_graph, graph_updater, reference_idx_vec,
                        n_ref_points, max_candidates, n_iters, rand, progress,
                        tol, block_size, grain_size, verbose);

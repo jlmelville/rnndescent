@@ -60,7 +60,7 @@ Rcpp::List random_knn_impl(Rcpp::NumericMatrix data, int k,
       indices(j + 1, i) = val + 1;       // store val as 1-index
       dist(j + 1, i) = distance(i, val); // distance calcs are 0-indexed
     }
-    progress.increment();
+    progress.iter_finished();
     if (progress.check_interrupt()) {
       break;
     };
@@ -141,7 +141,7 @@ Rcpp::List random_knn_query_impl(Rcpp::NumericMatrix reference,
       indices(j, i) = ref_idx + 1;       // store val as 1-index
       dist(j, i) = distance(ref_idx, i); // distance calcs are 0-indexed
     }
-    progress.increment();
+    progress.iter_finished();
     if (progress.check_interrupt()) {
       break;
     };

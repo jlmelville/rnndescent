@@ -113,7 +113,7 @@ void nnd_full(NeighborHeap &current_graph,
     std::size_t c = local_join(current_graph, graph_updater, new_nbrs, old_nbrs,
                                n_points, max_candidates, progress);
 
-    progress.iter(n);
+    progress.iter_finished();
     if (progress.check_interrupt()) {
       break;
     }
@@ -209,7 +209,7 @@ void nnd_query(NeighborHeap &current_graph,
     std::size_t c = non_search_query(current_graph, graph_updater, new_nbrs,
                                      gn_graph, max_candidates, progress);
 
-    progress.iter(n);
+    progress.iter_finished();
     if (progress.check_interrupt()) {
       break;
     }
