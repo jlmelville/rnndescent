@@ -84,7 +84,7 @@ struct NNDParallel {
     const auto n_blocks = (current_graph.n_points / block_size) + 1;
     HeapSumProgress progress(current_graph, n_iters, n_blocks, verbose);
     nnd_parallel(current_graph, graph_updater, max_candidates, n_iters, rand,
-                 progress, tol, grain_size, block_size, verbose);
+                 progress, tol, block_size, grain_size, verbose);
   }
 };
 
@@ -123,8 +123,8 @@ Rcpp::List nn_descent(Rcpp::NumericMatrix data, Rcpp::IntegerMatrix idx,
                       const std::size_t max_candidates = 50,
                       const std::size_t n_iters = 10,
                       const double delta = 0.001, bool low_memory = true,
-                      bool parallelize = false, std::size_t grain_size = 1,
-                      std::size_t block_size = 16384, bool verbose = false) {
+                      bool parallelize = false, std::size_t block_size = 16384,
+                      std::size_t grain_size = 1, bool verbose = false) {
 
   if (metric == "euclidean") {
     using Distance = Euclidean<float, float>;
@@ -257,8 +257,8 @@ Rcpp::List nn_descent_query(
     Rcpp::NumericMatrix dist, const std::string metric = "euclidean",
     const std::size_t max_candidates = 50, const std::size_t n_iters = 10,
     const double delta = 0.001, bool low_memory = true,
-    bool parallelize = false, std::size_t grain_size = 1,
-    std::size_t block_size = 16384, bool verbose = false) {
+    bool parallelize = false, std::size_t block_size = 16384,
+    std::size_t grain_size = 1, bool verbose = false) {
 
   if (metric == "euclidean") {
     using Distance = Euclidean<float, float>;

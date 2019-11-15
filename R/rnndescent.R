@@ -331,8 +331,8 @@ nnd_knn <- function(data, k = NULL,
     metric = actual_metric,
     n_iters = n_iters, max_candidates = max_candidates,
     delta = delta, low_memory = low_memory,
-    parallelize = parallelize, grain_size = grain_size,
-    block_size = block_size, verbose = verbose
+    parallelize = parallelize,
+    block_size = block_size, grain_size = grain_size, verbose = verbose
   )
 
   if (use_alt_metric) {
@@ -683,8 +683,8 @@ nnd_knn_query <- function(reference, reference_idx, query, k = NULL,
     metric = actual_metric,
     n_iters = n_iters, max_candidates = max_candidates,
     delta = delta, low_memory = low_memory,
-    parallelize = parallelize, grain_size = grain_size,
-    block_size = block_size, verbose = verbose
+    parallelize = parallelize,
+    block_size = block_size, grain_size = grain_size, verbose = verbose
   )
 
   if (use_alt_metric) {
