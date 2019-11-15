@@ -1,7 +1,20 @@
-# rnndescent 0.0.3
+# rnndescent 0.0.3 (15 November 2019)
+
+## New features
+
+* There are now "query" versions of the three functions: `nnd_knn_query` being
+the most useful, but `brute_force_knn_query` and `random_knn_query` are also
+available. This allows for `query` data to search `reference` data, i.e. the
+returned indices and distances are relative to the `reference` data, not any
+other member of `query`. These methods are also available in multi-threaded
+mode, and `nnd_knn_query` has a low and high memory version.
 
 ## Bug fixes and minor improvements
 
+* Incremental search in nearest neighbor descent didn't work correctly, 
+because retained new neighbors were marked as new rather than old. This made the
+search repeat distance calculations unnecessarily.
+* Heap initialization ignored existing distances in the input distance matrix.
 * The `l2` metric has been renamed to `l2sqr` to more accurately reflect what 
 it is: the square of the L2 (Euclidean) metric.
 * New option `use_alt_metric`. Set to `FALSE` if you don't want alternative, 
@@ -10,7 +23,15 @@ internal calculations. Currently only applies to `metric = "euclidean"`, where
 the squared Euclidean distance is used internally. Only worth setting this to
 `FALSE` if you think the alternative is causing numerical issues (which is
 a bug, so please report it!).
-* Random and brute force methods will use alternative metrics.
+* Random and brute force methods will make use of alternative metrics.
+* New option `block_size` for parallel methods, which determines the amount
+of work done in parallel before checking for user interrupt request and updating
+any progress.
+* `random_knn` now returns its results in sorted order. You can turn this off
+with `order_distances = FALSE`, if you don't need the sorting (e.g. you are 
+using the results as input to something else).
+* Progress bars for the `brute_force` and `random` methods should now be 
+correct.
 
 # rnndescent 0.0.2 (7 November 2019)
 
