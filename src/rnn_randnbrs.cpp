@@ -26,16 +26,14 @@
 using namespace tdoann;
 
 #define RandomNbrs(Distance)                                                   \
-  if (parallelize) {                                                           \
-    return random_knn_parallel<Distance>(data, k, order_by_distance,           \
-                                         block_size, grain_size, verbose);     \
-  } else {                                                                     \
-    return random_knn_impl<Distance>(data, k, order_by_distance, verbose);     \
-  }
+  return random_knn_impl<Distance>(data, k, order_by_distance, parallelize,    \
+                                   block_size, grain_size, verbose);
 
 template <typename Distance>
-Rcpp::List random_knn_impl(Rcpp::NumericMatrix data, int k,
-                           bool order_by_distance, bool verbose) {
+Rcpp::List
+random_knn_impl(Rcpp::NumericMatrix data, int k, bool order_by_distance,
+                bool parallelize = false, const std::size_t block_size = 4096,
+                const std::size_t grain_size = 1, bool verbose = false) {
   set_seed();
 
   const auto nr = data.nrow();
@@ -47,8 +45,31 @@ Rcpp::List random_knn_impl(Rcpp::NumericMatrix data, int k,
   auto data_vec =
       Rcpp::as<std::vector<typename Distance::in_type>>(Rcpp::transpose(data));
   Distance distance(data_vec, ndim);
-  RPProgress progress(nr, verbose);
 
+  if (parallelize) {
+    const auto n_blocks = (nr / block_size) + 1;
+    RPProgress progress(1, n_blocks, verbose);
+    rknn_parallel(progress, distance, indices, dist, block_size, grain_size);
+  } else {
+    RPProgress progress(nr, verbose);
+    rknn_serial(progress, distance, indices, dist);
+  }
+  indices = Rcpp::transpose(indices);
+  dist = Rcpp::transpose(dist);
+
+  if (order_by_distance) {
+    sort_knn_graph<HeapAddSymmetric>(indices, dist);
+  }
+
+  return Rcpp::List::create(Rcpp::Named("idx") = indices,
+                            Rcpp::Named("dist") = dist);
+}
+
+template <typename Progress, typename Distance>
+void rknn_serial(Progress &progress, Distance &distance,
+                 Rcpp::IntegerMatrix indices, Rcpp::NumericMatrix dist) {
+  const auto nr = indices.ncol();
+  const auto k = indices.nrow();
   const auto nr1 = nr - 1;
   const auto n_to_sample = k - 1;
   for (auto i = 0; i < nr; i++) {
@@ -65,16 +86,6 @@ Rcpp::List random_knn_impl(Rcpp::NumericMatrix data, int k,
       break;
     };
   }
-
-  indices = Rcpp::transpose(indices);
-  dist = Rcpp::transpose(dist);
-
-  if (order_by_distance) {
-    sort_knn_graph<HeapAddSymmetric>(indices, dist);
-  }
-
-  return Rcpp::List::create(Rcpp::Named("idx") = indices,
-                            Rcpp::Named("dist") = dist);
 }
 
 // [[Rcpp::export]]

@@ -31,23 +31,20 @@
 template <typename Distance>
 struct RandomNbrWorker : public RcppParallel::Worker {
 
-  const std::vector<typename Distance::in_type> data_vec;
-  Distance distance;
-  const int nr1;
-  const int n_to_sample;
+  Distance &distance;
 
   RcppParallel::RMatrix<int> indices;
   RcppParallel::RMatrix<double> dist;
 
+  const int nr1;
+  const int n_to_sample;
+
   tthread::mutex mutex;
 
-  RandomNbrWorker(Rcpp::NumericMatrix data, int k,
-                  Rcpp::IntegerMatrix output_indices,
+  RandomNbrWorker(Distance &distance, Rcpp::IntegerMatrix output_indices,
                   Rcpp::NumericMatrix output_dist)
-      : data_vec(Rcpp::as<std::vector<typename Distance::in_type>>(
-            Rcpp::transpose(data))),
-        distance(data_vec, data.ncol()), nr1(data.nrow() - 1),
-        n_to_sample(k - 1), indices(output_indices), dist(output_dist) {}
+      : distance(distance), indices(output_indices), dist(output_dist),
+        nr1(indices.ncol() - 1), n_to_sample(indices.nrow() - 1) {}
 
   void operator()(std::size_t begin, std::size_t end) {
     for (int i = static_cast<int>(begin); i < static_cast<int>(end); i++) {
@@ -68,32 +65,13 @@ struct RandomNbrWorker : public RcppParallel::Worker {
   }
 };
 
-template <typename Distance>
-Rcpp::List random_knn_parallel(Rcpp::NumericMatrix data, int k,
-                               bool order_by_distance = true,
-                               const std::size_t block_size = 4096,
-                               const std::size_t grain_size = 1,
-                               bool verbose = false) {
-  set_seed();
-
-  const auto nr = data.nrow();
-  Rcpp::IntegerMatrix indices(k, nr);
-  Rcpp::NumericMatrix dist(k, nr);
-
-  RandomNbrWorker<Distance> worker(data, k, indices, dist);
-  const auto n_blocks = (nr / block_size) + 1;
-  RPProgress progress(1, n_blocks, verbose);
-  batch_parallel_for(worker, progress, nr, block_size, grain_size);
-
-  indices = Rcpp::transpose(indices);
-  dist = Rcpp::transpose(dist);
-
-  if (order_by_distance) {
-    sort_knn_graph<HeapAddSymmetric>(indices, dist);
-  }
-
-  return Rcpp::List::create(Rcpp::Named("idx") = indices,
-                            Rcpp::Named("dist") = dist);
+template <typename Progress, typename Distance>
+void rknn_parallel(Progress &progress, Distance &distance,
+                   Rcpp::IntegerMatrix indices, Rcpp::NumericMatrix dist,
+                   const std::size_t block_size = 4096,
+                   const std::size_t grain_size = 1) {
+  RandomNbrWorker<Distance> worker(distance, indices, dist);
+  batch_parallel_for(worker, progress, indices.ncol(), block_size, grain_size);
 }
 
 template <typename Distance>
