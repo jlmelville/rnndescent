@@ -279,7 +279,7 @@ non_search_query(NeighborHeap &current_graph,
   std::size_t ref_idx = 0;
   std::size_t nbr_ref_idx = 0;
   const std::size_t n_nbrs = current_graph.n_nbrs;
-  std::unordered_set<std::size_t> seen(n_nbrs);
+  typename GraphUpdater<Distance>::NeighborSet seen(n_nbrs);
 
   for (std::size_t query_idx = begin; query_idx < end; query_idx++) {
     for (std::size_t j = 0; j < max_candidates; j++) {
@@ -290,8 +290,7 @@ non_search_query(NeighborHeap &current_graph,
       const std::size_t rnidx = ref_idx * max_candidates;
       for (std::size_t k = 0; k < max_candidates; k++) {
         nbr_ref_idx = gn_graph.idx[rnidx + k];
-        if (nbr_ref_idx == NeighborHeap::npos() ||
-            !seen.emplace(nbr_ref_idx).second) {
+        if (nbr_ref_idx == NeighborHeap::npos() || seen.contains(nbr_ref_idx)) {
           continue;
         }
         c += graph_updater.generate_and_apply(query_idx, nbr_ref_idx);

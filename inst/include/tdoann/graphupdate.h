@@ -412,6 +412,21 @@ template <typename Distance> struct BatchGraphUpdaterVeryHiMem {
   }
 };
 
+// For use in queries: whether to cache previously seen points
+struct NullNeighborSet {
+  NullNeighborSet(const std::size_t n_nbrs) {}
+  bool contains(std::size_t) { return false; }
+  void clear() {}
+};
+
+struct UnorderedNeighborSet {
+  std::unordered_set<std::size_t> seen;
+
+  UnorderedNeighborSet(const std::size_t n_nbrs) : seen(n_nbrs) {}
+  bool contains(std::size_t idx) { return !seen.emplace(idx).second; }
+  void clear() { seen.clear(); }
+};
+
 template <typename Distance> struct QuerySerialGraphUpdater {
   NeighborHeap &current_graph;
   const Distance &distance;
@@ -450,6 +465,8 @@ template <typename Distance> struct QuerySerialGraphUpdater {
     }
     return current_graph.checked_push(query, dist, ref);
   }
+
+  using NeighborSet = NullNeighborSet;
 };
 
 template <typename Distance> struct QuerySerialGraphUpdaterHiMem {
@@ -492,6 +509,8 @@ template <typename Distance> struct QuerySerialGraphUpdaterHiMem {
     }
     return c;
   }
+
+  using NeighborSet = UnorderedNeighborSet;
 };
 } // namespace tdoann
 
