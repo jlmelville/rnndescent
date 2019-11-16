@@ -77,6 +77,29 @@ struct ParallelRandomNbrsImpl {
   }
 };
 
+template <typename Progress, typename Distance>
+void rknn_serial(Progress &progress, Distance &distance,
+                 Rcpp::IntegerMatrix indices, Rcpp::NumericMatrix dist) {
+  const auto nr = indices.ncol();
+  const auto k = indices.nrow();
+  const auto nr1 = nr - 1;
+  const auto n_to_sample = k - 1;
+  for (auto i = 0; i < nr; i++) {
+    indices(0, i) = i + 1;
+    auto idxi = dqrng::dqsample_int(nr1, n_to_sample); // 0-indexed
+    for (auto j = 0; j < n_to_sample; j++) {
+      auto &val = idxi[j];
+      val = val >= i ? val + 1 : val;    // ensure i isn't in the sample
+      indices(j + 1, i) = val + 1;       // store val as 1-index
+      dist(j + 1, i) = distance(i, val); // distance calcs are 0-indexed
+    }
+    progress.iter_finished();
+    if (progress.check_interrupt()) {
+      break;
+    };
+  }
+}
+
 template <typename RandomNbrsImpl, typename Distance>
 Rcpp::List random_knn_impl(Rcpp::NumericMatrix data, int k,
                            bool order_by_distance, RandomNbrsImpl &impl,
@@ -104,29 +127,6 @@ Rcpp::List random_knn_impl(Rcpp::NumericMatrix data, int k,
 
   return Rcpp::List::create(Rcpp::Named("idx") = indices,
                             Rcpp::Named("dist") = dist);
-}
-
-template <typename Progress, typename Distance>
-void rknn_serial(Progress &progress, Distance &distance,
-                 Rcpp::IntegerMatrix indices, Rcpp::NumericMatrix dist) {
-  const auto nr = indices.ncol();
-  const auto k = indices.nrow();
-  const auto nr1 = nr - 1;
-  const auto n_to_sample = k - 1;
-  for (auto i = 0; i < nr; i++) {
-    indices(0, i) = i + 1;
-    auto idxi = dqrng::dqsample_int(nr1, n_to_sample); // 0-indexed
-    for (auto j = 0; j < n_to_sample; j++) {
-      auto &val = idxi[j];
-      val = val >= i ? val + 1 : val;    // ensure i isn't in the sample
-      indices(j + 1, i) = val + 1;       // store val as 1-index
-      dist(j + 1, i) = distance(i, val); // distance calcs are 0-indexed
-    }
-    progress.iter_finished();
-    if (progress.check_interrupt()) {
-      break;
-    };
-  }
 }
 
 // [[Rcpp::export]]
@@ -158,18 +158,81 @@ Rcpp::List random_knn_cpp(Rcpp::NumericMatrix data, int k,
 
 #define RandomNbrsQuery(Distance)                                              \
   if (parallelize) {                                                           \
-    return random_knn_query_parallel<Distance>(reference, query, k,            \
-                                               order_by_distance, block_size,  \
-                                               grain_size, verbose);           \
+    using RandomNbrsImpl = ParallelRandomNbrsQueryImpl;                        \
+    RandomNbrsImpl impl(block_size, grain_size);                               \
+    RandomNbrsKnnQuery(RandomNbrsImpl, Distance)                               \
   } else {                                                                     \
-    return random_knn_query_impl<Distance>(reference, query, k,                \
-                                           order_by_distance, verbose);        \
+    using RandomNbrsImpl = SerialRandomNbrsQueryImpl;                          \
+    RandomNbrsImpl impl;                                                       \
+    RandomNbrsKnnQuery(RandomNbrsImpl, Distance)                               \
   }
 
-template <typename Distance>
-Rcpp::List random_knn_query_impl(Rcpp::NumericMatrix reference,
-                                 Rcpp::NumericMatrix query, int k,
-                                 bool order_by_distance, bool verbose) {
+#define RandomNbrsKnnQuery(RandomNbrsImpl, Distance)                           \
+  return random_knn_query_impl<RandomNbrsImpl, Distance>(                      \
+      reference, query, k, order_by_distance, impl, verbose);
+
+struct SerialRandomNbrsQueryImpl {
+
+  template <typename Distance>
+  void build_knn(Distance &distance, Rcpp::IntegerMatrix indices,
+                 Rcpp::NumericMatrix dist, std::size_t nrefs, bool verbose) {
+    const auto nr = indices.ncol();
+    RPProgress progress(nr, verbose);
+    rknnq_serial(progress, distance, nrefs, indices, dist);
+  }
+  void sort_knn(Rcpp::IntegerMatrix indices, Rcpp::NumericMatrix dist) {
+    sort_knn_graph<HeapAddQuery>(indices, dist);
+  }
+};
+
+struct ParallelRandomNbrsQueryImpl {
+  std::size_t block_size;
+  std::size_t grain_size;
+
+  ParallelRandomNbrsQueryImpl(std::size_t block_size = 4096,
+                              std::size_t grain_size = 1)
+      : block_size(block_size), grain_size(grain_size) {}
+
+  template <typename Distance>
+  void build_knn(Distance &distance, Rcpp::IntegerMatrix indices,
+                 Rcpp::NumericMatrix dist, std::size_t nrefs, bool verbose) {
+    const auto nr = indices.ncol();
+    const auto n_blocks = (nr / block_size) + 1;
+    RPProgress progress(1, n_blocks, verbose);
+    rknnq_parallel(progress, distance, nrefs, indices, dist, block_size,
+                   grain_size);
+  }
+  void sort_knn(Rcpp::IntegerMatrix indices, Rcpp::NumericMatrix dist) {
+    sort_knn_graph_parallel<HeapAddQuery>(indices, dist, block_size,
+                                          grain_size);
+  }
+};
+
+template <typename Progress, typename Distance>
+void rknnq_serial(Progress &progress, Distance &distance, std::size_t nrefs,
+                  Rcpp::IntegerMatrix indices, Rcpp::NumericMatrix dist) {
+  const auto nr = indices.ncol();
+  const auto k = indices.nrow();
+
+  for (auto i = 0; i < nr; i++) {
+    auto idxi = dqrng::dqsample_int(nrefs, k); // 0-indexed
+    for (auto j = 0; j < k; j++) {
+      auto &ref_idx = idxi[j];
+      indices(j, i) = ref_idx + 1;       // store val as 1-index
+      dist(j, i) = distance(ref_idx, i); // distance calcs are 0-indexed
+    }
+    progress.iter_finished();
+    if (progress.check_interrupt()) {
+      break;
+    };
+  }
+}
+
+template <typename RandomNbrsQueryImpl, typename Distance>
+Rcpp::List
+random_knn_query_impl(Rcpp::NumericMatrix reference, Rcpp::NumericMatrix query,
+                      int k, bool order_by_distance, RandomNbrsQueryImpl &impl,
+                      bool verbose = false) {
   set_seed();
 
   const auto nr = query.nrow();
@@ -184,26 +247,14 @@ Rcpp::List random_knn_query_impl(Rcpp::NumericMatrix reference,
   auto query_vec =
       Rcpp::as<std::vector<typename Distance::in_type>>(Rcpp::transpose(query));
   Distance distance(reference_vec, query_vec, ndim);
-  RPProgress progress(nr, verbose);
 
-  for (auto i = 0; i < nr; i++) {
-    auto idxi = dqrng::dqsample_int(nrefs, k); // 0-indexed
-    for (auto j = 0; j < k; j++) {
-      auto &ref_idx = idxi[j];
-      indices(j, i) = ref_idx + 1;       // store val as 1-index
-      dist(j, i) = distance(ref_idx, i); // distance calcs are 0-indexed
-    }
-    progress.iter_finished();
-    if (progress.check_interrupt()) {
-      break;
-    };
-  }
+  impl.build_knn(distance, indices, dist, nrefs, verbose);
 
   indices = Rcpp::transpose(indices);
   dist = Rcpp::transpose(dist);
 
   if (order_by_distance) {
-    sort_knn_graph<HeapAddQuery>(indices, dist);
+    impl.sort_knn(indices, dist);
   }
 
   return Rcpp::List::create(Rcpp::Named("idx") = indices,
