@@ -35,11 +35,12 @@
 namespace tdoann {
 template <typename In, typename Out> struct Euclidean {
   Euclidean(const std::vector<In> &data, std::size_t ndim)
-      : x(data), y(data), ndim(ndim) {}
+      : x(data), y(data), ndim(ndim), nx(data.size() / ndim),
+        ny(data.size() / ndim) {}
 
   Euclidean(const std::vector<In> &x, const std::vector<In> &y,
             std::size_t ndim)
-      : x(x), y(y), ndim(ndim) {}
+      : x(x), y(y), ndim(ndim), nx(x.size() / ndim), ny(y.size() / ndim) {}
 
   Out operator()(std::size_t i, std::size_t j) const {
     Out sum = 0.0;
@@ -57,15 +58,18 @@ template <typename In, typename Out> struct Euclidean {
   const std::vector<In> &x;
   const std::vector<In> &y;
   const std::size_t ndim;
+  const std::size_t nx;
+  const std::size_t ny;
 
   typedef In in_type;
 };
 
 template <typename In, typename Out> struct L2Sqr {
   L2Sqr(const std::vector<In> &data, std::size_t ndim)
-      : x(data), y(data), ndim(ndim) {}
+      : x(data), y(data), ndim(ndim), nx(data.size() / ndim),
+        ny(data.size() / ndim) {}
   L2Sqr(const std::vector<In> &x, const std::vector<In> &y, std::size_t ndim)
-      : x(x), y(y), ndim(ndim) {}
+      : x(x), y(y), ndim(ndim), nx(x.size() / ndim), ny(y.size() / ndim) {}
 
   Out operator()(std::size_t i, std::size_t j) const {
     Out sum = 0.0;
@@ -83,6 +87,8 @@ template <typename In, typename Out> struct L2Sqr {
   const std::vector<In> &x;
   const std::vector<In> &y;
   const std::size_t ndim;
+  const std::size_t nx;
+  const std::size_t ny;
 
   typedef In in_type;
 };
@@ -108,9 +114,10 @@ void normalize(const std::vector<T> &vec, std::size_t ndim,
 
 template <typename In, typename Out> struct CosineN {
   CosineN(const std::vector<In> &data, std::size_t ndim)
-      : x(data), y(data), ndim(ndim) {}
+      : x(data), y(data), ndim(ndim), nx(data.size() / ndim),
+        ny(data.size() / ndim) {}
   CosineN(const std::vector<In> &x, const std::vector<In> &y, std::size_t ndim)
-      : x(x), y(y), ndim(ndim) {}
+      : x(x), y(y), ndim(ndim), nx(x.size() / ndim), ny(y.size() / ndim) {}
 
   Out operator()(std::size_t i, std::size_t j) const {
     const std::size_t di = ndim * i;
@@ -127,27 +134,34 @@ template <typename In, typename Out> struct CosineN {
   const std::vector<In> x;
   const std::vector<In> y;
   const std::size_t ndim;
+  const std::size_t nx;
+  const std::size_t ny;
 
   typedef In in_type;
 };
 
 // normalize data on input
 template <typename In, typename Out> struct Cosine {
-  Cosine(const std::vector<In> &data, std::size_t ndim) : cosine_norm(nullptr) {
-    std::vector<In> xn(data.size());
-    normalize(data, ndim, xn);
-    const auto &yn = xn;
-    cosine_norm.reset(new CosineN<In, Out>(xn, yn, ndim));
+  Cosine(const std::vector<In> &data, std::size_t ndim)
+      : cosine_norm(nullptr), nx(0), ny(0) {
+    std::vector<In> xnorm(data.size());
+    normalize(data, ndim, xnorm);
+    const auto &ynorm = xnorm;
+    cosine_norm.reset(new CosineN<In, Out>(xnorm, ynorm, ndim));
+    nx = cosine_norm->nx;
+    ny = cosine_norm->ny;
   }
 
   Cosine(const std::vector<In> &x, const std::vector<In> &y, std::size_t ndim)
-      : cosine_norm(nullptr) {
-    std::vector<In> xn(x.size());
-    normalize(x, ndim, xn);
+      : cosine_norm(nullptr), nx(0), ny(0) {
+    std::vector<In> xnorm(x.size());
+    normalize(x, ndim, xnorm);
 
-    std::vector<In> yn(y.size());
-    normalize(y, ndim, yn);
-    cosine_norm.reset(new CosineN<In, Out>(xn, yn, ndim));
+    std::vector<In> ynorm(y.size());
+    normalize(y, ndim, ynorm);
+    cosine_norm.reset(new CosineN<In, Out>(xnorm, ynorm, ndim));
+    nx = cosine_norm->nx;
+    ny = cosine_norm->ny;
   }
 
   Out operator()(std::size_t i, std::size_t j) const {
@@ -155,16 +169,19 @@ template <typename In, typename Out> struct Cosine {
   }
 
   std::unique_ptr<CosineN<In, Out>> cosine_norm;
+  std::size_t nx;
+  std::size_t ny;
 
   typedef In in_type;
 };
 
 template <typename In, typename Out> struct Manhattan {
   Manhattan(const std::vector<In> &data, std::size_t ndim)
-      : x(data), y(data), ndim(ndim) {}
+      : x(data), y(data), ndim(ndim), nx(data.size() / ndim),
+        ny(data.size() / ndim) {}
   Manhattan(const std::vector<In> &x, const std::vector<In> &y,
             std::size_t ndim)
-      : x(x), y(y), ndim(ndim) {}
+      : x(x), y(y), ndim(ndim), nx(x.size() / ndim), ny(y.size() / ndim) {}
 
   Out operator()(std::size_t i, std::size_t j) const {
     Out sum = 0.0;
@@ -181,6 +198,8 @@ template <typename In, typename Out> struct Manhattan {
   const std::vector<In> &x;
   const std::vector<In> &y;
   const std::size_t ndim;
+  const std::size_t nx;
+  const std::size_t ny;
 
   typedef In in_type;
 };
@@ -244,7 +263,7 @@ template <typename In, typename Out> struct Hamming {
   // to use built in integer popcount routines for the bitset count()
   // method.
   Hamming(const std::vector<In> &vdata, const std::size_t vndim)
-      : hammingb(nullptr) {
+      : hammingb(nullptr), nx(vdata.size() / vndim), ny(vdata.size() / vndim) {
     std::vector<std::bitset<64>> x;
     to_bitset(vdata, vndim, x);
     const auto &y = x;
@@ -254,7 +273,7 @@ template <typename In, typename Out> struct Hamming {
 
   Hamming(const std::vector<In> &x, const std::vector<In> &y,
           const std::size_t vndim)
-      : hammingb(nullptr) {
+      : hammingb(nullptr), nx(x.size() / vndim), ny(y.size() / vndim) {
     std::vector<std::bitset<64>> bx;
     to_bitset(x, vndim, bx);
 
@@ -270,6 +289,8 @@ template <typename In, typename Out> struct Hamming {
   }
 
   std::unique_ptr<HammingB<Out>> hammingb;
+  const std::size_t nx;
+  const std::size_t ny;
 
   typedef In in_type;
 };
