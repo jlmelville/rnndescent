@@ -27,19 +27,68 @@
 using namespace tdoann;
 
 #define RandomNbrs(Distance)                                                   \
+  using KnnFactory = KnnBuildFactory<Distance>;                                \
+  KnnFactory knn_factory(data);                                                \
   if (parallelize) {                                                           \
     using RandomNbrsImpl = ParallelRandomNbrsImpl;                             \
     RandomNbrsImpl impl(block_size, grain_size);                               \
-    RandomNbrsKnn(RandomNbrsImpl, Distance)                                    \
+    RandomNbrsKnn(KnnFactory, RandomNbrsImpl, Distance)                        \
   } else {                                                                     \
     using RandomNbrsImpl = SerialRandomNbrsImpl;                               \
     RandomNbrsImpl impl;                                                       \
-    RandomNbrsKnn(RandomNbrsImpl, Distance)                                    \
+    RandomNbrsKnn(KnnFactory, RandomNbrsImpl, Distance)                        \
   }
 
-#define RandomNbrsKnn(RandomNbrsImpl, Distance)                                \
-  return random_knn_impl<RandomNbrsImpl, Distance>(data, k, order_by_distance, \
-                                                   impl, verbose);
+#define RandomNbrsKnn(KnnFactory, RandomNbrsImpl, Distance)                    \
+  return random_knn_impl<KnnFactory, RandomNbrsImpl, Distance>(                \
+      k, order_by_distance, knn_factory, impl, verbose);
+
+template <typename Distance> struct KnnQueryFactory {
+  using DataVec = std::vector<typename Distance::in_type>;
+
+  DataVec reference_vec;
+  DataVec query_vec;
+  int nrow;
+  int ndim;
+
+  KnnQueryFactory(Rcpp::NumericMatrix reference, Rcpp::NumericMatrix query)
+      : reference_vec(Rcpp::as<DataVec>(Rcpp::transpose(reference))),
+        query_vec(Rcpp::as<DataVec>(Rcpp::transpose(query))),
+        nrow(query.nrow()), ndim(query.ncol()) {}
+
+  Distance create_distance() const {
+    return Distance(reference_vec, query_vec, ndim);
+  }
+
+  Rcpp::NumericMatrix create_distance_matrix(int k) const {
+    return Rcpp::NumericMatrix(k, nrow);
+  }
+
+  Rcpp::IntegerMatrix create_index_matrix(int k) const {
+    return Rcpp::IntegerMatrix(k, nrow);
+  }
+};
+
+template <typename Distance> struct KnnBuildFactory {
+  using DataVec = std::vector<typename Distance::in_type>;
+
+  DataVec data_vec;
+  int nrow;
+  int ndim;
+
+  KnnBuildFactory(Rcpp::NumericMatrix data)
+      : data_vec(Rcpp::as<DataVec>(Rcpp::transpose(data))), nrow(data.nrow()),
+        ndim(data.ncol()) {}
+
+  Distance create_distance() const { return Distance(data_vec, ndim); }
+  Rcpp::NumericMatrix create_distance_matrix(int k) const {
+    return Rcpp::NumericMatrix(k, nrow);
+  }
+
+  Rcpp::IntegerMatrix create_index_matrix(int k) const {
+    return Rcpp::IntegerMatrix(k, nrow);
+  }
+};
 
 struct SerialRandomNbrsImpl {
 
@@ -100,21 +149,15 @@ void rknn_serial(Progress &progress, Distance &distance,
   }
 }
 
-template <typename RandomNbrsImpl, typename Distance>
-Rcpp::List random_knn_impl(Rcpp::NumericMatrix data, int k,
-                           bool order_by_distance, RandomNbrsImpl &impl,
+template <typename KnnFactory, typename RandomNbrsImpl, typename Distance>
+Rcpp::List random_knn_impl(int k, bool order_by_distance,
+                           KnnFactory &knn_factory, RandomNbrsImpl &impl,
                            bool verbose = false) {
   set_seed();
 
-  const auto nr = data.nrow();
-  const auto ndim = data.ncol();
-
-  Rcpp::IntegerMatrix indices(k, nr);
-  Rcpp::NumericMatrix dist(k, nr);
-
-  auto data_vec =
-      Rcpp::as<std::vector<typename Distance::in_type>>(Rcpp::transpose(data));
-  Distance distance(data_vec, ndim);
+  auto distance = knn_factory.create_distance();
+  auto indices = knn_factory.create_index_matrix(k);
+  auto dist = knn_factory.create_distance_matrix(k);
 
   impl.build_knn(distance, indices, dist, verbose);
 
@@ -157,19 +200,17 @@ Rcpp::List random_knn_cpp(Rcpp::NumericMatrix data, int k,
 }
 
 #define RandomNbrsQuery(Distance)                                              \
+  using KnnFactory = KnnQueryFactory<Distance>;                                \
+  KnnFactory knn_factory(reference, query);                                    \
   if (parallelize) {                                                           \
     using RandomNbrsImpl = ParallelRandomNbrsQueryImpl;                        \
     RandomNbrsImpl impl(block_size, grain_size);                               \
-    RandomNbrsKnnQuery(RandomNbrsImpl, Distance)                               \
+    RandomNbrsKnn(KnnFactory, RandomNbrsImpl, Distance)                        \
   } else {                                                                     \
     using RandomNbrsImpl = SerialRandomNbrsQueryImpl;                          \
     RandomNbrsImpl impl;                                                       \
-    RandomNbrsKnnQuery(RandomNbrsImpl, Distance)                               \
+    RandomNbrsKnn(KnnFactory, RandomNbrsImpl, Distance)                        \
   }
-
-#define RandomNbrsKnnQuery(RandomNbrsImpl, Distance)                           \
-  return random_knn_query_impl<RandomNbrsImpl, Distance>(                      \
-      reference, query, k, order_by_distance, impl, verbose);
 
 struct SerialRandomNbrsQueryImpl {
 
@@ -228,38 +269,6 @@ void rknnq_serial(Progress &progress, Distance &distance, std::size_t nrefs,
       break;
     };
   }
-}
-
-template <typename RandomNbrsQueryImpl, typename Distance>
-Rcpp::List
-random_knn_query_impl(Rcpp::NumericMatrix reference, Rcpp::NumericMatrix query,
-                      int k, bool order_by_distance, RandomNbrsQueryImpl &impl,
-                      bool verbose = false) {
-  set_seed();
-
-  const auto nr = query.nrow();
-  const auto ndim = query.ncol();
-
-  Rcpp::IntegerMatrix indices(k, nr);
-  Rcpp::NumericMatrix dist(k, nr);
-
-  auto reference_vec = Rcpp::as<std::vector<typename Distance::in_type>>(
-      Rcpp::transpose(reference));
-  auto query_vec =
-      Rcpp::as<std::vector<typename Distance::in_type>>(Rcpp::transpose(query));
-  Distance distance(reference_vec, query_vec, ndim);
-
-  impl.build_knn(distance, indices, dist, verbose);
-
-  indices = Rcpp::transpose(indices);
-  dist = Rcpp::transpose(dist);
-
-  if (order_by_distance) {
-    impl.sort_knn(indices, dist);
-  }
-
-  return Rcpp::List::create(Rcpp::Named("idx") = indices,
-                            Rcpp::Named("dist") = dist);
 }
 
 // [[Rcpp::export]]
