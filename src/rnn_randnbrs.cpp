@@ -18,6 +18,7 @@
 //  along with rnndescent.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "rnn.h"
+#include "rnn_parallel.h"
 #include "rnn_randnbrsparallel.h"
 #include "rnn_rng.h"
 #include "tdoann/distance.h"
@@ -58,7 +59,12 @@ random_knn_impl(Rcpp::NumericMatrix data, int k, bool order_by_distance,
   dist = Rcpp::transpose(dist);
 
   if (order_by_distance) {
-    sort_knn_graph<HeapAddSymmetric>(indices, dist);
+    if (parallelize) {
+      sort_knn_graph_parallel<HeapAddSymmetric>(indices, dist, block_size,
+                                                grain_size);
+    } else {
+      sort_knn_graph<HeapAddSymmetric>(indices, dist);
+    }
   }
 
   return Rcpp::List::create(Rcpp::Named("idx") = indices,

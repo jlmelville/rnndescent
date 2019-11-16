@@ -89,14 +89,15 @@ struct HeapAddQuery {
 
 // input idx R matrix is 1-indexed and transposed
 // output heap index is 0-indexed
-template <typename HeapAdd, typename NbrHeap>
-void r_to_heap(NbrHeap &current_graph, Rcpp::IntegerMatrix idx,
-               Rcpp::NumericMatrix dist,
+template <typename HeapAdd, typename NbrHeap,
+          typename IdxMatrix = Rcpp::IntegerMatrix,
+          typename DistMatrix = Rcpp::NumericMatrix>
+void r_to_heap(NbrHeap &current_graph, IdxMatrix idx, DistMatrix dist,
+               const std::size_t begin, const std::size_t end,
                const int max_idx = std::numeric_limits<int>::max()) {
-  const std::size_t n_points = idx.nrow();
   const std::size_t n_nbrs = idx.ncol();
 
-  for (std::size_t i = 0; i < n_points; i++) {
+  for (std::size_t i = begin; i < end; i++) {
     for (std::size_t j = 0; j < n_nbrs; j++) {
       const int k = idx(i, j) - 1;
       if (k < 0 || k > max_idx) {
@@ -106,6 +107,14 @@ void r_to_heap(NbrHeap &current_graph, Rcpp::IntegerMatrix idx,
       HeapAdd::push(current_graph, i, k, d);
     }
   }
+}
+
+template <typename HeapAdd, typename NbrHeap>
+void r_to_heap(NbrHeap &current_graph, Rcpp::IntegerMatrix idx,
+               Rcpp::NumericMatrix dist,
+               const int max_idx = std::numeric_limits<int>::max()) {
+  const std::size_t n_points = idx.nrow();
+  r_to_heap<HeapAdd, NbrHeap>(current_graph, idx, dist, 0, n_points, max_idx);
 }
 
 // input heap index is 0-indexed
@@ -139,12 +148,12 @@ template <typename NbrHeap> Rcpp::List heap_to_r(const NbrHeap &heap) {
                             Rcpp::Named("dist") = dist);
 }
 
-template <typename HeapAdd>
+template <typename HeapAdd, typename NbrHeap = tdoann::SimpleNeighborHeap>
 void sort_knn_graph(Rcpp::IntegerMatrix idx, Rcpp::NumericMatrix dist) {
   const std::size_t n_points = idx.nrow();
   const std::size_t n_nbrs = idx.ncol();
 
-  tdoann::SimpleNeighborHeap heap(n_points, n_nbrs);
+  NbrHeap heap(n_points, n_nbrs);
   r_to_heap<HeapAdd>(heap, idx, dist);
   heap.deheap_sort();
   heap_to_r(heap, idx, dist);

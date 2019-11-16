@@ -138,7 +138,8 @@ Rcpp::List random_knn_query_parallel(Rcpp::NumericMatrix reference,
   dist = Rcpp::transpose(dist);
 
   if (order_by_distance) {
-    sort_knn_graph<HeapAddQuery>(indices, dist);
+    sort_knn_graph_parallel<HeapAddQuery>(indices, dist, block_size,
+                                          grain_size);
   }
 
   return Rcpp::List::create(Rcpp::Named("idx") = indices,
