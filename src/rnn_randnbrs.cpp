@@ -27,14 +27,60 @@
 using namespace tdoann;
 
 #define RandomNbrs(Distance)                                                   \
-  return random_knn_impl<Distance>(data, k, order_by_distance, parallelize,    \
-                                   block_size, grain_size, verbose);
+  if (parallelize) {                                                           \
+    using RandomNbrsImpl = ParallelRandomNbrsImpl;                             \
+    RandomNbrsImpl impl(block_size, grain_size);                               \
+    RandomNbrsKnn(RandomNbrsImpl, Distance)                                    \
+  } else {                                                                     \
+    using RandomNbrsImpl = SerialRandomNbrsImpl;                               \
+    RandomNbrsImpl impl;                                                       \
+    RandomNbrsKnn(RandomNbrsImpl, Distance)                                    \
+  }
 
-template <typename Distance>
-Rcpp::List
-random_knn_impl(Rcpp::NumericMatrix data, int k, bool order_by_distance,
-                bool parallelize = false, const std::size_t block_size = 4096,
-                const std::size_t grain_size = 1, bool verbose = false) {
+#define RandomNbrsKnn(RandomNbrsImpl, Distance)                                \
+  return random_knn_impl<RandomNbrsImpl, Distance>(data, k, order_by_distance, \
+                                                   impl, verbose);
+
+struct SerialRandomNbrsImpl {
+
+  template <typename Distance>
+  void build_knn(Distance &distance, Rcpp::IntegerMatrix indices,
+                 Rcpp::NumericMatrix dist, bool verbose) {
+    const auto nr = indices.ncol();
+    RPProgress progress(nr, verbose);
+    rknn_serial(progress, distance, indices, dist);
+  }
+  void sort_knn(Rcpp::IntegerMatrix indices, Rcpp::NumericMatrix dist) {
+    sort_knn_graph<HeapAddSymmetric>(indices, dist);
+  }
+};
+
+struct ParallelRandomNbrsImpl {
+  std::size_t block_size;
+  std::size_t grain_size;
+
+  ParallelRandomNbrsImpl(std::size_t block_size = 4096,
+                         std::size_t grain_size = 1)
+      : block_size(block_size), grain_size(grain_size) {}
+
+  template <typename Distance>
+  void build_knn(Distance &distance, Rcpp::IntegerMatrix indices,
+                 Rcpp::NumericMatrix dist, bool verbose) {
+    const auto nr = indices.ncol();
+    const auto n_blocks = (nr / block_size) + 1;
+    RPProgress progress(1, n_blocks, verbose);
+    rknn_parallel(progress, distance, indices, dist, block_size, grain_size);
+  }
+  void sort_knn(Rcpp::IntegerMatrix indices, Rcpp::NumericMatrix dist) {
+    sort_knn_graph_parallel<HeapAddSymmetric>(indices, dist, block_size,
+                                              grain_size);
+  }
+};
+
+template <typename RandomNbrsImpl, typename Distance>
+Rcpp::List random_knn_impl(Rcpp::NumericMatrix data, int k,
+                           bool order_by_distance, RandomNbrsImpl &impl,
+                           bool verbose = false) {
   set_seed();
 
   const auto nr = data.nrow();
@@ -47,24 +93,13 @@ random_knn_impl(Rcpp::NumericMatrix data, int k, bool order_by_distance,
       Rcpp::as<std::vector<typename Distance::in_type>>(Rcpp::transpose(data));
   Distance distance(data_vec, ndim);
 
-  if (parallelize) {
-    const auto n_blocks = (nr / block_size) + 1;
-    RPProgress progress(1, n_blocks, verbose);
-    rknn_parallel(progress, distance, indices, dist, block_size, grain_size);
-  } else {
-    RPProgress progress(nr, verbose);
-    rknn_serial(progress, distance, indices, dist);
-  }
+  impl.build_knn(distance, indices, dist, verbose);
+
   indices = Rcpp::transpose(indices);
   dist = Rcpp::transpose(dist);
 
   if (order_by_distance) {
-    if (parallelize) {
-      sort_knn_graph_parallel<HeapAddSymmetric>(indices, dist, block_size,
-                                                grain_size);
-    } else {
-      sort_knn_graph<HeapAddSymmetric>(indices, dist);
-    }
+    impl.sort_knn(indices, dist);
   }
 
   return Rcpp::List::create(Rcpp::Named("idx") = indices,
