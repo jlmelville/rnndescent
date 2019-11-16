@@ -175,8 +175,9 @@ struct SerialRandomNbrsQueryImpl {
 
   template <typename Distance>
   void build_knn(Distance &distance, Rcpp::IntegerMatrix indices,
-                 Rcpp::NumericMatrix dist, std::size_t nrefs, bool verbose) {
+                 Rcpp::NumericMatrix dist, bool verbose) {
     const auto nr = indices.ncol();
+    const auto nrefs = distance.nx;
     RPProgress progress(nr, verbose);
     rknnq_serial(progress, distance, nrefs, indices, dist);
   }
@@ -195,9 +196,10 @@ struct ParallelRandomNbrsQueryImpl {
 
   template <typename Distance>
   void build_knn(Distance &distance, Rcpp::IntegerMatrix indices,
-                 Rcpp::NumericMatrix dist, std::size_t nrefs, bool verbose) {
+                 Rcpp::NumericMatrix dist, bool verbose) {
     const auto nr = indices.ncol();
     const auto n_blocks = (nr / block_size) + 1;
+    const auto nrefs = distance.nx;
     RPProgress progress(1, n_blocks, verbose);
     rknnq_parallel(progress, distance, nrefs, indices, dist, block_size,
                    grain_size);
@@ -237,7 +239,6 @@ random_knn_query_impl(Rcpp::NumericMatrix reference, Rcpp::NumericMatrix query,
 
   const auto nr = query.nrow();
   const auto ndim = query.ncol();
-  const auto nrefs = reference.nrow();
 
   Rcpp::IntegerMatrix indices(k, nr);
   Rcpp::NumericMatrix dist(k, nr);
@@ -248,7 +249,7 @@ random_knn_query_impl(Rcpp::NumericMatrix reference, Rcpp::NumericMatrix query,
       Rcpp::as<std::vector<typename Distance::in_type>>(Rcpp::transpose(query));
   Distance distance(reference_vec, query_vec, ndim);
 
-  impl.build_knn(distance, indices, dist, nrefs, verbose);
+  impl.build_knn(distance, indices, dist, verbose);
 
   indices = Rcpp::transpose(indices);
   dist = Rcpp::transpose(dist);
