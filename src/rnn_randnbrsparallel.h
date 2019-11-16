@@ -65,15 +65,6 @@ struct RandomNbrWorker : public RcppParallel::Worker {
   }
 };
 
-template <typename Progress, typename Distance>
-void rknn_parallel(Progress &progress, Distance &distance,
-                   Rcpp::IntegerMatrix indices, Rcpp::NumericMatrix dist,
-                   const std::size_t block_size = 4096,
-                   const std::size_t grain_size = 1) {
-  RandomNbrWorker<Distance> worker(distance, indices, dist);
-  batch_parallel_for(worker, progress, indices.ncol(), block_size, grain_size);
-}
-
 template <typename Distance>
 struct RandomNbrQueryWorker : public RcppParallel::Worker {
   Distance &distance;
@@ -109,11 +100,21 @@ struct RandomNbrQueryWorker : public RcppParallel::Worker {
 };
 
 template <typename Progress, typename Distance>
-void rknnq_parallel(Progress &progress, Distance &distance, std::size_t nrefs,
+void rknn_parallel(Progress &progress, Distance &distance,
+                   Rcpp::IntegerMatrix indices, Rcpp::NumericMatrix dist,
+                   const std::size_t block_size = 4096,
+                   const std::size_t grain_size = 1) {
+  RandomNbrWorker<Distance> worker(distance, indices, dist);
+  batch_parallel_for(worker, progress, indices.ncol(), block_size, grain_size);
+}
+
+template <typename Progress, typename Distance>
+void rknnq_parallel(Progress &progress, Distance &distance,
                     Rcpp::IntegerMatrix indices, Rcpp::NumericMatrix dist,
                     std::size_t block_size = 4096, std::size_t grain_size = 1) {
   const auto nr = indices.ncol();
   const auto k = indices.nrow();
+  const auto nrefs = distance.nx;
   RandomNbrQueryWorker<Distance> worker(distance, indices, dist, nrefs, k);
   batch_parallel_for(worker, progress, nr, block_size, grain_size);
 }
