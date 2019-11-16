@@ -26,6 +26,26 @@
 
 using namespace tdoann;
 
+#define Distances(RandomKnn)                                                   \
+  if (metric == "euclidean") {                                                 \
+    using Distance = Euclidean<float, float>;                                  \
+    RandomKnn(Distance)                                                        \
+  } else if (metric == "l2sqr") {                                              \
+    using Distance = L2Sqr<float, float>;                                      \
+    RandomKnn(Distance)                                                        \
+  } else if (metric == "cosine") {                                             \
+    using Distance = Cosine<float, float>;                                     \
+    RandomKnn(Distance)                                                        \
+  } else if (metric == "manhattan") {                                          \
+    using Distance = Manhattan<float, float>;                                  \
+    RandomKnn(Distance)                                                        \
+  } else if (metric == "hamming") {                                            \
+    using Distance = Hamming<uint8_t, std::size_t>;                            \
+    RandomKnn(Distance)                                                        \
+  } else {                                                                     \
+    Rcpp::stop("Bad metric");                                                  \
+  }
+
 #define RandomNbrs(Distance)                                                   \
   using KnnFactory = KnnBuildFactory<Distance>;                                \
   KnnFactory knn_factory(data);                                                \
@@ -179,24 +199,7 @@ Rcpp::List random_knn_cpp(Rcpp::NumericMatrix data, int k,
                           bool parallelize = false,
                           std::size_t block_size = 4096,
                           std::size_t grain_size = 1, bool verbose = false) {
-  if (metric == "euclidean") {
-    using Distance = Euclidean<float, float>;
-    RandomNbrs(Distance)
-  } else if (metric == "l2sqr") {
-    using Distance = L2Sqr<float, float>;
-    RandomNbrs(Distance)
-  } else if (metric == "cosine") {
-    using Distance = Cosine<float, float>;
-    RandomNbrs(Distance)
-  } else if (metric == "manhattan") {
-    using Distance = Manhattan<float, float>;
-    RandomNbrs(Distance)
-  } else if (metric == "hamming") {
-    using Distance = Hamming<uint8_t, std::size_t>;
-    RandomNbrs(Distance)
-  } else {
-    Rcpp::stop("Bad metric");
-  }
+  Distances(RandomNbrs)
 }
 
 #define RandomNbrsQuery(Distance)                                              \
@@ -278,22 +281,5 @@ random_knn_query_cpp(Rcpp::NumericMatrix reference, Rcpp::NumericMatrix query,
                      bool order_by_distance = true, bool parallelize = false,
                      std::size_t block_size = 4096, std::size_t grain_size = 1,
                      bool verbose = false) {
-  if (metric == "euclidean") {
-    using Distance = Euclidean<float, float>;
-    RandomNbrsQuery(Distance)
-  } else if (metric == "l2sqr") {
-    using Distance = L2Sqr<float, float>;
-    RandomNbrsQuery(Distance)
-  } else if (metric == "cosine") {
-    using Distance = Cosine<float, float>;
-    RandomNbrsQuery(Distance)
-  } else if (metric == "manhattan") {
-    using Distance = Manhattan<float, float>;
-    RandomNbrsQuery(Distance)
-  } else if (metric == "hamming") {
-    using Distance = Hamming<uint8_t, std::size_t>;
-    RandomNbrsQuery(Distance)
-  } else {
-    Rcpp::stop("Bad metric");
-  }
+  Distances(RandomNbrsQuery)
 }
