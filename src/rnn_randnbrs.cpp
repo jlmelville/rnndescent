@@ -118,6 +118,7 @@ template <typename Distance> struct KnnBuildFactory {
         ndim(data.ncol()) {}
 
   Distance create_distance() const { return Distance(data_vec, ndim); }
+
   Rcpp::NumericMatrix create_distance_matrix(int k) const {
     return Rcpp::NumericMatrix(k, nrow);
   }
@@ -200,7 +201,8 @@ struct ParallelRandomKnnBuild {
                         Rcpp::IntegerMatrix indices, Rcpp::NumericMatrix dist,
                         const std::size_t block_size = 4096,
                         const std::size_t grain_size = 1) {
-    rknn_parallel(progress, distance, indices, dist, block_size, grain_size);
+    rknn_parallel<RandomNbrWorker>(progress, distance, indices, dist,
+                                   block_size, grain_size);
   }
   using HeapAdd = HeapAddSymmetric;
 };
@@ -211,7 +213,8 @@ struct ParallelRandomKnnQuery {
                         Rcpp::IntegerMatrix indices, Rcpp::NumericMatrix dist,
                         const std::size_t block_size = 4096,
                         const std::size_t grain_size = 1) {
-    rknnq_parallel(progress, distance, indices, dist, block_size, grain_size);
+    rknn_parallel<RandomNbrQueryWorker>(progress, distance, indices, dist,
+                                        block_size, grain_size);
   }
   using HeapAdd = HeapAddQuery;
 };

@@ -78,9 +78,9 @@ struct RandomNbrQueryWorker : public RcppParallel::Worker {
   tthread::mutex mutex;
 
   RandomNbrQueryWorker(Distance &distance, Rcpp::IntegerMatrix output_indices,
-                       Rcpp::NumericMatrix output_dist, int nrefs, int k)
+                       Rcpp::NumericMatrix output_dist)
       : distance(distance), indices(output_indices), dist(output_dist),
-        nrefs(nrefs), k(k) {}
+        nrefs(distance.nx), k(output_indices.nrow()) {}
 
   void operator()(std::size_t begin, std::size_t end) {
     for (int query = static_cast<int>(begin); query < static_cast<int>(end);
@@ -99,24 +99,14 @@ struct RandomNbrQueryWorker : public RcppParallel::Worker {
   }
 };
 
-template <typename Progress, typename Distance>
+template <template <typename> class RandomKnnWorker, typename Progress,
+          typename Distance>
 void rknn_parallel(Progress &progress, Distance &distance,
                    Rcpp::IntegerMatrix indices, Rcpp::NumericMatrix dist,
                    const std::size_t block_size = 4096,
                    const std::size_t grain_size = 1) {
-  RandomNbrWorker<Distance> worker(distance, indices, dist);
+  RandomKnnWorker<Distance> worker(distance, indices, dist);
   batch_parallel_for(worker, progress, indices.ncol(), block_size, grain_size);
-}
-
-template <typename Progress, typename Distance>
-void rknnq_parallel(Progress &progress, Distance &distance,
-                    Rcpp::IntegerMatrix indices, Rcpp::NumericMatrix dist,
-                    std::size_t block_size = 4096, std::size_t grain_size = 1) {
-  const auto nr = indices.ncol();
-  const auto k = indices.nrow();
-  const auto nrefs = distance.nx;
-  RandomNbrQueryWorker<Distance> worker(distance, indices, dist, nrefs, k);
-  batch_parallel_for(worker, progress, nr, block_size, grain_size);
 }
 
 #endif // RNN_RANDNBRSPARALLEL_H
