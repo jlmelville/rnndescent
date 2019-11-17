@@ -131,7 +131,22 @@ struct SerialRandomKnnQuery {
   template <typename Progress, typename Distance>
   static void build_knn(Progress &progress, Distance &distance,
                         Rcpp::IntegerMatrix indices, Rcpp::NumericMatrix dist) {
-    rknnq_serial(progress, distance, indices, dist);
+    const auto nr = indices.ncol();
+    const auto k = indices.nrow();
+    const auto nrefs = distance.nx;
+
+    for (auto i = 0; i < nr; i++) {
+      auto idxi = dqrng::dqsample_int(nrefs, k); // 0-indexed
+      for (auto j = 0; j < k; j++) {
+        auto &ref_idx = idxi[j];
+        indices(j, i) = ref_idx + 1;       // store val as 1-index
+        dist(j, i) = distance(ref_idx, i); // distance calcs are 0-indexed
+      }
+      progress.iter_finished();
+      if (progress.check_interrupt()) {
+        break;
+      };
+    }
   }
   using HeapAdd = HeapAddQuery;
 };
@@ -140,7 +155,25 @@ struct SerialRandomKnnBuild {
   template <typename Progress, typename Distance>
   static void build_knn(Progress &progress, Distance &distance,
                         Rcpp::IntegerMatrix indices, Rcpp::NumericMatrix dist) {
-    rknn_serial(progress, distance, indices, dist);
+    const auto nr = indices.ncol();
+    const auto k = indices.nrow();
+    const auto nr1 = nr - 1;
+    const auto n_to_sample = k - 1;
+
+    for (auto i = 0; i < nr; i++) {
+      indices(0, i) = i + 1;
+      auto idxi = dqrng::dqsample_int(nr1, n_to_sample); // 0-indexed
+      for (auto j = 0; j < n_to_sample; j++) {
+        auto &val = idxi[j];
+        val = val >= i ? val + 1 : val;    // ensure i isn't in the sample
+        indices(j + 1, i) = val + 1;       // store val as 1-index
+        dist(j + 1, i) = distance(i, val); // distance calcs are 0-indexed
+      }
+      progress.iter_finished();
+      if (progress.check_interrupt()) {
+        break;
+      };
+    }
   }
   using HeapAdd = HeapAddSymmetric;
 };
@@ -208,50 +241,6 @@ template <typename ParallelRandomKnn> struct ParallelRandomNbrsImpl {
 };
 
 /* Functions */
-
-template <typename Progress, typename Distance>
-void rknn_serial(Progress &progress, Distance &distance,
-                 Rcpp::IntegerMatrix indices, Rcpp::NumericMatrix dist) {
-  const auto nr = indices.ncol();
-  const auto k = indices.nrow();
-  const auto nr1 = nr - 1;
-  const auto n_to_sample = k - 1;
-  for (auto i = 0; i < nr; i++) {
-    indices(0, i) = i + 1;
-    auto idxi = dqrng::dqsample_int(nr1, n_to_sample); // 0-indexed
-    for (auto j = 0; j < n_to_sample; j++) {
-      auto &val = idxi[j];
-      val = val >= i ? val + 1 : val;    // ensure i isn't in the sample
-      indices(j + 1, i) = val + 1;       // store val as 1-index
-      dist(j + 1, i) = distance(i, val); // distance calcs are 0-indexed
-    }
-    progress.iter_finished();
-    if (progress.check_interrupt()) {
-      break;
-    };
-  }
-}
-
-template <typename Progress, typename Distance>
-void rknnq_serial(Progress &progress, Distance &distance,
-                  Rcpp::IntegerMatrix indices, Rcpp::NumericMatrix dist) {
-  const auto nr = indices.ncol();
-  const auto k = indices.nrow();
-  const auto nrefs = distance.nx;
-
-  for (auto i = 0; i < nr; i++) {
-    auto idxi = dqrng::dqsample_int(nrefs, k); // 0-indexed
-    for (auto j = 0; j < k; j++) {
-      auto &ref_idx = idxi[j];
-      indices(j, i) = ref_idx + 1;       // store val as 1-index
-      dist(j, i) = distance(ref_idx, i); // distance calcs are 0-indexed
-    }
-    progress.iter_finished();
-    if (progress.check_interrupt()) {
-      break;
-    };
-  }
-}
 
 template <typename KnnFactory, typename RandomNbrsImpl, typename Distance>
 Rcpp::List random_knn_impl(int k, bool order_by_distance,
