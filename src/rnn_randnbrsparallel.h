@@ -28,7 +28,16 @@
 // [[Rcpp::depends(dqrng)]]
 #include <dqrng.h>
 
-template <typename Distance>
+struct LockingIndexSampler {
+  tthread::mutex mutex;
+
+  Rcpp::IntegerVector sample(int max_val, int num_to_sample) {
+    tthread::lock_guard<tthread::mutex> guard(mutex);
+    return Rcpp::IntegerVector(dqrng::dqsample_int(max_val, num_to_sample));
+  }
+};
+
+template <typename Distance, typename IndexSampler = LockingIndexSampler>
 struct RandomNbrWorker : public RcppParallel::Worker {
 
   Distance &distance;
@@ -38,25 +47,20 @@ struct RandomNbrWorker : public RcppParallel::Worker {
 
   const int nr1;
   const int n_to_sample;
-
-  tthread::mutex mutex;
+  IndexSampler index_sampler;
 
   RandomNbrWorker(Distance &distance, Rcpp::IntegerMatrix output_indices,
                   Rcpp::NumericMatrix output_dist)
       : distance(distance), indices(output_indices), dist(output_dist),
-        nr1(indices.ncol() - 1), n_to_sample(indices.nrow() - 1) {}
+        nr1(indices.ncol() - 1), n_to_sample(indices.nrow() - 1),
+        index_sampler() {}
 
   void operator()(std::size_t begin, std::size_t end) {
     for (int i = static_cast<int>(begin); i < static_cast<int>(end); i++) {
       indices(0, i) = i + 1;
-      std::unique_ptr<Rcpp::IntegerVector> idxi(nullptr);
-      {
-        tthread::lock_guard<tthread::mutex> guard(mutex);
-        idxi.reset(
-            new Rcpp::IntegerVector(dqrng::dqsample_int(nr1, n_to_sample)));
-      }
+      auto idxi = index_sampler.sample(nr1, n_to_sample);
       for (auto j = 0; j < n_to_sample; j++) {
-        auto &val = (*idxi)[j];
+        auto val = idxi[j];
         val = val >= i ? val + 1 : val;    // ensure i isn't in the sample
         indices(j + 1, i) = val + 1;       // store val as 1-index
         dist(j + 1, i) = distance(i, val); // distance calcs are 0-indexed
@@ -65,7 +69,7 @@ struct RandomNbrWorker : public RcppParallel::Worker {
   }
 };
 
-template <typename Distance>
+template <typename Distance, typename IndexSampler = LockingIndexSampler>
 struct RandomNbrQueryWorker : public RcppParallel::Worker {
   Distance &distance;
 
@@ -75,23 +79,19 @@ struct RandomNbrQueryWorker : public RcppParallel::Worker {
   const int nrefs;
   const int k;
 
-  tthread::mutex mutex;
+  IndexSampler index_sampler;
 
   RandomNbrQueryWorker(Distance &distance, Rcpp::IntegerMatrix output_indices,
                        Rcpp::NumericMatrix output_dist)
       : distance(distance), indices(output_indices), dist(output_dist),
-        nrefs(distance.nx), k(output_indices.nrow()) {}
+        nrefs(distance.nx), k(output_indices.nrow()), index_sampler() {}
 
   void operator()(std::size_t begin, std::size_t end) {
     for (int query = static_cast<int>(begin); query < static_cast<int>(end);
          query++) {
-      std::unique_ptr<Rcpp::IntegerVector> idxi(nullptr);
-      {
-        tthread::lock_guard<tthread::mutex> guard(mutex);
-        idxi.reset(new Rcpp::IntegerVector(dqrng::dqsample_int(nrefs, k)));
-      }
+      auto idxi = index_sampler.sample(nrefs, k);
       for (auto j = 0; j < k; j++) {
-        auto &ref = (*idxi)[j];
+        auto &ref = idxi[j];
         indices(j, query) = ref + 1;           // store val as 1-index
         dist(j, query) = distance(ref, query); // distance calcs are 0-indexed
       }
@@ -99,13 +99,14 @@ struct RandomNbrQueryWorker : public RcppParallel::Worker {
   }
 };
 
-template <template <typename> class RandomKnnWorker, typename Progress,
-          typename Distance>
+template <template <typename, typename> class RandomKnnWorker,
+          typename Progress, typename Distance>
 void rknn_parallel(Progress &progress, Distance &distance,
                    Rcpp::IntegerMatrix indices, Rcpp::NumericMatrix dist,
                    const std::size_t block_size = 4096,
                    const std::size_t grain_size = 1) {
-  RandomKnnWorker<Distance> worker(distance, indices, dist);
+  RandomKnnWorker<Distance, LockingIndexSampler> worker(distance, indices,
+                                                        dist);
   batch_parallel_for(worker, progress, indices.ncol(), block_size, grain_size);
 }
 
