@@ -204,7 +204,8 @@ struct ParallelRandomKnnBuild {
     rknn_parallel<RandomNbrWorker>(progress, distance, indices, dist,
                                    block_size, grain_size);
   }
-  using HeapAdd = HeapAddSymmetric;
+  // Can't use symmetric heap addition with parallel approach
+  using HeapAdd = HeapAddQuery;
 };
 
 struct ParallelRandomKnnQuery {

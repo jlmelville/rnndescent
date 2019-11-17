@@ -105,9 +105,9 @@ template <typename HeapAdd, typename NbrHeap = tdoann::SimpleNeighborHeap>
 void r_to_heap_parallel(NbrHeap &heap, Rcpp::IntegerMatrix idx,
                         Rcpp::NumericMatrix dist, std::size_t block_size,
                         std::size_t grain_size) {
-  const std::size_t n_points = idx.nrow();
   RToHeapWorker<HeapAdd, NbrHeap> worker(heap, idx, dist);
   tdoann::NullProgress progress;
+  const std::size_t n_points = idx.nrow();
   batch_parallel_for(worker, progress, n_points, block_size, grain_size);
 }
 
