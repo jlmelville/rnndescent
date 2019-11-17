@@ -113,10 +113,7 @@ void nnd_full(NeighborHeap &current_graph,
     build_candidates_full(current_graph, rand, new_nbrs, old_nbrs);
     std::size_t c = local_join(current_graph, graph_updater, new_nbrs, old_nbrs,
                                n_points, max_candidates, progress);
-
-    progress.iter_finished();
-    TDOANN_BREAKIFINTERRUPTED();
-
+    TDOANN_ITERFINISHED();
     if (is_converged(c, tol)) {
       progress.converged(c, tol);
       break;
@@ -158,6 +155,7 @@ std::size_t local_join(NeighborHeap &current_graph,
         c += graph_updater.generate_and_apply(p, q);
       }
     }
+    TDOANN_BREAKIFINTERRUPTED();
   }
   return c;
 }
@@ -209,8 +207,7 @@ void nnd_query(NeighborHeap &current_graph,
     std::size_t c = non_search_query(current_graph, graph_updater, new_nbrs,
                                      gn_graph, max_candidates, progress);
 
-    progress.iter_finished();
-    TDOANN_BREAKIFINTERRUPTED();
+    TDOANN_ITERFINISHED();
     if (is_converged(c, tol)) {
       progress.converged(c, tol);
       break;

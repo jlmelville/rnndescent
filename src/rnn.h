@@ -40,6 +40,8 @@ struct HeapSumProgress {
   std::size_t iter;
   bool verbose;
 
+  bool is_aborted;
+
   HeapSumProgress(tdoann::NeighborHeap &neighbor_heap, std::size_t n_iters,
                   bool verbose = false);
   void block_finished();
@@ -59,6 +61,8 @@ struct RPProgress {
 
   std::size_t iter;
   std::size_t block;
+
+  bool is_aborted;
 
   RPProgress(std::size_t n_iters, std::size_t n_blocks, bool verbose);
   RPProgress(std::size_t n_iters, bool verbose);

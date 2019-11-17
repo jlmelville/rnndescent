@@ -196,11 +196,7 @@ void nnd_parallel(tdoann::NeighborHeap &current_graph,
     batch_parallel_for(batch_local_join_worker, progress, n_points, block_size,
                        grain_size, interrupted);
     std::size_t c = batch_local_join_worker.c;
-
-    progress.iter_finished();
-    if (interrupted) {
-      break;
-    }
+    TDOANN_ITERFINISHED();
     if (tdoann::is_converged(c, tol)) {
       progress.converged(c, tol);
       break;

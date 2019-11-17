@@ -53,8 +53,8 @@ void ts(const std::string &msg) {
 
 HeapSumProgress::HeapSumProgress(NeighborHeap &neighbor_heap,
                                  std::size_t n_iters, bool verbose)
-    : neighbor_heap(neighbor_heap), n_iters(n_iters), iter(0),
-      verbose(verbose) {
+    : neighbor_heap(neighbor_heap), n_iters(n_iters), iter(0), verbose(verbose),
+      is_aborted(false) {
   if (verbose) {
     std::ostringstream os;
     os << "0 / " << n_iters << " " << dist_sum();
@@ -72,9 +72,13 @@ void HeapSumProgress::iter_finished() {
 }
 void HeapSumProgress::stopping_early() {}
 bool HeapSumProgress::check_interrupt() {
+  if (is_aborted) {
+    return true;
+  }
   try {
     Rcpp::checkUserInterrupt();
   } catch (Rcpp::internal::InterruptedException &) {
+    is_aborted = true;
     return true;
   }
   return false;
@@ -98,10 +102,11 @@ double HeapSumProgress::dist_sum() const {
 }
 RPProgress::RPProgress(std::size_t n_iters, std::size_t n_blocks, bool verbose)
     : scale(100), progress(scale, verbose), n_iters(n_iters),
-      n_blocks(n_blocks), verbose(verbose), iter(0), block(0) {}
+      n_blocks(n_blocks), verbose(verbose), iter(0), block(0),
+      is_aborted(false) {}
 RPProgress::RPProgress(std::size_t n_iters, bool verbose)
     : scale(100), progress(scale, verbose), n_iters(n_iters), n_blocks(0),
-      verbose(verbose), iter(0), block(0) {}
+      verbose(verbose), iter(0), block(0), is_aborted(false) {}
 void RPProgress::block_finished() {
   if (verbose) {
     ++block;
@@ -117,8 +122,9 @@ void RPProgress::iter_finished() {
 }
 void RPProgress::stopping_early() { progress.update(n_iters); }
 bool RPProgress::check_interrupt() {
-  if (Progress::check_abort()) {
+  if (is_aborted || Progress::check_abort()) {
     progress.cleanup();
+    is_aborted = true;
     return true;
   }
   return false;

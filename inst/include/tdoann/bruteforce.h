@@ -45,8 +45,7 @@ void nnbf(SimpleNeighborHeap &neighbor_heap, Distance &distance,
         neighbor_heap.unchecked_push(j, d, i);
       }
     }
-    progress.iter_finished();
-    TDOANN_BREAKIFINTERRUPTED();
+    TDOANN_ITERFINISHED();
   }
 
   neighbor_heap.deheap_sort();
@@ -63,8 +62,7 @@ void nnbf_query(SimpleNeighborHeap &neighbor_heap, Distance &distance,
         neighbor_heap.unchecked_push(j, d, i);
       }
     }
-    progress.iter_finished();
-    TDOANN_BREAKIFINTERRUPTED();
+    TDOANN_ITERFINISHED();
   }
 
   neighbor_heap.deheap_sort();

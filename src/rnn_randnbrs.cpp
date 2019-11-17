@@ -144,8 +144,7 @@ struct SerialRandomKnnQuery {
         indices(j, i) = ref_idx + 1;       // store val as 1-index
         dist(j, i) = distance(ref_idx, i); // distance calcs are 0-indexed
       }
-      progress.iter_finished();
-      TDOANN_BREAKIFINTERRUPTED();
+      TDOANN_ITERFINISHED();
     }
   }
   using HeapAdd = HeapAddQuery;
@@ -169,8 +168,7 @@ struct SerialRandomKnnBuild {
         indices(j + 1, i) = val + 1;       // store val as 1-index
         dist(j + 1, i) = distance(i, val); // distance calcs are 0-indexed
       }
-      progress.iter_finished();
-      TDOANN_BREAKIFINTERRUPTED();
+      TDOANN_ITERFINISHED();
     }
   }
   using HeapAdd = HeapAddSymmetric;

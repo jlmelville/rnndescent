@@ -53,8 +53,7 @@ void batch_parallel_for(BatchParallelWorker &rnn_worker, Progress &progress,
                               grain_size);
     TDOANN_BREAKIFINTERRUPTED();
     rnn_worker.after_parallel(begin, end);
-    progress.block_finished();
-    TDOANN_BREAKIFINTERRUPTED();
+    TDOANN_BLOCKFINISHED();
   }
 }
 

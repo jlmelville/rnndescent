@@ -6,6 +6,14 @@
     break;                                                                     \
   }
 
+#define TDOANN_ITERFINISHED()                                                  \
+  progress.iter_finished();                                                    \
+  TDOANN_BREAKIFINTERRUPTED()
+
+#define TDOANN_BLOCKFINISHED()                                                 \
+  progress.block_finished();                                                   \
+  TDOANN_BREAKIFINTERRUPTED()
+
 namespace tdoann {
 // Defines the methods required, but does nothing. Safe to use from
 // multi-threaded code if a dummy no-op version is needed.
