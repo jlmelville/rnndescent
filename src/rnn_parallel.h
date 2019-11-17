@@ -51,16 +51,10 @@ void batch_parallel_for(BatchParallelWorker &rnn_worker, Progress &progress,
     const auto end = std::min(n, begin + block_size);
     RcppParallel::parallelFor(begin, end, rnn_worker.parallel_worker,
                               grain_size);
-    interrupted = progress.check_interrupt();
-    if (interrupted) {
-      break;
-    }
+    TDOANN_BREAKIFINTERRUPTED();
     rnn_worker.after_parallel(begin, end);
     progress.block_finished();
-    interrupted = progress.check_interrupt();
-    if (interrupted) {
-      break;
-    }
+    TDOANN_BREAKIFINTERRUPTED();
   }
 }
 

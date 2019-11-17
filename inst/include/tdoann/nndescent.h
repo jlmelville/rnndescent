@@ -28,6 +28,7 @@
 #define TDOANN_NNDESCENT_H
 
 #include "heap.h"
+#include "progress.h"
 
 namespace tdoann {
 // mark any neighbor in the current graph that was retained in the new
@@ -114,9 +115,8 @@ void nnd_full(NeighborHeap &current_graph,
                                n_points, max_candidates, progress);
 
     progress.iter_finished();
-    if (progress.check_interrupt()) {
-      break;
-    }
+    TDOANN_BREAKIFINTERRUPTED();
+
     if (is_converged(c, tol)) {
       progress.converged(c, tol);
       break;
@@ -210,9 +210,7 @@ void nnd_query(NeighborHeap &current_graph,
                                      gn_graph, max_candidates, progress);
 
     progress.iter_finished();
-    if (progress.check_interrupt()) {
-      break;
-    }
+    TDOANN_BREAKIFINTERRUPTED();
     if (is_converged(c, tol)) {
       progress.converged(c, tol);
       break;
@@ -296,7 +294,7 @@ non_search_query(NeighborHeap &current_graph,
         c += graph_updater.generate_and_apply(query_idx, nbr_ref_idx);
       }
     }
-    progress.check_interrupt();
+    TDOANN_BREAKIFINTERRUPTED();
     seen.clear();
   }
   return c;

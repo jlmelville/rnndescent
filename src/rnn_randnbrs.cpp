@@ -22,6 +22,7 @@
 #include "rnn_randnbrsparallel.h"
 #include "rnn_rng.h"
 #include "tdoann/distance.h"
+#include "tdoann/progress.h"
 #include <Rcpp.h>
 
 using namespace tdoann;
@@ -144,9 +145,7 @@ struct SerialRandomKnnQuery {
         dist(j, i) = distance(ref_idx, i); // distance calcs are 0-indexed
       }
       progress.iter_finished();
-      if (progress.check_interrupt()) {
-        break;
-      };
+      TDOANN_BREAKIFINTERRUPTED();
     }
   }
   using HeapAdd = HeapAddQuery;
@@ -171,9 +170,7 @@ struct SerialRandomKnnBuild {
         dist(j + 1, i) = distance(i, val); // distance calcs are 0-indexed
       }
       progress.iter_finished();
-      if (progress.check_interrupt()) {
-        break;
-      };
+      TDOANN_BREAKIFINTERRUPTED();
     }
   }
   using HeapAdd = HeapAddSymmetric;
