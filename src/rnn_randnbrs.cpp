@@ -29,7 +29,7 @@ using namespace tdoann;
 
 /* Macros */
 
-#define Distances(RandomKnn)                                                   \
+#define DISPATCH_ON_DISTANCES(RandomKnn)                                       \
   if (metric == "euclidean") {                                                 \
     using Distance = Euclidean<float, float>;                                  \
     RandomKnn(Distance)                                                        \
@@ -272,7 +272,7 @@ random_knn_cpp(Rcpp::NumericMatrix data, int k,
                const std::string &metric = "euclidean",
                bool order_by_distance = true, bool parallelize = false,
                std::size_t block_size = 4096, std::size_t grain_size = 1,
-               bool verbose = false){Distances(RandomNbrs)}
+               bool verbose = false){DISPATCH_ON_DISTANCES(RandomNbrs)}
 
 // [[Rcpp::export]]
 Rcpp::List
@@ -283,5 +283,5 @@ Rcpp::List
                          bool parallelize = false,
                          std::size_t block_size = 4096,
                          std::size_t grain_size = 1, bool verbose = false) {
-  Distances(RandomNbrsQuery)
+  DISPATCH_ON_DISTANCES(RandomNbrsQuery)
 }
