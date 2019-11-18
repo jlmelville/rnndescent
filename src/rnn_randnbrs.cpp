@@ -58,7 +58,7 @@ using namespace tdoann;
     RandomNbrsKnn(KnnFactory, RandomNbrsImpl, Distance)                        \
   } else {                                                                     \
     using RandomNbrsImpl = SerialRandomNbrsImpl<SerialRandomKnnBuild>;         \
-    RandomNbrsImpl impl;                                                       \
+    RandomNbrsImpl impl(block_size);                                           \
     RandomNbrsKnn(KnnFactory, RandomNbrsImpl, Distance)                        \
   }
 
@@ -71,7 +71,7 @@ using namespace tdoann;
     RandomNbrsKnn(KnnFactory, RandomNbrsImpl, Distance)                        \
   } else {                                                                     \
     using RandomNbrsImpl = SerialRandomNbrsImpl<SerialRandomKnnQuery>;         \
-    RandomNbrsImpl impl;                                                       \
+    RandomNbrsImpl impl(block_size);                                           \
     RandomNbrsKnn(KnnFactory, RandomNbrsImpl, Distance)                        \
   }
 
@@ -129,67 +129,69 @@ template <typename Distance> struct KnnBuildFactory {
   }
 };
 
-struct SerialRandomKnnQuery {
-  template <typename Progress, typename Distance>
-  static void build_knn(Progress &progress, Distance &distance,
-                        Rcpp::IntegerMatrix indices, Rcpp::NumericMatrix dist) {
-    const auto nr = indices.ncol();
-    const auto k = indices.nrow();
-    const auto nrefs = distance.nx;
-
-    for (auto i = 0; i < nr; i++) {
-      auto idxi = dqrng::dqsample_int(nrefs, k); // 0-indexed
-      query_inner_loop(distance, idxi, i, k, indices, dist);
-      TDOANN_ITERFINISHED();
-    }
+struct NonLockingIndexSampler {
+  Rcpp::IntegerVector sample(int max_val, int num_to_sample) {
+    return Rcpp::IntegerVector(dqrng::dqsample_int(max_val, num_to_sample));
   }
+};
+
+struct SerialRandomKnnQuery {
   using HeapAdd = HeapAddQuery;
+  template <typename Distance>
+  using SerialRandomNbrQueryWorker =
+      RandomNbrQueryWorker<Distance, NonLockingIndexSampler,
+                           Rcpp::IntegerMatrix, Rcpp::NumericMatrix, Empty>;
+  template <typename D> using Worker = SerialRandomNbrQueryWorker<D>;
 };
 
 struct SerialRandomKnnBuild {
-  template <typename Progress, typename Distance>
-  static void build_knn(Progress &progress, Distance &distance,
-                        Rcpp::IntegerMatrix indices, Rcpp::NumericMatrix dist) {
-    const auto nr = indices.ncol();
-    const auto k = indices.nrow();
-    const auto nr1 = nr - 1;
-    const auto n_to_sample = k - 1;
-
-    for (auto i = 0; i < nr; i++) {
-      indices(0, i) = i + 1;
-      auto idxi = dqrng::dqsample_int(nr1, n_to_sample); // 0-indexed
-      build_inner_loop(distance, idxi, i, n_to_sample, indices, dist);
-      TDOANN_ITERFINISHED();
-    }
-  }
   using HeapAdd = HeapAddSymmetric;
+  template <typename Distance>
+  using SerialRandomNbrBuildWorker =
+      RandomNbrBuildWorker<Distance, NonLockingIndexSampler,
+                           Rcpp::IntegerMatrix, Rcpp::NumericMatrix, Empty>;
+  template <typename D> using Worker = SerialRandomNbrBuildWorker<D>;
 };
 
+template <template <typename> class RandomKnnWorker, typename Progress,
+          typename Distance>
+void rknn_serial(Progress &progress, Distance &distance,
+                 Rcpp::IntegerMatrix indices, Rcpp::NumericMatrix dist,
+                 const std::size_t block_size = 4096) {
+  RandomKnnWorker<Distance> worker(distance, indices, dist);
+  batch_serial_for(worker, progress, indices.ncol(), block_size);
+}
+
 template <typename SerialRandomKnn> struct SerialRandomNbrsImpl {
+  std::size_t block_size;
+  SerialRandomNbrsImpl(std::size_t block_size) : block_size(block_size) {}
 
   template <typename Distance>
   void build_knn(Distance &distance, Rcpp::IntegerMatrix indices,
                  Rcpp::NumericMatrix dist, bool verbose) {
     const auto nr = indices.ncol();
-    RPProgress progress(nr, verbose);
-    SerialRandomKnn::build_knn(progress, distance, indices, dist);
+    const auto n_blocks = (nr / block_size) + 1;
+    RPProgress progress(1, n_blocks, verbose);
+    rknn_serial<Worker>(progress, distance, indices, dist, block_size);
   }
   void sort_knn(Rcpp::IntegerMatrix indices, Rcpp::NumericMatrix dist) {
     sort_knn_graph<HeapAdd>(indices, dist);
   }
 
+  template <typename D>
+  using Worker = typename SerialRandomKnn::template Worker<D>;
   using HeapAdd = typename SerialRandomKnn::HeapAdd;
 };
 
 struct ParallelRandomKnnBuild {
   // Can't use symmetric heap addition with parallel approach
   using HeapAdd = HeapAddQuery;
-  template <typename P, typename D> using Worker = RandomNbrWorker<P, D>;
+  template <typename D> using Worker = ParallelRandomNbrBuildWorker<D>;
 };
 
 struct ParallelRandomKnnQuery {
   using HeapAdd = HeapAddQuery;
-  template <typename P, typename D> using Worker = RandomNbrQueryWorker<P, D>;
+  template <typename D> using Worker = ParallelRandomNbrQueryWorker<D>;
 };
 
 template <typename ParallelRandomKnn> struct ParallelRandomNbrsImpl {
@@ -213,8 +215,8 @@ template <typename ParallelRandomKnn> struct ParallelRandomNbrsImpl {
     sort_knn_graph_parallel<HeapAdd>(indices, dist, block_size, grain_size);
   }
 
-  template <typename P, typename D>
-  using Worker = typename ParallelRandomKnn::template Worker<P, D>;
+  template <typename D>
+  using Worker = typename ParallelRandomKnn::template Worker<D>;
   using HeapAdd = typename ParallelRandomKnn::HeapAdd;
 };
 

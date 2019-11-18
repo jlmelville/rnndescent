@@ -59,45 +59,19 @@ struct LockingIndexSampler {
   }
 };
 
-template <typename Distance, typename IndexSampler = LockingIndexSampler>
-struct RandomNbrWorker : public BatchParallelWorker {
+struct Empty {};
+
+template <typename Distance, typename IndexSampler, typename IdxMatrix,
+          typename DistMatrix, typename Base>
+struct RandomNbrQueryWorker : public Base {
 
   Distance &distance;
 
-  RcppParallel::RMatrix<int> indices;
-  RcppParallel::RMatrix<double> dist;
-
-  const int nr1;
-  const int n_to_sample;
-  IndexSampler index_sampler;
-
-  RandomNbrWorker(Distance &distance, Rcpp::IntegerMatrix output_indices,
-                  Rcpp::NumericMatrix output_dist)
-      : distance(distance), indices(output_indices), dist(output_dist),
-        nr1(indices.ncol() - 1), n_to_sample(indices.nrow() - 1),
-        index_sampler() {}
-
-  void operator()(std::size_t begin, std::size_t end) {
-    for (int i = static_cast<int>(begin); i < static_cast<int>(end); i++) {
-      indices(0, i) = i + 1;
-      auto idxi = index_sampler.sample(nr1, n_to_sample);
-      build_inner_loop<Distance, RcppParallel::RMatrix<int>,
-                       RcppParallel::RMatrix<double>>(
-          distance, idxi, i, n_to_sample, indices, dist);
-    }
-  }
-};
-
-template <typename Distance, typename IndexSampler = LockingIndexSampler>
-struct RandomNbrQueryWorker : public BatchParallelWorker {
-  Distance &distance;
-
-  RcppParallel::RMatrix<int> indices;
-  RcppParallel::RMatrix<double> dist;
+  IdxMatrix indices;
+  DistMatrix dist;
 
   const int nrefs;
   const int k;
-
   IndexSampler index_sampler;
 
   RandomNbrQueryWorker(Distance &distance, Rcpp::IntegerMatrix output_indices,
@@ -108,22 +82,59 @@ struct RandomNbrQueryWorker : public BatchParallelWorker {
   void operator()(std::size_t begin, std::size_t end) {
     for (int query = static_cast<int>(begin); query < static_cast<int>(end);
          query++) {
-      auto idxi = index_sampler.sample(nrefs, k);
-      query_inner_loop<Distance, RcppParallel::RMatrix<int>,
-                       RcppParallel::RMatrix<double>>(distance, idxi, query, k,
-                                                      indices, dist);
+      auto idxi = dqrng::dqsample_int(nrefs, k); // 0-indexed
+      query_inner_loop(distance, idxi, query, k, indices, dist);
     }
   }
 };
 
-template <template <typename, typename> class RandomKnnWorker,
-          typename Progress, typename Distance>
+template <typename Distance, typename IndexSampler, typename IdxMatrix,
+          typename DistMatrix, typename Base>
+struct RandomNbrBuildWorker : public Base {
+
+  Distance &distance;
+
+  IdxMatrix indices;
+  DistMatrix dist;
+
+  const int nr1;
+  const int n_to_sample;
+  IndexSampler index_sampler;
+
+  RandomNbrBuildWorker(Distance &distance, Rcpp::IntegerMatrix output_indices,
+                       Rcpp::NumericMatrix output_dist)
+      : distance(distance), indices(output_indices), dist(output_dist),
+        nr1(indices.ncol() - 1), n_to_sample(indices.nrow() - 1),
+        index_sampler() {}
+
+  void operator()(std::size_t begin, std::size_t end) {
+    for (int i = static_cast<int>(begin); i < static_cast<int>(end); i++) {
+      indices(0, i) = i + 1;
+      auto idxi = index_sampler.sample(nr1, n_to_sample);
+      build_inner_loop(distance, idxi, i, n_to_sample, indices, dist);
+    }
+  }
+};
+
+template <typename Distance>
+using ParallelRandomNbrQueryWorker =
+    RandomNbrQueryWorker<Distance, LockingIndexSampler,
+                         RcppParallel::RMatrix<int>,
+                         RcppParallel::RMatrix<double>, BatchParallelWorker>;
+
+template <typename Distance>
+using ParallelRandomNbrBuildWorker =
+    RandomNbrBuildWorker<Distance, LockingIndexSampler,
+                         RcppParallel::RMatrix<int>,
+                         RcppParallel::RMatrix<double>, BatchParallelWorker>;
+
+template <template <typename> class Worker, typename Progress,
+          typename Distance>
 void rknn_parallel(Progress &progress, Distance &distance,
                    Rcpp::IntegerMatrix indices, Rcpp::NumericMatrix dist,
                    const std::size_t block_size = 4096,
                    const std::size_t grain_size = 1) {
-  RandomKnnWorker<Distance, LockingIndexSampler> worker(distance, indices,
-                                                        dist);
+  Worker<Distance> worker(distance, indices, dist);
   batch_parallel_for(worker, progress, indices.ncol(), block_size, grain_size);
 }
 

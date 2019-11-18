@@ -49,6 +49,18 @@ void batch_parallel_for(Worker &rnn_worker, Progress &progress, std::size_t n,
   }
 }
 
+template <typename Progress, typename Worker>
+void batch_serial_for(Worker &rnn_worker, Progress &progress, std::size_t n,
+                      std::size_t block_size) {
+  const auto n_blocks = (n / block_size) + 1;
+  for (std::size_t i = 0; i < n_blocks; i++) {
+    const auto begin = i * block_size;
+    const auto end = std::min(n, begin + block_size);
+    rnn_worker(begin, end);
+    TDOANN_BLOCKFINISHED();
+  }
+}
+
 template <typename HeapAdd, typename NbrHeap = tdoann::SimpleNeighborHeap>
 struct RToHeapWorker : public BatchParallelWorker {
   NbrHeap &heap;
