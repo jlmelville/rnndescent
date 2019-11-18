@@ -139,11 +139,7 @@ struct SerialRandomKnnQuery {
 
     for (auto i = 0; i < nr; i++) {
       auto idxi = dqrng::dqsample_int(nrefs, k); // 0-indexed
-      for (auto j = 0; j < k; j++) {
-        auto &ref_idx = idxi[j];
-        indices(j, i) = ref_idx + 1;       // store val as 1-index
-        dist(j, i) = distance(ref_idx, i); // distance calcs are 0-indexed
-      }
+      query_inner_loop(distance, idxi, i, k, indices, dist);
       TDOANN_ITERFINISHED();
     }
   }
@@ -162,12 +158,7 @@ struct SerialRandomKnnBuild {
     for (auto i = 0; i < nr; i++) {
       indices(0, i) = i + 1;
       auto idxi = dqrng::dqsample_int(nr1, n_to_sample); // 0-indexed
-      for (auto j = 0; j < n_to_sample; j++) {
-        auto &val = idxi[j];
-        val = val >= i ? val + 1 : val;    // ensure i isn't in the sample
-        indices(j + 1, i) = val + 1;       // store val as 1-index
-        dist(j + 1, i) = distance(i, val); // distance calcs are 0-indexed
-      }
+      build_inner_loop(distance, idxi, i, n_to_sample, indices, dist);
       TDOANN_ITERFINISHED();
     }
   }

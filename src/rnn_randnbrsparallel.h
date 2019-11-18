@@ -26,6 +26,30 @@
 // [[Rcpp::depends(dqrng)]]
 #include <dqrng.h>
 
+template <typename Distance, typename IdxMatrix = Rcpp::IntegerMatrix,
+          typename DistMatrix = Rcpp::NumericMatrix>
+void build_inner_loop(Distance &distance, Rcpp::IntegerVector idxi, const int i,
+                      const int n_to_sample, IdxMatrix indices,
+                      DistMatrix dist) {
+  for (auto j = 0; j < n_to_sample; j++) {
+    auto val = idxi[j];
+    val = val >= i ? val + 1 : val;    // ensure i isn't in the sample
+    indices(j + 1, i) = val + 1;       // store val as 1-index
+    dist(j + 1, i) = distance(i, val); // distance calcs are 0-indexed
+  }
+}
+
+template <typename Distance, typename IdxMatrix = Rcpp::IntegerMatrix,
+          typename DistMatrix = Rcpp::NumericMatrix>
+void query_inner_loop(Distance &distance, Rcpp::IntegerVector idxi, const int i,
+                      const int k, IdxMatrix indices, DistMatrix dist) {
+  for (auto j = 0; j < k; j++) {
+    auto &ref_idx = idxi[j];
+    indices(j, i) = ref_idx + 1;       // store val as 1-index
+    dist(j, i) = distance(ref_idx, i); // distance calcs are 0-indexed
+  }
+}
+
 struct LockingIndexSampler {
   tthread::mutex mutex;
 
@@ -57,12 +81,9 @@ struct RandomNbrWorker : public BatchParallelWorker {
     for (int i = static_cast<int>(begin); i < static_cast<int>(end); i++) {
       indices(0, i) = i + 1;
       auto idxi = index_sampler.sample(nr1, n_to_sample);
-      for (auto j = 0; j < n_to_sample; j++) {
-        auto val = idxi[j];
-        val = val >= i ? val + 1 : val;    // ensure i isn't in the sample
-        indices(j + 1, i) = val + 1;       // store val as 1-index
-        dist(j + 1, i) = distance(i, val); // distance calcs are 0-indexed
-      }
+      build_inner_loop<Distance, RcppParallel::RMatrix<int>,
+                       RcppParallel::RMatrix<double>>(
+          distance, idxi, i, n_to_sample, indices, dist);
     }
   }
 };
@@ -88,11 +109,9 @@ struct RandomNbrQueryWorker : public BatchParallelWorker {
     for (int query = static_cast<int>(begin); query < static_cast<int>(end);
          query++) {
       auto idxi = index_sampler.sample(nrefs, k);
-      for (auto j = 0; j < k; j++) {
-        auto &ref = idxi[j];
-        indices(j, query) = ref + 1;           // store val as 1-index
-        dist(j, query) = distance(ref, query); // distance calcs are 0-indexed
-      }
+      query_inner_loop<Distance, RcppParallel::RMatrix<int>,
+                       RcppParallel::RMatrix<double>>(distance, idxi, query, k,
+                                                      indices, dist);
     }
   }
 };
