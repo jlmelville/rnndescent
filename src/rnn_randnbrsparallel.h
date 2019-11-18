@@ -21,10 +21,8 @@
 #define RNN_RANDNBRSPARALLEL_H
 
 #include <Rcpp.h>
-// [[Rcpp::depends(RcppParallel)]]
 #include "rnn_parallel.h"
 #include "rnn_rng.h"
-#include <RcppParallel.h>
 // [[Rcpp::depends(dqrng)]]
 #include <dqrng.h>
 
