@@ -14,6 +14,12 @@
   progress.block_finished();                                                   \
   TDOANN_BREAKIFINTERRUPTED()
 
+#define TDOANN_CHECKCONVERGENCE()                                              \
+  if (tdoann::is_converged(c, tol)) {                                          \
+    progress.converged(c, tol);                                                \
+    break;                                                                     \
+  }
+
 namespace tdoann {
 // Defines the methods required, but does nothing. Safe to use from
 // multi-threaded code if a dummy no-op version is needed.

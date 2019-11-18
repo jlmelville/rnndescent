@@ -38,7 +38,7 @@ struct LockingIndexSampler {
 };
 
 template <typename Distance, typename IndexSampler = LockingIndexSampler>
-struct RandomNbrWorker : public RcppParallel::Worker {
+struct RandomNbrWorker : public BatchParallelWorker {
 
   Distance &distance;
 
@@ -70,7 +70,7 @@ struct RandomNbrWorker : public RcppParallel::Worker {
 };
 
 template <typename Distance, typename IndexSampler = LockingIndexSampler>
-struct RandomNbrQueryWorker : public RcppParallel::Worker {
+struct RandomNbrQueryWorker : public BatchParallelWorker {
   Distance &distance;
 
   RcppParallel::RMatrix<int> indices;

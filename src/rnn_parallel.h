@@ -31,52 +31,26 @@
 
 #include "rnn.h"
 
-struct ParallelOnlyWorker {
-  RcppParallel::Worker &parallel_worker;
-
-  ParallelOnlyWorker(RcppParallel::Worker &parallel_worker)
-      : parallel_worker(parallel_worker){};
-
+struct BatchParallelWorker : public RcppParallel::Worker {
   void after_parallel(std::size_t begin, std::size_t end) {}
 };
 
-template <typename BatchParallelWorker, typename Progress>
-void batch_parallel_for(BatchParallelWorker &rnn_worker, Progress &progress,
-                        std::size_t n, std::size_t block_size,
-                        std::size_t grain_size, bool &interrupted) {
-  interrupted = false;
+template <typename Progress, typename Worker>
+void batch_parallel_for(Worker &rnn_worker, Progress &progress, std::size_t n,
+                        std::size_t block_size, std::size_t grain_size) {
   const auto n_blocks = (n / block_size) + 1;
   for (std::size_t i = 0; i < n_blocks; i++) {
     const auto begin = i * block_size;
     const auto end = std::min(n, begin + block_size);
-    RcppParallel::parallelFor(begin, end, rnn_worker.parallel_worker,
-                              grain_size);
+    RcppParallel::parallelFor(begin, end, rnn_worker, grain_size);
     TDOANN_BREAKIFINTERRUPTED();
     rnn_worker.after_parallel(begin, end);
     TDOANN_BLOCKFINISHED();
   }
 }
 
-template <typename Progress>
-void batch_parallel_for(RcppParallel::Worker &worker, Progress &progress,
-                        std::size_t n, std::size_t block_size,
-                        std::size_t grain_size, bool &interrupted) {
-  ParallelOnlyWorker parallel_only_worker(worker);
-  batch_parallel_for(parallel_only_worker, progress, n, block_size, grain_size,
-                     interrupted);
-}
-
-template <typename Progress>
-void batch_parallel_for(RcppParallel::Worker &worker, Progress &progress,
-                        std::size_t n, std::size_t block_size,
-                        std::size_t grain_size) {
-  bool dont_care_if_interrupted = false;
-  batch_parallel_for(worker, progress, n, block_size, grain_size,
-                     dont_care_if_interrupted);
-}
-
 template <typename HeapAdd, typename NbrHeap = tdoann::SimpleNeighborHeap>
-struct RToHeapWorker : public RcppParallel::Worker {
+struct RToHeapWorker : public BatchParallelWorker {
   NbrHeap &heap;
   RcppParallel::RMatrix<int> idx;
   RcppParallel::RMatrix<double> dist;

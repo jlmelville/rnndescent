@@ -112,6 +112,7 @@ struct LocalJoinWorker : public RcppParallel::Worker {
   const std::size_t n_nbrs;
   const std::size_t max_candidates;
   GraphUpdater<Distance> &graph_updater;
+  std::size_t c;
 
   LocalJoinWorker(const tdoann::NeighborHeap &current_graph,
                   const tdoann::NeighborHeap &new_nbrs,
@@ -119,7 +120,7 @@ struct LocalJoinWorker : public RcppParallel::Worker {
                   GraphUpdater<Distance> &graph_updater)
       : current_graph(current_graph), new_nbrs(new_nbrs), old_nbrs(old_nbrs),
         n_nbrs(current_graph.n_nbrs), max_candidates(new_nbrs.n_nbrs),
-        graph_updater(graph_updater) {}
+        graph_updater(graph_updater), c(0) {}
 
   void operator()(std::size_t begin, std::size_t end) {
     for (std::size_t i = begin; i < end; i++) {
@@ -147,18 +148,6 @@ struct LocalJoinWorker : public RcppParallel::Worker {
       }
     }
   }
-};
-
-template <typename Distance, template <typename> class GraphUpdater>
-struct BatchLocalJoinWorker {
-  RcppParallel::Worker &parallel_worker;
-  GraphUpdater<Distance> &graph_updater;
-  std::size_t c;
-
-  BatchLocalJoinWorker(RcppParallel::Worker &parallel_worker,
-                       GraphUpdater<Distance> &graph_updater)
-      : parallel_worker(parallel_worker), graph_updater(graph_updater), c(0) {}
-
   void after_parallel(std::size_t begin, std::size_t end) {
     c += graph_updater.apply();
   }
@@ -187,20 +176,14 @@ void nnd_parallel(tdoann::NeighborHeap &current_graph,
     RcppParallel::parallelFor(0, n_points, flag_new_candidates_worker,
                               grain_size);
 
-    bool interrupted = false;
     LocalJoinWorker<Distance, GraphUpdater> local_join_worker(
         current_graph, new_candidate_neighbors, old_candidate_neighbors,
         graph_updater);
-    BatchLocalJoinWorker<Distance, GraphUpdater> batch_local_join_worker(
-        local_join_worker, graph_updater);
-    batch_parallel_for(batch_local_join_worker, progress, n_points, block_size,
-                       grain_size, interrupted);
-    std::size_t c = batch_local_join_worker.c;
+    batch_parallel_for(local_join_worker, progress, n_points, block_size,
+                       grain_size);
     TDOANN_ITERFINISHED();
-    if (tdoann::is_converged(c, tol)) {
-      progress.converged(c, tol);
-      break;
-    }
+    std::size_t c = local_join_worker.c;
+    TDOANN_CHECKCONVERGENCE();
   }
   current_graph.deheap_sort();
 }
@@ -236,7 +219,7 @@ struct QueryCandidatesWorker : public RcppParallel::Worker {
 };
 
 template <typename Distance, template <typename> class GraphUpdater>
-struct QueryNoNSearchWorker : public RcppParallel::Worker {
+struct QueryNoNSearchWorker : public BatchParallelWorker {
   tdoann::NeighborHeap &current_graph;
   GraphUpdater<Distance> &graph_updater;
   const tdoann::NeighborHeap &new_nbrs;
@@ -283,7 +266,6 @@ void nnd_query_parallel(tdoann::NeighborHeap &current_graph,
   tdoann::NeighborHeap gn_graph(n_ref_points, max_candidates);
   tdoann::build_general_nbrs(reference_idx, gn_graph, rand, n_ref_points,
                              n_nbrs);
-  bool interrupted = false;
   for (std::size_t n = 0; n < n_iters; n++) {
     tdoann::NeighborHeap new_nbrs(n_points, max_candidates);
     QueryCandidatesWorker query_candidates_worker(current_graph, new_nbrs);
@@ -298,17 +280,11 @@ void nnd_query_parallel(tdoann::NeighborHeap &current_graph,
 
     QueryNoNSearchWorker<Distance, GraphUpdater> query_non_search_worker(
         current_graph, graph_updater, new_nbrs, gn_graph, max_candidates);
-    batch_parallel_for<Progress>(query_non_search_worker, progress, n_points,
-                                 block_size, grain_size, interrupted);
-    if (interrupted) {
-      break;
-    }
+    batch_parallel_for(query_non_search_worker, progress, n_points, block_size,
+                       grain_size);
+    TDOANN_ITERFINISHED();
     std::size_t c = query_non_search_worker.n_updates;
-    progress.iter_finished();
-    if (tdoann::is_converged(c, tol)) {
-      progress.converged(c, tol);
-      break;
-    }
+    TDOANN_CHECKCONVERGENCE();
   }
   current_graph.deheap_sort();
 }

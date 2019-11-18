@@ -20,14 +20,12 @@
 #ifndef RNN_BRUTEFORCEPARALLEL_H
 #define RNN_BRUTEFORCEPARALLEL_H
 
-#include <Rcpp.h>
-// [[Rcpp::depends(RcppParallel)]]
 #include "rnn_parallel.h"
 #include "tdoann/heap.h"
-#include <RcppParallel.h>
+#include <Rcpp.h>
 
 template <typename Distance>
-struct BruteForceWorker : public RcppParallel::Worker {
+struct BruteForceWorker : public BatchParallelWorker {
 
   tdoann::SimpleNeighborHeap &neighbor_heap;
   Distance &distance;
