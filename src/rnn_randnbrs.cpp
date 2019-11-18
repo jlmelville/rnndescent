@@ -191,28 +191,14 @@ template <typename SerialRandomKnn> struct SerialRandomNbrsImpl {
 };
 
 struct ParallelRandomKnnBuild {
-  template <typename Progress, typename Distance>
-  static void build_knn(Progress &progress, Distance &distance,
-                        Rcpp::IntegerMatrix indices, Rcpp::NumericMatrix dist,
-                        const std::size_t block_size = 4096,
-                        const std::size_t grain_size = 1) {
-    rknn_parallel<RandomNbrWorker>(progress, distance, indices, dist,
-                                   block_size, grain_size);
-  }
   // Can't use symmetric heap addition with parallel approach
   using HeapAdd = HeapAddQuery;
+  template <typename P, typename D> using Worker = RandomNbrWorker<P, D>;
 };
 
 struct ParallelRandomKnnQuery {
-  template <typename Progress, typename Distance>
-  static void build_knn(Progress &progress, Distance &distance,
-                        Rcpp::IntegerMatrix indices, Rcpp::NumericMatrix dist,
-                        const std::size_t block_size = 4096,
-                        const std::size_t grain_size = 1) {
-    rknn_parallel<RandomNbrQueryWorker>(progress, distance, indices, dist,
-                                        block_size, grain_size);
-  }
   using HeapAdd = HeapAddQuery;
+  template <typename P, typename D> using Worker = RandomNbrQueryWorker<P, D>;
 };
 
 template <typename ParallelRandomKnn> struct ParallelRandomNbrsImpl {
@@ -229,13 +215,15 @@ template <typename ParallelRandomKnn> struct ParallelRandomNbrsImpl {
     const auto nr = indices.ncol();
     const auto n_blocks = (nr / block_size) + 1;
     RPProgress progress(1, n_blocks, verbose);
-    ParallelRandomKnn::build_knn(progress, distance, indices, dist, block_size,
-                                 grain_size);
+    rknn_parallel<Worker>(progress, distance, indices, dist, block_size,
+                          grain_size);
   }
   void sort_knn(Rcpp::IntegerMatrix indices, Rcpp::NumericMatrix dist) {
     sort_knn_graph_parallel<HeapAdd>(indices, dist, block_size, grain_size);
   }
 
+  template <typename P, typename D>
+  using Worker = typename ParallelRandomKnn::template Worker<P, D>;
   using HeapAdd = typename ParallelRandomKnn::HeapAdd;
 };
 
