@@ -26,30 +26,6 @@
 // [[Rcpp::depends(dqrng)]]
 #include <dqrng.h>
 
-template <typename Distance, typename IdxMatrix = Rcpp::IntegerMatrix,
-          typename DistMatrix = Rcpp::NumericMatrix>
-void build_inner_loop(Distance &distance, Rcpp::IntegerVector idxi, const int i,
-                      const int n_to_sample, IdxMatrix indices,
-                      DistMatrix dist) {
-  for (auto j = 0; j < n_to_sample; j++) {
-    auto val = idxi[j];
-    val = val >= i ? val + 1 : val;    // ensure i isn't in the sample
-    indices(j + 1, i) = val + 1;       // store val as 1-index
-    dist(j + 1, i) = distance(i, val); // distance calcs are 0-indexed
-  }
-}
-
-template <typename Distance, typename IdxMatrix = Rcpp::IntegerMatrix,
-          typename DistMatrix = Rcpp::NumericMatrix>
-void query_inner_loop(Distance &distance, Rcpp::IntegerVector idxi, const int i,
-                      const int k, IdxMatrix indices, DistMatrix dist) {
-  for (auto j = 0; j < k; j++) {
-    auto &ref_idx = idxi[j];
-    indices(j, i) = ref_idx + 1;       // store val as 1-index
-    dist(j, i) = distance(ref_idx, i); // distance calcs are 0-indexed
-  }
-}
-
 struct LockingIndexSampler {
   tthread::mutex mutex;
 
@@ -80,10 +56,13 @@ struct RandomNbrQueryWorker : public Base {
         nrefs(distance.nx), k(output_indices.nrow()), index_sampler() {}
 
   void operator()(std::size_t begin, std::size_t end) {
-    for (int query = static_cast<int>(begin); query < static_cast<int>(end);
-         query++) {
+    for (int qi = static_cast<int>(begin); qi < static_cast<int>(end); qi++) {
       auto idxi = dqrng::dqsample_int(nrefs, k); // 0-indexed
-      query_inner_loop(distance, idxi, query, k, indices, dist);
+      for (auto j = 0; j < k; j++) {
+        auto &ri = idxi[j];
+        indices(j, qi) = ri + 1;        // store val as 1-index
+        dist(j, qi) = distance(ri, qi); // distance calcs are 0-indexed
+      }
     }
   }
 };
@@ -111,7 +90,12 @@ struct RandomNbrBuildWorker : public Base {
     for (int i = static_cast<int>(begin); i < static_cast<int>(end); i++) {
       indices(0, i) = i + 1;
       auto idxi = index_sampler.sample(nr1, n_to_sample);
-      build_inner_loop(distance, idxi, i, n_to_sample, indices, dist);
+      for (auto j = 0; j < n_to_sample; j++) {
+        auto val = idxi[j];
+        val = val >= i ? val + 1 : val;    // ensure i isn't in the sample
+        indices(j + 1, i) = val + 1;       // store val as 1-index
+        dist(j + 1, i) = distance(i, val); // distance calcs are 0-indexed
+      }
     }
   }
 };
