@@ -18,36 +18,16 @@
 //  along with rnndescent.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "rnn_randnbrs.h"
+#include "rnn.h"
 #include "rnn_parallel.h"
 #include "rnn_randnbrsparallel.h"
 #include "rnn_rng.h"
-#include "tdoann/distance.h"
 #include "tdoann/progress.h"
 #include <Rcpp.h>
 
 using namespace tdoann;
 
 /* Macros */
-
-#define DISPATCH_ON_DISTANCES(RandomKnn)                                       \
-  if (metric == "euclidean") {                                                 \
-    using Distance = Euclidean<float, float>;                                  \
-    RandomKnn(Distance)                                                        \
-  } else if (metric == "l2sqr") {                                              \
-    using Distance = L2Sqr<float, float>;                                      \
-    RandomKnn(Distance)                                                        \
-  } else if (metric == "cosine") {                                             \
-    using Distance = Cosine<float, float>;                                     \
-    RandomKnn(Distance)                                                        \
-  } else if (metric == "manhattan") {                                          \
-    using Distance = Manhattan<float, float>;                                  \
-    RandomKnn(Distance)                                                        \
-  } else if (metric == "hamming") {                                            \
-    using Distance = Hamming<uint8_t, std::size_t>;                            \
-    RandomKnn(Distance)                                                        \
-  } else {                                                                     \
-    Rcpp::stop("Bad metric");                                                  \
-  }
 
 #define RandomNbrs(Distance)                                                   \
   using KnnFactory = KnnBuildFactory<Distance>;                                \

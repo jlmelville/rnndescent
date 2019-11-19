@@ -26,8 +26,29 @@
 // [[Rcpp::depends(RcppProgress)]]
 #include <progress.hpp>
 
+#include "tdoann/distance.h"
 #include "tdoann/graphupdate.h"
 #include "tdoann/heap.h"
+
+#define DISPATCH_ON_DISTANCES(NEXT_MACRO)                                      \
+  if (metric == "euclidean") {                                                 \
+    using Distance = tdoann::Euclidean<float, float>;                          \
+    NEXT_MACRO(Distance)                                                       \
+  } else if (metric == "l2sqr") {                                              \
+    using Distance = tdoann::L2Sqr<float, float>;                              \
+    NEXT_MACRO(Distance)                                                       \
+  } else if (metric == "cosine") {                                             \
+    using Distance = tdoann::Cosine<float, float>;                             \
+    NEXT_MACRO(Distance)                                                       \
+  } else if (metric == "manhattan") {                                          \
+    using Distance = tdoann::Manhattan<float, float>;                          \
+    NEXT_MACRO(Distance)                                                       \
+  } else if (metric == "hamming") {                                            \
+    using Distance = tdoann::Hamming<uint8_t, std::size_t>;                    \
+    NEXT_MACRO(Distance)                                                       \
+  } else {                                                                     \
+    Rcpp::stop("Bad metric");                                                  \
+  }
 
 void print_time(bool print_date = false);
 void ts(const std::string &msg);

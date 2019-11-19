@@ -20,7 +20,6 @@
 #include "rnn.h"
 #include "rnn_bruteforceparallel.h"
 #include "tdoann/bruteforce.h"
-#include "tdoann/distance.h"
 #include "tdoann/heap.h"
 #include <Rcpp.h>
 
@@ -125,22 +124,5 @@ Rcpp::List rnn_brute_force_query(Rcpp::NumericMatrix x, Rcpp::NumericMatrix y,
                                  std::size_t block_size = 64,
                                  std::size_t grain_size = 1,
                                  bool verbose = false) {
-  if (metric == "euclidean") {
-    using Distance = tdoann::Euclidean<float, float>;
-    BruteForceQuery(Distance)
-  } else if (metric == "l2sqr") {
-    using Distance = tdoann::L2Sqr<float, float>;
-    BruteForceQuery(Distance)
-  } else if (metric == "cosine") {
-    using Distance = tdoann::Cosine<float, float>;
-    BruteForceQuery(Distance)
-  } else if (metric == "manhattan") {
-    using Distance = tdoann::Manhattan<float, float>;
-    BruteForceQuery(Distance)
-  } else if (metric == "hamming") {
-    using Distance = tdoann::Hamming<uint8_t, std::size_t>;
-    BruteForceQuery(Distance)
-  } else {
-    Rcpp::stop("Bad metric");
-  }
+  DISPATCH_ON_DISTANCES(BruteForceQuery)
 }
