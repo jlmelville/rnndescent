@@ -28,31 +28,31 @@
 
 using namespace tdoann;
 
-#define NND_IMPL(NNDImpl, Distance, Rand, GraphUpdater)                        \
-  return nn_descent_impl<NNDImpl, GraphUpdater, Distance, Rand>(               \
+#define NND_IMPL(NNDImpl, Distance, GraphUpdater)                              \
+  return nn_descent_impl<NNDImpl, GraphUpdater, Distance>(                     \
       data, nn_idx, nn_dist, nnd_impl, max_candidates, n_iters, delta,         \
       verbose);
 
-#define NND_UPDATER(Distance, Rand, low_memory, parallelize)                   \
+#define NND_UPDATER(Distance, low_memory, parallelize)                         \
   if (parallelize) {                                                           \
     using NNDImpl = NNDParallel;                                               \
     NNDImpl nnd_impl(block_size, grain_size);                                  \
     if (low_memory) {                                                          \
       using GraphUpdater = BatchGraphUpdater<Distance>;                        \
-      NND_IMPL(NNDImpl, Distance, Rand, GraphUpdater)                          \
+      NND_IMPL(NNDImpl, Distance, GraphUpdater)                                \
     } else {                                                                   \
       using GraphUpdater = BatchGraphUpdaterHiMem<Distance>;                   \
-      NND_IMPL(NNDImpl, Distance, Rand, GraphUpdater)                          \
+      NND_IMPL(NNDImpl, Distance, GraphUpdater)                                \
     }                                                                          \
   } else {                                                                     \
     using NNDImpl = NNDSerial;                                                 \
     NNDImpl nnd_impl;                                                          \
     if (low_memory) {                                                          \
       using GraphUpdater = SerialGraphUpdater<Distance>;                       \
-      NND_IMPL(NNDImpl, Distance, Rand, GraphUpdater)                          \
+      NND_IMPL(NNDImpl, Distance, GraphUpdater)                                \
     } else {                                                                   \
       using GraphUpdater = SerialGraphUpdaterHiMem<Distance>;                  \
-      NND_IMPL(NNDImpl, Distance, Rand, GraphUpdater)                          \
+      NND_IMPL(NNDImpl, Distance, GraphUpdater)                                \
     }                                                                          \
   }
 
@@ -88,8 +88,7 @@ struct NNDParallel {
   }
 };
 
-template <typename NNDImpl, typename GraphUpdater, typename Distance,
-          typename Rand>
+template <typename NNDImpl, typename GraphUpdater, typename Distance>
 Rcpp::List nn_descent_impl(Rcpp::NumericMatrix data, Rcpp::IntegerMatrix nn_idx,
                            Rcpp::NumericMatrix nn_dist, NNDImpl &nnd_impl,
                            const std::size_t max_candidates = 50,
@@ -101,7 +100,7 @@ Rcpp::List nn_descent_impl(Rcpp::NumericMatrix data, Rcpp::IntegerMatrix nn_idx,
 
   data = Rcpp::transpose(data);
   auto data_vec = Rcpp::as<std::vector<typename Distance::in_type>>(data);
-  Rand rand;
+  RRand rand;
   Distance distance(data_vec, ndim);
   NeighborHeap current_graph(n_points, n_nbrs);
   r_to_heap<HeapAddSymmetric, tdoann::NeighborHeap>(
@@ -125,23 +124,23 @@ Rcpp::List nn_descent(Rcpp::NumericMatrix data, Rcpp::IntegerMatrix nn_idx,
                       const double delta = 0.001, bool low_memory = true,
                       bool parallelize = false, std::size_t block_size = 16384,
                       std::size_t grain_size = 1, bool verbose = false,
-                      const std::string& progress = "bar") {
+                      const std::string &progress = "bar") {
 
   if (metric == "euclidean") {
     using Distance = Euclidean<float, float>;
-    NND_UPDATER(Distance, RRand, low_memory, parallelize)
+    NND_UPDATER(Distance, low_memory, parallelize)
   } else if (metric == "l2sqr") {
     using Distance = L2Sqr<float, float>;
-    NND_UPDATER(Distance, RRand, low_memory, parallelize)
+    NND_UPDATER(Distance, low_memory, parallelize)
   } else if (metric == "cosine") {
     using Distance = Cosine<float, float>;
-    NND_UPDATER(Distance, RRand, low_memory, parallelize)
+    NND_UPDATER(Distance, low_memory, parallelize)
   } else if (metric == "manhattan") {
     using Distance = Manhattan<float, float>;
-    NND_UPDATER(Distance, RRand, low_memory, parallelize)
+    NND_UPDATER(Distance, low_memory, parallelize)
   } else if (metric == "hamming") {
     using Distance = Hamming<uint8_t, std::size_t>;
-    NND_UPDATER(Distance, RRand, low_memory, parallelize)
+    NND_UPDATER(Distance, low_memory, parallelize)
   } else {
     Rcpp::stop("Bad metric: " + metric);
   }
@@ -251,15 +250,16 @@ Rcpp::List nn_descent_query_impl(
 }
 
 // [[Rcpp::export]]
-Rcpp::List nn_descent_query(
-    Rcpp::NumericMatrix reference, Rcpp::IntegerMatrix reference_idx,
-    Rcpp::NumericMatrix query, Rcpp::IntegerMatrix nn_idx,
-    Rcpp::NumericMatrix nn_dist, const std::string metric = "euclidean",
-    const std::size_t max_candidates = 50, const std::size_t n_iters = 10,
-    const double delta = 0.001, bool low_memory = true,
-    bool parallelize = false, std::size_t block_size = 16384,
-    std::size_t grain_size = 1, bool verbose = false,
-    const std::string& progress = "bar") {
+Rcpp::List
+nn_descent_query(Rcpp::NumericMatrix reference,
+                 Rcpp::IntegerMatrix reference_idx, Rcpp::NumericMatrix query,
+                 Rcpp::IntegerMatrix nn_idx, Rcpp::NumericMatrix nn_dist,
+                 const std::string metric = "euclidean",
+                 const std::size_t max_candidates = 50,
+                 const std::size_t n_iters = 10, const double delta = 0.001,
+                 bool low_memory = true, bool parallelize = false,
+                 std::size_t block_size = 16384, std::size_t grain_size = 1,
+                 bool verbose = false, const std::string &progress = "bar") {
 
   if (metric == "euclidean") {
     using Distance = Euclidean<float, float>;
