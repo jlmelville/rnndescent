@@ -55,8 +55,17 @@ template <typename Distance, typename Progress>
 void nnbf_query(SimpleNeighborHeap &neighbor_heap, Distance &distance,
                 const std::size_t n_ref_points, Progress &progress) {
   const std::size_t n_points = neighbor_heap.n_points;
+  nnbf_query_window(neighbor_heap, distance, n_ref_points, progress, 0,
+                    n_points);
+  neighbor_heap.deheap_sort();
+}
+
+template <typename Distance, typename Progress>
+void nnbf_query_window(SimpleNeighborHeap &neighbor_heap, Distance &distance,
+                       const std::size_t n_ref_points, Progress &progress,
+                       std::size_t begin, std::size_t end) {
   for (std::size_t ref = 0; ref < n_ref_points; ref++) {
-    for (std::size_t query = 0; query < n_points; query++) {
+    for (std::size_t query = begin; query < end; query++) {
       double d = distance(ref, query);
       if (neighbor_heap.accepts(query, d)) {
         neighbor_heap.unchecked_push(query, d, ref);
@@ -64,8 +73,7 @@ void nnbf_query(SimpleNeighborHeap &neighbor_heap, Distance &distance,
     }
     TDOANN_ITERFINISHED();
   }
-
-  neighbor_heap.deheap_sort();
 }
+
 } // namespace tdoann
 #endif // TDOANN_BRUTE_FORCE_H

@@ -21,7 +21,9 @@
 #define RNN_BRUTEFORCEPARALLEL_H
 
 #include "rnn_parallel.h"
+#include "tdoann/bruteforce.h"
 #include "tdoann/heap.h"
+#include "tdoann/progress.h"
 #include <Rcpp.h>
 
 template <typename Distance>
@@ -30,21 +32,16 @@ struct BruteForceWorker : public BatchParallelWorker {
   tdoann::SimpleNeighborHeap &neighbor_heap;
   Distance &distance;
   const std::size_t n_ref_points;
+  tdoann::NullProgress progress;
 
   BruteForceWorker(tdoann::SimpleNeighborHeap &neighbor_heap,
                    Distance &distance, std::size_t n_ref_points)
       : neighbor_heap(neighbor_heap), distance(distance),
-        n_ref_points(n_ref_points) {}
+        n_ref_points(n_ref_points), progress() {}
 
   void operator()(std::size_t begin, std::size_t end) {
-    for (std::size_t query = begin; query < end; query++) {
-      for (std::size_t ref = 0; ref < n_ref_points; ref++) {
-        double d = distance(ref, query);
-        if (neighbor_heap.accepts(query, d)) {
-          neighbor_heap.unchecked_push(query, d, ref);
-        }
-      }
-    }
+    nnbf_query_window(neighbor_heap, distance, n_ref_points, progress, begin,
+                      end);
   }
 };
 
