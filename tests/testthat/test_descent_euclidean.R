@@ -165,7 +165,13 @@ expect_error(nnd_knn(uirism, k = 15, init = iris_nbrs, metric = "not-a-real metr
 expect_error(nnd_knn(uirism, init = list(dist = iris_nbrs$dist, idx = iris_nbrs$idx - 1)), "Bad indexes")
 
 # verbosity
-expect_message(capture_everything(nnd_knn(ui10, 4, verbose = TRUE)), "Initializing")
+msgs <- capture_everything(nnd_knn(ui10, 4, verbose = TRUE))
+expect_match(msgs, "\\*\\*\\*")
+expect_match(msgs, "Convergence")
+
+msgs <- capture_everything(nnd_knn(ui10, 4, verbose = TRUE, progress = "dist"))
+expect_match(msgs, "0 / 10")
+expect_match(msgs, "Convergence")
 
 # Multi-threading ---------------------------------------------------------
 

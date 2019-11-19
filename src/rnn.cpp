@@ -86,7 +86,8 @@ bool HeapSumProgress::check_interrupt() {
 }
 void HeapSumProgress::converged(std::size_t n_updates, double tol) {
   if (verbose) {
-    Rcpp::Rcout << "c = " << n_updates << " tol = " << tol << std::endl;
+    Rcpp::Rcout << "Convergence: c = " << n_updates << " tol = " << tol
+                << std::endl;
   }
   stopping_early();
 }
@@ -109,6 +110,9 @@ RPProgress::RPProgress(std::size_t n_iters, std::size_t n_blocks, bool verbose)
 RPProgress::RPProgress(std::size_t n_iters, bool verbose)
     : scale(100), progress(scale, verbose), n_iters(n_iters), n_blocks(0),
       verbose(verbose), iter(0), block(0), is_aborted(false) {}
+RPProgress::RPProgress(NeighborHeap &, std::size_t n_iters, bool verbose)
+    : scale(100), progress(scale, verbose), n_iters(n_iters), n_blocks(0),
+      verbose(verbose), iter(0), block(0), is_aborted(false) {}
 void RPProgress::block_finished() {
   if (verbose) {
     ++block;
@@ -122,11 +126,13 @@ void RPProgress::iter_finished() {
     progress.update(scaled(iter));
   }
 }
-void RPProgress::stopping_early() { progress.update(n_iters); }
+void RPProgress::stopping_early() {
+  progress.update(n_iters);
+  progress.cleanup();
+}
 bool RPProgress::check_interrupt() {
   if (is_aborted || Progress::check_abort()) {
     stopping_early();
-    progress.cleanup();
     is_aborted = true;
     return true;
   }
@@ -134,6 +140,10 @@ bool RPProgress::check_interrupt() {
 }
 void RPProgress::converged(std::size_t n_updates, double tol) {
   stopping_early();
+  if (verbose) {
+    Rcpp::Rcout << "Convergence at iteration " << iter << ": c = " << n_updates
+                << " tol = " << tol << std::endl;
+  }
 }
 int RPProgress::scaled(double d) {
   int res = std::nearbyint(scale * (d / n_iters));

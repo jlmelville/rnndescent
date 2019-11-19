@@ -29,7 +29,7 @@
 using namespace tdoann;
 
 #define NND_IMPL()                                                             \
-  return nn_descent_impl<NNDImpl, GraphUpdater, Distance>(                     \
+  return nn_descent_impl<NNDImpl, GraphUpdater, Distance, Progress>(           \
       data, nn_idx, nn_dist, nnd_impl, max_candidates, n_iters, delta,         \
       verbose);
 
@@ -54,6 +54,15 @@ using namespace tdoann;
       using GraphUpdater = SerialGraphUpdaterHiMem<Distance>;                  \
       NND_IMPL()                                                               \
     }                                                                          \
+  }
+
+#define NND_PROGRESS()                                                         \
+  if (progress == "bar") {                                                     \
+    using Progress = RPProgress;                                               \
+    NND_UPDATER()                                                              \
+  } else {                                                                     \
+    using Progress = HeapSumProgress;                                          \
+    NND_UPDATER()                                                              \
   }
 
 struct NNDSerial {
@@ -86,7 +95,8 @@ struct NNDParallel {
   }
 };
 
-template <typename NNDImpl, typename GraphUpdater, typename Distance>
+template <typename NNDImpl, typename GraphUpdater, typename Distance,
+          typename Progress>
 Rcpp::List nn_descent_impl(Rcpp::NumericMatrix data, Rcpp::IntegerMatrix nn_idx,
                            Rcpp::NumericMatrix nn_dist, NNDImpl &nnd_impl,
                            const std::size_t max_candidates = 50,
@@ -104,7 +114,7 @@ Rcpp::List nn_descent_impl(Rcpp::NumericMatrix data, Rcpp::IntegerMatrix nn_idx,
       current_graph, nn_idx, nn_dist, static_cast<int>(n_points - 1));
   GraphUpdater graph_updater(current_graph, distance);
 
-  HeapSumProgress progress(current_graph, n_iters, verbose);
+  Progress progress(current_graph, n_iters, verbose);
   RRand rand;
 
   nnd_impl(current_graph, graph_updater, max_candidates, n_iters, rand, tol,
@@ -123,11 +133,12 @@ Rcpp::List nn_descent(Rcpp::NumericMatrix data, Rcpp::IntegerMatrix nn_idx,
                       bool parallelize = false, std::size_t block_size = 16384,
                       std::size_t grain_size = 1, bool verbose = false,
                       const std::string &progress = "bar") {
-  DISPATCH_ON_DISTANCES(NND_UPDATER);
+  DISPATCH_ON_DISTANCES(NND_PROGRESS);
 }
 
 #define NND_QUERY_IMPL()                                                       \
-  return nn_descent_query_impl<NNDImpl, GraphUpdater, Distance>(               \
+  return nn_descent_query_impl<NNDImpl, GraphUpdater, Distance,                \
+                               HeapSumProgress>(                               \
       reference, reference_idx, query, nn_idx, nn_dist, nnd_impl,              \
       max_candidates, n_iters, delta, verbose);
 
@@ -189,7 +200,8 @@ struct NNDQueryParallel {
   }
 };
 
-template <typename NNDImpl, typename GraphUpdater, typename Distance>
+template <typename NNDImpl, typename GraphUpdater, typename Distance,
+          typename Progress>
 Rcpp::List nn_descent_query_impl(
     Rcpp::NumericMatrix reference, Rcpp::IntegerMatrix reference_idx,
     Rcpp::NumericMatrix query, Rcpp::IntegerMatrix nn_idx,
@@ -212,7 +224,7 @@ Rcpp::List nn_descent_query_impl(
                           static_cast<int>(n_ref_points - 1));
   GraphUpdater graph_updater(current_graph, distance);
 
-  HeapSumProgress progress(current_graph, n_iters, verbose);
+  Progress progress(current_graph, n_iters, verbose);
   RRand rand;
 
   nnd_impl(current_graph, graph_updater, reference_idx_vec, n_ref_points,

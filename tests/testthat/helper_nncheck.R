@@ -91,5 +91,5 @@ check_query_nbrs <- function(nn, query, ref_range, query_range, k, expected_dist
 }
 
 capture_everything <- function(code) {
-  capture.output(type = "output", capture.output(type = "message", code))
+  paste0(capture.output(type = "output", capture.output(type = "message", code)), collapse = "")
 }

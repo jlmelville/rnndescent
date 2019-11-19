@@ -137,6 +137,7 @@ struct RPProgress {
 
   RPProgress(std::size_t n_iters, std::size_t n_blocks, bool verbose);
   RPProgress(std::size_t n_iters, bool verbose);
+  RPProgress(tdoann::NeighborHeap &, std::size_t n_iters, bool verbose);
   void block_finished();
   void iter_finished();
   void stopping_early();

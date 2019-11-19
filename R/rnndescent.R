@@ -337,6 +337,7 @@ nnd_knn <- function(data, k = NULL,
     RcppParallel::setThreadOptions(numThreads = n_threads)
   }
 
+  tsmessage("Running nearest neighbor descent for ", n_iters, " iterations")
   res <- nn_descent(data, init$idx, init$dist,
     metric = actual_metric,
     n_iters = n_iters, max_candidates = max_candidates,
@@ -349,6 +350,7 @@ nnd_knn <- function(data, k = NULL,
   if (use_alt_metric) {
     res$dist <- apply_alt_metric_correction(metric, res$dist)
   }
+  tsmessage("Finished")
   res
 }
 
