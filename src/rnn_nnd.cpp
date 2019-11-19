@@ -128,31 +128,31 @@ Rcpp::List nn_descent(Rcpp::NumericMatrix data, Rcpp::IntegerMatrix nn_idx,
   DISPATCH_ON_DISTANCES(NND_UPDATER);
 }
 
-#define NND_QUERY_IMPL(NNDImpl, Distance, Rand, GraphUpdater)                  \
-  return nn_descent_query_impl<NNDImpl, GraphUpdater, Distance, Rand>(         \
+#define NND_QUERY_IMPL()                                                       \
+  return nn_descent_query_impl<NNDImpl, GraphUpdater, Distance>(               \
       reference, reference_idx, query, nn_idx, nn_dist, nnd_impl,              \
       max_candidates, n_iters, delta, verbose);
 
-#define NND_QUERY_UPDATER(Distance, Rand, low_memory, parallelize)             \
+#define NND_QUERY_UPDATER()                                                    \
   if (parallelize) {                                                           \
     using NNDImpl = NNDQueryParallel;                                          \
     NNDImpl nnd_impl(block_size, grain_size);                                  \
     if (low_memory) {                                                          \
       using GraphUpdater = QuerySerialGraphUpdater<Distance>;                  \
-      NND_QUERY_IMPL(NNDImpl, Distance, Rand, GraphUpdater)                    \
+      NND_QUERY_IMPL()                                                         \
     } else {                                                                   \
       using GraphUpdater = QuerySerialGraphUpdater<Distance>;                  \
-      NND_QUERY_IMPL(NNDImpl, Distance, Rand, GraphUpdater)                    \
+      NND_QUERY_IMPL()                                                         \
     }                                                                          \
   } else {                                                                     \
     using NNDImpl = NNDQuerySerial;                                            \
     NNDImpl nnd_impl;                                                          \
     if (low_memory) {                                                          \
       using GraphUpdater = QuerySerialGraphUpdater<Distance>;                  \
-      NND_QUERY_IMPL(NNDImpl, Distance, Rand, GraphUpdater)                    \
+      NND_QUERY_IMPL()                                                         \
     } else {                                                                   \
       using GraphUpdater = QuerySerialGraphUpdaterHiMem<Distance>;             \
-      NND_QUERY_IMPL(NNDImpl, Distance, Rand, GraphUpdater)                    \
+      NND_QUERY_IMPL()                                                         \
     }                                                                          \
   }
 
@@ -193,8 +193,7 @@ struct NNDQueryParallel {
   }
 };
 
-template <typename NNDImpl, typename GraphUpdater, typename Distance,
-          typename Rand>
+template <typename NNDImpl, typename GraphUpdater, typename Distance>
 Rcpp::List nn_descent_query_impl(
     Rcpp::NumericMatrix reference, Rcpp::IntegerMatrix reference_idx,
     Rcpp::NumericMatrix query, Rcpp::IntegerMatrix nn_idx,
@@ -219,7 +218,7 @@ Rcpp::List nn_descent_query_impl(
   query = Rcpp::transpose(query);
   auto query_vec = Rcpp::as<std::vector<typename Distance::in_type>>(query);
 
-  Rand rand;
+  RRand rand;
   Distance distance(reference_vec, query_vec, ndim);
 
   GraphUpdater graph_updater(current_graph, distance);
@@ -242,23 +241,5 @@ nn_descent_query(Rcpp::NumericMatrix reference,
                  bool low_memory = true, bool parallelize = false,
                  std::size_t block_size = 16384, std::size_t grain_size = 1,
                  bool verbose = false, const std::string &progress = "bar") {
-
-  if (metric == "euclidean") {
-    using Distance = Euclidean<float, float>;
-    NND_QUERY_UPDATER(Distance, RRand, low_memory, parallelize)
-  } else if (metric == "l2sqr") {
-    using Distance = L2Sqr<float, float>;
-    NND_QUERY_UPDATER(Distance, RRand, low_memory, parallelize)
-  } else if (metric == "cosine") {
-    using Distance = Cosine<float, float>;
-    NND_QUERY_UPDATER(Distance, RRand, low_memory, parallelize)
-  } else if (metric == "manhattan") {
-    using Distance = Manhattan<float, float>;
-    NND_QUERY_UPDATER(Distance, RRand, low_memory, parallelize)
-  } else if (metric == "hamming") {
-    using Distance = Hamming<uint8_t, std::size_t>;
-    NND_QUERY_UPDATER(Distance, RRand, low_memory, parallelize)
-  } else {
-    Rcpp::stop("Bad metric: " + metric);
-  }
+  DISPATCH_ON_DISTANCES(NND_QUERY_UPDATER)
 }
