@@ -79,6 +79,7 @@ bool HeapSumProgress::check_interrupt() {
     Rcpp::checkUserInterrupt();
   } catch (Rcpp::internal::InterruptedException &) {
     is_aborted = true;
+    stopping_early();
     return true;
   }
   return false;
@@ -87,6 +88,7 @@ void HeapSumProgress::converged(std::size_t n_updates, double tol) {
   if (verbose) {
     Rcpp::Rcout << "c = " << n_updates << " tol = " << tol << std::endl;
   }
+  stopping_early();
 }
 double HeapSumProgress::dist_sum() const {
   const std::size_t n_points = neighbor_heap.n_points;
@@ -123,13 +125,16 @@ void RPProgress::iter_finished() {
 void RPProgress::stopping_early() { progress.update(n_iters); }
 bool RPProgress::check_interrupt() {
   if (is_aborted || Progress::check_abort()) {
+    stopping_early();
     progress.cleanup();
     is_aborted = true;
     return true;
   }
   return false;
 }
-void RPProgress::converged(std::size_t n_updates, double tol) {}
+void RPProgress::converged(std::size_t n_updates, double tol) {
+  stopping_early();
+}
 int RPProgress::scaled(double d) {
   int res = std::nearbyint(scale * (d / n_iters));
   return res;
