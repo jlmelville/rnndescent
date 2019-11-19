@@ -28,31 +28,31 @@
 
 using namespace tdoann;
 
-#define NND_IMPL(NNDImpl, Distance, GraphUpdater)                              \
+#define NND_IMPL()                                                             \
   return nn_descent_impl<NNDImpl, GraphUpdater, Distance>(                     \
       data, nn_idx, nn_dist, nnd_impl, max_candidates, n_iters, delta,         \
       verbose);
 
-#define NND_UPDATER(Distance)                                                  \
+#define NND_UPDATER()                                                          \
   if (parallelize) {                                                           \
     using NNDImpl = NNDParallel;                                               \
     NNDImpl nnd_impl(block_size, grain_size);                                  \
     if (low_memory) {                                                          \
       using GraphUpdater = BatchGraphUpdater<Distance>;                        \
-      NND_IMPL(NNDImpl, Distance, GraphUpdater)                                \
+      NND_IMPL()                                                               \
     } else {                                                                   \
       using GraphUpdater = BatchGraphUpdaterHiMem<Distance>;                   \
-      NND_IMPL(NNDImpl, Distance, GraphUpdater)                                \
+      NND_IMPL()                                                               \
     }                                                                          \
   } else {                                                                     \
     using NNDImpl = NNDSerial;                                                 \
     NNDImpl nnd_impl;                                                          \
     if (low_memory) {                                                          \
       using GraphUpdater = SerialGraphUpdater<Distance>;                       \
-      NND_IMPL(NNDImpl, Distance, GraphUpdater)                                \
+      NND_IMPL()                                                               \
     } else {                                                                   \
       using GraphUpdater = SerialGraphUpdaterHiMem<Distance>;                  \
-      NND_IMPL(NNDImpl, Distance, GraphUpdater)                                \
+      NND_IMPL()                                                               \
     }                                                                          \
   }
 

@@ -23,11 +23,11 @@
 #include "tdoann/heap.h"
 #include <Rcpp.h>
 
-#define BruteForce(Distance)                                                   \
+#define BRUTE_FORCE_BUILD()                                                    \
   return rnn_brute_force_impl<Distance>(data, k, parallelize, block_size,      \
                                         grain_size, verbose);
 
-#define BruteForceQuery(Distance)                                              \
+#define BRUTE_FORCE_QUERY()                                                    \
   return rnn_brute_force_query_impl<Distance>(                                 \
       x, y, k, parallelize, block_size, grain_size, verbose);
 
@@ -64,24 +64,7 @@ Rcpp::List rnn_brute_force(Rcpp::NumericMatrix data, int k,
                            bool parallelize = false,
                            std::size_t block_size = 64,
                            std::size_t grain_size = 1, bool verbose = false) {
-  if (metric == "euclidean") {
-    using Distance = tdoann::Euclidean<float, float>;
-    BruteForce(Distance)
-  } else if (metric == "l2sqr") {
-    using Distance = tdoann::L2Sqr<float, float>;
-    BruteForce(Distance)
-  } else if (metric == "cosine") {
-    using Distance = tdoann::Cosine<float, float>;
-    BruteForce(Distance)
-  } else if (metric == "manhattan") {
-    using Distance = tdoann::Manhattan<float, float>;
-    BruteForce(Distance)
-  } else if (metric == "hamming") {
-    using Distance = tdoann::Hamming<uint8_t, std::size_t>;
-    BruteForce(Distance)
-  } else {
-    Rcpp::stop("Bad metric");
-  }
+  DISPATCH_ON_DISTANCES(BRUTE_FORCE_BUILD)
 }
 
 template <typename Distance>
@@ -124,5 +107,5 @@ Rcpp::List rnn_brute_force_query(Rcpp::NumericMatrix x, Rcpp::NumericMatrix y,
                                  std::size_t block_size = 64,
                                  std::size_t grain_size = 1,
                                  bool verbose = false) {
-  DISPATCH_ON_DISTANCES(BruteForceQuery)
+  DISPATCH_ON_DISTANCES(BRUTE_FORCE_QUERY)
 }

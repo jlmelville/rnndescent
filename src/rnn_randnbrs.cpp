@@ -29,33 +29,33 @@ using namespace tdoann;
 
 /* Macros */
 
-#define RandomNbrs(Distance)                                                   \
+#define RANDOM_NBRS_BUILD()                                                    \
   using KnnFactory = KnnBuildFactory<Distance>;                                \
   KnnFactory knn_factory(data);                                                \
   if (parallelize) {                                                           \
     using RandomNbrsImpl = ParallelRandomNbrsImpl<ParallelRandomKnnBuild>;     \
     RandomNbrsImpl impl(block_size, grain_size);                               \
-    RandomNbrsKnn(KnnFactory, RandomNbrsImpl, Distance)                        \
+    RANDOM_NBRS_IMPL()                                                         \
   } else {                                                                     \
     using RandomNbrsImpl = SerialRandomNbrsImpl<SerialRandomKnnBuild>;         \
     RandomNbrsImpl impl(block_size);                                           \
-    RandomNbrsKnn(KnnFactory, RandomNbrsImpl, Distance)                        \
+    RANDOM_NBRS_IMPL()                                                         \
   }
 
-#define RandomNbrsQuery(Distance)                                              \
+#define RANDOM_NBRS_QUERY()                                                    \
   using KnnFactory = KnnQueryFactory<Distance>;                                \
   KnnFactory knn_factory(reference, query);                                    \
   if (parallelize) {                                                           \
     using RandomNbrsImpl = ParallelRandomNbrsImpl<ParallelRandomKnnQuery>;     \
     RandomNbrsImpl impl(block_size, grain_size);                               \
-    RandomNbrsKnn(KnnFactory, RandomNbrsImpl, Distance)                        \
+    RANDOM_NBRS_IMPL()                                                         \
   } else {                                                                     \
     using RandomNbrsImpl = SerialRandomNbrsImpl<SerialRandomKnnQuery>;         \
     RandomNbrsImpl impl(block_size);                                           \
-    RandomNbrsKnn(KnnFactory, RandomNbrsImpl, Distance)                        \
+    RANDOM_NBRS_IMPL()                                                         \
   }
 
-#define RandomNbrsKnn(KnnFactory, RandomNbrsImpl, Distance)                    \
+#define RANDOM_NBRS_IMPL()                                                     \
   return random_knn_impl<KnnFactory, RandomNbrsImpl, Distance>(                \
       k, order_by_distance, knn_factory, impl, verbose);
 
@@ -142,7 +142,7 @@ random_knn_cpp(Rcpp::NumericMatrix data, int k,
                const std::string &metric = "euclidean",
                bool order_by_distance = true, bool parallelize = false,
                std::size_t block_size = 4096, std::size_t grain_size = 1,
-               bool verbose = false){DISPATCH_ON_DISTANCES(RandomNbrs)}
+               bool verbose = false){DISPATCH_ON_DISTANCES(RANDOM_NBRS_BUILD)}
 
 // [[Rcpp::export]]
 Rcpp::List
@@ -153,5 +153,5 @@ Rcpp::List
                          bool parallelize = false,
                          std::size_t block_size = 4096,
                          std::size_t grain_size = 1, bool verbose = false) {
-  DISPATCH_ON_DISTANCES(RandomNbrsQuery)
+  DISPATCH_ON_DISTANCES(RANDOM_NBRS_QUERY)
 }

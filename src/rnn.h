@@ -33,19 +33,19 @@
 #define DISPATCH_ON_DISTANCES(NEXT_MACRO)                                      \
   if (metric == "euclidean") {                                                 \
     using Distance = tdoann::Euclidean<float, float>;                          \
-    NEXT_MACRO(Distance)                                                       \
+    NEXT_MACRO()                                                               \
   } else if (metric == "l2sqr") {                                              \
     using Distance = tdoann::L2Sqr<float, float>;                              \
-    NEXT_MACRO(Distance)                                                       \
+    NEXT_MACRO()                                                               \
   } else if (metric == "cosine") {                                             \
     using Distance = tdoann::Cosine<float, float>;                             \
-    NEXT_MACRO(Distance)                                                       \
+    NEXT_MACRO()                                                               \
   } else if (metric == "manhattan") {                                          \
     using Distance = tdoann::Manhattan<float, float>;                          \
-    NEXT_MACRO(Distance)                                                       \
+    NEXT_MACRO()                                                               \
   } else if (metric == "hamming") {                                            \
     using Distance = tdoann::Hamming<uint8_t, std::size_t>;                    \
-    NEXT_MACRO(Distance)                                                       \
+    NEXT_MACRO()                                                               \
   } else {                                                                     \
     Rcpp::stop("Bad metric");                                                  \
   }
