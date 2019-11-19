@@ -21,10 +21,12 @@
 #define RNN_RANDNBRSPARALLEL_H
 
 #include "rnn_parallel.h"
-#include "rnn_rng.h"
+#include "rnn_randnbrs.h"
 #include <Rcpp.h>
 // [[Rcpp::depends(dqrng)]]
 #include <dqrng.h>
+// [[Rcpp::depends(RcppParallel)]]
+#include <RcppParallel.h>
 
 struct LockingIndexSampler {
   tthread::mutex mutex;
@@ -32,71 +34,6 @@ struct LockingIndexSampler {
   Rcpp::IntegerVector sample(int max_val, int num_to_sample) {
     tthread::lock_guard<tthread::mutex> guard(mutex);
     return Rcpp::IntegerVector(dqrng::dqsample_int(max_val, num_to_sample));
-  }
-};
-
-struct Empty {};
-
-template <typename Distance, typename IndexSampler, typename IdxMatrix,
-          typename DistMatrix, typename Base>
-struct RandomNbrQueryWorker : public Base {
-
-  Distance &distance;
-
-  IdxMatrix indices;
-  DistMatrix dist;
-
-  const int nrefs;
-  const int k;
-  IndexSampler index_sampler;
-
-  RandomNbrQueryWorker(Distance &distance, Rcpp::IntegerMatrix output_indices,
-                       Rcpp::NumericMatrix output_dist)
-      : distance(distance), indices(output_indices), dist(output_dist),
-        nrefs(distance.nx), k(output_indices.nrow()), index_sampler() {}
-
-  void operator()(std::size_t begin, std::size_t end) {
-    for (int qi = static_cast<int>(begin); qi < static_cast<int>(end); qi++) {
-      auto idxi = dqrng::dqsample_int(nrefs, k); // 0-indexed
-      for (auto j = 0; j < k; j++) {
-        auto &ri = idxi[j];
-        indices(j, qi) = ri + 1;        // store val as 1-index
-        dist(j, qi) = distance(ri, qi); // distance calcs are 0-indexed
-      }
-    }
-  }
-};
-
-template <typename Distance, typename IndexSampler, typename IdxMatrix,
-          typename DistMatrix, typename Base>
-struct RandomNbrBuildWorker : public Base {
-
-  Distance &distance;
-
-  IdxMatrix indices;
-  DistMatrix dist;
-
-  const int nr1;
-  const int n_to_sample;
-  IndexSampler index_sampler;
-
-  RandomNbrBuildWorker(Distance &distance, Rcpp::IntegerMatrix output_indices,
-                       Rcpp::NumericMatrix output_dist)
-      : distance(distance), indices(output_indices), dist(output_dist),
-        nr1(indices.ncol() - 1), n_to_sample(indices.nrow() - 1),
-        index_sampler() {}
-
-  void operator()(std::size_t begin, std::size_t end) {
-    for (int i = static_cast<int>(begin); i < static_cast<int>(end); i++) {
-      indices(0, i) = i + 1;
-      auto idxi = index_sampler.sample(nr1, n_to_sample);
-      for (auto j = 0; j < n_to_sample; j++) {
-        auto val = idxi[j];
-        val = val >= i ? val + 1 : val;    // ensure i isn't in the sample
-        indices(j + 1, i) = val + 1;       // store val as 1-index
-        dist(j + 1, i) = distance(i, val); // distance calcs are 0-indexed
-      }
-    }
   }
 };
 
@@ -112,6 +49,17 @@ using ParallelRandomNbrBuildWorker =
                          RcppParallel::RMatrix<int>,
                          RcppParallel::RMatrix<double>, BatchParallelWorker>;
 
+struct ParallelRandomKnnBuild {
+  // Can't use symmetric heap addition with parallel approach
+  using HeapAdd = HeapAddQuery;
+  template <typename D> using Worker = ParallelRandomNbrBuildWorker<D>;
+};
+
+struct ParallelRandomKnnQuery {
+  using HeapAdd = HeapAddQuery;
+  template <typename D> using Worker = ParallelRandomNbrQueryWorker<D>;
+};
+
 template <template <typename> class Worker, typename Progress,
           typename Distance>
 void rknn_parallel(Progress &progress, Distance &distance,
@@ -121,5 +69,31 @@ void rknn_parallel(Progress &progress, Distance &distance,
   Worker<Distance> worker(distance, indices, dist);
   batch_parallel_for(worker, progress, indices.ncol(), block_size, grain_size);
 }
+
+template <typename ParallelRandomKnn> struct ParallelRandomNbrsImpl {
+  std::size_t block_size;
+  std::size_t grain_size;
+
+  ParallelRandomNbrsImpl(std::size_t block_size = 4096,
+                         std::size_t grain_size = 1)
+      : block_size(block_size), grain_size(grain_size) {}
+
+  template <typename Distance>
+  void build_knn(Distance &distance, Rcpp::IntegerMatrix indices,
+                 Rcpp::NumericMatrix dist, bool verbose) {
+    const auto nr = indices.ncol();
+    const auto n_blocks = (nr / block_size) + 1;
+    RPProgress progress(1, n_blocks, verbose);
+    rknn_parallel<Worker>(progress, distance, indices, dist, block_size,
+                          grain_size);
+  }
+  void sort_knn(Rcpp::IntegerMatrix indices, Rcpp::NumericMatrix dist) {
+    sort_knn_graph_parallel<HeapAdd>(indices, dist, block_size, grain_size);
+  }
+
+  template <typename D>
+  using Worker = typename ParallelRandomKnn::template Worker<D>;
+  using HeapAdd = typename ParallelRandomKnn::HeapAdd;
+};
 
 #endif // RNN_RANDNBRSPARALLEL_H
