@@ -33,7 +33,7 @@ using namespace tdoann;
       data, nn_idx, nn_dist, nnd_impl, max_candidates, n_iters, delta,         \
       verbose);
 
-#define NND_UPDATER(Distance, low_memory, parallelize)                         \
+#define NND_UPDATER(Distance)                                                  \
   if (parallelize) {                                                           \
     using NNDImpl = NNDParallel;                                               \
     NNDImpl nnd_impl(block_size, grain_size);                                  \
@@ -125,25 +125,7 @@ Rcpp::List nn_descent(Rcpp::NumericMatrix data, Rcpp::IntegerMatrix nn_idx,
                       bool parallelize = false, std::size_t block_size = 16384,
                       std::size_t grain_size = 1, bool verbose = false,
                       const std::string &progress = "bar") {
-
-  if (metric == "euclidean") {
-    using Distance = Euclidean<float, float>;
-    NND_UPDATER(Distance, low_memory, parallelize)
-  } else if (metric == "l2sqr") {
-    using Distance = L2Sqr<float, float>;
-    NND_UPDATER(Distance, low_memory, parallelize)
-  } else if (metric == "cosine") {
-    using Distance = Cosine<float, float>;
-    NND_UPDATER(Distance, low_memory, parallelize)
-  } else if (metric == "manhattan") {
-    using Distance = Manhattan<float, float>;
-    NND_UPDATER(Distance, low_memory, parallelize)
-  } else if (metric == "hamming") {
-    using Distance = Hamming<uint8_t, std::size_t>;
-    NND_UPDATER(Distance, low_memory, parallelize)
-  } else {
-    Rcpp::stop("Bad metric: " + metric);
-  }
+  DISPATCH_ON_DISTANCES(NND_UPDATER);
 }
 
 #define NND_QUERY_IMPL(NNDImpl, Distance, Rand, GraphUpdater)                  \
