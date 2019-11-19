@@ -96,43 +96,44 @@ struct HeapAddQuery {
 template <typename HeapAdd, typename NbrHeap,
           typename IdxMatrix = Rcpp::IntegerMatrix,
           typename DistMatrix = Rcpp::NumericMatrix>
-void r_to_heap(NbrHeap &current_graph, IdxMatrix idx, DistMatrix dist,
+void r_to_heap(NbrHeap &current_graph, IdxMatrix nn_idx, DistMatrix nn_dist,
                const std::size_t begin, const std::size_t end,
                const int max_idx = std::numeric_limits<int>::max()) {
-  const std::size_t n_nbrs = idx.ncol();
+  const std::size_t n_nbrs = nn_idx.ncol();
 
   for (std::size_t i = begin; i < end; i++) {
     for (std::size_t j = 0; j < n_nbrs; j++) {
-      const int k = idx(i, j) - 1;
+      const int k = nn_idx(i, j) - 1;
       if (k < 0 || k > max_idx) {
         Rcpp::stop("Bad indexes in input");
       }
-      double d = dist(i, j);
+      double d = nn_dist(i, j);
       HeapAdd::push(current_graph, i, k, d);
     }
   }
 }
 
 template <typename HeapAdd, typename NbrHeap>
-void r_to_heap(NbrHeap &current_graph, Rcpp::IntegerMatrix idx,
-               Rcpp::NumericMatrix dist,
+void r_to_heap(NbrHeap &current_graph, Rcpp::IntegerMatrix nn_idx,
+               Rcpp::NumericMatrix nn_dist,
                const int max_idx = std::numeric_limits<int>::max()) {
-  const std::size_t n_points = idx.nrow();
-  r_to_heap<HeapAdd, NbrHeap>(current_graph, idx, dist, 0, n_points, max_idx);
+  const std::size_t n_points = nn_idx.nrow();
+  r_to_heap<HeapAdd, NbrHeap>(current_graph, nn_idx, nn_dist, 0, n_points,
+                              max_idx);
 }
 
 // input heap index is 0-indexed
 // output idx R matrix is 1-indexed and untransposed
 template <typename NbrHeap>
-void heap_to_r(const NbrHeap &heap, Rcpp::IntegerMatrix idx,
-               Rcpp::NumericMatrix dist) {
+void heap_to_r(const NbrHeap &heap, Rcpp::IntegerMatrix nn_idx,
+               Rcpp::NumericMatrix nn_dist) {
   const std::size_t n_points = heap.n_points;
   const std::size_t n_nbrs = heap.n_nbrs;
 
   for (std::size_t i = 0; i < n_points; i++) {
     for (std::size_t j = 0; j < n_nbrs; j++) {
-      idx(i, j) = heap.index(i, j) + 1;
-      dist(i, j) = heap.distance(i, j);
+      nn_idx(i, j) = heap.index(i, j) + 1;
+      nn_dist(i, j) = heap.distance(i, j);
     }
   }
 }
@@ -143,24 +144,24 @@ template <typename NbrHeap> Rcpp::List heap_to_r(const NbrHeap &heap) {
   const std::size_t n_points = heap.n_points;
   const std::size_t n_nbrs = heap.n_nbrs;
 
-  Rcpp::IntegerMatrix idx(n_points, n_nbrs);
-  Rcpp::NumericMatrix dist(n_points, n_nbrs);
+  Rcpp::IntegerMatrix nn_idx(n_points, n_nbrs);
+  Rcpp::NumericMatrix nn_dist(n_points, n_nbrs);
 
-  heap_to_r(heap, idx, dist);
+  heap_to_r(heap, nn_idx, nn_dist);
 
-  return Rcpp::List::create(Rcpp::Named("idx") = idx,
-                            Rcpp::Named("dist") = dist);
+  return Rcpp::List::create(Rcpp::Named("idx") = nn_idx,
+                            Rcpp::Named("dist") = nn_dist);
 }
 
 template <typename HeapAdd, typename NbrHeap = tdoann::SimpleNeighborHeap>
-void sort_knn_graph(Rcpp::IntegerMatrix idx, Rcpp::NumericMatrix dist) {
-  const std::size_t n_points = idx.nrow();
-  const std::size_t n_nbrs = idx.ncol();
+void sort_knn_graph(Rcpp::IntegerMatrix nn_idx, Rcpp::NumericMatrix nn_dist) {
+  const std::size_t n_points = nn_idx.nrow();
+  const std::size_t n_nbrs = nn_idx.ncol();
 
   NbrHeap heap(n_points, n_nbrs);
-  r_to_heap<HeapAdd>(heap, idx, dist);
+  r_to_heap<HeapAdd>(heap, nn_idx, nn_dist);
   heap.deheap_sort();
-  heap_to_r(heap, idx, dist);
+  heap_to_r(heap, nn_idx, nn_dist);
 }
 
 #endif // RNND_RNN_H

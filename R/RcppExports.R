@@ -9,12 +9,12 @@ rnn_brute_force_query <- function(x, y, k, metric = "euclidean", parallelize = F
     .Call(`_rnndescent_rnn_brute_force_query`, x, y, k, metric, parallelize, block_size, grain_size, verbose)
 }
 
-nn_descent <- function(data, idx, dist, metric = "euclidean", max_candidates = 50L, n_iters = 10L, delta = 0.001, low_memory = TRUE, parallelize = FALSE, block_size = 16384L, grain_size = 1L, verbose = FALSE) {
-    .Call(`_rnndescent_nn_descent`, data, idx, dist, metric, max_candidates, n_iters, delta, low_memory, parallelize, block_size, grain_size, verbose)
+nn_descent <- function(data, nn_idx, nn_dist, metric = "euclidean", max_candidates = 50L, n_iters = 10L, delta = 0.001, low_memory = TRUE, parallelize = FALSE, block_size = 16384L, grain_size = 1L, verbose = FALSE) {
+    .Call(`_rnndescent_nn_descent`, data, nn_idx, nn_dist, metric, max_candidates, n_iters, delta, low_memory, parallelize, block_size, grain_size, verbose)
 }
 
-nn_descent_query <- function(reference, reference_idx, query, idx, dist, metric = "euclidean", max_candidates = 50L, n_iters = 10L, delta = 0.001, low_memory = TRUE, parallelize = FALSE, block_size = 16384L, grain_size = 1L, verbose = FALSE) {
-    .Call(`_rnndescent_nn_descent_query`, reference, reference_idx, query, idx, dist, metric, max_candidates, n_iters, delta, low_memory, parallelize, block_size, grain_size, verbose)
+nn_descent_query <- function(reference, reference_idx, query, nn_idx, nn_dist, metric = "euclidean", max_candidates = 50L, n_iters = 10L, delta = 0.001, low_memory = TRUE, parallelize = FALSE, block_size = 16384L, grain_size = 1L, verbose = FALSE) {
+    .Call(`_rnndescent_nn_descent_query`, reference, reference_idx, query, nn_idx, nn_dist, metric, max_candidates, n_iters, delta, low_memory, parallelize, block_size, grain_size, verbose)
 }
 
 random_knn_cpp <- function(data, k, metric = "euclidean", order_by_distance = TRUE, parallelize = FALSE, block_size = 4096L, grain_size = 1L, verbose = FALSE) {

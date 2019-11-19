@@ -64,42 +64,44 @@ void batch_serial_for(Worker &rnn_worker, Progress &progress, std::size_t n,
 template <typename HeapAdd, typename NbrHeap = tdoann::SimpleNeighborHeap>
 struct RToHeapWorker : public BatchParallelWorker {
   NbrHeap &heap;
-  RcppParallel::RMatrix<int> idx;
-  RcppParallel::RMatrix<double> dist;
+  RcppParallel::RMatrix<int> nn_idx;
+  RcppParallel::RMatrix<double> nn_dist;
   int max_idx;
 
-  RToHeapWorker(NbrHeap &heap, Rcpp::IntegerMatrix idx,
-                Rcpp::NumericMatrix dist,
+  RToHeapWorker(NbrHeap &heap, Rcpp::IntegerMatrix nn_idx,
+                Rcpp::NumericMatrix nn_dist,
                 int max_idx = (std::numeric_limits<int>::max)())
-      : heap(heap), idx(idx), dist(dist), max_idx(max_idx) {}
+      : heap(heap), nn_idx(nn_idx), nn_dist(nn_dist), max_idx(max_idx) {}
 
   void operator()(std::size_t begin, std::size_t end) {
     r_to_heap<HeapAdd, NbrHeap, RcppParallel::RMatrix<int>,
-              RcppParallel::RMatrix<double>>(heap, idx, dist, begin, end,
+              RcppParallel::RMatrix<double>>(heap, nn_idx, nn_dist, begin, end,
                                              max_idx);
   }
 };
 
 template <typename HeapAdd, typename NbrHeap = tdoann::SimpleNeighborHeap>
-void r_to_heap_parallel(NbrHeap &heap, Rcpp::IntegerMatrix idx,
-                        Rcpp::NumericMatrix dist, std::size_t block_size,
+void r_to_heap_parallel(NbrHeap &heap, Rcpp::IntegerMatrix nn_idx,
+                        Rcpp::NumericMatrix nn_dist, std::size_t block_size,
                         std::size_t grain_size) {
-  RToHeapWorker<HeapAdd, NbrHeap> worker(heap, idx, dist);
+  RToHeapWorker<HeapAdd, NbrHeap> worker(heap, nn_idx, nn_dist);
   tdoann::NullProgress progress;
-  const std::size_t n_points = idx.nrow();
+  const std::size_t n_points = nn_idx.nrow();
   batch_parallel_for(worker, progress, n_points, block_size, grain_size);
 }
 
 template <typename HeapAdd, typename NbrHeap = tdoann::SimpleNeighborHeap>
-void sort_knn_graph_parallel(Rcpp::IntegerMatrix idx, Rcpp::NumericMatrix dist,
+void sort_knn_graph_parallel(Rcpp::IntegerMatrix nn_idx,
+                             Rcpp::NumericMatrix nn_dist,
                              std::size_t block_size, std::size_t grain_size) {
-  const std::size_t n_points = idx.nrow();
-  const std::size_t n_nbrs = idx.ncol();
+  const std::size_t n_points = nn_idx.nrow();
+  const std::size_t n_nbrs = nn_idx.ncol();
 
   NbrHeap heap(n_points, n_nbrs);
-  r_to_heap_parallel<HeapAdd, NbrHeap>(heap, idx, dist, block_size, grain_size);
+  r_to_heap_parallel<HeapAdd, NbrHeap>(heap, nn_idx, nn_dist, block_size,
+                                       grain_size);
   heap.deheap_sort();
-  heap_to_r(heap, idx, dist);
+  heap_to_r(heap, nn_idx, nn_dist);
 }
 
 #endif // RNN_PARALLEL_H

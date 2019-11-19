@@ -30,7 +30,8 @@ using namespace tdoann;
 
 #define NND_IMPL(NNDImpl, Distance, Rand, GraphUpdater)                        \
   return nn_descent_impl<NNDImpl, GraphUpdater, Distance, Rand>(               \
-      data, idx, dist, nnd_impl, max_candidates, n_iters, delta, verbose);
+      data, nn_idx, nn_dist, nnd_impl, max_candidates, n_iters, delta,         \
+      verbose);
 
 #define NND_UPDATER(Distance, Rand, low_memory, parallelize)                   \
   if (parallelize) {                                                           \
@@ -89,13 +90,13 @@ struct NNDParallel {
 
 template <typename NNDImpl, typename GraphUpdater, typename Distance,
           typename Rand>
-Rcpp::List nn_descent_impl(Rcpp::NumericMatrix data, Rcpp::IntegerMatrix idx,
-                           Rcpp::NumericMatrix dist, NNDImpl &nnd_impl,
+Rcpp::List nn_descent_impl(Rcpp::NumericMatrix data, Rcpp::IntegerMatrix nn_idx,
+                           Rcpp::NumericMatrix nn_dist, NNDImpl &nnd_impl,
                            const std::size_t max_candidates = 50,
                            const std::size_t n_iters = 10,
                            const double delta = 0.001, bool verbose = false) {
-  const std::size_t n_points = idx.nrow();
-  const std::size_t n_nbrs = idx.ncol();
+  const std::size_t n_points = nn_idx.nrow();
+  const std::size_t n_nbrs = nn_idx.ncol();
   const std::size_t ndim = data.ncol();
 
   data = Rcpp::transpose(data);
@@ -104,7 +105,7 @@ Rcpp::List nn_descent_impl(Rcpp::NumericMatrix data, Rcpp::IntegerMatrix idx,
   Distance distance(data_vec, ndim);
   NeighborHeap current_graph(n_points, n_nbrs);
   r_to_heap<HeapAddSymmetric, tdoann::NeighborHeap>(
-      current_graph, idx, dist, static_cast<int>(n_points - 1));
+      current_graph, nn_idx, nn_dist, static_cast<int>(n_points - 1));
   GraphUpdater graph_updater(current_graph, distance);
 
   const double tol = delta * n_nbrs * n_points;
@@ -116,8 +117,8 @@ Rcpp::List nn_descent_impl(Rcpp::NumericMatrix data, Rcpp::IntegerMatrix idx,
 }
 
 // [[Rcpp::export]]
-Rcpp::List nn_descent(Rcpp::NumericMatrix data, Rcpp::IntegerMatrix idx,
-                      Rcpp::NumericMatrix dist,
+Rcpp::List nn_descent(Rcpp::NumericMatrix data, Rcpp::IntegerMatrix nn_idx,
+                      Rcpp::NumericMatrix nn_dist,
                       const std::string metric = "euclidean",
                       const std::size_t max_candidates = 50,
                       const std::size_t n_iters = 10,
@@ -147,8 +148,8 @@ Rcpp::List nn_descent(Rcpp::NumericMatrix data, Rcpp::IntegerMatrix idx,
 
 #define NND_QUERY_IMPL(NNDImpl, Distance, Rand, GraphUpdater)                  \
   return nn_descent_query_impl<NNDImpl, GraphUpdater, Distance, Rand>(         \
-      reference, reference_idx, query, idx, dist, nnd_impl, max_candidates,    \
-      n_iters, delta, verbose);
+      reference, reference_idx, query, nn_idx, nn_dist, nnd_impl,              \
+      max_candidates, n_iters, delta, verbose);
 
 #define NND_QUERY_UPDATER(Distance, Rand, low_memory, parallelize)             \
   if (parallelize) {                                                           \
@@ -214,12 +215,12 @@ template <typename NNDImpl, typename GraphUpdater, typename Distance,
           typename Rand>
 Rcpp::List nn_descent_query_impl(
     Rcpp::NumericMatrix reference, Rcpp::IntegerMatrix reference_idx,
-    Rcpp::NumericMatrix query, Rcpp::IntegerMatrix idx,
-    Rcpp::NumericMatrix dist, NNDImpl &nnd_impl,
+    Rcpp::NumericMatrix query, Rcpp::IntegerMatrix nn_idx,
+    Rcpp::NumericMatrix nn_dist, NNDImpl &nnd_impl,
     const std::size_t max_candidates = 50, const std::size_t n_iters = 10,
     const double delta = 0.001, bool verbose = false) {
-  const std::size_t n_points = idx.nrow();
-  const std::size_t n_nbrs = idx.ncol();
+  const std::size_t n_points = nn_idx.nrow();
+  const std::size_t n_nbrs = nn_idx.ncol();
   const std::size_t n_ref_points = reference.nrow();
 
   const std::size_t ndim = reference.ncol();
@@ -228,7 +229,7 @@ Rcpp::List nn_descent_query_impl(
   auto reference_vec =
       Rcpp::as<std::vector<typename Distance::in_type>>(reference);
   NeighborHeap current_graph(n_points, n_nbrs);
-  r_to_heap<HeapAddQuery>(current_graph, idx, dist,
+  r_to_heap<HeapAddQuery>(current_graph, nn_idx, nn_dist,
                           static_cast<int>(n_ref_points - 1));
   reference_idx = Rcpp::transpose(reference_idx);
   auto reference_idx_vec = Rcpp::as<std::vector<std::size_t>>(reference_idx);
@@ -251,8 +252,8 @@ Rcpp::List nn_descent_query_impl(
 // [[Rcpp::export]]
 Rcpp::List nn_descent_query(
     Rcpp::NumericMatrix reference, Rcpp::IntegerMatrix reference_idx,
-    Rcpp::NumericMatrix query, Rcpp::IntegerMatrix idx,
-    Rcpp::NumericMatrix dist, const std::string metric = "euclidean",
+    Rcpp::NumericMatrix query, Rcpp::IntegerMatrix nn_idx,
+    Rcpp::NumericMatrix nn_dist, const std::string metric = "euclidean",
     const std::size_t max_candidates = 50, const std::size_t n_iters = 10,
     const double delta = 0.001, bool low_memory = true,
     bool parallelize = false, std::size_t block_size = 16384,

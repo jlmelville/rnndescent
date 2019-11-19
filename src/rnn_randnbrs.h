@@ -34,25 +34,25 @@ struct RandomNbrQueryWorker : public Base {
 
   Distance &distance;
 
-  IdxMatrix indices;
-  DistMatrix dist;
+  IdxMatrix nn_idx;
+  DistMatrix nn_dist;
 
   const int nrefs;
   const int k;
   IndexSampler index_sampler;
 
-  RandomNbrQueryWorker(Distance &distance, Rcpp::IntegerMatrix output_indices,
-                       Rcpp::NumericMatrix output_dist)
-      : distance(distance), indices(output_indices), dist(output_dist),
-        nrefs(distance.nx), k(output_indices.nrow()), index_sampler() {}
+  RandomNbrQueryWorker(Distance &distance, Rcpp::IntegerMatrix nn_idx,
+                       Rcpp::NumericMatrix nn_dist)
+      : distance(distance), nn_idx(nn_idx), nn_dist(nn_dist),
+        nrefs(distance.nx), k(nn_idx.nrow()), index_sampler() {}
 
   void operator()(std::size_t begin, std::size_t end) {
     for (int qi = static_cast<int>(begin); qi < static_cast<int>(end); qi++) {
       auto idxi = index_sampler.sample(nrefs, k);
       for (auto j = 0; j < k; j++) {
         auto &ri = idxi[j];
-        indices(j, qi) = ri + 1;        // store val as 1-index
-        dist(j, qi) = distance(ri, qi); // distance calcs are 0-indexed
+        nn_idx(j, qi) = ri + 1;            // store val as 1-index
+        nn_dist(j, qi) = distance(ri, qi); // distance calcs are 0-indexed
       }
     }
   }
@@ -64,28 +64,28 @@ struct RandomNbrBuildWorker : public Base {
 
   Distance &distance;
 
-  IdxMatrix indices;
-  DistMatrix dist;
+  IdxMatrix nn_idx;
+  DistMatrix nn_dist;
 
   const int nr1;
   const int n_to_sample;
   IndexSampler index_sampler;
 
-  RandomNbrBuildWorker(Distance &distance, Rcpp::IntegerMatrix output_indices,
-                       Rcpp::NumericMatrix output_dist)
-      : distance(distance), indices(output_indices), dist(output_dist),
-        nr1(indices.ncol() - 1), n_to_sample(indices.nrow() - 1),
+  RandomNbrBuildWorker(Distance &distance, Rcpp::IntegerMatrix nn_idx,
+                       Rcpp::NumericMatrix nn_dist)
+      : distance(distance), nn_idx(nn_idx), nn_dist(nn_dist),
+        nr1(nn_idx.ncol() - 1), n_to_sample(nn_idx.nrow() - 1),
         index_sampler() {}
 
   void operator()(std::size_t begin, std::size_t end) {
     for (int i = static_cast<int>(begin); i < static_cast<int>(end); i++) {
-      indices(0, i) = i + 1;
+      nn_idx(0, i) = i + 1;
       auto idxi = index_sampler.sample(nr1, n_to_sample);
       for (auto j = 0; j < n_to_sample; j++) {
         auto val = idxi[j];
-        val = val >= i ? val + 1 : val;    // ensure i isn't in the sample
-        indices(j + 1, i) = val + 1;       // store val as 1-index
-        dist(j + 1, i) = distance(i, val); // distance calcs are 0-indexed
+        val = val >= i ? val + 1 : val;       // ensure i isn't in the sample
+        nn_idx(j + 1, i) = val + 1;           // store val as 1-index
+        nn_dist(j + 1, i) = distance(i, val); // distance calcs are 0-indexed
       }
     }
   }
@@ -118,10 +118,10 @@ struct SerialRandomKnnBuild {
 template <template <typename> class RandomKnnWorker, typename Progress,
           typename Distance>
 void rknn_serial(Progress &progress, Distance &distance,
-                 Rcpp::IntegerMatrix indices, Rcpp::NumericMatrix dist,
+                 Rcpp::IntegerMatrix nn_idx, Rcpp::NumericMatrix nn_dist,
                  const std::size_t block_size = 4096) {
-  RandomKnnWorker<Distance> worker(distance, indices, dist);
-  batch_serial_for(worker, progress, indices.ncol(), block_size);
+  RandomKnnWorker<Distance> worker(distance, nn_idx, nn_dist);
+  batch_serial_for(worker, progress, nn_idx.ncol(), block_size);
 }
 
 template <typename SerialRandomKnn> struct SerialRandomNbrsImpl {
@@ -129,15 +129,15 @@ template <typename SerialRandomKnn> struct SerialRandomNbrsImpl {
   SerialRandomNbrsImpl(std::size_t block_size) : block_size(block_size) {}
 
   template <typename Distance>
-  void build_knn(Distance &distance, Rcpp::IntegerMatrix indices,
-                 Rcpp::NumericMatrix dist, bool verbose) {
-    const auto nr = indices.ncol();
+  void build_knn(Distance &distance, Rcpp::IntegerMatrix nn_idx,
+                 Rcpp::NumericMatrix nn_dist, bool verbose) {
+    const auto nr = nn_idx.ncol();
     const auto n_blocks = (nr / block_size) + 1;
     RPProgress progress(1, n_blocks, verbose);
-    rknn_serial<Worker>(progress, distance, indices, dist, block_size);
+    rknn_serial<Worker>(progress, distance, nn_idx, nn_dist, block_size);
   }
-  void sort_knn(Rcpp::IntegerMatrix indices, Rcpp::NumericMatrix dist) {
-    sort_knn_graph<HeapAdd>(indices, dist);
+  void sort_knn(Rcpp::IntegerMatrix nn_idx, Rcpp::NumericMatrix nn_dist) {
+    sort_knn_graph<HeapAdd>(nn_idx, nn_dist);
   }
 
   template <typename D>
