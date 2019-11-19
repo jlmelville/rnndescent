@@ -19,7 +19,8 @@ nnd_knn_query(
   n_threads = 0,
   block_size = 16384,
   grain_size = 1,
-  verbose = FALSE
+  verbose = FALSE,
+  progress = "bar"
 )
 }
 \arguments{
@@ -91,6 +92,14 @@ items to process in a thread falls below this number, then no threads will
 be used. Ignored if \code{n_threads < 1}.}
 
 \item{verbose}{If \code{TRUE}, log information to the console.}
+
+\item{progress}{Determines the type of progress information logged if
+\code{verbose = TRUE}. Options are:
+\itemize{
+  \item \code{"bar"}: a simple text progress bar.
+  \item \code{"dist"}: the sum of the distances in the approximate knn
+  graph at the end of each iteration.
+}}
 }
 \value{
 a list containing:

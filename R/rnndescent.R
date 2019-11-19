@@ -215,6 +215,13 @@ random_knn <- function(data, k, metric = "euclidean", use_alt_metric = TRUE,
 #'   items to process in a thread falls below this number, then no threads will
 #'   be used. Ignored if \code{n_threads < 1}.
 #' @param verbose If \code{TRUE}, log information to the console.
+#' @param progress Determines the type of progress information logged if
+#'   \code{verbose = TRUE}. Options are:
+#'   \itemize{
+#'     \item \code{"bar"}: a simple text progress bar.
+#'     \item \code{"dist"}: the sum of the distances in the approximate knn
+#'     graph at the end of each iteration.
+#'   }
 #' @return a list containing:
 #' \itemize{
 #'   \item \code{idx} an n by k matrix containing the nearest neighbor indices.
@@ -286,7 +293,10 @@ nnd_knn <- function(data, k = NULL,
                     n_threads = 0,
                     block_size = 16384,
                     grain_size = 1,
-                    verbose = FALSE) {
+                    verbose = FALSE,
+                    progress = "bar") {
+  stopifnot(tolower(progress) %in% c("bar", "dist"))
+
   data <- x2m(data)
 
   if (use_alt_metric) {
@@ -332,7 +342,8 @@ nnd_knn <- function(data, k = NULL,
     n_iters = n_iters, max_candidates = max_candidates,
     delta = delta, low_memory = low_memory,
     parallelize = parallelize,
-    block_size = block_size, grain_size = grain_size, verbose = verbose
+    block_size = block_size, grain_size = grain_size, verbose = verbose,
+    progress = progress
   )
 
   if (use_alt_metric) {
@@ -591,6 +602,13 @@ random_knn_query <- function(reference, query, k, metric = "euclidean",
 #'   items to process in a thread falls below this number, then no threads will
 #'   be used. Ignored if \code{n_threads < 1}.
 #' @param verbose If \code{TRUE}, log information to the console.
+#' @param progress Determines the type of progress information logged if
+#'   \code{verbose = TRUE}. Options are:
+#'   \itemize{
+#'     \item \code{"bar"}: a simple text progress bar.
+#'     \item \code{"dist"}: the sum of the distances in the approximate knn
+#'     graph at the end of each iteration.
+#'   }
 #' @return a list containing:
 #' \itemize{
 #'   \item \code{idx} an n by k matrix containing the nearest neighbor indices.
@@ -635,7 +653,9 @@ nnd_knn_query <- function(reference, reference_idx, query, k = NULL,
                           n_threads = 0,
                           block_size = 16384,
                           grain_size = 1,
-                          verbose = FALSE) {
+                          verbose = FALSE,
+                          progress = "bar") {
+  stopifnot(tolower(progress) %in% c("bar", "dist"))
   reference <- x2m(reference)
   query <- x2m(query)
 
@@ -684,7 +704,8 @@ nnd_knn_query <- function(reference, reference_idx, query, k = NULL,
     n_iters = n_iters, max_candidates = max_candidates,
     delta = delta, low_memory = low_memory,
     parallelize = parallelize,
-    block_size = block_size, grain_size = grain_size, verbose = verbose
+    block_size = block_size, grain_size = grain_size, verbose = verbose,
+    progress = progress
   )
 
   if (use_alt_metric) {
