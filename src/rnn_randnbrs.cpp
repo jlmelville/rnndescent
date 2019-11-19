@@ -59,56 +59,6 @@ using namespace tdoann;
   return random_knn_impl<KnnFactory, RandomNbrsImpl, Distance>(                \
       k, order_by_distance, knn_factory, impl, verbose);
 
-/* Structs */
-
-template <typename Distance> struct KnnQueryFactory {
-  using DataVec = std::vector<typename Distance::in_type>;
-
-  DataVec reference_vec;
-  DataVec query_vec;
-  int nrow;
-  int ndim;
-
-  KnnQueryFactory(Rcpp::NumericMatrix reference, Rcpp::NumericMatrix query)
-      : reference_vec(Rcpp::as<DataVec>(Rcpp::transpose(reference))),
-        query_vec(Rcpp::as<DataVec>(Rcpp::transpose(query))),
-        nrow(query.nrow()), ndim(query.ncol()) {}
-
-  Distance create_distance() const {
-    return Distance(reference_vec, query_vec, ndim);
-  }
-
-  Rcpp::NumericMatrix create_distance_matrix(int k) const {
-    return Rcpp::NumericMatrix(k, nrow);
-  }
-
-  Rcpp::IntegerMatrix create_index_matrix(int k) const {
-    return Rcpp::IntegerMatrix(k, nrow);
-  }
-};
-
-template <typename Distance> struct KnnBuildFactory {
-  using DataVec = std::vector<typename Distance::in_type>;
-
-  DataVec data_vec;
-  int nrow;
-  int ndim;
-
-  KnnBuildFactory(Rcpp::NumericMatrix data)
-      : data_vec(Rcpp::as<DataVec>(Rcpp::transpose(data))), nrow(data.nrow()),
-        ndim(data.ncol()) {}
-
-  Distance create_distance() const { return Distance(data_vec, ndim); }
-
-  Rcpp::NumericMatrix create_distance_matrix(int k) const {
-    return Rcpp::NumericMatrix(k, nrow);
-  }
-
-  Rcpp::IntegerMatrix create_index_matrix(int k) const {
-    return Rcpp::IntegerMatrix(k, nrow);
-  }
-};
-
 /* Functions */
 
 template <typename KnnFactory, typename RandomNbrsImpl, typename Distance>

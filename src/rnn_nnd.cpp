@@ -58,12 +58,11 @@ using namespace tdoann;
 
 struct NNDSerial {
   template <template <typename> class GraphUpdater, typename Distance,
-            typename Rand>
-  void operator()(NeighborHeap &current_graph,
-                  GraphUpdater<Distance> &graph_updater,
-                  const std::size_t max_candidates, const std::size_t n_iters,
-                  Rand &rand, const double tol, bool verbose) {
-    HeapSumProgress progress(current_graph, n_iters, verbose);
+            typename Progress, typename Rand>
+  void
+  operator()(NeighborHeap &current_graph, GraphUpdater<Distance> &graph_updater,
+             const std::size_t max_candidates, const std::size_t n_iters,
+             Rand &rand, const double tol, Progress &progress, bool verbose) {
     nnd_full(current_graph, graph_updater, max_candidates, n_iters, rand,
              progress, tol, verbose);
   }
@@ -77,12 +76,11 @@ struct NNDParallel {
       : block_size(block_size), grain_size(grain_size) {}
 
   template <template <typename> class GraphUpdater, typename Distance,
-            typename Rand>
-  void operator()(NeighborHeap &current_graph,
-                  GraphUpdater<Distance> &graph_updater,
-                  const std::size_t max_candidates, const std::size_t n_iters,
-                  Rand &rand, const double tol, bool verbose) {
-    HeapSumProgress progress(current_graph, n_iters, verbose);
+            typename Progress, typename Rand>
+  void
+  operator()(NeighborHeap &current_graph, GraphUpdater<Distance> &graph_updater,
+             const std::size_t max_candidates, const std::size_t n_iters,
+             Rand &rand, const double tol, Progress &progress, bool verbose) {
     nnd_parallel(current_graph, graph_updater, max_candidates, n_iters, rand,
                  progress, tol, block_size, grain_size, verbose);
   }
@@ -96,21 +94,21 @@ Rcpp::List nn_descent_impl(Rcpp::NumericMatrix data, Rcpp::IntegerMatrix nn_idx,
                            const double delta = 0.001, bool verbose = false) {
   const std::size_t n_points = nn_idx.nrow();
   const std::size_t n_nbrs = nn_idx.ncol();
-  const std::size_t ndim = data.ncol();
+  const double tol = delta * n_nbrs * n_points;
 
-  data = Rcpp::transpose(data);
-  auto data_vec = Rcpp::as<std::vector<typename Distance::in_type>>(data);
-  RRand rand;
-  Distance distance(data_vec, ndim);
+  KnnBuildFactory<Distance> factory(data);
+  auto distance = factory.create_distance();
+
   NeighborHeap current_graph(n_points, n_nbrs);
   r_to_heap<HeapAddSymmetric, tdoann::NeighborHeap>(
       current_graph, nn_idx, nn_dist, static_cast<int>(n_points - 1));
   GraphUpdater graph_updater(current_graph, distance);
 
-  const double tol = delta * n_nbrs * n_points;
+  HeapSumProgress progress(current_graph, n_iters, verbose);
+  RRand rand;
 
   nnd_impl(current_graph, graph_updater, max_candidates, n_iters, rand, tol,
-           verbose);
+           progress, verbose);
 
   return heap_to_r(current_graph);
 }
@@ -158,14 +156,13 @@ Rcpp::List nn_descent(Rcpp::NumericMatrix data, Rcpp::IntegerMatrix nn_idx,
 
 struct NNDQuerySerial {
   template <template <typename> class GraphUpdater, typename Distance,
-            typename Rand>
-  void operator()(NeighborHeap &current_graph,
-                  GraphUpdater<Distance> &graph_updater,
-                  const std::vector<std::size_t> &reference_idx_vec,
-                  const std::size_t n_ref_points,
-                  const std::size_t max_candidates, const std::size_t n_iters,
-                  Rand &rand, const double tol, bool verbose) {
-    HeapSumProgress progress(current_graph, n_iters, verbose);
+            typename Progress, typename Rand>
+  void
+  operator()(NeighborHeap &current_graph, GraphUpdater<Distance> &graph_updater,
+             const std::vector<std::size_t> &reference_idx_vec,
+             const std::size_t n_ref_points, const std::size_t max_candidates,
+             const std::size_t n_iters, Rand &rand, const double tol,
+             Progress &progress, bool verbose) {
     nnd_query(current_graph, graph_updater, reference_idx_vec, n_ref_points,
               max_candidates, n_iters, rand, progress, tol, verbose);
   }
@@ -179,14 +176,13 @@ struct NNDQueryParallel {
       : block_size(block_size), grain_size(grain_size) {}
 
   template <template <typename> class GraphUpdater, typename Distance,
-            typename Rand>
-  void operator()(NeighborHeap &current_graph,
-                  GraphUpdater<Distance> &graph_updater,
-                  const std::vector<std::size_t> &reference_idx_vec,
-                  const std::size_t n_ref_points,
-                  const std::size_t max_candidates, const std::size_t n_iters,
-                  Rand &rand, const double tol, bool verbose) {
-    HeapSumProgress progress(current_graph, n_iters, verbose);
+            typename Progress, typename Rand>
+  void
+  operator()(NeighborHeap &current_graph, GraphUpdater<Distance> &graph_updater,
+             const std::vector<std::size_t> &reference_idx_vec,
+             const std::size_t n_ref_points, const std::size_t max_candidates,
+             const std::size_t n_iters, Rand &rand, const double tol,
+             Progress &progress, bool verbose) {
     nnd_query_parallel(current_graph, graph_updater, reference_idx_vec,
                        n_ref_points, max_candidates, n_iters, rand, progress,
                        tol, block_size, grain_size, verbose);
@@ -203,29 +199,24 @@ Rcpp::List nn_descent_query_impl(
   const std::size_t n_points = nn_idx.nrow();
   const std::size_t n_nbrs = nn_idx.ncol();
   const std::size_t n_ref_points = reference.nrow();
+  const double tol = delta * n_nbrs * n_points;
 
-  const std::size_t ndim = reference.ncol();
-
-  reference = Rcpp::transpose(reference);
-  auto reference_vec =
-      Rcpp::as<std::vector<typename Distance::in_type>>(reference);
-  NeighborHeap current_graph(n_points, n_nbrs);
-  r_to_heap<HeapAddQuery>(current_graph, nn_idx, nn_dist,
-                          static_cast<int>(n_ref_points - 1));
   reference_idx = Rcpp::transpose(reference_idx);
   auto reference_idx_vec = Rcpp::as<std::vector<std::size_t>>(reference_idx);
 
-  query = Rcpp::transpose(query);
-  auto query_vec = Rcpp::as<std::vector<typename Distance::in_type>>(query);
+  KnnQueryFactory<Distance> factory(reference, query);
+  auto distance = factory.create_distance();
 
-  RRand rand;
-  Distance distance(reference_vec, query_vec, ndim);
-
+  NeighborHeap current_graph(n_points, n_nbrs);
+  r_to_heap<HeapAddQuery>(current_graph, nn_idx, nn_dist,
+                          static_cast<int>(n_ref_points - 1));
   GraphUpdater graph_updater(current_graph, distance);
-  const double tol = delta * n_nbrs * n_points;
+
+  HeapSumProgress progress(current_graph, n_iters, verbose);
+  RRand rand;
 
   nnd_impl(current_graph, graph_updater, reference_idx_vec, n_ref_points,
-           max_candidates, n_iters, rand, tol, verbose);
+           max_candidates, n_iters, rand, tol, progress, verbose);
 
   return heap_to_r(current_graph);
 }
