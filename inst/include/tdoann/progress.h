@@ -7,12 +7,12 @@
   }
 
 #define TDOANN_ITERFINISHED()                                                  \
-  progress.iter_finished();                                                    \
-  TDOANN_BREAKIFINTERRUPTED()
+  TDOANN_BREAKIFINTERRUPTED()                                                  \
+  progress.iter_finished();
 
 #define TDOANN_BLOCKFINISHED()                                                 \
-  progress.block_finished();                                                   \
-  TDOANN_BREAKIFINTERRUPTED()
+  TDOANN_BREAKIFINTERRUPTED()                                                  \
+  progress.block_finished();
 
 #define TDOANN_CHECKCONVERGENCE()                                              \
   if (tdoann::is_converged(c, tol)) {                                          \
