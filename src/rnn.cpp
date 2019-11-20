@@ -131,7 +131,10 @@ void RPProgress::stopping_early() {
   progress.cleanup();
 }
 bool RPProgress::check_interrupt() {
-  if (is_aborted || Progress::check_abort()) {
+  if (is_aborted) {
+    return true;
+  }
+  if (Progress::check_abort()) {
     stopping_early();
     is_aborted = true;
     return true;
