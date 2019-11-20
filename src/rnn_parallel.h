@@ -83,8 +83,9 @@ struct RToHeapWorker : public BatchParallelWorker {
 template <typename HeapAdd, typename NbrHeap = tdoann::SimpleNeighborHeap>
 void r_to_heap_parallel(NbrHeap &heap, Rcpp::IntegerMatrix nn_idx,
                         Rcpp::NumericMatrix nn_dist, std::size_t block_size,
-                        std::size_t grain_size) {
-  RToHeapWorker<HeapAdd, NbrHeap> worker(heap, nn_idx, nn_dist);
+                        std::size_t grain_size,
+                        int max_idx = (std::numeric_limits<int>::max)()) {
+  RToHeapWorker<HeapAdd, NbrHeap> worker(heap, nn_idx, nn_dist, max_idx);
   tdoann::NullProgress progress;
   const std::size_t n_points = nn_idx.nrow();
   batch_parallel_for(worker, progress, n_points, block_size, grain_size);
@@ -93,13 +94,14 @@ void r_to_heap_parallel(NbrHeap &heap, Rcpp::IntegerMatrix nn_idx,
 template <typename HeapAdd, typename NbrHeap = tdoann::SimpleNeighborHeap>
 void sort_knn_graph_parallel(Rcpp::IntegerMatrix nn_idx,
                              Rcpp::NumericMatrix nn_dist,
-                             std::size_t block_size, std::size_t grain_size) {
+                             std::size_t block_size, std::size_t grain_size,
+                             int max_idx = (std::numeric_limits<int>::max)()) {
   const std::size_t n_points = nn_idx.nrow();
   const std::size_t n_nbrs = nn_idx.ncol();
 
   NbrHeap heap(n_points, n_nbrs);
   r_to_heap_parallel<HeapAdd, NbrHeap>(heap, nn_idx, nn_dist, block_size,
-                                       grain_size);
+                                       grain_size, max_idx);
   heap.deheap_sort();
   heap_to_r(heap, nn_idx, nn_dist);
 }
