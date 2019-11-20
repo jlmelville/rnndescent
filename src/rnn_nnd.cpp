@@ -34,6 +34,15 @@ using namespace tdoann;
                          Progress>(factory, nn_idx, nn_dist, nnd_impl,         \
                                    max_candidates, n_iters, delta, verbose);
 
+#define NND_PROGRESS()                                                         \
+  if (progress == "bar") {                                                     \
+    using Progress = RPProgress;                                               \
+    NND_IMPL()                                                                 \
+  } else {                                                                     \
+    using Progress = HeapSumProgress;                                          \
+    NND_IMPL()                                                                 \
+  }
+
 #define NND_UPDATER()                                                          \
   using KnnFactory = KnnBuildFactory<Distance>;                                \
   KnnFactory factory(data);                                                    \
@@ -42,30 +51,46 @@ using namespace tdoann;
     NNDImpl nnd_impl(block_size, grain_size);                                  \
     if (low_memory) {                                                          \
       using GraphUpdater = BatchGraphUpdater<Distance>;                        \
-      NND_IMPL()                                                               \
+      NND_PROGRESS()                                                           \
     } else {                                                                   \
       using GraphUpdater = BatchGraphUpdaterHiMem<Distance>;                   \
-      NND_IMPL()                                                               \
+      NND_PROGRESS()                                                           \
     }                                                                          \
   } else {                                                                     \
     using NNDImpl = NNDSerial;                                                 \
     NNDImpl nnd_impl;                                                          \
     if (low_memory) {                                                          \
       using GraphUpdater = SerialGraphUpdater<Distance>;                       \
-      NND_IMPL()                                                               \
+      NND_PROGRESS()                                                           \
     } else {                                                                   \
       using GraphUpdater = SerialGraphUpdaterHiMem<Distance>;                  \
-      NND_IMPL()                                                               \
+      NND_PROGRESS()                                                           \
     }                                                                          \
   }
 
-#define NND_PROGRESS()                                                         \
-  if (progress == "bar") {                                                     \
-    using Progress = RPProgress;                                               \
-    NND_UPDATER()                                                              \
+#define NND_QUERY_UPDATER()                                                    \
+  using KnnFactory = KnnQueryFactory<Distance>;                                \
+  KnnFactory factory(reference, query);                                        \
+  if (parallelize) {                                                           \
+    using NNDImpl = NNDQueryParallel;                                          \
+    NNDImpl nnd_impl(reference_idx, block_size, grain_size);                   \
+    if (low_memory) {                                                          \
+      using GraphUpdater = QuerySerialGraphUpdater<Distance>;                  \
+      NND_PROGRESS()                                                           \
+    } else {                                                                   \
+      using GraphUpdater = QuerySerialGraphUpdater<Distance>;                  \
+      NND_PROGRESS()                                                           \
+    }                                                                          \
   } else {                                                                     \
-    using Progress = HeapSumProgress;                                          \
-    NND_UPDATER()                                                              \
+    using NNDImpl = NNDQuerySerial;                                            \
+    NNDImpl nnd_impl(reference_idx);                                           \
+    if (low_memory) {                                                          \
+      using GraphUpdater = QuerySerialGraphUpdater<Distance>;                  \
+      NND_PROGRESS()                                                           \
+    } else {                                                                   \
+      using GraphUpdater = QuerySerialGraphUpdaterHiMem<Distance>;             \
+      NND_PROGRESS()                                                           \
+    }                                                                          \
   }
 
 struct NNDSerial {
@@ -110,76 +135,6 @@ struct NNDParallel {
         nn_idx.nrow() - 1);
   }
 };
-
-template <typename KnnFactory, typename NNDImpl, typename GraphUpdater,
-          typename Distance, typename Progress>
-Rcpp::List nn_descent_impl(KnnFactory &factory, Rcpp::IntegerMatrix nn_idx,
-                           Rcpp::NumericMatrix nn_dist, NNDImpl &nnd_impl,
-                           const std::size_t max_candidates = 50,
-                           const std::size_t n_iters = 10,
-                           const double delta = 0.001, bool verbose = false) {
-  const std::size_t n_points = nn_idx.nrow();
-  const std::size_t n_nbrs = nn_idx.ncol();
-  const double tol = delta * n_nbrs * n_points;
-
-  auto distance = factory.create_distance();
-
-  NeighborHeap current_graph(n_points, n_nbrs);
-  nnd_impl.create_heap(current_graph, nn_idx, nn_dist);
-  GraphUpdater graph_updater(current_graph, distance);
-
-  Progress progress(current_graph, n_iters, verbose);
-  RRand rand;
-
-  nnd_impl(current_graph, graph_updater, max_candidates, n_iters, rand, tol,
-           progress, verbose);
-
-  return heap_to_r(current_graph);
-}
-
-// [[Rcpp::export]]
-Rcpp::List nn_descent(Rcpp::NumericMatrix data, Rcpp::IntegerMatrix nn_idx,
-                      Rcpp::NumericMatrix nn_dist,
-                      const std::string metric = "euclidean",
-                      const std::size_t max_candidates = 50,
-                      const std::size_t n_iters = 10,
-                      const double delta = 0.001, bool low_memory = true,
-                      bool parallelize = false, std::size_t block_size = 16384,
-                      std::size_t grain_size = 1, bool verbose = false,
-                      const std::string &progress = "bar") {
-  DISPATCH_ON_DISTANCES(NND_PROGRESS);
-}
-
-#define NND_QUERY_IMPL()                                                       \
-  return nn_descent_impl<KnnFactory, NNDImpl, GraphUpdater, Distance,          \
-                         HeapSumProgress>(factory, nn_idx, nn_dist, nnd_impl,  \
-                                          max_candidates, n_iters, delta,      \
-                                          verbose);
-
-#define NND_QUERY_UPDATER()                                                    \
-  using KnnFactory = KnnQueryFactory<Distance>;                                \
-  KnnFactory factory(reference, query);                                        \
-  if (parallelize) {                                                           \
-    using NNDImpl = NNDQueryParallel;                                          \
-    NNDImpl nnd_impl(reference_idx, block_size, grain_size);                   \
-    if (low_memory) {                                                          \
-      using GraphUpdater = QuerySerialGraphUpdater<Distance>;                  \
-      NND_QUERY_IMPL()                                                         \
-    } else {                                                                   \
-      using GraphUpdater = QuerySerialGraphUpdater<Distance>;                  \
-      NND_QUERY_IMPL()                                                         \
-    }                                                                          \
-  } else {                                                                     \
-    using NNDImpl = NNDQuerySerial;                                            \
-    NNDImpl nnd_impl(reference_idx);                                           \
-    if (low_memory) {                                                          \
-      using GraphUpdater = QuerySerialGraphUpdater<Distance>;                  \
-      NND_QUERY_IMPL()                                                         \
-    } else {                                                                   \
-      using GraphUpdater = QuerySerialGraphUpdaterHiMem<Distance>;             \
-      NND_QUERY_IMPL()                                                         \
-    }                                                                          \
-  }
 
 struct NNDQuerySerial {
   Rcpp::IntegerMatrix ref_idx;
@@ -239,6 +194,45 @@ struct NNDQueryParallel {
                                      grain_size, n_ref_points - 1);
   }
 };
+
+template <typename KnnFactory, typename NNDImpl, typename GraphUpdater,
+          typename Distance, typename Progress>
+Rcpp::List nn_descent_impl(KnnFactory &factory, Rcpp::IntegerMatrix nn_idx,
+                           Rcpp::NumericMatrix nn_dist, NNDImpl &nnd_impl,
+                           const std::size_t max_candidates = 50,
+                           const std::size_t n_iters = 10,
+                           const double delta = 0.001, bool verbose = false) {
+  const std::size_t n_points = nn_idx.nrow();
+  const std::size_t n_nbrs = nn_idx.ncol();
+  const double tol = delta * n_nbrs * n_points;
+
+  auto distance = factory.create_distance();
+
+  NeighborHeap current_graph(n_points, n_nbrs);
+  nnd_impl.create_heap(current_graph, nn_idx, nn_dist);
+  GraphUpdater graph_updater(current_graph, distance);
+
+  Progress progress(current_graph, n_iters, verbose);
+  RRand rand;
+
+  nnd_impl(current_graph, graph_updater, max_candidates, n_iters, rand, tol,
+           progress, verbose);
+
+  return heap_to_r(current_graph);
+}
+
+// [[Rcpp::export]]
+Rcpp::List nn_descent(Rcpp::NumericMatrix data, Rcpp::IntegerMatrix nn_idx,
+                      Rcpp::NumericMatrix nn_dist,
+                      const std::string metric = "euclidean",
+                      const std::size_t max_candidates = 50,
+                      const std::size_t n_iters = 10,
+                      const double delta = 0.001, bool low_memory = true,
+                      bool parallelize = false, std::size_t block_size = 16384,
+                      std::size_t grain_size = 1, bool verbose = false,
+                      const std::string &progress = "bar") {
+  DISPATCH_ON_DISTANCES(NND_UPDATER);
+}
 
 // [[Rcpp::export]]
 Rcpp::List
