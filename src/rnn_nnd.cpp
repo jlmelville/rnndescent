@@ -30,11 +30,13 @@
 using namespace tdoann;
 
 #define NND_IMPL()                                                             \
-  return nn_descent_impl<NNDImpl, GraphUpdater, Distance, Progress>(           \
-      data, nn_idx, nn_dist, nnd_impl, max_candidates, n_iters, delta,         \
-      verbose);
+  return nn_descent_impl<KnnFactory, NNDImpl, GraphUpdater, Distance,          \
+                         Progress>(factory, nn_idx, nn_dist, nnd_impl,         \
+                                   max_candidates, n_iters, delta, verbose);
 
 #define NND_UPDATER()                                                          \
+  using KnnFactory = KnnBuildFactory<Distance>;                                \
+  KnnFactory factory(data);                                                    \
   if (parallelize) {                                                           \
     using NNDImpl = NNDParallel;                                               \
     NNDImpl nnd_impl(block_size, grain_size);                                  \
@@ -109,9 +111,9 @@ struct NNDParallel {
   }
 };
 
-template <typename NNDImpl, typename GraphUpdater, typename Distance,
-          typename Progress>
-Rcpp::List nn_descent_impl(Rcpp::NumericMatrix data, Rcpp::IntegerMatrix nn_idx,
+template <typename KnnFactory, typename NNDImpl, typename GraphUpdater,
+          typename Distance, typename Progress>
+Rcpp::List nn_descent_impl(KnnFactory &factory, Rcpp::IntegerMatrix nn_idx,
                            Rcpp::NumericMatrix nn_dist, NNDImpl &nnd_impl,
                            const std::size_t max_candidates = 50,
                            const std::size_t n_iters = 10,
@@ -120,7 +122,6 @@ Rcpp::List nn_descent_impl(Rcpp::NumericMatrix data, Rcpp::IntegerMatrix nn_idx,
   const std::size_t n_nbrs = nn_idx.ncol();
   const double tol = delta * n_nbrs * n_points;
 
-  KnnBuildFactory<Distance> factory(data);
   auto distance = factory.create_distance();
 
   NeighborHeap current_graph(n_points, n_nbrs);
@@ -150,12 +151,14 @@ Rcpp::List nn_descent(Rcpp::NumericMatrix data, Rcpp::IntegerMatrix nn_idx,
 }
 
 #define NND_QUERY_IMPL()                                                       \
-  return nn_descent_query_impl<NNDImpl, GraphUpdater, Distance,                \
-                               HeapSumProgress>(                               \
-      reference, reference_idx, query, nn_idx, nn_dist, nnd_impl,              \
-      max_candidates, n_iters, delta, verbose);
+  return nn_descent_impl<KnnFactory, NNDImpl, GraphUpdater, Distance,          \
+                         HeapSumProgress>(factory, nn_idx, nn_dist, nnd_impl,  \
+                                          max_candidates, n_iters, delta,      \
+                                          verbose);
 
 #define NND_QUERY_UPDATER()                                                    \
+  using KnnFactory = KnnQueryFactory<Distance>;                                \
+  KnnFactory factory(reference, query);                                        \
   if (parallelize) {                                                           \
     using NNDImpl = NNDQueryParallel;                                          \
     NNDImpl nnd_impl(reference_idx, block_size, grain_size);                   \
@@ -236,34 +239,6 @@ struct NNDQueryParallel {
                                      grain_size, n_ref_points - 1);
   }
 };
-
-template <typename NNDImpl, typename GraphUpdater, typename Distance,
-          typename Progress>
-Rcpp::List nn_descent_query_impl(
-    Rcpp::NumericMatrix reference, Rcpp::IntegerMatrix reference_idx,
-    Rcpp::NumericMatrix query, Rcpp::IntegerMatrix nn_idx,
-    Rcpp::NumericMatrix nn_dist, NNDImpl &nnd_impl,
-    const std::size_t max_candidates = 50, const std::size_t n_iters = 10,
-    const double delta = 0.001, bool verbose = false) {
-  const std::size_t n_points = nn_idx.nrow();
-  const std::size_t n_nbrs = nn_idx.ncol();
-  const double tol = delta * n_nbrs * n_points;
-
-  KnnQueryFactory<Distance> factory(reference, query);
-  auto distance = factory.create_distance();
-
-  NeighborHeap current_graph(n_points, n_nbrs);
-  nnd_impl.create_heap(current_graph, nn_idx, nn_dist);
-  GraphUpdater graph_updater(current_graph, distance);
-
-  Progress progress(current_graph, n_iters, verbose);
-  RRand rand;
-
-  nnd_impl(current_graph, graph_updater, max_candidates, n_iters, rand, tol,
-           progress, verbose);
-
-  return heap_to_r(current_graph);
-}
 
 // [[Rcpp::export]]
 Rcpp::List
