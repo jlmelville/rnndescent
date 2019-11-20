@@ -78,7 +78,7 @@ struct NNDSerial {
   }
   void create_heap(NeighborHeap &current_graph, Rcpp::IntegerMatrix nn_idx,
                    Rcpp::NumericMatrix nn_dist) {
-    r_to_heap<HeapAddSymmetric, tdoann::NeighborHeap>(
+    r_to_heap<HeapAddSymmetric, NeighborHeap>(
         current_graph, nn_idx, nn_dist,
         static_cast<int>(current_graph.n_points - 1));
   }
