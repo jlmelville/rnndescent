@@ -81,9 +81,7 @@ template <typename ParallelRandomKnn> struct ParallelRandomNbrsImpl {
   template <typename Distance>
   void build_knn(Distance &distance, Rcpp::IntegerMatrix nn_idx,
                  Rcpp::NumericMatrix nn_dist, bool verbose) {
-    const auto nr = nn_idx.ncol();
-    const auto n_blocks = (nr / block_size) + 1;
-    RPProgress progress(1, n_blocks, verbose);
+    RPProgress progress(1, verbose);
     rknn_parallel<Worker>(progress, distance, nn_idx, nn_dist, block_size,
                           grain_size);
   }

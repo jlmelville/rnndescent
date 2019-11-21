@@ -108,16 +108,14 @@ void ts(const std::string &msg);
 struct HeapSumProgress {
   tdoann::NeighborHeap &neighbor_heap;
   const std::size_t n_iters;
-  const std::size_t n_blocks;
-  std::size_t iter;
   bool verbose;
 
+  std::size_t iter;
   bool is_aborted;
 
   HeapSumProgress(tdoann::NeighborHeap &neighbor_heap, std::size_t n_iters,
                   bool verbose = false);
-  HeapSumProgress(tdoann::NeighborHeap &neighbor_heap, std::size_t n_iters, std::size_t n_blocks,
-                                   bool verbose = false);
+  void set_n_blocks(std::size_t n_blocks);
   void block_finished();
   void iter_finished();
   void stopping_early();
@@ -131,17 +129,16 @@ struct RPProgress {
   const std::size_t scale;
   Progress progress;
   const std::size_t n_iters;
-  const double n_blocks;
+  std::size_t n_blocks_;
   bool verbose;
 
   std::size_t iter;
   std::size_t block;
-
   bool is_aborted;
 
-  RPProgress(std::size_t n_iters, std::size_t n_blocks, bool verbose);
   RPProgress(std::size_t n_iters, bool verbose);
   RPProgress(tdoann::NeighborHeap &, std::size_t n_iters, bool verbose);
+  void set_n_blocks(std::size_t n_blocks);
   void block_finished();
   void iter_finished();
   void stopping_early();

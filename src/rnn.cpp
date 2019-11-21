@@ -52,17 +52,8 @@ void ts(const std::string &msg) {
 }
 
 HeapSumProgress::HeapSumProgress(NeighborHeap &neighbor_heap,
-                                 std::size_t n_iters, std::size_t n_blocks,
-                                 bool verbose)
-    : neighbor_heap(neighbor_heap), n_iters(n_iters), n_blocks(n_blocks),
-      iter(0), verbose(verbose), is_aborted(false) {
-  iter_msg(0);
-}
-
-HeapSumProgress::HeapSumProgress(NeighborHeap &neighbor_heap,
                                  std::size_t n_iters, bool verbose)
-    : neighbor_heap(neighbor_heap), n_iters(n_iters),
-      n_blocks(neighbor_heap.n_points), iter(0), verbose(verbose),
+    : neighbor_heap(neighbor_heap), n_iters(n_iters), verbose(verbose), iter(0),
       is_aborted(false) {
   iter_msg(0);
 }
@@ -74,7 +65,7 @@ void HeapSumProgress::iter_msg(std::size_t iter) const {
     ts(os.str());
   }
 }
-
+void HeapSumProgress::set_n_blocks(std::size_t) {}
 void HeapSumProgress::block_finished() {}
 void HeapSumProgress::iter_finished() {
   ++iter;
@@ -113,25 +104,25 @@ double HeapSumProgress::dist_sum() const {
   }
   return sum;
 }
-RPProgress::RPProgress(std::size_t n_iters, std::size_t n_blocks, bool verbose)
-    : scale(100), progress(scale, verbose), n_iters(n_iters),
-      n_blocks(n_blocks), verbose(verbose), iter(0), block(0),
-      is_aborted(false) {}
 RPProgress::RPProgress(std::size_t n_iters, bool verbose)
-    : scale(100), progress(scale, verbose), n_iters(n_iters), n_blocks(0),
+    : scale(100), progress(scale, verbose), n_iters(n_iters), n_blocks_(0),
       verbose(verbose), iter(0), block(0), is_aborted(false) {}
 RPProgress::RPProgress(NeighborHeap &, std::size_t n_iters, bool verbose)
-    : scale(100), progress(scale, verbose), n_iters(n_iters), n_blocks(0),
+    : scale(100), progress(scale, verbose), n_iters(n_iters), n_blocks_(0),
       verbose(verbose), iter(0), block(0), is_aborted(false) {}
+
+void RPProgress::set_n_blocks(std::size_t n_blocks) {
+  n_blocks_ = n_blocks;
+  block = 0;
+}
 void RPProgress::block_finished() {
+  ++block;
   if (verbose) {
-    ++block;
-    progress.update(scaled(iter + (block / n_blocks)));
+    progress.update(scaled(iter + (static_cast<double>(block) / n_blocks_)));
   }
 }
 void RPProgress::iter_finished() {
   if (verbose) {
-    block = 0;
     ++iter;
     progress.update(scaled(iter));
   }

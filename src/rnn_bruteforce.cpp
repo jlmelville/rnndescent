@@ -47,8 +47,7 @@ rnn_brute_force_impl(Rcpp::NumericMatrix data, int k, bool parallelize = false,
   tdoann::SimpleNeighborHeap neighbor_heap(n_points, n_nbrs);
 
   if (parallelize) {
-    const auto n_blocks = (n_points / block_size) + 1;
-    RPProgress progress(1, n_blocks, verbose);
+    RPProgress progress(1, verbose);
     nnbf_parallel(neighbor_heap, distance, progress, block_size, grain_size);
   } else {
     RPProgress progress(n_points, verbose);
@@ -88,8 +87,7 @@ rnn_brute_force_query_impl(Rcpp::NumericMatrix x, Rcpp::NumericMatrix y, int k,
   tdoann::SimpleNeighborHeap neighbor_heap(n_ypoints, n_nbrs);
 
   if (parallelize) {
-    const auto n_blocks = (n_ypoints / block_size) + 1;
-    RPProgress progress(1, n_blocks, verbose);
+    RPProgress progress(1, verbose);
     nnbf_parallel_query(neighbor_heap, distance, n_xpoints, progress,
                         block_size, grain_size);
   } else {

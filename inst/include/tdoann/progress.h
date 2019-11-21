@@ -26,6 +26,7 @@ namespace tdoann {
 struct NullProgress {
   NullProgress() {}
   NullProgress(std::size_t n_iters, bool verbose) {}
+  void set_n_blocks(std::size_t n_blocks) {}
   void block_finished() {}
   void iter_finished() {}
   void stopping_early() {}

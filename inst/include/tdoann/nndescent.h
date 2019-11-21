@@ -132,6 +132,7 @@ std::size_t local_join(NeighborHeap &current_graph,
                        const NeighborHeap &new_nbrs,
                        const NeighborHeap &old_nbrs, const std::size_t n_points,
                        const std::size_t max_candidates, Progress &progress) {
+  progress.set_n_blocks(n_points);
   std::size_t c = 0;
   for (std::size_t i = 0; i < n_points; i++) {
     for (std::size_t j = 0; j < max_candidates; j++) {
@@ -155,7 +156,7 @@ std::size_t local_join(NeighborHeap &current_graph,
         c += graph_updater.generate_and_apply(p, q);
       }
     }
-    TDOANN_BREAKIFINTERRUPTED();
+    TDOANN_BLOCKFINISHED();
   }
   return c;
 }
@@ -291,7 +292,7 @@ non_search_query(NeighborHeap &current_graph,
         c += graph_updater.generate_and_apply(query_idx, nbr_ref_idx);
       }
     }
-    TDOANN_BREAKIFINTERRUPTED();
+    TDOANN_BLOCKFINISHED();
     seen.clear();
   }
   return c;
@@ -305,6 +306,7 @@ non_search_query(NeighborHeap &current_graph,
                  const NeighborHeap &new_nbrs, const NeighborHeap &gn_graph,
                  const std::size_t max_candidates, Progress &progress) {
   const std::size_t n_points = current_graph.n_points;
+  progress.set_n_blocks(n_points);
   return non_search_query(current_graph, graph_updater, new_nbrs, gn_graph,
                           max_candidates, 0, n_points, progress);
 }
