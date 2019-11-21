@@ -61,7 +61,7 @@ template <typename In, typename Out> struct Euclidean {
   const std::size_t nx;
   const std::size_t ny;
 
-  typedef In in_type;
+  using Input = In;
 };
 
 template <typename In, typename Out> struct L2Sqr {
@@ -90,7 +90,7 @@ template <typename In, typename Out> struct L2Sqr {
   const std::size_t nx;
   const std::size_t ny;
 
-  typedef In in_type;
+  using Input = In;
 };
 
 template <typename T>
@@ -137,7 +137,7 @@ template <typename In, typename Out> struct CosineN {
   const std::size_t nx;
   const std::size_t ny;
 
-  typedef In in_type;
+  using Input = In;
 };
 
 // normalize data on input
@@ -172,7 +172,7 @@ template <typename In, typename Out> struct Cosine {
   std::size_t nx;
   std::size_t ny;
 
-  typedef In in_type;
+  using Input = In;
 };
 
 template <typename In, typename Out> struct Manhattan {
@@ -201,7 +201,7 @@ template <typename In, typename Out> struct Manhattan {
   const std::size_t nx;
   const std::size_t ny;
 
-  typedef In in_type;
+  using Input = In;
 };
 
 template <typename T>
@@ -292,7 +292,7 @@ template <typename In, typename Out> struct Hamming {
   const std::size_t nx;
   const std::size_t ny;
 
-  typedef In in_type;
+  using Input = In;
 };
 } // namespace tdoann
 #endif // TDOANN_DISTANCE_H

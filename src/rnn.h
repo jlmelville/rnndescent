@@ -53,7 +53,7 @@
 /* Structs */
 
 template <typename Distance> struct KnnQueryFactory {
-  using DataVec = std::vector<typename Distance::in_type>;
+  using DataVec = std::vector<typename Distance::Input>;
 
   DataVec reference_vec;
   DataVec query_vec;
@@ -79,7 +79,7 @@ template <typename Distance> struct KnnQueryFactory {
 };
 
 template <typename Distance> struct KnnBuildFactory {
-  using DataVec = std::vector<typename Distance::in_type>;
+  using DataVec = std::vector<typename Distance::Input>;
 
   DataVec data_vec;
   int nrow;

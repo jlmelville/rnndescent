@@ -41,7 +41,7 @@ rnn_brute_force_impl(Rcpp::NumericMatrix data, int k, bool parallelize = false,
 
   const std::size_t ndim = data.ncol();
   data = Rcpp::transpose(data);
-  auto data_vec = Rcpp::as<std::vector<typename Distance::in_type>>(data);
+  auto data_vec = Rcpp::as<std::vector<typename Distance::Input>>(data);
 
   Distance distance(data_vec, ndim);
   tdoann::SimpleNeighborHeap neighbor_heap(n_points, n_nbrs);
@@ -78,10 +78,10 @@ rnn_brute_force_query_impl(Rcpp::NumericMatrix x, Rcpp::NumericMatrix y, int k,
 
   const std::size_t ndim = x.ncol();
   x = Rcpp::transpose(x);
-  auto x_vec = Rcpp::as<std::vector<typename Distance::in_type>>(x);
+  auto x_vec = Rcpp::as<std::vector<typename Distance::Input>>(x);
 
   y = Rcpp::transpose(y);
-  auto y_vec = Rcpp::as<std::vector<typename Distance::in_type>>(y);
+  auto y_vec = Rcpp::as<std::vector<typename Distance::Input>>(y);
 
   Distance distance(x_vec, y_vec, ndim);
   tdoann::SimpleNeighborHeap neighbor_heap(n_ypoints, n_nbrs);
