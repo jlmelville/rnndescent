@@ -97,17 +97,16 @@ struct NNDSerial {
   template <template <typename> class GraphUpdater, typename Distance,
             typename Progress, typename Rand>
   void
-  operator()(NeighborHeap &current_graph, GraphUpdater<Distance> &graph_updater,
-             const std::size_t max_candidates, const std::size_t n_iters,
-             Rand &rand, const double tol, Progress &progress, bool verbose) {
+  build_knn(NeighborHeap &current_graph, GraphUpdater<Distance> &graph_updater,
+            const std::size_t max_candidates, const std::size_t n_iters,
+            Rand &rand, const double tol, Progress &progress, bool verbose) {
     nnd_full(current_graph, graph_updater, max_candidates, n_iters, rand,
              progress, tol, verbose);
   }
   void create_heap(NeighborHeap &current_graph, Rcpp::IntegerMatrix nn_idx,
                    Rcpp::NumericMatrix nn_dist) {
-    r_to_heap<HeapAddSymmetric, NeighborHeap>(
-        current_graph, nn_idx, nn_dist,
-        static_cast<int>(current_graph.n_points - 1));
+    r_to_heap<HeapAddSymmetric, NeighborHeap>(current_graph, nn_idx, nn_dist,
+                                              current_graph.n_points - 1);
   }
 };
 
@@ -121,9 +120,9 @@ struct NNDParallel {
   template <template <typename> class GraphUpdater, typename Distance,
             typename Progress, typename Rand>
   void
-  operator()(NeighborHeap &current_graph, GraphUpdater<Distance> &graph_updater,
-             const std::size_t max_candidates, const std::size_t n_iters,
-             Rand &rand, const double tol, Progress &progress, bool verbose) {
+  build_knn(NeighborHeap &current_graph, GraphUpdater<Distance> &graph_updater,
+            const std::size_t max_candidates, const std::size_t n_iters,
+            Rand &rand, const double tol, Progress &progress, bool verbose) {
     nnd_parallel(current_graph, graph_updater, max_candidates, n_iters, rand,
                  progress, tol, block_size, grain_size, verbose);
   }
@@ -146,9 +145,9 @@ struct NNDQuerySerial {
   template <template <typename> class GraphUpdater, typename Distance,
             typename Progress, typename Rand>
   void
-  operator()(NeighborHeap &current_graph, GraphUpdater<Distance> &graph_updater,
-             const std::size_t max_candidates, const std::size_t n_iters,
-             Rand &rand, const double tol, Progress &progress, bool verbose) {
+  build_knn(NeighborHeap &current_graph, GraphUpdater<Distance> &graph_updater,
+            const std::size_t max_candidates, const std::size_t n_iters,
+            Rand &rand, const double tol, Progress &progress, bool verbose) {
 
     auto ref_idx_vec =
         Rcpp::as<std::vector<std::size_t>>(Rcpp::transpose(ref_idx));
@@ -177,9 +176,9 @@ struct NNDQueryParallel {
   template <template <typename> class GraphUpdater, typename Distance,
             typename Progress, typename Rand>
   void
-  operator()(NeighborHeap &current_graph, GraphUpdater<Distance> &graph_updater,
-             const std::size_t max_candidates, const std::size_t n_iters,
-             Rand &rand, const double tol, Progress &progress, bool verbose) {
+  build_knn(NeighborHeap &current_graph, GraphUpdater<Distance> &graph_updater,
+            const std::size_t max_candidates, const std::size_t n_iters,
+            Rand &rand, const double tol, Progress &progress, bool verbose) {
     auto ref_idx_vec =
         Rcpp::as<std::vector<std::size_t>>(Rcpp::transpose(ref_idx));
 
@@ -215,8 +214,8 @@ Rcpp::List nn_descent_impl(KnnFactory &factory, Rcpp::IntegerMatrix nn_idx,
   Progress progress(current_graph, n_iters, verbose);
   RRand rand;
 
-  nnd_impl(current_graph, graph_updater, max_candidates, n_iters, rand, tol,
-           progress, verbose);
+  nnd_impl.build_knn(current_graph, graph_updater, max_candidates, n_iters,
+                     rand, tol, progress, verbose);
 
   return heap_to_r(current_graph);
 }
