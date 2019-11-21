@@ -52,23 +52,33 @@ void ts(const std::string &msg) {
 }
 
 HeapSumProgress::HeapSumProgress(NeighborHeap &neighbor_heap,
-                                 std::size_t n_iters, bool verbose)
-    : neighbor_heap(neighbor_heap), n_iters(n_iters), iter(0), verbose(verbose),
-      is_aborted(false) {
-  if (verbose) {
-    std::ostringstream os;
-    os << "0 / " << n_iters << " " << dist_sum();
-    ts(os.str());
-  }
+                                 std::size_t n_iters, std::size_t n_blocks,
+                                 bool verbose)
+    : neighbor_heap(neighbor_heap), n_iters(n_iters), n_blocks(n_blocks),
+      iter(0), verbose(verbose), is_aborted(false) {
+  iter_msg(0);
 }
-void HeapSumProgress::block_finished() {}
-void HeapSumProgress::iter_finished() {
-  ++iter;
+
+HeapSumProgress::HeapSumProgress(NeighborHeap &neighbor_heap,
+                                 std::size_t n_iters, bool verbose)
+    : neighbor_heap(neighbor_heap), n_iters(n_iters),
+      n_blocks(neighbor_heap.n_points), iter(0), verbose(verbose),
+      is_aborted(false) {
+  iter_msg(0);
+}
+
+void HeapSumProgress::iter_msg(std::size_t iter) const {
   if (verbose) {
     std::ostringstream os;
     os << iter << " / " << n_iters << " " << dist_sum();
     ts(os.str());
   }
+}
+
+void HeapSumProgress::block_finished() {}
+void HeapSumProgress::iter_finished() {
+  ++iter;
+  iter_msg(iter);
 }
 void HeapSumProgress::stopping_early() {}
 bool HeapSumProgress::check_interrupt() {

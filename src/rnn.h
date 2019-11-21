@@ -108,6 +108,7 @@ void ts(const std::string &msg);
 struct HeapSumProgress {
   tdoann::NeighborHeap &neighbor_heap;
   const std::size_t n_iters;
+  const std::size_t n_blocks;
   std::size_t iter;
   bool verbose;
 
@@ -115,12 +116,15 @@ struct HeapSumProgress {
 
   HeapSumProgress(tdoann::NeighborHeap &neighbor_heap, std::size_t n_iters,
                   bool verbose = false);
+  HeapSumProgress(tdoann::NeighborHeap &neighbor_heap, std::size_t n_iters, std::size_t n_blocks,
+                                   bool verbose = false);
   void block_finished();
   void iter_finished();
   void stopping_early();
   bool check_interrupt();
   void converged(std::size_t n_updates, double tol);
   double dist_sum() const;
+  void iter_msg(std::size_t iter) const;
 };
 
 struct RPProgress {
