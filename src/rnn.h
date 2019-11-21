@@ -38,13 +38,33 @@
     using Distance = tdoann::L2Sqr<float, float>;                              \
     NEXT_MACRO()                                                               \
   } else if (metric == "cosine") {                                             \
-    using Distance = tdoann::Cosine<float, float>;                             \
+    using Distance = tdoann::CosineSelf<float, float>;                         \
     NEXT_MACRO()                                                               \
   } else if (metric == "manhattan") {                                          \
     using Distance = tdoann::Manhattan<float, float>;                          \
     NEXT_MACRO()                                                               \
   } else if (metric == "hamming") {                                            \
-    using Distance = tdoann::Hamming<uint8_t, std::size_t>;                    \
+    using Distance = tdoann::HammingSelf<uint8_t, std::size_t>;                \
+    NEXT_MACRO()                                                               \
+  } else {                                                                     \
+    Rcpp::stop("Bad metric");                                                  \
+  }
+
+#define DISPATCH_ON_QUERY_DISTANCES(NEXT_MACRO)                                \
+  if (metric == "euclidean") {                                                 \
+    using Distance = tdoann::Euclidean<float, float>;                          \
+    NEXT_MACRO()                                                               \
+  } else if (metric == "l2sqr") {                                              \
+    using Distance = tdoann::L2Sqr<float, float>;                              \
+    NEXT_MACRO()                                                               \
+  } else if (metric == "cosine") {                                             \
+    using Distance = tdoann::CosineQuery<float, float>;                        \
+    NEXT_MACRO()                                                               \
+  } else if (metric == "manhattan") {                                          \
+    using Distance = tdoann::Manhattan<float, float>;                          \
+    NEXT_MACRO()                                                               \
+  } else if (metric == "hamming") {                                            \
+    using Distance = tdoann::HammingQuery<uint8_t, std::size_t>;               \
     NEXT_MACRO()                                                               \
   } else {                                                                     \
     Rcpp::stop("Bad metric");                                                  \

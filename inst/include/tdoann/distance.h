@@ -29,7 +29,6 @@
 
 #include <bitset>
 #include <cmath>
-#include <memory>
 #include <vector>
 
 namespace tdoann {
@@ -93,9 +92,10 @@ template <typename In, typename Out> struct L2Sqr {
   using Input = In;
 };
 
+// relies on NRVO to avoid a copy
 template <typename T>
-void normalize(const std::vector<T> &vec, std::size_t ndim,
-               std::vector<T> &normalized) {
+std::vector<T> normalize(const std::vector<T> &vec, std::size_t ndim) {
+  std::vector<T> normalized(vec.size());
   const std::size_t npoints = vec.size() / ndim;
   for (std::size_t i = 0; i < npoints; i++) {
     const std::size_t di = ndim * i;
@@ -110,67 +110,55 @@ void normalize(const std::vector<T> &vec, std::size_t ndim,
       normalized[di + d] = vec[di + d] / norm;
     }
   }
+  return normalized;
 }
 
-template <typename In, typename Out> struct CosineN {
-  CosineN(const std::vector<In> &data, std::size_t ndim)
-      : x(data), y(data), ndim(ndim), nx(data.size() / ndim),
-        ny(data.size() / ndim) {}
-  CosineN(const std::vector<In> &x, const std::vector<In> &y, std::size_t ndim)
-      : x(x), y(y), ndim(ndim), nx(x.size() / ndim), ny(y.size() / ndim) {}
+template <typename In, typename Out>
+Out cosine_impl(const std::vector<In> &x, const std::size_t i,
+                const std::vector<In> &y, const std::size_t j,
+                const std::size_t ndim) {
+  const std::size_t di = ndim * i;
+  const std::size_t dj = ndim * j;
 
-  Out operator()(std::size_t i, std::size_t j) const {
-    const std::size_t di = ndim * i;
-    const std::size_t dj = ndim * j;
-
-    Out sum = 0.0;
-    for (std::size_t d = 0; d < ndim; d++) {
-      sum += x[di + d] * y[dj + d];
-    }
-
-    return 1.0 - sum;
+  Out sum = 0.0;
+  for (std::size_t d = 0; d < ndim; d++) {
+    sum += x[di + d] * y[dj + d];
   }
 
+  return 1.0 - sum;
+}
+
+template <typename In, typename Out> struct CosineSelf {
   const std::vector<In> x;
-  const std::vector<In> y;
   const std::size_t ndim;
   const std::size_t nx;
   const std::size_t ny;
 
+  CosineSelf(const std::vector<In> &data, std::size_t ndim)
+      : x(normalize(data, ndim)), ndim(ndim), nx(data.size() / ndim), ny(nx) {}
+
+  Out operator()(std::size_t i, std::size_t j) const {
+    return cosine_impl<In, Out>(x, i, x, j, ndim);
+  }
+
   using Input = In;
 };
 
-// normalize data on input
-template <typename In, typename Out> struct Cosine {
-  Cosine(const std::vector<In> &data, std::size_t ndim)
-      : cosine_norm(nullptr), nx(0), ny(0) {
-    std::vector<In> xnorm(data.size());
-    normalize(data, ndim, xnorm);
-    const auto &ynorm = xnorm;
-    cosine_norm.reset(new CosineN<In, Out>(xnorm, ynorm, ndim));
-    nx = cosine_norm->nx;
-    ny = cosine_norm->ny;
-  }
+template <typename In, typename Out> struct CosineQuery {
+  const std::vector<In> x_;
+  const std::vector<In> y_;
+  const std::size_t ndim;
+  const std::size_t nx;
+  const std::size_t ny;
 
-  Cosine(const std::vector<In> &x, const std::vector<In> &y, std::size_t ndim)
-      : cosine_norm(nullptr), nx(0), ny(0) {
-    std::vector<In> xnorm(x.size());
-    normalize(x, ndim, xnorm);
-
-    std::vector<In> ynorm(y.size());
-    normalize(y, ndim, ynorm);
-    cosine_norm.reset(new CosineN<In, Out>(xnorm, ynorm, ndim));
-    nx = cosine_norm->nx;
-    ny = cosine_norm->ny;
-  }
+  CosineQuery(const std::vector<In> &x, const std::vector<In> &y,
+              std::size_t ndim)
+      : x_(normalize(x, ndim)), y_(normalize(y, ndim)), ndim(ndim),
+        nx(x.size() / ndim), ny(y.size()) {}
 
   Out operator()(std::size_t i, std::size_t j) const {
-    return (*cosine_norm)(i, j);
+    return cosine_impl<In, Out>(x_, i, y_, j, ndim);
   }
-
-  std::unique_ptr<CosineN<In, Out>> cosine_norm;
-  std::size_t nx;
-  std::size_t ny;
 
   using Input = In;
 };
@@ -204,15 +192,23 @@ template <typename In, typename Out> struct Manhattan {
   using Input = In;
 };
 
+template <int n> using BitSet = std::bitset<n>;
+using BitVec = std::vector<BitSet<64>>;
+
+// Instead of storing each bit as an element, we will pack them
+// into a series of 64-bit bitsets. Possibly compilers are smart enough
+// to use built in integer popcount routines for the bitset count()
+// method. Relies on NRVO to avoid copying return value
 template <typename T>
-void to_bitset(const std::vector<T> &vec, std::size_t ndim,
-               std::vector<std::bitset<64>> &bitvec) {
-  std::bitset<64> bits;
+BitVec to_bitvec(const std::vector<T> &vec, std::size_t ndim) {
+  BitSet<64> bits;
   std::size_t bit_count = 0;
   std::size_t vd_count = 0;
 
+  BitVec bitvec;
+
   for (std::size_t i = 0; i < vec.size(); i++) {
-    if (bit_count == 64 || vd_count == ndim) {
+    if (bit_count == bits.size() || vd_count == ndim) {
       // filled up current bitset
       bitvec.push_back(bits);
       bit_count = 0;
@@ -231,68 +227,63 @@ void to_bitset(const std::vector<T> &vec, std::size_t ndim,
   if (bit_count > 0) {
     bitvec.push_back(bits);
   }
+
+  return bitvec;
 }
 
-template <typename Out> struct HammingB {
-  HammingB(const std::vector<std::bitset<64>> &data, std::size_t ndim)
-      : x(data), y(data), ndim(ndim) {}
-  HammingB(const std::vector<std::bitset<64>> &x,
-           const std::vector<std::bitset<64>> &y, std::size_t ndim)
-      : x(x), y(y), ndim(ndim) {}
+template <typename Out>
+Out hamming_impl(const BitVec &x, const std::size_t i, const BitVec &y,
+                 const std::size_t j, const std::size_t ndim) {
+  Out sum = 0;
+  const std::size_t di = ndim * i;
+  const std::size_t dj = ndim * j;
 
-  Out operator()(std::size_t i, std::size_t j) const {
-    Out sum = 0;
-    const std::size_t di = ndim * i;
-    const std::size_t dj = ndim * j;
-
-    for (std::size_t d = 0; d < ndim; d++) {
-      sum += (x[di + d] ^ y[dj + d]).count();
-    }
-
-    return sum;
+  for (std::size_t d = 0; d < ndim; d++) {
+    sum += (x[di + d] ^ y[dj + d]).count();
   }
 
-  const std::vector<std::bitset<64>> x;
-  const std::vector<std::bitset<64>> y;
-  const std::size_t ndim;
-};
+  return sum;
+}
 
-template <typename In, typename Out> struct Hamming {
-  // Instead of storing each bit as an element, we will pack them
-  // into a series of 64-bit bitsets. Possibly compilers are smart enough
-  // to use built in integer popcount routines for the bitset count()
-  // method.
-  Hamming(const std::vector<In> &vdata, const std::size_t vndim)
-      : hammingb(nullptr), nx(vdata.size() / vndim), ny(vdata.size() / vndim) {
-    std::vector<std::bitset<64>> x;
-    to_bitset(vdata, vndim, x);
-    const auto &y = x;
-    const auto ndim = std::ceil(vndim / 64.0);
-    hammingb.reset(new HammingB<Out>(x, y, ndim));
-  }
-
-  Hamming(const std::vector<In> &x, const std::vector<In> &y,
-          const std::size_t vndim)
-      : hammingb(nullptr), nx(x.size() / vndim), ny(y.size() / vndim) {
-    std::vector<std::bitset<64>> bx;
-    to_bitset(x, vndim, bx);
-
-    std::vector<std::bitset<64>> by;
-    to_bitset(y, vndim, by);
-
-    const auto ndim = std::ceil(vndim / 64.0);
-    hammingb.reset(new HammingB<Out>(std::move(bx), std::move(by), ndim));
-  }
-
-  Out operator()(std::size_t i, std::size_t j) const {
-    return (*hammingb)(i, j);
-  }
-
-  std::unique_ptr<HammingB<Out>> hammingb;
+template <typename In, typename Out> struct HammingSelf {
+  const BitVec bitvec;
+  const std::size_t ndim_;
   const std::size_t nx;
   const std::size_t ny;
 
+  HammingSelf(const std::vector<In> &data, std::size_t ndim)
+      : bitvec(to_bitvec(data, ndim)),
+        ndim_(
+            std::ceil(ndim / static_cast<float>(BitVec::value_type{}.size()))),
+        nx(data.size() / ndim), ny(nx) {}
+
+  Out operator()(std::size_t i, std::size_t j) const {
+    return hamming_impl<Out>(bitvec, i, bitvec, j, ndim_);
+  }
+
   using Input = In;
 };
+
+template <typename In, typename Out> struct HammingQuery {
+  const BitVec bx;
+  const BitVec by;
+  const std::size_t ndim_;
+  const std::size_t nx;
+  const std::size_t ny;
+
+  HammingQuery(const std::vector<In> &x, const std::vector<In> &y,
+               std::size_t ndim)
+      : bx(to_bitvec(x, ndim)), by(to_bitvec(y, ndim)),
+        ndim_(
+            std::ceil(ndim / static_cast<float>(BitVec::value_type{}.size()))),
+        nx(x.size() / ndim), ny(y.size() / ndim) {}
+
+  Out operator()(std::size_t i, std::size_t j) const {
+    return hamming_impl<Out>(bx, i, by, j, ndim_);
+  }
+
+  using Input = In;
+};
+
 } // namespace tdoann
 #endif // TDOANN_DISTANCE_H

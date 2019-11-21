@@ -244,5 +244,5 @@ nn_descent_query(Rcpp::NumericMatrix reference,
                  bool low_memory = true, bool parallelize = false,
                  std::size_t block_size = 16384, std::size_t grain_size = 1,
                  bool verbose = false, const std::string &progress = "bar") {
-  DISPATCH_ON_DISTANCES(NND_QUERY_UPDATER)
+  DISPATCH_ON_QUERY_DISTANCES(NND_QUERY_UPDATER)
 }

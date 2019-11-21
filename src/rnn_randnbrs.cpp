@@ -103,5 +103,5 @@ Rcpp::List
                          bool parallelize = false,
                          std::size_t block_size = 4096,
                          std::size_t grain_size = 1, bool verbose = false) {
-  DISPATCH_ON_DISTANCES(RANDOM_NBRS_QUERY)
+  DISPATCH_ON_QUERY_DISTANCES(RANDOM_NBRS_QUERY)
 }

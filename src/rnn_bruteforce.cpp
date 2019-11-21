@@ -105,5 +105,5 @@ Rcpp::List rnn_brute_force_query(Rcpp::NumericMatrix x, Rcpp::NumericMatrix y,
                                  std::size_t block_size = 64,
                                  std::size_t grain_size = 1,
                                  bool verbose = false) {
-  DISPATCH_ON_DISTANCES(BRUTE_FORCE_QUERY)
+  DISPATCH_ON_QUERY_DISTANCES(BRUTE_FORCE_QUERY)
 }
