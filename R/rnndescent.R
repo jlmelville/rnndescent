@@ -11,7 +11,7 @@
 #'   ordering of distances internally (e.g. squared Euclidean distances if using
 #'   \code{metric = "euclidean"}), then apply a correction at the end. Probably
 #'   the only reason to set this to \code{FALSE} is if you suspect that some
-#'   sort of numeric issue is occuring with your data in the alternative code
+#'   sort of numeric issue is occurring with your data in the alternative code
 #'   path.
 #' @param n_threads Number of threads to use.
 #' @param block_size Number of items to generate neighbors for in each
@@ -91,7 +91,7 @@ brute_force_knn <- function(
 #'   ordering of distances internally (e.g. squared Euclidean distances if using
 #'   \code{metric = "euclidean"}), then apply a correction at the end. Probably
 #'   the only reason to set this to \code{FALSE} is if you suspect that some
-#'   sort of numeric issue is occuring with your data in the alternative code
+#'   sort of numeric issue is occurring with your data in the alternative code
 #'   path.
 #' @param order_by_distance If \code{TRUE} (the default), then results for each
 #'   item are returned by increasing distance. If you don't need the results
@@ -204,7 +204,7 @@ random_knn <- function(data, k, metric = "euclidean", use_alt_metric = TRUE,
 #'   ordering of distances internally (e.g. squared Euclidean distances if using
 #'   \code{metric = "euclidean"}), then apply a correction at the end. Probably
 #'   the only reason to set this to \code{FALSE} is if you suspect that some
-#'   sort of numeric issue is occuring with your data in the alternative code
+#'   sort of numeric issue is occurring with your data in the alternative code
 #'   path.
 #' @param n_threads Number of threads to use.
 #' @param block_size Batch size for creating/applying local join updates. A
@@ -370,7 +370,7 @@ nnd_knn <- function(data, k = NULL,
 #'   ordering of distances internally (e.g. squared Euclidean distances if using
 #'   \code{metric = "euclidean"}), then apply a correction at the end. Probably
 #'   the only reason to set this to \code{FALSE} is if you suspect that some
-#'   sort of numeric issue is occuring with your data in the alternative code
+#'   sort of numeric issue is occurring with your data in the alternative code
 #'   path.
 #' @param n_threads Number of threads to use.
 #' @param block_size Number of items to generate neighbors for in each
@@ -466,7 +466,7 @@ brute_force_knn_query <- function(
 #'   ordering of distances internally (e.g. squared Euclidean distances if using
 #'   \code{metric = "euclidean"}), then apply a correction at the end. Probably
 #'   the only reason to set this to \code{FALSE} is if you suspect that some
-#'   sort of numeric issue is occuring with your data in the alternative code
+#'   sort of numeric issue is occurring with your data in the alternative code
 #'   path.
 #' @param order_by_distance If \code{TRUE} (the default), then results for each
 #'   item are returned by increasing distance. If you don't need the results
@@ -565,7 +565,7 @@ random_knn_query <- function(reference, query, k, metric = "euclidean",
 #'   ordering of distances internally (e.g. squared Euclidean distances if using
 #'   \code{metric = "euclidean"}), then apply a correction at the end. Probably
 #'   the only reason to set this to \code{FALSE} is if you suspect that some
-#'   sort of numeric issue is occuring with your data in the alternative code
+#'   sort of numeric issue is occurring with your data in the alternative code
 #'   path.
 #' @param init Initial data to optimize. If not provided, \code{k} random
 #'   neighbors are created. The input format should be the same as the return

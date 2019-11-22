@@ -28,7 +28,7 @@ or \code{"hamming"}.}
 ordering of distances internally (e.g. squared Euclidean distances if using
 \code{metric = "euclidean"}), then apply a correction at the end. Probably
 the only reason to set this to \code{FALSE} is if you suspect that some
-sort of numeric issue is occuring with your data in the alternative code
+sort of numeric issue is occurring with your data in the alternative code
 path.}
 
 \item{n_threads}{Number of threads to use.}
