@@ -717,6 +717,15 @@ nnd_knn_query <- function(reference, reference_idx, query, k = NULL,
 }
 
 
+
+# Merge -------------------------------------------------------------------
+
+merge_knn <- function(nn_graph1, nn_graph2) {
+  validate_are_mergeable(nn_graph1, nn_graph2)
+
+  merge_nn(nn_graph1$idx, nn_graph1$dist, nn_graph2$idx, nn_graph2$dist)
+}
+
 # Internals ---------------------------------------------------------------
 
 #' @useDynLib rnndescent, .registration = TRUE
@@ -772,4 +781,31 @@ apply_alt_metric_correction <- function(metric, dist) {
     euclidean = sqrt(dist),
     dist
   )
+}
+
+validate_are_mergeable <- function(nn_graph1, nn_graph2) {
+  validate_nn_graph(nn_graph1)
+  validate_nn_graph(nn_graph2)
+  nr1 <- nrow(nn_graph1$idx)
+  nr2 <- nrow(nn_graph2$idx)
+  if (nr1 != nr2) {
+    stop("Graphs must have same number of rows, but are ", nr1, ", ", nr2)
+  }
+}
+
+validate_nn_graph <- function(nn_graph) {
+  nr <- nrow(nn_graph$idx)
+  nc <- ncol(nn_graph$idx)
+  validate_nn_graph_matrix(nn_graph$dist, nr, nc, msg = "nn matrix")
+}
+
+validate_nn_graph_matrix <- function(nn, nr, nc, msg = "matrix") {
+  nnr <- nrow(nn)
+  nnc <- ncol(nn)
+  if (nr != nnr) {
+    stop(msg, " has ", nnr, " rows, should have ", nr)
+  }
+  if (nc != nnc) {
+    stop(msg, " has ", nnc, " cols, should have ", nc)
+  }
 }
