@@ -1,3 +1,21 @@
+# rnndescent 0.0.4 (21 November 2019)
+
+Mainly an internal clean-up to reduce duplication.
+
+## Bug fixes and minor improvements
+
+* By default, `nnd_knn` and `nnd_knn_query` use the same progress bar as
+the brute force and random neighbor functions. Bring back the old per-iteration
+logging that also showed the current distance sum of the knn with the
+`progress = "dist"` option.
+* For `random_knn` and `random_knn_query`, when `order_by_distance = TRUE` and
+`n_threads > 0`, the final sorting of the knn graph will be multi-threaded.
+* Initialization of the nearest neighbor descent data structures are also
+multi-threaded if `n_threads > 0`.
+* Progress bar updating and cancellation should now be more consistent and less
+likely to cause hanging and crashing across the different methods.
+* Using Cosine and Hamming distance may take up less memory or run a bit faster.
+
 # rnndescent 0.0.3 (15 November 2019)
 
 ## New features
