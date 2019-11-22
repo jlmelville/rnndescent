@@ -63,7 +63,7 @@ void batch_serial_for(Worker &rnn_worker, Progress &progress, std::size_t n,
   }
 }
 
-template <typename HeapAdd, typename NbrHeap = tdoann::SimpleNeighborHeap>
+template <typename HeapAdd, typename NbrHeap = SimpleNeighborHeap>
 struct RToHeapWorker : public BatchParallelWorker {
   NbrHeap &heap;
   RcppParallel::RMatrix<int> nn_idx;
@@ -82,7 +82,7 @@ struct RToHeapWorker : public BatchParallelWorker {
   }
 };
 
-template <typename HeapAdd, typename NbrHeap = tdoann::SimpleNeighborHeap>
+template <typename HeapAdd, typename NbrHeap = SimpleNeighborHeap>
 void r_to_heap_parallel(NbrHeap &heap, Rcpp::IntegerMatrix nn_idx,
                         Rcpp::NumericMatrix nn_dist, std::size_t block_size,
                         std::size_t grain_size,
@@ -93,7 +93,7 @@ void r_to_heap_parallel(NbrHeap &heap, Rcpp::IntegerMatrix nn_idx,
   batch_parallel_for(worker, progress, n_points, block_size, grain_size);
 }
 
-template <typename HeapAdd, typename NbrHeap = tdoann::SimpleNeighborHeap>
+template <typename HeapAdd, typename NbrHeap = SimpleNeighborHeap>
 void sort_knn_graph_parallel(Rcpp::IntegerMatrix nn_idx,
                              Rcpp::NumericMatrix nn_dist,
                              std::size_t block_size, std::size_t grain_size,

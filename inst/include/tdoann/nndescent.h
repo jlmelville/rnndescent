@@ -219,7 +219,7 @@ void nnd_query(NeighborHeap &current_graph,
 
 template <typename Rand>
 void build_general_nbrs(const std::vector<std::size_t> &reference_idx,
-                        tdoann::NeighborHeap &gn_graph, Rand &rand,
+                        NeighborHeap &gn_graph, Rand &rand,
                         const std::size_t n_points, const std::size_t n_nbrs) {
   for (std::size_t i = 0; i < n_points; i++) {
     std::size_t innbrs = i * n_nbrs;

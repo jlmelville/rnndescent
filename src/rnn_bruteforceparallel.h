@@ -29,13 +29,13 @@
 template <typename Distance>
 struct BruteForceWorker : public BatchParallelWorker {
 
-  tdoann::SimpleNeighborHeap &neighbor_heap;
+  SimpleNeighborHeap &neighbor_heap;
   Distance &distance;
   const std::size_t n_ref_points;
   tdoann::NullProgress progress;
 
-  BruteForceWorker(tdoann::SimpleNeighborHeap &neighbor_heap,
-                   Distance &distance, std::size_t n_ref_points)
+  BruteForceWorker(SimpleNeighborHeap &neighbor_heap, Distance &distance,
+                   std::size_t n_ref_points)
       : neighbor_heap(neighbor_heap), distance(distance),
         n_ref_points(n_ref_points), progress() {}
 
@@ -46,18 +46,18 @@ struct BruteForceWorker : public BatchParallelWorker {
 };
 
 template <typename Distance, typename Progress>
-void nnbf_parallel(tdoann::SimpleNeighborHeap &neighbor_heap,
-                   Distance &distance, Progress &progress,
-                   std::size_t block_size = 64, std::size_t grain_size = 1) {
+void nnbf_parallel(SimpleNeighborHeap &neighbor_heap, Distance &distance,
+                   Progress &progress, std::size_t block_size = 64,
+                   std::size_t grain_size = 1) {
 
   nnbf_parallel_query(neighbor_heap, distance, neighbor_heap.n_points, progress,
                       block_size, grain_size);
 }
 
 template <typename Distance, typename Progress>
-void nnbf_parallel_query(tdoann::SimpleNeighborHeap &neighbor_heap,
-                         Distance &distance, const std::size_t n_ref_points,
-                         Progress &progress, std::size_t block_size = 64,
+void nnbf_parallel_query(SimpleNeighborHeap &neighbor_heap, Distance &distance,
+                         const std::size_t n_ref_points, Progress &progress,
+                         std::size_t block_size = 64,
                          std::size_t grain_size = 1) {
   BruteForceWorker<Distance> worker(neighbor_heap, distance, n_ref_points);
 

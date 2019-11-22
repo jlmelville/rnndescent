@@ -209,8 +209,6 @@ template <typename DistanceOut = double> struct NNDHeap {
   char &flag(std::size_t i, std::size_t j) { return flags[i * n_nbrs + j]; }
 };
 
-using NeighborHeap = NNDHeap<float>;
-
 // Like NNDHeap, but no flag vector
 template <typename DistanceOut = double> struct NNHeap {
   static constexpr std::size_t npos() { return static_cast<std::size_t>(-1); }
@@ -368,7 +366,6 @@ template <typename DistanceOut = double> struct NNHeap {
     return dist[i * n_nbrs + j];
   }
 };
-using SimpleNeighborHeap = NNHeap<float>;
 
 } // namespace tdoann
 #endif // TDOANN_HEAP_H

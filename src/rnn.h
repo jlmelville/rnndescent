@@ -17,8 +17,8 @@
 //  You should have received a copy of the GNU General Public License
 //  along with rnndescent.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef RNND_RNN_H
-#define RNND_RNN_H
+#ifndef RNN_H
+#define RNN_H
 
 #include <limits>
 
@@ -27,8 +27,9 @@
 #include <progress.hpp>
 
 #include "tdoann/distance.h"
-#include "tdoann/graphupdate.h"
 #include "tdoann/heap.h"
+
+#include "rnn_typedefs.h"
 
 #define DISPATCH_ON_DISTANCES(NEXT_MACRO)                                      \
   if (metric == "euclidean") {                                                 \
@@ -126,14 +127,14 @@ void ts(const std::string &msg);
 // Sums the distances in a neighbor heap as a way of measuring progress.
 // Useful for diagnostic purposes
 struct HeapSumProgress {
-  tdoann::NeighborHeap &neighbor_heap;
+  NeighborHeap &neighbor_heap;
   const std::size_t n_iters;
   bool verbose;
 
   std::size_t iter;
   bool is_aborted;
 
-  HeapSumProgress(tdoann::NeighborHeap &neighbor_heap, std::size_t n_iters,
+  HeapSumProgress(NeighborHeap &neighbor_heap, std::size_t n_iters,
                   bool verbose = false);
   void set_n_blocks(std::size_t n_blocks);
   void block_finished();
@@ -157,7 +158,7 @@ struct RPProgress {
   bool is_aborted;
 
   RPProgress(std::size_t n_iters, bool verbose);
-  RPProgress(tdoann::NeighborHeap &, std::size_t n_iters, bool verbose);
+  RPProgress(NeighborHeap &, std::size_t n_iters, bool verbose);
   void set_n_blocks(std::size_t n_blocks);
   void block_finished();
   void iter_finished();
@@ -246,7 +247,7 @@ template <typename NbrHeap> Rcpp::List heap_to_r(const NbrHeap &heap) {
                             Rcpp::Named("dist") = nn_dist);
 }
 
-template <typename HeapAdd, typename NbrHeap = tdoann::SimpleNeighborHeap>
+template <typename HeapAdd, typename NbrHeap = SimpleNeighborHeap>
 void sort_knn_graph(Rcpp::IntegerMatrix nn_idx, Rcpp::NumericMatrix nn_dist) {
   const std::size_t n_points = nn_idx.nrow();
   const std::size_t n_nbrs = nn_idx.ncol();
@@ -257,4 +258,4 @@ void sort_knn_graph(Rcpp::IntegerMatrix nn_idx, Rcpp::NumericMatrix nn_dist) {
   heap_to_r(heap, nn_idx, nn_dist);
 }
 
-#endif // RNND_RNN_H
+#endif // RNN_H
