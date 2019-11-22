@@ -129,10 +129,8 @@ struct NNDParallel {
 
   void create_heap(NeighborHeap &current_graph, Rcpp::IntegerMatrix nn_idx,
                    Rcpp::NumericMatrix nn_dist) {
-    r_to_heap_parallel<HeapAddSymmetric, NeighborHeap>(
-        current_graph, nn_idx, nn_dist, block_size, grain_size,
-        nn_idx.nrow() - 1);
-  }
+    r_to_heap<HeapAddSymmetric, NeighborHeap>(current_graph, nn_idx, nn_dist,
+                                              current_graph.n_points - 1);  }
 };
 
 struct NNDQuerySerial {
