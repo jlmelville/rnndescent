@@ -48,6 +48,19 @@ using ParallelRandomNbrBuildWorker =
     RandomNbrBuildWorker<Distance, LockingIndexSampler,
                          RcppParallel::RMatrix<int>,
                          RcppParallel::RMatrix<double>, BatchParallelWorker>;
+template <typename HeapAdd> struct ParallelRandomKnnSort {
+  static void sort(Rcpp::IntegerMatrix nn_idx, Rcpp::NumericMatrix nn_dist,
+                   std::size_t block_size, std::size_t grain_size) {
+    sort_knn_graph_parallel<HeapAdd>(nn_idx, nn_dist, block_size, grain_size);
+  }
+};
+
+template <> struct ParallelRandomKnnSort<HeapAddSymmetric> {
+  static void sort(Rcpp::IntegerMatrix nn_idx, Rcpp::NumericMatrix nn_dist,
+                   std::size_t, std::size_t) {
+    sort_knn_graph<HeapAddSymmetric>(nn_idx, nn_dist);
+  }
+};
 
 struct ParallelRandomKnnBuild {
   // Can't use symmetric heap addition with parallel approach
@@ -86,7 +99,8 @@ template <typename ParallelRandomKnn> struct ParallelRandomNbrsImpl {
                           grain_size);
   }
   void sort_knn(Rcpp::IntegerMatrix nn_idx, Rcpp::NumericMatrix nn_dist) {
-    sort_knn_graph_parallel<HeapAdd>(nn_idx, nn_dist, block_size, grain_size);
+    ParallelRandomKnnSort<HeapAdd>::sort(nn_idx, nn_dist, block_size,
+                                         grain_size);
   }
 
   template <typename D>
