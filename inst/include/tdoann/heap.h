@@ -31,8 +31,9 @@
 #include <vector>
 
 namespace tdoann {
+
 // Base class storing neighbor data as a series of heaps
-struct NeighborHeap {
+template <typename DistanceOut = double> struct NNDHeap {
   // used in analogy with std::string::npos as used in std::string::find
   // to represent not found
   static constexpr std::size_t npos() { return static_cast<std::size_t>(-1); }
@@ -40,17 +41,17 @@ struct NeighborHeap {
   std::size_t n_points;
   std::size_t n_nbrs;
   std::vector<std::size_t> idx;
-  std::vector<double> dist;
+  std::vector<DistanceOut> dist;
   std::vector<char> flags;
 
-  NeighborHeap(const std::size_t n_points, const std::size_t n_nbrs)
+  NNDHeap(const std::size_t n_points, const std::size_t n_nbrs)
       : n_points(n_points), n_nbrs(n_nbrs), idx(n_points * n_nbrs, npos()),
-        dist(n_points * n_nbrs, std::numeric_limits<double>::max()),
+        dist(n_points * n_nbrs, (std::numeric_limits<DistanceOut>::max)()),
         flags(n_points * n_nbrs, 0) {}
 
-  NeighborHeap(const NeighborHeap &) = default;
-  ~NeighborHeap() = default;
-  NeighborHeap &operator=(const NeighborHeap &) = default;
+  NNDHeap(const NNDHeap &) = default;
+  ~NNDHeap() = default;
+  NNDHeap &operator=(const NNDHeap &) = default;
 
   bool contains(std::size_t row, std::size_t index) const {
     const std::size_t rnnbrs = row * n_nbrs;
@@ -63,15 +64,17 @@ struct NeighborHeap {
   }
 
   // returns true if either p or q would accept a neighbor with distance d
-  bool accepts_either(std::size_t p, std::size_t q, double d) const {
+  bool accepts_either(std::size_t p, std::size_t q, DistanceOut d) const {
     return d < dist[p * n_nbrs] || (p != q && d < dist[q * n_nbrs]);
   }
 
   // returns true if p would accept a neighbor with distance d
-  bool accepts(std::size_t p, double d) const { return d < dist[p * n_nbrs]; }
+  bool accepts(std::size_t p, DistanceOut d) const {
+    return d < dist[p * n_nbrs];
+  }
 
-  std::size_t checked_push_pair(std::size_t row, double weight, std::size_t idx,
-                                char flag = 1) {
+  std::size_t checked_push_pair(std::size_t row, DistanceOut weight,
+                                std::size_t idx, char flag = 1) {
     std::size_t c = checked_push(row, weight, idx, flag);
     if (row != idx) {
       c += checked_push(idx, weight, row, flag);
@@ -79,7 +82,7 @@ struct NeighborHeap {
     return c;
   }
 
-  std::size_t checked_push(std::size_t row, double weight, std::size_t idx,
+  std::size_t checked_push(std::size_t row, DistanceOut weight, std::size_t idx,
                            char flag = 1) {
     if (!accepts(row, weight) || contains(row, idx)) {
       return 0;
@@ -89,8 +92,8 @@ struct NeighborHeap {
   }
 
   // This differs from the pynndescent version as it is truly unchecked
-  std::size_t unchecked_push(std::size_t row, double weight, std::size_t index,
-                             char flag = 1) {
+  std::size_t unchecked_push(std::size_t row, DistanceOut weight,
+                             std::size_t index, char flag = 1) {
     const std::size_t r0 = row * n_nbrs;
 
     // insert val at position zero
@@ -193,10 +196,10 @@ struct NeighborHeap {
     return idx[i * n_nbrs + j];
   }
 
-  double distance(std::size_t i, std::size_t j) const {
+  DistanceOut distance(std::size_t i, std::size_t j) const {
     return dist[i * n_nbrs + j];
   }
-  double &distance(std::size_t i, std::size_t j) {
+  DistanceOut &distance(std::size_t i, std::size_t j) {
     return dist[i * n_nbrs + j];
   }
 
@@ -206,22 +209,24 @@ struct NeighborHeap {
   char &flag(std::size_t i, std::size_t j) { return flags[i * n_nbrs + j]; }
 };
 
-// Like NeighborHeap, but no flag vector
-struct SimpleNeighborHeap {
+using NeighborHeap = NNDHeap<float>;
+
+// Like NNDHeap, but no flag vector
+template <typename DistanceOut = double> struct NNHeap {
   static constexpr std::size_t npos() { return static_cast<std::size_t>(-1); }
 
   std::size_t n_points;
   std::size_t n_nbrs;
   std::vector<std::size_t> idx;
-  std::vector<double> dist;
+  std::vector<DistanceOut> dist;
 
-  SimpleNeighborHeap(const std::size_t n_points, const std::size_t n_nbrs)
+  NNHeap(const std::size_t n_points, const std::size_t n_nbrs)
       : n_points(n_points), n_nbrs(n_nbrs), idx(n_points * n_nbrs, npos()),
-        dist(n_points * n_nbrs, std::numeric_limits<double>::max()) {}
+        dist(n_points * n_nbrs, (std::numeric_limits<DistanceOut>::max)()) {}
 
-  SimpleNeighborHeap(const SimpleNeighborHeap &) = default;
-  ~SimpleNeighborHeap() = default;
-  SimpleNeighborHeap &operator=(const SimpleNeighborHeap &) = default;
+  NNHeap(const NNHeap &) = default;
+  ~NNHeap() = default;
+  NNHeap &operator=(const NNHeap &) = default;
 
   bool contains(std::size_t row, std::size_t index) const {
     const std::size_t rnnbrs = row * n_nbrs;
@@ -234,14 +239,16 @@ struct SimpleNeighborHeap {
   }
 
   // returns true if either p or q would accept a neighbor with distance d
-  bool accepts_either(std::size_t p, std::size_t q, double d) const {
+  bool accepts_either(std::size_t p, std::size_t q, DistanceOut d) const {
     return d < dist[p * n_nbrs] || (p != q && d < dist[q * n_nbrs]);
   }
 
   // returns true if p would accept a neighbor with distance d
-  bool accepts(std::size_t p, double d) const { return d < dist[p * n_nbrs]; }
+  bool accepts(std::size_t p, DistanceOut d) const {
+    return d < dist[p * n_nbrs];
+  }
 
-  std::size_t checked_push_pair(std::size_t row, double weight,
+  std::size_t checked_push_pair(std::size_t row, DistanceOut weight,
                                 std::size_t idx) {
     std::size_t c = checked_push(row, weight, idx);
     if (row != idx) {
@@ -250,7 +257,8 @@ struct SimpleNeighborHeap {
     return c;
   }
 
-  std::size_t checked_push(std::size_t row, double weight, std::size_t idx) {
+  std::size_t checked_push(std::size_t row, DistanceOut weight,
+                           std::size_t idx) {
     if (!accepts(row, weight) || contains(row, idx)) {
       return 0;
     }
@@ -258,7 +266,7 @@ struct SimpleNeighborHeap {
     return unchecked_push(row, weight, idx);
   }
 
-  std::size_t unchecked_push(std::size_t row, double weight,
+  std::size_t unchecked_push(std::size_t row, DistanceOut weight,
                              std::size_t index) {
     const std::size_t r0 = row * n_nbrs;
 
@@ -356,9 +364,11 @@ struct SimpleNeighborHeap {
     return idx[i * n_nbrs + j];
   }
 
-  double distance(std::size_t i, std::size_t j) const {
+  DistanceOut distance(std::size_t i, std::size_t j) const {
     return dist[i * n_nbrs + j];
   }
 };
+using SimpleNeighborHeap = NNHeap<float>;
+
 } // namespace tdoann
 #endif // TDOANN_HEAP_H
