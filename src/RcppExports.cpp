@@ -40,6 +40,20 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// merge_nn
+Rcpp::List merge_nn(Rcpp::IntegerMatrix nn_idx1, Rcpp::NumericMatrix nn_dist1, Rcpp::IntegerMatrix nn_idx2, Rcpp::NumericMatrix nn_dist2);
+RcppExport SEXP _rnndescent_merge_nn(SEXP nn_idx1SEXP, SEXP nn_dist1SEXP, SEXP nn_idx2SEXP, SEXP nn_dist2SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::IntegerMatrix >::type nn_idx1(nn_idx1SEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type nn_dist1(nn_dist1SEXP);
+    Rcpp::traits::input_parameter< Rcpp::IntegerMatrix >::type nn_idx2(nn_idx2SEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type nn_dist2(nn_dist2SEXP);
+    rcpp_result_gen = Rcpp::wrap(merge_nn(nn_idx1, nn_dist1, nn_idx2, nn_dist2));
+    return rcpp_result_gen;
+END_RCPP
+}
 // nn_descent
 Rcpp::List nn_descent(Rcpp::NumericMatrix data, Rcpp::IntegerMatrix nn_idx, Rcpp::NumericMatrix nn_dist, const std::string metric, const std::size_t max_candidates, const std::size_t n_iters, const double delta, bool low_memory, bool parallelize, std::size_t block_size, std::size_t grain_size, bool verbose, const std::string& progress);
 RcppExport SEXP _rnndescent_nn_descent(SEXP dataSEXP, SEXP nn_idxSEXP, SEXP nn_distSEXP, SEXP metricSEXP, SEXP max_candidatesSEXP, SEXP n_itersSEXP, SEXP deltaSEXP, SEXP low_memorySEXP, SEXP parallelizeSEXP, SEXP block_sizeSEXP, SEXP grain_sizeSEXP, SEXP verboseSEXP, SEXP progressSEXP) {
@@ -129,6 +143,7 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_rnndescent_rnn_brute_force", (DL_FUNC) &_rnndescent_rnn_brute_force, 7},
     {"_rnndescent_rnn_brute_force_query", (DL_FUNC) &_rnndescent_rnn_brute_force_query, 8},
+    {"_rnndescent_merge_nn", (DL_FUNC) &_rnndescent_merge_nn, 4},
     {"_rnndescent_nn_descent", (DL_FUNC) &_rnndescent_nn_descent, 13},
     {"_rnndescent_nn_descent_query", (DL_FUNC) &_rnndescent_nn_descent_query, 15},
     {"_rnndescent_random_knn_cpp", (DL_FUNC) &_rnndescent_random_knn_cpp, 8},

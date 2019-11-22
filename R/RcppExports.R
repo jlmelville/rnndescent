@@ -9,6 +9,10 @@ rnn_brute_force_query <- function(x, y, k, metric = "euclidean", parallelize = F
     .Call(`_rnndescent_rnn_brute_force_query`, x, y, k, metric, parallelize, block_size, grain_size, verbose)
 }
 
+merge_nn <- function(nn_idx1, nn_dist1, nn_idx2, nn_dist2) {
+    .Call(`_rnndescent_merge_nn`, nn_idx1, nn_dist1, nn_idx2, nn_dist2)
+}
+
 nn_descent <- function(data, nn_idx, nn_dist, metric = "euclidean", max_candidates = 50L, n_iters = 10L, delta = 0.001, low_memory = TRUE, parallelize = FALSE, block_size = 16384L, grain_size = 1L, verbose = FALSE, progress = "bar") {
     .Call(`_rnndescent_nn_descent`, data, nn_idx, nn_dist, metric, max_candidates, n_iters, delta, low_memory, parallelize, block_size, grain_size, verbose, progress)
 }
