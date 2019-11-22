@@ -12,7 +12,7 @@ Encoding: UTF-8
 LazyData: true
 Suggests: 
     testthat, covr
-RoxygenNote: 7.0.0
+RoxygenNote: 7.0.1
 LinkingTo: 
     Rcpp, RcppParallel, dqrng, RcppProgress
 Imports: 
