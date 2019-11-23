@@ -9,6 +9,13 @@ expect_true(sum(ui10mnn$dist) < sum(ui10rnn1$dist))
 expect_true(sum(ui10mnn$dist) < sum(ui10rnn2$dist))
 check_nbrs(ui10mnn, ui10_eucd, tol = 1e-6)
 
+set.seed(1337)
+qnbrs1 <- random_knn_query(reference = ui6, query = ui4, k = 4)
+qnbrs2 <- random_knn_query(reference = ui6, query = ui4, k = 4)
+qnbrsm <- merge_knn(qnbrs1, qnbrs2, is_query = TRUE)
+check_query_nbrs(nn = qnbrsm, query = ui4, ref_range = 1:6, query_range = 7:10, k = 4, expected_dist = ui10_eucd, tol = 1e-6)
+
+
 # Errors ------------------------------------------------------------------
 
 expect_error(

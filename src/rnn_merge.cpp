@@ -22,8 +22,18 @@
 #include "rnn.h"
 #include "rnn_merge.h"
 
+#define MERGE_NN()                                                             \
+  return merge_nn_impl<HeapAdd>(nn_idx1, nn_dist1, nn_idx2, nn_dist2);
+
 // [[Rcpp::export]]
 Rcpp::List merge_nn(Rcpp::IntegerMatrix nn_idx1, Rcpp::NumericMatrix nn_dist1,
-                    Rcpp::IntegerMatrix nn_idx2, Rcpp::NumericMatrix nn_dist2) {
-  return merge_nn_impl<HeapAddSymmetric>(nn_idx1, nn_dist1, nn_idx2, nn_dist2);
+                    Rcpp::IntegerMatrix nn_idx2, Rcpp::NumericMatrix nn_dist2,
+                    bool is_query) {
+  if (is_query) {
+    using HeapAdd = HeapAddQuery;
+    MERGE_NN();
+  } else {
+    using HeapAdd = HeapAddSymmetric;
+    MERGE_NN();
+  }
 }

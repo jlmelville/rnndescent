@@ -720,10 +720,11 @@ nnd_knn_query <- function(reference, reference_idx, query, k = NULL,
 
 # Merge -------------------------------------------------------------------
 
-merge_knn <- function(nn_graph1, nn_graph2) {
+merge_knn <- function(nn_graph1, nn_graph2, is_query = FALSE) {
   validate_are_mergeable(nn_graph1, nn_graph2)
 
-  merge_nn(nn_graph1$idx, nn_graph1$dist, nn_graph2$idx, nn_graph2$dist)
+  merge_nn(nn_graph1$idx, nn_graph1$dist, nn_graph2$idx, nn_graph2$dist,
+           is_query)
 }
 
 # Internals ---------------------------------------------------------------
