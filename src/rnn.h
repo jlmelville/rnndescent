@@ -171,17 +171,15 @@ struct RPProgress {
 
 struct HeapAddSymmetric {
   template <typename NbrHeap>
-  static void push(NbrHeap &current_graph, std::size_t ref, std::size_t query,
-                   double d) {
-    current_graph.checked_push_pair(ref, d, query);
+  void push(NbrHeap &heap, std::size_t ref, std::size_t query, double d) {
+    heap.checked_push_pair(ref, d, query);
   }
 };
 
 struct HeapAddQuery {
   template <typename NbrHeap>
-  static void push(NbrHeap &current_graph, std::size_t ref, std::size_t query,
-                   double d) {
-    current_graph.checked_push(ref, d, query);
+  void push(NbrHeap &heap, std::size_t ref, std::size_t query, double d) {
+    heap.checked_push(ref, d, query);
   }
 };
 
@@ -192,6 +190,7 @@ template <typename HeapAdd, typename NbrHeap,
           typename DistMatrix = Rcpp::NumericMatrix>
 void r_to_heap(NbrHeap &current_graph, IdxMatrix nn_idx, DistMatrix nn_dist,
                const std::size_t begin, const std::size_t end,
+               HeapAdd &heap_add,
                const int max_idx = (std::numeric_limits<int>::max)()) {
   const std::size_t n_nbrs = nn_idx.ncol();
 
@@ -202,7 +201,7 @@ void r_to_heap(NbrHeap &current_graph, IdxMatrix nn_idx, DistMatrix nn_dist,
         Rcpp::stop("Bad indexes in input");
       }
       double d = nn_dist(i, j);
-      HeapAdd::push(current_graph, i, k, d);
+      heap_add.push(current_graph, i, k, d);
     }
   }
 }
@@ -212,7 +211,9 @@ void r_to_heap(NbrHeap &current_graph, Rcpp::IntegerMatrix nn_idx,
                Rcpp::NumericMatrix nn_dist,
                const int max_idx = std::numeric_limits<int>::max()) {
   const std::size_t n_points = nn_idx.nrow();
-  r_to_heap<HeapAdd>(current_graph, nn_idx, nn_dist, 0, n_points, max_idx);
+  HeapAdd heap_add;
+  r_to_heap<HeapAdd>(current_graph, nn_idx, nn_dist, 0, n_points, heap_add,
+                     max_idx);
 }
 
 // input heap index is 0-indexed

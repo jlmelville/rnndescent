@@ -28,6 +28,7 @@ template <typename HeapAdd>
 void merge(const SimpleNeighborHeap &from, SimpleNeighborHeap &into) {
   const auto n_points = from.n_points;
   const auto n_nbrs = from.n_nbrs;
+  HeapAdd heap_add;
   for (std::size_t i = 0; i < n_points; i++) {
     for (std::size_t j = 0; j < n_nbrs; j++) {
       std::size_t p = from.index(i, j);
@@ -35,7 +36,7 @@ void merge(const SimpleNeighborHeap &from, SimpleNeighborHeap &into) {
         continue;
       }
       auto d = from.distance(i, j);
-      HeapAdd::push(into, i, p, d);
+      heap_add.push(into, i, p, d);
     }
   }
 }

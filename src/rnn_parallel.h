@@ -69,54 +69,38 @@ struct RToHeapWorker : public BatchParallelWorker {
   RcppParallel::RMatrix<int> nn_idx;
   RcppParallel::RMatrix<double> nn_dist;
   int max_idx;
+  HeapAdd heap_add;
 
   RToHeapWorker(NbrHeap &heap, Rcpp::IntegerMatrix nn_idx,
                 Rcpp::NumericMatrix nn_dist,
                 int max_idx = (std::numeric_limits<int>::max)())
-      : heap(heap), nn_idx(nn_idx), nn_dist(nn_dist), max_idx(max_idx) {}
+      : heap(heap), nn_idx(nn_idx), nn_dist(nn_dist), max_idx(max_idx),
+        heap_add() {}
 
   void operator()(std::size_t begin, std::size_t end) {
     r_to_heap<HeapAdd, NbrHeap, RcppParallel::RMatrix<int>,
               RcppParallel::RMatrix<double>>(heap, nn_idx, nn_dist, begin, end,
-                                             max_idx);
+                                             heap_add, max_idx);
   }
 };
 
-// Specialization to lock heap accesses
-template <typename NbrHeap>
-struct RToHeapWorker<HeapAddSymmetric, NbrHeap> : public BatchParallelWorker {
-  NbrHeap &heap;
-  RcppParallel::RMatrix<int> nn_idx;
-  RcppParallel::RMatrix<double> nn_dist;
-  int max_idx;
+// Specialization designed to not compile: HeapAddSymmetric should not be used
+// with parallel workers: use LockedHeapAddSymmetric
+template <typename NbrHeap> struct RToHeapWorker<HeapAddSymmetric, NbrHeap> {};
 
+struct LockedHeapAddSymmetric {
   static const constexpr std::size_t n_mutexes = 10;
   tthread::mutex mutexes[n_mutexes];
 
-  RToHeapWorker(NbrHeap &heap, Rcpp::IntegerMatrix nn_idx,
-                Rcpp::NumericMatrix nn_dist,
-                int max_idx = (std::numeric_limits<int>::max)())
-      : heap(heap), nn_idx(nn_idx), nn_dist(nn_dist), max_idx(max_idx) {}
-
-  void operator()(std::size_t begin, std::size_t end) {
-    const std::size_t n_nbrs = nn_idx.ncol();
-
-    for (std::size_t i = begin; i < end; i++) {
-      for (std::size_t j = 0; j < n_nbrs; j++) {
-        const int k = nn_idx(i, j) - 1;
-        if (k < 0 || k > max_idx) {
-          Rcpp::stop("Bad indexes in input");
-        }
-        double d = nn_dist(i, j);
-        {
-          tthread::lock_guard<tthread::mutex> guard(mutexes[i % n_mutexes]);
-          heap.checked_push(i, d, k);
-        }
-        {
-          tthread::lock_guard<tthread::mutex> guard(mutexes[k % n_mutexes]);
-          heap.checked_push(k, d, i);
-        }
-      }
+  template <typename NbrHeap>
+  void push(NbrHeap &heap, std::size_t ref, std::size_t query, double d) {
+    {
+      tthread::lock_guard<tthread::mutex> guard(mutexes[ref % n_mutexes]);
+      heap.checked_push(ref, d, query);
+    }
+    {
+      tthread::lock_guard<tthread::mutex> guard(mutexes[query % n_mutexes]);
+      heap.checked_push(query, d, ref);
     }
   }
 };
