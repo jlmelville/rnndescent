@@ -82,6 +82,45 @@ struct RToHeapWorker : public BatchParallelWorker {
   }
 };
 
+// Specialization to lock heap accesses
+template <typename NbrHeap>
+struct RToHeapWorker<HeapAddSymmetric, NbrHeap> : public BatchParallelWorker {
+  NbrHeap &heap;
+  RcppParallel::RMatrix<int> nn_idx;
+  RcppParallel::RMatrix<double> nn_dist;
+  int max_idx;
+
+  static const constexpr std::size_t n_mutexes = 10;
+  tthread::mutex mutexes[n_mutexes];
+
+  RToHeapWorker(NbrHeap &heap, Rcpp::IntegerMatrix nn_idx,
+                Rcpp::NumericMatrix nn_dist,
+                int max_idx = (std::numeric_limits<int>::max)())
+      : heap(heap), nn_idx(nn_idx), nn_dist(nn_dist), max_idx(max_idx) {}
+
+  void operator()(std::size_t begin, std::size_t end) {
+    const std::size_t n_nbrs = nn_idx.ncol();
+
+    for (std::size_t i = begin; i < end; i++) {
+      for (std::size_t j = 0; j < n_nbrs; j++) {
+        const int k = nn_idx(i, j) - 1;
+        if (k < 0 || k > max_idx) {
+          Rcpp::stop("Bad indexes in input");
+        }
+        double d = nn_dist(i, j);
+        {
+          tthread::lock_guard<tthread::mutex> guard(mutexes[i % n_mutexes]);
+          heap.checked_push(i, d, k);
+        }
+        {
+          tthread::lock_guard<tthread::mutex> guard(mutexes[k % n_mutexes]);
+          heap.checked_push(k, d, i);
+        }
+      }
+    }
+  }
+};
+
 template <typename HeapAdd, typename NbrHeap = SimpleNeighborHeap>
 void r_to_heap_parallel(NbrHeap &heap, Rcpp::IntegerMatrix nn_idx,
                         Rcpp::NumericMatrix nn_dist, std::size_t block_size,
