@@ -40,7 +40,8 @@ struct LockingCandidatesWorker : public RcppParallel::Worker {
   const std::size_t max_candidates;
   NeighborHeap &new_candidate_neighbors;
   NeighborHeap &old_candidate_neighbors;
-  tthread::mutex mutex;
+  static const constexpr std::size_t n_mutexes = 10;
+  tthread::mutex mutexes[n_mutexes];
 
   LockingCandidatesWorker(const NeighborHeap &current_graph,
                           NeighborHeap &new_candidate_neighbors,
@@ -55,7 +56,7 @@ struct LockingCandidatesWorker : public RcppParallel::Worker {
     std::unique_ptr<TauRand> rand(nullptr);
     // Each window gets its own PRNG state, to prevent locking inside the loop.
     {
-      tthread::lock_guard<tthread::mutex> guard(mutex);
+      tthread::lock_guard<tthread::mutex> guard(mutexes[begin % n_mutexes]);
       rand.reset(new TauRand());
     }
 
@@ -66,16 +67,15 @@ struct LockingCandidatesWorker : public RcppParallel::Worker {
         std::size_t idx = current_graph.idx[ij];
         double d = rand->unif();
         char isn = current_graph.flags[ij];
-        if (isn == 1) {
-          {
-            tthread::lock_guard<tthread::mutex> guard(mutex);
-            new_candidate_neighbors.checked_push_pair(i, d, idx, isn);
-          }
-        } else {
-          {
-            tthread::lock_guard<tthread::mutex> guard(mutex);
-            old_candidate_neighbors.checked_push_pair(i, d, idx, isn);
-          }
+        auto &nbrs =
+            isn == 1 ? new_candidate_neighbors : old_candidate_neighbors;
+        {
+          tthread::lock_guard<tthread::mutex> guard(mutexes[i % n_mutexes]);
+          nbrs.checked_push(i, d, idx, isn);
+        }
+        if (i != idx) {
+          tthread::lock_guard<tthread::mutex> guard(mutexes[idx % n_mutexes]);
+          nbrs.checked_push(idx, d, i, isn);
         }
       }
     }
