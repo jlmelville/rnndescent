@@ -2,6 +2,8 @@
 
 export(brute_force_knn)
 export(brute_force_knn_query)
+export(merge_knn)
+export(merge_knnl)
 export(nnd_knn)
 export(nnd_knn_query)
 export(random_knn)
