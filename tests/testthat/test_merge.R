@@ -1,12 +1,34 @@
 library(rnndescent)
 context("Merging")
 
+set.seed(1337)
+ui10rnn1 <- random_knn(ui10, k = 4, order_by_distance = FALSE)
+ui10rnn2 <- random_knn(ui10, k = 4, order_by_distance = FALSE)
+ui10mnn <- merge_knn(ui10rnn1, ui10rnn2)
+expect_true(sum(ui10mnn$dist) < sum(ui10rnn1$dist))
+expect_true(sum(ui10mnn$dist) < sum(ui10rnn2$dist))
+check_nbrs(ui10mnn, ui10_eucd, tol = 1e-6)
 
 # Errors ------------------------------------------------------------------
 
-expect_error(validate_nn_graph(list(idx = matrix(nrow = 10, ncol = 2), dist = matrix(nrow = 11, ncol = 2))), "nn matrix has 11 rows")
-expect_error(validate_nn_graph(list(idx = matrix(nrow = 10, ncol = 2), dist = matrix(nrow = 10, ncol = 3))), "nn matrix has 3 cols")
-expect_error(validate_are_mergeable(
-  list(idx = matrix(nrow = 10, ncol = 2), dist = matrix(nrow = 10, ncol = 2)),
-  list(idx = matrix(nrow = 11, ncol = 5), dist = matrix(nrow = 11, ncol = 5))),
-"must have same number of rows")
+expect_error(
+  validate_nn_graph(list(
+    idx = matrix(nrow = 10, ncol = 2),
+    dist = matrix(nrow = 11, ncol = 2)
+  )),
+  "nn matrix has 11 rows"
+)
+expect_error(
+  validate_nn_graph(list(
+    idx = matrix(nrow = 10, ncol = 2),
+    dist = matrix(nrow = 10, ncol = 3)
+  )),
+  "nn matrix has 3 cols"
+)
+expect_error(
+  validate_are_mergeable(
+    list(idx = matrix(nrow = 10, ncol = 2), dist = matrix(nrow = 10, ncol = 2)),
+    list(idx = matrix(nrow = 11, ncol = 5), dist = matrix(nrow = 11, ncol = 5))
+  ),
+  "must have same number of rows"
+)
