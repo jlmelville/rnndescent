@@ -11,6 +11,16 @@ expect_true(sum(ui10mnn$dist) < sum(ui10rnn1$dist))
 expect_true(sum(ui10mnn$dist) < sum(ui10rnn2$dist))
 check_nbrs(ui10mnn, ui10_eucd, tol = 1e-6)
 
+# different k
+ui10rnnk5 <- random_knn(ui10, k = 5, order_by_distance = FALSE)
+ui10mnn <- merge_knn(ui10rnn1, ui10rnnk5)
+expect_equal(ncol(ui10mnn$idx), 4)
+check_nbrs(ui10mnn, ui10_eucd, tol = 1e-6)
+
+ui10mnn <- merge_knn(ui10rnnk5, ui10rnn1)
+expect_equal(ncol(ui10mnn$idx), 5)
+check_nbrs(ui10mnn, ui10_eucd, tol = 1e-6)
+
 # query
 set.seed(1337)
 qnbrs1 <- random_knn_query(reference = ui6, query = ui4, k = 4)

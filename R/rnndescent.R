@@ -730,8 +730,10 @@ merge_knn <- function(nn_graph1, nn_graph2, is_query = FALSE,
     RcppParallel::setThreadOptions(numThreads = n_threads)
   }
 
-  merge_nn(nn_graph1$idx, nn_graph1$dist, nn_graph2$idx, nn_graph2$dist,
-           is_query, parallelize, block_size, grain_size);
+  merge_nn(
+    nn_graph1$idx, nn_graph1$dist, nn_graph2$idx, nn_graph2$dist,
+    is_query, parallelize, block_size, grain_size
+  )
 }
 
 # Internals ---------------------------------------------------------------
