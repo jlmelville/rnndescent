@@ -54,11 +54,32 @@ Rcpp::List merge_nn_impl(Rcpp::IntegerMatrix nn_idx1,
                          Rcpp::NumericMatrix nn_dist1,
                          Rcpp::IntegerMatrix nn_idx2,
                          Rcpp::NumericMatrix nn_dist2, MergeImpl &merge_impl) {
-  const auto n_points = nn_idx1.nrow();
-
-  SimpleNeighborHeap nn_merged(n_points, nn_idx1.ncol());
+  SimpleNeighborHeap nn_merged(nn_idx1.nrow(), nn_idx1.ncol());
   merge_impl.template init<HeapAdd>(nn_merged, nn_idx1, nn_dist1);
   merge_impl.template init<HeapAdd>(nn_merged, nn_idx2, nn_dist2);
+
+  nn_merged.deheap_sort();
+  return heap_to_r(nn_merged);
+}
+
+template <typename MergeImpl, typename HeapAdd>
+Rcpp::List merge_nn_all_impl(Rcpp::List nn_graphs, MergeImpl &merge_impl) {
+  const auto n_graphs = static_cast<std::size_t>(nn_graphs.size());
+
+  Rcpp::List nn_graph = nn_graphs[0];
+  Rcpp::NumericMatrix nn_dist = nn_graph["dist"];
+  Rcpp::IntegerMatrix nn_idx = nn_graph["idx"];
+
+  SimpleNeighborHeap nn_merged(nn_idx.nrow(), nn_idx.ncol());
+  merge_impl.template init<HeapAdd>(nn_merged, nn_idx, nn_dist);
+
+  // iterate over other graphs
+  for (std::size_t i = 1; i < n_graphs; i++) {
+    Rcpp::List nn_graphi = nn_graphs[i];
+    Rcpp::NumericMatrix nn_disti = nn_graphi["dist"];
+    Rcpp::IntegerMatrix nn_idxi = nn_graphi["idx"];
+    merge_impl.template init<HeapAdd>(nn_merged, nn_idxi, nn_disti);
+  }
 
   nn_merged.deheap_sort();
   return heap_to_r(nn_merged);

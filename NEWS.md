@@ -3,7 +3,10 @@
 ## New features
 
 * New function: `merge_knn`, to combine two nearest neighbor graphs. Useful for
-combining the results of multiple runs of `nnd_knn` or `random_knn`.
+combining the results of multiple runs of `nnd_knn` or `random_knn`. Also,
+`merge_knnl`, which operates on a list of multiple neighbor graphs, and can
+provide a speed up over `merge_knn` if you don't mind storing multiple graphs
+in memory at once.
 
 ## Bug fixes and minor improvements
 

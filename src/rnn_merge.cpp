@@ -26,6 +26,9 @@
   return merge_nn_impl<MergeImpl, HeapAdd>(nn_idx1, nn_dist1, nn_idx2,         \
                                            nn_dist2, merge_impl);
 
+#define MERGE_NN_ALL()                                                         \
+  return merge_nn_all_impl<MergeImpl, HeapAdd>(nn_graphs, merge_impl);
+
 // [[Rcpp::export]]
 Rcpp::List merge_nn(Rcpp::IntegerMatrix nn_idx1, Rcpp::NumericMatrix nn_dist1,
                     Rcpp::IntegerMatrix nn_idx2, Rcpp::NumericMatrix nn_dist2,
@@ -51,6 +54,32 @@ Rcpp::List merge_nn(Rcpp::IntegerMatrix nn_idx1, Rcpp::NumericMatrix nn_dist1,
     } else {
       using HeapAdd = HeapAddSymmetric;
       MERGE_NN();
+    }
+  }
+}
+
+// [[Rcpp::export]]
+Rcpp::List merge_nn_all(Rcpp::List nn_graphs, bool is_query, bool parallelize,
+                        std::size_t block_size, std::size_t grain_size) {
+  if (parallelize) {
+    using MergeImpl = ParallelHeapImpl;
+    MergeImpl merge_impl(block_size, grain_size);
+    if (is_query) {
+      using HeapAdd = HeapAddQuery;
+      MERGE_NN_ALL();
+    } else {
+      using HeapAdd = LockingHeapAddSymmetric;
+      MERGE_NN_ALL();
+    }
+  } else {
+    using MergeImpl = SerialHeapImpl;
+    MergeImpl merge_impl;
+    if (is_query) {
+      using HeapAdd = HeapAddQuery;
+      MERGE_NN_ALL();
+    } else {
+      using HeapAdd = HeapAddSymmetric;
+      MERGE_NN_ALL();
     }
   }
 }

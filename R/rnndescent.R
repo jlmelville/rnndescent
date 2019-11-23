@@ -736,6 +736,25 @@ merge_knn <- function(nn_graph1, nn_graph2, is_query = FALSE,
   )
 }
 
+merge_knnl <- function(nn_graphs, is_query = FALSE,
+                       n_threads = 0, block_size = 4096, grain_size = 1,
+                       verbose = FALSE) {
+  if (length(nn_graphs) == 0) {
+    return(list())
+  }
+  validate_are_mergeablel(nn_graphs)
+
+  parallelize <- n_threads > 0
+  if (parallelize) {
+    RcppParallel::setThreadOptions(numThreads = n_threads)
+  }
+
+  merge_nn_all(
+    nn_graphs,
+    is_query, parallelize, block_size, grain_size
+  )
+}
+
 # Internals ---------------------------------------------------------------
 
 #' @useDynLib rnndescent, .registration = TRUE
@@ -793,8 +812,22 @@ apply_alt_metric_correction <- function(metric, dist) {
   )
 }
 
-validate_are_mergeable <- function(nn_graph1, nn_graph2) {
+
+validate_are_mergeablel <- function(nn_graphs) {
+  nn_graph1 <- nn_graphs[[1]]
   validate_nn_graph(nn_graph1)
+  n_graphs <- length(nn_graphs)
+  if (n_graphs > 1) {
+    for (i in 2:n_graphs) {
+      validate_are_mergeable(nn_graph1, nn_graphs[[i]], validate1 = FALSE)
+    }
+  }
+}
+
+validate_are_mergeable <- function(nn_graph1, nn_graph2, validate1 = TRUE) {
+  if (validate1) {
+    validate_nn_graph(nn_graph1)
+  }
   validate_nn_graph(nn_graph2)
   nr1 <- nrow(nn_graph1$idx)
   nr2 <- nrow(nn_graph2$idx)
@@ -804,6 +837,12 @@ validate_are_mergeable <- function(nn_graph1, nn_graph2) {
 }
 
 validate_nn_graph <- function(nn_graph) {
+  if (is.null(nn_graph$idx)) {
+    stop("NN graph must contain 'idx' matrix")
+  }
+  if (is.null(nn_graph$dist)) {
+    stop("NN graph must contain 'dist' matrix")
+  }
   nr <- nrow(nn_graph$idx)
   nc <- ncol(nn_graph$idx)
   validate_nn_graph_matrix(nn_graph$dist, nr, nc, msg = "nn matrix")
