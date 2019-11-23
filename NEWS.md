@@ -1,3 +1,18 @@
+# rnndescent 0.0.5 (23 November 2019)
+
+## New features
+
+* New function: `merge_knn`, to combine two nearest neighbor graphs. Useful for
+combining the results of multiple runs of `nnd_knn` or `random_knn`.
+
+## Bug fixes and minor improvements
+
+* There was a thread-locking issue to do with converting R matrices to the 
+internal heap data structure that affected `nnd_knn` with `n_threads > 1` 
+and `random_knn` with `n_threads > 1` and `order_by_distance = TRUE`.
+* Potential minor speed improvement for `nnd_knn` with `n_threads > 1` due to
+the use of a mutex pool.
+
 # rnndescent 0.0.4 (21 November 2019)
 
 Mainly an internal clean-up to reduce duplication.
