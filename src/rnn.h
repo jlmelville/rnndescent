@@ -192,7 +192,7 @@ template <typename HeapAdd, typename NbrHeap,
           typename DistMatrix = Rcpp::NumericMatrix>
 void r_to_heap(NbrHeap &current_graph, IdxMatrix nn_idx, DistMatrix nn_dist,
                const std::size_t begin, const std::size_t end,
-               const int max_idx = std::numeric_limits<int>::max()) {
+               const int max_idx = (std::numeric_limits<int>::max)()) {
   const std::size_t n_nbrs = nn_idx.ncol();
 
   for (std::size_t i = begin; i < end; i++) {
