@@ -102,8 +102,8 @@ void sort_knn_graph_parallel(Rcpp::IntegerMatrix nn_idx,
   const std::size_t n_nbrs = nn_idx.ncol();
 
   NbrHeap heap(n_points, n_nbrs);
-  r_to_heap_parallel<HeapAdd, NbrHeap>(heap, nn_idx, nn_dist, block_size,
-                                       grain_size, max_idx);
+  r_to_heap_parallel<HeapAdd>(heap, nn_idx, nn_dist, block_size, grain_size,
+                              max_idx);
   heap.deheap_sort();
   heap_to_r(heap, nn_idx, nn_dist);
 }

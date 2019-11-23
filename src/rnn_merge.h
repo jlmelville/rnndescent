@@ -48,10 +48,10 @@ merge_nn_impl(Rcpp::IntegerMatrix nn_idx1, Rcpp::NumericMatrix nn_dist1,
   const auto n_nbrs = nn_idx1.ncol();
 
   SimpleNeighborHeap nn_merged(n_points, n_nbrs);
-  r_to_heap<HeapAdd, SimpleNeighborHeap>(nn_merged, nn_idx1, nn_dist1);
+  r_to_heap<HeapAdd>(nn_merged, nn_idx1, nn_dist1);
 
   SimpleNeighborHeap nn_from(n_points, n_nbrs);
-  r_to_heap<HeapAdd, SimpleNeighborHeap>(nn_from, nn_idx2, nn_dist2);
+  r_to_heap<HeapAdd>(nn_from, nn_idx2, nn_dist2);
 
   merge<HeapAdd>(nn_from, nn_merged);
 

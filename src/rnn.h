@@ -212,8 +212,7 @@ void r_to_heap(NbrHeap &current_graph, Rcpp::IntegerMatrix nn_idx,
                Rcpp::NumericMatrix nn_dist,
                const int max_idx = std::numeric_limits<int>::max()) {
   const std::size_t n_points = nn_idx.nrow();
-  r_to_heap<HeapAdd, NbrHeap>(current_graph, nn_idx, nn_dist, 0, n_points,
-                              max_idx);
+  r_to_heap<HeapAdd>(current_graph, nn_idx, nn_dist, 0, n_points, max_idx);
 }
 
 // input heap index is 0-indexed
