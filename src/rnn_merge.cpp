@@ -39,7 +39,7 @@ Rcpp::List merge_nn(Rcpp::IntegerMatrix nn_idx1, Rcpp::NumericMatrix nn_dist1,
       using HeapAdd = HeapAddQuery;
       MERGE_NN();
     } else {
-      using HeapAdd = LockedHeapAddSymmetric;
+      using HeapAdd = LockingHeapAddSymmetric;
       MERGE_NN();
     }
   } else {

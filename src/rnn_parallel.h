@@ -85,10 +85,10 @@ struct RToHeapWorker : public BatchParallelWorker {
 };
 
 // Specialization designed to not compile: HeapAddSymmetric should not be used
-// with parallel workers: use LockedHeapAddSymmetric
+// with parallel workers: use LockingHeapAddSymmetric
 template <typename NbrHeap> struct RToHeapWorker<HeapAddSymmetric, NbrHeap> {};
 
-struct LockedHeapAddSymmetric {
+struct LockingHeapAddSymmetric {
   static const constexpr std::size_t n_mutexes = 10;
   tthread::mutex mutexes[n_mutexes];
 

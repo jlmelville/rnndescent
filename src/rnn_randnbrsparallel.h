@@ -50,7 +50,7 @@ using ParallelRandomNbrBuildWorker =
                          RcppParallel::RMatrix<double>, BatchParallelWorker>;
 
 struct ParallelRandomKnnBuild {
-  using HeapAdd = LockedHeapAddSymmetric;
+  using HeapAdd = LockingHeapAddSymmetric;
   template <typename D> using Worker = ParallelRandomNbrBuildWorker<D>;
 };
 
