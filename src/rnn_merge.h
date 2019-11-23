@@ -21,15 +21,40 @@
 #define RNN_MERGE_H
 
 #include <Rcpp.h>
+// [[Rcpp::depends(RcppParallel)]]
+#include <RcppParallel.h>
 
 #include "rnn.h"
+#include "rnn_parallel.h"
+
+template <typename HeapAdd> struct MergeWorker : BatchParallelWorker {
+  HeapAdd heap_add;
+  const SimpleNeighborHeap &from;
+  SimpleNeighborHeap &into;
+
+  MergeWorker(const SimpleNeighborHeap &from, SimpleNeighborHeap &into)
+      : heap_add(), from(from), into(into) {}
+
+  void operator()(std::size_t begin, std::size_t end) {
+    merge_window(from, into, begin, end, heap_add);
+  }
+};
+
+// The thing that should not be: use LockingHeapAddSymmetric for parallel work
+template <> struct MergeWorker<HeapAddSymmetric> {};
 
 template <typename HeapAdd>
 void merge(const SimpleNeighborHeap &from, SimpleNeighborHeap &into) {
   const auto n_points = from.n_points;
-  const auto n_nbrs = from.n_nbrs;
   HeapAdd heap_add;
-  for (std::size_t i = 0; i < n_points; i++) {
+  merge_window(from, into, 0, n_points, heap_add);
+}
+
+template <typename HeapAdd>
+void merge_window(const SimpleNeighborHeap &from, SimpleNeighborHeap &into,
+                  std::size_t begin, std::size_t end, HeapAdd &heap_add) {
+  const auto n_nbrs = from.n_nbrs;
+  for (std::size_t i = begin; i < end; i++) {
     for (std::size_t j = 0; j < n_nbrs; j++) {
       std::size_t p = from.index(i, j);
       if (p == NeighborHeap::npos()) {
@@ -41,23 +66,55 @@ void merge(const SimpleNeighborHeap &from, SimpleNeighborHeap &into) {
   }
 }
 
-template <typename HeapAdd>
-Rcpp::List
-merge_nn_impl(Rcpp::IntegerMatrix nn_idx1, Rcpp::NumericMatrix nn_dist1,
-              Rcpp::IntegerMatrix nn_idx2, Rcpp::NumericMatrix nn_dist2) {
+struct SerialHeapImpl {
+  template <typename HeapAdd>
+  void init(SimpleNeighborHeap &heap, Rcpp::IntegerMatrix nn_idx,
+            Rcpp::NumericMatrix nn_dist) {
+    r_to_heap<HeapAdd>(heap, nn_idx, nn_dist);
+  }
+  template <typename HeapAdd>
+  void apply(const SimpleNeighborHeap &from, SimpleNeighborHeap &into) {
+    merge<HeapAdd>(from, into);
+  }
+};
+
+struct ParallelHeapImpl {
+  std::size_t block_size;
+  std::size_t grain_size;
+
+  ParallelHeapImpl(std::size_t block_size, std::size_t grain_size)
+      : block_size(block_size), grain_size(grain_size) {}
+
+  template <typename HeapAdd>
+  void init(SimpleNeighborHeap &heap, Rcpp::IntegerMatrix nn_idx,
+            Rcpp::NumericMatrix nn_dist) {
+    r_to_heap_parallel<HeapAdd>(heap, nn_idx, nn_dist, block_size, grain_size);
+  }
+
+  template <typename HeapAdd>
+  void apply(const SimpleNeighborHeap &from, SimpleNeighborHeap &into) {
+    MergeWorker<HeapAdd> worker(from, into);
+    tdoann::NullProgress progress;
+    batch_parallel_for(worker, progress, from.n_points, block_size, grain_size);
+  }
+};
+
+template <typename MergeImpl, typename HeapAdd>
+Rcpp::List merge_nn_impl(Rcpp::IntegerMatrix nn_idx1,
+                         Rcpp::NumericMatrix nn_dist1,
+                         Rcpp::IntegerMatrix nn_idx2,
+                         Rcpp::NumericMatrix nn_dist2, MergeImpl &merge_impl) {
   const auto n_points = nn_idx1.nrow();
   const auto n_nbrs = nn_idx1.ncol();
 
   SimpleNeighborHeap nn_merged(n_points, n_nbrs);
-  r_to_heap<HeapAdd>(nn_merged, nn_idx1, nn_dist1);
+  merge_impl.template init<HeapAdd>(nn_merged, nn_idx1, nn_dist1);
 
   SimpleNeighborHeap nn_from(n_points, n_nbrs);
-  r_to_heap<HeapAdd>(nn_from, nn_idx2, nn_dist2);
+  merge_impl.template init<HeapAdd>(nn_from, nn_idx2, nn_dist2);
 
-  merge<HeapAdd>(nn_from, nn_merged);
-
+  merge_impl.template apply<HeapAdd>(nn_from, nn_merged);
   nn_merged.deheap_sort();
-
   return heap_to_r(nn_merged);
 }
 

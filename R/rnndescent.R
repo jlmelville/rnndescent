@@ -720,11 +720,18 @@ nnd_knn_query <- function(reference, reference_idx, query, k = NULL,
 
 # Merge -------------------------------------------------------------------
 
-merge_knn <- function(nn_graph1, nn_graph2, is_query = FALSE) {
+merge_knn <- function(nn_graph1, nn_graph2, is_query = FALSE,
+                      n_threads = 0, block_size = 4096, grain_size = 1,
+                      verbose = FALSE) {
   validate_are_mergeable(nn_graph1, nn_graph2)
 
+  parallelize <- n_threads > 0
+  if (parallelize) {
+    RcppParallel::setThreadOptions(numThreads = n_threads)
+  }
+
   merge_nn(nn_graph1$idx, nn_graph1$dist, nn_graph2$idx, nn_graph2$dist,
-           is_query)
+           is_query, parallelize, block_size, grain_size);
 }
 
 # Internals ---------------------------------------------------------------

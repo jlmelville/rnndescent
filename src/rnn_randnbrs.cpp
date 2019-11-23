@@ -19,7 +19,6 @@
 
 #include "rnn_randnbrs.h"
 #include "rnn.h"
-#include "rnn_parallel.h"
 #include "rnn_randnbrsparallel.h"
 #include "rnn_rng.h"
 #include "tdoann/progress.h"
