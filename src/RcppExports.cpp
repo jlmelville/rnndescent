@@ -41,8 +41,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // merge_nn
-Rcpp::List merge_nn(Rcpp::IntegerMatrix nn_idx1, Rcpp::NumericMatrix nn_dist1, Rcpp::IntegerMatrix nn_idx2, Rcpp::NumericMatrix nn_dist2, bool is_query, bool parallelize, std::size_t block_size, std::size_t grain_size);
-RcppExport SEXP _rnndescent_merge_nn(SEXP nn_idx1SEXP, SEXP nn_dist1SEXP, SEXP nn_idx2SEXP, SEXP nn_dist2SEXP, SEXP is_querySEXP, SEXP parallelizeSEXP, SEXP block_sizeSEXP, SEXP grain_sizeSEXP) {
+Rcpp::List merge_nn(Rcpp::IntegerMatrix nn_idx1, Rcpp::NumericMatrix nn_dist1, Rcpp::IntegerMatrix nn_idx2, Rcpp::NumericMatrix nn_dist2, bool is_query, bool parallelize, std::size_t block_size, std::size_t grain_size, bool verbose);
+RcppExport SEXP _rnndescent_merge_nn(SEXP nn_idx1SEXP, SEXP nn_dist1SEXP, SEXP nn_idx2SEXP, SEXP nn_dist2SEXP, SEXP is_querySEXP, SEXP parallelizeSEXP, SEXP block_sizeSEXP, SEXP grain_sizeSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -54,13 +54,14 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< bool >::type parallelize(parallelizeSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type block_size(block_sizeSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type grain_size(grain_sizeSEXP);
-    rcpp_result_gen = Rcpp::wrap(merge_nn(nn_idx1, nn_dist1, nn_idx2, nn_dist2, is_query, parallelize, block_size, grain_size));
+    Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
+    rcpp_result_gen = Rcpp::wrap(merge_nn(nn_idx1, nn_dist1, nn_idx2, nn_dist2, is_query, parallelize, block_size, grain_size, verbose));
     return rcpp_result_gen;
 END_RCPP
 }
 // merge_nn_all
-Rcpp::List merge_nn_all(Rcpp::List nn_graphs, bool is_query, bool parallelize, std::size_t block_size, std::size_t grain_size);
-RcppExport SEXP _rnndescent_merge_nn_all(SEXP nn_graphsSEXP, SEXP is_querySEXP, SEXP parallelizeSEXP, SEXP block_sizeSEXP, SEXP grain_sizeSEXP) {
+Rcpp::List merge_nn_all(Rcpp::List nn_graphs, bool is_query, bool parallelize, std::size_t block_size, std::size_t grain_size, bool verbose);
+RcppExport SEXP _rnndescent_merge_nn_all(SEXP nn_graphsSEXP, SEXP is_querySEXP, SEXP parallelizeSEXP, SEXP block_sizeSEXP, SEXP grain_sizeSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -69,7 +70,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< bool >::type parallelize(parallelizeSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type block_size(block_sizeSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type grain_size(grain_sizeSEXP);
-    rcpp_result_gen = Rcpp::wrap(merge_nn_all(nn_graphs, is_query, parallelize, block_size, grain_size));
+    Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
+    rcpp_result_gen = Rcpp::wrap(merge_nn_all(nn_graphs, is_query, parallelize, block_size, grain_size, verbose));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -162,8 +164,8 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_rnndescent_rnn_brute_force", (DL_FUNC) &_rnndescent_rnn_brute_force, 7},
     {"_rnndescent_rnn_brute_force_query", (DL_FUNC) &_rnndescent_rnn_brute_force_query, 8},
-    {"_rnndescent_merge_nn", (DL_FUNC) &_rnndescent_merge_nn, 8},
-    {"_rnndescent_merge_nn_all", (DL_FUNC) &_rnndescent_merge_nn_all, 5},
+    {"_rnndescent_merge_nn", (DL_FUNC) &_rnndescent_merge_nn, 9},
+    {"_rnndescent_merge_nn_all", (DL_FUNC) &_rnndescent_merge_nn_all, 6},
     {"_rnndescent_nn_descent", (DL_FUNC) &_rnndescent_nn_descent, 13},
     {"_rnndescent_nn_descent_query", (DL_FUNC) &_rnndescent_nn_descent_query, 15},
     {"_rnndescent_random_knn_cpp", (DL_FUNC) &_rnndescent_random_knn_cpp, 8},

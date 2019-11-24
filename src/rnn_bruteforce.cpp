@@ -19,6 +19,7 @@
 
 #include "rnn.h"
 #include "rnn_bruteforceparallel.h"
+#include "rnn_progress.h"
 #include "tdoann/bruteforce.h"
 #include "tdoann/heap.h"
 #include <Rcpp.h>

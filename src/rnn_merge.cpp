@@ -24,16 +24,16 @@
 
 #define MERGE_NN()                                                             \
   return merge_nn_impl<MergeImpl, HeapAdd>(nn_idx1, nn_dist1, nn_idx2,         \
-                                           nn_dist2, merge_impl);
+                                           nn_dist2, merge_impl, verbose);
 
 #define MERGE_NN_ALL()                                                         \
-  return merge_nn_all_impl<MergeImpl, HeapAdd>(nn_graphs, merge_impl);
+  return merge_nn_all_impl<MergeImpl, HeapAdd>(nn_graphs, merge_impl, verbose);
 
 // [[Rcpp::export]]
 Rcpp::List merge_nn(Rcpp::IntegerMatrix nn_idx1, Rcpp::NumericMatrix nn_dist1,
                     Rcpp::IntegerMatrix nn_idx2, Rcpp::NumericMatrix nn_dist2,
                     bool is_query, bool parallelize, std::size_t block_size,
-                    std::size_t grain_size) {
+                    std::size_t grain_size = 1, bool verbose = false) {
 
   if (parallelize) {
     using MergeImpl = ParallelHeapImpl;
@@ -47,7 +47,7 @@ Rcpp::List merge_nn(Rcpp::IntegerMatrix nn_idx1, Rcpp::NumericMatrix nn_dist1,
     }
   } else {
     using MergeImpl = SerialHeapImpl;
-    MergeImpl merge_impl;
+    MergeImpl merge_impl(block_size);
     if (is_query) {
       using HeapAdd = HeapAddQuery;
       MERGE_NN();
@@ -60,7 +60,8 @@ Rcpp::List merge_nn(Rcpp::IntegerMatrix nn_idx1, Rcpp::NumericMatrix nn_dist1,
 
 // [[Rcpp::export]]
 Rcpp::List merge_nn_all(Rcpp::List nn_graphs, bool is_query, bool parallelize,
-                        std::size_t block_size, std::size_t grain_size) {
+                        std::size_t block_size, std::size_t grain_size = 1,
+                        bool verbose = false) {
   if (parallelize) {
     using MergeImpl = ParallelHeapImpl;
     MergeImpl merge_impl(block_size, grain_size);
@@ -73,7 +74,7 @@ Rcpp::List merge_nn_all(Rcpp::List nn_graphs, bool is_query, bool parallelize,
     }
   } else {
     using MergeImpl = SerialHeapImpl;
-    MergeImpl merge_impl;
+    MergeImpl merge_impl(block_size);
     if (is_query) {
       using HeapAdd = HeapAddQuery;
       MERGE_NN_ALL();

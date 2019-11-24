@@ -63,30 +63,11 @@ void batch_serial_for(Worker &rnn_worker, Progress &progress, std::size_t n,
   }
 }
 
-template <typename HeapAdd, typename NbrHeap = SimpleNeighborHeap>
-struct RToHeapWorker : public BatchParallelWorker {
-  NbrHeap &heap;
-  RcppParallel::RMatrix<int> nn_idx;
-  RcppParallel::RMatrix<double> nn_dist;
-  int max_idx;
-  HeapAdd heap_add;
-
-  RToHeapWorker(NbrHeap &heap, Rcpp::IntegerMatrix nn_idx,
-                Rcpp::NumericMatrix nn_dist,
-                int max_idx = (std::numeric_limits<int>::max)())
-      : heap(heap), nn_idx(nn_idx), nn_dist(nn_dist), max_idx(max_idx),
-        heap_add() {}
-
-  void operator()(std::size_t begin, std::size_t end) {
-    r_to_heap<HeapAdd, NbrHeap, RcppParallel::RMatrix<int>,
-              RcppParallel::RMatrix<double>>(heap, nn_idx, nn_dist, begin, end,
-                                             heap_add, max_idx);
-  }
-};
-
 // Specialization designed to not compile: HeapAddSymmetric should not be used
 // with parallel workers: use LockingHeapAddSymmetric
-template <typename NbrHeap> struct RToHeapWorker<HeapAddSymmetric, NbrHeap> {};
+template <typename NbrHeap>
+struct RToHeapWorker<HeapAddSymmetric, NbrHeap, RcppParallel::RMatrix<int>,
+                     RcppParallel::RMatrix<double>, BatchParallelWorker> {};
 
 struct LockingHeapAddSymmetric {
   static const constexpr std::size_t n_mutexes = 10;
@@ -110,7 +91,9 @@ void r_to_heap_parallel(NbrHeap &heap, Rcpp::IntegerMatrix nn_idx,
                         Rcpp::NumericMatrix nn_dist, std::size_t block_size,
                         std::size_t grain_size,
                         int max_idx = (std::numeric_limits<int>::max)()) {
-  RToHeapWorker<HeapAdd, NbrHeap> worker(heap, nn_idx, nn_dist, max_idx);
+  RToHeapWorker<HeapAdd, NbrHeap, RcppParallel::RMatrix<int>,
+                RcppParallel::RMatrix<double>, BatchParallelWorker>
+      worker(heap, nn_idx, nn_dist, max_idx);
   tdoann::NullProgress progress;
   const std::size_t n_points = nn_idx.nrow();
   batch_parallel_for(worker, progress, n_points, block_size, grain_size);

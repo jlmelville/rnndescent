@@ -25,8 +25,7 @@
 #include <dqrng.h>
 
 #include "rnn.h"
-
-struct Empty {};
+#include "rnn_progress.h"
 
 template <typename Distance, typename IndexSampler, typename IdxMatrix,
           typename DistMatrix, typename Base>

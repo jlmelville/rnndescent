@@ -28,10 +28,14 @@
 #include "rnn_parallel.h"
 
 struct SerialHeapImpl {
+  std::size_t block_size;
+
+  SerialHeapImpl(std::size_t block_size) : block_size(block_size) {}
+
   template <typename HeapAdd>
   void init(SimpleNeighborHeap &heap, Rcpp::IntegerMatrix nn_idx,
             Rcpp::NumericMatrix nn_dist) {
-    r_to_heap<HeapAdd>(heap, nn_idx, nn_dist);
+    r_to_heap_serial<HeapAdd>(heap, nn_idx, nn_dist, block_size);
   }
 };
 
@@ -50,11 +54,15 @@ struct ParallelHeapImpl {
 };
 
 template <typename MergeImpl, typename HeapAdd>
-Rcpp::List merge_nn_impl(Rcpp::IntegerMatrix nn_idx1,
-                         Rcpp::NumericMatrix nn_dist1,
-                         Rcpp::IntegerMatrix nn_idx2,
-                         Rcpp::NumericMatrix nn_dist2, MergeImpl &merge_impl) {
+Rcpp::List
+merge_nn_impl(Rcpp::IntegerMatrix nn_idx1, Rcpp::NumericMatrix nn_dist1,
+              Rcpp::IntegerMatrix nn_idx2, Rcpp::NumericMatrix nn_dist2,
+              MergeImpl &merge_impl, bool verbose = false) {
   SimpleNeighborHeap nn_merged(nn_idx1.nrow(), nn_idx1.ncol());
+
+  if (verbose) {
+    ts("Merging graphs");
+  }
   merge_impl.template init<HeapAdd>(nn_merged, nn_idx1, nn_dist1);
   merge_impl.template init<HeapAdd>(nn_merged, nn_idx2, nn_dist2);
 
@@ -63,15 +71,18 @@ Rcpp::List merge_nn_impl(Rcpp::IntegerMatrix nn_idx1,
 }
 
 template <typename MergeImpl, typename HeapAdd>
-Rcpp::List merge_nn_all_impl(Rcpp::List nn_graphs, MergeImpl &merge_impl) {
+Rcpp::List merge_nn_all_impl(Rcpp::List nn_graphs, MergeImpl &merge_impl,
+                             bool verbose = false) {
   const auto n_graphs = static_cast<std::size_t>(nn_graphs.size());
 
   Rcpp::List nn_graph = nn_graphs[0];
   Rcpp::NumericMatrix nn_dist = nn_graph["dist"];
   Rcpp::IntegerMatrix nn_idx = nn_graph["idx"];
 
+  RPProgress progress(n_graphs, verbose);
   SimpleNeighborHeap nn_merged(nn_idx.nrow(), nn_idx.ncol());
   merge_impl.template init<HeapAdd>(nn_merged, nn_idx, nn_dist);
+  progress.iter_finished();
 
   // iterate over other graphs
   for (std::size_t i = 1; i < n_graphs; i++) {
@@ -79,6 +90,7 @@ Rcpp::List merge_nn_all_impl(Rcpp::List nn_graphs, MergeImpl &merge_impl) {
     Rcpp::NumericMatrix nn_disti = nn_graphi["dist"];
     Rcpp::IntegerMatrix nn_idxi = nn_graphi["idx"];
     merge_impl.template init<HeapAdd>(nn_merged, nn_idxi, nn_disti);
+    TDOANN_ITERFINISHED()
   }
 
   nn_merged.deheap_sort();

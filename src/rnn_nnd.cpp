@@ -22,6 +22,7 @@
 #include "rnn.h"
 #include "rnn_nndparallel.h"
 #include "rnn_parallel.h"
+#include "rnn_progress.h"
 #include "tdoann/distance.h"
 #include "tdoann/graphupdate.h"
 #include "tdoann/heap.h"
@@ -105,8 +106,8 @@ struct NNDSerial {
   }
   void create_heap(NeighborHeap &current_graph, Rcpp::IntegerMatrix nn_idx,
                    Rcpp::NumericMatrix nn_dist) {
-    r_to_heap<HeapAddSymmetric>(current_graph, nn_idx, nn_dist,
-                                current_graph.n_points - 1);
+    r_to_heap_serial<HeapAddSymmetric>(current_graph, nn_idx, nn_dist, 1000,
+                                       current_graph.n_points - 1);
   }
 };
 
@@ -157,7 +158,8 @@ struct NNDQuerySerial {
   }
   void create_heap(NeighborHeap &current_graph, Rcpp::IntegerMatrix nn_idx,
                    Rcpp::NumericMatrix nn_dist) {
-    r_to_heap<HeapAddQuery>(current_graph, nn_idx, nn_dist, n_ref_points - 1);
+    r_to_heap_serial<HeapAddQuery>(current_graph, nn_idx, nn_dist, 1000,
+                                   n_ref_points - 1);
   }
 };
 

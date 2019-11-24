@@ -23,12 +23,11 @@
 #include <limits>
 
 #include <Rcpp.h>
-// [[Rcpp::depends(RcppProgress)]]
-#include <progress.hpp>
 
 #include "tdoann/distance.h"
 #include "tdoann/heap.h"
 
+#include "rnn_progress.h"
 #include "rnn_typedefs.h"
 
 #define DISPATCH_ON_DISTANCES(NEXT_MACRO)                                      \
@@ -72,6 +71,8 @@
   }
 
 /* Structs */
+
+struct Empty {};
 
 template <typename Distance> struct KnnQueryFactory {
   using DataVec = std::vector<typename Distance::Input>;
@@ -124,51 +125,6 @@ template <typename Distance> struct KnnBuildFactory {
 void print_time(bool print_date = false);
 void ts(const std::string &msg);
 
-// Sums the distances in a neighbor heap as a way of measuring progress.
-// Useful for diagnostic purposes
-struct HeapSumProgress {
-  NeighborHeap &neighbor_heap;
-  const std::size_t n_iters;
-  bool verbose;
-
-  std::size_t iter;
-  bool is_aborted;
-
-  HeapSumProgress(NeighborHeap &neighbor_heap, std::size_t n_iters,
-                  bool verbose = false);
-  void set_n_blocks(std::size_t n_blocks);
-  void block_finished();
-  void iter_finished();
-  void stopping_early();
-  bool check_interrupt();
-  void converged(std::size_t n_updates, double tol);
-  double dist_sum() const;
-  void iter_msg(std::size_t iter) const;
-};
-
-struct RPProgress {
-  const std::size_t scale;
-  Progress progress;
-  const std::size_t n_iters;
-  std::size_t n_blocks_;
-  bool verbose;
-
-  std::size_t iter;
-  std::size_t block;
-  bool is_aborted;
-
-  RPProgress(std::size_t n_iters, bool verbose);
-  RPProgress(NeighborHeap &, std::size_t n_iters, bool verbose);
-  void set_n_blocks(std::size_t n_blocks);
-  void block_finished();
-  void iter_finished();
-  void stopping_early();
-  bool check_interrupt();
-  void converged(std::size_t n_updates, double tol);
-  // convert float between 0...n_iters to int from 0...scale
-  int scaled(double d);
-};
-
 struct HeapAddSymmetric {
   template <typename NbrHeap>
   void push(NbrHeap &heap, std::size_t ref, std::size_t query, double d) {
@@ -216,6 +172,40 @@ void r_to_heap(NbrHeap &current_graph, Rcpp::IntegerMatrix nn_idx,
                      max_idx);
 }
 
+template <typename HeapAdd, typename NbrHeap = SimpleNeighborHeap,
+          typename IdxMatrix = Rcpp::IntegerMatrix,
+          typename DistMatrix = Rcpp::NumericMatrix, typename Base = Empty>
+struct RToHeapWorker : public Base {
+  NbrHeap &heap;
+  IdxMatrix nn_idx;
+  DistMatrix nn_dist;
+  int max_idx;
+  HeapAdd heap_add;
+
+  RToHeapWorker(NbrHeap &heap, Rcpp::IntegerMatrix nn_idx,
+                Rcpp::NumericMatrix nn_dist,
+                int max_idx = (std::numeric_limits<int>::max)())
+      : heap(heap), nn_idx(nn_idx), nn_dist(nn_dist), max_idx(max_idx),
+        heap_add() {}
+
+  void operator()(std::size_t begin, std::size_t end) {
+    r_to_heap<HeapAdd, NbrHeap, IdxMatrix, DistMatrix>(
+        heap, nn_idx, nn_dist, begin, end, heap_add, max_idx);
+  }
+};
+
+template <typename HeapAdd, typename NbrHeap = SimpleNeighborHeap>
+void r_to_heap_serial(NbrHeap &heap, Rcpp::IntegerMatrix nn_idx,
+                      Rcpp::NumericMatrix nn_dist, std::size_t block_size,
+                      int max_idx = (std::numeric_limits<int>::max)()) {
+  RToHeapWorker<HeapAdd, NbrHeap, Rcpp::IntegerMatrix, Rcpp::NumericMatrix,
+                Empty>
+      worker(heap, nn_idx, nn_dist, max_idx);
+  InterruptableProgress progress;
+  const std::size_t n_points = nn_idx.nrow();
+  batch_serial_for(worker, progress, n_points, block_size);
+}
+
 // input heap index is 0-indexed
 // output idx R matrix is 1-indexed and untransposed
 template <typename NbrHeap>
@@ -253,7 +243,7 @@ void sort_knn_graph(Rcpp::IntegerMatrix nn_idx, Rcpp::NumericMatrix nn_dist) {
   const std::size_t n_nbrs = nn_idx.ncol();
 
   NbrHeap heap(n_points, n_nbrs);
-  r_to_heap<HeapAdd>(heap, nn_idx, nn_dist);
+  r_to_heap_serial<HeapAdd>(heap, nn_idx, nn_dist, 1000);
   heap.deheap_sort();
   heap_to_r(heap, nn_idx, nn_dist);
 }
