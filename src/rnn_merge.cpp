@@ -22,6 +22,29 @@
 #include "rnn.h"
 #include "rnn_merge.h"
 
+#define CONFIGURE_MERGE(NEXT_MACRO)                                            \
+  if (parallelize) {                                                           \
+    using MergeImpl = ParallelHeapImpl;                                        \
+    MergeImpl merge_impl(block_size, grain_size);                              \
+    if (is_query) {                                                            \
+      using HeapAdd = HeapAddQuery;                                            \
+      NEXT_MACRO();                                                            \
+    } else {                                                                   \
+      using HeapAdd = LockingHeapAddSymmetric;                                 \
+      NEXT_MACRO();                                                            \
+    }                                                                          \
+  } else {                                                                     \
+    using MergeImpl = SerialHeapImpl;                                          \
+    MergeImpl merge_impl(block_size);                                          \
+    if (is_query) {                                                            \
+      using HeapAdd = HeapAddQuery;                                            \
+      NEXT_MACRO();                                                            \
+    } else {                                                                   \
+      using HeapAdd = HeapAddSymmetric;                                        \
+      NEXT_MACRO();                                                            \
+    }                                                                          \
+  }
+
 #define MERGE_NN()                                                             \
   return merge_nn_impl<MergeImpl, HeapAdd>(nn_idx1, nn_dist1, nn_idx2,         \
                                            nn_dist2, merge_impl, verbose);
@@ -34,53 +57,12 @@ Rcpp::List merge_nn(Rcpp::IntegerMatrix nn_idx1, Rcpp::NumericMatrix nn_dist1,
                     Rcpp::IntegerMatrix nn_idx2, Rcpp::NumericMatrix nn_dist2,
                     bool is_query, bool parallelize, std::size_t block_size,
                     std::size_t grain_size = 1, bool verbose = false) {
-
-  if (parallelize) {
-    using MergeImpl = ParallelHeapImpl;
-    MergeImpl merge_impl(block_size, grain_size);
-    if (is_query) {
-      using HeapAdd = HeapAddQuery;
-      MERGE_NN();
-    } else {
-      using HeapAdd = LockingHeapAddSymmetric;
-      MERGE_NN();
-    }
-  } else {
-    using MergeImpl = SerialHeapImpl;
-    MergeImpl merge_impl(block_size);
-    if (is_query) {
-      using HeapAdd = HeapAddQuery;
-      MERGE_NN();
-    } else {
-      using HeapAdd = HeapAddSymmetric;
-      MERGE_NN();
-    }
-  }
+  CONFIGURE_MERGE(MERGE_NN);
 }
 
 // [[Rcpp::export]]
 Rcpp::List merge_nn_all(Rcpp::List nn_graphs, bool is_query, bool parallelize,
                         std::size_t block_size, std::size_t grain_size = 1,
                         bool verbose = false) {
-  if (parallelize) {
-    using MergeImpl = ParallelHeapImpl;
-    MergeImpl merge_impl(block_size, grain_size);
-    if (is_query) {
-      using HeapAdd = HeapAddQuery;
-      MERGE_NN_ALL();
-    } else {
-      using HeapAdd = LockingHeapAddSymmetric;
-      MERGE_NN_ALL();
-    }
-  } else {
-    using MergeImpl = SerialHeapImpl;
-    MergeImpl merge_impl(block_size);
-    if (is_query) {
-      using HeapAdd = HeapAddQuery;
-      MERGE_NN_ALL();
-    } else {
-      using HeapAdd = HeapAddSymmetric;
-      MERGE_NN_ALL();
-    }
-  }
+  CONFIGURE_MERGE(MERGE_NN_ALL);
 }
