@@ -43,10 +43,10 @@ void print_time(bool print_date) {
   if (dt_str.size() >= 7) {
     dt_str = dt_str.substr(0, dt_str.size() - 7);
   }
-  Rcpp::Rcout << dt_str << " ";
+  Rcpp::Rcerr << dt_str << " ";
 }
 
 void ts(const std::string &msg) {
   print_time();
-  Rcpp::Rcout << msg << std::endl;
+  Rcpp::Rcerr << msg << std::endl;
 }

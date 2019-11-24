@@ -59,7 +59,7 @@ bool HeapSumProgress::check_interrupt() {
 }
 void HeapSumProgress::converged(std::size_t n_updates, double tol) {
   if (verbose) {
-    Rcpp::Rcout << "Convergence: c = " << n_updates << " tol = " << tol
+    Rcpp::Rcerr << "Convergence: c = " << n_updates << " tol = " << tol
                 << std::endl;
   }
   stopping_early();
@@ -117,7 +117,7 @@ bool RPProgress::check_interrupt() {
 void RPProgress::converged(std::size_t n_updates, double tol) {
   stopping_early();
   if (verbose) {
-    Rcpp::Rcout << "Convergence at iteration " << iter << ": c = " << n_updates
+    Rcpp::Rcerr << "Convergence at iteration " << iter << ": c = " << n_updates
                 << " tol = " << tol << std::endl;
   }
 }
