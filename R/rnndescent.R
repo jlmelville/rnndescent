@@ -192,9 +192,11 @@ random_knn <- function(data, k, metric = "euclidean", use_alt_metric = TRUE,
 #' @param max_candidates Maximum number of candidate neighbors to try for each
 #'   item in each iteration. Use relative to \code{k} to emulate the "rho"
 #'   sampling parameter in the nearest neighbor descent paper.
-#' @param delta Precision parameter. Routine will terminate early if
-#'   fewer than \eqn{\delta k N}{delta x k x n} updates are made to the nearest
-#'   neighbor list in a given iteration.
+#' @param delta The minimum relative change in the neighbor graph allowed before
+#'   early stopping. Should be a value between 0 and 1. The smaller the value,
+#'   the smaller the amount of progress between iterations is allowed. Default
+#'   value of \code{0.001} means that at least 0.1% of the neighbor graph must
+#'   be updated at each iteration.
 #' @param low_memory If \code{TRUE}, use a lower memory, but more
 #'   computationally expensive approach to index construction. If set to
 #'   \code{FALSE}, you should see a noticeable speed improvement, especially
@@ -587,9 +589,11 @@ random_knn_query <- function(reference, query, k, metric = "euclidean",
 #' @param max_candidates Maximum number of candidate neighbors to try for each
 #'   item in each iteration. Use relative to \code{k} to emulate the "rho"
 #'   sampling parameter in the nearest neighbor descent paper.
-#' @param delta precision parameter. Routine will terminate early if
-#'   fewer than \eqn{\delta k N}{delta x k x n} updates are made to the nearest
-#'   neighbor list in a given iteration.
+#' @param delta The minimum relative change in the neighbor graph allowed before
+#'   early stopping. Should be a value between 0 and 1. The smaller the value,
+#'   the smaller the amount of progress between iterations is allowed. Default
+#'   value of \code{0.001} means that at least 0.1% of the neighbor graph must
+#'   be updated at each iteration.
 #' @param low_memory If \code{TRUE}, use a lower memory, but more
 #'   computationally expensive approach to index construction. If set to
 #'   \code{FALSE}, you should see a noticeable speed improvement, especially

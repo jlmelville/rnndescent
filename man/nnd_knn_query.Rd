@@ -63,9 +63,11 @@ and only the contents of \code{init$idx} will be used.}
 item in each iteration. Use relative to \code{k} to emulate the "rho"
 sampling parameter in the nearest neighbor descent paper.}
 
-\item{delta}{precision parameter. Routine will terminate early if
-fewer than \eqn{\delta k N}{delta x k x n} updates are made to the nearest
-neighbor list in a given iteration.}
+\item{delta}{The minimum relative change in the neighbor graph allowed before
+early stopping. Should be a value between 0 and 1. The smaller the value,
+the smaller the amount of progress between iterations is allowed. Default
+value of \code{0.001} means that at least 0.1% of the neighbor graph must
+be updated at each iteration.}
 
 \item{low_memory}{If \code{TRUE}, use a lower memory, but more
 computationally expensive approach to index construction. If set to
