@@ -888,6 +888,8 @@ merge_knnl <- function(nn_graphs, is_query = FALSE,
 #' @useDynLib rnndescent, .registration = TRUE
 #' @importFrom Rcpp sourceCpp
 #' @importFrom RcppParallel RcppParallelLibs
+# Suppress R CMD check note "Namespace in Imports field not imported from"
+#' @importFrom dqrng dqset.seed
 .onUnload <- function(libpath) {
   library.dynam.unload("rnndescent", libpath)
 }
