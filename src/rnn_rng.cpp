@@ -26,7 +26,7 @@
 void set_seed() {
   dqrng::dqRNGkind("Xoroshiro128+");
   auto seed = Rcpp::IntegerVector::create(R::runif(0, 1) *
-                                          std::numeric_limits<int>::max());
+                                          (std::numeric_limits<int>::max)());
   dqrng::dqset_seed(seed);
 }
 
