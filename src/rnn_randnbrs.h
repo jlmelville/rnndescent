@@ -67,24 +67,24 @@ struct RandomNbrBuildWorker : public Base {
   DistMatrix nn_dist;
 
   const int nr1;
-  const int n_to_sample;
+  const int k_minus_1;
   IndexSampler index_sampler;
 
   RandomNbrBuildWorker(Distance &distance, Rcpp::IntegerMatrix nn_idx,
                        Rcpp::NumericMatrix nn_dist)
       : distance(distance), nn_idx(nn_idx), nn_dist(nn_dist),
-        nr1(nn_idx.ncol() - 1), n_to_sample(nn_idx.nrow() - 1),
+        nr1(nn_idx.ncol() - 1), k_minus_1(nn_idx.nrow() - 1),
         index_sampler() {}
 
   void operator()(std::size_t begin, std::size_t end) {
-    for (int i = static_cast<int>(begin); i < static_cast<int>(end); i++) {
-      nn_idx(0, i) = i + 1;
-      auto idxi = index_sampler.sample(nr1, n_to_sample);
-      for (auto j = 0; j < n_to_sample; j++) {
-        auto val = idxi[j];
-        val = val >= i ? val + 1 : val;       // ensure i isn't in the sample
-        nn_idx(j + 1, i) = val + 1;           // store val as 1-index
-        nn_dist(j + 1, i) = distance(i, val); // distance calcs are 0-indexed
+    for (int qi = static_cast<int>(begin); qi < static_cast<int>(end); qi++) {
+      nn_idx(0, qi) = qi + 1;
+      auto ris = index_sampler.sample(nr1, k_minus_1);
+      for (auto j = 0; j < k_minus_1; j++) {
+        auto ri = ris[j];
+        ri = ri >= qi ? ri + 1 : ri;
+        nn_idx(j + 1, qi) = ri + 1;            // store val as 1-index
+        nn_dist(j + 1, qi) = distance(ri, qi); // distance calcs are 0-indexed
       }
     }
   }
