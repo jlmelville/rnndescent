@@ -26,13 +26,6 @@
 #include "rnn_rng.h"
 #include <dqrng.h>
 
-void set_seed() {
-  dqrng::dqRNGkind("Xoroshiro128+");
-  auto seed = Rcpp::IntegerVector::create(R::runif(0, 1) *
-                                          (std::numeric_limits<int>::max)());
-  dqrng::dqset_seed(seed);
-}
-
 uint64_t pseed() {
   Rcpp::IntegerVector seed(2, dqrng::R_random_int);
   return dqrng::convert_seed<uint64_t>(seed);

@@ -23,7 +23,6 @@
 
 #include "tdoann/tauprng.h"
 
-void set_seed();
 uint64_t pseed();
 uint64_t random64();
 
