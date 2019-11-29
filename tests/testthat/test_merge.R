@@ -58,7 +58,7 @@ expect_equal(ui10mnnl$dist, ui10mnn$dist)
 
 # all 3 matrices are processed
 ui10mnnl3 <- merge_knnl(list(ui10rnn1, ui10rnn2, ui10rnn3))
-expect_true(sum(ui10mnnl3$dist) < sum(ui10mnn$dist))
+expect_true(sum(ui10mnnl3$dist) <= sum(ui10mnn$dist))
 check_nbrs(ui10mnnl3, ui10_eucd, tol = 1e-6)
 
 # queries
@@ -80,7 +80,7 @@ expect_equal(ui10mnnlt$dist, ui10mnnt$dist)
 
 # all 3 matrices are processed
 ui10mnnl3t <- merge_knnl(list(ui10rnn1, ui10rnn2, ui10rnn3), n_threads = 1)
-expect_true(sum(ui10mnnl3t$dist) < sum(ui10mnnt$dist))
+expect_true(sum(ui10mnnl3t$dist) <= sum(ui10mnnt$dist))
 check_nbrs(ui10mnnl3t, ui10_eucd, tol = 1e-6)
 
 # queries
