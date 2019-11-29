@@ -20,6 +20,10 @@ check_nbrs(rnbrs, ui10_eucd, tol = 1e-6, check_order = FALSE)
 rnbrs <- random_knn(ui10, k = 4, order_by_distance = FALSE, n_threads = 1)
 check_nbrs(rnbrs, ui10_eucd, tol = 1e-6, check_order = FALSE)
 
+# large sample code path
+res <- random_knn(matrix(rnorm(6000), nrow = 3000), k = 3)
+check_nbrs_order(res)
+
 # errors
 expect_error(random_knn(ui10, k = 11), "k must be")
 expect_error(random_knn(ui10, k = 4, metric = "not-a-real metric"), "metric")
