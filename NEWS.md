@@ -1,3 +1,13 @@
+# rnndescent 0.0.6 (29 November 2019)
+
+## Bug fixes and minor improvements
+
+* For some reason, I thought it would be ok to use the `dqrng` sample routines
+from inside a thread, despite it clearly using the R API extensively. It's not
+ok and causes lots of crashes. There is now a re-implementation of `dqrng`'s 
+sample routines using plain `std::vector`s in `src/rnn_sample.h`. That file is 
+licensed under the AGPL (`rnndescent` as a whole remains GPL3).
+
 # rnndescent 0.0.5 (23 November 2019)
 
 ## New features
