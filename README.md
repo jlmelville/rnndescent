@@ -199,10 +199,12 @@ In *Proceedings of the 20th international conference on World wide web* (pp. 577
 
 ## License
 
-The R and Rcpp interface code is
-[GPLv3 or later](https://www.gnu.org/licenses/gpl-3.0.txt). The underlying C++
-library, which can be found under `inst/include`, is
-[BSD 2-Clause](https://opensource.org/licenses/BSD-2-Clause) licensed.
+The R and Rcpp interface code as a whole is
+[GPLv3 or later](https://www.gnu.org/licenses/gpl-3.0.txt). One of those files is a modification of 
+some sampling code from [dqrng](https://github.com/daqana/dqrng), and is 
+[AGPLv3](https://www.gnu.org/licenses/agpl-3.0.en.html). The underlying nearest neighbor descent C++
+library, which can be found under `inst/include/tdoann`, is 
+[BSD 2-Clause](https://opensource.org/licenses/BSD-2-Clause).
 
 ## See Also
 
