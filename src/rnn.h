@@ -26,9 +26,9 @@
 
 #include "tdoann/distance.h"
 #include "tdoann/heap.h"
+#include "tdoann/typedefs.h"
 
 #include "rnn_progress.h"
-#include "rnn_typedefs.h"
 
 #define DISPATCH_ON_DISTANCES(NEXT_MACRO)                                      \
   if (metric == "euclidean") {                                                 \

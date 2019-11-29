@@ -29,6 +29,7 @@
 
 #include "heap.h"
 #include "progress.h"
+#include "typedefs.h"
 
 namespace tdoann {
 template <typename Distance, typename Progress>

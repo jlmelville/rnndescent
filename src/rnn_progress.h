@@ -26,8 +26,7 @@
 
 #include "tdoann/heap.h"
 #include "tdoann/progress.h"
-
-#include "rnn_typedefs.h"
+#include "tdoann/typedefs.h"
 
 // Sums the distances in a neighbor heap as a way of measuring progress.
 // Useful for diagnostic purposes

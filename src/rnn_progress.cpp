@@ -21,9 +21,10 @@
 // [[Rcpp::depends(RcppProgress)]]
 #include <progress.hpp>
 
+#include "tdoann/typedefs.h"
+
 #include "rnn.h"
 #include "rnn_progress.h"
-#include "rnn_typedefs.h"
 
 HeapSumProgress::HeapSumProgress(NeighborHeap &neighbor_heap,
                                  std::size_t n_iters, bool verbose)
