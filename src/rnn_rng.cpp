@@ -20,6 +20,9 @@
 
 #include "Rcpp.h"
 // [[Rcpp::depends(dqrng)]]
+#include "R_randgen.h"
+#include "convert_seed.h"
+#include "dqrng_generator.h"
 #include "rnn_rng.h"
 #include <dqrng.h>
 
@@ -28,6 +31,11 @@ void set_seed() {
   auto seed = Rcpp::IntegerVector::create(R::runif(0, 1) *
                                           (std::numeric_limits<int>::max)());
   dqrng::dqset_seed(seed);
+}
+
+uint64_t pseed() {
+  Rcpp::IntegerVector seed(2, dqrng::R_random_int);
+  return dqrng::convert_seed<uint64_t>(seed);
 }
 
 // based on code in the dqsample package

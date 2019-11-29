@@ -25,28 +25,18 @@
 #include <Rcpp.h>
 // [[Rcpp::depends(dqrng)]]
 #include <dqrng.h>
+
 // [[Rcpp::depends(RcppParallel)]]
 #include <RcppParallel.h>
 
-struct LockingIndexSampler {
-  tthread::mutex mutex;
-
-  Rcpp::IntegerVector sample(int max_val, int num_to_sample) {
-    tthread::lock_guard<tthread::mutex> guard(mutex);
-    return Rcpp::IntegerVector(dqrng::dqsample_int(max_val, num_to_sample));
-  }
-};
-
 template <typename Distance>
 using ParallelRandomNbrQueryWorker =
-    RandomNbrQueryWorker<Distance, LockingIndexSampler,
-                         RcppParallel::RMatrix<int>,
+    RandomNbrQueryWorker<Distance, RcppParallel::RMatrix<int>,
                          RcppParallel::RMatrix<double>, BatchParallelWorker>;
 
 template <typename Distance>
 using ParallelRandomNbrBuildWorker =
-    RandomNbrBuildWorker<Distance, LockingIndexSampler,
-                         RcppParallel::RMatrix<int>,
+    RandomNbrBuildWorker<Distance, RcppParallel::RMatrix<int>,
                          RcppParallel::RMatrix<double>, BatchParallelWorker>;
 
 struct ParallelRandomKnnBuild {
@@ -58,16 +48,6 @@ struct ParallelRandomKnnQuery {
   using HeapAdd = HeapAddQuery;
   template <typename D> using Worker = ParallelRandomNbrQueryWorker<D>;
 };
-
-template <template <typename> class Worker, typename Progress,
-          typename Distance>
-void rknn_parallel(Progress &progress, Distance &distance,
-                   Rcpp::IntegerMatrix nn_idx, Rcpp::NumericMatrix nn_dist,
-                   const std::size_t block_size = 4096,
-                   const std::size_t grain_size = 1) {
-  Worker<Distance> worker(distance, nn_idx, nn_dist);
-  batch_parallel_for(worker, progress, nn_idx.ncol(), block_size, grain_size);
-}
 
 template <typename ParallelRandomKnn> struct ParallelRandomNbrsImpl {
   std::size_t block_size;
@@ -81,8 +61,9 @@ template <typename ParallelRandomKnn> struct ParallelRandomNbrsImpl {
   void build_knn(Distance &distance, Rcpp::IntegerMatrix nn_idx,
                  Rcpp::NumericMatrix nn_dist, bool verbose) {
     RPProgress progress(1, verbose);
-    rknn_parallel<Worker>(progress, distance, nn_idx, nn_dist, block_size,
-                          grain_size);
+
+    Worker<Distance> worker(distance, nn_idx, nn_dist);
+    batch_parallel_for(worker, progress, nn_idx.ncol(), block_size, grain_size);
   }
   void sort_knn(Rcpp::IntegerMatrix nn_idx, Rcpp::NumericMatrix nn_dist) {
     sort_knn_graph_parallel<HeapAdd>(nn_idx, nn_dist, block_size, grain_size);

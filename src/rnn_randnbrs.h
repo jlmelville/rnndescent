@@ -20,15 +20,20 @@
 #ifndef RNN_RANDNBRS_H
 #define RNN_RANDNBRS_H
 
-// [[Rcpp::depends(dqrng)]]
 #include <Rcpp.h>
+
+// [[Rcpp::depends(dqrng)]]
+#include "convert_seed.h"
+#include "dqrng_generator.h"
 #include <dqrng.h>
 
 #include "rnn.h"
 #include "rnn_progress.h"
+#include "rnn_rng.h"
+#include "rnn_sample.h"
 
-template <typename Distance, typename IndexSampler, typename IdxMatrix,
-          typename DistMatrix, typename Base>
+template <typename Distance, typename IdxMatrix, typename DistMatrix,
+          typename Base>
 struct RandomNbrQueryWorker : public Base {
 
   Distance &distance;
@@ -38,16 +43,19 @@ struct RandomNbrQueryWorker : public Base {
 
   const int nrefs;
   const int k;
-  IndexSampler index_sampler;
+
+  uint64_t seed;
 
   RandomNbrQueryWorker(Distance &distance, Rcpp::IntegerMatrix nn_idx,
                        Rcpp::NumericMatrix nn_dist)
       : distance(distance), nn_idx(nn_idx), nn_dist(nn_dist),
-        nrefs(distance.nx), k(nn_idx.nrow()), index_sampler() {}
+        nrefs(distance.nx), k(nn_idx.nrow()), seed(pseed()) {}
 
   void operator()(std::size_t begin, std::size_t end) {
+    dqrng::rng64_t rng = std::make_shared<dqrng::random_64bit_wrapper<pcg64>>();
+    rng->seed(seed, end);
     for (int qi = static_cast<int>(begin); qi < static_cast<int>(end); qi++) {
-      auto idxi = index_sampler.sample(nrefs, k);
+      auto idxi = sample<uint32_t>(rng, nrefs, k);
       for (auto j = 0; j < k; j++) {
         auto &ri = idxi[j];
         nn_idx(j, qi) = ri + 1;            // store val as 1-index
@@ -57,8 +65,8 @@ struct RandomNbrQueryWorker : public Base {
   }
 };
 
-template <typename Distance, typename IndexSampler, typename IdxMatrix,
-          typename DistMatrix, typename Base>
+template <typename Distance, typename IdxMatrix, typename DistMatrix,
+          typename Base>
 struct RandomNbrBuildWorker : public Base {
 
   Distance &distance;
@@ -68,21 +76,24 @@ struct RandomNbrBuildWorker : public Base {
 
   const int nr1;
   const int k_minus_1;
-  IndexSampler index_sampler;
+  uint64_t seed;
 
   RandomNbrBuildWorker(Distance &distance, Rcpp::IntegerMatrix nn_idx,
                        Rcpp::NumericMatrix nn_dist)
       : distance(distance), nn_idx(nn_idx), nn_dist(nn_dist),
-        nr1(nn_idx.ncol() - 1), k_minus_1(nn_idx.nrow() - 1),
-        index_sampler() {}
+        nr1(nn_idx.ncol() - 1), k_minus_1(nn_idx.nrow() - 1), seed(pseed()) {}
 
   void operator()(std::size_t begin, std::size_t end) {
+    dqrng::rng64_t rng = std::make_shared<dqrng::random_64bit_wrapper<pcg64>>();
+    rng->seed(seed, end);
     for (int qi = static_cast<int>(begin); qi < static_cast<int>(end); qi++) {
       nn_idx(0, qi) = qi + 1;
-      auto ris = index_sampler.sample(nr1, k_minus_1);
+      auto ris = sample<uint32_t>(rng, nr1, k_minus_1);
       for (auto j = 0; j < k_minus_1; j++) {
-        auto ri = ris[j];
-        ri = ri >= qi ? ri + 1 : ri;
+        int ri = ris[j];
+        if (ri >= qi) {
+          ri += 1;
+        }
         nn_idx(j + 1, qi) = ri + 1;            // store val as 1-index
         nn_dist(j + 1, qi) = distance(ri, qi); // distance calcs are 0-indexed
       }
@@ -90,18 +101,12 @@ struct RandomNbrBuildWorker : public Base {
   }
 };
 
-struct NonLockingIndexSampler {
-  Rcpp::IntegerVector sample(int max_val, int num_to_sample) {
-    return Rcpp::IntegerVector(dqrng::dqsample_int(max_val, num_to_sample));
-  }
-};
-
 struct SerialRandomKnnQuery {
   using HeapAdd = HeapAddQuery;
   template <typename Distance>
   using SerialRandomNbrQueryWorker =
-      RandomNbrQueryWorker<Distance, NonLockingIndexSampler,
-                           Rcpp::IntegerMatrix, Rcpp::NumericMatrix, Empty>;
+      RandomNbrQueryWorker<Distance, Rcpp::IntegerMatrix, Rcpp::NumericMatrix,
+                           Empty>;
   template <typename D> using Worker = SerialRandomNbrQueryWorker<D>;
 };
 
@@ -109,8 +114,8 @@ struct SerialRandomKnnBuild {
   using HeapAdd = HeapAddSymmetric;
   template <typename Distance>
   using SerialRandomNbrBuildWorker =
-      RandomNbrBuildWorker<Distance, NonLockingIndexSampler,
-                           Rcpp::IntegerMatrix, Rcpp::NumericMatrix, Empty>;
+      RandomNbrBuildWorker<Distance, Rcpp::IntegerMatrix, Rcpp::NumericMatrix,
+                           Empty>;
   template <typename D> using Worker = SerialRandomNbrBuildWorker<D>;
 };
 

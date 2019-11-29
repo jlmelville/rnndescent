@@ -65,8 +65,6 @@ template <typename KnnFactory, typename RandomNbrsImpl, typename Distance>
 Rcpp::List random_knn_impl(int k, bool order_by_distance,
                            KnnFactory &knn_factory, RandomNbrsImpl &impl,
                            bool verbose = false) {
-  set_seed();
-
   auto distance = knn_factory.create_distance();
   auto indices = knn_factory.create_index_matrix(k);
   auto dist = knn_factory.create_distance_matrix(k);

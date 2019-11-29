@@ -69,7 +69,7 @@ expect_equal(qnbrsml$dist, qnbrsm$dist)
 
 # all 3 matrices are processed
 qnbrsml3 <- merge_knnl(list(qnbrs1, qnbrs2, qnbrs3), is_query = TRUE)
-expect_true(sum(qnbrsml3$dist) < sum(qnbrsm$dist))
+expect_true(sum(qnbrsml3$dist) <= sum(qnbrsm$dist))
 check_query_nbrs(nn = qnbrsml3, query = ui4, ref_range = 1:6, query_range = 7:10, k = 4, expected_dist = ui10_eucd, tol = 1e-6)
 
 # parallel
@@ -91,7 +91,7 @@ expect_equal(qnbrsmlt$dist, qnbrsmt$dist)
 
 # all 3 matrices are processed
 qnbrsml3t <- merge_knnl(list(qnbrs1, qnbrs2, qnbrs3), is_query = TRUE, n_threads = 1)
-expect_true(sum(qnbrsml3t$dist) < sum(qnbrsmt$dist))
+expect_true(sum(qnbrsml3t$dist) <= sum(qnbrsmt$dist))
 check_query_nbrs(nn = qnbrsml3, query = ui4, ref_range = 1:6, query_range = 7:10, k = 4, expected_dist = ui10_eucd, tol = 1e-6)
 
 # Errors ------------------------------------------------------------------
