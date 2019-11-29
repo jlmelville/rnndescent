@@ -7,7 +7,10 @@ ui10rnn2 <- random_knn(ui10, k = 4, order_by_distance = FALSE)
 ui10rnn3 <- random_knn(ui10, k = 4, order_by_distance = FALSE)
 
 # serial
-ui10mnn <- merge_knn(ui10rnn1, ui10rnn2)
+output <- capture_everything({
+  ui10mnn <- merge_knn(ui10rnn1, ui10rnn2, verbose = TRUE)
+})
+expect_match(output, "Merging")
 expect_true(sum(ui10mnn$dist) < sum(ui10rnn1$dist))
 expect_true(sum(ui10mnn$dist) < sum(ui10rnn2$dist))
 check_nbrs(ui10mnn, ui10_eucd, tol = 1e-6)
