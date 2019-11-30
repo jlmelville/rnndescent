@@ -208,6 +208,15 @@ random_knn <- function(data, k, metric = "euclidean", use_alt_metric = TRUE,
 #'   the only reason to set this to \code{FALSE} is if you suspect that some
 #'   sort of numeric issue is occurring with your data in the alternative code
 #'   path.
+#' @param candidate_priority How priority is assigned to candidate neighbors,
+#'   which affects the order in which they are processed during the local join
+#'   stage. One of: \code{"random"} for random order (default),
+#'   \code{"distance"} for higher priority to smaller distances (i.e. closest
+#'   neighbors are processed first), or \code{"highdistance"} for higher
+#'   priority to larger distances (i.e. furthest neighbors are processed first).
+#'   Using \code{"distance"} or \code{"highdistance"} requires the candidate
+#'   neighbors to be sorted (once per nearest neighbor descent iteration), which
+#'   can increase run time.
 #' @param n_threads Number of threads to use.
 #' @param block_size Batch size for creating/applying local join updates. A
 #'  smaller value will apply the update more often, which may help reduce the
@@ -292,6 +301,7 @@ nnd_knn <- function(data, k = NULL,
                     delta = 0.001,
                     low_memory = TRUE,
                     use_alt_metric = TRUE,
+                    candidate_priority = "random",
                     n_threads = 0,
                     block_size = 16384,
                     grain_size = 1,
@@ -344,6 +354,7 @@ nnd_knn <- function(data, k = NULL,
     metric = actual_metric,
     n_iters = n_iters, max_candidates = max_candidates,
     delta = delta, low_memory = low_memory,
+    candidate_priority = candidate_priority,
     parallelize = parallelize,
     block_size = block_size, grain_size = grain_size, verbose = verbose,
     progress = progress
@@ -569,6 +580,15 @@ random_knn_query <- function(reference, query, k, metric = "euclidean",
 #'   the only reason to set this to \code{FALSE} is if you suspect that some
 #'   sort of numeric issue is occurring with your data in the alternative code
 #'   path.
+#' @param candidate_priority How priority is assigned to candidate neighbors,
+#'   which affects the order in which they are processed during the local join
+#'   stage. One of: \code{"random"} for random order (default),
+#'   \code{"distance"} for higher priority to smaller distances (i.e. closest
+#'   neighbors are processed first), or \code{"highdistance"} for higher
+#'   priority to larger distances (i.e. furthest neighbors are processed first).
+#'   Using \code{"distance"} or \code{"highdistance"} requires the candidate
+#'   neighbors to be sorted (once per nearest neighbor descent iteration), which
+#'   can increase run time.
 #' @param init Initial data to optimize. If not provided, \code{k} random
 #'   neighbors are created. The input format should be the same as the return
 #'   value: a list containing:
@@ -656,6 +676,7 @@ nnd_knn_query <- function(reference, reference_idx, query, k = NULL,
                           delta = 0.001,
                           low_memory = TRUE,
                           use_alt_metric = TRUE,
+                          candidate_priority = "random",
                           n_threads = 0,
                           block_size = 16384,
                           grain_size = 1,
@@ -709,6 +730,7 @@ nnd_knn_query <- function(reference, reference_idx, query, k = NULL,
     metric = actual_metric,
     n_iters = n_iters, max_candidates = max_candidates,
     delta = delta, low_memory = low_memory,
+    candidate_priority = candidate_priority,
     parallelize = parallelize,
     block_size = block_size, grain_size = grain_size, verbose = verbose,
     progress = progress

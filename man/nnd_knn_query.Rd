@@ -16,6 +16,7 @@ nnd_knn_query(
   delta = 0.001,
   low_memory = TRUE,
   use_alt_metric = TRUE,
+  candidate_priority = "random",
   n_threads = 0,
   block_size = 16384,
   grain_size = 1,
@@ -81,6 +82,16 @@ ordering of distances internally (e.g. squared Euclidean distances if using
 the only reason to set this to \code{FALSE} is if you suspect that some
 sort of numeric issue is occurring with your data in the alternative code
 path.}
+
+\item{candidate_priority}{How priority is assigned to candidate neighbors,
+which affects the order in which they are processed during the local join
+stage. One of: \code{"random"} for random order (default),
+\code{"distance"} for higher priority to smaller distances (i.e. closest
+neighbors are processed first), or \code{"highdistance"} for higher
+priority to larger distances (i.e. furthest neighbors are processed first).
+Using \code{"distance"} or \code{"highdistance"} requires the candidate
+neighbors to be sorted (once per nearest neighbor descent iteration), which
+can increase run time.}
 
 \item{n_threads}{Number of threads to use.}
 
