@@ -35,8 +35,9 @@ check_nbrs_dist <- function(nn, expected_dist, tol = .Machine$double.eps) {
 
 check_nbrs_order <- function(nn) {
   expect_true(all(apply(nn$dist, 1, order) ==
-                    matrix(rep(1:ncol(nn$idx), times = nrow(nn$idx)),
-                           nrow = ncol(nn$idx))))
+    matrix(rep(1:ncol(nn$idx), times = nrow(nn$idx)),
+      nrow = ncol(nn$idx)
+    )))
 }
 
 check_nbrs <- function(nn, expected_dist, tol = .Machine$double.eps, check_order = TRUE) {
