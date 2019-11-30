@@ -44,10 +44,12 @@ class tau_prng {
 
 public:
   static constexpr double DINT_MAX =
-      static_cast<double>(std::numeric_limits<int>::max());
+      static_cast<double>((std::numeric_limits<int>::max)());
 
   tau_prng(uint64_t state0, uint64_t state1, uint64_t state2)
-      : state0(state0), state1(state1), state2(state2) {}
+      : state0(state0),
+        state1(state1 > 7 ? state1 : 8),
+        state2(state2 > 15 ? state2 : 16) {}
 
   int32_t operator()() {
     state0 = (((state0 & MAGIC0) << 12) & 0xffffffff) ^
