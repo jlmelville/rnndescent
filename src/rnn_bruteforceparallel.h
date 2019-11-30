@@ -20,11 +20,13 @@
 #ifndef RNN_BRUTEFORCEPARALLEL_H
 #define RNN_BRUTEFORCEPARALLEL_H
 
-#include "rnn_parallel.h"
+#include <Rcpp.h>
+
 #include "tdoann/bruteforce.h"
 #include "tdoann/heap.h"
 #include "tdoann/progress.h"
-#include <Rcpp.h>
+
+#include "rnn_parallel.h"
 
 template <typename Distance>
 struct BruteForceWorker : public BatchParallelWorker {
@@ -64,7 +66,7 @@ void nnbf_parallel_query(SimpleNeighborHeap &neighbor_heap, Distance &distance,
   batch_parallel_for(worker, progress, neighbor_heap.n_points, block_size,
                      grain_size);
 
-  neighbor_heap.deheap_sort();
+  sort_heap_parallel(neighbor_heap, block_size, grain_size);
 }
 
 #endif // RNND_BRUTEFORCEPARALLEL_H

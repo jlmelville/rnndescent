@@ -37,6 +37,7 @@ struct SerialHeapImpl {
             Rcpp::NumericMatrix nn_dist) {
     r_to_heap_serial<HeapAdd>(heap, nn_idx, nn_dist, block_size);
   }
+  void sort_heap(SimpleNeighborHeap &heap) { heap.deheap_sort(); }
 };
 
 struct ParallelHeapImpl {
@@ -50,6 +51,9 @@ struct ParallelHeapImpl {
   void init(SimpleNeighborHeap &heap, Rcpp::IntegerMatrix nn_idx,
             Rcpp::NumericMatrix nn_dist) {
     r_to_heap_parallel<HeapAdd>(heap, nn_idx, nn_dist, block_size, grain_size);
+  }
+  void sort_heap(SimpleNeighborHeap &heap) {
+    sort_heap_parallel(heap, block_size, grain_size);
   }
 };
 
@@ -66,7 +70,7 @@ merge_nn_impl(Rcpp::IntegerMatrix nn_idx1, Rcpp::NumericMatrix nn_dist1,
   merge_impl.template init<HeapAdd>(nn_merged, nn_idx1, nn_dist1);
   merge_impl.template init<HeapAdd>(nn_merged, nn_idx2, nn_dist2);
 
-  nn_merged.deheap_sort();
+  merge_impl.sort_heap(nn_merged);
   return heap_to_r(nn_merged);
 }
 
@@ -93,7 +97,7 @@ Rcpp::List merge_nn_all_impl(Rcpp::List nn_graphs, MergeImpl &merge_impl,
     TDOANN_ITERFINISHED()
   }
 
-  nn_merged.deheap_sort();
+  merge_impl.sort_heap(nn_merged);
   return heap_to_r(nn_merged);
 }
 

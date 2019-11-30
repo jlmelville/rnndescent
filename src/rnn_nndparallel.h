@@ -43,7 +43,6 @@ struct LockingCandidatesWorker : public RcppParallel::Worker {
   NeighborHeap &old_candidate_neighbors;
   static const constexpr std::size_t n_mutexes = 10;
   tthread::mutex mutexes[n_mutexes];
-  bool should_sort;
 
   LockingCandidatesWorker(
       const NeighborHeap &current_graph,
@@ -55,8 +54,7 @@ struct LockingCandidatesWorker : public RcppParallel::Worker {
         n_points(current_graph.n_points), n_nbrs(current_graph.n_nbrs),
         max_candidates(new_candidate_neighbors.n_nbrs),
         new_candidate_neighbors(new_candidate_neighbors),
-        old_candidate_neighbors(old_candidate_neighbors),
-        should_sort(candidate_priority_factory.should_sort) {}
+        old_candidate_neighbors(old_candidate_neighbors) {}
 
   void operator()(std::size_t begin, std::size_t end) {
     auto candidate_priority = candidate_priority_factory.create(begin, end);
@@ -78,12 +76,6 @@ struct LockingCandidatesWorker : public RcppParallel::Worker {
           nbrs.checked_push(idx, d, i, isn);
         }
       }
-    }
-  }
-  void after_parallel() {
-    if (should_sort) {
-      new_candidate_neighbors.deheap_sort();
-      old_candidate_neighbors.deheap_sort();
     }
   }
 };
@@ -176,7 +168,10 @@ void nnd_parallel(NeighborHeap &current_graph,
         current_graph, candidate_priority_factory, new_candidate_neighbors,
         old_candidate_neighbors);
     RcppParallel::parallelFor(0, n_points, candidates_worker, grain_size);
-    candidates_worker.after_parallel();
+    if (CandidatePriorityFactoryImpl::should_sort) {
+      sort_heap_parallel(new_candidate_neighbors, block_size, grain_size);
+      sort_heap_parallel(old_candidate_neighbors, block_size, grain_size);
+    }
 
     FlagNewCandidatesWorker flag_new_candidates_worker(new_candidate_neighbors,
                                                        current_graph);
@@ -192,7 +187,7 @@ void nnd_parallel(NeighborHeap &current_graph,
     std::size_t c = local_join_worker.c;
     TDOANN_CHECKCONVERGENCE();
   }
-  current_graph.deheap_sort();
+  sort_heap_parallel(current_graph, block_size, grain_size);
 }
 
 template <typename CandidatePriorityFactoryImpl>
@@ -292,7 +287,7 @@ void nnd_query_parallel(
     std::size_t c = query_non_search_worker.n_updates;
     TDOANN_CHECKCONVERGENCE();
   }
-  current_graph.deheap_sort();
+  sort_heap_parallel(current_graph, block_size, grain_size);
 }
 
 #endif // RNN_NNDPARALLEL_H
