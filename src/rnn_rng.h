@@ -24,8 +24,8 @@
 #include <memory>
 #include <vector>
 
-#include "tdoann/tauprng.h"
 #include "dqrng_generator.h"
+#include "tdoann/tauprng.h"
 
 #include "rnn_sample.h"
 
