@@ -123,8 +123,8 @@ struct NNDParallel {
   void
   build_knn(NeighborHeap &current_graph, GraphUpdater<Distance> &graph_updater,
             const std::size_t max_candidates, const std::size_t n_iters,
-            Rand &rand, const double tol, Progress &progress, bool verbose) {
-    nnd_parallel(current_graph, graph_updater, max_candidates, n_iters, rand,
+            Rand &, const double tol, Progress &progress, bool verbose) {
+    nnd_parallel(current_graph, graph_updater, max_candidates, n_iters,
                  progress, tol, block_size, grain_size, verbose);
   }
 
