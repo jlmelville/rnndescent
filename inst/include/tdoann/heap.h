@@ -43,11 +43,12 @@ template <typename DistanceOut = double> struct NNDHeap {
   std::vector<std::size_t> idx;
   std::vector<DistanceOut> dist;
   std::vector<char> flags;
+  std::size_t n_nbrs1;
 
   NNDHeap(const std::size_t n_points, const std::size_t n_nbrs)
       : n_points(n_points), n_nbrs(n_nbrs), idx(n_points * n_nbrs, npos()),
         dist(n_points * n_nbrs, (std::numeric_limits<DistanceOut>::max)()),
-        flags(n_points * n_nbrs, 0) {}
+        flags(n_points * n_nbrs, 0), n_nbrs1(n_nbrs - 1) {}
 
   NNDHeap(const NNDHeap &) = default;
   ~NNDHeap() = default;
@@ -148,16 +149,19 @@ template <typename DistanceOut = double> struct NNDHeap {
   }
 
   void deheap_sort() {
-    const std::size_t nnbrs1 = n_nbrs - 1;
-
     for (std::size_t i = 0; i < n_points; i++) {
-      const std::size_t r0 = i * n_nbrs;
-      for (std::size_t j = 0; j < nnbrs1; j++) {
-        const std::size_t r0nn1 = r0 + nnbrs1 - j;
-        std::swap(idx[r0], idx[r0nn1]);
-        std::swap(dist[r0], dist[r0nn1]);
-        siftdown(r0, nnbrs1 - j);
-      }
+      deheap_sort(i);
+    }
+  }
+
+  void deheap_sort(std::size_t i) {
+    const std::size_t r0 = i * n_nbrs;
+    for (std::size_t j = 0; j < n_nbrs1; j++) {
+      const std::size_t n1j = n_nbrs1 - j;
+      const std::size_t r0nn1 = r0 + n1j;
+      std::swap(idx[r0], idx[r0nn1]);
+      std::swap(dist[r0], dist[r0nn1]);
+      siftdown(r0, n1j);
     }
   }
 
@@ -217,10 +221,12 @@ template <typename DistanceOut = double> struct NNHeap {
   std::size_t n_nbrs;
   std::vector<std::size_t> idx;
   std::vector<DistanceOut> dist;
+  std::size_t n_nbrs1;
 
   NNHeap(const std::size_t n_points, const std::size_t n_nbrs)
       : n_points(n_points), n_nbrs(n_nbrs), idx(n_points * n_nbrs, npos()),
-        dist(n_points * n_nbrs, (std::numeric_limits<DistanceOut>::max)()) {}
+        dist(n_points * n_nbrs, (std::numeric_limits<DistanceOut>::max)()),
+        n_nbrs1(n_nbrs - 1) {}
 
   NNHeap(const NNHeap &) = default;
   ~NNHeap() = default;
@@ -317,16 +323,19 @@ template <typename DistanceOut = double> struct NNHeap {
   }
 
   void deheap_sort() {
-    const std::size_t nnbrs1 = n_nbrs - 1;
-
     for (std::size_t i = 0; i < n_points; i++) {
-      const std::size_t r0 = i * n_nbrs;
-      for (std::size_t j = 0; j < nnbrs1; j++) {
-        const std::size_t r0nn1 = r0 + nnbrs1 - j;
-        std::swap(idx[r0], idx[r0nn1]);
-        std::swap(dist[r0], dist[r0nn1]);
-        siftdown(r0, nnbrs1 - j);
-      }
+      deheap_sort(i);
+    }
+  }
+
+  void deheap_sort(std::size_t i) {
+    const std::size_t r0 = i * n_nbrs;
+    for (std::size_t j = 0; j < n_nbrs1; j++) {
+      const std::size_t n1j = n_nbrs1 - j;
+      const std::size_t r0nn1 = r0 + n1j;
+      std::swap(idx[r0], idx[r0nn1]);
+      std::swap(dist[r0], dist[r0nn1]);
+      siftdown(r0, n1j);
     }
   }
 
