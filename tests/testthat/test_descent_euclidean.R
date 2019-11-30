@@ -157,12 +157,22 @@ set.seed(1337)
 ui10_rnn <- nnd_knn(ui10, 4, use_alt_metric = FALSE)
 expect_equal(sum(ui10_rnn$dist), ui10_edsum, tol = 1e-3)
 
+# candidate priorities
+set.seed(1337)
+ui10_rnn <- nnd_knn(ui10, 4, candidate_priority = "distance")
+expect_equal(sum(ui10_rnn$dist), ui10_edsum, tol = 1e-3)
+
+set.seed(1337)
+ui10_rnn <- nnd_knn(ui10, 4, candidate_priority = "highdistance")
+expect_equal(sum(ui10_rnn$dist), ui10_edsum, tol = 1e-3)
+
 # errors
 expect_error(nnd_knn(ui10), "provide k")
 expect_error(nnd_knn(ui10, k = 11), "k must be")
 expect_error(nnd_knn(uirism, init = iris_nbrs, k = 20), "Not enough")
 expect_error(nnd_knn(uirism, k = 15, init = iris_nbrs, metric = "not-a-real metric"), "metric")
 expect_error(nnd_knn(uirism, init = list(dist = iris_nbrs$dist, idx = iris_nbrs$idx - 1)), "Bad indexes")
+expect_error(nnd_knn(ui10, k = 4, candidate_priority = "unknown"), "should be one of")
 
 # verbosity
 msgs <- capture_everything(nnd_knn(ui10, 4, verbose = TRUE))
@@ -215,6 +225,17 @@ expect_equal(sum(qnbrs6$dist), ui6q_edsum, tol = 1e-6)
 # turn off alt metric
 set.seed(1337)
 qnbrs6 <- nnd_knn_query(reference = ui4, reference_idx = ui4_nnd$idx, query = ui6, k = 4, use_alt_metric = FALSE)
+check_query_nbrs(nn = qnbrs6, query = ui6, ref_range = 7:10, query_range = 1:6, k = 4, expected_dist = ui10_eucd, tol = 1e-6)
+expect_equal(sum(qnbrs6$dist), ui6q_edsum, tol = 1e-6)
+
+# candidate priority
+set.seed(1337)
+qnbrs6 <- nnd_knn_query(reference = ui4, reference_idx = ui4_nnd$idx, query = ui6, k = 4, candidate_priority = "distance")
+check_query_nbrs(nn = qnbrs6, query = ui6, ref_range = 7:10, query_range = 1:6, k = 4, expected_dist = ui10_eucd, tol = 1e-6)
+expect_equal(sum(qnbrs6$dist), ui6q_edsum, tol = 1e-6)
+
+set.seed(1337)
+qnbrs6 <- nnd_knn_query(reference = ui4, reference_idx = ui4_nnd$idx, query = ui6, k = 4, candidate_priority = "highdistance")
 check_query_nbrs(nn = qnbrs6, query = ui6, ref_range = 7:10, query_range = 1:6, k = 4, expected_dist = ui10_eucd, tol = 1e-6)
 expect_equal(sum(qnbrs6$dist), ui6q_edsum, tol = 1e-6)
 
@@ -282,8 +303,24 @@ check_query_nbrs(nn = qnbrs6, query = ui6, ref_range = 7:10, query_range = 1:6, 
 expect_equal(sum(qnbrs6$dist), ui6q_edsum, tol = 1e-6)
 
 # errors
-expect_error(nnd_knn_query(reference = ui4, reference_idx = ui4_nnd$idx, query = ui6, k = 5), "items in the reference data")
-expect_error(nnd_knn_query(reference = ui6, reference_idx = ui6_nnd$idx, query = ui4, init = rnbrs5, k = 6), "Not enough initial")
-expect_error(nnd_knn_query(reference = ui6, reference_idx = ui6_nnd$idx, query = ui4, init = rnbrs5, k = 5), "Not enough reference")
-expect_error(nnd_knn_query(reference = ui4, reference_idx = ui4_nnd$idx, query = ui6, k = 4, metric = "not-a-real metric"), "metric")
-expect_error(nnd_knn_query(reference = ui4, reference_idx = ui4_nnd$idx, query = ui6, init = rnbrs5, k = 4, metric = "not-a-real metric"), "metric")
+expect_error(nnd_knn_query(
+  reference = ui4, reference_idx = ui4_nnd$idx,
+  query = ui6, k = 5
+), "items in the reference data")
+expect_error(nnd_knn_query(
+  reference = ui6, reference_idx = ui6_nnd$idx,
+  query = ui4, init = rnbrs5, k = 6
+), "Not enough initial")
+expect_error(nnd_knn_query(
+  reference = ui6, reference_idx = ui6_nnd$idx,
+  query = ui4, init = rnbrs5, k = 5
+), "Not enough reference")
+expect_error(nnd_knn_query(
+  reference = ui4, reference_idx = ui4_nnd$idx,
+  query = ui6, k = 4, metric = "not-a-real metric"
+), "metric")
+expect_error(nnd_knn_query(
+  reference = ui4, reference_idx = ui4_nnd$idx,
+  query = ui6, init = rnbrs5, k = 4, metric = "not-a-real metric"
+), "metric")
+expect_error(nnd_knn_query(reference = ui4, reference_idx = ui4_nnd$idx, query = ui6, init = rnbrs5, k = 4, candidate_priority = "unknown"), "should be one of")

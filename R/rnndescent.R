@@ -308,7 +308,10 @@ nnd_knn <- function(data, k = NULL,
                     verbose = FALSE,
                     progress = "bar") {
   stopifnot(tolower(progress) %in% c("bar", "dist"))
-
+  candidate_priority <- match.arg(
+    tolower(candidate_priority),
+    c("random", "distance", "highdistance")
+  )
   data <- x2m(data)
 
   if (use_alt_metric) {
@@ -683,6 +686,11 @@ nnd_knn_query <- function(reference, reference_idx, query, k = NULL,
                           verbose = FALSE,
                           progress = "bar") {
   stopifnot(tolower(progress) %in% c("bar", "dist"))
+  candidate_priority <- match.arg(
+    tolower(candidate_priority),
+    c("random", "distance", "highdistance")
+  )
+
   reference <- x2m(reference)
   query <- x2m(query)
 
