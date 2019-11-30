@@ -28,6 +28,7 @@
 
 #include "rnn_parallel.h"
 #include "rnn_rng.h"
+#include "rnn_sample.h"
 #include "tdoann/graphupdate.h"
 #include "tdoann/heap.h"
 #include "tdoann/nndescent.h"
@@ -42,6 +43,7 @@ struct LockingCandidatesWorker : public RcppParallel::Worker {
   NeighborHeap &old_candidate_neighbors;
   static const constexpr std::size_t n_mutexes = 10;
   tthread::mutex mutexes[n_mutexes];
+  uint64_t seed;
 
   LockingCandidatesWorker(const NeighborHeap &current_graph,
                           NeighborHeap &new_candidate_neighbors,
@@ -50,22 +52,19 @@ struct LockingCandidatesWorker : public RcppParallel::Worker {
         n_nbrs(current_graph.n_nbrs),
         max_candidates(new_candidate_neighbors.n_nbrs),
         new_candidate_neighbors(new_candidate_neighbors),
-        old_candidate_neighbors(old_candidate_neighbors) {}
+        old_candidate_neighbors(old_candidate_neighbors),
+        seed(pseed()) {}
 
   void operator()(std::size_t begin, std::size_t end) {
-    std::unique_ptr<TauRand> rand(nullptr);
     // Each window gets its own PRNG state, to prevent locking inside the loop.
-    {
-      tthread::lock_guard<tthread::mutex> guard(mutexes[begin % n_mutexes]);
-      rand.reset(new TauRand());
-    }
+    TauRand rand(seed, end);
 
     for (std::size_t i = begin; i < end; i++) {
       std::size_t innbrs = i * n_nbrs;
       for (std::size_t j = 0; j < n_nbrs; j++) {
         std::size_t ij = innbrs + j;
         std::size_t idx = current_graph.idx[ij];
-        double d = rand->unif();
+        double d = rand.unif();
         char isn = current_graph.flags[ij];
         auto &nbrs =
             isn == 1 ? new_candidate_neighbors : old_candidate_neighbors;
@@ -196,7 +195,7 @@ struct QueryCandidatesWorker : public RcppParallel::Worker {
 
   NeighborHeap &new_candidate_neighbors;
 
-  tthread::mutex mutex;
+  uint64_t seed;
 
   QueryCandidatesWorker(NeighborHeap &current_graph,
                         NeighborHeap &new_candidate_neighbors)
@@ -204,15 +203,12 @@ struct QueryCandidatesWorker : public RcppParallel::Worker {
         n_nbrs(current_graph.n_nbrs),
         max_candidates(new_candidate_neighbors.n_nbrs),
         flag_on_add(new_candidate_neighbors.n_nbrs >= current_graph.n_nbrs),
-        new_candidate_neighbors(new_candidate_neighbors) {}
+        new_candidate_neighbors(new_candidate_neighbors),
+        seed(pseed()) {}
 
   void operator()(std::size_t begin, std::size_t end) {
-    std::unique_ptr<TauRand> rand(nullptr);
-    {
-      tthread::lock_guard<tthread::mutex> guard(mutex);
-      rand.reset(new TauRand());
-    }
-    build_query_candidates(current_graph, *rand, new_candidate_neighbors, begin,
+    TauRand rand(seed, end);
+    build_query_candidates(current_graph, rand, new_candidate_neighbors, begin,
                            end, flag_on_add);
   }
 };

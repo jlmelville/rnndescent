@@ -52,7 +52,7 @@ struct RandomNbrQueryWorker : public Base {
         nrefs(distance.nx), k(nn_idx.nrow()), seed(pseed()) {}
 
   void operator()(std::size_t begin, std::size_t end) {
-    dqrng::rng64_t rng = std::make_shared<dqrng::random_64bit_wrapper<pcg64>>();
+    dqrng::rng64_t rng = parallel_rng(seed);
     rng->seed(seed, end);
     for (int qi = static_cast<int>(begin); qi < static_cast<int>(end); qi++) {
       auto idxi = sample<uint32_t>(rng, nrefs, k);
@@ -84,7 +84,7 @@ struct RandomNbrBuildWorker : public Base {
         nr1(nn_idx.ncol() - 1), k_minus_1(nn_idx.nrow() - 1), seed(pseed()) {}
 
   void operator()(std::size_t begin, std::size_t end) {
-    dqrng::rng64_t rng = std::make_shared<dqrng::random_64bit_wrapper<pcg64>>();
+    dqrng::rng64_t rng = parallel_rng(seed);
     rng->seed(seed, end);
     for (int qi = static_cast<int>(begin); qi < static_cast<int>(end); qi++) {
       nn_idx(0, qi) = qi + 1;

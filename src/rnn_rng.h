@@ -21,9 +21,16 @@
 #ifndef RNN_RNG_H
 #define RNN_RNG_H
 
+#include <memory>
+#include <vector>
+
 #include "tdoann/tauprng.h"
+#include "dqrng_generator.h"
+
+#include "rnn_sample.h"
 
 uint64_t pseed();
+dqrng::rng64_t parallel_rng(uint64_t seed);
 uint64_t random64();
 
 // Use R API for RNG
@@ -34,8 +41,9 @@ struct RRand {
 
 // Use Taus88 RNG
 struct TauRand {
-  tdoann::tau_prng prng;
-  TauRand();
+  std::unique_ptr<tdoann::tau_prng> prng;
+
+  TauRand(uint64_t seed, uint64_t seed2);
   // a random uniform value between 0 and 1
   double unif();
 };
