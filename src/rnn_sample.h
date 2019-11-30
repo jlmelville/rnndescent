@@ -40,6 +40,17 @@
 #include "minimal_int_set.h"
 
 template <typename INT>
+inline std::vector<INT>
+replacement(dqrng::rng64_t &rng, INT m, INT n,
+                int offset) {
+  std::vector<INT> result(n);
+  std::generate(result.begin(), result.end(), [=, &rng]() {
+    return static_cast<INT>(offset + (*rng)(m));
+  });
+  return result;
+}
+
+template <typename INT>
 std::vector<INT> no_replacement_shuffle(dqrng::rng64_t &rng, INT m, INT n,
                                         int offset = 0) {
   std::vector<INT> tmp(m);
@@ -69,16 +80,21 @@ std::vector<INT> no_replacement_set(dqrng::rng64_t &rng, INT m, INT n,
 
 template <typename INT>
 inline std::vector<INT> sample(dqrng::rng64_t &rng, INT m, INT n,
-                               int offset = 0) {
-  if (!(m >= n))
-    Rcpp::stop("Argument requirements not fulfilled: m >= n");
-  if (m < 2 * n) {
-    return no_replacement_shuffle<INT>(rng, m, n, offset);
-  } else if (m < 1000 * n) {
-    return no_replacement_set<INT, dqrng::minimal_bit_set>(rng, m, n, offset);
+                               bool replace = false, int offset = 0) {
+  if (replace || n <= 1) {
+    return replacement<INT>(rng, m, n, offset);
   } else {
-    return no_replacement_set<INT, dqrng::minimal_hash_set<INT>>(rng, m, n,
+    if (!(m >= n))
+      Rcpp::stop("Argument requirements not fulfilled: m >= n");
+    if (m < 2 * n) {
+      return no_replacement_shuffle<INT>(rng, m, n, offset);
+    } else if (m < 1000 * n) {
+      return no_replacement_set<INT, dqrng::minimal_bit_set>(rng, m, n,
                                                                  offset);
+    } else {
+      return no_replacement_set<INT, dqrng::minimal_hash_set<INT>>(
+          rng, m, n, offset);
+    }
   }
 }
 
