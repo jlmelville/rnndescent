@@ -48,8 +48,7 @@
 #' # Use verbose flag to see information about progress
 #' iris_nn <- brute_force_knn(iris, k = 4, metric = "euclidean", verbose = TRUE)
 #' @export
-brute_force_knn <- function(
-                            data,
+brute_force_knn <- function(data,
                             k,
                             metric = "euclidean",
                             use_alt_metric = TRUE,
@@ -71,7 +70,16 @@ brute_force_knn <- function(
   if (parallelize) {
     RcppParallel::setThreadOptions(numThreads = n_threads)
   }
-  res <- rnn_brute_force(data, k, actual_metric, parallelize, block_size, grain_size, verbose)
+  res <-
+    rnn_brute_force(
+      data,
+      k,
+      actual_metric,
+      parallelize,
+      block_size,
+      grain_size,
+      verbose
+    )
 
   if (use_alt_metric) {
     res$dist <- apply_alt_metric_correction(metric, res$dist)
@@ -137,33 +145,49 @@ brute_force_knn <- function(
 #' # to specify k here because this is worked out from the initial input
 #' iris_nn <- nnd_knn(iris, init = iris_nn, metric = "euclidean", verbose = TRUE)
 #' @export
-random_knn <- function(data, k, metric = "euclidean", use_alt_metric = TRUE,
-                       order_by_distance = TRUE,
-                       n_threads = 0, block_size = 4096, grain_size = 1,
-                       verbose = FALSE) {
-  data <- x2m(data)
-  check_k(k, nrow(data))
+random_knn <-
+  function(data,
+           k,
+           metric = "euclidean",
+           use_alt_metric = TRUE,
+           order_by_distance = TRUE,
+           n_threads = 0,
+           block_size = 4096,
+           grain_size = 1,
+           verbose = FALSE) {
+    data <- x2m(data)
+    check_k(k, nrow(data))
 
-  if (use_alt_metric) {
-    actual_metric <- find_alt_metric(metric)
+    if (use_alt_metric) {
+      actual_metric <- find_alt_metric(metric)
+    }
+    else {
+      actual_metric <- metric
+    }
+
+    parallelize <- n_threads > 0
+    if (parallelize) {
+      RcppParallel::setThreadOptions(numThreads = n_threads)
+    }
+
+    res <-
+      random_knn_cpp(
+        data,
+        k,
+        actual_metric,
+        order_by_distance,
+        parallelize,
+        block_size,
+        grain_size,
+        verbose
+      )
+
+    if (use_alt_metric) {
+      res$dist <- apply_alt_metric_correction(metric, res$dist)
+    }
+
+    res
   }
-  else {
-    actual_metric <- metric
-  }
-
-  parallelize <- n_threads > 0
-  if (parallelize) {
-    RcppParallel::setThreadOptions(numThreads = n_threads)
-  }
-
-  res <- random_knn_cpp(data, k, actual_metric, order_by_distance, parallelize, block_size, grain_size, verbose)
-
-  if (use_alt_metric) {
-    res$dist <- apply_alt_metric_correction(metric, res$dist)
-  }
-
-  res
-}
 
 #' Find Nearest Neighbors and Distances
 #'
@@ -293,7 +317,8 @@ random_knn <- function(data, k, metric = "euclidean", use_alt_metric = TRUE,
 #' ACM.
 #' \url{doi.org/10.1145/1963405.1963487}.
 #' @export
-nnd_knn <- function(data, k = NULL,
+nnd_knn <- function(data,
+                    k = NULL,
                     metric = "euclidean",
                     init = NULL,
                     n_iters = 10,
@@ -329,7 +354,9 @@ nnd_knn <- function(data, k = NULL,
       stop("Must provide k")
     }
     tsmessage("Initializing from random neighbors")
-    init <- random_knn(data, k,
+    init <- random_knn(
+      data,
+      k,
       metric = actual_metric,
       order_by_distance = FALSE,
       n_threads = n_threads,
@@ -353,13 +380,20 @@ nnd_knn <- function(data, k = NULL,
   }
 
   tsmessage("Running nearest neighbor descent for ", n_iters, " iterations")
-  res <- nn_descent(data, init$idx, init$dist,
+  res <- nn_descent(
+    data,
+    init$idx,
+    init$dist,
     metric = actual_metric,
-    n_iters = n_iters, max_candidates = max_candidates,
-    delta = delta, low_memory = low_memory,
+    n_iters = n_iters,
+    max_candidates = max_candidates,
+    delta = delta,
+    low_memory = low_memory,
     candidate_priority = candidate_priority,
     parallelize = parallelize,
-    block_size = block_size, grain_size = grain_size, verbose = verbose,
+    block_size = block_size,
+    grain_size = grain_size,
+    verbose = verbose,
     progress = progress
   )
 
@@ -426,8 +460,7 @@ nnd_knn <- function(data, k = NULL,
 #' # Manhattan (l1) distance
 #' iris_query_nn <- brute_force_knn_query(iris_ref, iris_query, k = 4, metric = "manhattan")
 #' @export
-brute_force_knn_query <- function(
-                                  reference,
+brute_force_knn_query <- function(reference,
                                   query,
                                   k,
                                   metric = "euclidean",
@@ -441,7 +474,9 @@ brute_force_knn_query <- function(
 
   if (k > nrow(reference)) {
     stop(
-      k, " neighbors asked for, but only ", nrow(reference),
+      k,
+      " neighbors asked for, but only ",
+      nrow(reference),
       " items in the reference data"
     )
   }
@@ -459,8 +494,14 @@ brute_force_knn_query <- function(
   }
 
   res <- rnn_brute_force_query(
-    reference, query, k, actual_metric, parallelize, block_size,
-    grain_size, verbose
+    reference,
+    query,
+    k,
+    actual_metric,
+    parallelize,
+    block_size,
+    grain_size,
+    verbose
   )
 
   if (use_alt_metric) {
@@ -526,42 +567,58 @@ brute_force_knn_query <- function(
 #' # Manhattan (l1) distance
 #' iris_query_random_nbrs <- random_knn_query(iris_ref, iris_query, k = 4, metric = "manhattan")
 #' @export
-random_knn_query <- function(reference, query, k, metric = "euclidean",
-                             use_alt_metric = TRUE, order_by_distance = TRUE,
-                             n_threads = 0, block_size = 4096, grain_size = 1,
-                             verbose = FALSE) {
-  reference <- x2m(reference)
-  query <- x2m(query)
-  nr <- nrow(reference)
+random_knn_query <-
+  function(reference,
+           query,
+           k,
+           metric = "euclidean",
+           use_alt_metric = TRUE,
+           order_by_distance = TRUE,
+           n_threads = 0,
+           block_size = 4096,
+           grain_size = 1,
+           verbose = FALSE) {
+    reference <- x2m(reference)
+    query <- x2m(query)
+    nr <- nrow(reference)
 
-  if (k > nr) {
-    stop(
-      k, " neighbors asked for, but only ", nrow(reference),
-      " items in the reference data"
+    if (k > nr) {
+      stop(
+        k,
+        " neighbors asked for, but only ",
+        nrow(reference),
+        " items in the reference data"
+      )
+    }
+
+    if (use_alt_metric) {
+      actual_metric <- find_alt_metric(metric)
+    }
+    else {
+      actual_metric <- metric
+    }
+
+    parallelize <- n_threads > 0
+    if (parallelize) {
+      RcppParallel::setThreadOptions(numThreads = n_threads)
+    }
+
+    res <- random_knn_query_cpp(
+      reference,
+      query,
+      k,
+      actual_metric,
+      order_by_distance,
+      parallelize,
+      block_size,
+      grain_size,
+      verbose
     )
+    if (use_alt_metric) {
+      res$dist <- apply_alt_metric_correction(metric, res$dist)
+    }
+    res
   }
-
-  if (use_alt_metric) {
-    actual_metric <- find_alt_metric(metric)
-  }
-  else {
-    actual_metric <- metric
-  }
-
-  parallelize <- n_threads > 0
-  if (parallelize) {
-    RcppParallel::setThreadOptions(numThreads = n_threads)
-  }
-
-  res <- random_knn_query_cpp(
-    reference, query, k, actual_metric, order_by_distance, parallelize, block_size,
-    grain_size, verbose
-  )
-  if (use_alt_metric) {
-    res$dist <- apply_alt_metric_correction(metric, res$dist)
-  }
-  res
-}
 
 
 #' Find Nearest Neighbors and Distances
@@ -671,7 +728,10 @@ random_knn_query <- function(reference, query, k, metric = "euclidean",
 #' ACM.
 #' \url{doi.org/10.1145/1963405.1963487}.
 #' @export
-nnd_knn_query <- function(reference, reference_idx, query, k = NULL,
+nnd_knn_query <- function(reference,
+                          reference_idx,
+                          query,
+                          k = NULL,
                           metric = "euclidean",
                           init = NULL,
                           n_iters = 10,
@@ -710,9 +770,13 @@ nnd_knn_query <- function(reference, reference_idx, query, k = NULL,
       message("Using k = ", k, " from reference graph indices")
     }
     tsmessage("Initializing from random neighbors")
-    init <- random_knn_query(reference, query, k,
+    init <- random_knn_query(
+      reference,
+      query,
+      k,
       order_by_distance = FALSE,
-      metric = actual_metric, n_threads = n_threads,
+      metric = actual_metric,
+      n_threads = n_threads,
       verbose = verbose
     )
   }
@@ -734,15 +798,25 @@ nnd_knn_query <- function(reference, reference_idx, query, k = NULL,
     RcppParallel::setThreadOptions(numThreads = n_threads)
   }
 
-  res <- nn_descent_query(reference, reference_idx, query, init$idx, init$dist,
-    metric = actual_metric,
-    n_iters = n_iters, max_candidates = max_candidates,
-    delta = delta, low_memory = low_memory,
-    candidate_priority = candidate_priority,
-    parallelize = parallelize,
-    block_size = block_size, grain_size = grain_size, verbose = verbose,
-    progress = progress
-  )
+  res <-
+    nn_descent_query(
+      reference,
+      reference_idx,
+      query,
+      init$idx,
+      init$dist,
+      metric = actual_metric,
+      n_iters = n_iters,
+      max_candidates = max_candidates,
+      delta = delta,
+      low_memory = low_memory,
+      candidate_priority = candidate_priority,
+      parallelize = parallelize,
+      block_size = block_size,
+      grain_size = grain_size,
+      verbose = verbose,
+      progress = progress
+    )
 
   if (use_alt_metric) {
     res$dist <- apply_alt_metric_correction(metric, res$dist)
@@ -814,8 +888,12 @@ nnd_knn_query <- function(reference, reference_idx, query, k = NULL,
 #' sum(iris_mnn$dist) < sum(iris_rnn1$dist)
 #' sum(iris_mnn$dist) < sum(iris_rnn2$dist)
 #' @export
-merge_knn <- function(nn_graph1, nn_graph2, is_query = FALSE,
-                      n_threads = 0, block_size = 4096, grain_size = 1,
+merge_knn <- function(nn_graph1,
+                      nn_graph2,
+                      is_query = FALSE,
+                      n_threads = 0,
+                      block_size = 4096,
+                      grain_size = 1,
                       verbose = FALSE) {
   validate_are_mergeable(nn_graph1, nn_graph2)
 
@@ -825,8 +903,15 @@ merge_knn <- function(nn_graph1, nn_graph2, is_query = FALSE,
   }
 
   merge_nn(
-    nn_graph1$idx, nn_graph1$dist, nn_graph2$idx, nn_graph2$dist,
-    is_query, parallelize, block_size, grain_size, verbose
+    nn_graph1$idx,
+    nn_graph1$dist,
+    nn_graph2$idx,
+    nn_graph2$dist,
+    is_query,
+    parallelize,
+    block_size,
+    grain_size,
+    verbose
   )
 }
 
@@ -895,8 +980,11 @@ merge_knn <- function(nn_graph1, nn_graph2, is_query = FALSE,
 #' # iris_mnn <- merge_knn(iris_rnn1, iris_rnn2)
 #' # iris_mnn <- merge_knn(iris_mnn, iris_rnn3)
 #' @export
-merge_knnl <- function(nn_graphs, is_query = FALSE,
-                       n_threads = 0, block_size = 4096, grain_size = 1,
+merge_knnl <- function(nn_graphs,
+                       is_query = FALSE,
+                       n_threads = 0,
+                       block_size = 4096,
+                       grain_size = 1,
                        verbose = FALSE) {
   if (length(nn_graphs) == 0) {
     return(list())
@@ -909,7 +997,12 @@ merge_knnl <- function(nn_graphs, is_query = FALSE,
   }
 
   merge_nn_all(
-    nn_graphs, is_query, parallelize, block_size, grain_size, verbose
+    nn_graphs,
+    is_query,
+    parallelize,
+    block_size,
+    grain_size,
+    verbose
   )
 }
 
@@ -984,17 +1077,18 @@ validate_are_mergeablel <- function(nn_graphs) {
   }
 }
 
-validate_are_mergeable <- function(nn_graph1, nn_graph2, validate1 = TRUE) {
-  if (validate1) {
-    validate_nn_graph(nn_graph1)
+validate_are_mergeable <-
+  function(nn_graph1, nn_graph2, validate1 = TRUE) {
+    if (validate1) {
+      validate_nn_graph(nn_graph1)
+    }
+    validate_nn_graph(nn_graph2)
+    nr1 <- nrow(nn_graph1$idx)
+    nr2 <- nrow(nn_graph2$idx)
+    if (nr1 != nr2) {
+      stop("Graphs must have same number of rows, but are ", nr1, ", ", nr2)
+    }
   }
-  validate_nn_graph(nn_graph2)
-  nr1 <- nrow(nn_graph1$idx)
-  nr2 <- nrow(nn_graph2$idx)
-  if (nr1 != nr2) {
-    stop("Graphs must have same number of rows, but are ", nr1, ", ", nr2)
-  }
-}
 
 validate_nn_graph <- function(nn_graph) {
   if (is.null(nn_graph$idx)) {
