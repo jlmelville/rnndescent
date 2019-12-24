@@ -154,7 +154,7 @@ void r_to_heap(NbrHeap &current_graph, IdxMatrix nn_idx, DistMatrix nn_dist,
     for (std::size_t j = 0; j < n_nbrs; j++) {
       const int k = nn_idx(i, j) - 1;
       if (k < 0 || k > max_idx) {
-        Rcpp::stop("Bad indexes in input");
+        Rcpp::stop("Bad indexes in input: " + std::to_string(k));
       }
       double d = nn_dist(i, j);
       heap_add.push(current_graph, i, k, d);
