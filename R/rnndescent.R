@@ -767,7 +767,7 @@ nnd_knn_query <- function(reference,
   if (is.null(init)) {
     if (is.null(k)) {
       k <- ncol(reference_idx)
-      message("Using k = ", k, " from reference graph indices")
+      tsmessage("Using k = ", k, " from reference graph indices")
     }
     tsmessage("Initializing from random neighbors")
     init <- random_knn_query(
