@@ -120,10 +120,10 @@ using namespace tdoann;
     using NNDImpl = NNDQueryParallel;                                          \
     NNDImpl nnd_impl(reference_idx, block_size, grain_size);                   \
     if (low_memory) {                                                          \
-      using GraphUpdater = QuerySerialGraphUpdater<Distance>;                  \
+      using GraphUpdater = QueryBatchGraphUpdater<Distance>;                   \
       NND_CANDIDATE_PRIORITY_PARALLEL()                                        \
     } else {                                                                   \
-      using GraphUpdater = QuerySerialGraphUpdater<Distance>;                  \
+      using GraphUpdater = QueryBatchGraphUpdaterHiMem<Distance>;              \
       NND_CANDIDATE_PRIORITY_PARALLEL()                                        \
     }                                                                          \
   } else {                                                                     \

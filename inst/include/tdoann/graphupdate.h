@@ -513,6 +513,95 @@ template <typename Distance> struct QuerySerialGraphUpdaterHiMem {
 
   using NeighborSet = UnorderedNeighborSet;
 };
+
+template <typename Distance> struct QueryBatchGraphUpdater {
+  NeighborHeap &current_graph;
+  const Distance &distance;
+  const std::size_t n_nbrs;
+
+  std::vector<std::vector<Update>> updates;
+
+  QueryBatchGraphUpdater(NeighborHeap &current_graph, const Distance &distance)
+      : current_graph(current_graph), distance(distance),
+        n_nbrs(current_graph.n_nbrs), updates(current_graph.n_points) {}
+
+  void generate(const std::size_t query_idx, const std::size_t ref_idx,
+                const std::size_t) {
+    double d = distance(ref_idx, query_idx);
+    if (current_graph.accepts(query_idx, d)) {
+      updates[query_idx].emplace_back(query_idx, ref_idx, d);
+    }
+  }
+
+  std::size_t apply() {
+    std::size_t c = 0;
+    const std::size_t n_points = updates.size();
+    for (std::size_t i = 0; i < n_points; i++) {
+      const std::size_t n_updates = updates[i].size();
+      for (std::size_t j = 0; j < n_updates; j++) {
+        const auto &update = updates[i][j];
+        c += current_graph.checked_push(update.p, update.d, update.q);
+      }
+      updates[i].clear();
+    }
+    return c;
+  }
+
+  using NeighborSet = NullNeighborSet;
+};
+
+template <typename Distance> struct QueryBatchGraphUpdaterHiMem {
+  NeighborHeap &current_graph;
+  const Distance &distance;
+  const std::size_t n_nbrs;
+
+  GraphCache<GraphCacheQueryInit> seen;
+  std::vector<std::vector<Update>> updates;
+
+  QueryBatchGraphUpdaterHiMem(NeighborHeap &current_graph,
+                              const Distance &distance)
+      : current_graph(current_graph), distance(distance),
+        n_nbrs(current_graph.n_nbrs), seen(current_graph),
+        updates(current_graph.n_points) {}
+
+  void generate(const std::size_t query_idx, const std::size_t ref_idx,
+                const std::size_t) {
+    if (seen.contains(query_idx, ref_idx)) {
+      return;
+    }
+    double d = distance(ref_idx, query_idx);
+    if (current_graph.accepts(query_idx, d)) {
+      updates[query_idx].emplace_back(query_idx, ref_idx, d);
+    }
+  }
+
+  std::size_t apply() {
+    std::size_t c = 0;
+    const std::size_t n_points = updates.size();
+    for (std::size_t i = 0; i < n_points; i++) {
+      const std::size_t n_updates = updates[i].size();
+      for (std::size_t j = 0; j < n_updates; j++) {
+        const auto &update = updates[i][j];
+        const auto &query_idx = update.p;
+        const auto &ref_idx = update.q;
+        const auto &d = update.d;
+        const bool bad_queryd = !current_graph.accepts(query_idx, d);
+        if (bad_queryd || seen.contains(query_idx, ref_idx)) {
+          continue;
+        }
+        if (!bad_queryd) {
+          current_graph.unchecked_push(query_idx, d, ref_idx);
+          seen.insert(query_idx, ref_idx);
+          c += 1;
+        }
+      }
+      updates[i].clear();
+    }
+    return c;
+  }
+  using NeighborSet = UnorderedNeighborSet;
+};
+
 } // namespace tdoann
 
 #endif // TDOANN_GRAPHUPDATE_H
