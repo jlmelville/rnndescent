@@ -1,7 +1,7 @@
 Package: rnndescent
 Type: Package
 Title: Nearest Neighbor Descent method for Approximate Nearest Neighbors
-Version: 0.0.6
+Version: 0.0.7
 Authors@R: person("James", "Melville", email = "jlmelville@gmail.com", role = c("aut", "cre"))
 Description: The Nearest Neighbor Descent method (Dong and co-workers, 
     <doi:10.1145/1963405.1963487>) for finding approximate nearest
@@ -14,7 +14,6 @@ Suggests:
     testthat, covr
 RoxygenNote: 7.0.2
 LinkingTo: 
-    Rcpp, RcppParallel, dqrng, RcppProgress, sitmo, BH
+    Rcpp, dqrng, RcppProgress, sitmo, BH
 Imports: 
-    Rcpp, methods, RcppParallel, dqrng
-SystemRequirements: GNU make
+    Rcpp, methods, dqrng

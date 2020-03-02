@@ -26,18 +26,17 @@
 // [[Rcpp::depends(dqrng)]]
 #include <dqrng.h>
 
-// [[Rcpp::depends(RcppParallel)]]
-#include <RcppParallel.h>
+#include "RcppPerpendicular.h"
 
 template <typename Distance>
 using ParallelRandomNbrQueryWorker =
-    RandomNbrQueryWorker<Distance, RcppParallel::RMatrix<int>,
-                         RcppParallel::RMatrix<double>, BatchParallelWorker>;
+    RandomNbrQueryWorker<Distance, RcppPerpendicular::RMatrix<int>,
+                         RcppPerpendicular::RMatrix<double>, BatchParallelWorker>;
 
 template <typename Distance>
 using ParallelRandomNbrBuildWorker =
-    RandomNbrBuildWorker<Distance, RcppParallel::RMatrix<int>,
-                         RcppParallel::RMatrix<double>, BatchParallelWorker>;
+    RandomNbrBuildWorker<Distance, RcppPerpendicular::RMatrix<int>,
+                         RcppPerpendicular::RMatrix<double>, BatchParallelWorker>;
 
 struct ParallelRandomKnnBuild {
   using HeapAdd = LockingHeapAddSymmetric;

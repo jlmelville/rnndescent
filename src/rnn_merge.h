@@ -21,9 +21,8 @@
 #define RNN_MERGE_H
 
 #include <Rcpp.h>
-// [[Rcpp::depends(RcppParallel)]]
-#include <RcppParallel.h>
 
+#include "RcppPerpendicular.h"
 #include "rnn.h"
 #include "rnn_parallel.h"
 

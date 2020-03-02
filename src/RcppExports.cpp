@@ -5,6 +5,16 @@
 
 using namespace Rcpp;
 
+// hardware_concurrency
+unsigned int hardware_concurrency();
+RcppExport SEXP _rnndescent_hardware_concurrency() {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    rcpp_result_gen = Rcpp::wrap(hardware_concurrency());
+    return rcpp_result_gen;
+END_RCPP
+}
 // rnn_brute_force
 Rcpp::List rnn_brute_force(Rcpp::NumericMatrix data, int k, const std::string& metric, bool parallelize, std::size_t block_size, std::size_t grain_size, bool verbose);
 RcppExport SEXP _rnndescent_rnn_brute_force(SEXP dataSEXP, SEXP kSEXP, SEXP metricSEXP, SEXP parallelizeSEXP, SEXP block_sizeSEXP, SEXP grain_sizeSEXP, SEXP verboseSEXP) {
@@ -164,6 +174,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_rnndescent_hardware_concurrency", (DL_FUNC) &_rnndescent_hardware_concurrency, 0},
     {"_rnndescent_rnn_brute_force", (DL_FUNC) &_rnndescent_rnn_brute_force, 7},
     {"_rnndescent_rnn_brute_force_query", (DL_FUNC) &_rnndescent_rnn_brute_force_query, 8},
     {"_rnndescent_merge_nn", (DL_FUNC) &_rnndescent_merge_nn, 9},

@@ -68,7 +68,7 @@ brute_force_knn <- function(data,
 
   parallelize <- n_threads > 0
   if (parallelize) {
-    RcppParallel::setThreadOptions(numThreads = n_threads)
+    set_thread_options(n_threads = n_threads)
   }
   res <-
     rnn_brute_force(
@@ -167,7 +167,7 @@ random_knn <-
 
     parallelize <- n_threads > 0
     if (parallelize) {
-      RcppParallel::setThreadOptions(numThreads = n_threads)
+      set_thread_options(n_threads = n_threads)
     }
 
     res <-
@@ -376,7 +376,7 @@ nnd_knn <- function(data,
 
   parallelize <- n_threads > 0
   if (parallelize) {
-    RcppParallel::setThreadOptions(numThreads = n_threads)
+    set_thread_options(n_threads = n_threads)
   }
 
   tsmessage("Running nearest neighbor descent for ", n_iters, " iterations")
@@ -490,7 +490,7 @@ brute_force_knn_query <- function(reference,
 
   parallelize <- n_threads > 0
   if (parallelize) {
-    RcppParallel::setThreadOptions(numThreads = n_threads)
+    set_thread_options(n_threads = n_threads)
   }
 
   res <- rnn_brute_force_query(
@@ -600,7 +600,7 @@ random_knn_query <-
 
     parallelize <- n_threads > 0
     if (parallelize) {
-      RcppParallel::setThreadOptions(numThreads = n_threads)
+      set_thread_options(n_threads = n_threads)
     }
 
     res <- random_knn_query_cpp(
@@ -795,7 +795,7 @@ nnd_knn_query <- function(reference,
 
   parallelize <- n_threads > 0
   if (parallelize) {
-    RcppParallel::setThreadOptions(numThreads = n_threads)
+    set_thread_options(n_threads = n_threads)
   }
 
   res <-
@@ -899,7 +899,7 @@ merge_knn <- function(nn_graph1,
 
   parallelize <- n_threads > 0
   if (parallelize) {
-    RcppParallel::setThreadOptions(numThreads = n_threads)
+    set_thread_options(n_threads = n_threads)
   }
 
   merge_nn(
@@ -993,7 +993,7 @@ merge_knnl <- function(nn_graphs,
 
   parallelize <- n_threads > 0
   if (parallelize) {
-    RcppParallel::setThreadOptions(numThreads = n_threads)
+    set_thread_options(n_threads = n_threads)
   }
 
   merge_nn_all(
@@ -1010,7 +1010,6 @@ merge_knnl <- function(nn_graphs,
 
 #' @useDynLib rnndescent, .registration = TRUE
 #' @importFrom Rcpp sourceCpp
-#' @importFrom RcppParallel RcppParallelLibs
 # Suppress R CMD check note "Namespace in Imports field not imported from"
 #' @importFrom dqrng dqset.seed
 .onUnload <- function(libpath) {

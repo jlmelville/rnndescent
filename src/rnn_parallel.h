@@ -22,17 +22,18 @@
 #ifndef RNN_PARALLEL_H
 #define RNN_PARALLEL_H
 
+#include <mutex>
+
 #include <Rcpp.h>
-// [[Rcpp::depends(RcppParallel)]]
-#include <RcppParallel.h>
 
 #include "tdoann/heap.h"
 #include "tdoann/progress.h"
 #include "tdoann/typedefs.h"
 
+#include "RcppPerpendicular.h"
 #include "rnn.h"
 
-struct BatchParallelWorker : public RcppParallel::Worker {
+struct BatchParallelWorker : public RcppPerpendicular::Worker {
   void after_parallel(std::size_t begin, std::size_t end) {}
 };
 
@@ -44,7 +45,7 @@ void batch_parallel_for(Worker &rnn_worker, Progress &progress, std::size_t n,
   for (std::size_t i = 0; i < n_blocks; i++) {
     const auto begin = i * block_size;
     const auto end = std::min(n, begin + block_size);
-    RcppParallel::parallelFor(begin, end, rnn_worker, grain_size);
+    RcppPerpendicular::parallelFor(begin, end, rnn_worker, grain_size);
     TDOANN_BREAKIFINTERRUPTED();
     rnn_worker.after_parallel(begin, end);
     TDOANN_BLOCKFINISHED();
@@ -67,21 +68,21 @@ void batch_serial_for(Worker &rnn_worker, Progress &progress, std::size_t n,
 // Specialization designed to not compile: HeapAddSymmetric should not be used
 // with parallel workers: use LockingHeapAddSymmetric
 template <typename NbrHeap>
-struct RToHeapWorker<HeapAddSymmetric, NbrHeap, RcppParallel::RMatrix<int>,
-                     RcppParallel::RMatrix<double>, BatchParallelWorker> {};
+struct RToHeapWorker<HeapAddSymmetric, NbrHeap, RcppPerpendicular::RMatrix<int>,
+                    RcppPerpendicular::RMatrix<double>, BatchParallelWorker> {};
 
 struct LockingHeapAddSymmetric {
   static const constexpr std::size_t n_mutexes = 10;
-  tthread::mutex mutexes[n_mutexes];
+  std::mutex mutexes[n_mutexes];
 
   template <typename NbrHeap>
   void push(NbrHeap &heap, std::size_t ref, std::size_t query, double d) {
     {
-      tthread::lock_guard<tthread::mutex> guard(mutexes[ref % n_mutexes]);
+      std::lock_guard<std::mutex> guard(mutexes[ref % n_mutexes]);
       heap.checked_push(ref, d, query);
     }
     {
-      tthread::lock_guard<tthread::mutex> guard(mutexes[query % n_mutexes]);
+      std::lock_guard<std::mutex> guard(mutexes[query % n_mutexes]);
       heap.checked_push(query, d, ref);
     }
   }
@@ -92,8 +93,8 @@ void r_to_heap_parallel(NbrHeap &heap, Rcpp::IntegerMatrix nn_idx,
                         Rcpp::NumericMatrix nn_dist, std::size_t block_size,
                         std::size_t grain_size,
                         int max_idx = (std::numeric_limits<int>::max)()) {
-  RToHeapWorker<HeapAdd, NbrHeap, RcppParallel::RMatrix<int>,
-                RcppParallel::RMatrix<double>, BatchParallelWorker>
+  RToHeapWorker<HeapAdd, NbrHeap, RcppPerpendicular::RMatrix<int>,
+                RcppPerpendicular::RMatrix<double>, BatchParallelWorker>
       worker(heap, nn_idx, nn_dist, max_idx);
   tdoann::NullProgress progress;
   const std::size_t n_points = nn_idx.nrow();

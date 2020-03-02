@@ -19,6 +19,7 @@
 
 #include <chrono>
 #include <cmath>
+#include <thread>
 
 #include <Rcpp.h>
 // [[Rcpp::depends(RcppProgress)]]
@@ -49,4 +50,9 @@ void print_time(bool print_date) {
 void ts(const std::string &msg) {
   print_time();
   Rcpp::Rcerr << msg << std::endl;
+}
+
+// [[Rcpp::export]]
+unsigned int hardware_concurrency() {
+  return std::thread::hardware_concurrency();
 }

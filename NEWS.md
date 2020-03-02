@@ -1,3 +1,11 @@
+# rnndescent 0.0.7
+
+## Bug fixes and minor improvements
+
+To avoid undefined behavior issues, rnndescent now uses an internal
+implementation of RcppParallel's `parallelFor` loop that works with
+`std::thread` and does not load Intel's TBB library.
+
 # rnndescent 0.0.6 (29 November 2019)
 
 ## Bug fixes and minor improvements

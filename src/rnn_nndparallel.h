@@ -20,12 +20,12 @@
 #ifndef RNN_NNDPARALLEL_H
 #define RNN_NNDPARALLEL_H
 
+#include <mutex>
 #include <vector>
 
 #include <Rcpp.h>
-// [[Rcpp::depends(RcppParallel)]]
-#include <RcppParallel.h>
 
+#include "RcppPerpendicular.h"
 #include "rnn_parallel.h"
 #include "tdoann/graphupdate.h"
 #include "tdoann/heap.h"
@@ -33,7 +33,7 @@
 #include "tdoann/progress.h"
 
 template <typename CandidatePriorityFactoryImpl>
-struct LockingCandidatesWorker : public RcppParallel::Worker {
+struct LockingCandidatesWorker : public RcppPerpendicular::Worker {
   const NeighborHeap &current_graph;
   CandidatePriorityFactoryImpl candidate_priority_factory;
   const std::size_t n_points;
@@ -42,7 +42,7 @@ struct LockingCandidatesWorker : public RcppParallel::Worker {
   NeighborHeap &new_candidate_neighbors;
   NeighborHeap &old_candidate_neighbors;
   static const constexpr std::size_t n_mutexes = 10;
-  tthread::mutex mutexes[n_mutexes];
+  std::mutex mutexes[n_mutexes];
 
   LockingCandidatesWorker(
       const NeighborHeap &current_graph,
@@ -68,11 +68,11 @@ struct LockingCandidatesWorker : public RcppParallel::Worker {
         auto &nbrs =
             isn == 1 ? new_candidate_neighbors : old_candidate_neighbors;
         {
-          tthread::lock_guard<tthread::mutex> guard(mutexes[i % n_mutexes]);
+          std::lock_guard<std::mutex> guard(mutexes[i % n_mutexes]);
           nbrs.checked_push(i, d, idx, isn);
         }
         if (i != idx) {
-          tthread::lock_guard<tthread::mutex> guard(mutexes[idx % n_mutexes]);
+          std::lock_guard<std::mutex> guard(mutexes[idx % n_mutexes]);
           nbrs.checked_push(idx, d, i, isn);
         }
       }
@@ -82,7 +82,7 @@ struct LockingCandidatesWorker : public RcppParallel::Worker {
 
 // mark any neighbor in the current graph that was retained in the new
 // candidates as true
-struct FlagNewCandidatesWorker : public RcppParallel::Worker {
+struct FlagNewCandidatesWorker : public RcppPerpendicular::Worker {
   const NeighborHeap &new_candidate_neighbors;
   NeighborHeap &current_graph;
   const std::size_t n_points;
@@ -103,7 +103,7 @@ struct FlagNewCandidatesWorker : public RcppParallel::Worker {
 };
 
 template <typename Distance, template <typename> class GraphUpdater>
-struct LocalJoinWorker : public RcppParallel::Worker {
+struct LocalJoinWorker : public RcppPerpendicular::Worker {
   const NeighborHeap &current_graph;
   const NeighborHeap &new_nbrs;
   const NeighborHeap &old_nbrs;
@@ -167,7 +167,7 @@ void nnd_parallel(NeighborHeap &current_graph,
     LockingCandidatesWorker<CandidatePriorityFactoryImpl> candidates_worker(
         current_graph, candidate_priority_factory, new_candidate_neighbors,
         old_candidate_neighbors);
-    RcppParallel::parallelFor(0, n_points, candidates_worker, grain_size);
+    RcppPerpendicular::parallelFor(0, n_points, candidates_worker, grain_size);
     if (CandidatePriorityFactoryImpl::should_sort) {
       sort_heap_parallel(new_candidate_neighbors, block_size, grain_size);
       sort_heap_parallel(old_candidate_neighbors, block_size, grain_size);
@@ -175,7 +175,7 @@ void nnd_parallel(NeighborHeap &current_graph,
 
     FlagNewCandidatesWorker flag_new_candidates_worker(new_candidate_neighbors,
                                                        current_graph);
-    RcppParallel::parallelFor(0, n_points, flag_new_candidates_worker,
+    RcppPerpendicular::parallelFor(0, n_points, flag_new_candidates_worker,
                               grain_size);
 
     LocalJoinWorker<Distance, GraphUpdater> local_join_worker(
@@ -191,7 +191,7 @@ void nnd_parallel(NeighborHeap &current_graph,
 }
 
 template <typename CandidatePriorityFactoryImpl>
-struct QueryCandidatesWorker : public RcppParallel::Worker {
+struct QueryCandidatesWorker : public RcppPerpendicular::Worker {
   NeighborHeap &current_graph;
   const std::size_t n_points;
   const std::size_t n_nbrs;
@@ -225,7 +225,7 @@ struct QueryNoNSearchWorker : public BatchParallelWorker {
   const NeighborHeap &new_nbrs;
   const NeighborHeap &gn_graph;
   const std::size_t max_candidates;
-  tthread::mutex mutex;
+  std::mutex mutex;
   tdoann::NullProgress progress;
   std::size_t n_updates;
 
@@ -291,12 +291,12 @@ void nnd_query_parallel(
     NeighborHeap new_nbrs(n_points, max_candidates);
     QueryCandidatesWorker<CandidatePriorityFactoryImpl> query_candidates_worker(
         current_graph, new_nbrs, candidate_priority_factory);
-    RcppParallel::parallelFor(0, n_points, query_candidates_worker, grain_size);
+    RcppPerpendicular::parallelFor(0, n_points, query_candidates_worker, grain_size);
 
     if (!query_candidates_worker.flag_on_add) {
       FlagNewCandidatesWorker flag_new_candidates_worker(new_nbrs,
                                                          current_graph);
-      RcppParallel::parallelFor(0, n_points, flag_new_candidates_worker,
+      RcppPerpendicular::parallelFor(0, n_points, flag_new_candidates_worker,
                                 grain_size);
     }
 
