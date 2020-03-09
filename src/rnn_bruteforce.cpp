@@ -17,12 +17,16 @@
 //  You should have received a copy of the GNU General Public License
 //  along with rnndescent.  If not, see <http://www.gnu.org/licenses/>.
 
+#include <Rcpp.h>
+
+#include "tdoann/bruteforce.h"
+#include "tdoann/heap.h"
+
 #include "rnn.h"
 #include "rnn_bruteforceparallel.h"
 #include "rnn_progress.h"
-#include "tdoann/bruteforce.h"
-#include "tdoann/heap.h"
-#include <Rcpp.h>
+
+using namespace Rcpp;
 
 #define BRUTE_FORCE_BUILD()                                                    \
   return rnn_brute_force_impl<Distance>(data, k, parallelize, block_size,      \
@@ -33,19 +37,18 @@
       x, y, k, parallelize, block_size, grain_size, verbose);
 
 template <typename Distance>
-Rcpp::List
-rnn_brute_force_impl(Rcpp::NumericMatrix data, int k, bool parallelize = false,
-                     std::size_t block_size = 64, std::size_t grain_size = 1,
-                     bool verbose = false) {
-  const std::size_t n_points = data.nrow();
-  const std::size_t n_nbrs = k;
+auto rnn_brute_force_impl(NumericMatrix data, std::size_t k,
+                          bool parallelize = false, std::size_t block_size = 64,
+                          std::size_t grain_size = 1, bool verbose = false)
+    -> List {
+  std::size_t n_points = data.nrow();
+  std::size_t ndim = data.ncol();
 
-  const std::size_t ndim = data.ncol();
-  data = Rcpp::transpose(data);
-  auto data_vec = Rcpp::as<std::vector<typename Distance::Input>>(data);
+  data = transpose(data);
+  auto data_vec = as<std::vector<typename Distance::Input>>(data);
 
   Distance distance(data_vec, ndim);
-  SimpleNeighborHeap neighbor_heap(n_points, n_nbrs);
+  SimpleNeighborHeap neighbor_heap(n_points, k);
 
   if (parallelize) {
     RPProgress progress(1, verbose);
@@ -58,34 +61,24 @@ rnn_brute_force_impl(Rcpp::NumericMatrix data, int k, bool parallelize = false,
   return heap_to_r(neighbor_heap);
 }
 
-// [[Rcpp::export]]
-Rcpp::List rnn_brute_force(Rcpp::NumericMatrix data, int k,
-                           const std::string &metric = "euclidean",
-                           bool parallelize = false,
-                           std::size_t block_size = 64,
-                           std::size_t grain_size = 1, bool verbose = false) {
-  DISPATCH_ON_DISTANCES(BRUTE_FORCE_BUILD)
-}
-
 template <typename Distance>
-Rcpp::List
-rnn_brute_force_query_impl(Rcpp::NumericMatrix x, Rcpp::NumericMatrix y, int k,
-                           bool parallelize = false,
-                           std::size_t block_size = 64,
-                           std::size_t grain_size = 1, bool verbose = false) {
-  const std::size_t n_xpoints = x.nrow();
-  const std::size_t n_ypoints = y.nrow();
-  const std::size_t n_nbrs = k;
+auto rnn_brute_force_query_impl(NumericMatrix x, NumericMatrix y, std::size_t k,
+                                bool parallelize = false,
+                                std::size_t block_size = 64,
+                                std::size_t grain_size = 1,
+                                bool verbose = false) -> List {
+  std::size_t n_xpoints = x.nrow();
+  std::size_t n_ypoints = y.nrow();
+  std::size_t ndim = x.ncol();
 
-  const std::size_t ndim = x.ncol();
-  x = Rcpp::transpose(x);
-  auto x_vec = Rcpp::as<std::vector<typename Distance::Input>>(x);
+  x = transpose(x);
+  auto x_vec = as<std::vector<typename Distance::Input>>(x);
 
-  y = Rcpp::transpose(y);
-  auto y_vec = Rcpp::as<std::vector<typename Distance::Input>>(y);
+  y = transpose(y);
+  auto y_vec = as<std::vector<typename Distance::Input>>(y);
 
   Distance distance(x_vec, y_vec, ndim);
-  SimpleNeighborHeap neighbor_heap(n_ypoints, n_nbrs);
+  SimpleNeighborHeap neighbor_heap(n_ypoints, k);
 
   if (parallelize) {
     RPProgress progress(1, verbose);
@@ -100,11 +93,17 @@ rnn_brute_force_query_impl(Rcpp::NumericMatrix x, Rcpp::NumericMatrix y, int k,
 }
 
 // [[Rcpp::export]]
-Rcpp::List rnn_brute_force_query(Rcpp::NumericMatrix x, Rcpp::NumericMatrix y,
-                                 int k, const std::string &metric = "euclidean",
-                                 bool parallelize = false,
-                                 std::size_t block_size = 64,
-                                 std::size_t grain_size = 1,
-                                 bool verbose = false) {
+List rnn_brute_force(NumericMatrix data, int k,
+                     const std::string &metric = "euclidean",
+                     bool parallelize = false, std::size_t block_size = 64,
+                     std::size_t grain_size = 1, bool verbose = false){
+    DISPATCH_ON_DISTANCES(BRUTE_FORCE_BUILD)}
+
+// [[Rcpp::export]]
+List
+    rnn_brute_force_query(NumericMatrix x, NumericMatrix y, int k,
+                          const std::string &metric = "euclidean",
+                          bool parallelize = false, std::size_t block_size = 64,
+                          std::size_t grain_size = 1, bool verbose = false) {
   DISPATCH_ON_QUERY_DISTANCES(BRUTE_FORCE_QUERY)
 }

@@ -16,12 +16,12 @@ BEGIN_RCPP
 END_RCPP
 }
 // rnn_brute_force
-Rcpp::List rnn_brute_force(Rcpp::NumericMatrix data, int k, const std::string& metric, bool parallelize, std::size_t block_size, std::size_t grain_size, bool verbose);
+List rnn_brute_force(NumericMatrix data, int k, const std::string& metric, bool parallelize, std::size_t block_size, std::size_t grain_size, bool verbose);
 RcppExport SEXP _rnndescent_rnn_brute_force(SEXP dataSEXP, SEXP kSEXP, SEXP metricSEXP, SEXP parallelizeSEXP, SEXP block_sizeSEXP, SEXP grain_sizeSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type data(dataSEXP);
     Rcpp::traits::input_parameter< int >::type k(kSEXP);
     Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
     Rcpp::traits::input_parameter< bool >::type parallelize(parallelizeSEXP);
@@ -33,13 +33,13 @@ BEGIN_RCPP
 END_RCPP
 }
 // rnn_brute_force_query
-Rcpp::List rnn_brute_force_query(Rcpp::NumericMatrix x, Rcpp::NumericMatrix y, int k, const std::string& metric, bool parallelize, std::size_t block_size, std::size_t grain_size, bool verbose);
+List rnn_brute_force_query(NumericMatrix x, NumericMatrix y, int k, const std::string& metric, bool parallelize, std::size_t block_size, std::size_t grain_size, bool verbose);
 RcppExport SEXP _rnndescent_rnn_brute_force_query(SEXP xSEXP, SEXP ySEXP, SEXP kSEXP, SEXP metricSEXP, SEXP parallelizeSEXP, SEXP block_sizeSEXP, SEXP grain_sizeSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type x(xSEXP);
-    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type y(ySEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type x(xSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type y(ySEXP);
     Rcpp::traits::input_parameter< int >::type k(kSEXP);
     Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
     Rcpp::traits::input_parameter< bool >::type parallelize(parallelizeSEXP);
@@ -136,7 +136,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // random_knn_cpp
-Rcpp::List random_knn_cpp(Rcpp::NumericMatrix data, int k, const std::string& metric, bool order_by_distance, bool parallelize, std::size_t block_size, std::size_t grain_size, bool verbose);
+List random_knn_cpp(Rcpp::NumericMatrix data, int k, const std::string& metric, bool order_by_distance, bool parallelize, std::size_t block_size, std::size_t grain_size, bool verbose);
 RcppExport SEXP _rnndescent_random_knn_cpp(SEXP dataSEXP, SEXP kSEXP, SEXP metricSEXP, SEXP order_by_distanceSEXP, SEXP parallelizeSEXP, SEXP block_sizeSEXP, SEXP grain_sizeSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -154,13 +154,13 @@ BEGIN_RCPP
 END_RCPP
 }
 // random_knn_query_cpp
-Rcpp::List random_knn_query_cpp(Rcpp::NumericMatrix reference, Rcpp::NumericMatrix query, int k, const std::string& metric, bool order_by_distance, bool parallelize, std::size_t block_size, std::size_t grain_size, bool verbose);
+List random_knn_query_cpp(NumericMatrix reference, NumericMatrix query, int k, const std::string& metric, bool order_by_distance, bool parallelize, std::size_t block_size, std::size_t grain_size, bool verbose);
 RcppExport SEXP _rnndescent_random_knn_query_cpp(SEXP referenceSEXP, SEXP querySEXP, SEXP kSEXP, SEXP metricSEXP, SEXP order_by_distanceSEXP, SEXP parallelizeSEXP, SEXP block_sizeSEXP, SEXP grain_sizeSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type reference(referenceSEXP);
-    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type query(querySEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type reference(referenceSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type query(querySEXP);
     Rcpp::traits::input_parameter< int >::type k(kSEXP);
     Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
     Rcpp::traits::input_parameter< bool >::type order_by_distance(order_by_distanceSEXP);

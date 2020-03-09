@@ -33,7 +33,7 @@ struct BruteForceWorker : public BatchParallelWorker {
 
   SimpleNeighborHeap &neighbor_heap;
   Distance &distance;
-  const std::size_t n_ref_points;
+  std::size_t n_ref_points;
   tdoann::NullProgress progress;
 
   BruteForceWorker(SimpleNeighborHeap &neighbor_heap, Distance &distance,
