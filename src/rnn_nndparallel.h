@@ -25,12 +25,14 @@
 
 #include <Rcpp.h>
 
-#include "RcppPerpendicular.h"
-#include "rnn_parallel.h"
 #include "tdoann/graphupdate.h"
 #include "tdoann/heap.h"
 #include "tdoann/nndescent.h"
 #include "tdoann/progress.h"
+
+#include "RcppPerpendicular.h"
+#include "rnn_heapsort.h"
+#include "rnn_parallel.h"
 
 template <typename CandidatePriorityFactoryImpl>
 struct LockingCandidatesWorker : public RcppPerpendicular::Worker {
@@ -176,7 +178,7 @@ void nnd_parallel(NeighborHeap &current_graph,
     FlagNewCandidatesWorker flag_new_candidates_worker(new_candidate_neighbors,
                                                        current_graph);
     RcppPerpendicular::parallelFor(0, n_points, flag_new_candidates_worker,
-                              grain_size);
+                                   grain_size);
 
     LocalJoinWorker<Distance, GraphUpdater> local_join_worker(
         current_graph, new_candidate_neighbors, old_candidate_neighbors,
@@ -291,13 +293,14 @@ void nnd_query_parallel(
     NeighborHeap new_nbrs(n_points, max_candidates);
     QueryCandidatesWorker<CandidatePriorityFactoryImpl> query_candidates_worker(
         current_graph, new_nbrs, candidate_priority_factory);
-    RcppPerpendicular::parallelFor(0, n_points, query_candidates_worker, grain_size);
+    RcppPerpendicular::parallelFor(0, n_points, query_candidates_worker,
+                                   grain_size);
 
     if (!query_candidates_worker.flag_on_add) {
       FlagNewCandidatesWorker flag_new_candidates_worker(new_nbrs,
                                                          current_graph);
       RcppPerpendicular::parallelFor(0, n_points, flag_new_candidates_worker,
-                                grain_size);
+                                     grain_size);
     }
 
     QueryNoNSearchWorker<Distance, GraphUpdater> query_non_search_worker(

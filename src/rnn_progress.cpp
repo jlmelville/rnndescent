@@ -23,8 +23,8 @@
 
 #include "tdoann/typedefs.h"
 
-#include "rnn.h"
 #include "rnn_progress.h"
+#include "rnn_util.h"
 
 HeapSumProgress::HeapSumProgress(NeighborHeap &neighbor_heap,
                                  std::size_t n_iters, bool verbose)

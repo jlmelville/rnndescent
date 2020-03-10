@@ -19,7 +19,6 @@
 
 #include <Rcpp.h>
 
-#include "rnn.h"
 #include "rnn_merge.h"
 
 #define CONFIGURE_MERGE(NEXT_MACRO)                                            \

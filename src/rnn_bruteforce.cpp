@@ -22,8 +22,9 @@
 #include "tdoann/bruteforce.h"
 #include "tdoann/heap.h"
 
-#include "rnn.h"
 #include "rnn_bruteforceparallel.h"
+#include "rnn_heaptor.h"
+#include "rnn_macros.h"
 #include "rnn_progress.h"
 
 using namespace Rcpp;

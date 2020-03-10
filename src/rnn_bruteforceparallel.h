@@ -26,6 +26,7 @@
 #include "tdoann/heap.h"
 #include "tdoann/progress.h"
 
+#include "rnn_heapsort.h"
 #include "rnn_parallel.h"
 
 template <typename Distance>

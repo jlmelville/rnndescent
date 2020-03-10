@@ -24,12 +24,15 @@
 #include "tdoann/heap.h"
 #include "tdoann/nndescent.h"
 
-#include "rnn.h"
 #include "rnn_candidatepriority.h"
+#include "rnn_heaptor.h"
+#include "rnn_knnfactory.h"
+#include "rnn_macros.h"
 #include "rnn_nndparallel.h"
 #include "rnn_parallel.h"
 #include "rnn_progress.h"
 #include "rnn_rng.h"
+#include "rnn_rtoheap.h"
 
 using namespace tdoann;
 

@@ -17,14 +17,17 @@
 //  You should have received a copy of the GNU General Public License
 //  along with rnndescent.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "rnn_randnbrs.h"
-#include "rnn.h"
-#include "rnn_progress.h"
-#include "rnn_randnbrsparallel.h"
-#include "rnn_rng.h"
-#include "tdoann/progress.h"
 #include <Rcpp.h>
 
+#include "tdoann/progress.h"
+
+#include "rnn_knnfactory.h"
+#include "rnn_progress.h"
+#include "rnn_randnbrs.h"
+#include "rnn_randnbrsparallel.h"
+#include "rnn_rng.h"
+
+using namespace Rcpp;
 using namespace tdoann;
 
 /* Macros */
@@ -62,44 +65,41 @@ using namespace tdoann;
 /* Functions */
 
 template <typename KnnFactory, typename RandomNbrsImpl, typename Distance>
-Rcpp::List random_knn_impl(int k, bool order_by_distance,
-                           KnnFactory &knn_factory, RandomNbrsImpl &impl,
-                           bool verbose = false) {
+auto random_knn_impl(std::size_t k, bool order_by_distance,
+                     KnnFactory &knn_factory, RandomNbrsImpl &impl,
+                     bool verbose = false) -> List {
   auto distance = knn_factory.create_distance();
   auto indices = knn_factory.create_index_matrix(k);
   auto dist = knn_factory.create_distance_matrix(k);
 
   impl.build_knn(distance, indices, dist, verbose);
 
-  indices = Rcpp::transpose(indices);
-  dist = Rcpp::transpose(dist);
+  indices = transpose(indices);
+  dist = transpose(dist);
 
   if (order_by_distance) {
     impl.sort_knn(indices, dist);
   }
 
-  return Rcpp::List::create(Rcpp::Named("idx") = indices,
-                            Rcpp::Named("dist") = dist);
+  return List::create(_("idx") = indices, _("dist") = dist);
 }
 
 /* Exports */
 
 // [[Rcpp::export]]
-Rcpp::List
-random_knn_cpp(Rcpp::NumericMatrix data, int k,
-               const std::string &metric = "euclidean",
-               bool order_by_distance = true, bool parallelize = false,
-               std::size_t block_size = 4096, std::size_t grain_size = 1,
-               bool verbose = false){DISPATCH_ON_DISTANCES(RANDOM_NBRS_BUILD)}
+List random_knn_cpp(Rcpp::NumericMatrix data, int k,
+                    const std::string &metric = "euclidean",
+                    bool order_by_distance = true, bool parallelize = false,
+                    std::size_t block_size = 4096, std::size_t grain_size = 1,
+                    bool verbose = false){
+    DISPATCH_ON_DISTANCES(RANDOM_NBRS_BUILD)}
 
 // [[Rcpp::export]]
-Rcpp::List
-    random_knn_query_cpp(Rcpp::NumericMatrix reference,
-                         Rcpp::NumericMatrix query, int k,
-                         const std::string &metric = "euclidean",
-                         bool order_by_distance = true,
-                         bool parallelize = false,
-                         std::size_t block_size = 4096,
-                         std::size_t grain_size = 1, bool verbose = false) {
+List random_knn_query_cpp(NumericMatrix reference, NumericMatrix query, int k,
+                          const std::string &metric = "euclidean",
+                          bool order_by_distance = true,
+                          bool parallelize = false,
+                          std::size_t block_size = 4096,
+                          std::size_t grain_size = 1, bool verbose = false) {
   DISPATCH_ON_QUERY_DISTANCES(RANDOM_NBRS_QUERY)
 }

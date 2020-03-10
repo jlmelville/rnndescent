@@ -20,23 +20,28 @@
 #ifndef RNN_RANDNBRSPARALLEL_H
 #define RNN_RANDNBRSPARALLEL_H
 
-#include "rnn_parallel.h"
-#include "rnn_randnbrs.h"
 #include <Rcpp.h>
 // [[Rcpp::depends(dqrng)]]
 #include <dqrng.h>
 
 #include "RcppPerpendicular.h"
 
+#include "rnn_knnsort.h"
+#include "rnn_parallel.h"
+#include "rnn_randnbrs.h"
+#include "rnn_rtoheap.h"
+
 template <typename Distance>
 using ParallelRandomNbrQueryWorker =
     RandomNbrQueryWorker<Distance, RcppPerpendicular::RMatrix<int>,
-                         RcppPerpendicular::RMatrix<double>, BatchParallelWorker>;
+                         RcppPerpendicular::RMatrix<double>,
+                         BatchParallelWorker>;
 
 template <typename Distance>
 using ParallelRandomNbrBuildWorker =
     RandomNbrBuildWorker<Distance, RcppPerpendicular::RMatrix<int>,
-                         RcppPerpendicular::RMatrix<double>, BatchParallelWorker>;
+                         RcppPerpendicular::RMatrix<double>,
+                         BatchParallelWorker>;
 
 struct ParallelRandomKnnBuild {
   using HeapAdd = LockingHeapAddSymmetric;

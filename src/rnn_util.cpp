@@ -27,9 +27,10 @@
 
 #include "tdoann/heap.h"
 
-#include "rnn.h"
+#include "rnn_util.h"
 
 using namespace tdoann;
+using namespace Rcpp;
 
 void print_time(bool print_date) {
   auto now = std::chrono::system_clock::now();
@@ -38,18 +39,18 @@ void print_time(bool print_date) {
       std::chrono::duration_cast<std::chrono::seconds>(duration).count();
 
   std::string fmt = print_date ? "%Y-%m-%d %H:%M:%S" : "%H:%M:%S";
-  Rcpp::Datetime dt(secs);
+  Datetime dt(secs);
   std::string dt_str = dt.format(fmt.c_str());
   // for some reason format always adds ".000000", so remove it
   if (dt_str.size() >= 7) {
     dt_str = dt_str.substr(0, dt_str.size() - 7);
   }
-  Rcpp::Rcerr << dt_str << " ";
+  Rcerr << dt_str << " ";
 }
 
 void ts(const std::string &msg) {
   print_time();
-  Rcpp::Rcerr << msg << std::endl;
+  Rcerr << msg << std::endl;
 }
 
 // [[Rcpp::export]]

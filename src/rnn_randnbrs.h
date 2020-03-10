@@ -27,7 +27,8 @@
 #include "dqrng_generator.h"
 #include <dqrng.h>
 
-#include "rnn.h"
+#include "rnn_knnsort.h"
+#include "rnn_macros.h"
 #include "rnn_progress.h"
 #include "rnn_rng.h"
 #include "rnn_sample.h"
