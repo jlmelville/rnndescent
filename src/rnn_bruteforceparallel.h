@@ -59,7 +59,7 @@ void nnbf_parallel(SimpleNeighborHeap &neighbor_heap, Distance &distance,
 
 template <typename Distance, typename Progress>
 void nnbf_parallel_query(SimpleNeighborHeap &neighbor_heap, Distance &distance,
-                         const std::size_t n_ref_points, Progress &progress,
+                         std::size_t n_ref_points, Progress &progress,
                          std::size_t block_size = 64,
                          std::size_t grain_size = 1) {
   BruteForceWorker<Distance> worker(neighbor_heap, distance, n_ref_points);

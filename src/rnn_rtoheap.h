@@ -65,14 +65,13 @@ template <typename HeapAdd, typename NbrHeap,
           typename IdxMatrix = Rcpp::IntegerMatrix,
           typename DistMatrix = Rcpp::NumericMatrix>
 void r_to_heap(NbrHeap &current_graph, IdxMatrix nn_idx, DistMatrix nn_dist,
-               const std::size_t begin, const std::size_t end,
-               HeapAdd &heap_add,
-               const int max_idx = (std::numeric_limits<int>::max)()) {
-  const std::size_t n_nbrs = nn_idx.ncol();
+               std::size_t begin, std::size_t end, HeapAdd &heap_add,
+               int max_idx = (std::numeric_limits<int>::max)()) {
+  std::size_t n_nbrs = nn_idx.ncol();
 
-  for (std::size_t i = begin; i < end; i++) {
+  for (auto i = begin; i < end; i++) {
     for (std::size_t j = 0; j < n_nbrs; j++) {
-      const int k = nn_idx(i, j) - 1;
+      int k = nn_idx(i, j) - 1;
       if (k < 0 || k > max_idx) {
         Rcpp::stop("Bad indexes in input: " + std::to_string(k));
       }
@@ -131,7 +130,7 @@ void r_to_heap_serial(NbrHeap &heap, Rcpp::IntegerMatrix nn_idx,
                 Empty>
       worker(heap, nn_idx, nn_dist, max_idx);
   InterruptableProgress progress;
-  const std::size_t n_points = nn_idx.nrow();
+  std::size_t n_points = nn_idx.nrow();
   batch_serial_for(worker, progress, n_points, block_size);
 }
 

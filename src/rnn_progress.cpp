@@ -66,11 +66,11 @@ void HeapSumProgress::converged(std::size_t n_updates, double tol) {
   stopping_early();
 }
 double HeapSumProgress::dist_sum() const {
-  const std::size_t n_points = neighbor_heap.n_points;
-  const std::size_t n_nbrs = neighbor_heap.n_nbrs;
+  std::size_t n_points = neighbor_heap.n_points;
+  std::size_t n_nbrs = neighbor_heap.n_nbrs;
   double sum = 0.0;
   for (std::size_t i = 0; i < n_points; i++) {
-    const std::size_t innbrs = i * n_nbrs;
+    std::size_t innbrs = i * n_nbrs;
     for (std::size_t j = 0; j < n_nbrs; j++) {
       sum += neighbor_heap.dist[innbrs + j];
     }

@@ -42,8 +42,8 @@ struct RandomNbrQueryWorker : public Base {
   IdxMatrix nn_idx;
   DistMatrix nn_dist;
 
-  const int nrefs;
-  const int k;
+  int nrefs;
+  int k;
 
   uint64_t seed;
 
@@ -75,8 +75,8 @@ struct RandomNbrBuildWorker : public Base {
   IdxMatrix nn_idx;
   DistMatrix nn_dist;
 
-  const int nr1;
-  const int k_minus_1;
+  int nr1;
+  int k_minus_1;
   uint64_t seed;
 
   RandomNbrBuildWorker(Distance &distance, Rcpp::IntegerMatrix nn_idx,
@@ -124,7 +124,7 @@ template <template <typename> class RandomKnnWorker, typename Progress,
           typename Distance>
 void rknn_serial(Progress &progress, Distance &distance,
                  Rcpp::IntegerMatrix nn_idx, Rcpp::NumericMatrix nn_dist,
-                 const std::size_t block_size = 4096) {
+                 std::size_t block_size = 4096) {
   RandomKnnWorker<Distance> worker(distance, nn_idx, nn_dist);
   batch_serial_for(worker, progress, nn_idx.ncol(), block_size);
 }

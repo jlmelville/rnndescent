@@ -45,7 +45,7 @@ template <typename DistanceOut = double> struct NNDHeap {
   std::vector<char> flags;
   std::size_t n_nbrs1;
 
-  NNDHeap(const std::size_t n_points, const std::size_t n_nbrs)
+  NNDHeap(std::size_t n_points, std::size_t n_nbrs)
       : n_points(n_points), n_nbrs(n_nbrs), idx(n_points * n_nbrs, npos()),
         dist(n_points * n_nbrs, (std::numeric_limits<DistanceOut>::max)()),
         flags(n_points * n_nbrs, 0), n_nbrs1(n_nbrs - 1) {}
@@ -55,7 +55,7 @@ template <typename DistanceOut = double> struct NNDHeap {
   NNDHeap &operator=(const NNDHeap &) = default;
 
   bool contains(std::size_t row, std::size_t index) const {
-    const std::size_t rnnbrs = row * n_nbrs;
+    std::size_t rnnbrs = row * n_nbrs;
     for (std::size_t i = 0; i < n_nbrs; i++) {
       if (index == idx[rnnbrs + i]) {
         return true;
@@ -95,7 +95,7 @@ template <typename DistanceOut = double> struct NNDHeap {
   // This differs from the pynndescent version as it is truly unchecked
   std::size_t unchecked_push(std::size_t row, DistanceOut weight,
                              std::size_t index, char flag = 1) {
-    const std::size_t r0 = row * n_nbrs;
+    std::size_t r0 = row * n_nbrs;
 
     // insert val at position zero
     dist[r0] = weight;
@@ -106,8 +106,8 @@ template <typename DistanceOut = double> struct NNDHeap {
     std::size_t i = 0;
     std::size_t i_swap = 0;
     while (true) {
-      const std::size_t ic1 = 2 * i + 1;
-      const std::size_t ic2 = ic1 + 1;
+      std::size_t ic1 = 2 * i + 1;
+      std::size_t ic2 = ic1 + 1;
 
       if (ic1 >= n_nbrs) {
         break;
@@ -131,8 +131,8 @@ template <typename DistanceOut = double> struct NNDHeap {
         }
       }
 
-      const std::size_t r0i = r0 + i;
-      const std::size_t r0is = r0 + i_swap;
+      std::size_t r0i = r0 + i;
+      std::size_t r0is = r0 + i_swap;
       dist[r0i] = dist[r0is];
       idx[r0i] = idx[r0is];
       flags[r0i] = flags[r0is];
@@ -140,7 +140,7 @@ template <typename DistanceOut = double> struct NNDHeap {
       i = i_swap;
     }
 
-    const std::size_t r0i = r0 + i;
+    std::size_t r0i = r0 + i;
     dist[r0i] = weight;
     idx[r0i] = index;
     flags[r0i] = flag;
@@ -155,23 +155,23 @@ template <typename DistanceOut = double> struct NNDHeap {
   }
 
   void deheap_sort(std::size_t i) {
-    const std::size_t r0 = i * n_nbrs;
+    std::size_t r0 = i * n_nbrs;
     for (std::size_t j = 0; j < n_nbrs1; j++) {
-      const std::size_t n1j = n_nbrs1 - j;
-      const std::size_t r0nn1 = r0 + n1j;
+      std::size_t n1j = n_nbrs1 - j;
+      std::size_t r0nn1 = r0 + n1j;
       std::swap(idx[r0], idx[r0nn1]);
       std::swap(dist[r0], dist[r0nn1]);
       siftdown(r0, n1j);
     }
   }
 
-  void siftdown(const std::size_t r0, const std::size_t len) {
+  void siftdown(std::size_t r0, std::size_t len) {
     std::size_t elt = 0;
     std::size_t e21 = elt * 2 + 1;
 
     while (e21 < len) {
-      const std::size_t left_child = e21;
-      const std::size_t right_child = left_child + 1;
+      std::size_t left_child = e21;
+      std::size_t right_child = left_child + 1;
       std::size_t swap = elt;
 
       if (dist[r0 + swap] < dist[r0 + left_child]) {
@@ -223,7 +223,7 @@ template <typename DistanceOut = double> struct NNHeap {
   std::vector<DistanceOut> dist;
   std::size_t n_nbrs1;
 
-  NNHeap(const std::size_t n_points, const std::size_t n_nbrs)
+  NNHeap(std::size_t n_points, std::size_t n_nbrs)
       : n_points(n_points), n_nbrs(n_nbrs), idx(n_points * n_nbrs, npos()),
         dist(n_points * n_nbrs, (std::numeric_limits<DistanceOut>::max)()),
         n_nbrs1(n_nbrs - 1) {}
@@ -233,7 +233,7 @@ template <typename DistanceOut = double> struct NNHeap {
   NNHeap &operator=(const NNHeap &) = default;
 
   bool contains(std::size_t row, std::size_t index) const {
-    const std::size_t rnnbrs = row * n_nbrs;
+    std::size_t rnnbrs = row * n_nbrs;
     for (std::size_t i = 0; i < n_nbrs; i++) {
       if (index == idx[rnnbrs + i]) {
         return true;
@@ -272,7 +272,7 @@ template <typename DistanceOut = double> struct NNHeap {
 
   std::size_t unchecked_push(std::size_t row, DistanceOut weight,
                              std::size_t index) {
-    const std::size_t r0 = row * n_nbrs;
+    std::size_t r0 = row * n_nbrs;
 
     // insert val at position zero
     dist[r0] = weight;
@@ -282,8 +282,8 @@ template <typename DistanceOut = double> struct NNHeap {
     std::size_t i = 0;
     std::size_t i_swap = 0;
     while (true) {
-      const std::size_t ic1 = 2 * i + 1;
-      const std::size_t ic2 = ic1 + 1;
+      std::size_t ic1 = 2 * i + 1;
+      std::size_t ic2 = ic1 + 1;
 
       if (ic1 >= n_nbrs) {
         break;
@@ -307,15 +307,15 @@ template <typename DistanceOut = double> struct NNHeap {
         }
       }
 
-      const std::size_t r0i = r0 + i;
-      const std::size_t r0is = r0 + i_swap;
+      std::size_t r0i = r0 + i;
+      std::size_t r0is = r0 + i_swap;
       dist[r0i] = dist[r0is];
       idx[r0i] = idx[r0is];
 
       i = i_swap;
     }
 
-    const std::size_t r0i = r0 + i;
+    std::size_t r0i = r0 + i;
     dist[r0i] = weight;
     idx[r0i] = index;
 
@@ -329,23 +329,23 @@ template <typename DistanceOut = double> struct NNHeap {
   }
 
   void deheap_sort(std::size_t i) {
-    const std::size_t r0 = i * n_nbrs;
+    std::size_t r0 = i * n_nbrs;
     for (std::size_t j = 0; j < n_nbrs1; j++) {
-      const std::size_t n1j = n_nbrs1 - j;
-      const std::size_t r0nn1 = r0 + n1j;
+      std::size_t n1j = n_nbrs1 - j;
+      std::size_t r0nn1 = r0 + n1j;
       std::swap(idx[r0], idx[r0nn1]);
       std::swap(dist[r0], dist[r0nn1]);
       siftdown(r0, n1j);
     }
   }
 
-  void siftdown(const std::size_t r0, const std::size_t len) {
+  void siftdown(std::size_t r0, std::size_t len) {
     std::size_t elt = 0;
     std::size_t e21 = elt * 2 + 1;
 
     while (e21 < len) {
-      const std::size_t left_child = e21;
-      const std::size_t right_child = left_child + 1;
+      std::size_t left_child = e21;
+      std::size_t right_child = left_child + 1;
       std::size_t swap = elt;
 
       if (dist[r0 + swap] < dist[r0 + left_child]) {

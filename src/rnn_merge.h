@@ -79,7 +79,7 @@ merge_nn_impl(Rcpp::IntegerMatrix nn_idx1, Rcpp::NumericMatrix nn_dist1,
 template <typename MergeImpl, typename HeapAdd>
 Rcpp::List merge_nn_all_impl(Rcpp::List nn_graphs, MergeImpl &merge_impl,
                              bool verbose = false) {
-  const auto n_graphs = static_cast<std::size_t>(nn_graphs.size());
+  auto n_graphs = static_cast<std::size_t>(nn_graphs.size());
 
   Rcpp::List nn_graph = nn_graphs[0];
   Rcpp::NumericMatrix nn_dist = nn_graph["dist"];

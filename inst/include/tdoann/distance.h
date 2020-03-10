@@ -43,8 +43,8 @@ template <typename In, typename Out> struct Euclidean {
 
   Out operator()(std::size_t i, std::size_t j) const {
     Out sum = 0.0;
-    const std::size_t di = ndim * i;
-    const std::size_t dj = ndim * j;
+    std::size_t di = ndim * i;
+    std::size_t dj = ndim * j;
 
     for (std::size_t d = 0; d < ndim; d++) {
       const Out diff = x[di + d] - y[dj + d];
@@ -56,9 +56,9 @@ template <typename In, typename Out> struct Euclidean {
 
   const std::vector<In> &x;
   const std::vector<In> &y;
-  const std::size_t ndim;
-  const std::size_t nx;
-  const std::size_t ny;
+  std::size_t ndim;
+  std::size_t nx;
+  std::size_t ny;
 
   using Input = In;
 };
@@ -72,8 +72,8 @@ template <typename In, typename Out> struct L2Sqr {
 
   Out operator()(std::size_t i, std::size_t j) const {
     Out sum = 0.0;
-    const std::size_t di = ndim * i;
-    const std::size_t dj = ndim * j;
+    std::size_t di = ndim * i;
+    std::size_t dj = ndim * j;
 
     for (std::size_t d = 0; d < ndim; d++) {
       const Out diff = x[di + d] - y[dj + d];
@@ -85,9 +85,9 @@ template <typename In, typename Out> struct L2Sqr {
 
   const std::vector<In> &x;
   const std::vector<In> &y;
-  const std::size_t ndim;
-  const std::size_t nx;
-  const std::size_t ny;
+  std::size_t ndim;
+  std::size_t nx;
+  std::size_t ny;
 
   using Input = In;
 };
@@ -96,13 +96,13 @@ template <typename In, typename Out> struct L2Sqr {
 template <typename T>
 std::vector<T> normalize(const std::vector<T> &vec, std::size_t ndim) {
   std::vector<T> normalized(vec.size());
-  const std::size_t npoints = vec.size() / ndim;
+  std::size_t npoints = vec.size() / ndim;
   for (std::size_t i = 0; i < npoints; i++) {
-    const std::size_t di = ndim * i;
+    std::size_t di = ndim * i;
     T norm = 0.0;
 
     for (std::size_t d = 0; d < ndim; d++) {
-      const auto val = vec[di + d];
+      auto val = vec[di + d];
       norm += val * val;
     }
     norm = std::sqrt(norm) + 1e-30;
@@ -114,11 +114,10 @@ std::vector<T> normalize(const std::vector<T> &vec, std::size_t ndim) {
 }
 
 template <typename In, typename Out>
-Out cosine_impl(const std::vector<In> &x, const std::size_t i,
-                const std::vector<In> &y, const std::size_t j,
-                const std::size_t ndim) {
-  const std::size_t di = ndim * i;
-  const std::size_t dj = ndim * j;
+Out cosine_impl(const std::vector<In> &x, std::size_t i,
+                const std::vector<In> &y, std::size_t j, std::size_t ndim) {
+  std::size_t di = ndim * i;
+  std::size_t dj = ndim * j;
 
   Out sum = 0.0;
   for (std::size_t d = 0; d < ndim; d++) {
@@ -130,9 +129,9 @@ Out cosine_impl(const std::vector<In> &x, const std::size_t i,
 
 template <typename In, typename Out> struct CosineSelf {
   const std::vector<In> x;
-  const std::size_t ndim;
-  const std::size_t nx;
-  const std::size_t ny;
+  std::size_t ndim;
+  std::size_t nx;
+  std::size_t ny;
 
   CosineSelf(const std::vector<In> &data, std::size_t ndim)
       : x(normalize(data, ndim)), ndim(ndim), nx(data.size() / ndim), ny(nx) {}
@@ -147,9 +146,9 @@ template <typename In, typename Out> struct CosineSelf {
 template <typename In, typename Out> struct CosineQuery {
   const std::vector<In> x_;
   const std::vector<In> y_;
-  const std::size_t ndim;
-  const std::size_t nx;
-  const std::size_t ny;
+  std::size_t ndim;
+  std::size_t nx;
+  std::size_t ny;
 
   CosineQuery(const std::vector<In> &x, const std::vector<In> &y,
               std::size_t ndim)
@@ -173,8 +172,8 @@ template <typename In, typename Out> struct Manhattan {
 
   Out operator()(std::size_t i, std::size_t j) const {
     Out sum = 0.0;
-    const std::size_t di = ndim * i;
-    const std::size_t dj = ndim * j;
+    std::size_t di = ndim * i;
+    std::size_t dj = ndim * j;
 
     for (std::size_t d = 0; d < ndim; d++) {
       sum += std::abs(x[di + d] - y[dj + d]);
@@ -185,9 +184,9 @@ template <typename In, typename Out> struct Manhattan {
 
   const std::vector<In> &x;
   const std::vector<In> &y;
-  const std::size_t ndim;
-  const std::size_t nx;
-  const std::size_t ny;
+  std::size_t ndim;
+  std::size_t nx;
+  std::size_t ny;
 
   using Input = In;
 };
@@ -232,11 +231,11 @@ BitVec to_bitvec(const std::vector<T> &vec, std::size_t ndim) {
 }
 
 template <typename Out>
-Out hamming_impl(const BitVec &x, const std::size_t i, const BitVec &y,
-                 const std::size_t j, const std::size_t ndim) {
+Out hamming_impl(const BitVec &x, std::size_t i, const BitVec &y, std::size_t j,
+                 std::size_t ndim) {
   Out sum = 0;
-  const std::size_t di = ndim * i;
-  const std::size_t dj = ndim * j;
+  std::size_t di = ndim * i;
+  std::size_t dj = ndim * j;
 
   for (std::size_t d = 0; d < ndim; d++) {
     sum += (x[di + d] ^ y[dj + d]).count();
@@ -247,9 +246,9 @@ Out hamming_impl(const BitVec &x, const std::size_t i, const BitVec &y,
 
 template <typename In, typename Out> struct HammingSelf {
   const BitVec bitvec;
-  const std::size_t ndim_;
-  const std::size_t nx;
-  const std::size_t ny;
+  std::size_t ndim_;
+  std::size_t nx;
+  std::size_t ny;
 
   HammingSelf(const std::vector<In> &data, std::size_t ndim)
       : bitvec(to_bitvec(data, ndim)),
@@ -267,9 +266,9 @@ template <typename In, typename Out> struct HammingSelf {
 template <typename In, typename Out> struct HammingQuery {
   const BitVec bx;
   const BitVec by;
-  const std::size_t ndim_;
-  const std::size_t nx;
-  const std::size_t ny;
+  std::size_t ndim_;
+  std::size_t nx;
+  std::size_t ny;
 
   HammingQuery(const std::vector<In> &x, const std::vector<In> &y,
                std::size_t ndim)

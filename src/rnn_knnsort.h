@@ -45,8 +45,8 @@ void sort_knn_graph_parallel(Rcpp::IntegerMatrix nn_idx,
 
 template <typename HeapAdd, typename NbrHeap = SimpleNeighborHeap>
 void sort_knn_graph(Rcpp::IntegerMatrix nn_idx, Rcpp::NumericMatrix nn_dist) {
-  const std::size_t n_points = nn_idx.nrow();
-  const std::size_t n_nbrs = nn_idx.ncol();
+  std::size_t n_points = nn_idx.nrow();
+  std::size_t n_nbrs = nn_idx.ncol();
 
   NbrHeap heap(n_points, n_nbrs);
   r_to_heap_serial<HeapAdd>(heap, nn_idx, nn_dist, 1000);

@@ -146,8 +146,7 @@ struct NNDSerial {
             typename Progress, typename CandidatePriorityFactoryImpl>
   void build_knn(NeighborHeap &current_graph,
                  GraphUpdater<Distance> &graph_updater,
-                 const std::size_t max_candidates, const std::size_t n_iters,
-                 const double tol,
+                 std::size_t max_candidates, std::size_t n_iters, double tol,
                  CandidatePriorityFactoryImpl &candidate_priority_factory,
                  Progress &progress, bool verbose) {
     nnd_full(current_graph, graph_updater, max_candidates, n_iters,
@@ -171,8 +170,7 @@ struct NNDParallel {
             typename Progress, typename CandidatePriorityFactoryImpl>
   void build_knn(NeighborHeap &current_graph,
                  GraphUpdater<Distance> &graph_updater,
-                 const std::size_t max_candidates, const std::size_t n_iters,
-                 const double tol,
+                 std::size_t max_candidates, std::size_t n_iters, double tol,
                  CandidatePriorityFactoryImpl &candidate_priority_factory,
                  Progress &progress, bool verbose) {
     nnd_parallel(current_graph, graph_updater, max_candidates, n_iters,
@@ -190,7 +188,7 @@ struct NNDParallel {
 
 struct NNDQuerySerial {
   Rcpp::IntegerMatrix ref_idx;
-  const std::size_t n_ref_points;
+  std::size_t n_ref_points;
 
   NNDQuerySerial(Rcpp::IntegerMatrix ref_idx)
       : ref_idx(ref_idx), n_ref_points(ref_idx.nrow()) {}
@@ -199,8 +197,7 @@ struct NNDQuerySerial {
             typename Progress, typename CandidatePriorityFactoryImpl>
   void build_knn(NeighborHeap &current_graph,
                  GraphUpdater<Distance> &graph_updater,
-                 const std::size_t max_candidates, const std::size_t n_iters,
-                 const double tol,
+                 std::size_t max_candidates, std::size_t n_iters, double tol,
                  CandidatePriorityFactoryImpl &candidate_priority_factory,
                  Progress &progress, bool verbose) {
 
@@ -221,7 +218,7 @@ struct NNDQuerySerial {
 struct NNDQueryParallel {
 
   Rcpp::IntegerMatrix ref_idx;
-  const std::size_t n_ref_points;
+  std::size_t n_ref_points;
   std::size_t block_size;
   std::size_t grain_size;
 
@@ -234,8 +231,7 @@ struct NNDQueryParallel {
             typename Progress, typename CandidatePriorityFactoryImpl>
   void build_knn(NeighborHeap &current_graph,
                  GraphUpdater<Distance> &graph_updater,
-                 const std::size_t max_candidates, const std::size_t n_iters,
-                 const double tol,
+                 std::size_t max_candidates, std::size_t n_iters, double tol,
                  CandidatePriorityFactoryImpl &candidate_priority_factory,
                  Progress &progress, bool verbose) {
     auto ref_idx_vec =
@@ -260,12 +256,11 @@ Rcpp::List
 nn_descent_impl(KnnFactory &factory, Rcpp::IntegerMatrix nn_idx,
                 Rcpp::NumericMatrix nn_dist, NNDImpl &nnd_impl,
                 CandidatePriorityFactoryImpl &candidate_priority_factory,
-                const std::size_t max_candidates = 50,
-                const std::size_t n_iters = 10, const double delta = 0.001,
-                bool verbose = false) {
-  const std::size_t n_points = nn_idx.nrow();
-  const std::size_t n_nbrs = nn_idx.ncol();
-  const double tol = delta * n_nbrs * n_points;
+                std::size_t max_candidates = 50, std::size_t n_iters = 10,
+                double delta = 0.001, bool verbose = false) {
+  std::size_t n_points = nn_idx.nrow();
+  std::size_t n_nbrs = nn_idx.ncol();
+  double tol = delta * n_nbrs * n_points;
 
   auto distance = factory.create_distance();
 
@@ -285,9 +280,8 @@ nn_descent_impl(KnnFactory &factory, Rcpp::IntegerMatrix nn_idx,
 Rcpp::List nn_descent(Rcpp::NumericMatrix data, Rcpp::IntegerMatrix nn_idx,
                       Rcpp::NumericMatrix nn_dist,
                       const std::string &metric = "euclidean",
-                      const std::size_t max_candidates = 50,
-                      const std::size_t n_iters = 10,
-                      const double delta = 0.001, bool low_memory = true,
+                      std::size_t max_candidates = 50, std::size_t n_iters = 10,
+                      double delta = 0.001, bool low_memory = true,
                       const std::string &candidate_priority = "random",
                       bool parallelize = false, std::size_t block_size = 16384,
                       std::size_t grain_size = 1, bool verbose = false,
@@ -300,8 +294,8 @@ Rcpp::List nn_descent_query(
     Rcpp::NumericMatrix reference, Rcpp::IntegerMatrix reference_idx,
     Rcpp::NumericMatrix query, Rcpp::IntegerMatrix nn_idx,
     Rcpp::NumericMatrix nn_dist, const std::string &metric = "euclidean",
-    const std::size_t max_candidates = 50, const std::size_t n_iters = 10,
-    const double delta = 0.001, bool low_memory = true,
+    std::size_t max_candidates = 50, std::size_t n_iters = 10,
+    double delta = 0.001, bool low_memory = true,
     const std::string &candidate_priority = "random", bool parallelize = false,
     std::size_t block_size = 16384, std::size_t grain_size = 1,
     bool verbose = false, const std::string &progress = "bar") {

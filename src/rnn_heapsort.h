@@ -30,7 +30,7 @@ struct HeapSortWorker : public BatchParallelWorker {
   HeapSortWorker(NbrHeap &heap) : heap(heap) {}
 
   void operator()(std::size_t begin, std::size_t end) {
-    for (std::size_t i = begin; i < end; i++) {
+    for (auto i = begin; i < end; i++) {
       heap.deheap_sort(i);
     }
   }
