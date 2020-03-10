@@ -27,8 +27,6 @@
 #include "dqrng_generator.h"
 #include "tdoann/tauprng.h"
 
-#include "rnn_sample.h"
-
 uint64_t pseed();
 dqrng::rng64_t parallel_rng(uint64_t seed);
 uint64_t random64();

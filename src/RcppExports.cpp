@@ -41,15 +41,15 @@ BEGIN_RCPP
 END_RCPP
 }
 // merge_nn
-Rcpp::List merge_nn(Rcpp::IntegerMatrix nn_idx1, Rcpp::NumericMatrix nn_dist1, Rcpp::IntegerMatrix nn_idx2, Rcpp::NumericMatrix nn_dist2, bool is_query, bool parallelize, std::size_t block_size, std::size_t grain_size, bool verbose);
+List merge_nn(IntegerMatrix nn_idx1, NumericMatrix nn_dist1, IntegerMatrix nn_idx2, NumericMatrix nn_dist2, bool is_query, bool parallelize, std::size_t block_size, std::size_t grain_size, bool verbose);
 RcppExport SEXP _rnndescent_merge_nn(SEXP nn_idx1SEXP, SEXP nn_dist1SEXP, SEXP nn_idx2SEXP, SEXP nn_dist2SEXP, SEXP is_querySEXP, SEXP parallelizeSEXP, SEXP block_sizeSEXP, SEXP grain_sizeSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::IntegerMatrix >::type nn_idx1(nn_idx1SEXP);
-    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type nn_dist1(nn_dist1SEXP);
-    Rcpp::traits::input_parameter< Rcpp::IntegerMatrix >::type nn_idx2(nn_idx2SEXP);
-    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type nn_dist2(nn_dist2SEXP);
+    Rcpp::traits::input_parameter< IntegerMatrix >::type nn_idx1(nn_idx1SEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type nn_dist1(nn_dist1SEXP);
+    Rcpp::traits::input_parameter< IntegerMatrix >::type nn_idx2(nn_idx2SEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type nn_dist2(nn_dist2SEXP);
     Rcpp::traits::input_parameter< bool >::type is_query(is_querySEXP);
     Rcpp::traits::input_parameter< bool >::type parallelize(parallelizeSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type block_size(block_sizeSEXP);
@@ -60,12 +60,12 @@ BEGIN_RCPP
 END_RCPP
 }
 // merge_nn_all
-Rcpp::List merge_nn_all(Rcpp::List nn_graphs, bool is_query, bool parallelize, std::size_t block_size, std::size_t grain_size, bool verbose);
+List merge_nn_all(List nn_graphs, bool is_query, bool parallelize, std::size_t block_size, std::size_t grain_size, bool verbose);
 RcppExport SEXP _rnndescent_merge_nn_all(SEXP nn_graphsSEXP, SEXP is_querySEXP, SEXP parallelizeSEXP, SEXP block_sizeSEXP, SEXP grain_sizeSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::List >::type nn_graphs(nn_graphsSEXP);
+    Rcpp::traits::input_parameter< List >::type nn_graphs(nn_graphsSEXP);
     Rcpp::traits::input_parameter< bool >::type is_query(is_querySEXP);
     Rcpp::traits::input_parameter< bool >::type parallelize(parallelizeSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type block_size(block_sizeSEXP);
@@ -76,14 +76,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // nn_descent
-Rcpp::List nn_descent(Rcpp::NumericMatrix data, Rcpp::IntegerMatrix nn_idx, Rcpp::NumericMatrix nn_dist, const std::string& metric, std::size_t max_candidates, std::size_t n_iters, double delta, bool low_memory, const std::string& candidate_priority, bool parallelize, std::size_t block_size, std::size_t grain_size, bool verbose, const std::string& progress);
+List nn_descent(NumericMatrix data, IntegerMatrix nn_idx, NumericMatrix nn_dist, const std::string& metric, std::size_t max_candidates, std::size_t n_iters, double delta, bool low_memory, const std::string& candidate_priority, bool parallelize, std::size_t block_size, std::size_t grain_size, bool verbose, const std::string& progress);
 RcppExport SEXP _rnndescent_nn_descent(SEXP dataSEXP, SEXP nn_idxSEXP, SEXP nn_distSEXP, SEXP metricSEXP, SEXP max_candidatesSEXP, SEXP n_itersSEXP, SEXP deltaSEXP, SEXP low_memorySEXP, SEXP candidate_prioritySEXP, SEXP parallelizeSEXP, SEXP block_sizeSEXP, SEXP grain_sizeSEXP, SEXP verboseSEXP, SEXP progressSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type data(dataSEXP);
-    Rcpp::traits::input_parameter< Rcpp::IntegerMatrix >::type nn_idx(nn_idxSEXP);
-    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type nn_dist(nn_distSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< IntegerMatrix >::type nn_idx(nn_idxSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type nn_dist(nn_distSEXP);
     Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type max_candidates(max_candidatesSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type n_iters(n_itersSEXP);
@@ -100,16 +100,16 @@ BEGIN_RCPP
 END_RCPP
 }
 // nn_descent_query
-Rcpp::List nn_descent_query(Rcpp::NumericMatrix reference, Rcpp::IntegerMatrix reference_idx, Rcpp::NumericMatrix query, Rcpp::IntegerMatrix nn_idx, Rcpp::NumericMatrix nn_dist, const std::string& metric, std::size_t max_candidates, std::size_t n_iters, double delta, bool low_memory, const std::string& candidate_priority, bool parallelize, std::size_t block_size, std::size_t grain_size, bool verbose, const std::string& progress);
+List nn_descent_query(NumericMatrix reference, IntegerMatrix reference_idx, NumericMatrix query, IntegerMatrix nn_idx, NumericMatrix nn_dist, const std::string& metric, std::size_t max_candidates, std::size_t n_iters, double delta, bool low_memory, const std::string& candidate_priority, bool parallelize, std::size_t block_size, std::size_t grain_size, bool verbose, const std::string& progress);
 RcppExport SEXP _rnndescent_nn_descent_query(SEXP referenceSEXP, SEXP reference_idxSEXP, SEXP querySEXP, SEXP nn_idxSEXP, SEXP nn_distSEXP, SEXP metricSEXP, SEXP max_candidatesSEXP, SEXP n_itersSEXP, SEXP deltaSEXP, SEXP low_memorySEXP, SEXP candidate_prioritySEXP, SEXP parallelizeSEXP, SEXP block_sizeSEXP, SEXP grain_sizeSEXP, SEXP verboseSEXP, SEXP progressSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type reference(referenceSEXP);
-    Rcpp::traits::input_parameter< Rcpp::IntegerMatrix >::type reference_idx(reference_idxSEXP);
-    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type query(querySEXP);
-    Rcpp::traits::input_parameter< Rcpp::IntegerMatrix >::type nn_idx(nn_idxSEXP);
-    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type nn_dist(nn_distSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type reference(referenceSEXP);
+    Rcpp::traits::input_parameter< IntegerMatrix >::type reference_idx(reference_idxSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type query(querySEXP);
+    Rcpp::traits::input_parameter< IntegerMatrix >::type nn_idx(nn_idxSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type nn_dist(nn_distSEXP);
     Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type max_candidates(max_candidatesSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type n_iters(n_itersSEXP);

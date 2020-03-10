@@ -21,13 +21,57 @@
 
 #include "tdoann/bruteforce.h"
 #include "tdoann/heap.h"
+#include "tdoann/progress.h"
 
-#include "rnn_bruteforceparallel.h"
+#include "rnn_heapsort.h"
 #include "rnn_heaptor.h"
 #include "rnn_macros.h"
+#include "rnn_parallel.h"
 #include "rnn_progress.h"
 
 using namespace Rcpp;
+using namespace tdoann;
+
+template <typename Distance>
+struct BruteForceWorker : public BatchParallelWorker {
+
+  SimpleNeighborHeap &neighbor_heap;
+  Distance &distance;
+  std::size_t n_ref_points;
+  NullProgress progress;
+
+  BruteForceWorker(SimpleNeighborHeap &neighbor_heap, Distance &distance,
+                   std::size_t n_ref_points)
+      : neighbor_heap(neighbor_heap), distance(distance),
+        n_ref_points(n_ref_points), progress() {}
+
+  void operator()(std::size_t begin, std::size_t end) {
+    nnbf_query_window(neighbor_heap, distance, n_ref_points, progress, begin,
+                      end);
+  }
+};
+
+template <typename Distance, typename Progress>
+void nnbf_parallel(SimpleNeighborHeap &neighbor_heap, Distance &distance,
+                   Progress &progress, std::size_t block_size = 64,
+                   std::size_t grain_size = 1) {
+
+  nnbf_parallel_query(neighbor_heap, distance, neighbor_heap.n_points, progress,
+                      block_size, grain_size);
+}
+
+template <typename Distance, typename Progress>
+void nnbf_parallel_query(SimpleNeighborHeap &neighbor_heap, Distance &distance,
+                         std::size_t n_ref_points, Progress &progress,
+                         std::size_t block_size = 64,
+                         std::size_t grain_size = 1) {
+  BruteForceWorker<Distance> worker(neighbor_heap, distance, n_ref_points);
+
+  batch_parallel_for(worker, progress, neighbor_heap.n_points, block_size,
+                     grain_size);
+
+  sort_heap_parallel(neighbor_heap, block_size, grain_size);
+}
 
 #define BRUTE_FORCE_BUILD()                                                    \
   return rnn_brute_force_impl<Distance>(data, k, parallelize, block_size,      \
