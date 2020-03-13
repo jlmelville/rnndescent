@@ -17,6 +17,8 @@
 //  You should have received a copy of the GNU General Public License
 //  along with rnndescent.  If not, see <http://www.gnu.org/licenses/>.
 
+#include <utility>
+
 #include <Rcpp.h>
 // [[Rcpp::depends(dqrng)]]
 #include "convert_seed.h"
@@ -39,70 +41,73 @@
 using namespace Rcpp;
 using namespace tdoann;
 
-template <typename Distance, typename IdxMatrix, typename DistMatrix,
-          typename Base>
+template <typename Distance, typename Base>
 struct RandomNbrQueryWorker : public Base {
 
   Distance &distance;
 
-  IdxMatrix nn_idx;
-  DistMatrix nn_dist;
+  std::size_t n_points;
+  std::size_t k;
+  std::vector<int> nn_idx;
+  std::vector<double> nn_dist;
 
   int nrefs;
-  int k;
 
   uint64_t seed;
 
-  RandomNbrQueryWorker(Distance &distance, IntegerMatrix nn_idx,
-                       NumericMatrix nn_dist)
-      : distance(distance), nn_idx(nn_idx), nn_dist(nn_dist),
-        nrefs(distance.nx), k(nn_idx.nrow()), seed(pseed()) {}
+  RandomNbrQueryWorker(Distance &distance, std::size_t n_points, std::size_t k)
+      : distance(distance), n_points(n_points), k(k), nn_idx(n_points * k),
+        nn_dist(n_points * k, 0.0), nrefs(distance.nx), seed(pseed()) {}
 
   void operator()(std::size_t begin, std::size_t end) {
     dqrng::rng64_t rng = parallel_rng(seed);
     rng->seed(seed, end);
     for (int qi = static_cast<int>(begin); qi < static_cast<int>(end); qi++) {
       auto idxi = sample<uint32_t>(rng, nrefs, k);
-      for (auto j = 0; j < k; j++) {
+      std::size_t kqi = k * qi;
+      for (std::size_t j = 0; j < k; j++) {
         auto &ri = idxi[j];
-        nn_idx(j, qi) = ri + 1;            // store val as 1-index
-        nn_dist(j, qi) = distance(ri, qi); // distance calcs are 0-indexed
+        nn_idx[j + kqi] = ri + 1;            // store val as 1-index
+        nn_dist[j + kqi] = distance(ri, qi); // distance calcs are 0-indexed
       }
     }
   }
 };
 
-template <typename Distance, typename IdxMatrix, typename DistMatrix,
-          typename Base>
+template <typename Distance, typename Base>
 struct RandomNbrBuildWorker : public Base {
 
   Distance &distance;
 
-  IdxMatrix nn_idx;
-  DistMatrix nn_dist;
+  std::size_t n_points;
+  std::size_t k;
+  std::vector<int> nn_idx;
+  std::vector<double> nn_dist;
 
-  int nr1;
+  int n_points_minus_1;
   int k_minus_1;
   uint64_t seed;
 
-  RandomNbrBuildWorker(Distance &distance, IntegerMatrix nn_idx,
-                       NumericMatrix nn_dist)
-      : distance(distance), nn_idx(nn_idx), nn_dist(nn_dist),
-        nr1(nn_idx.ncol() - 1), k_minus_1(nn_idx.nrow() - 1), seed(pseed()) {}
+  RandomNbrBuildWorker(Distance &distance, std::size_t n_points, std::size_t k)
+      : distance(distance), n_points(n_points), k(k), nn_idx(n_points * k),
+        nn_dist(n_points * k), n_points_minus_1(n_points - 1), k_minus_1(k - 1),
+        seed(pseed()) {}
 
   void operator()(std::size_t begin, std::size_t end) {
     dqrng::rng64_t rng = parallel_rng(seed);
     rng->seed(seed, end);
-    for (int qi = static_cast<int>(begin); qi < static_cast<int>(end); qi++) {
-      nn_idx(0, qi) = qi + 1;
-      auto ris = sample<uint32_t>(rng, nr1, k_minus_1);
+    for (auto qi = static_cast<int>(begin); qi < static_cast<int>(end); qi++) {
+      std::size_t kqi = k * qi;
+      std::size_t kqi1 = kqi + 1;
+      nn_idx[0 + kqi] = qi + 1;
+      auto ris = sample<uint32_t>(rng, n_points_minus_1, k_minus_1);
       for (auto j = 0; j < k_minus_1; j++) {
         int ri = ris[j];
         if (ri >= qi) {
           ri += 1;
         }
-        nn_idx(j + 1, qi) = ri + 1;            // store val as 1-index
-        nn_dist(j + 1, qi) = distance(ri, qi); // distance calcs are 0-indexed
+        nn_idx[j + kqi1] = ri + 1;            // store val as 1-index
+        nn_dist[j + kqi1] = distance(ri, qi); // distance calcs are 0-indexed
       }
     }
   }
@@ -111,36 +116,30 @@ struct RandomNbrBuildWorker : public Base {
 struct SerialRandomKnnQuery {
   using HeapAdd = HeapAddQuery;
   template <typename Distance>
-  using SerialRandomNbrQueryWorker =
-      RandomNbrQueryWorker<Distance, IntegerMatrix, NumericMatrix, Empty>;
+  using SerialRandomNbrQueryWorker = RandomNbrQueryWorker<Distance, Empty>;
   template <typename D> using Worker = SerialRandomNbrQueryWorker<D>;
 };
 
 struct SerialRandomKnnBuild {
   using HeapAdd = HeapAddSymmetric;
   template <typename Distance>
-  using SerialRandomNbrBuildWorker =
-      RandomNbrBuildWorker<Distance, IntegerMatrix, NumericMatrix, Empty>;
+  using SerialRandomNbrBuildWorker = RandomNbrBuildWorker<Distance, Empty>;
   template <typename D> using Worker = SerialRandomNbrBuildWorker<D>;
 };
-
-template <template <typename> class RandomKnnWorker, typename Progress,
-          typename Distance>
-void rknn_serial(Progress &progress, Distance &distance, IntegerMatrix nn_idx,
-                 NumericMatrix nn_dist, std::size_t block_size = 4096) {
-  RandomKnnWorker<Distance> worker(distance, nn_idx, nn_dist);
-  batch_serial_for(worker, progress, nn_idx.ncol(), block_size);
-}
 
 template <typename SerialRandomKnn> struct SerialRandomNbrsImpl {
   std::size_t block_size;
   SerialRandomNbrsImpl(std::size_t block_size) : block_size(block_size) {}
+  using NNGraph = std::pair<std::vector<int>, std::vector<double>>;
 
   template <typename Distance>
-  void build_knn(Distance &distance, IntegerMatrix nn_idx,
-                 NumericMatrix nn_dist, bool verbose) {
+  NNGraph build_knn(Distance &distance, std::size_t n_points, std::size_t k,
+                    bool verbose) {
     RPProgress progress(1, verbose);
-    rknn_serial<Worker>(progress, distance, nn_idx, nn_dist, block_size);
+
+    Worker<Distance> worker(distance, n_points, k);
+    batch_serial_for(worker, progress, n_points, block_size);
+    return std::make_pair(std::move(worker.nn_idx), std::move(worker.nn_dist));
   }
   void sort_knn(IntegerMatrix nn_idx, NumericMatrix nn_dist) {
     sort_knn_graph<HeapAdd>(nn_idx, nn_dist);
@@ -153,15 +152,11 @@ template <typename SerialRandomKnn> struct SerialRandomNbrsImpl {
 
 template <typename Distance>
 using ParallelRandomNbrQueryWorker =
-    RandomNbrQueryWorker<Distance, RcppPerpendicular::RMatrix<int>,
-                         RcppPerpendicular::RMatrix<double>,
-                         BatchParallelWorker>;
+    RandomNbrQueryWorker<Distance, BatchParallelWorker>;
 
 template <typename Distance>
 using ParallelRandomNbrBuildWorker =
-    RandomNbrBuildWorker<Distance, RcppPerpendicular::RMatrix<int>,
-                         RcppPerpendicular::RMatrix<double>,
-                         BatchParallelWorker>;
+    RandomNbrBuildWorker<Distance, BatchParallelWorker>;
 
 struct ParallelRandomKnnBuild {
   using HeapAdd = LockingHeapAddSymmetric;
@@ -176,18 +171,21 @@ struct ParallelRandomKnnQuery {
 template <typename ParallelRandomKnn> struct ParallelRandomNbrsImpl {
   std::size_t block_size;
   std::size_t grain_size;
+  using NNGraph = std::pair<std::vector<int>, std::vector<double>>;
 
   ParallelRandomNbrsImpl(std::size_t block_size = 4096,
                          std::size_t grain_size = 1)
       : block_size(block_size), grain_size(grain_size) {}
 
   template <typename Distance>
-  void build_knn(Distance &distance, IntegerMatrix nn_idx,
-                 NumericMatrix nn_dist, bool verbose) {
+  NNGraph build_knn(Distance &distance, std::size_t n_points, std::size_t k,
+                    bool verbose) {
     RPProgress progress(1, verbose);
 
-    Worker<Distance> worker(distance, nn_idx, nn_dist);
-    batch_parallel_for(worker, progress, nn_idx.ncol(), block_size, grain_size);
+    Worker<Distance> worker(distance, n_points, k);
+    batch_parallel_for(worker, progress, n_points, block_size, grain_size);
+
+    return std::make_pair(std::move(worker.nn_idx), std::move(worker.nn_dist));
   }
   void sort_knn(IntegerMatrix nn_idx, NumericMatrix nn_dist) {
     sort_knn_graph_parallel<HeapAdd>(nn_idx, nn_dist, block_size, grain_size);
@@ -239,8 +237,15 @@ auto random_knn_impl(std::size_t k, bool order_by_distance,
   auto distance = knn_factory.create_distance();
   auto indices = knn_factory.create_index_matrix(k);
   auto dist = knn_factory.create_distance_matrix(k);
+  std::size_t n_points = indices.ncol();
+  auto nn_graph = impl.build_knn(distance, n_points, k, verbose);
 
-  impl.build_knn(distance, indices, dist, verbose);
+  for (std::size_t j = 0; j < n_points; j++) {
+    for (std::size_t i = 0; i < k; i++) {
+      indices(i, j) = nn_graph.first[i + k * j];
+      dist(i, j) = nn_graph.second[i + k * j];
+    }
+  }
 
   indices = transpose(indices);
   dist = transpose(dist);
