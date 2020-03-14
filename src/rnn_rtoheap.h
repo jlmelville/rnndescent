@@ -87,17 +87,13 @@ template <typename HeapAdd, typename NbrHeap>
 void vec_to_heap(NbrHeap &current_graph, const std::vector<int>& nn_idx,
                std::size_t nrow, const std::vector<double>& nn_dist,
                int max_idx = (std::numeric_limits<int>::max)()) {
-  // std::size_t n_points = nn_idx.nrow();
   HeapAdd heap_add;
-  // auto nn_idxv = Rcpp::as<std::vector<int>>(nn_idx);
-  // auto nn_distv = Rcpp::as<std::vector<double>>(nn_dist);
   vec_to_heap<HeapAdd>(current_graph, nn_idx, nrow, nn_dist, 0, nrow, heap_add,
                      max_idx);
 }
 
-template <typename HeapAdd, typename NbrHeap = SimpleNeighborHeap,
-          typename Base = Empty>
-struct VecToHeapWorker : public Base {
+template <typename HeapAdd, typename NbrHeap = SimpleNeighborHeap>
+struct VecToHeapWorker : public BatchParallelWorker {
   NbrHeap &heap;
   const std::vector<int>& nn_idx;
   std::size_t nrow;
@@ -122,12 +118,6 @@ struct VecToHeapWorker : public Base {
   }
 };
 
-// Specialization designed to not compile: HeapAddSymmetric should not be used
-// with parallel workers: use LockingHeapAddSymmetric
-template <typename NbrHeap>
-struct VecToHeapWorker<HeapAddSymmetric, NbrHeap, BatchParallelWorker> {
-};
-
 template <typename HeapAdd, typename NbrHeap = SimpleNeighborHeap>
 void r_to_heap_serial(NbrHeap &heap, Rcpp::IntegerMatrix nn_idx,
                       Rcpp::NumericMatrix nn_dist, std::size_t block_size,
@@ -137,7 +127,7 @@ void r_to_heap_serial(NbrHeap &heap, Rcpp::IntegerMatrix nn_idx,
   auto nn_distv = Rcpp::as<std::vector<double>>(nn_dist);
   std::size_t n_points = nn_idx.nrow();
 
-  VecToHeapWorker<HeapAdd, NbrHeap, Empty>
+  VecToHeapWorker<HeapAdd, NbrHeap>
       worker(heap, nn_idxv, n_points, nn_distv, max_idx);
   InterruptableProgress progress;
   batch_serial_for(worker, progress, n_points, block_size);
@@ -145,17 +135,17 @@ void r_to_heap_serial(NbrHeap &heap, Rcpp::IntegerMatrix nn_idx,
 
 template <typename HeapAdd, typename NbrHeap = SimpleNeighborHeap>
 void r_to_heap_parallel(NbrHeap &heap, Rcpp::IntegerMatrix nn_idx,
-                        Rcpp::NumericMatrix nn_dist, std::size_t block_size,
+                        Rcpp::NumericMatrix nn_dist, std::size_t n_threads, std::size_t block_size,
                         std::size_t grain_size,
                         int max_idx = (std::numeric_limits<int>::max)()) {
   auto nn_idxv = Rcpp::as<std::vector<int>>(nn_idx);
   auto nn_distv = Rcpp::as<std::vector<double>>(nn_dist);
   std::size_t n_points = nn_idx.nrow();
 
-  VecToHeapWorker<HeapAdd, NbrHeap, BatchParallelWorker>
+  VecToHeapWorker<HeapAdd, NbrHeap>
       worker(heap, nn_idxv, n_points, nn_distv, max_idx);
   tdoann::NullProgress progress;
-  batch_parallel_for(worker, progress, n_points, block_size, grain_size);
+  batch_parallel_for(worker, progress, n_points, n_threads, block_size, grain_size);
 }
 
 #endif // RNN_RTOHEAP_H

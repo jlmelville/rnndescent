@@ -35,7 +35,7 @@
 #include "rnn_parallel.h"
 
 template <typename CandidatePriorityFactoryImpl>
-struct LockingCandidatesWorker : public RcppPerpendicular::Worker {
+struct LockingCandidatesWorker {
   const NeighborHeap &current_graph;
   CandidatePriorityFactoryImpl candidate_priority_factory;
   std::size_t n_points;
@@ -84,7 +84,7 @@ struct LockingCandidatesWorker : public RcppPerpendicular::Worker {
 
 // mark any neighbor in the current graph that was retained in the new
 // candidates as true
-struct FlagNewCandidatesWorker : public RcppPerpendicular::Worker {
+struct FlagNewCandidatesWorker {
   const NeighborHeap &new_candidate_neighbors;
   NeighborHeap &current_graph;
   std::size_t n_points;
@@ -105,7 +105,7 @@ struct FlagNewCandidatesWorker : public RcppPerpendicular::Worker {
 };
 
 template <typename Distance, template <typename> class GraphUpdater>
-struct LocalJoinWorker : public RcppPerpendicular::Worker {
+struct LocalJoinWorker {
   const NeighborHeap &current_graph;
   const NeighborHeap &new_nbrs;
   const NeighborHeap &old_nbrs;
@@ -157,7 +157,7 @@ void nnd_parallel(NeighborHeap &current_graph,
                   GraphUpdater<Distance> &graph_updater,
                   std::size_t max_candidates, std::size_t n_iters,
                   CandidatePriorityFactoryImpl &candidate_priority_factory,
-                  Progress &progress, double tol,
+                  Progress &progress, double tol, std::size_t n_threads = 0,
                   std::size_t block_size = 16384, std::size_t grain_size = 1,
                   bool verbose = false) {
   std::size_t n_points = current_graph.n_points;
@@ -169,31 +169,31 @@ void nnd_parallel(NeighborHeap &current_graph,
     LockingCandidatesWorker<CandidatePriorityFactoryImpl> candidates_worker(
         current_graph, candidate_priority_factory, new_candidate_neighbors,
         old_candidate_neighbors);
-    RcppPerpendicular::parallelFor(0, n_points, candidates_worker, grain_size);
+    RcppPerpendicular::parallel_for(0, n_points, candidates_worker, n_threads, grain_size);
     if (CandidatePriorityFactoryImpl::should_sort) {
-      sort_heap_parallel(new_candidate_neighbors, block_size, grain_size);
-      sort_heap_parallel(old_candidate_neighbors, block_size, grain_size);
+      sort_heap_parallel(new_candidate_neighbors, n_threads, block_size, grain_size);
+      sort_heap_parallel(old_candidate_neighbors, n_threads, block_size, grain_size);
     }
 
     FlagNewCandidatesWorker flag_new_candidates_worker(new_candidate_neighbors,
                                                        current_graph);
-    RcppPerpendicular::parallelFor(0, n_points, flag_new_candidates_worker,
-                                   grain_size);
+    RcppPerpendicular::parallel_for(0, n_points, flag_new_candidates_worker,
+                                   n_threads, grain_size);
 
     LocalJoinWorker<Distance, GraphUpdater> local_join_worker(
         current_graph, new_candidate_neighbors, old_candidate_neighbors,
         graph_updater);
-    batch_parallel_for(local_join_worker, progress, n_points, block_size,
+    batch_parallel_for(local_join_worker, progress, n_points, n_threads, block_size,
                        grain_size);
     TDOANN_ITERFINISHED();
     std::size_t c = local_join_worker.c;
     TDOANN_CHECKCONVERGENCE();
   }
-  sort_heap_parallel(current_graph, block_size, grain_size);
+  sort_heap_parallel(current_graph, n_threads, block_size, grain_size);
 }
 
 template <typename CandidatePriorityFactoryImpl>
-struct QueryCandidatesWorker : public RcppPerpendicular::Worker {
+struct QueryCandidatesWorker {
   NeighborHeap &current_graph;
   std::size_t n_points;
   std::size_t n_nbrs;
@@ -278,7 +278,7 @@ void nnd_query_parallel(
     const std::vector<std::size_t> &reference_idx, std::size_t n_ref_points,
     std::size_t max_candidates, std::size_t n_iters,
     CandidatePriorityFactoryImpl &candidate_priority_factory,
-    Progress &progress, double tol, std::size_t block_size = 16384,
+    Progress &progress, double tol, std::size_t n_threads = 0, std::size_t block_size = 16384,
     std::size_t grain_size = 1, bool verbose = false) {
   std::size_t n_points = current_graph.n_points;
   std::size_t n_nbrs = current_graph.n_nbrs;
@@ -291,26 +291,26 @@ void nnd_query_parallel(
     NeighborHeap new_nbrs(n_points, max_candidates);
     QueryCandidatesWorker<CandidatePriorityFactoryImpl> query_candidates_worker(
         current_graph, new_nbrs, candidate_priority_factory);
-    RcppPerpendicular::parallelFor(0, n_points, query_candidates_worker,
-                                   grain_size);
+    RcppPerpendicular::parallel_for(0, n_points, query_candidates_worker,
+                                   n_threads, grain_size);
 
     if (!query_candidates_worker.flag_on_add) {
       FlagNewCandidatesWorker flag_new_candidates_worker(new_nbrs,
                                                          current_graph);
-      RcppPerpendicular::parallelFor(0, n_points, flag_new_candidates_worker,
-                                     grain_size);
+      RcppPerpendicular::parallel_for(0, n_points, flag_new_candidates_worker,
+                                     n_threads, grain_size);
     }
 
     QueryNoNSearchWorker<Distance, GraphUpdater> query_non_search_worker(
         current_graph, graph_updater, new_nbrs, gn_graph, max_candidates);
-    batch_parallel_for(query_non_search_worker, progress, n_points, block_size,
+    batch_parallel_for(query_non_search_worker, progress, n_points, n_threads, block_size,
                        grain_size);
 
     TDOANN_ITERFINISHED();
     std::size_t c = query_non_search_worker.n_updates;
     TDOANN_CHECKCONVERGENCE();
   }
-  sort_heap_parallel(current_graph, block_size, grain_size);
+  sort_heap_parallel(current_graph, n_threads, block_size, grain_size);
 }
 
 #endif // RNN_NNDPARALLEL_H

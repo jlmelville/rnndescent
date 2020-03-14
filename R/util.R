@@ -34,12 +34,6 @@ x2m <- function(X) {
   m
 }
 
-# Half of whatever the C++ implementation thinks are the number of concurrent
-# threads supported, but at least 1
-default_num_threads <- function() {
-  max(1, hardware_concurrency() / 2)
-}
-
 set_thread_options <- function(n_threads) {
   Sys.setenv(RCPP_PERPENDICULAR_NUM_THREADS = n_threads)
 }

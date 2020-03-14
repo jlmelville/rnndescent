@@ -66,16 +66,12 @@ brute_force_knn <- function(data,
     actual_metric <- metric
   }
 
-  parallelize <- n_threads > 0
-  if (parallelize) {
-    set_thread_options(n_threads = n_threads)
-  }
   res <-
     rnn_brute_force(
       data,
       k,
       actual_metric,
-      parallelize,
+      n_threads,
       block_size,
       grain_size,
       verbose
@@ -165,18 +161,13 @@ random_knn <-
       actual_metric <- metric
     }
 
-    parallelize <- n_threads > 0
-    if (parallelize) {
-      set_thread_options(n_threads = n_threads)
-    }
-
     res <-
       random_knn_cpp(
         data,
         k,
         actual_metric,
         order_by_distance,
-        parallelize,
+        n_threads,
         block_size,
         grain_size,
         verbose
@@ -374,11 +365,6 @@ nnd_knn <- function(data,
     }
   }
 
-  parallelize <- n_threads > 0
-  if (parallelize) {
-    set_thread_options(n_threads = n_threads)
-  }
-
   tsmessage("Running nearest neighbor descent for ", n_iters, " iterations")
   res <- nn_descent(
     data,
@@ -390,7 +376,7 @@ nnd_knn <- function(data,
     delta = delta,
     low_memory = low_memory,
     candidate_priority = candidate_priority,
-    parallelize = parallelize,
+    n_threads = n_threads,
     block_size = block_size,
     grain_size = grain_size,
     verbose = verbose,
@@ -488,17 +474,12 @@ brute_force_knn_query <- function(reference,
     actual_metric <- metric
   }
 
-  parallelize <- n_threads > 0
-  if (parallelize) {
-    set_thread_options(n_threads = n_threads)
-  }
-
   res <- rnn_brute_force_query(
     reference,
     query,
     k,
     actual_metric,
-    parallelize,
+    n_threads,
     block_size,
     grain_size,
     verbose
@@ -598,18 +579,13 @@ random_knn_query <-
       actual_metric <- metric
     }
 
-    parallelize <- n_threads > 0
-    if (parallelize) {
-      set_thread_options(n_threads = n_threads)
-    }
-
     res <- random_knn_query_cpp(
       reference,
       query,
       k,
       actual_metric,
       order_by_distance,
-      parallelize,
+      n_threads,
       block_size,
       grain_size,
       verbose
@@ -793,11 +769,6 @@ nnd_knn_query <- function(reference,
   # reference indices need to be zero-indexed manually
   reference_idx <- prepare_ref_idx(reference_idx, k) - 1
 
-  parallelize <- n_threads > 0
-  if (parallelize) {
-    set_thread_options(n_threads = n_threads)
-  }
-
   res <-
     nn_descent_query(
       reference,
@@ -811,7 +782,7 @@ nnd_knn_query <- function(reference,
       delta = delta,
       low_memory = low_memory,
       candidate_priority = candidate_priority,
-      parallelize = parallelize,
+      n_threads = n_threads,
       block_size = block_size,
       grain_size = grain_size,
       verbose = verbose,
@@ -897,10 +868,6 @@ merge_knn <- function(nn_graph1,
                       verbose = FALSE) {
   validate_are_mergeable(nn_graph1, nn_graph2)
 
-  parallelize <- n_threads > 0
-  if (parallelize) {
-    set_thread_options(n_threads = n_threads)
-  }
 
   merge_nn(
     nn_graph1$idx,
@@ -908,7 +875,7 @@ merge_knn <- function(nn_graph1,
     nn_graph2$idx,
     nn_graph2$dist,
     is_query,
-    parallelize,
+    n_threads,
     block_size,
     grain_size,
     verbose
@@ -976,7 +943,7 @@ merge_knn <- function(nn_graph1,
 #' sum(iris_mnn$dist) < sum(iris_rnn2$dist)
 #' sum(iris_mnn$dist) < sum(iris_rnn3$dist)
 #'
-#' # and slight faster than running:
+#' # and slightly faster than running:
 #' # iris_mnn <- merge_knn(iris_rnn1, iris_rnn2)
 #' # iris_mnn <- merge_knn(iris_mnn, iris_rnn3)
 #' @export
@@ -991,15 +958,10 @@ merge_knnl <- function(nn_graphs,
   }
   validate_are_mergeablel(nn_graphs)
 
-  parallelize <- n_threads > 0
-  if (parallelize) {
-    set_thread_options(n_threads = n_threads)
-  }
-
   merge_nn_all(
     nn_graphs,
     is_query,
-    parallelize,
+    n_threads,
     block_size,
     grain_size,
     verbose

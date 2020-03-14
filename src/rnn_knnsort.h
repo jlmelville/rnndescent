@@ -31,15 +31,15 @@
 template <typename HeapAdd, typename NbrHeap = SimpleNeighborHeap>
 void sort_knn_graph_parallel(Rcpp::IntegerMatrix nn_idx,
                              Rcpp::NumericMatrix nn_dist,
-                             std::size_t block_size, std::size_t grain_size,
+                             std::size_t n_threads, std::size_t block_size, std::size_t grain_size,
                              int max_idx = (std::numeric_limits<int>::max)()) {
   std::size_t n_points = nn_idx.nrow();
   std::size_t n_nbrs = nn_idx.ncol();
 
   NbrHeap heap(n_points, n_nbrs);
-  r_to_heap_parallel<HeapAdd>(heap, nn_idx, nn_dist, block_size, grain_size,
+  r_to_heap_parallel<HeapAdd>(heap, nn_idx, nn_dist, n_threads, block_size, grain_size,
                               max_idx);
-  sort_heap_parallel(heap, block_size, grain_size);
+  sort_heap_parallel(heap, n_threads, block_size, grain_size);
   heap_to_r(heap, nn_idx, nn_dist);
 }
 

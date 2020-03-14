@@ -41,8 +41,8 @@
 using namespace Rcpp;
 using namespace tdoann;
 
-template <typename Distance, typename Base>
-struct RandomNbrQueryWorker : public Base {
+template <typename Distance>
+struct RandomNbrQueryWorker : public BatchParallelWorker {
 
   Distance &distance;
 
@@ -74,8 +74,8 @@ struct RandomNbrQueryWorker : public Base {
   }
 };
 
-template <typename Distance, typename Base>
-struct RandomNbrBuildWorker : public Base {
+template <typename Distance>
+struct RandomNbrBuildWorker : public BatchParallelWorker {
 
   Distance &distance;
 
@@ -116,14 +116,14 @@ struct RandomNbrBuildWorker : public Base {
 struct SerialRandomKnnQuery {
   using HeapAdd = HeapAddQuery;
   template <typename Distance>
-  using SerialRandomNbrQueryWorker = RandomNbrQueryWorker<Distance, Empty>;
+  using SerialRandomNbrQueryWorker = RandomNbrQueryWorker<Distance>;
   template <typename D> using Worker = SerialRandomNbrQueryWorker<D>;
 };
 
 struct SerialRandomKnnBuild {
   using HeapAdd = HeapAddSymmetric;
   template <typename Distance>
-  using SerialRandomNbrBuildWorker = RandomNbrBuildWorker<Distance, Empty>;
+  using SerialRandomNbrBuildWorker = RandomNbrBuildWorker<Distance>;
   template <typename D> using Worker = SerialRandomNbrBuildWorker<D>;
 };
 
@@ -151,12 +151,10 @@ template <typename SerialRandomKnn> struct SerialRandomNbrsImpl {
 };
 
 template <typename Distance>
-using ParallelRandomNbrQueryWorker =
-    RandomNbrQueryWorker<Distance, BatchParallelWorker>;
+using ParallelRandomNbrQueryWorker = RandomNbrQueryWorker<Distance>;
 
 template <typename Distance>
-using ParallelRandomNbrBuildWorker =
-    RandomNbrBuildWorker<Distance, BatchParallelWorker>;
+using ParallelRandomNbrBuildWorker = RandomNbrBuildWorker<Distance>;
 
 struct ParallelRandomKnnBuild {
   using HeapAdd = LockingHeapAddSymmetric;
@@ -169,13 +167,15 @@ struct ParallelRandomKnnQuery {
 };
 
 template <typename ParallelRandomKnn> struct ParallelRandomNbrsImpl {
+  std::size_t n_threads;
   std::size_t block_size;
   std::size_t grain_size;
   using NNGraph = std::pair<std::vector<int>, std::vector<double>>;
 
-  ParallelRandomNbrsImpl(std::size_t block_size = 4096,
+  ParallelRandomNbrsImpl(std::size_t n_threads = 0,
+                         std::size_t block_size = 4096,
                          std::size_t grain_size = 1)
-      : block_size(block_size), grain_size(grain_size) {}
+      : n_threads(n_threads), block_size(block_size), grain_size(grain_size) {}
 
   template <typename Distance>
   NNGraph build_knn(Distance &distance, std::size_t n_points, std::size_t k,
@@ -183,12 +183,14 @@ template <typename ParallelRandomKnn> struct ParallelRandomNbrsImpl {
     RPProgress progress(1, verbose);
 
     Worker<Distance> worker(distance, n_points, k);
-    batch_parallel_for(worker, progress, n_points, block_size, grain_size);
+    batch_parallel_for(worker, progress, n_points, n_threads, block_size,
+                       grain_size);
 
     return std::make_pair(std::move(worker.nn_idx), std::move(worker.nn_dist));
   }
   void sort_knn(IntegerMatrix nn_idx, NumericMatrix nn_dist) {
-    sort_knn_graph_parallel<HeapAdd>(nn_idx, nn_dist, block_size, grain_size);
+    sort_knn_graph_parallel<HeapAdd>(nn_idx, nn_dist, n_threads, block_size,
+                                     grain_size);
   }
 
   template <typename D>
@@ -201,9 +203,9 @@ template <typename ParallelRandomKnn> struct ParallelRandomNbrsImpl {
 #define RANDOM_NBRS_BUILD()                                                    \
   using KnnFactory = KnnBuildFactory<Distance>;                                \
   KnnFactory knn_factory(data);                                                \
-  if (parallelize) {                                                           \
+  if (n_threads > 0) {                                                         \
     using RandomNbrsImpl = ParallelRandomNbrsImpl<ParallelRandomKnnBuild>;     \
-    RandomNbrsImpl impl(block_size, grain_size);                               \
+    RandomNbrsImpl impl(n_threads, block_size, grain_size);                    \
     RANDOM_NBRS_IMPL()                                                         \
   } else {                                                                     \
     using RandomNbrsImpl = SerialRandomNbrsImpl<SerialRandomKnnBuild>;         \
@@ -214,9 +216,9 @@ template <typename ParallelRandomKnn> struct ParallelRandomNbrsImpl {
 #define RANDOM_NBRS_QUERY()                                                    \
   using KnnFactory = KnnQueryFactory<Distance>;                                \
   KnnFactory knn_factory(reference, query);                                    \
-  if (parallelize) {                                                           \
+  if (n_threads > 0) {                                                         \
     using RandomNbrsImpl = ParallelRandomNbrsImpl<ParallelRandomKnnQuery>;     \
-    RandomNbrsImpl impl(block_size, grain_size);                               \
+    RandomNbrsImpl impl(n_threads, block_size, grain_size);                    \
     RANDOM_NBRS_IMPL()                                                         \
   } else {                                                                     \
     using RandomNbrsImpl = SerialRandomNbrsImpl<SerialRandomKnnQuery>;         \
@@ -241,9 +243,10 @@ auto random_knn_impl(std::size_t k, bool order_by_distance,
   auto nn_graph = impl.build_knn(distance, n_points, k, verbose);
 
   for (std::size_t j = 0; j < n_points; j++) {
+    std::size_t kj = k * j;
     for (std::size_t i = 0; i < k; i++) {
-      indices(i, j) = nn_graph.first[i + k * j];
-      dist(i, j) = nn_graph.second[i + k * j];
+      indices(i, j) = nn_graph.first[i + kj];
+      dist(i, j) = nn_graph.second[i + kj];
     }
   }
 
@@ -262,7 +265,7 @@ auto random_knn_impl(std::size_t k, bool order_by_distance,
 // [[Rcpp::export]]
 List random_knn_cpp(Rcpp::NumericMatrix data, int k,
                     const std::string &metric = "euclidean",
-                    bool order_by_distance = true, bool parallelize = false,
+                    bool order_by_distance = true, std::size_t n_threads = 0,
                     std::size_t block_size = 4096, std::size_t grain_size = 1,
                     bool verbose = false){
     DISPATCH_ON_DISTANCES(RANDOM_NBRS_BUILD)}
@@ -271,7 +274,7 @@ List random_knn_cpp(Rcpp::NumericMatrix data, int k,
 List random_knn_query_cpp(NumericMatrix reference, NumericMatrix query, int k,
                           const std::string &metric = "euclidean",
                           bool order_by_distance = true,
-                          bool parallelize = false,
+                          std::size_t n_threads = 0,
                           std::size_t block_size = 4096,
                           std::size_t grain_size = 1, bool verbose = false) {
   DISPATCH_ON_QUERY_DISTANCES(RANDOM_NBRS_QUERY)

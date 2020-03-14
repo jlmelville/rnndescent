@@ -37,12 +37,12 @@ struct HeapSortWorker : public BatchParallelWorker {
 };
 
 template <typename NbrHeap = SimpleNeighborHeap>
-void sort_heap_parallel(NbrHeap &neighbor_heap, std::size_t block_size,
+void sort_heap_parallel(NbrHeap &neighbor_heap, std::size_t n_threads, std::size_t block_size,
                         std::size_t grain_size) {
   tdoann::NullProgress null_progress;
   HeapSortWorker<NbrHeap> sort_worker(neighbor_heap);
   batch_parallel_for(sort_worker, null_progress, neighbor_heap.n_points,
-                     block_size, grain_size);
+                     n_threads, block_size, grain_size);
 }
 
 #endif // RNN_HEAPSORT_H

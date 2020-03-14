@@ -53,37 +53,38 @@ struct BruteForceWorker : public BatchParallelWorker {
 
 template <typename Distance, typename Progress>
 void nnbf_parallel(SimpleNeighborHeap &neighbor_heap, Distance &distance,
-                   Progress &progress, std::size_t block_size = 64,
-                   std::size_t grain_size = 1) {
+                   Progress &progress, std::size_t n_threads = 0,
+                   std::size_t block_size = 64, std::size_t grain_size = 1) {
 
   nnbf_parallel_query(neighbor_heap, distance, neighbor_heap.n_points, progress,
-                      block_size, grain_size);
+                      n_threads, block_size, grain_size);
 }
 
 template <typename Distance, typename Progress>
 void nnbf_parallel_query(SimpleNeighborHeap &neighbor_heap, Distance &distance,
                          std::size_t n_ref_points, Progress &progress,
-                         std::size_t block_size = 64,
+                         std::size_t n_threads = 0, std::size_t block_size = 64,
                          std::size_t grain_size = 1) {
   BruteForceWorker<Distance> worker(neighbor_heap, distance, n_ref_points);
 
-  batch_parallel_for(worker, progress, neighbor_heap.n_points, block_size,
-                     grain_size);
+  batch_parallel_for(worker, progress, neighbor_heap.n_points, n_threads,
+                     block_size, grain_size);
 
-  sort_heap_parallel(neighbor_heap, block_size, grain_size);
+  sort_heap_parallel(neighbor_heap, n_threads, block_size, grain_size);
 }
 
 #define BRUTE_FORCE_BUILD()                                                    \
-  return rnn_brute_force_impl<Distance>(data, k, parallelize, block_size,      \
+  return rnn_brute_force_impl<Distance>(data, k, n_threads, block_size,        \
                                         grain_size, verbose);
 
 #define BRUTE_FORCE_QUERY()                                                    \
-  return rnn_brute_force_query_impl<Distance>(                                 \
-      x, y, k, parallelize, block_size, grain_size, verbose);
+  return rnn_brute_force_query_impl<Distance>(x, y, k, n_threads, block_size,  \
+                                              grain_size, verbose);
 
 template <typename Distance>
 auto rnn_brute_force_impl(NumericMatrix data, std::size_t k,
-                          bool parallelize = false, std::size_t block_size = 64,
+                          std::size_t n_threads = 0,
+                          std::size_t block_size = 64,
                           std::size_t grain_size = 1, bool verbose = false)
     -> List {
   std::size_t n_points = data.nrow();
@@ -95,9 +96,10 @@ auto rnn_brute_force_impl(NumericMatrix data, std::size_t k,
   Distance distance(data_vec, ndim);
   SimpleNeighborHeap neighbor_heap(n_points, k);
 
-  if (parallelize) {
+  if (n_threads > 0) {
     RPProgress progress(1, verbose);
-    nnbf_parallel(neighbor_heap, distance, progress, block_size, grain_size);
+    nnbf_parallel(neighbor_heap, distance, progress, n_threads, block_size,
+                  grain_size);
   } else {
     RPProgress progress(n_points, verbose);
     nnbf(neighbor_heap, distance, progress);
@@ -108,7 +110,7 @@ auto rnn_brute_force_impl(NumericMatrix data, std::size_t k,
 
 template <typename Distance>
 auto rnn_brute_force_query_impl(NumericMatrix x, NumericMatrix y, std::size_t k,
-                                bool parallelize = false,
+                                std::size_t n_threads = 0,
                                 std::size_t block_size = 64,
                                 std::size_t grain_size = 1,
                                 bool verbose = false) -> List {
@@ -125,9 +127,9 @@ auto rnn_brute_force_query_impl(NumericMatrix x, NumericMatrix y, std::size_t k,
   Distance distance(x_vec, y_vec, ndim);
   SimpleNeighborHeap neighbor_heap(n_ypoints, k);
 
-  if (parallelize) {
+  if (n_threads > 0) {
     RPProgress progress(1, verbose);
-    nnbf_parallel_query(neighbor_heap, distance, n_xpoints, progress,
+    nnbf_parallel_query(neighbor_heap, distance, n_xpoints, progress, n_threads,
                         block_size, grain_size);
   } else {
     RPProgress progress(n_xpoints, verbose);
@@ -140,15 +142,15 @@ auto rnn_brute_force_query_impl(NumericMatrix x, NumericMatrix y, std::size_t k,
 // [[Rcpp::export]]
 List rnn_brute_force(NumericMatrix data, int k,
                      const std::string &metric = "euclidean",
-                     bool parallelize = false, std::size_t block_size = 64,
+                     std::size_t n_threads = 0, std::size_t block_size = 64,
                      std::size_t grain_size = 1, bool verbose = false){
     DISPATCH_ON_DISTANCES(BRUTE_FORCE_BUILD)}
 
 // [[Rcpp::export]]
-List
-    rnn_brute_force_query(NumericMatrix x, NumericMatrix y, int k,
-                          const std::string &metric = "euclidean",
-                          bool parallelize = false, std::size_t block_size = 64,
-                          std::size_t grain_size = 1, bool verbose = false) {
+List rnn_brute_force_query(NumericMatrix x, NumericMatrix y, int k,
+                           const std::string &metric = "euclidean",
+                           std::size_t n_threads = 0,
+                           std::size_t block_size = 64,
+                           std::size_t grain_size = 1, bool verbose = false) {
   DISPATCH_ON_QUERY_DISTANCES(BRUTE_FORCE_QUERY)
 }

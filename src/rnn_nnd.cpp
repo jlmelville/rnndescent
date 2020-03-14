@@ -95,9 +95,9 @@ using namespace Rcpp;
 #define NND_UPDATER()                                                          \
   using KnnFactory = KnnBuildFactory<Distance>;                                \
   KnnFactory factory(data);                                                    \
-  if (parallelize) {                                                           \
+  if (n_threads > 0) {                                                         \
     using NNDImpl = NNDParallel;                                               \
-    NNDImpl nnd_impl(block_size, grain_size);                                  \
+    NNDImpl nnd_impl(n_threads, block_size, grain_size);                       \
     if (low_memory) {                                                          \
       using GraphUpdater = BatchGraphUpdater<Distance>;                        \
       NND_CANDIDATE_PRIORITY_PARALLEL()                                        \
@@ -120,9 +120,9 @@ using namespace Rcpp;
 #define NND_QUERY_UPDATER()                                                    \
   using KnnFactory = KnnQueryFactory<Distance>;                                \
   KnnFactory factory(reference, query);                                        \
-  if (parallelize) {                                                           \
+  if (n_threads > 0) {                                                         \
     using NNDImpl = NNDQueryParallel;                                          \
-    NNDImpl nnd_impl(reference_idx, block_size, grain_size);                   \
+    NNDImpl nnd_impl(reference_idx, n_threads, block_size, grain_size);        \
     if (low_memory) {                                                          \
       using GraphUpdater = QueryBatchGraphUpdater<Distance>;                   \
       NND_CANDIDATE_PRIORITY_PARALLEL()                                        \
@@ -161,11 +161,13 @@ struct NNDSerial {
 };
 
 struct NNDParallel {
+  std::size_t n_threads;
   std::size_t block_size;
   std::size_t grain_size;
 
-  NNDParallel(std::size_t block_size, std::size_t grain_size)
-      : block_size(block_size), grain_size(grain_size) {}
+  NNDParallel(std::size_t n_threads, std::size_t block_size,
+              std::size_t grain_size)
+      : n_threads(n_threads), block_size(block_size), grain_size(grain_size) {}
 
   template <template <typename> class GraphUpdater, typename Distance,
             typename Progress, typename CandidatePriorityFactoryImpl>
@@ -175,15 +177,15 @@ struct NNDParallel {
                  CandidatePriorityFactoryImpl &candidate_priority_factory,
                  Progress &progress, bool verbose) {
     nnd_parallel(current_graph, graph_updater, max_candidates, n_iters,
-                 candidate_priority_factory, progress, tol, block_size,
-                 grain_size, verbose);
+                 candidate_priority_factory, progress, tol, n_threads,
+                 block_size, grain_size, verbose);
   }
 
   void create_heap(NeighborHeap &current_graph, IntegerMatrix nn_idx,
                    NumericMatrix nn_dist) {
-    r_to_heap_parallel<LockingHeapAddSymmetric>(current_graph, nn_idx, nn_dist,
-                                                block_size, grain_size,
-                                                current_graph.n_points - 1);
+    r_to_heap_parallel<LockingHeapAddSymmetric>(
+        current_graph, nn_idx, nn_dist, n_threads, block_size, grain_size,
+        current_graph.n_points - 1);
   }
 };
 
@@ -219,13 +221,14 @@ struct NNDQueryParallel {
 
   IntegerMatrix ref_idx;
   std::size_t n_ref_points;
+  std::size_t n_threads;
   std::size_t block_size;
   std::size_t grain_size;
 
-  NNDQueryParallel(IntegerMatrix ref_idx, std::size_t block_size,
-                   std::size_t grain_size)
-      : ref_idx(ref_idx), n_ref_points(ref_idx.nrow()), block_size(block_size),
-        grain_size(grain_size) {}
+  NNDQueryParallel(IntegerMatrix ref_idx, std::size_t n_threads,
+                   std::size_t block_size, std::size_t grain_size)
+      : ref_idx(ref_idx), n_ref_points(ref_idx.nrow()), n_threads(n_threads),
+        block_size(block_size), grain_size(grain_size) {}
 
   template <template <typename> class GraphUpdater, typename Distance,
             typename Progress, typename CandidatePriorityFactoryImpl>
@@ -238,13 +241,14 @@ struct NNDQueryParallel {
 
     nnd_query_parallel(current_graph, graph_updater, ref_idx_vec, n_ref_points,
                        max_candidates, n_iters, candidate_priority_factory,
-                       progress, tol, block_size, grain_size, verbose);
+                       progress, tol, n_threads, block_size, grain_size,
+                       verbose);
   }
 
   void create_heap(NeighborHeap &current_graph, IntegerMatrix nn_idx,
                    NumericMatrix nn_dist) {
-    r_to_heap_parallel<HeapAddQuery>(current_graph, nn_idx, nn_dist, block_size,
-                                     grain_size, n_ref_points - 1);
+    r_to_heap_parallel<HeapAddQuery>(current_graph, nn_idx, nn_dist, n_threads,
+                                     block_size, grain_size, n_ref_points - 1);
   }
 };
 
@@ -280,7 +284,7 @@ List nn_descent(NumericMatrix data, IntegerMatrix nn_idx, NumericMatrix nn_dist,
                 std::size_t max_candidates = 50, std::size_t n_iters = 10,
                 double delta = 0.001, bool low_memory = true,
                 const std::string &candidate_priority = "random",
-                bool parallelize = false, std::size_t block_size = 16384,
+                std::size_t n_threads = 0, std::size_t block_size = 16384,
                 std::size_t grain_size = 1, bool verbose = false,
                 const std::string &progress = "bar") {
   DISPATCH_ON_DISTANCES(NND_UPDATER);
@@ -294,7 +298,7 @@ List nn_descent_query(NumericMatrix reference, IntegerMatrix reference_idx,
                       std::size_t max_candidates = 50, std::size_t n_iters = 10,
                       double delta = 0.001, bool low_memory = true,
                       const std::string &candidate_priority = "random",
-                      bool parallelize = false, std::size_t block_size = 16384,
+                      std::size_t n_threads = 0, std::size_t block_size = 16384,
                       std::size_t grain_size = 1, bool verbose = false,
                       const std::string &progress = "bar") {
   DISPATCH_ON_QUERY_DISTANCES(NND_QUERY_UPDATER)

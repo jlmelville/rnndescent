@@ -84,7 +84,7 @@ sum(iris_mnn$dist) < sum(iris_rnn1$dist)
 sum(iris_mnn$dist) < sum(iris_rnn2$dist)
 sum(iris_mnn$dist) < sum(iris_rnn3$dist)
 
-# and slight faster than running:
+# and slightly faster than running:
 # iris_mnn <- merge_knn(iris_rnn1, iris_rnn2)
 # iris_mnn <- merge_knn(iris_mnn, iris_rnn3)
 }
