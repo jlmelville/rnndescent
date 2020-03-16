@@ -127,10 +127,10 @@ int RPProgress::scaled(double d) {
   return res;
 }
 
-InterruptableProgress::InterruptableProgress() : is_aborted(false) {}
-InterruptableProgress::InterruptableProgress(std::size_t, bool)
+RInterruptableProgress::RInterruptableProgress() : is_aborted(false) {}
+RInterruptableProgress::RInterruptableProgress(std::size_t, bool)
     : is_aborted(false) {}
-bool InterruptableProgress::check_interrupt() {
+bool RInterruptableProgress::check_interrupt() {
   if (is_aborted) {
     return true;
   }

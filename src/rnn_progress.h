@@ -73,11 +73,11 @@ struct RPProgress {
   int scaled(double d);
 };
 
-struct InterruptableProgress {
+struct RInterruptableProgress {
   bool is_aborted;
 
-  InterruptableProgress();
-  InterruptableProgress(std::size_t, bool);
+  RInterruptableProgress();
+  RInterruptableProgress(std::size_t, bool);
   void set_n_blocks(std::size_t n_blocks) {}
   void block_finished() {}
   void iter_finished() {}
