@@ -24,8 +24,8 @@
 
 #include <Rcpp.h>
 
-#include "tdoann/heap.h"
 #include "RcppPerpendicular.h"
+#include "tdoann/heap.h"
 
 #include "rnn_parallel.h"
 #include "rnn_progress.h"
@@ -64,9 +64,8 @@ struct LockingHeapAddSymmetric {
 // input idx R matrix is 1-indexed and transposed
 // output heap index is 0-indexed
 template <typename HeapAdd, typename NbrHeap>
-void vec_to_heap(NbrHeap &current_graph, const std::vector<int>& nn_idx,
-                 std::size_t nrow,
-                 const std::vector<double>& nn_dist,
+void vec_to_heap(NbrHeap &current_graph, const std::vector<int> &nn_idx,
+                 std::size_t nrow, const std::vector<double> &nn_dist,
                  std::size_t begin, std::size_t end, HeapAdd &heap_add,
                  int max_idx = (std::numeric_limits<int>::max)(),
                  bool transpose = true) {
@@ -88,60 +87,55 @@ void vec_to_heap(NbrHeap &current_graph, const std::vector<int>& nn_idx,
 template <typename HeapAdd, typename NbrHeap = SimpleNeighborHeap>
 struct VecToHeapWorker : public BatchParallelWorker {
   NbrHeap &heap;
-  const std::vector<int>& nn_idx;
+  const std::vector<int> &nn_idx;
   std::size_t nrow;
-  const std::vector<double>& nn_dist;
+  const std::vector<double> &nn_dist;
   int max_idx;
   HeapAdd heap_add;
   bool transpose;
 
-  VecToHeapWorker(NbrHeap &heap, const std::vector<int>& nn_idx,
-                  std::size_t nrow,
-                  const std::vector<double>& nn_dist,
+  VecToHeapWorker(NbrHeap &heap, const std::vector<int> &nn_idx,
+                  std::size_t nrow, const std::vector<double> &nn_dist,
                   int max_idx = (std::numeric_limits<int>::max)(),
                   bool transpose = true)
-    : heap(heap),
-      nn_idx(nn_idx),
-      nrow(nrow),
-      nn_dist(nn_dist),
-      max_idx(max_idx),
-      heap_add(),
-      transpose(transpose) {}
+      : heap(heap), nn_idx(nn_idx), nrow(nrow), nn_dist(nn_dist),
+        max_idx(max_idx), heap_add(), transpose(transpose) {}
 
   void operator()(std::size_t begin, std::size_t end) {
-    vec_to_heap<HeapAdd, NbrHeap>(
-        heap, nn_idx, nrow, nn_dist, begin, end, heap_add, max_idx, transpose);
+    vec_to_heap<HeapAdd, NbrHeap>(heap, nn_idx, nrow, nn_dist, begin, end,
+                                  heap_add, max_idx, transpose);
   }
 };
 
 template <typename HeapAdd, typename NbrHeap = SimpleNeighborHeap>
-void vec_to_heap_parallel(NbrHeap &heap,
-                          std::vector<int>& nn_idx, std::size_t n_points, std::vector<double>& nn_dist,
+void vec_to_heap_parallel(NbrHeap &heap, std::vector<int> &nn_idx,
+                          std::size_t n_points, std::vector<double> &nn_dist,
                           std::size_t n_threads, std::size_t block_size,
                           std::size_t grain_size,
                           int max_idx = (std::numeric_limits<int>::max)()) {
-  VecToHeapWorker<HeapAdd, NbrHeap>
-  worker(heap, nn_idx, n_points, nn_dist, max_idx);
+  VecToHeapWorker<HeapAdd, NbrHeap> worker(heap, nn_idx, n_points, nn_dist,
+                                           max_idx);
   tdoann::NullProgress progress;
-  batch_parallel_for(worker, progress, n_points, n_threads, block_size, grain_size);
+  batch_parallel_for(worker, progress, n_points, n_threads, block_size,
+                     grain_size);
 }
 
 template <typename HeapAdd, typename NbrHeap = SimpleNeighborHeap>
-void vec_to_heap_parallelt(NbrHeap &heap,
-                           std::vector<int>& nn_idx, std::size_t n_points, std::vector<double>& nn_dist,
+void vec_to_heap_parallelt(NbrHeap &heap, std::vector<int> &nn_idx,
+                           std::size_t n_points, std::vector<double> &nn_dist,
                            std::size_t n_threads, std::size_t block_size,
                            std::size_t grain_size,
                            int max_idx = (std::numeric_limits<int>::max)()) {
-  VecToHeapWorker<HeapAdd, NbrHeap>
-  worker(heap, nn_idx, n_points, nn_dist, max_idx, false);
+  VecToHeapWorker<HeapAdd, NbrHeap> worker(heap, nn_idx, n_points, nn_dist,
+                                           max_idx, false);
   tdoann::NullProgress progress;
-  batch_parallel_for(worker, progress, n_points, n_threads, block_size, grain_size);
+  batch_parallel_for(worker, progress, n_points, n_threads, block_size,
+                     grain_size);
 }
 
-
 template <typename HeapAdd, typename NbrHeap>
-void vec_to_heap(NbrHeap &current_graph, const std::vector<int>& nn_idx,
-                 std::size_t nrow, const std::vector<double>& nn_dist,
+void vec_to_heap(NbrHeap &current_graph, const std::vector<int> &nn_idx,
+                 std::size_t nrow, const std::vector<double> &nn_dist,
                  int max_idx = (std::numeric_limits<int>::max)(),
                  bool transpose = true) {
   HeapAdd heap_add;
@@ -150,21 +144,23 @@ void vec_to_heap(NbrHeap &current_graph, const std::vector<int>& nn_idx,
 }
 
 template <typename HeapAdd, typename NbrHeap = SimpleNeighborHeap>
-void vec_to_heap_serial(NbrHeap &heap,
-                        std::vector<int>& nn_idx, std::size_t n_points, std::vector<double>& nn_dist,
+void vec_to_heap_serial(NbrHeap &heap, std::vector<int> &nn_idx,
+                        std::size_t n_points, std::vector<double> &nn_dist,
                         std::size_t block_size,
                         int max_idx = (std::numeric_limits<int>::max)()) {
-  VecToHeapWorker<HeapAdd, NbrHeap> worker(heap, nn_idx, n_points, nn_dist, max_idx);
+  VecToHeapWorker<HeapAdd, NbrHeap> worker(heap, nn_idx, n_points, nn_dist,
+                                           max_idx);
   RInterruptableProgress progress;
   batch_serial_for(worker, progress, n_points, block_size);
 }
 
 template <typename HeapAdd, typename NbrHeap = SimpleNeighborHeap>
-void vec_to_heap_serialt(NbrHeap &heap,
-                         std::vector<int>& nn_idx, std::size_t n_points, std::vector<double>& nn_dist,
+void vec_to_heap_serialt(NbrHeap &heap, std::vector<int> &nn_idx,
+                         std::size_t n_points, std::vector<double> &nn_dist,
                          std::size_t block_size,
                          int max_idx = (std::numeric_limits<int>::max)()) {
-  VecToHeapWorker<HeapAdd, NbrHeap> worker(heap, nn_idx, n_points, nn_dist, max_idx, false);
+  VecToHeapWorker<HeapAdd, NbrHeap> worker(heap, nn_idx, n_points, nn_dist,
+                                           max_idx, false);
   RInterruptableProgress progress;
   batch_serial_for(worker, progress, n_points, block_size);
 }

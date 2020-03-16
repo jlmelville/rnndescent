@@ -50,8 +50,8 @@ template <typename Distance> struct KnnBuildFactory {
   int ndim;
 
   KnnBuildFactory(Rcpp::NumericMatrix data)
-      : data_vec(Rcpp::as<DataVec>(Rcpp::transpose(data))), n_points(data.nrow()),
-        ndim(data.ncol()) {}
+      : data_vec(Rcpp::as<DataVec>(Rcpp::transpose(data))),
+        n_points(data.nrow()), ndim(data.ncol()) {}
 
   Distance create_distance() const { return Distance(data_vec, ndim); }
 };

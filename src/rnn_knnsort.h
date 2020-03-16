@@ -26,7 +26,8 @@
 #include "rnn_vectoheap.h"
 
 template <typename NbrHeap = SimpleNeighborHeap>
-void heap_to_vec(const NbrHeap &heap, std::vector<int>& nn_idx, std::size_t n_points, std::vector<double>& nn_dist) {
+void heap_to_vec(const NbrHeap &heap, std::vector<int> &nn_idx,
+                 std::size_t n_points, std::vector<double> &nn_dist) {
   std::size_t n_nbrs = nn_idx.size() / n_points;
 
   for (std::size_t c = 0; c < n_points; c++) {
@@ -40,21 +41,24 @@ void heap_to_vec(const NbrHeap &heap, std::vector<int>& nn_idx, std::size_t n_po
 }
 
 template <typename HeapAdd, typename NbrHeap = SimpleNeighborHeap>
-void sort_knn_graph_parallel(std::vector<int>& nn_idx, std::size_t n_points, std::vector<double>& nn_dist,
-                             std::size_t n_threads, std::size_t block_size, std::size_t grain_size,
+void sort_knn_graph_parallel(std::vector<int> &nn_idx, std::size_t n_points,
+                             std::vector<double> &nn_dist,
+                             std::size_t n_threads, std::size_t block_size,
+                             std::size_t grain_size,
                              int max_idx = (std::numeric_limits<int>::max)()) {
   std::size_t n_nbrs = nn_idx.size() / n_points;
 
   NbrHeap heap(n_points, n_nbrs);
-  vec_to_heap_parallelt<HeapAdd>(heap, nn_idx, n_points, nn_dist, n_threads, block_size, grain_size,
-                              max_idx);
+  vec_to_heap_parallelt<HeapAdd>(heap, nn_idx, n_points, nn_dist, n_threads,
+                                 block_size, grain_size, max_idx);
   sort_heap_parallel(heap, n_threads, block_size, grain_size);
 
   heap_to_vec(heap, nn_idx, n_points, nn_dist);
 }
 
 template <typename HeapAdd, typename NbrHeap = SimpleNeighborHeap>
-void sort_knn_graph(std::vector<int>& nn_idx, std::size_t n_points, std::vector<double>& nn_dist) {
+void sort_knn_graph(std::vector<int> &nn_idx, std::size_t n_points,
+                    std::vector<double> &nn_dist) {
   std::size_t n_nbrs = nn_idx.size() / n_points;
 
   NbrHeap heap(n_points, n_nbrs);

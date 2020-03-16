@@ -17,8 +17,6 @@
 //  You should have received a copy of the GNU General Public License
 //  along with rnndescent.  If not, see <http://www.gnu.org/licenses/>.
 
-#include <utility>
-
 #include <Rcpp.h>
 // [[Rcpp::depends(dqrng)]]
 #include "convert_seed.h"
@@ -32,6 +30,7 @@
 #include "rnn_knnfactory.h"
 #include "rnn_knnsort.h"
 #include "rnn_macros.h"
+#include "rnn_nngraph.h"
 #include "rnn_parallel.h"
 #include "rnn_progress.h"
 #include "rnn_rng.h"
@@ -130,7 +129,6 @@ struct SerialRandomKnnBuild {
 template <typename SerialRandomKnn> struct SerialRandomNbrsImpl {
   std::size_t block_size;
   SerialRandomNbrsImpl(std::size_t block_size) : block_size(block_size) {}
-  using NNGraph = std::pair<std::vector<int>, std::vector<double>>;
 
   template <typename Distance>
   NNGraph build_knn(Distance &distance, std::size_t n_points, std::size_t k,
@@ -139,10 +137,10 @@ template <typename SerialRandomKnn> struct SerialRandomNbrsImpl {
 
     Worker<Distance> worker(distance, n_points, k);
     batch_serial_for(worker, progress, n_points, block_size);
-    return std::make_pair(std::move(worker.nn_idx), std::move(worker.nn_dist));
+    return NNGraph(worker.nn_idx, worker.nn_dist, n_points);
   }
-  void sort_knn(NNGraph& nn_graph, std::size_t n_points) {
-    sort_knn_graph<HeapAdd>(nn_graph.first, n_points, nn_graph.second);
+  void sort_knn(NNGraph &nn_graph, std::size_t n_points) {
+    sort_knn_graph<HeapAdd>(nn_graph.idx, n_points, nn_graph.dist);
   }
 
   template <typename D>
@@ -170,7 +168,6 @@ template <typename ParallelRandomKnn> struct ParallelRandomNbrsImpl {
   std::size_t n_threads;
   std::size_t block_size;
   std::size_t grain_size;
-  using NNGraph = std::pair<std::vector<int>, std::vector<double>>;
 
   ParallelRandomNbrsImpl(std::size_t n_threads = 0,
                          std::size_t block_size = 4096,
@@ -186,11 +183,11 @@ template <typename ParallelRandomKnn> struct ParallelRandomNbrsImpl {
     batch_parallel_for(worker, progress, n_points, n_threads, block_size,
                        grain_size);
 
-    return std::make_pair(std::move(worker.nn_idx), std::move(worker.nn_dist));
+    return NNGraph(worker.nn_idx, worker.nn_dist, n_points);
   }
-  void sort_knn(NNGraph& nn_graph, std::size_t n_points) {
-    sort_knn_graph_parallel<HeapAdd>(nn_graph.first, n_points, nn_graph.second, n_threads, block_size,
-                                     grain_size);
+  void sort_knn(NNGraph &nn_graph, std::size_t n_points) {
+    sort_knn_graph_parallel<HeapAdd>(nn_graph.idx, n_points, nn_graph.dist,
+                                     n_threads, block_size, grain_size);
   }
 
   template <typename D>
@@ -244,10 +241,11 @@ auto random_knn_impl(std::size_t k, bool order_by_distance,
     impl.sort_knn(nn_graph, n_points);
   }
 
-  IntegerMatrix indices(k, n_points, nn_graph.first.begin());
-  NumericMatrix dist(k, n_points, nn_graph.second.begin());
+  IntegerMatrix indices(k, n_points, nn_graph.idx.begin());
+  NumericMatrix dist(k, n_points, nn_graph.dist.begin());
 
-  return List::create(_("idx") = transpose(indices), _("dist") = transpose(dist));
+  return List::create(_("idx") = transpose(indices),
+                      _("dist") = transpose(dist));
 }
 
 /* Exports */

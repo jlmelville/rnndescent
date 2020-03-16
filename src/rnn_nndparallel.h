@@ -169,22 +169,25 @@ void nnd_parallel(NeighborHeap &current_graph,
     LockingCandidatesWorker<CandidatePriorityFactoryImpl> candidates_worker(
         current_graph, candidate_priority_factory, new_candidate_neighbors,
         old_candidate_neighbors);
-    RcppPerpendicular::parallel_for(0, n_points, candidates_worker, n_threads, grain_size);
+    RcppPerpendicular::parallel_for(0, n_points, candidates_worker, n_threads,
+                                    grain_size);
     if (CandidatePriorityFactoryImpl::should_sort) {
-      sort_heap_parallel(new_candidate_neighbors, n_threads, block_size, grain_size);
-      sort_heap_parallel(old_candidate_neighbors, n_threads, block_size, grain_size);
+      sort_heap_parallel(new_candidate_neighbors, n_threads, block_size,
+                         grain_size);
+      sort_heap_parallel(old_candidate_neighbors, n_threads, block_size,
+                         grain_size);
     }
 
     FlagNewCandidatesWorker flag_new_candidates_worker(new_candidate_neighbors,
                                                        current_graph);
     RcppPerpendicular::parallel_for(0, n_points, flag_new_candidates_worker,
-                                   n_threads, grain_size);
+                                    n_threads, grain_size);
 
     LocalJoinWorker<Distance, GraphUpdater> local_join_worker(
         current_graph, new_candidate_neighbors, old_candidate_neighbors,
         graph_updater);
-    batch_parallel_for(local_join_worker, progress, n_points, n_threads, block_size,
-                       grain_size);
+    batch_parallel_for(local_join_worker, progress, n_points, n_threads,
+                       block_size, grain_size);
     TDOANN_ITERFINISHED();
     std::size_t c = local_join_worker.c;
     TDOANN_CHECKCONVERGENCE();
@@ -192,8 +195,7 @@ void nnd_parallel(NeighborHeap &current_graph,
   sort_heap_parallel(current_graph, n_threads, block_size, grain_size);
 }
 
-template <typename CandidatePriorityFactoryImpl>
-struct QueryCandidatesWorker {
+template <typename CandidatePriorityFactoryImpl> struct QueryCandidatesWorker {
   NeighborHeap &current_graph;
   std::size_t n_points;
   std::size_t n_nbrs;
@@ -278,8 +280,9 @@ void nnd_query_parallel(
     const std::vector<std::size_t> &reference_idx, std::size_t n_ref_points,
     std::size_t max_candidates, std::size_t n_iters,
     CandidatePriorityFactoryImpl &candidate_priority_factory,
-    Progress &progress, double tol, std::size_t n_threads = 0, std::size_t block_size = 16384,
-    std::size_t grain_size = 1, bool verbose = false) {
+    Progress &progress, double tol, std::size_t n_threads = 0,
+    std::size_t block_size = 16384, std::size_t grain_size = 1,
+    bool verbose = false) {
   std::size_t n_points = current_graph.n_points;
   std::size_t n_nbrs = current_graph.n_nbrs;
 
@@ -292,19 +295,19 @@ void nnd_query_parallel(
     QueryCandidatesWorker<CandidatePriorityFactoryImpl> query_candidates_worker(
         current_graph, new_nbrs, candidate_priority_factory);
     RcppPerpendicular::parallel_for(0, n_points, query_candidates_worker,
-                                   n_threads, grain_size);
+                                    n_threads, grain_size);
 
     if (!query_candidates_worker.flag_on_add) {
       FlagNewCandidatesWorker flag_new_candidates_worker(new_nbrs,
                                                          current_graph);
       RcppPerpendicular::parallel_for(0, n_points, flag_new_candidates_worker,
-                                     n_threads, grain_size);
+                                      n_threads, grain_size);
     }
 
     QueryNoNSearchWorker<Distance, GraphUpdater> query_non_search_worker(
         current_graph, graph_updater, new_nbrs, gn_graph, max_candidates);
-    batch_parallel_for(query_non_search_worker, progress, n_points, n_threads, block_size,
-                       grain_size);
+    batch_parallel_for(query_non_search_worker, progress, n_points, n_threads,
+                       block_size, grain_size);
 
     TDOANN_ITERFINISHED();
     std::size_t c = query_non_search_worker.n_updates;
