@@ -141,8 +141,8 @@ template <typename SerialRandomKnn> struct SerialRandomNbrsImpl {
     batch_serial_for(worker, progress, n_points, block_size);
     return std::make_pair(std::move(worker.nn_idx), std::move(worker.nn_dist));
   }
-  void sort_knn(IntegerMatrix nn_idx, NumericMatrix nn_dist) {
-    sort_knn_graph<HeapAdd>(nn_idx, nn_dist);
+  void sort_knn(NNGraph& nn_graph, std::size_t n_points) {
+    sort_knn_graph<HeapAdd>(nn_graph.first, n_points, nn_graph.second);
   }
 
   template <typename D>
@@ -188,8 +188,8 @@ template <typename ParallelRandomKnn> struct ParallelRandomNbrsImpl {
 
     return std::make_pair(std::move(worker.nn_idx), std::move(worker.nn_dist));
   }
-  void sort_knn(IntegerMatrix nn_idx, NumericMatrix nn_dist) {
-    sort_knn_graph_parallel<HeapAdd>(nn_idx, nn_dist, n_threads, block_size,
+  void sort_knn(NNGraph& nn_graph, std::size_t n_points) {
+    sort_knn_graph_parallel<HeapAdd>(nn_graph.first, n_points, nn_graph.second, n_threads, block_size,
                                      grain_size);
   }
 
@@ -237,27 +237,17 @@ auto random_knn_impl(std::size_t k, bool order_by_distance,
                      KnnFactory &knn_factory, RandomNbrsImpl &impl,
                      bool verbose = false) -> List {
   auto distance = knn_factory.create_distance();
-  auto indices = knn_factory.create_index_matrix(k);
-  auto dist = knn_factory.create_distance_matrix(k);
-  std::size_t n_points = indices.ncol();
+  std::size_t n_points = knn_factory.n_points;
   auto nn_graph = impl.build_knn(distance, n_points, k, verbose);
 
-  for (std::size_t j = 0; j < n_points; j++) {
-    std::size_t kj = k * j;
-    for (std::size_t i = 0; i < k; i++) {
-      indices(i, j) = nn_graph.first[i + kj];
-      dist(i, j) = nn_graph.second[i + kj];
-    }
-  }
-
-  indices = transpose(indices);
-  dist = transpose(dist);
-
   if (order_by_distance) {
-    impl.sort_knn(indices, dist);
+    impl.sort_knn(nn_graph, n_points);
   }
 
-  return List::create(_("idx") = indices, _("dist") = dist);
+  IntegerMatrix indices(k, n_points, nn_graph.first.begin());
+  NumericMatrix dist(k, n_points, nn_graph.second.begin());
+
+  return List::create(_("idx") = transpose(indices), _("dist") = transpose(dist));
 }
 
 /* Exports */

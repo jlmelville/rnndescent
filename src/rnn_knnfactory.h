@@ -29,24 +29,16 @@ template <typename Distance> struct KnnQueryFactory {
 
   DataVec reference_vec;
   DataVec query_vec;
-  int nrow;
+  int n_points;
   int ndim;
 
   KnnQueryFactory(Rcpp::NumericMatrix reference, Rcpp::NumericMatrix query)
       : reference_vec(Rcpp::as<DataVec>(Rcpp::transpose(reference))),
         query_vec(Rcpp::as<DataVec>(Rcpp::transpose(query))),
-        nrow(query.nrow()), ndim(query.ncol()) {}
+        n_points(query.nrow()), ndim(query.ncol()) {}
 
   Distance create_distance() const {
     return Distance(reference_vec, query_vec, ndim);
-  }
-
-  Rcpp::NumericMatrix create_distance_matrix(int k) const {
-    return Rcpp::NumericMatrix(k, nrow);
-  }
-
-  Rcpp::IntegerMatrix create_index_matrix(int k) const {
-    return Rcpp::IntegerMatrix(k, nrow);
   }
 };
 
@@ -54,22 +46,14 @@ template <typename Distance> struct KnnBuildFactory {
   using DataVec = std::vector<typename Distance::Input>;
 
   DataVec data_vec;
-  int nrow;
+  int n_points;
   int ndim;
 
   KnnBuildFactory(Rcpp::NumericMatrix data)
-      : data_vec(Rcpp::as<DataVec>(Rcpp::transpose(data))), nrow(data.nrow()),
+      : data_vec(Rcpp::as<DataVec>(Rcpp::transpose(data))), n_points(data.nrow()),
         ndim(data.ncol()) {}
 
   Distance create_distance() const { return Distance(data_vec, ndim); }
-
-  Rcpp::NumericMatrix create_distance_matrix(int k) const {
-    return Rcpp::NumericMatrix(k, nrow);
-  }
-
-  Rcpp::IntegerMatrix create_index_matrix(int k) const {
-    return Rcpp::IntegerMatrix(k, nrow);
-  }
 };
 
 #endif // RNN_KNNFACTORY_H
