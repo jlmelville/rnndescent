@@ -23,50 +23,41 @@
 #include "tdoann/heap.h"
 
 #include "rnn_heapsort.h"
+#include "rnn_nngraph.h"
 #include "rnn_vectoheap.h"
 
 template <typename NbrHeap = SimpleNeighborHeap>
-void heap_to_vec(const NbrHeap &heap, std::vector<int> &nn_idx,
-                 std::size_t n_points, std::vector<double> &nn_dist) {
-  std::size_t n_nbrs = nn_idx.size() / n_points;
-
-  for (std::size_t c = 0; c < n_points; c++) {
-    std::size_t cnnbrs = c * n_nbrs;
-    for (std::size_t r = 0; r < n_nbrs; r++) {
+void heap_to_graph(const NbrHeap &heap, NNGraph &nn_graph) {
+  for (std::size_t c = 0; c < nn_graph.n_points; c++) {
+    std::size_t cnnbrs = c * nn_graph.n_nbrs;
+    for (std::size_t r = 0; r < nn_graph.n_nbrs; r++) {
       std::size_t rc = cnnbrs + r;
-      nn_idx[rc] = static_cast<int>(heap.idx[rc]) + 1;
-      nn_dist[rc] = static_cast<double>(heap.dist[rc]);
+      nn_graph.idx[rc] = static_cast<int>(heap.idx[rc]) + 1;
+      nn_graph.dist[rc] = static_cast<double>(heap.dist[rc]);
     }
   }
 }
 
 template <typename HeapAdd, typename NbrHeap = SimpleNeighborHeap>
-void sort_knn_graph_parallel(std::vector<int> &nn_idx, std::size_t n_points,
-                             std::vector<double> &nn_dist,
-                             std::size_t n_threads, std::size_t block_size,
-                             std::size_t grain_size,
+void sort_knn_graph_parallel(NNGraph &nn_graph, std::size_t n_threads,
+                             std::size_t block_size, std::size_t grain_size,
                              int max_idx = (std::numeric_limits<int>::max)()) {
-  std::size_t n_nbrs = nn_idx.size() / n_points;
-
-  NbrHeap heap(n_points, n_nbrs);
-  vec_to_heap_parallelt<HeapAdd>(heap, nn_idx, n_points, nn_dist, n_threads,
-                                 block_size, grain_size, max_idx);
+  NbrHeap heap(nn_graph.n_points, nn_graph.n_nbrs);
+  graph_to_heap_parallel<HeapAdd>(heap, nn_graph, n_threads, block_size,
+                                  grain_size, max_idx);
   sort_heap_parallel(heap, n_threads, block_size, grain_size);
 
-  heap_to_vec(heap, nn_idx, n_points, nn_dist);
+  heap_to_graph(heap, nn_graph);
 }
 
 template <typename HeapAdd, typename NbrHeap = SimpleNeighborHeap>
-void sort_knn_graph(std::vector<int> &nn_idx, std::size_t n_points,
-                    std::vector<double> &nn_dist) {
-  std::size_t n_nbrs = nn_idx.size() / n_points;
-
-  NbrHeap heap(n_points, n_nbrs);
-  vec_to_heap_serialt<HeapAdd>(heap, nn_idx, n_points, nn_dist, 1000);
+void sort_knn_graph(NNGraph &nn_graph) {
+  NbrHeap heap(nn_graph.n_points, nn_graph.n_nbrs);
+  graph_to_heap_serial<HeapAdd>(heap, nn_graph, 1000);
 
   heap.deheap_sort();
 
-  heap_to_vec(heap, nn_idx, n_points, nn_dist);
+  heap_to_graph(heap, nn_graph);
 }
 
 #endif // RNN_KNNSORT_H

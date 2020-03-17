@@ -27,6 +27,7 @@
 #include "RcppPerpendicular.h"
 #include "tdoann/heap.h"
 
+#include "rnn_nngraph.h"
 #include "rnn_parallel.h"
 #include "rnn_progress.h"
 
@@ -121,15 +122,14 @@ void vec_to_heap_parallel(NbrHeap &heap, std::vector<int> &nn_idx,
 }
 
 template <typename HeapAdd, typename NbrHeap = SimpleNeighborHeap>
-void vec_to_heap_parallelt(NbrHeap &heap, std::vector<int> &nn_idx,
-                           std::size_t n_points, std::vector<double> &nn_dist,
-                           std::size_t n_threads, std::size_t block_size,
-                           std::size_t grain_size,
-                           int max_idx = (std::numeric_limits<int>::max)()) {
-  VecToHeapWorker<HeapAdd, NbrHeap> worker(heap, nn_idx, n_points, nn_dist,
-                                           max_idx, false);
+void graph_to_heap_parallel(NbrHeap &heap, const NNGraph &nn_graph,
+                            std::size_t n_threads, std::size_t block_size,
+                            std::size_t grain_size,
+                            int max_idx = (std::numeric_limits<int>::max)()) {
+  VecToHeapWorker<HeapAdd, NbrHeap> worker(
+      heap, nn_graph.idx, nn_graph.n_points, nn_graph.dist, max_idx, false);
   tdoann::NullProgress progress;
-  batch_parallel_for(worker, progress, n_points, n_threads, block_size,
+  batch_parallel_for(worker, progress, nn_graph.n_points, n_threads, block_size,
                      grain_size);
 }
 
@@ -155,14 +155,13 @@ void vec_to_heap_serial(NbrHeap &heap, std::vector<int> &nn_idx,
 }
 
 template <typename HeapAdd, typename NbrHeap = SimpleNeighborHeap>
-void vec_to_heap_serialt(NbrHeap &heap, std::vector<int> &nn_idx,
-                         std::size_t n_points, std::vector<double> &nn_dist,
-                         std::size_t block_size,
-                         int max_idx = (std::numeric_limits<int>::max)()) {
-  VecToHeapWorker<HeapAdd, NbrHeap> worker(heap, nn_idx, n_points, nn_dist,
-                                           max_idx, false);
+void graph_to_heap_serial(NbrHeap &heap, const NNGraph &nn_graph,
+                          std::size_t block_size,
+                          int max_idx = (std::numeric_limits<int>::max)()) {
+  VecToHeapWorker<HeapAdd, NbrHeap> worker(
+      heap, nn_graph.idx, nn_graph.n_points, nn_graph.dist, max_idx, false);
   RInterruptableProgress progress;
-  batch_serial_for(worker, progress, n_points, block_size);
+  batch_serial_for(worker, progress, nn_graph.n_points, block_size);
 }
 
 #endif // RNN_VECTOHEAP_H

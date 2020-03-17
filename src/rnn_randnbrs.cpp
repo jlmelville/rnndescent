@@ -139,9 +139,7 @@ template <typename SerialRandomKnn> struct SerialRandomNbrsImpl {
     batch_serial_for(worker, progress, n_points, block_size);
     return NNGraph(worker.nn_idx, worker.nn_dist, n_points);
   }
-  void sort_knn(NNGraph &nn_graph, std::size_t n_points) {
-    sort_knn_graph<HeapAdd>(nn_graph.idx, n_points, nn_graph.dist);
-  }
+  void sort_knn(NNGraph &nn_graph) { sort_knn_graph<HeapAdd>(nn_graph); }
 
   template <typename D>
   using Worker = typename SerialRandomKnn::template Worker<D>;
@@ -185,9 +183,9 @@ template <typename ParallelRandomKnn> struct ParallelRandomNbrsImpl {
 
     return NNGraph(worker.nn_idx, worker.nn_dist, n_points);
   }
-  void sort_knn(NNGraph &nn_graph, std::size_t n_points) {
-    sort_knn_graph_parallel<HeapAdd>(nn_graph.idx, n_points, nn_graph.dist,
-                                     n_threads, block_size, grain_size);
+  void sort_knn(NNGraph &nn_graph) {
+    sort_knn_graph_parallel<HeapAdd>(nn_graph, n_threads, block_size,
+                                     grain_size);
   }
 
   template <typename D>
@@ -238,7 +236,7 @@ auto random_knn_impl(std::size_t k, bool order_by_distance,
   auto nn_graph = impl.build_knn(distance, n_points, k, verbose);
 
   if (order_by_distance) {
-    impl.sort_knn(nn_graph, n_points);
+    impl.sort_knn(nn_graph);
   }
 
   IntegerMatrix indices(k, n_points, nn_graph.idx.begin());
