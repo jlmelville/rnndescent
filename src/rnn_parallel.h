@@ -22,8 +22,6 @@
 #ifndef RNN_PARALLEL_H
 #define RNN_PARALLEL_H
 
-#include <Rcpp.h>
-
 #include "tdoann/heap.h"
 #include "tdoann/progress.h"
 #include "tdoann/typedefs.h"
