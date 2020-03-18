@@ -26,6 +26,7 @@
 
 #include "RcppPerpendicular.h"
 #include "tdoann/heap.h"
+#include "tdoann/progress.h"
 
 #include "rnn_nngraph.h"
 #include "rnn_parallel.h"
@@ -121,14 +122,15 @@ void vec_to_heap_parallel(NbrHeap &heap, std::vector<int> &nn_idx,
                      grain_size);
 }
 
-template <typename HeapAdd, typename NbrHeap = SimpleNeighborHeap>
+template <typename HeapAdd, typename Progress = tdoann::NullProgress,
+          typename NbrHeap = SimpleNeighborHeap>
 void graph_to_heap_parallel(NbrHeap &heap, const NNGraph &nn_graph,
                             std::size_t n_threads, std::size_t block_size,
                             std::size_t grain_size,
                             int max_idx = (std::numeric_limits<int>::max)()) {
   VecToHeapWorker<HeapAdd, NbrHeap> worker(
       heap, nn_graph.idx, nn_graph.n_points, nn_graph.dist, max_idx, false);
-  tdoann::NullProgress progress;
+  Progress progress;
   batch_parallel_for(worker, progress, nn_graph.n_points, n_threads, block_size,
                      grain_size);
 }
@@ -154,13 +156,14 @@ void vec_to_heap_serial(NbrHeap &heap, std::vector<int> &nn_idx,
   batch_serial_for(worker, progress, n_points, block_size);
 }
 
-template <typename HeapAdd, typename NbrHeap = SimpleNeighborHeap>
+template <typename HeapAdd, typename Progress = tdoann::NullProgress,
+          typename NbrHeap = SimpleNeighborHeap>
 void graph_to_heap_serial(NbrHeap &heap, const NNGraph &nn_graph,
                           std::size_t block_size,
                           int max_idx = (std::numeric_limits<int>::max)()) {
   VecToHeapWorker<HeapAdd, NbrHeap> worker(
       heap, nn_graph.idx, nn_graph.n_points, nn_graph.dist, max_idx, false);
-  RInterruptableProgress progress;
+  Progress progress;
   batch_serial_for(worker, progress, nn_graph.n_points, block_size);
 }
 

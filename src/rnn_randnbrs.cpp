@@ -139,7 +139,9 @@ template <typename SerialRandomKnn> struct SerialRandomNbrsImpl {
     batch_serial_for(worker, progress, n_points, block_size);
     return NNGraph(worker.nn_idx, worker.nn_dist, n_points);
   }
-  void sort_knn(NNGraph &nn_graph) { sort_knn_graph<HeapAdd>(nn_graph); }
+  void sort_knn(NNGraph &nn_graph) {
+    sort_knn_graph<HeapAdd, RInterruptableProgress>(nn_graph);
+  }
 
   template <typename D>
   using Worker = typename SerialRandomKnn::template Worker<D>;
@@ -184,8 +186,9 @@ template <typename ParallelRandomKnn> struct ParallelRandomNbrsImpl {
     return NNGraph(worker.nn_idx, worker.nn_dist, n_points);
   }
   void sort_knn(NNGraph &nn_graph) {
-    sort_knn_graph_parallel<HeapAdd>(nn_graph, n_threads, block_size,
-                                     grain_size);
+    // use Null Progress for parallel case
+    sort_knn_graph_parallel<HeapAdd, tdoann::NullProgress>(
+        nn_graph, n_threads, block_size, grain_size);
   }
 
   template <typename D>

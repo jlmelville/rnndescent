@@ -21,6 +21,7 @@
 #define RNN_KNNSORT_H
 
 #include "tdoann/heap.h"
+#include "tdoann/progress.h"
 
 #include "rnn_heapsort.h"
 #include "rnn_nngraph.h"
@@ -38,22 +39,24 @@ void heap_to_graph(const NbrHeap &heap, NNGraph &nn_graph) {
   }
 }
 
-template <typename HeapAdd, typename NbrHeap = SimpleNeighborHeap>
+template <typename HeapAdd, typename Progress = tdoann::NullProgress,
+          typename NbrHeap = SimpleNeighborHeap>
 void sort_knn_graph_parallel(NNGraph &nn_graph, std::size_t n_threads,
                              std::size_t block_size, std::size_t grain_size,
                              int max_idx = (std::numeric_limits<int>::max)()) {
   NbrHeap heap(nn_graph.n_points, nn_graph.n_nbrs);
-  graph_to_heap_parallel<HeapAdd>(heap, nn_graph, n_threads, block_size,
-                                  grain_size, max_idx);
+  graph_to_heap_parallel<HeapAdd, Progress>(heap, nn_graph, n_threads,
+                                            block_size, grain_size, max_idx);
   sort_heap_parallel(heap, n_threads, block_size, grain_size);
 
   heap_to_graph(heap, nn_graph);
 }
 
-template <typename HeapAdd, typename NbrHeap = SimpleNeighborHeap>
+template <typename HeapAdd, typename Progress = tdoann::NullProgress,
+          typename NbrHeap = SimpleNeighborHeap>
 void sort_knn_graph(NNGraph &nn_graph) {
   NbrHeap heap(nn_graph.n_points, nn_graph.n_nbrs);
-  graph_to_heap_serial<HeapAdd>(heap, nn_graph, 1000);
+  graph_to_heap_serial<HeapAdd, Progress>(heap, nn_graph, 1000);
 
   heap.deheap_sort();
 
