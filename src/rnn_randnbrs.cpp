@@ -66,7 +66,7 @@ struct RandomNbrQueryWorker : public BatchParallelWorker {
       std::size_t kqi = k * qi;
       for (std::size_t j = 0; j < k; j++) {
         auto &ri = idxi[j];
-        nn_idx[j + kqi] = ri + 1;            // store val as 1-index
+        nn_idx[j + kqi] = ri;
         nn_dist[j + kqi] = distance(ri, qi); // distance calcs are 0-indexed
       }
     }
@@ -98,14 +98,14 @@ struct RandomNbrBuildWorker : public BatchParallelWorker {
     for (auto qi = static_cast<int>(begin); qi < static_cast<int>(end); qi++) {
       std::size_t kqi = k * qi;
       std::size_t kqi1 = kqi + 1;
-      nn_idx[0 + kqi] = qi + 1;
+      nn_idx[0 + kqi] = qi;
       auto ris = sample<uint32_t>(rng, n_points_minus_1, k_minus_1);
       for (auto j = 0; j < k_minus_1; j++) {
         int ri = ris[j];
         if (ri >= qi) {
           ri += 1;
         }
-        nn_idx[j + kqi1] = ri + 1;            // store val as 1-index
+        nn_idx[j + kqi1] = ri;
         nn_dist[j + kqi1] = distance(ri, qi); // distance calcs are 0-indexed
       }
     }

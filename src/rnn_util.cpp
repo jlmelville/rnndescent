@@ -53,6 +53,18 @@ void ts(const std::string &msg) {
   Rcerr << msg << std::endl;
 }
 
+void zero_index(IntegerMatrix m, int max_idx) {
+  for (auto j = 0; j < m.ncol(); j++) {
+    for (auto i = 0; i < m.nrow(); i++) {
+      auto idx0 = m(i, j) - 1;
+      if (idx0 < 0 || idx0 > max_idx) {
+        stop("Bad indexes in input: " + std::to_string(idx0));
+      }
+      m(i, j) = idx0;
+    }
+  }
+}
+
 // [[Rcpp::export]]
 unsigned int hardware_concurrency() {
   return std::thread::hardware_concurrency();

@@ -30,7 +30,6 @@
 #include "tdoann/progress.h"
 
 #include "rnn_parallel.h"
-#include "rnn_progress.h"
 
 struct HeapAddSymmetric {
   template <typename NbrHeap>
@@ -63,25 +62,18 @@ struct LockingHeapAddSymmetric {
   }
 };
 
-// input idx R matrix is 1-indexed and transposed
+// input idx vector is 0-indexed and transposed
 // output heap index is 0-indexed
 template <typename HeapAdd, typename NbrHeap>
 void vec_to_heap(NbrHeap &current_graph, const std::vector<int> &nn_idx,
                  std::size_t nrow, const std::vector<double> &nn_dist,
                  std::size_t begin, std::size_t end, HeapAdd &heap_add,
-                 int max_idx = (std::numeric_limits<int>::max)(),
                  bool transpose = true) {
   std::size_t n_nbrs = nn_idx.size() / nrow;
-
   for (auto i = begin; i < end; i++) {
     for (std::size_t j = 0; j < n_nbrs; j++) {
       std::size_t ij = transpose ? i + j * nrow : j + i * n_nbrs;
-      int k = nn_idx[ij] - 1;
-      if (k < 0 || k > max_idx) {
-        Rcpp::stop("Bad indexes in input: " + std::to_string(k));
-      }
-      double d = nn_dist[ij];
-      heap_add.push(current_graph, i, k, d);
+      heap_add.push(current_graph, i, nn_idx[ij], nn_dist[ij]);
     }
   }
 }
@@ -92,32 +84,29 @@ struct VecToHeapWorker : public BatchParallelWorker {
   const std::vector<int> &nn_idx;
   std::size_t nrow;
   const std::vector<double> &nn_dist;
-  int max_idx;
   HeapAdd heap_add;
   bool transpose;
 
   VecToHeapWorker(NbrHeap &heap, const std::vector<int> &nn_idx,
                   std::size_t nrow, const std::vector<double> &nn_dist,
-                  int max_idx = (std::numeric_limits<int>::max)(),
                   bool transpose = true)
-      : heap(heap), nn_idx(nn_idx), nrow(nrow), nn_dist(nn_dist),
-        max_idx(max_idx), heap_add(), transpose(transpose) {}
+      : heap(heap), nn_idx(nn_idx), nrow(nrow), nn_dist(nn_dist), heap_add(),
+        transpose(transpose) {}
 
   void operator()(std::size_t begin, std::size_t end) {
     vec_to_heap<HeapAdd, NbrHeap>(heap, nn_idx, nrow, nn_dist, begin, end,
-                                  heap_add, max_idx, transpose);
+                                  heap_add, transpose);
   }
 };
 
-template <typename HeapAdd, typename NbrHeap = SimpleNeighborHeap>
+template <typename HeapAdd, typename Progress = tdoann::NullProgress,
+          typename NbrHeap = SimpleNeighborHeap>
 void vec_to_heap_parallel(NbrHeap &heap, std::vector<int> &nn_idx,
                           std::size_t n_points, std::vector<double> &nn_dist,
                           std::size_t n_threads, std::size_t block_size,
-                          std::size_t grain_size,
-                          int max_idx = (std::numeric_limits<int>::max)()) {
-  VecToHeapWorker<HeapAdd, NbrHeap> worker(heap, nn_idx, n_points, nn_dist,
-                                           max_idx);
-  tdoann::NullProgress progress;
+                          std::size_t grain_size) {
+  VecToHeapWorker<HeapAdd, NbrHeap> worker(heap, nn_idx, n_points, nn_dist);
+  Progress progress;
   batch_parallel_for(worker, progress, n_points, n_threads, block_size,
                      grain_size);
 }
@@ -126,10 +115,9 @@ template <typename HeapAdd, typename Progress = tdoann::NullProgress,
           typename NbrHeap = SimpleNeighborHeap>
 void graph_to_heap_parallel(NbrHeap &heap, const tdoann::NNGraph &nn_graph,
                             std::size_t n_threads, std::size_t block_size,
-                            std::size_t grain_size,
-                            int max_idx = (std::numeric_limits<int>::max)()) {
+                            std::size_t grain_size) {
   VecToHeapWorker<HeapAdd, NbrHeap> worker(
-      heap, nn_graph.idx, nn_graph.n_points, nn_graph.dist, max_idx, false);
+      heap, nn_graph.idx, nn_graph.n_points, nn_graph.dist, false);
   Progress progress;
   batch_parallel_for(worker, progress, nn_graph.n_points, n_threads, block_size,
                      grain_size);
@@ -138,31 +126,28 @@ void graph_to_heap_parallel(NbrHeap &heap, const tdoann::NNGraph &nn_graph,
 template <typename HeapAdd, typename NbrHeap>
 void vec_to_heap(NbrHeap &current_graph, const std::vector<int> &nn_idx,
                  std::size_t nrow, const std::vector<double> &nn_dist,
-                 int max_idx = (std::numeric_limits<int>::max)(),
                  bool transpose = true) {
   HeapAdd heap_add;
   vec_to_heap<HeapAdd>(current_graph, nn_idx, nrow, nn_dist, 0, nrow, heap_add,
-                       max_idx, transpose);
+                       transpose);
 }
 
-template <typename HeapAdd, typename NbrHeap = SimpleNeighborHeap>
+template <typename HeapAdd, typename Progress = tdoann::NullProgress,
+          typename NbrHeap = SimpleNeighborHeap>
 void vec_to_heap_serial(NbrHeap &heap, std::vector<int> &nn_idx,
                         std::size_t n_points, std::vector<double> &nn_dist,
-                        std::size_t block_size,
-                        int max_idx = (std::numeric_limits<int>::max)()) {
-  VecToHeapWorker<HeapAdd, NbrHeap> worker(heap, nn_idx, n_points, nn_dist,
-                                           max_idx);
-  RInterruptableProgress progress;
+                        std::size_t block_size) {
+  VecToHeapWorker<HeapAdd, NbrHeap> worker(heap, nn_idx, n_points, nn_dist);
+  Progress progress;
   batch_serial_for(worker, progress, n_points, block_size);
 }
 
 template <typename HeapAdd, typename Progress = tdoann::NullProgress,
           typename NbrHeap = SimpleNeighborHeap>
 void graph_to_heap_serial(NbrHeap &heap, const tdoann::NNGraph &nn_graph,
-                          std::size_t block_size,
-                          int max_idx = (std::numeric_limits<int>::max)()) {
+                          std::size_t block_size) {
   VecToHeapWorker<HeapAdd, NbrHeap> worker(
-      heap, nn_graph.idx, nn_graph.n_points, nn_graph.dist, max_idx, false);
+      heap, nn_graph.idx, nn_graph.n_points, nn_graph.dist, false);
   Progress progress;
   batch_serial_for(worker, progress, nn_graph.n_points, block_size);
 }

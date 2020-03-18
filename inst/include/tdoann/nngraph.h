@@ -29,6 +29,8 @@
 
 #include <vector>
 
+#include "typedefs.h"
+
 namespace tdoann {
 
 struct NNGraph {
@@ -43,6 +45,18 @@ struct NNGraph {
       : idx(idx), dist(dist), n_points(n_points),
         n_nbrs(idx.size() / n_points) {}
 };
+
+template <typename NbrHeap = SimpleNeighborHeap>
+void heap_to_graph(const NbrHeap &heap, tdoann::NNGraph &nn_graph) {
+  for (std::size_t c = 0; c < nn_graph.n_points; c++) {
+    std::size_t cnnbrs = c * nn_graph.n_nbrs;
+    for (std::size_t r = 0; r < nn_graph.n_nbrs; r++) {
+      std::size_t rc = cnnbrs + r;
+      nn_graph.idx[rc] = static_cast<int>(heap.idx[rc]);
+      nn_graph.dist[rc] = static_cast<double>(heap.dist[rc]);
+    }
+  }
+}
 
 } // namespace tdoann
 

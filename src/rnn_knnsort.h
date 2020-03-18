@@ -27,29 +27,16 @@
 #include "rnn_heapsort.h"
 #include "rnn_vectoheap.h"
 
-template <typename NbrHeap = SimpleNeighborHeap>
-void heap_to_graph(const NbrHeap &heap, tdoann::NNGraph &nn_graph) {
-  for (std::size_t c = 0; c < nn_graph.n_points; c++) {
-    std::size_t cnnbrs = c * nn_graph.n_nbrs;
-    for (std::size_t r = 0; r < nn_graph.n_nbrs; r++) {
-      std::size_t rc = cnnbrs + r;
-      nn_graph.idx[rc] = static_cast<int>(heap.idx[rc]) + 1;
-      nn_graph.dist[rc] = static_cast<double>(heap.dist[rc]);
-    }
-  }
-}
-
 template <typename HeapAdd, typename Progress = tdoann::NullProgress,
           typename NbrHeap = SimpleNeighborHeap>
 void sort_knn_graph_parallel(tdoann::NNGraph &nn_graph, std::size_t n_threads,
-                             std::size_t block_size, std::size_t grain_size,
-                             int max_idx = (std::numeric_limits<int>::max)()) {
+                             std::size_t block_size, std::size_t grain_size) {
   NbrHeap heap(nn_graph.n_points, nn_graph.n_nbrs);
   graph_to_heap_parallel<HeapAdd, Progress>(heap, nn_graph, n_threads,
-                                            block_size, grain_size, max_idx);
+                                            block_size, grain_size);
   sort_heap_parallel(heap, n_threads, block_size, grain_size);
 
-  heap_to_graph(heap, nn_graph);
+  tdoann::heap_to_graph(heap, nn_graph);
 }
 
 template <typename HeapAdd, typename Progress = tdoann::NullProgress,
@@ -60,7 +47,7 @@ void sort_knn_graph(tdoann::NNGraph &nn_graph) {
 
   heap.deheap_sort();
 
-  heap_to_graph(heap, nn_graph);
+  tdoann::heap_to_graph(heap, nn_graph);
 }
 
 #endif // RNN_KNNSORT_H

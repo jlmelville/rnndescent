@@ -172,6 +172,7 @@ random_knn <-
         grain_size,
         verbose
       )
+    res$idx <- res$idx + 1
 
     if (use_alt_metric) {
       res$dist <- apply_alt_metric_correction(metric, res$dist)
@@ -364,7 +365,6 @@ nnd_knn <- function(data,
       init <- prepare_init_graph(init, k)
     }
   }
-
   tsmessage("Running nearest neighbor descent for ", n_iters, " iterations")
   res <- nn_descent(
     data,
@@ -590,6 +590,7 @@ random_knn_query <-
       grain_size,
       verbose
     )
+    res$idx <- res$idx + 1
     if (use_alt_metric) {
       res$dist <- apply_alt_metric_correction(metric, res$dist)
     }

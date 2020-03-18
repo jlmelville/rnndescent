@@ -20,7 +20,13 @@
 #ifndef RNN_UTIL_H
 #define RNN_UTIL_H
 
+#include <limits>
+
+#include <Rcpp.h>
+
 void print_time(bool print_date = false);
 void ts(const std::string &msg);
+void zero_index(Rcpp::IntegerMatrix,
+                int max_idx = (std::numeric_limits<int>::max)());
 
 #endif // RNN_UTIL_H
