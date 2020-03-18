@@ -22,8 +22,6 @@
 
 #include <mutex>
 
-#include <Rcpp.h>
-
 #include "RcppPerpendicular.h"
 #include "tdoann/heap.h"
 #include "tdoann/nngraph.h"
