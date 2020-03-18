@@ -23,6 +23,7 @@
 #include "dqrng_generator.h"
 #include <dqrng.h>
 
+#include "tdoann/nngraph.h"
 #include "tdoann/progress.h"
 
 #include "RcppPerpendicular.h"
@@ -30,7 +31,6 @@
 #include "rnn_knnfactory.h"
 #include "rnn_knnsort.h"
 #include "rnn_macros.h"
-#include "rnn_nngraph.h"
 #include "rnn_parallel.h"
 #include "rnn_progress.h"
 #include "rnn_rng.h"
