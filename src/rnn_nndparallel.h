@@ -28,11 +28,11 @@
 #include "tdoann/graphupdate.h"
 #include "tdoann/heap.h"
 #include "tdoann/nndescent.h"
+#include "tdoann/parallel.h"
 #include "tdoann/progress.h"
 
 #include "RcppPerpendicular.h"
 #include "rnn_heapsort.h"
-#include "rnn_parallel.h"
 
 template <typename CandidatePriorityFactoryImpl>
 struct LockingCandidatesWorker {
@@ -152,7 +152,8 @@ struct LocalJoinWorker {
 };
 
 template <typename Distance, typename CandidatePriorityFactoryImpl,
-          typename Progress, template <typename> class GraphUpdater>
+          typename Progress, template <typename> class GraphUpdater,
+          typename Parallel>
 void nnd_parallel(NeighborHeap &current_graph,
                   GraphUpdater<Distance> &graph_updater,
                   std::size_t max_candidates, std::size_t n_iters,
@@ -186,8 +187,9 @@ void nnd_parallel(NeighborHeap &current_graph,
     LocalJoinWorker<Distance, GraphUpdater> local_join_worker(
         current_graph, new_candidate_neighbors, old_candidate_neighbors,
         graph_updater);
-    batch_parallel_for(local_join_worker, progress, n_points, n_threads,
-                       block_size, grain_size);
+    tdoann::batch_parallel_for<Progress, decltype(local_join_worker), Parallel>(
+        local_join_worker, progress, n_points, n_threads, block_size,
+        grain_size);
     TDOANN_ITERFINISHED();
     std::size_t c = local_join_worker.c;
     TDOANN_CHECKCONVERGENCE();
@@ -223,7 +225,7 @@ template <typename CandidatePriorityFactoryImpl> struct QueryCandidatesWorker {
 };
 
 template <typename Distance, template <typename> class GraphUpdater>
-struct QueryNoNSearchWorker : public BatchParallelWorker {
+struct QueryNoNSearchWorker : public tdoann::BatchParallelWorker {
   NeighborHeap &current_graph;
   GraphUpdater<Distance> &graph_updater;
   const NeighborHeap &new_nbrs;
@@ -274,7 +276,8 @@ struct QueryNoNSearchWorker : public BatchParallelWorker {
 };
 
 template <typename Distance, typename CandidatePriorityFactoryImpl,
-          typename Progress, template <typename> class GraphUpdater>
+          typename Progress, template <typename> class GraphUpdater,
+          typename Parallel>
 void nnd_query_parallel(
     NeighborHeap &current_graph, GraphUpdater<Distance> &graph_updater,
     const std::vector<std::size_t> &reference_idx, std::size_t n_ref_points,
@@ -306,8 +309,10 @@ void nnd_query_parallel(
 
     QueryNoNSearchWorker<Distance, GraphUpdater> query_non_search_worker(
         current_graph, graph_updater, new_nbrs, gn_graph, max_candidates);
-    batch_parallel_for(query_non_search_worker, progress, n_points, n_threads,
-                       block_size, grain_size);
+    tdoann::batch_parallel_for<Progress, decltype(query_non_search_worker),
+                               Parallel>(query_non_search_worker, progress,
+                                         n_points, n_threads, block_size,
+                                         grain_size);
 
     TDOANN_ITERFINISHED();
     std::size_t c = query_non_search_worker.n_updates;

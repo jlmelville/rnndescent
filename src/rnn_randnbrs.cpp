@@ -24,6 +24,7 @@
 #include <dqrng.h>
 
 #include "tdoann/nngraph.h"
+#include "tdoann/parallel.h"
 #include "tdoann/progress.h"
 
 #include "RcppPerpendicular.h"
@@ -136,7 +137,7 @@ template <typename SerialRandomKnn> struct SerialRandomNbrsImpl {
     RPProgress progress(1, verbose);
 
     Worker<Distance> worker(distance, n_points, k);
-    batch_serial_for(worker, progress, n_points, block_size);
+    tdoann::batch_serial_for(worker, progress, n_points, block_size);
     return NNGraph(worker.nn_idx, worker.nn_dist, n_points);
   }
   void sort_knn(NNGraph &nn_graph) {
@@ -180,15 +181,16 @@ template <typename ParallelRandomKnn> struct ParallelRandomNbrsImpl {
     RPProgress progress(1, verbose);
 
     Worker<Distance> worker(distance, n_points, k);
-    batch_parallel_for(worker, progress, n_points, n_threads, block_size,
-                       grain_size);
+    tdoann::batch_parallel_for<decltype(progress), decltype(worker), RParallel>(
+        worker, progress, n_points, n_threads, block_size, grain_size);
 
     return NNGraph(worker.nn_idx, worker.nn_dist, n_points);
   }
   void sort_knn(NNGraph &nn_graph) {
     // use Null Progress for parallel case
-    sort_knn_graph_parallel<HeapAdd, tdoann::NullProgress>(
-        nn_graph, n_threads, block_size, grain_size);
+    sort_knn_graph_parallel<HeapAdd, tdoann::NullProgress, SimpleNeighborHeap,
+                            RParallel>(nn_graph, n_threads, block_size,
+                                       grain_size);
   }
 
   template <typename D>

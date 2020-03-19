@@ -22,13 +22,15 @@
 
 #include "tdoann/heap.h"
 #include "tdoann/nngraph.h"
+#include "tdoann/parallel.h"
 #include "tdoann/progress.h"
 
 #include "rnn_heapsort.h"
 #include "rnn_vectoheap.h"
 
 template <typename HeapAdd, typename Progress = tdoann::NullProgress,
-          typename NbrHeap = SimpleNeighborHeap>
+          typename NbrHeap = SimpleNeighborHeap,
+          typename Parallel = tdoann::NoParallel>
 void sort_knn_graph_parallel(tdoann::NNGraph &nn_graph, std::size_t n_threads,
                              std::size_t block_size, std::size_t grain_size) {
   NbrHeap heap(nn_graph.n_points, nn_graph.n_nbrs);

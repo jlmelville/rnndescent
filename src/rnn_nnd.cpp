@@ -176,9 +176,10 @@ struct NNDParallel {
                  std::size_t max_candidates, std::size_t n_iters, double tol,
                  CandidatePriorityFactoryImpl &candidate_priority_factory,
                  Progress &progress, bool verbose) {
-    nnd_parallel(current_graph, graph_updater, max_candidates, n_iters,
-                 candidate_priority_factory, progress, tol, n_threads,
-                 block_size, grain_size, verbose);
+    nnd_parallel<Distance, CandidatePriorityFactoryImpl, Progress, GraphUpdater,
+                 RParallel>(current_graph, graph_updater, max_candidates,
+                            n_iters, candidate_priority_factory, progress, tol,
+                            n_threads, block_size, grain_size, verbose);
   }
 
   void create_heap(NeighborHeap &current_graph, IntegerMatrix nn_idx,
@@ -239,10 +240,11 @@ struct NNDQueryParallel {
                  Progress &progress, bool verbose) {
     auto ref_idx_vec = as<std::vector<std::size_t>>(transpose(ref_idx));
 
-    nnd_query_parallel(current_graph, graph_updater, ref_idx_vec, n_ref_points,
-                       max_candidates, n_iters, candidate_priority_factory,
-                       progress, tol, n_threads, block_size, grain_size,
-                       verbose);
+    nnd_query_parallel<Distance, CandidatePriorityFactoryImpl, Progress,
+                       GraphUpdater, RParallel>(
+        current_graph, graph_updater, ref_idx_vec, n_ref_points, max_candidates,
+        n_iters, candidate_priority_factory, progress, tol, n_threads,
+        block_size, grain_size, verbose);
   }
 
   void create_heap(NeighborHeap &current_graph, IntegerMatrix nn_idx,

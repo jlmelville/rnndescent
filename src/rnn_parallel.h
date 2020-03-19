@@ -17,49 +17,17 @@
 //  You should have received a copy of the GNU General Public License
 //  along with rnndescent.  If not, see <http://www.gnu.org/licenses/>.
 
-// Generic parallel helper code
-
 #ifndef RNN_PARALLEL_H
 #define RNN_PARALLEL_H
 
-#include "tdoann/heap.h"
-#include "tdoann/progress.h"
-#include "tdoann/typedefs.h"
-
 #include "RcppPerpendicular.h"
 
-struct BatchParallelWorker {
-  void after_parallel(std::size_t begin, std::size_t end) {}
+struct RParallel {
+  template <typename Worker>
+  static void parallel_for(std::size_t begin, std::size_t end, Worker &worker,
+                           std::size_t n_threads, std::size_t grain_size = 1) {
+    RcppPerpendicular::parallel_for(begin, end, worker, n_threads, grain_size);
+  }
 };
-
-template <typename Progress, typename Worker>
-void batch_parallel_for(Worker &rnn_worker, Progress &progress, std::size_t n,
-                        std::size_t n_threads, std::size_t block_size,
-                        std::size_t grain_size) {
-  auto n_blocks = (n / block_size) + 1;
-  progress.set_n_blocks(n_blocks);
-  for (std::size_t i = 0; i < n_blocks; i++) {
-    auto begin = i * block_size;
-    auto end = std::min(n, begin + block_size);
-    RcppPerpendicular::parallel_for(begin, end, rnn_worker, n_threads,
-                                    grain_size);
-    TDOANN_BREAKIFINTERRUPTED();
-    rnn_worker.after_parallel(begin, end);
-    TDOANN_BLOCKFINISHED();
-  }
-}
-
-template <typename Progress, typename Worker>
-void batch_serial_for(Worker &rnn_worker, Progress &progress, std::size_t n,
-                      std::size_t block_size) {
-  auto n_blocks = (n / block_size) + 1;
-  progress.set_n_blocks(n_blocks);
-  for (std::size_t i = 0; i < n_blocks; i++) {
-    auto begin = i * block_size;
-    auto end = std::min(n, begin + block_size);
-    rnn_worker(begin, end);
-    TDOANN_BLOCKFINISHED();
-  }
-}
 
 #endif // RNN_PARALLEL_H

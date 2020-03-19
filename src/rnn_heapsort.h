@@ -21,11 +21,12 @@
 #define RNN_HEAPSORT_H
 
 #include "tdoann/heap.h"
-
-#include "rnn_parallel.h"
+#include "tdoann/parallel.h"
+#include "tdoann/progress.h"
+#include "tdoann/typedefs.h"
 
 template <typename NbrHeap = SimpleNeighborHeap>
-struct HeapSortWorker : public BatchParallelWorker {
+struct HeapSortWorker : public tdoann::BatchParallelWorker {
   NbrHeap &heap;
   HeapSortWorker(NbrHeap &heap) : heap(heap) {}
 
@@ -36,13 +37,16 @@ struct HeapSortWorker : public BatchParallelWorker {
   }
 };
 
-template <typename NbrHeap = SimpleNeighborHeap>
+template <typename NbrHeap = SimpleNeighborHeap,
+          typename Parallel = tdoann::NoParallel>
 void sort_heap_parallel(NbrHeap &neighbor_heap, std::size_t n_threads,
                         std::size_t block_size, std::size_t grain_size) {
-  tdoann::NullProgress null_progress;
+  tdoann::NullProgress progress;
   HeapSortWorker<NbrHeap> sort_worker(neighbor_heap);
-  batch_parallel_for(sort_worker, null_progress, neighbor_heap.n_points,
-                     n_threads, block_size, grain_size);
+  tdoann::batch_parallel_for<decltype(progress), decltype(sort_worker),
+                             Parallel>(sort_worker, progress,
+                                       neighbor_heap.n_points, n_threads,
+                                       block_size, grain_size);
 }
 
 #endif // RNN_HEAPSORT_H
