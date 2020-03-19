@@ -27,6 +27,7 @@
 #ifndef TDOANN_NNGRAPH_H
 #define TDOANN_NNGRAPH_H
 
+#include <mutex>
 #include <vector>
 
 #include "typedefs.h"
@@ -47,7 +48,7 @@ struct NNGraph {
 };
 
 template <typename NbrHeap = SimpleNeighborHeap>
-void heap_to_graph(const NbrHeap &heap, tdoann::NNGraph &nn_graph) {
+void heap_to_graph(const NbrHeap &heap, NNGraph &nn_graph) {
   for (std::size_t c = 0; c < nn_graph.n_points; c++) {
     std::size_t cnnbrs = c * nn_graph.n_nbrs;
     for (std::size_t r = 0; r < nn_graph.n_nbrs; r++) {
@@ -56,6 +57,127 @@ void heap_to_graph(const NbrHeap &heap, tdoann::NNGraph &nn_graph) {
       nn_graph.dist[rc] = static_cast<double>(heap.dist[rc]);
     }
   }
+}
+
+struct HeapAddSymmetric {
+  template <typename NbrHeap>
+  void push(NbrHeap &heap, std::size_t ref, std::size_t query, double d) {
+    heap.checked_push_pair(ref, d, query);
+  }
+};
+
+struct HeapAddQuery {
+  template <typename NbrHeap>
+  void push(NbrHeap &heap, std::size_t ref, std::size_t query, double d) {
+    heap.checked_push(ref, d, query);
+  }
+};
+
+struct LockingHeapAddSymmetric {
+  static const constexpr std::size_t n_mutexes = 10;
+  std::mutex mutexes[n_mutexes];
+
+  template <typename NbrHeap>
+  void push(NbrHeap &heap, std::size_t ref, std::size_t query, double d) {
+    {
+      std::lock_guard<std::mutex> guard(mutexes[ref % n_mutexes]);
+      heap.checked_push(ref, d, query);
+    }
+    {
+      std::lock_guard<std::mutex> guard(mutexes[query % n_mutexes]);
+      heap.checked_push(query, d, ref);
+    }
+  }
+};
+
+// input idx vector is 0-indexed and transposed
+// output heap index is 0-indexed
+template <typename HeapAdd, typename NbrHeap>
+void vec_to_heap(NbrHeap &current_graph, const std::vector<int> &nn_idx,
+                 std::size_t nrow, const std::vector<double> &nn_dist,
+                 std::size_t begin, std::size_t end, HeapAdd &heap_add,
+                 bool transpose = true) {
+  std::size_t n_nbrs = nn_idx.size() / nrow;
+  for (auto i = begin; i < end; i++) {
+    for (std::size_t j = 0; j < n_nbrs; j++) {
+      std::size_t ij = transpose ? i + j * nrow : j + i * n_nbrs;
+      heap_add.push(current_graph, i, nn_idx[ij], nn_dist[ij]);
+    }
+  }
+}
+
+template <typename HeapAdd, typename NbrHeap = SimpleNeighborHeap>
+struct VecToHeapWorker : public BatchParallelWorker {
+  NbrHeap &heap;
+  const std::vector<int> &nn_idx;
+  std::size_t nrow;
+  const std::vector<double> &nn_dist;
+  HeapAdd heap_add;
+  bool transpose;
+
+  VecToHeapWorker(NbrHeap &heap, const std::vector<int> &nn_idx,
+                  std::size_t nrow, const std::vector<double> &nn_dist,
+                  bool transpose = true)
+      : heap(heap), nn_idx(nn_idx), nrow(nrow), nn_dist(nn_dist), heap_add(),
+        transpose(transpose) {}
+
+  void operator()(std::size_t begin, std::size_t end) {
+    vec_to_heap<HeapAdd, NbrHeap>(heap, nn_idx, nrow, nn_dist, begin, end,
+                                  heap_add, transpose);
+  }
+};
+
+template <typename HeapAdd, typename Progress = NullProgress,
+          typename NbrHeap = SimpleNeighborHeap, typename Parallel = NoParallel>
+void vec_to_heap_parallel(NbrHeap &heap, std::vector<int> &nn_idx,
+                          std::size_t n_points, std::vector<double> &nn_dist,
+                          std::size_t n_threads, std::size_t block_size,
+                          std::size_t grain_size) {
+  VecToHeapWorker<HeapAdd, NbrHeap> worker(heap, nn_idx, n_points, nn_dist);
+  Progress progress;
+  batch_parallel_for<Progress, decltype(worker), Parallel>(
+      worker, progress, n_points, n_threads, block_size, grain_size);
+}
+
+template <typename HeapAdd, typename Progress = NullProgress,
+          typename NbrHeap = SimpleNeighborHeap, typename Parallel = NoParallel>
+void graph_to_heap_parallel(NbrHeap &heap, const NNGraph &nn_graph,
+                            std::size_t n_threads, std::size_t block_size,
+                            std::size_t grain_size) {
+  VecToHeapWorker<HeapAdd, NbrHeap> worker(
+      heap, nn_graph.idx, nn_graph.n_points, nn_graph.dist, false);
+  Progress progress;
+  batch_parallel_for<Progress, decltype(worker), Parallel>(
+      worker, progress, nn_graph.n_points, n_threads, block_size, grain_size);
+}
+
+template <typename HeapAdd, typename NbrHeap>
+void vec_to_heap(NbrHeap &current_graph, const std::vector<int> &nn_idx,
+                 std::size_t nrow, const std::vector<double> &nn_dist,
+                 bool transpose = true) {
+  HeapAdd heap_add;
+  vec_to_heap<HeapAdd>(current_graph, nn_idx, nrow, nn_dist, 0, nrow, heap_add,
+                       transpose);
+}
+
+template <typename HeapAdd, typename Progress = NullProgress,
+          typename NbrHeap = SimpleNeighborHeap>
+void vec_to_heap_serial(NbrHeap &heap, std::vector<int> &nn_idx,
+                        std::size_t n_points, std::vector<double> &nn_dist,
+                        std::size_t block_size) {
+  VecToHeapWorker<HeapAdd, NbrHeap> worker(heap, nn_idx, n_points, nn_dist);
+  Progress progress;
+  batch_serial_for(worker, progress, n_points, block_size);
+}
+
+template <typename HeapAdd, typename Progress = NullProgress,
+          typename NbrHeap = SimpleNeighborHeap>
+void graph_to_heap_serial(NbrHeap &heap, const NNGraph &nn_graph,
+                          std::size_t block_size) {
+  VecToHeapWorker<HeapAdd, NbrHeap> worker(
+      heap, nn_graph.idx, nn_graph.n_points, nn_graph.dist, false);
+  Progress progress;
+  batch_serial_for(worker, progress, nn_graph.n_points, block_size);
 }
 
 } // namespace tdoann

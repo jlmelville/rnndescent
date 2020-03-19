@@ -25,16 +25,14 @@
 #include "tdoann/parallel.h"
 #include "tdoann/progress.h"
 
-#include "rnn_vectoheap.h"
-
 template <typename HeapAdd, typename Progress = tdoann::NullProgress,
           typename NbrHeap = SimpleNeighborHeap,
           typename Parallel = tdoann::NoParallel>
 void sort_knn_graph_parallel(tdoann::NNGraph &nn_graph, std::size_t n_threads,
                              std::size_t block_size, std::size_t grain_size) {
   NbrHeap heap(nn_graph.n_points, nn_graph.n_nbrs);
-  graph_to_heap_parallel<HeapAdd, Progress>(heap, nn_graph, n_threads,
-                                            block_size, grain_size);
+  tdoann::graph_to_heap_parallel<HeapAdd, Progress>(heap, nn_graph, n_threads,
+                                                    block_size, grain_size);
   tdoann::sort_heap_parallel(heap, n_threads, block_size, grain_size);
 
   tdoann::heap_to_graph(heap, nn_graph);
@@ -44,7 +42,7 @@ template <typename HeapAdd, typename Progress = tdoann::NullProgress,
           typename NbrHeap = SimpleNeighborHeap>
 void sort_knn_graph(tdoann::NNGraph &nn_graph) {
   NbrHeap heap(nn_graph.n_points, nn_graph.n_nbrs);
-  graph_to_heap_serial<HeapAdd, Progress>(heap, nn_graph, 1000);
+  tdoann::graph_to_heap_serial<HeapAdd, Progress>(heap, nn_graph, 1000);
 
   heap.deheap_sort();
 

@@ -107,20 +107,20 @@ List merge_nn_all_impl(List nn_graphs, MergeImpl &merge_impl,
     using MergeImpl = ParallelHeapImpl;                                        \
     MergeImpl merge_impl(n_threads, block_size, grain_size);                   \
     if (is_query) {                                                            \
-      using HeapAdd = HeapAddQuery;                                            \
+      using HeapAdd = tdoann::HeapAddQuery;                                    \
       NEXT_MACRO();                                                            \
     } else {                                                                   \
-      using HeapAdd = LockingHeapAddSymmetric;                                 \
+      using HeapAdd = tdoann::LockingHeapAddSymmetric;                         \
       NEXT_MACRO();                                                            \
     }                                                                          \
   } else {                                                                     \
     using MergeImpl = SerialHeapImpl;                                          \
     MergeImpl merge_impl(block_size);                                          \
     if (is_query) {                                                            \
-      using HeapAdd = HeapAddQuery;                                            \
+      using HeapAdd = tdoann::HeapAddQuery;                                    \
       NEXT_MACRO();                                                            \
     } else {                                                                   \
-      using HeapAdd = HeapAddSymmetric;                                        \
+      using HeapAdd = tdoann::HeapAddSymmetric;                                \
       NEXT_MACRO();                                                            \
     }                                                                          \
   }

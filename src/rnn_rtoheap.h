@@ -23,11 +23,11 @@
 #include <Rcpp.h>
 
 #include "tdoann/heap.h"
+#include "tdoann/nngraph.h"
 #include "tdoann/progress.h"
 
 #include "rnn_progress.h"
 #include "rnn_util.h"
-#include "rnn_vectoheap.h"
 
 template <typename HeapAdd, typename NbrHeap = SimpleNeighborHeap>
 void r_to_heap_serial(NbrHeap &heap, Rcpp::IntegerMatrix nn_idx,
@@ -39,7 +39,7 @@ void r_to_heap_serial(NbrHeap &heap, Rcpp::IntegerMatrix nn_idx,
   auto nn_distv = Rcpp::as<std::vector<double>>(nn_dist);
   std::size_t n_points = nn_idx.nrow();
 
-  return vec_to_heap_serial<HeapAdd, RInterruptableProgress, NbrHeap>(
+  return tdoann::vec_to_heap_serial<HeapAdd, RInterruptableProgress, NbrHeap>(
       heap, nn_idxv, n_points, nn_distv, block_size);
 }
 
@@ -54,7 +54,7 @@ void r_to_heap_parallel(NbrHeap &heap, Rcpp::IntegerMatrix nn_idx,
   auto nn_distv = Rcpp::as<std::vector<double>>(nn_dist);
   std::size_t n_points = nn_idx.nrow();
 
-  vec_to_heap_parallel<HeapAdd, tdoann::NullProgress, NbrHeap>(
+  tdoann::vec_to_heap_parallel<HeapAdd, tdoann::NullProgress, NbrHeap>(
       heap, nn_idxv, n_points, nn_distv, n_threads, block_size, grain_size);
 }
 

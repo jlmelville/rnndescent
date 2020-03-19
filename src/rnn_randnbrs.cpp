@@ -114,14 +114,14 @@ struct RandomNbrBuildWorker : public BatchParallelWorker {
 };
 
 struct SerialRandomKnnQuery {
-  using HeapAdd = HeapAddQuery;
+  using HeapAdd = tdoann::HeapAddQuery;
   template <typename Distance>
   using SerialRandomNbrQueryWorker = RandomNbrQueryWorker<Distance>;
   template <typename D> using Worker = SerialRandomNbrQueryWorker<D>;
 };
 
 struct SerialRandomKnnBuild {
-  using HeapAdd = HeapAddSymmetric;
+  using HeapAdd = tdoann::HeapAddSymmetric;
   template <typename Distance>
   using SerialRandomNbrBuildWorker = RandomNbrBuildWorker<Distance>;
   template <typename D> using Worker = SerialRandomNbrBuildWorker<D>;
@@ -156,12 +156,12 @@ template <typename Distance>
 using ParallelRandomNbrBuildWorker = RandomNbrBuildWorker<Distance>;
 
 struct ParallelRandomKnnBuild {
-  using HeapAdd = LockingHeapAddSymmetric;
+  using HeapAdd = tdoann::LockingHeapAddSymmetric;
   template <typename D> using Worker = ParallelRandomNbrBuildWorker<D>;
 };
 
 struct ParallelRandomKnnQuery {
-  using HeapAdd = HeapAddQuery;
+  using HeapAdd = tdoann::HeapAddQuery;
   template <typename D> using Worker = ParallelRandomNbrQueryWorker<D>;
 };
 

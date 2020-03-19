@@ -155,8 +155,8 @@ struct NNDSerial {
   }
   void create_heap(NeighborHeap &current_graph, IntegerMatrix nn_idx,
                    NumericMatrix nn_dist) {
-    r_to_heap_serial<HeapAddSymmetric>(current_graph, nn_idx, nn_dist, 1000,
-                                       current_graph.n_points - 1);
+    r_to_heap_serial<tdoann::HeapAddSymmetric>(
+        current_graph, nn_idx, nn_dist, 1000, current_graph.n_points - 1);
   }
 };
 
@@ -184,7 +184,7 @@ struct NNDParallel {
 
   void create_heap(NeighborHeap &current_graph, IntegerMatrix nn_idx,
                    NumericMatrix nn_dist) {
-    r_to_heap_parallel<LockingHeapAddSymmetric>(
+    r_to_heap_parallel<tdoann::LockingHeapAddSymmetric>(
         current_graph, nn_idx, nn_dist, n_threads, block_size, grain_size,
         current_graph.n_points - 1);
   }
@@ -213,8 +213,8 @@ struct NNDQuerySerial {
   }
   void create_heap(NeighborHeap &current_graph, IntegerMatrix nn_idx,
                    NumericMatrix nn_dist) {
-    r_to_heap_serial<HeapAddQuery>(current_graph, nn_idx, nn_dist, 1000,
-                                   n_ref_points - 1);
+    r_to_heap_serial<tdoann::HeapAddQuery>(current_graph, nn_idx, nn_dist, 1000,
+                                           n_ref_points - 1);
   }
 };
 
@@ -249,8 +249,9 @@ struct NNDQueryParallel {
 
   void create_heap(NeighborHeap &current_graph, IntegerMatrix nn_idx,
                    NumericMatrix nn_dist) {
-    r_to_heap_parallel<HeapAddQuery>(current_graph, nn_idx, nn_dist, n_threads,
-                                     block_size, grain_size, n_ref_points - 1);
+    r_to_heap_parallel<tdoann::HeapAddQuery>(current_graph, nn_idx, nn_dist,
+                                             n_threads, block_size, grain_size,
+                                             n_ref_points - 1);
   }
 };
 
