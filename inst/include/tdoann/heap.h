@@ -30,6 +30,8 @@
 #include <limits>
 #include <vector>
 
+#include "parallel.h"
+
 namespace tdoann {
 
 // Base class storing neighbor data as a series of heaps
@@ -375,6 +377,27 @@ template <typename DistanceOut = double> struct NNHeap {
     return dist[i * n_nbrs + j];
   }
 };
+
+template <typename NbrHeap> struct HeapSortWorker : public BatchParallelWorker {
+  NbrHeap &heap;
+  HeapSortWorker(NbrHeap &heap) : heap(heap) {}
+
+  void operator()(std::size_t begin, std::size_t end) {
+    for (auto i = begin; i < end; i++) {
+      heap.deheap_sort(i);
+    }
+  }
+};
+
+template <typename NbrHeap, typename Parallel = NoParallel>
+void sort_heap_parallel(NbrHeap &neighbor_heap, std::size_t n_threads,
+                        std::size_t block_size, std::size_t grain_size) {
+  NullProgress progress;
+  HeapSortWorker<NbrHeap> sort_worker(neighbor_heap);
+  batch_parallel_for<decltype(progress), decltype(sort_worker), Parallel>(
+      sort_worker, progress, neighbor_heap.n_points, n_threads, block_size,
+      grain_size);
+}
 
 } // namespace tdoann
 #endif // TDOANN_HEAP_H

@@ -24,7 +24,6 @@
 #include "tdoann/parallel.h"
 #include "tdoann/progress.h"
 
-#include "rnn_heapsort.h"
 #include "rnn_heaptor.h"
 #include "rnn_macros.h"
 #include "rnn_parallel.h"
@@ -59,7 +58,7 @@ void nnbf_parallel_query(SimpleNeighborHeap &neighbor_heap, Distance &distance,
                          std::size_t grain_size = 1) {
   BruteForceWorker<Distance> worker(neighbor_heap, distance, n_ref_points);
 
-  tdoann::batch_parallel_for<Progress, decltype(worker), Parallel>(
+  batch_parallel_for<Progress, decltype(worker), Parallel>(
       worker, progress, neighbor_heap.n_points, n_threads, block_size,
       grain_size);
 

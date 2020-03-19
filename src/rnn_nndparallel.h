@@ -23,8 +23,6 @@
 #include <mutex>
 #include <vector>
 
-#include <Rcpp.h>
-
 #include "tdoann/graphupdate.h"
 #include "tdoann/heap.h"
 #include "tdoann/nndescent.h"
@@ -32,7 +30,6 @@
 #include "tdoann/progress.h"
 
 #include "RcppPerpendicular.h"
-#include "rnn_heapsort.h"
 
 template <typename CandidatePriorityFactoryImpl>
 struct LockingCandidatesWorker {
@@ -173,10 +170,10 @@ void nnd_parallel(NeighborHeap &current_graph,
     RcppPerpendicular::parallel_for(0, n_points, candidates_worker, n_threads,
                                     grain_size);
     if (CandidatePriorityFactoryImpl::should_sort) {
-      sort_heap_parallel(new_candidate_neighbors, n_threads, block_size,
-                         grain_size);
-      sort_heap_parallel(old_candidate_neighbors, n_threads, block_size,
-                         grain_size);
+      tdoann::sort_heap_parallel(new_candidate_neighbors, n_threads, block_size,
+                                 grain_size);
+      tdoann::sort_heap_parallel(old_candidate_neighbors, n_threads, block_size,
+                                 grain_size);
     }
 
     FlagNewCandidatesWorker flag_new_candidates_worker(new_candidate_neighbors,
@@ -194,7 +191,7 @@ void nnd_parallel(NeighborHeap &current_graph,
     std::size_t c = local_join_worker.c;
     TDOANN_CHECKCONVERGENCE();
   }
-  sort_heap_parallel(current_graph, n_threads, block_size, grain_size);
+  tdoann::sort_heap_parallel(current_graph, n_threads, block_size, grain_size);
 }
 
 template <typename CandidatePriorityFactoryImpl> struct QueryCandidatesWorker {
@@ -318,7 +315,7 @@ void nnd_query_parallel(
     std::size_t c = query_non_search_worker.n_updates;
     TDOANN_CHECKCONVERGENCE();
   }
-  sort_heap_parallel(current_graph, n_threads, block_size, grain_size);
+  tdoann::sort_heap_parallel(current_graph, n_threads, block_size, grain_size);
 }
 
 #endif // RNN_NNDPARALLEL_H
