@@ -30,7 +30,6 @@
 #include "RcppPerpendicular.h"
 
 #include "rnn_knnfactory.h"
-#include "rnn_knnsort.h"
 #include "rnn_macros.h"
 #include "rnn_parallel.h"
 #include "rnn_progress.h"
