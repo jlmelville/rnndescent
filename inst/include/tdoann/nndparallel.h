@@ -1,35 +1,42 @@
-//  rnndescent -- An R package for nearest neighbor descent
+// BSD 2-Clause License
 //
-//  Copyright (C) 2019 James Melville
+// Copyright 2020 James Melville
 //
-//  This file is part of rnndescent
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
 //
-//  rnndescent is free software: you can redistribute it and/or modify
-//  it under the terms of the GNU General Public License as published by
-//  the Free Software Foundation, either version 3 of the License, or
-//  (at your option) any later version.
+// 1. Redistributions of source code must retain the above copyright notice,
+//    this list of conditions and the following disclaimer.
 //
-//  rnndescent is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU General Public License for more details.
+// 2. Redistributions in binary form must reproduce the above copyright notice,
+//    this list of conditions and the following disclaimer in the documentation
+//    and/or other materials provided with the distribution.
 //
-//  You should have received a copy of the GNU General Public License
-//  along with rnndescent.  If not, see <http://www.gnu.org/licenses/>.
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// OF SUCH DAMAGE.
 
-#ifndef RNN_NNDPARALLEL_H
-#define RNN_NNDPARALLEL_H
+#ifndef TDOANN_NNDPARALLEL_H
+#define TDOANN_NNDPARALLEL_H
 
 #include <mutex>
 #include <vector>
 
-#include "tdoann/graphupdate.h"
-#include "tdoann/heap.h"
-#include "tdoann/nndescent.h"
-#include "tdoann/parallel.h"
-#include "tdoann/progress.h"
+#include "graphupdate.h"
+#include "heap.h"
+#include "nndescent.h"
+#include "parallel.h"
+#include "progress.h"
 
-#include "RcppPerpendicular.h"
+namespace tdoann {
 
 template <typename CandidatePriorityFactoryImpl>
 struct LockingCandidatesWorker {
@@ -167,31 +174,31 @@ void nnd_parallel(NeighborHeap &current_graph,
     LockingCandidatesWorker<CandidatePriorityFactoryImpl> candidates_worker(
         current_graph, candidate_priority_factory, new_candidate_neighbors,
         old_candidate_neighbors);
-    RcppPerpendicular::parallel_for(0, n_points, candidates_worker, n_threads,
-                                    grain_size);
+    Parallel::parallel_for(0, n_points, candidates_worker, n_threads,
+                           grain_size);
     if (CandidatePriorityFactoryImpl::should_sort) {
-      tdoann::sort_heap_parallel(new_candidate_neighbors, n_threads, block_size,
-                                 grain_size);
-      tdoann::sort_heap_parallel(old_candidate_neighbors, n_threads, block_size,
-                                 grain_size);
+      sort_heap_parallel(new_candidate_neighbors, n_threads, block_size,
+                         grain_size);
+      sort_heap_parallel(old_candidate_neighbors, n_threads, block_size,
+                         grain_size);
     }
 
     FlagNewCandidatesWorker flag_new_candidates_worker(new_candidate_neighbors,
                                                        current_graph);
-    RcppPerpendicular::parallel_for(0, n_points, flag_new_candidates_worker,
-                                    n_threads, grain_size);
+    Parallel::parallel_for(0, n_points, flag_new_candidates_worker, n_threads,
+                           grain_size);
 
     LocalJoinWorker<Distance, GraphUpdater> local_join_worker(
         current_graph, new_candidate_neighbors, old_candidate_neighbors,
         graph_updater);
-    tdoann::batch_parallel_for<Progress, decltype(local_join_worker), Parallel>(
+    batch_parallel_for<Progress, decltype(local_join_worker), Parallel>(
         local_join_worker, progress, n_points, n_threads, block_size,
         grain_size);
     TDOANN_ITERFINISHED();
     std::size_t c = local_join_worker.c;
     TDOANN_CHECKCONVERGENCE();
   }
-  tdoann::sort_heap_parallel(current_graph, n_threads, block_size, grain_size);
+  sort_heap_parallel(current_graph, n_threads, block_size, grain_size);
 }
 
 template <typename CandidatePriorityFactoryImpl> struct QueryCandidatesWorker {
@@ -222,14 +229,14 @@ template <typename CandidatePriorityFactoryImpl> struct QueryCandidatesWorker {
 };
 
 template <typename Distance, template <typename> class GraphUpdater>
-struct QueryNoNSearchWorker : public tdoann::BatchParallelWorker {
+struct QueryNoNSearchWorker : public BatchParallelWorker {
   NeighborHeap &current_graph;
   GraphUpdater<Distance> &graph_updater;
   const NeighborHeap &new_nbrs;
   const NeighborHeap &gn_graph;
   std::size_t max_candidates;
   std::mutex mutex;
-  tdoann::NullProgress progress;
+  NullProgress progress;
   std::size_t n_updates;
 
   QueryNoNSearchWorker(NeighborHeap &current_graph,
@@ -288,34 +295,33 @@ void nnd_query_parallel(
 
   NeighborHeap gn_graph(n_ref_points, max_candidates);
   auto candidate_priority = candidate_priority_factory.create();
-  tdoann::build_general_nbrs(reference_idx, gn_graph, candidate_priority,
-                             n_ref_points, n_nbrs);
+  build_general_nbrs(reference_idx, gn_graph, candidate_priority, n_ref_points,
+                     n_nbrs);
   for (std::size_t n = 0; n < n_iters; n++) {
     NeighborHeap new_nbrs(n_points, max_candidates);
     QueryCandidatesWorker<CandidatePriorityFactoryImpl> query_candidates_worker(
         current_graph, new_nbrs, candidate_priority_factory);
-    RcppPerpendicular::parallel_for(0, n_points, query_candidates_worker,
-                                    n_threads, grain_size);
+    Parallel::parallel_for(0, n_points, query_candidates_worker, n_threads,
+                           grain_size);
 
     if (!query_candidates_worker.flag_on_add) {
       FlagNewCandidatesWorker flag_new_candidates_worker(new_nbrs,
                                                          current_graph);
-      RcppPerpendicular::parallel_for(0, n_points, flag_new_candidates_worker,
-                                      n_threads, grain_size);
+      Parallel::parallel_for(0, n_points, flag_new_candidates_worker, n_threads,
+                             grain_size);
     }
 
     QueryNoNSearchWorker<Distance, GraphUpdater> query_non_search_worker(
         current_graph, graph_updater, new_nbrs, gn_graph, max_candidates);
-    tdoann::batch_parallel_for<Progress, decltype(query_non_search_worker),
-                               Parallel>(query_non_search_worker, progress,
-                                         n_points, n_threads, block_size,
-                                         grain_size);
+    batch_parallel_for<Progress, decltype(query_non_search_worker), Parallel>(
+        query_non_search_worker, progress, n_points, n_threads, block_size,
+        grain_size);
 
     TDOANN_ITERFINISHED();
     std::size_t c = query_non_search_worker.n_updates;
     TDOANN_CHECKCONVERGENCE();
   }
-  tdoann::sort_heap_parallel(current_graph, n_threads, block_size, grain_size);
+  sort_heap_parallel(current_graph, n_threads, block_size, grain_size);
 }
-
-#endif // RNN_NNDPARALLEL_H
+} // namespace tdoann
+#endif // TDOANN_NNDPARALLEL_H
