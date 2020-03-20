@@ -18,7 +18,6 @@
 //  along with rnndescent.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <Rcpp.h>
-// [[Rcpp::depends(RcppProgress)]]
 #include <progress.hpp>
 
 #include "tdoann/typedefs.h"

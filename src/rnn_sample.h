@@ -35,9 +35,6 @@
 
 #include <utility>
 
-#include <Rcpp.h>
-
-// [[Rcpp::depends(dqrng, BH)]]
 #include "dqrng_generator.h"
 #include "minimal_int_set.h"
 
@@ -83,7 +80,6 @@ std::vector<INT> no_replacement_set(dqrng::rng64_t &rng, INT m, INT n,
 template <typename INT>
 inline bool sample(std::vector<INT> &result, dqrng::rng64_t &rng, INT n,
                    INT size, bool replace = false, int offset = 0) {
-  result.clear();
   if (replace || size <= 1) {
     result = replacement<INT>(rng, n, size, offset);
   } else {

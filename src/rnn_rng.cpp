@@ -20,9 +20,8 @@
 
 #include <limits>
 
-#include "Rcpp.h"
-// [[Rcpp::depends(dqrng)]]
 #include "R_randgen.h"
+#include "Rcpp.h"
 #include "convert_seed.h"
 #include "dqrng_generator.h"
 #include <dqrng.h>

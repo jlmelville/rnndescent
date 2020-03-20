@@ -21,7 +21,6 @@
 #define RNN_PROGRESS_H
 
 #include <Rcpp.h>
-// [[Rcpp::depends(RcppProgress)]]
 #include <progress.hpp>
 
 #include "tdoann/heap.h"

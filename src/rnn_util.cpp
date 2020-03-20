@@ -22,7 +22,6 @@
 #include <thread>
 
 #include <Rcpp.h>
-// [[Rcpp::depends(RcppProgress)]]
 #include <progress.hpp>
 
 #include "tdoann/heap.h"
