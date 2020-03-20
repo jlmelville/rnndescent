@@ -50,8 +50,9 @@ double RRand::unif() { return R::runif(0, 1); }
 TauRand::TauRand(uint64_t seed, uint64_t seed2) : prng(nullptr) {
   dqrng::rng64_t rng = parallel_rng(seed);
   rng->seed(seed, seed2);
-  auto tau_seeds =
-      sample<uint64_t>(rng, (std::numeric_limits<uint64_t>::max)(), 3, true);
+  std::vector<uint64_t> tau_seeds;
+  sample<uint64_t>(tau_seeds, rng, (std::numeric_limits<uint64_t>::max)(), 3,
+                   true);
 
   prng.reset(new tdoann::tau_prng(tau_seeds[0], tau_seeds[1], tau_seeds[2]));
 }

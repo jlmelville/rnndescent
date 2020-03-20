@@ -33,6 +33,8 @@
 #ifndef RNN_SAMPLE_H
 #define RNN_SAMPLE_H
 
+#include <utility>
+
 #include <Rcpp.h>
 
 // [[Rcpp::depends(dqrng, BH)]]
@@ -76,23 +78,28 @@ std::vector<INT> no_replacement_set(dqrng::rng64_t &rng, INT m, INT n,
   return result;
 }
 
+// Sample size points from the range [0 + offset, n + offset) with or without
+// replacement
 template <typename INT>
-inline std::vector<INT> sample(dqrng::rng64_t &rng, INT m, INT n,
-                               bool replace = false, int offset = 0) {
-  if (replace || n <= 1) {
-    return replacement<INT>(rng, m, n, offset);
+inline bool sample(std::vector<INT> &result, dqrng::rng64_t &rng, INT n,
+                   INT size, bool replace = false, int offset = 0) {
+  result.clear();
+  if (replace || size <= 1) {
+    result = replacement<INT>(rng, n, size, offset);
   } else {
-    if (!(m >= n))
-      Rcpp::stop("Argument requirements not fulfilled: m >= n");
-    if (m < 2 * n) {
-      return no_replacement_shuffle<INT>(rng, m, n, offset);
-    } else if (m < 1000 * n) {
-      return no_replacement_set<INT, dqrng::minimal_bit_set>(rng, m, n, offset);
+    if (n < size)
+      return false;
+    if (n < 2 * size) {
+      result = std::move(no_replacement_shuffle<INT>(rng, n, size, offset));
+    } else if (n < 1000 * size) {
+      result = std::move(no_replacement_set<INT, dqrng::minimal_bit_set>(
+          rng, n, size, offset));
     } else {
-      return no_replacement_set<INT, dqrng::minimal_hash_set<INT>>(rng, m, n,
-                                                                   offset);
+      result = std::move(no_replacement_set<INT, dqrng::minimal_hash_set<INT>>(
+          rng, n, size, offset));
     }
   }
+  return true;
 }
 
 #endif // RNN_SAMPLE_H

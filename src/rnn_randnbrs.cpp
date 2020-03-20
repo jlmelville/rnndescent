@@ -62,7 +62,8 @@ struct RandomNbrQueryWorker : public BatchParallelWorker {
     dqrng::rng64_t rng = parallel_rng(seed);
     rng->seed(seed, end);
     for (int qi = static_cast<int>(begin); qi < static_cast<int>(end); qi++) {
-      auto idxi = sample<uint32_t>(rng, nrefs, k);
+      std::vector<uint32_t> idxi;
+      sample<uint32_t>(idxi, rng, nrefs, k);
       std::size_t kqi = k * qi;
       for (std::size_t j = 0; j < k; j++) {
         auto &ri = idxi[j];
@@ -99,7 +100,8 @@ struct RandomNbrBuildWorker : public BatchParallelWorker {
       std::size_t kqi = k * qi;
       std::size_t kqi1 = kqi + 1;
       nn_idx[0 + kqi] = qi;
-      auto ris = sample<uint32_t>(rng, n_points_minus_1, k_minus_1);
+      std::vector<uint32_t> ris;
+      sample<uint32_t>(ris, rng, n_points_minus_1, k_minus_1);
       for (auto j = 0; j < k_minus_1; j++) {
         int ri = ris[j];
         if (ri >= qi) {
