@@ -26,8 +26,9 @@
 #include "dqrng_generator.h"
 #include <dqrng.h>
 
-#include "rnn_rng.h"
 #include "dqsample.h"
+
+#include "rnn_rng.h"
 
 // Uses R API: Not thread safe
 uint64_t pseed() {

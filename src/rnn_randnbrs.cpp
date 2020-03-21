@@ -131,10 +131,10 @@ template <typename SerialRandomKnn> struct SerialRandomNbrsImpl {
 
   template <typename Distance>
   NNGraph build_knn(Distance &distance, std::size_t n_points, std::size_t k,
-                    bool verbose) {
+                    uint64_t seed, bool verbose) {
     RPProgress progress(1, verbose);
 
-    Worker<Distance> worker(distance, n_points, k, pseed());
+    Worker<Distance> worker(distance, n_points, k, seed);
     tdoann::batch_serial_for(worker, progress, n_points, block_size);
     return NNGraph(worker.nn_idx, worker.nn_dist, n_points);
   }
@@ -175,10 +175,10 @@ template <typename ParallelRandomKnn> struct ParallelRandomNbrsImpl {
 
   template <typename Distance>
   NNGraph build_knn(Distance &distance, std::size_t n_points, std::size_t k,
-                    bool verbose) {
+                    uint64_t seed, bool verbose) {
     RPProgress progress(1, verbose);
 
-    Worker<Distance> worker(distance, n_points, k, pseed());
+    Worker<Distance> worker(distance, n_points, k, seed);
     tdoann::batch_parallel_for<decltype(progress), decltype(worker), RParallel>(
         worker, progress, n_points, n_threads, block_size, grain_size);
 
@@ -234,9 +234,12 @@ template <typename KnnFactory, typename RandomNbrsImpl, typename Distance>
 auto random_knn_impl(std::size_t k, bool order_by_distance,
                      KnnFactory &knn_factory, RandomNbrsImpl &impl,
                      bool verbose = false) -> List {
+
+  uint64_t seed = pseed();
+
   auto distance = knn_factory.create_distance();
   std::size_t n_points = knn_factory.n_points;
-  auto nn_graph = impl.build_knn(distance, n_points, k, verbose);
+  auto nn_graph = impl.build_knn(distance, n_points, k, seed, verbose);
 
   if (order_by_distance) {
     impl.sort_knn(nn_graph);
