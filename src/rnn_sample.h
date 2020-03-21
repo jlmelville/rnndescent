@@ -15,87 +15,31 @@
 //  You should have received a copy of the GNU General Public License
 //  along with rnndescent.  If not, see <http://www.gnu.org/licenses/>.
 
-// This code is a minor modification of that in dqrng, which is AGPL licensed.
-// Anything in this file is AGPL:
-//
-// Copyright 2019 James Melville
-//
-// rnn_sample.h is free software: you can redistribute it and/or modify it
-// under the terms of the GNU Affero General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// rnn_sample.h is distributed in the hope that it will be useful, but
-// WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Affero General Public License for more details.
-
 #ifndef RNN_SAMPLE_H
 #define RNN_SAMPLE_H
 
-#include <utility>
+#include <dqrng.h>
 
-#include "dqrng_generator.h"
-#include "minimal_int_set.h"
+#include "dqsample.h"
 
-template <typename INT>
-inline std::vector<INT> replacement(dqrng::rng64_t &rng, INT m, INT n,
-                                    int offset) {
-  std::vector<INT> result(n);
-  std::generate(result.begin(), result.end(),
-                [=, &rng]() { return static_cast<INT>(offset + (*rng)(m)); });
-  return result;
-}
+#include "rnn_rng.h"
 
-template <typename INT>
-std::vector<INT> no_replacement_shuffle(dqrng::rng64_t &rng, INT m, INT n,
-                                        int offset = 0) {
-  std::vector<INT> tmp(m);
-  std::iota(tmp.begin(), tmp.end(), static_cast<INT>(offset));
-  for (INT i = 0; i < n; ++i)
-    std::swap(tmp[i], tmp[i + (*rng)(m - i)]);
-  if (m == n)
-    return tmp;
-  return std::vector<INT>(tmp.begin(), tmp.begin() + n);
-}
+struct DQIntSampler {
 
-template <typename INT, typename SET>
-std::vector<INT> no_replacement_set(dqrng::rng64_t &rng, INT m, INT n,
-                                    int offset) {
-  std::vector<INT> result(n);
+  uint64_t seed;
+  uint64_t seed2;
+  dqrng::rng64_t rng;
 
-  SET elems(m, n);
-  for (INT i = 0; i < n; ++i) {
-    INT v = (*rng)(m);
-    while (!elems.insert(v)) {
-      v = (*rng)(m);
-    }
-    result[i] = offset + v;
+  DQIntSampler(uint64_t seed, uint64_t seed2) : rng(parallel_rng(seed)) {
+    rng->seed(seed, seed2);
   }
-  return result;
-}
 
-// Sample size points from the range [0 + offset, n + offset) with or without
-// replacement
-template <typename INT>
-inline bool sample(std::vector<INT> &result, dqrng::rng64_t &rng, INT n,
-                   INT size, bool replace = false, int offset = 0) {
-  if (replace || size <= 1) {
-    result = replacement<INT>(rng, n, size, offset);
-  } else {
-    if (n < size)
-      return false;
-    if (n < 2 * size) {
-      result = std::move(no_replacement_shuffle<INT>(rng, n, size, offset));
-    } else if (n < 1000 * size) {
-      result = std::move(no_replacement_set<INT, dqrng::minimal_bit_set>(
-          rng, n, size, offset));
-    } else {
-      result = std::move(no_replacement_set<INT, dqrng::minimal_hash_set<INT>>(
-          rng, n, size, offset));
-    }
+  template <typename Int>
+  std::vector<Int> sample(int n, int size, bool replace = false) {
+    std::vector<Int> result;
+    dqsample::sample<Int>(result, rng, n, size, replace);
+    return result;
   }
-  return true;
-}
+};
 
 #endif // RNN_SAMPLE_H

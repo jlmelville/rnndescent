@@ -17,10 +17,7 @@
 //  You should have received a copy of the GNU General Public License
 //  along with rnndescent.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "convert_seed.h"
-#include "dqrng_generator.h"
 #include <Rcpp.h>
-#include <dqrng.h>
 
 #include "tdoann/nngraph.h"
 #include "tdoann/parallel.h"
@@ -53,16 +50,16 @@ struct RandomNbrQueryWorker : public BatchParallelWorker {
 
   uint64_t seed;
 
-  RandomNbrQueryWorker(Distance &distance, std::size_t n_points, std::size_t k)
+  RandomNbrQueryWorker(Distance &distance, std::size_t n_points, std::size_t k,
+                       uint64_t seed)
       : distance(distance), n_points(n_points), k(k), nn_idx(n_points * k),
-        nn_dist(n_points * k, 0.0), nrefs(distance.nx), seed(pseed()) {}
+        nn_dist(n_points * k, 0.0), nrefs(distance.nx), seed(seed) {}
 
   void operator()(std::size_t begin, std::size_t end) {
-    dqrng::rng64_t rng = parallel_rng(seed);
-    rng->seed(seed, end);
-    std::vector<uint32_t> idxi;
+    DQIntSampler int_sampler(seed, end);
+
     for (int qi = static_cast<int>(begin); qi < static_cast<int>(end); qi++) {
-      sample<uint32_t>(idxi, rng, nrefs, k);
+      auto idxi = int_sampler.sample<uint32_t>(nrefs, k);
       std::size_t kqi = k * qi;
       for (std::size_t j = 0; j < k; j++) {
         auto &ri = idxi[j];
@@ -87,20 +84,21 @@ struct RandomNbrBuildWorker : public BatchParallelWorker {
   int k_minus_1;
   uint64_t seed;
 
-  RandomNbrBuildWorker(Distance &distance, std::size_t n_points, std::size_t k)
+  RandomNbrBuildWorker(Distance &distance, std::size_t n_points, std::size_t k,
+                       uint64_t seed)
       : distance(distance), n_points(n_points), k(k), nn_idx(n_points * k),
         nn_dist(n_points * k), n_points_minus_1(n_points - 1), k_minus_1(k - 1),
-        seed(pseed()) {}
+        seed(seed) {}
 
   void operator()(std::size_t begin, std::size_t end) {
-    dqrng::rng64_t rng = parallel_rng(seed);
-    rng->seed(seed, end);
-    std::vector<uint32_t> ris;
+    DQIntSampler int_sampler(seed, end);
+
     for (auto qi = static_cast<int>(begin); qi < static_cast<int>(end); qi++) {
       std::size_t kqi = k * qi;
       std::size_t kqi1 = kqi + 1;
       nn_idx[0 + kqi] = qi;
-      sample<uint32_t>(ris, rng, n_points_minus_1, k_minus_1);
+      auto ris = int_sampler.sample<uint32_t>(n_points_minus_1, k_minus_1);
+
       for (auto j = 0; j < k_minus_1; j++) {
         int ri = ris[j];
         if (ri >= qi) {
@@ -136,7 +134,7 @@ template <typename SerialRandomKnn> struct SerialRandomNbrsImpl {
                     bool verbose) {
     RPProgress progress(1, verbose);
 
-    Worker<Distance> worker(distance, n_points, k);
+    Worker<Distance> worker(distance, n_points, k, pseed());
     tdoann::batch_serial_for(worker, progress, n_points, block_size);
     return NNGraph(worker.nn_idx, worker.nn_dist, n_points);
   }
@@ -180,7 +178,7 @@ template <typename ParallelRandomKnn> struct ParallelRandomNbrsImpl {
                     bool verbose) {
     RPProgress progress(1, verbose);
 
-    Worker<Distance> worker(distance, n_points, k);
+    Worker<Distance> worker(distance, n_points, k, pseed());
     tdoann::batch_parallel_for<decltype(progress), decltype(worker), RParallel>(
         worker, progress, n_points, n_threads, block_size, grain_size);
 

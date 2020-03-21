@@ -27,7 +27,7 @@
 #include <dqrng.h>
 
 #include "rnn_rng.h"
-#include "rnn_sample.h"
+#include "dqsample.h"
 
 // Uses R API: Not thread safe
 uint64_t pseed() {
@@ -50,8 +50,8 @@ TauRand::TauRand(uint64_t seed, uint64_t seed2) : prng(nullptr) {
   dqrng::rng64_t rng = parallel_rng(seed);
   rng->seed(seed, seed2);
   std::vector<uint64_t> tau_seeds;
-  sample<uint64_t>(tau_seeds, rng, (std::numeric_limits<uint64_t>::max)(), 3,
-                   true);
+  dqsample::sample<uint64_t>(tau_seeds, rng,
+                             (std::numeric_limits<uint64_t>::max)(), 3, true);
 
   prng.reset(new tdoann::tau_prng(tau_seeds[0], tau_seeds[1], tau_seeds[2]));
 }
