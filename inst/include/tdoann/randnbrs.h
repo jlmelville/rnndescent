@@ -195,7 +195,7 @@ template <typename ParallelRandomKnn> struct ParallelRandomNbrsImpl {
     Progress progress(1, verbose);
 
     Worker<Distance> worker(distance, k, seed);
-    tdoann::batch_parallel_for<decltype(progress), decltype(worker), Parallel>(
+    tdoann::batch_parallel_for<Progress, decltype(worker), Parallel>(
         worker, progress, n_points, n_threads, block_size, grain_size);
 
     NNGraph nn_graph(worker.nn_idx, worker.nn_dist, n_points);
