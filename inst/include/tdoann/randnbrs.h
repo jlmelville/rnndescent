@@ -129,7 +129,7 @@ template <typename SerialRandomKnn> struct SerialRandomNbrsImpl {
   SerialRandomNbrsImpl(std::size_t block_size) : block_size(block_size) {}
 
   template <typename Distance>
-  NNGraph build_knn(Distance &distance, std::size_t k, uint64_t seed,
+  NNGraph build_knn(Distance &distance, std::size_t k, uint64_t seed, bool sort,
                     bool verbose) {
     std::size_t n_points = distance.ny;
 
@@ -137,10 +137,14 @@ template <typename SerialRandomKnn> struct SerialRandomNbrsImpl {
 
     Worker<Distance> worker(distance, k, seed);
     tdoann::batch_serial_for(worker, progress, n_points, block_size);
-    return NNGraph(worker.nn_idx, worker.nn_dist, n_points);
-  }
-  void sort_knn(NNGraph &nn_graph) {
-    sort_knn_graph<HeapAdd, tdoann::NullProgress>(nn_graph);
+
+    NNGraph nn_graph(worker.nn_idx, worker.nn_dist, n_points);
+
+    if (sort) {
+      sort_knn_graph<HeapAdd, tdoann::NullProgress>(nn_graph);
+    }
+
+    return nn_graph;
   }
 
   using Progress = typename SerialRandomKnn::Progress;
@@ -185,7 +189,7 @@ template <typename ParallelRandomKnn> struct ParallelRandomNbrsImpl {
       : n_threads(n_threads), block_size(block_size), grain_size(grain_size) {}
 
   template <typename Distance>
-  NNGraph build_knn(Distance &distance, std::size_t k, uint64_t seed,
+  NNGraph build_knn(Distance &distance, std::size_t k, uint64_t seed, bool sort,
                     bool verbose) {
     std::size_t n_points = distance.ny;
     Progress progress(1, verbose);
@@ -194,13 +198,15 @@ template <typename ParallelRandomKnn> struct ParallelRandomNbrsImpl {
     tdoann::batch_parallel_for<decltype(progress), decltype(worker), Parallel>(
         worker, progress, n_points, n_threads, block_size, grain_size);
 
-    return NNGraph(worker.nn_idx, worker.nn_dist, n_points);
-  }
+    NNGraph nn_graph(worker.nn_idx, worker.nn_dist, n_points);
 
-  void sort_knn(NNGraph &nn_graph) {
-    sort_knn_graph_parallel<HeapAdd, tdoann::NullProgress, SimpleNeighborHeap,
-                            Parallel>(nn_graph, n_threads, block_size,
-                                      grain_size);
+    if (sort) {
+      sort_knn_graph_parallel<HeapAdd, tdoann::NullProgress, SimpleNeighborHeap,
+                              Parallel>(nn_graph, n_threads, block_size,
+                                        grain_size);
+    }
+
+    return nn_graph;
   }
 
   using Progress = typename ParallelRandomKnn::Progress;

@@ -27,6 +27,7 @@
 #include "rnn_progress.h"
 #include "rnn_rng.h"
 #include "rnn_sample.h"
+#include "rnn_util.h"
 
 using namespace Rcpp;
 
@@ -70,18 +71,9 @@ template <typename RandomNbrsImpl, typename Distance>
 auto random_knn_impl(Distance &distance, std::size_t k, bool order_by_distance,
                      RandomNbrsImpl &impl, bool verbose = false) -> List {
   uint64_t seed = pseed();
+  auto nn_graph = impl.build_knn(distance, k, seed, order_by_distance, verbose);
 
-  auto nn_graph = impl.build_knn(distance, k, seed, verbose);
-
-  if (order_by_distance) {
-    impl.sort_knn(nn_graph);
-  }
-
-  IntegerMatrix indices(k, nn_graph.n_points, nn_graph.idx.begin());
-  NumericMatrix dist(k, nn_graph.n_points, nn_graph.dist.begin());
-
-  return List::create(_("idx") = transpose(indices),
-                      _("dist") = transpose(dist));
+  return graph_to_r(nn_graph);
 }
 
 /* Exports */

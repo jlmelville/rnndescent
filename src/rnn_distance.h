@@ -17,8 +17,8 @@
 //  You should have received a copy of the GNU General Public License
 //  along with rnndescent.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef RNN_KNNFACTORY_H
-#define RNN_KNNFACTORY_H
+#ifndef RNN_DISTANCE_H
+#define RNN_DISTANCE_H
 
 #include <Rcpp.h>
 
@@ -40,4 +40,4 @@ Distance create_query_distance(Rcpp::NumericMatrix reference,
                   r2vt<typename Distance::Input>(query), query.ncol());
 }
 
-#endif // RNN_KNNFACTORY_H
+#endif // RNN_DISTANCE_H

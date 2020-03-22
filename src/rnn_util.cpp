@@ -25,6 +25,7 @@
 #include <progress.hpp>
 
 #include "tdoann/heap.h"
+#include "tdoann/nngraph.h"
 
 #include "rnn_util.h"
 
@@ -62,6 +63,14 @@ void zero_index(IntegerMatrix m, int max_idx) {
       m(i, j) = idx0;
     }
   }
+}
+
+List graph_to_r(const NNGraph &graph) {
+  IntegerMatrix indices(graph.n_nbrs, graph.n_points, graph.idx.begin());
+  NumericMatrix dist(graph.n_nbrs, graph.n_points, graph.dist.begin());
+
+  return List::create(_("idx") = transpose(indices),
+                      _("dist") = transpose(dist));
 }
 
 // [[Rcpp::export]]
