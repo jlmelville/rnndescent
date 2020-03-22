@@ -46,9 +46,8 @@ struct RandomNbrQueryWorker : public BatchParallelWorker {
 
   uint64_t seed;
 
-  RandomNbrQueryWorker(Distance &distance, std::size_t n_points, std::size_t k,
-                       uint64_t seed)
-      : distance(distance), n_points(n_points), k(k), nn_idx(n_points * k),
+  RandomNbrQueryWorker(Distance &distance, std::size_t k, uint64_t seed)
+      : distance(distance), n_points(distance.ny), k(k), nn_idx(n_points * k),
         nn_dist(n_points * k, 0.0), nrefs(distance.nx), seed(seed) {}
 
   void operator()(std::size_t begin, std::size_t end) {
@@ -80,9 +79,8 @@ struct RandomNbrBuildWorker : public BatchParallelWorker {
   int k_minus_1;
   uint64_t seed;
 
-  RandomNbrBuildWorker(Distance &distance, std::size_t n_points, std::size_t k,
-                       uint64_t seed)
-      : distance(distance), n_points(n_points), k(k), nn_idx(n_points * k),
+  RandomNbrBuildWorker(Distance &distance, std::size_t k, uint64_t seed)
+      : distance(distance), n_points(distance.ny), k(k), nn_idx(n_points * k),
         nn_dist(n_points * k), n_points_minus_1(n_points - 1), k_minus_1(k - 1),
         seed(seed) {}
 
@@ -131,11 +129,13 @@ template <typename SerialRandomKnn> struct SerialRandomNbrsImpl {
   SerialRandomNbrsImpl(std::size_t block_size) : block_size(block_size) {}
 
   template <typename Distance>
-  NNGraph build_knn(Distance &distance, std::size_t n_points, std::size_t k,
-                    uint64_t seed, bool verbose) {
+  NNGraph build_knn(Distance &distance, std::size_t k, uint64_t seed,
+                    bool verbose) {
+    std::size_t n_points = distance.ny;
+
     Progress progress(1, verbose);
 
-    Worker<Distance> worker(distance, n_points, k, seed);
+    Worker<Distance> worker(distance, k, seed);
     tdoann::batch_serial_for(worker, progress, n_points, block_size);
     return NNGraph(worker.nn_idx, worker.nn_dist, n_points);
   }
@@ -185,11 +185,12 @@ template <typename ParallelRandomKnn> struct ParallelRandomNbrsImpl {
       : n_threads(n_threads), block_size(block_size), grain_size(grain_size) {}
 
   template <typename Distance>
-  NNGraph build_knn(Distance &distance, std::size_t n_points, std::size_t k,
-                    uint64_t seed, bool verbose) {
+  NNGraph build_knn(Distance &distance, std::size_t k, uint64_t seed,
+                    bool verbose) {
+    std::size_t n_points = distance.ny;
     Progress progress(1, verbose);
 
-    Worker<Distance> worker(distance, n_points, k, seed);
+    Worker<Distance> worker(distance, k, seed);
     tdoann::batch_parallel_for<decltype(progress), decltype(worker), Parallel>(
         worker, progress, n_points, n_threads, block_size, grain_size);
 

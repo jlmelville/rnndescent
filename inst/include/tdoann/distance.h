@@ -54,8 +54,8 @@ template <typename In, typename Out> struct Euclidean {
     return std::sqrt(sum);
   }
 
-  const std::vector<In> &x;
-  const std::vector<In> &y;
+  const std::vector<In> x;
+  const std::vector<In> y;
   std::size_t ndim;
   std::size_t nx;
   std::size_t ny;
@@ -83,8 +83,8 @@ template <typename In, typename Out> struct L2Sqr {
     return sum;
   }
 
-  const std::vector<In> &x;
-  const std::vector<In> &y;
+  const std::vector<In> x;
+  const std::vector<In> y;
   std::size_t ndim;
   std::size_t nx;
   std::size_t ny;
@@ -182,8 +182,8 @@ template <typename In, typename Out> struct Manhattan {
     return sum;
   }
 
-  const std::vector<In> &x;
-  const std::vector<In> &y;
+  const std::vector<In> x;
+  const std::vector<In> y;
   std::size_t ndim;
   std::size_t nx;
   std::size_t ny;

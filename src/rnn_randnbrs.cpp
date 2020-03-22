@@ -21,7 +21,7 @@
 
 #include "tdoann/randnbrs.h"
 
-#include "rnn_distancefactory.h"
+#include "rnn_distance.h"
 #include "rnn_macros.h"
 #include "rnn_parallel.h"
 #include "rnn_progress.h"
@@ -33,8 +33,7 @@ using namespace Rcpp;
 /* Macros */
 
 #define RANDOM_NBRS_BUILD()                                                    \
-  using DistanceFactory = BuildDistanceFactory<Distance>;                      \
-  DistanceFactory distance_factory(data);                                      \
+  auto distance = create_build_distance<Distance>(data);                       \
   if (n_threads > 0) {                                                         \
     using RandomNbrsImpl = tdoann::ParallelRandomNbrsImpl<                     \
         tdoann::ParallelRandomKnnBuild<RPProgress, DQIntSampler, RParallel>>;  \
@@ -48,8 +47,7 @@ using namespace Rcpp;
   }
 
 #define RANDOM_NBRS_QUERY()                                                    \
-  using DistanceFactory = QueryDistanceFactory<Distance>;                      \
-  DistanceFactory distance_factory(reference, query);                          \
+  auto distance = create_query_distance<Distance>(reference, query);           \
   if (n_threads > 0) {                                                         \
     using RandomNbrsImpl = tdoann::ParallelRandomNbrsImpl<                     \
         tdoann::ParallelRandomKnnQuery<RPProgress, DQIntSampler, RParallel>>;  \
@@ -63,28 +61,24 @@ using namespace Rcpp;
   }
 
 #define RANDOM_NBRS_IMPL()                                                     \
-  return random_knn_impl<DistanceFactory, RandomNbrsImpl, Distance>(           \
-      k, order_by_distance, distance_factory, impl, verbose);
+  return random_knn_impl<RandomNbrsImpl, Distance>(                            \
+      distance, k, order_by_distance, impl, verbose);
 
 /* Functions */
 
-template <typename DistanceFactory, typename RandomNbrsImpl, typename Distance>
-auto random_knn_impl(std::size_t k, bool order_by_distance,
-                     DistanceFactory &distance_factory, RandomNbrsImpl &impl,
-                     bool verbose = false) -> List {
+template <typename RandomNbrsImpl, typename Distance>
+auto random_knn_impl(Distance &distance, std::size_t k, bool order_by_distance,
+                     RandomNbrsImpl &impl, bool verbose = false) -> List {
   uint64_t seed = pseed();
 
-  auto distance = distance_factory.create();
-  std::size_t n_points = distance_factory.n_points;
-
-  auto nn_graph = impl.build_knn(distance, n_points, k, seed, verbose);
+  auto nn_graph = impl.build_knn(distance, k, seed, verbose);
 
   if (order_by_distance) {
     impl.sort_knn(nn_graph);
   }
 
-  IntegerMatrix indices(k, n_points, nn_graph.idx.begin());
-  NumericMatrix dist(k, n_points, nn_graph.dist.begin());
+  IntegerMatrix indices(k, nn_graph.n_points, nn_graph.idx.begin());
+  NumericMatrix dist(k, nn_graph.n_points, nn_graph.dist.begin());
 
   return List::create(_("idx") = transpose(indices),
                       _("dist") = transpose(dist));
