@@ -26,8 +26,8 @@
 #include "tdoann/nndparallel.h"
 
 #include "rnn_candidatepriority.h"
+#include "rnn_distancefactory.h"
 #include "rnn_heaptor.h"
-#include "rnn_knnfactory.h"
 #include "rnn_macros.h"
 #include "rnn_parallel.h"
 #include "rnn_progress.h"
@@ -38,7 +38,7 @@ using namespace tdoann;
 using namespace Rcpp;
 
 #define NND_IMPL()                                                             \
-  return nn_descent_impl<KnnFactory, NNDImpl, GraphUpdater, Distance,          \
+  return nn_descent_impl<DistanceFactory, NNDImpl, GraphUpdater, Distance,     \
                          CandidatePriorityFactoryImpl, Progress>(              \
       factory, nn_idx, nn_dist, nnd_impl, candidate_priority_factory,          \
       max_candidates, n_iters, delta, verbose);
@@ -93,8 +93,8 @@ using namespace Rcpp;
   }
 
 #define NND_UPDATER()                                                          \
-  using KnnFactory = KnnBuildFactory<Distance>;                                \
-  KnnFactory factory(data);                                                    \
+  using DistanceFactory = BuildDistanceFactory<Distance>;                      \
+  DistanceFactory factory(data);                                               \
   if (n_threads > 0) {                                                         \
     using NNDImpl = NNDParallel;                                               \
     NNDImpl nnd_impl(n_threads, block_size, grain_size);                       \
@@ -118,8 +118,8 @@ using namespace Rcpp;
   }
 
 #define NND_QUERY_UPDATER()                                                    \
-  using KnnFactory = KnnQueryFactory<Distance>;                                \
-  KnnFactory factory(reference, query);                                        \
+  using DistanceFactory = QueryDistanceFactory<Distance>;                      \
+  DistanceFactory factory(reference, query);                                   \
   if (n_threads > 0) {                                                         \
     using NNDImpl = NNDQueryParallel;                                          \
     NNDImpl nnd_impl(reference_idx, n_threads, block_size, grain_size);        \
@@ -254,10 +254,10 @@ struct NNDQueryParallel {
   }
 };
 
-template <typename KnnFactory, typename NNDImpl, typename GraphUpdater,
+template <typename DistanceFactory, typename NNDImpl, typename GraphUpdater,
           typename Distance, typename CandidatePriorityFactoryImpl,
           typename Progress>
-List nn_descent_impl(KnnFactory &factory, IntegerMatrix nn_idx,
+List nn_descent_impl(DistanceFactory &distance_factory, IntegerMatrix nn_idx,
                      NumericMatrix nn_dist, NNDImpl &nnd_impl,
                      CandidatePriorityFactoryImpl &candidate_priority_factory,
                      std::size_t max_candidates = 50, std::size_t n_iters = 10,
@@ -266,7 +266,7 @@ List nn_descent_impl(KnnFactory &factory, IntegerMatrix nn_idx,
   std::size_t n_nbrs = nn_idx.ncol();
   double tol = delta * n_nbrs * n_points;
 
-  auto distance = factory.create_distance();
+  auto distance = distance_factory.create();
 
   NeighborHeap current_graph(n_points, n_nbrs);
   nnd_impl.create_heap(current_graph, nn_idx, nn_dist);

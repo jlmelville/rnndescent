@@ -154,8 +154,8 @@ using ParallelRandomNbrBuildWorker = RandomNbrBuildWorker<Distance, Sampler>;
 
 template <typename ProgressT, typename SamplerT, typename ParallelT>
 struct ParallelRandomKnnBuild {
-  using Progress = ProgressT;
   using Sampler = SamplerT;
+  using Progress = ProgressT;
   using Parallel = ParallelT;
 
   using HeapAdd = tdoann::LockingHeapAddSymmetric;

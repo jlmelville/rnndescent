@@ -24,7 +24,7 @@
 
 #include "tdoann/distance.h"
 
-template <typename Distance> struct KnnQueryFactory {
+template <typename Distance> struct QueryDistanceFactory {
   using DataVec = std::vector<typename Distance::Input>;
 
   DataVec reference_vec;
@@ -32,28 +32,26 @@ template <typename Distance> struct KnnQueryFactory {
   int n_points;
   int ndim;
 
-  KnnQueryFactory(Rcpp::NumericMatrix reference, Rcpp::NumericMatrix query)
+  QueryDistanceFactory(Rcpp::NumericMatrix reference, Rcpp::NumericMatrix query)
       : reference_vec(Rcpp::as<DataVec>(Rcpp::transpose(reference))),
         query_vec(Rcpp::as<DataVec>(Rcpp::transpose(query))),
         n_points(query.nrow()), ndim(query.ncol()) {}
 
-  Distance create_distance() const {
-    return Distance(reference_vec, query_vec, ndim);
-  }
+  Distance create() const { return Distance(reference_vec, query_vec, ndim); }
 };
 
-template <typename Distance> struct KnnBuildFactory {
+template <typename Distance> struct BuildDistanceFactory {
   using DataVec = std::vector<typename Distance::Input>;
 
   DataVec data_vec;
   int n_points;
   int ndim;
 
-  KnnBuildFactory(Rcpp::NumericMatrix data)
+  BuildDistanceFactory(Rcpp::NumericMatrix data)
       : data_vec(Rcpp::as<DataVec>(Rcpp::transpose(data))),
         n_points(data.nrow()), ndim(data.ncol()) {}
 
-  Distance create_distance() const { return Distance(data_vec, ndim); }
+  Distance create() const { return Distance(data_vec, ndim); }
 };
 
 #endif // RNN_KNNFACTORY_H
