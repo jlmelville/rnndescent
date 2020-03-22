@@ -247,6 +247,7 @@ Out hamming_impl(const BitVec &x, std::size_t i, const BitVec &y, std::size_t j,
 template <typename In, typename Out> struct HammingSelf {
   const BitVec bitvec;
   std::size_t ndim_;
+  std::size_t ndim;
   std::size_t nx;
   std::size_t ny;
 
@@ -254,6 +255,7 @@ template <typename In, typename Out> struct HammingSelf {
       : bitvec(to_bitvec(data, ndim)),
         ndim_(
             std::ceil(ndim / static_cast<float>(BitVec::value_type{}.size()))),
+        ndim(ndim),
         nx(data.size() / ndim), ny(nx) {}
 
   Out operator()(std::size_t i, std::size_t j) const {
@@ -267,6 +269,7 @@ template <typename In, typename Out> struct HammingQuery {
   const BitVec bx;
   const BitVec by;
   std::size_t ndim_;
+  std::size_t ndim;
   std::size_t nx;
   std::size_t ny;
 
@@ -275,6 +278,7 @@ template <typename In, typename Out> struct HammingQuery {
       : bx(to_bitvec(x, ndim)), by(to_bitvec(y, ndim)),
         ndim_(
             std::ceil(ndim / static_cast<float>(BitVec::value_type{}.size()))),
+        ndim(ndim),
         nx(x.size() / ndim), ny(y.size() / ndim) {}
 
   Out operator()(std::size_t i, std::size_t j) const {
