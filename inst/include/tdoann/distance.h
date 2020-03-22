@@ -153,7 +153,7 @@ template <typename In, typename Out> struct CosineQuery {
   CosineQuery(const std::vector<In> &x, const std::vector<In> &y,
               std::size_t ndim)
       : x_(normalize(x, ndim)), y_(normalize(y, ndim)), ndim(ndim),
-        nx(x.size() / ndim), ny(y.size()) {}
+        nx(x.size() / ndim), ny(y.size() / ndim) {}
 
   Out operator()(std::size_t i, std::size_t j) const {
     return cosine_impl<In, Out>(x_, i, y_, j, ndim);
@@ -255,8 +255,7 @@ template <typename In, typename Out> struct HammingSelf {
       : bitvec(to_bitvec(data, ndim)),
         ndim_(
             std::ceil(ndim / static_cast<float>(BitVec::value_type{}.size()))),
-        ndim(ndim),
-        nx(data.size() / ndim), ny(nx) {}
+        ndim(ndim), nx(data.size() / ndim), ny(nx) {}
 
   Out operator()(std::size_t i, std::size_t j) const {
     return hamming_impl<Out>(bitvec, i, bitvec, j, ndim_);
@@ -278,8 +277,7 @@ template <typename In, typename Out> struct HammingQuery {
       : bx(to_bitvec(x, ndim)), by(to_bitvec(y, ndim)),
         ndim_(
             std::ceil(ndim / static_cast<float>(BitVec::value_type{}.size()))),
-        ndim(ndim),
-        nx(x.size() / ndim), ny(y.size() / ndim) {}
+        ndim(ndim), nx(x.size() / ndim), ny(y.size() / ndim) {}
 
   Out operator()(std::size_t i, std::size_t j) const {
     return hamming_impl<Out>(bx, i, by, j, ndim_);
