@@ -21,9 +21,8 @@
 
 #include "tdoann/bruteforce.h"
 #include "tdoann/heap.h"
-#include "tdoann/parallel.h"
-#include "tdoann/progress.h"
 
+#include "rnn_distance.h"
 #include "rnn_heaptor.h"
 #include "rnn_macros.h"
 #include "rnn_parallel.h"
@@ -31,49 +30,6 @@
 
 using namespace Rcpp;
 using namespace tdoann;
-
-template <typename Distance>
-struct BruteForceWorker : public BatchParallelWorker {
-
-  SimpleNeighborHeap &neighbor_heap;
-  Distance &distance;
-  std::size_t n_ref_points;
-  NullProgress progress;
-
-  BruteForceWorker(SimpleNeighborHeap &neighbor_heap, Distance &distance,
-                   std::size_t n_ref_points)
-      : neighbor_heap(neighbor_heap), distance(distance),
-        n_ref_points(n_ref_points), progress() {}
-
-  void operator()(std::size_t begin, std::size_t end) {
-    nnbf_query_window(neighbor_heap, distance, n_ref_points, progress, begin,
-                      end);
-  }
-};
-
-template <typename Distance, typename Progress, typename Parallel>
-void nnbf_parallel_query(SimpleNeighborHeap &neighbor_heap, Distance &distance,
-                         std::size_t n_ref_points, Progress &progress,
-                         std::size_t n_threads = 0, std::size_t block_size = 64,
-                         std::size_t grain_size = 1) {
-  BruteForceWorker<Distance> worker(neighbor_heap, distance, n_ref_points);
-
-  batch_parallel_for<Progress, decltype(worker), Parallel>(
-      worker, progress, neighbor_heap.n_points, n_threads, block_size,
-      grain_size);
-
-  sort_heap_parallel(neighbor_heap, n_threads, block_size, grain_size);
-}
-
-template <typename Distance, typename Progress, typename Parallel>
-void nnbf_parallel(SimpleNeighborHeap &neighbor_heap, Distance &distance,
-                   Progress &progress, std::size_t n_threads = 0,
-                   std::size_t block_size = 64, std::size_t grain_size = 1) {
-
-  nnbf_parallel_query<Distance, Progress, Parallel>(
-      neighbor_heap, distance, neighbor_heap.n_points, progress, n_threads,
-      block_size, grain_size);
-}
 
 #define BRUTE_FORCE_BUILD()                                                    \
   return rnn_brute_force_impl<Distance>(data, k, n_threads, block_size,        \
@@ -89,25 +45,20 @@ auto rnn_brute_force_impl(NumericMatrix data, std::size_t k,
                           std::size_t block_size = 64,
                           std::size_t grain_size = 1, bool verbose = false)
     -> List {
-  std::size_t n_points = data.nrow();
-  std::size_t ndim = data.ncol();
 
-  data = transpose(data);
-  auto data_vec = as<std::vector<typename Distance::Input>>(data);
-
-  Distance distance(data_vec, ndim);
-  SimpleNeighborHeap neighbor_heap(n_points, k);
+  auto distance = create_build_distance<Distance>(data);
 
   if (n_threads > 0) {
-    RPProgress progress(1, verbose);
-    nnbf_parallel<Distance, RPProgress, RParallel>(
-        neighbor_heap, distance, progress, n_threads, block_size, grain_size);
-  } else {
-    RPProgress progress(n_points, verbose);
-    nnbf(neighbor_heap, distance, progress);
-  }
+    SimpleNeighborHeap neighbor_heap =
+        nnbf_parallel<Distance, RPProgress, RParallel>(
+            distance, k, n_threads, block_size, grain_size, verbose);
+    return heap_to_r(neighbor_heap);
 
-  return heap_to_r(neighbor_heap);
+  } else {
+    SimpleNeighborHeap neighbor_heap =
+        nnbf<Distance, RPProgress>(distance, k, verbose);
+    return heap_to_r(neighbor_heap);
+  }
 }
 
 template <typename Distance>
@@ -116,30 +67,19 @@ auto rnn_brute_force_query_impl(NumericMatrix x, NumericMatrix y, std::size_t k,
                                 std::size_t block_size = 64,
                                 std::size_t grain_size = 1,
                                 bool verbose = false) -> List {
-  std::size_t n_xpoints = x.nrow();
-  std::size_t n_ypoints = y.nrow();
-  std::size_t ndim = x.ncol();
 
-  x = transpose(x);
-  auto x_vec = as<std::vector<typename Distance::Input>>(x);
-
-  y = transpose(y);
-  auto y_vec = as<std::vector<typename Distance::Input>>(y);
-
-  Distance distance(x_vec, y_vec, ndim);
-  SimpleNeighborHeap neighbor_heap(n_ypoints, k);
+  auto distance = create_query_distance<Distance>(x, y);
 
   if (n_threads > 0) {
-    RPProgress progress(1, verbose);
-    nnbf_parallel_query<Distance, decltype(progress), RParallel>(
-        neighbor_heap, distance, n_xpoints, progress, n_threads, block_size,
-        grain_size);
+    SimpleNeighborHeap neighbor_heap =
+        nnbf_parallel_query<Distance, RPProgress, RParallel>(
+            distance, k, n_threads, block_size, grain_size, verbose);
+    return heap_to_r(neighbor_heap);
   } else {
-    RPProgress progress(n_xpoints, verbose);
-    nnbf_query(neighbor_heap, distance, n_xpoints, progress);
+    SimpleNeighborHeap neighbor_heap =
+        nnbf_query<Distance, RPProgress>(distance, k, verbose);
+    return heap_to_r(neighbor_heap);
   }
-
-  return heap_to_r(neighbor_heap);
 }
 
 // [[Rcpp::export]]

@@ -21,13 +21,16 @@ context("Brute force queries")
 
 qnbrs4 <- brute_force_knn_query(reference = ui6, query = ui4, k = 4)
 check_query_nbrs(nn = qnbrs4, query = ui4, ref_range = 1:6, query_range = 7:10, k = 4, expected_dist = ui10_eucd, tol = 1e-6)
+expect_equal(sum(qnbrs4$dist), ui4q_edsum, tol = 1e-5)
 
 qnbrs6 <- brute_force_knn_query(reference = ui4, query = ui6, k = 4)
 check_query_nbrs(nn = qnbrs6, query = ui6, ref_range = 7:10, query_range = 1:6, k = 4, expected_dist = ui10_eucd, tol = 1e-6)
+expect_equal(sum(qnbrs6$dist), ui6q_edsum, tol = 1e-5)
 
 # turn off alt metric
 qnbrs6 <- brute_force_knn_query(reference = ui4, query = ui6, k = 4, use_alt_metric = FALSE)
 check_query_nbrs(nn = qnbrs6, query = ui6, ref_range = 7:10, query_range = 1:6, k = 4, expected_dist = ui10_eucd, tol = 1e-6)
+expect_equal(sum(qnbrs6$dist), ui6q_edsum, tol = 1e-5)
 
 # Errors
 
@@ -38,9 +41,11 @@ expect_error(brute_force_knn_query(reference = ui4, query = ui6, k = 4, metric =
 
 qnbrs4 <- brute_force_knn_query(reference = ui6, query = ui4, k = 4, n_threads = 1)
 check_query_nbrs(nn = qnbrs4, query = ui4, ref_range = 1:6, query_range = 7:10, k = 4, expected_dist = ui10_eucd, tol = 1e-6)
+expect_equal(sum(qnbrs4$dist), ui4q_edsum, tol = 1e-5)
 
 qnbrs6 <- brute_force_knn_query(reference = ui4, query = ui6, k = 4, n_threads = 1)
 check_query_nbrs(nn = qnbrs6, query = ui6, ref_range = 7:10, query_range = 1:6, k = 4, expected_dist = ui10_eucd, tol = 1e-6)
+expect_equal(sum(qnbrs6$dist), ui6q_edsum, tol = 1e-5)
 
 # other metrics
 

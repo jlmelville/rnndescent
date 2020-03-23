@@ -28,14 +28,91 @@
 #define TDOANN_BRUTE_FORCE_H
 
 #include "heap.h"
+#include "parallel.h"
 #include "progress.h"
 #include "typedefs.h"
 
 namespace tdoann {
+
 template <typename Distance, typename Progress>
-void nnbf(SimpleNeighborHeap &neighbor_heap, Distance &distance,
-          Progress &progress) {
-  const std::size_t n_points = neighbor_heap.n_points;
+void nnbf_query_window(SimpleNeighborHeap &neighbor_heap, Distance &distance,
+                       Progress &progress, std::size_t begin, std::size_t end) {
+
+  std::size_t n_ref_points = distance.nx;
+  for (std::size_t ref = 0; ref < n_ref_points; ref++) {
+    for (std::size_t query = begin; query < end; query++) {
+      double d = distance(ref, query);
+      if (neighbor_heap.accepts(query, d)) {
+        neighbor_heap.unchecked_push(query, d, ref);
+      }
+    }
+    TDOANN_ITERFINISHED();
+  }
+}
+
+template <typename Distance>
+struct BruteForceWorker : public BatchParallelWorker {
+
+  SimpleNeighborHeap &neighbor_heap;
+  Distance &distance;
+  NullProgress progress;
+
+  BruteForceWorker(SimpleNeighborHeap &neighbor_heap, Distance &distance)
+      : neighbor_heap(neighbor_heap), distance(distance), progress() {}
+
+  void operator()(std::size_t begin, std::size_t end) {
+    nnbf_query_window(neighbor_heap, distance, progress, begin, end);
+  }
+};
+
+template <typename Distance, typename Progress, typename Parallel>
+SimpleNeighborHeap
+nnbf_parallel_query(Distance &distance, std::size_t n_nbrs,
+                    std::size_t n_threads = 0, std::size_t block_size = 64,
+                    std::size_t grain_size = 1, bool verbose = false) {
+  SimpleNeighborHeap neighbor_heap(distance.ny, n_nbrs);
+  Progress progress(1, verbose);
+
+  BruteForceWorker<Distance> worker(neighbor_heap, distance);
+  batch_parallel_for<Progress, decltype(worker), Parallel>(
+      worker, progress, neighbor_heap.n_points, n_threads, block_size,
+      grain_size);
+
+  sort_heap_parallel(neighbor_heap, n_threads, block_size, grain_size);
+
+  return neighbor_heap;
+}
+
+template <typename Distance, typename Progress, typename Parallel>
+SimpleNeighborHeap
+nnbf_parallel(Distance &distance, std::size_t n_nbrs, std::size_t n_threads = 0,
+              std::size_t block_size = 64, std::size_t grain_size = 1,
+              bool verbose = false) {
+  return nnbf_parallel_query<Distance, Progress, Parallel>(
+      distance, n_nbrs, n_threads, block_size, grain_size, verbose);
+}
+
+template <typename Distance, typename Progress>
+SimpleNeighborHeap nnbf_query(Distance &distance, std::size_t n_nbrs,
+                              bool verbose) {
+  SimpleNeighborHeap neighbor_heap(distance.ny, n_nbrs);
+  Progress progress(distance.nx, verbose);
+
+  nnbf_query_window(neighbor_heap, distance, progress, 0,
+                    neighbor_heap.n_points);
+  neighbor_heap.deheap_sort();
+
+  return neighbor_heap;
+}
+
+template <typename Distance, typename Progress>
+SimpleNeighborHeap nnbf(Distance &distance, std::size_t n_nbrs, bool verbose) {
+  // distance.nx == distance.ny but this pattern is consistent with the
+  // query usage
+  SimpleNeighborHeap neighbor_heap(distance.ny, n_nbrs);
+  Progress progress(distance.nx, verbose);
+
+  std::size_t n_points = neighbor_heap.n_points;
   for (std::size_t i = 0; i < n_points; i++) {
     for (std::size_t j = i; j < n_points; j++) {
       double d = distance(i, j);
@@ -50,30 +127,8 @@ void nnbf(SimpleNeighborHeap &neighbor_heap, Distance &distance,
   }
 
   neighbor_heap.deheap_sort();
-}
 
-template <typename Distance, typename Progress>
-void nnbf_query(SimpleNeighborHeap &neighbor_heap, Distance &distance,
-                const std::size_t n_ref_points, Progress &progress) {
-  const std::size_t n_points = neighbor_heap.n_points;
-  nnbf_query_window(neighbor_heap, distance, n_ref_points, progress, 0,
-                    n_points);
-  neighbor_heap.deheap_sort();
-}
-
-template <typename Distance, typename Progress>
-void nnbf_query_window(SimpleNeighborHeap &neighbor_heap, Distance &distance,
-                       const std::size_t n_ref_points, Progress &progress,
-                       std::size_t begin, std::size_t end) {
-  for (std::size_t ref = 0; ref < n_ref_points; ref++) {
-    for (std::size_t query = begin; query < end; query++) {
-      double d = distance(ref, query);
-      if (neighbor_heap.accepts(query, d)) {
-        neighbor_heap.unchecked_push(query, d, ref);
-      }
-    }
-    TDOANN_ITERFINISHED();
-  }
+  return neighbor_heap;
 }
 
 } // namespace tdoann
