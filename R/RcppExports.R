@@ -5,8 +5,8 @@ rnn_brute_force <- function(data, k, metric = "euclidean", n_threads = 0L, block
     .Call(`_rnndescent_rnn_brute_force`, data, k, metric, n_threads, block_size, grain_size, verbose)
 }
 
-rnn_brute_force_query <- function(x, y, k, metric = "euclidean", n_threads = 0L, block_size = 64L, grain_size = 1L, verbose = FALSE) {
-    .Call(`_rnndescent_rnn_brute_force_query`, x, y, k, metric, n_threads, block_size, grain_size, verbose)
+rnn_brute_force_query <- function(reference, query, k, metric = "euclidean", n_threads = 0L, block_size = 64L, grain_size = 1L, verbose = FALSE) {
+    .Call(`_rnndescent_rnn_brute_force_query`, reference, query, k, metric, n_threads, block_size, grain_size, verbose)
 }
 
 merge_nn <- function(nn_idx1, nn_dist1, nn_idx2, nn_dist2, is_query, n_threads, block_size, grain_size = 1L, verbose = FALSE) {
