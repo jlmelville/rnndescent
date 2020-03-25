@@ -31,7 +31,7 @@
 // Useful for diagnostic purposes
 struct HeapSumProgress {
   NeighborHeap &neighbor_heap;
-  const std::size_t n_iters;
+  std::size_t n_iters;
   bool verbose;
 
   std::size_t iter;
@@ -50,9 +50,9 @@ struct HeapSumProgress {
 };
 
 struct RPProgress {
-  const std::size_t scale;
+  std::size_t scale;
   Progress progress;
-  const std::size_t n_iters;
+  std::size_t n_iters;
   std::size_t n_blocks_;
   bool verbose;
 
