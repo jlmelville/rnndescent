@@ -20,13 +20,13 @@
 #include <Rcpp.h>
 
 #include "tdoann/bruteforce.h"
-#include "tdoann/heap.h"
+#include "tdoann/nngraph.h"
 
 #include "rnn_distance.h"
-#include "rnn_heaptor.h"
 #include "rnn_macros.h"
 #include "rnn_parallel.h"
 #include "rnn_progress.h"
+#include "rnn_util.h"
 
 using namespace Rcpp;
 using namespace tdoann;
@@ -45,11 +45,10 @@ using namespace tdoann;
 
 template <typename Distance, typename Progress, typename Parallel>
 struct NNBruteForceBuild {
-  static SimpleNeighborHeap calculate(Distance distance, std::size_t k,
-                                      std::size_t n_threads = 0,
-                                      std::size_t block_size = 64,
-                                      std::size_t grain_size = 1,
-                                      bool verbose = false) {
+  static NNGraph calculate(Distance distance, std::size_t k,
+                           std::size_t n_threads = 0,
+                           std::size_t block_size = 64,
+                           std::size_t grain_size = 1, bool verbose = false) {
 
     if (n_threads > 0) {
       return nnbf_parallel<Distance, Progress, Parallel>(
@@ -62,11 +61,10 @@ struct NNBruteForceBuild {
 
 template <typename Distance, typename Progress, typename Parallel>
 struct NNBruteForceQuery {
-  static SimpleNeighborHeap calculate(Distance distance, std::size_t k,
-                                      std::size_t n_threads = 0,
-                                      std::size_t block_size = 64,
-                                      std::size_t grain_size = 1,
-                                      bool verbose = false) {
+  static NNGraph calculate(Distance distance, std::size_t k,
+                           std::size_t n_threads = 0,
+                           std::size_t block_size = 64,
+                           std::size_t grain_size = 1, bool verbose = false) {
 
     if (n_threads > 0) {
       return nnbf_parallel_query<Distance, Progress, Parallel>(
@@ -85,10 +83,9 @@ auto rnn_brute_force_impl(Distance &distance, std::size_t k,
                           std::size_t grain_size = 1, bool verbose = false)
     -> List {
 
-  SimpleNeighborHeap neighbor_heap =
-      NNBruteForce<Distance, Progress, Parallel>::calculate(
-          distance, k, n_threads, block_size, grain_size, verbose);
-  return heap_to_r(neighbor_heap);
+  NNGraph neighbor_heap = NNBruteForce<Distance, Progress, Parallel>::calculate(
+      distance, k, n_threads, block_size, grain_size, verbose);
+  return graph_to_r(neighbor_heap);
 }
 
 // [[Rcpp::export]]

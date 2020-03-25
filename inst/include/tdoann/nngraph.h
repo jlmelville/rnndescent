@@ -45,6 +45,11 @@ struct NNGraph {
           std::size_t n_points)
       : idx(idx), dist(dist), n_points(n_points),
         n_nbrs(idx.size() / n_points) {}
+
+  NNGraph(std::size_t n_points, std::size_t n_nbrs)
+      : idx(std::vector<int>(n_points * n_nbrs)),
+        dist(std::vector<double>(n_points * n_nbrs)), n_points(n_points),
+        n_nbrs(n_nbrs) {}
 };
 
 template <typename NbrHeap = SimpleNeighborHeap>
@@ -57,6 +62,22 @@ void heap_to_graph(const NbrHeap &heap, NNGraph &nn_graph) {
       nn_graph.dist[rc] = static_cast<double>(heap.dist[rc]);
     }
   }
+}
+
+template <typename NbrHeap = SimpleNeighborHeap>
+NNGraph heap_to_graph(const NbrHeap &heap) {
+  NNGraph nn_graph(heap.n_points, heap.n_nbrs);
+
+  for (std::size_t c = 0; c < nn_graph.n_points; c++) {
+    std::size_t cnnbrs = c * nn_graph.n_nbrs;
+    for (std::size_t r = 0; r < nn_graph.n_nbrs; r++) {
+      std::size_t rc = cnnbrs + r;
+      nn_graph.idx[rc] = static_cast<int>(heap.idx[rc]);
+      nn_graph.dist[rc] = static_cast<double>(heap.dist[rc]);
+    }
+  }
+
+  return nn_graph;
 }
 
 struct HeapAddSymmetric {

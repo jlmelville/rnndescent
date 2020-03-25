@@ -76,6 +76,7 @@ brute_force_knn <- function(data,
       grain_size,
       verbose
     )
+  res$idx <- res$idx + 1
 
   if (use_alt_metric) {
     res$dist <- apply_alt_metric_correction(metric, res$dist)
@@ -484,6 +485,7 @@ brute_force_knn_query <- function(reference,
     grain_size,
     verbose
   )
+  res$idx <- res$idx + 1
 
   if (use_alt_metric) {
     res$dist <- apply_alt_metric_correction(metric, res$dist)

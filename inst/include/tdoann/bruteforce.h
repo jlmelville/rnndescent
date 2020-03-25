@@ -28,6 +28,7 @@
 #define TDOANN_BRUTE_FORCE_H
 
 #include "heap.h"
+#include "nngraph.h"
 #include "parallel.h"
 #include "progress.h"
 #include "typedefs.h"
@@ -66,10 +67,10 @@ struct BruteForceWorker : public BatchParallelWorker {
 };
 
 template <typename Distance, typename Progress, typename Parallel>
-SimpleNeighborHeap
-nnbf_parallel_query(Distance &distance, std::size_t n_nbrs,
-                    std::size_t n_threads = 0, std::size_t block_size = 64,
-                    std::size_t grain_size = 1, bool verbose = false) {
+NNGraph nnbf_parallel_query(Distance &distance, std::size_t n_nbrs,
+                            std::size_t n_threads = 0,
+                            std::size_t block_size = 64,
+                            std::size_t grain_size = 1, bool verbose = false) {
   SimpleNeighborHeap neighbor_heap(distance.ny, n_nbrs);
   Progress progress(1, verbose);
 
@@ -80,21 +81,19 @@ nnbf_parallel_query(Distance &distance, std::size_t n_nbrs,
 
   sort_heap_parallel(neighbor_heap, n_threads, block_size, grain_size);
 
-  return neighbor_heap;
+  return heap_to_graph(neighbor_heap);
 }
 
 template <typename Distance, typename Progress, typename Parallel>
-SimpleNeighborHeap
-nnbf_parallel(Distance &distance, std::size_t n_nbrs, std::size_t n_threads = 0,
-              std::size_t block_size = 64, std::size_t grain_size = 1,
-              bool verbose = false) {
+NNGraph nnbf_parallel(Distance &distance, std::size_t n_nbrs,
+                      std::size_t n_threads = 0, std::size_t block_size = 64,
+                      std::size_t grain_size = 1, bool verbose = false) {
   return nnbf_parallel_query<Distance, Progress, Parallel>(
       distance, n_nbrs, n_threads, block_size, grain_size, verbose);
 }
 
 template <typename Distance, typename Progress>
-SimpleNeighborHeap nnbf_query(Distance &distance, std::size_t n_nbrs,
-                              bool verbose) {
+NNGraph nnbf_query(Distance &distance, std::size_t n_nbrs, bool verbose) {
   SimpleNeighborHeap neighbor_heap(distance.ny, n_nbrs);
   Progress progress(distance.nx, verbose);
 
@@ -102,11 +101,11 @@ SimpleNeighborHeap nnbf_query(Distance &distance, std::size_t n_nbrs,
                     neighbor_heap.n_points);
   neighbor_heap.deheap_sort();
 
-  return neighbor_heap;
+  return heap_to_graph(neighbor_heap);
 }
 
 template <typename Distance, typename Progress>
-SimpleNeighborHeap nnbf(Distance &distance, std::size_t n_nbrs, bool verbose) {
+NNGraph nnbf(Distance &distance, std::size_t n_nbrs, bool verbose) {
   // distance.nx == distance.ny but this pattern is consistent with the
   // query usage
   SimpleNeighborHeap neighbor_heap(distance.ny, n_nbrs);
@@ -128,7 +127,7 @@ SimpleNeighborHeap nnbf(Distance &distance, std::size_t n_nbrs, bool verbose) {
 
   neighbor_heap.deheap_sort();
 
-  return neighbor_heap;
+  return heap_to_graph(neighbor_heap);
 }
 
 } // namespace tdoann
