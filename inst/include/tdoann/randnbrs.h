@@ -117,12 +117,12 @@ struct SerialRandomNbrsImpl {
     Progress progress(1, verbose);
 
     Worker<Distance, Sampler> worker(distance, k, seed);
-    tdoann::batch_serial_for(worker, progress, n_points, block_size);
+    batch_serial_for(worker, progress, n_points, block_size);
 
     NNGraph nn_graph(worker.nn_idx, worker.nn_dist, n_points);
 
     if (sort) {
-      sort_knn_graph<HeapAdd, tdoann::NullProgress>(nn_graph);
+      sort_knn_graph<HeapAdd, NullProgress>(nn_graph);
     }
 
     return nn_graph;
@@ -147,7 +147,7 @@ struct ParallelRandomNbrsImpl {
     NNGraph nn_graph(worker.nn_idx, worker.nn_dist, n_points);
 
     if (sort) {
-      sort_knn_graph_parallel<HeapAdd, tdoann::NullProgress, SimpleNeighborHeap,
+      sort_knn_graph_parallel<HeapAdd, NullProgress, SimpleNeighborHeap,
                               Parallel>(nn_graph, n_threads, block_size,
                                         grain_size);
     }

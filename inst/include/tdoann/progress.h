@@ -41,7 +41,7 @@
   progress.block_finished();
 
 #define TDOANN_CHECKCONVERGENCE()                                              \
-  if (tdoann::is_converged(c, tol)) {                                          \
+  if (is_converged(c, tol)) {                                                  \
     progress.converged(c, tol);                                                \
     break;                                                                     \
   }
