@@ -191,9 +191,8 @@ void nnd_parallel(NeighborHeap &current_graph,
     LocalJoinWorker<Distance, GraphUpdater> local_join_worker(
         current_graph, new_candidate_neighbors, old_candidate_neighbors,
         graph_updater);
-    batch_parallel_for<Progress, decltype(local_join_worker), Parallel>(
-        local_join_worker, progress, n_points, n_threads, block_size,
-        grain_size);
+    batch_parallel_for<Parallel>(local_join_worker, progress, n_points,
+                                 n_threads, block_size, grain_size);
     TDOANN_ITERFINISHED();
     std::size_t c = local_join_worker.c;
     TDOANN_CHECKCONVERGENCE();
@@ -313,9 +312,8 @@ void nnd_query_parallel(
 
     QueryNoNSearchWorker<Distance, GraphUpdater> query_non_search_worker(
         current_graph, graph_updater, new_nbrs, gn_graph, max_candidates);
-    batch_parallel_for<Progress, decltype(query_non_search_worker), Parallel>(
-        query_non_search_worker, progress, n_points, n_threads, block_size,
-        grain_size);
+    batch_parallel_for<Parallel>(query_non_search_worker, progress, n_points,
+                                 n_threads, block_size, grain_size);
 
     TDOANN_ITERFINISHED();
     std::size_t c = query_non_search_worker.n_updates;

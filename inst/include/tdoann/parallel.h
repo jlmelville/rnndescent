@@ -43,7 +43,7 @@ struct BatchParallelWorker {
   void after_parallel(std::size_t begin, std::size_t end) {}
 };
 
-template <typename Progress, typename Worker, typename Parallel>
+template <typename Parallel, typename Progress, typename Worker>
 void batch_parallel_for(Worker &worker, Progress &progress, std::size_t n,
                         std::size_t n_threads, std::size_t block_size,
                         std::size_t grain_size) {

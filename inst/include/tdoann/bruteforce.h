@@ -75,9 +75,8 @@ NNGraph nnbf_parallel_query(Distance &distance, std::size_t n_nbrs,
   Progress progress(1, verbose);
 
   BruteForceWorker<Distance> worker(neighbor_heap, distance);
-  batch_parallel_for<Progress, decltype(worker), Parallel>(
-      worker, progress, neighbor_heap.n_points, n_threads, block_size,
-      grain_size);
+  batch_parallel_for<Parallel>(worker, progress, neighbor_heap.n_points,
+                               n_threads, block_size, grain_size);
 
   sort_heap_parallel(neighbor_heap, n_threads, block_size, grain_size);
 
