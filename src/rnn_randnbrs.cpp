@@ -40,14 +40,12 @@ using namespace Rcpp;
         tdoann::ParallelRandomNbrsImpl<Distance, tdoann::RandomNbrBuildWorker, \
                                        tdoann::LockingHeapAddSymmetric,        \
                                        DQIntSampler, RPProgress, RParallel>;   \
-    RandomNbrsImpl impl(n_threads, block_size, grain_size);                    \
     RANDOM_NBRS_IMPL()                                                         \
   } else {                                                                     \
     using RandomNbrsImpl =                                                     \
         tdoann::SerialRandomNbrsImpl<Distance, tdoann::RandomNbrBuildWorker,   \
                                      tdoann::HeapAddSymmetric, DQIntSampler,   \
                                      RPProgress>;                              \
-    RandomNbrsImpl impl(block_size);                                           \
     RANDOM_NBRS_IMPL()                                                         \
   }
 
@@ -58,28 +56,30 @@ using namespace Rcpp;
         tdoann::ParallelRandomNbrsImpl<Distance, tdoann::RandomNbrQueryWorker, \
                                        tdoann::HeapAddQuery, DQIntSampler,     \
                                        RPProgress, RParallel>;                 \
-    RandomNbrsImpl impl(n_threads, block_size, grain_size);                    \
     RANDOM_NBRS_IMPL()                                                         \
   } else {                                                                     \
     using RandomNbrsImpl =                                                     \
         tdoann::SerialRandomNbrsImpl<Distance, tdoann::RandomNbrQueryWorker,   \
                                      tdoann::HeapAddQuery, DQIntSampler,       \
                                      RPProgress>;                              \
-    RandomNbrsImpl impl(block_size);                                           \
     RANDOM_NBRS_IMPL()                                                         \
   }
 
 #define RANDOM_NBRS_IMPL()                                                     \
   return random_knn_impl<RandomNbrsImpl, Distance>(                            \
-      distance, k, order_by_distance, impl, verbose);
+      distance, k, order_by_distance, block_size, verbose, n_threads,          \
+      grain_size);
 
 /* Functions */
 
 template <typename RandomNbrsImpl, typename Distance>
 auto random_knn_impl(Distance &distance, std::size_t k, bool order_by_distance,
-                     RandomNbrsImpl &impl, bool verbose = false) -> List {
+                     std::size_t block_size, bool verbose,
+                     std::size_t n_threads, std::size_t grain_size) -> List {
   uint64_t seed = pseed();
-  auto nn_graph = impl.build_knn(distance, k, seed, order_by_distance, verbose);
+  auto nn_graph =
+      RandomNbrsImpl::get_nn(distance, k, seed, order_by_distance, block_size,
+                             verbose, n_threads, grain_size);
 
   return graph_to_r(nn_graph);
 }

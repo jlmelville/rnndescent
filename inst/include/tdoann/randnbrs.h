@@ -109,11 +109,9 @@ struct RandomNbrBuildWorker : public BatchParallelWorker {
 template <typename Distance, template <typename, typename> class Worker,
           typename HeapAdd, typename Sampler, typename Progress>
 struct SerialRandomNbrsImpl {
-  std::size_t block_size;
-  SerialRandomNbrsImpl(std::size_t block_size) : block_size(block_size) {}
-
-  NNGraph build_knn(Distance &distance, std::size_t k, uint64_t seed, bool sort,
-                    bool verbose) {
+  static NNGraph get_nn(Distance &distance, std::size_t k, uint64_t seed,
+                        bool sort, std::size_t block_size, bool verbose,
+                        std::size_t, std::size_t) {
     std::size_t n_points = distance.ny;
 
     Progress progress(1, verbose);
@@ -135,22 +133,15 @@ template <typename Distance, template <typename, typename> class Worker,
           typename HeapAdd, typename Sampler, typename Progress,
           typename Parallel>
 struct ParallelRandomNbrsImpl {
-  std::size_t n_threads;
-  std::size_t block_size;
-  std::size_t grain_size;
-
-  ParallelRandomNbrsImpl(std::size_t n_threads = 0,
-                         std::size_t block_size = 4096,
-                         std::size_t grain_size = 1)
-      : n_threads(n_threads), block_size(block_size), grain_size(grain_size) {}
-
-  NNGraph build_knn(Distance &distance, std::size_t k, uint64_t seed, bool sort,
-                    bool verbose) {
+  static NNGraph get_nn(Distance &distance, std::size_t k, uint64_t seed,
+                        bool sort, std::size_t block_size = 4096,
+                        bool verbose = false, std::size_t n_threads = 0,
+                        std::size_t grain_size = 1) {
     std::size_t n_points = distance.ny;
     Progress progress(1, verbose);
 
     Worker<Distance, Sampler> worker(distance, k, seed);
-    tdoann::batch_parallel_for<Progress, decltype(worker), Parallel>(
+    batch_parallel_for<Progress, decltype(worker), Parallel>(
         worker, progress, n_points, n_threads, block_size, grain_size);
 
     NNGraph nn_graph(worker.nn_idx, worker.nn_dist, n_points);
