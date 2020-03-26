@@ -35,52 +35,39 @@ using namespace Rcpp;
 
 #define RANDOM_NBRS_BUILD()                                                    \
   auto distance = create_build_distance<Distance>(data);                       \
-  if (n_threads > 0) {                                                         \
-    using RandomNbrsImpl =                                                     \
-        tdoann::ParallelRandomNbrsImpl<Distance, tdoann::RandomNbrBuildWorker, \
-                                       tdoann::LockingHeapAddSymmetric,        \
-                                       DQIntSampler, RPProgress, RParallel>;   \
-    RANDOM_NBRS_IMPL()                                                         \
-  } else {                                                                     \
-    using RandomNbrsImpl =                                                     \
-        tdoann::SerialRandomNbrsImpl<Distance, tdoann::RandomNbrBuildWorker,   \
-                                     tdoann::HeapAddSymmetric, DQIntSampler,   \
-                                     RPProgress>;                              \
-    RANDOM_NBRS_IMPL()                                                         \
-  }
+  return random_knn_build_impl<Distance>(distance, k, order_by_distance,       \
+                                         block_size, verbose, n_threads,       \
+                                         grain_size);
 
 #define RANDOM_NBRS_QUERY()                                                    \
   auto distance = create_query_distance<Distance>(reference, query);           \
-  if (n_threads > 0) {                                                         \
-    using RandomNbrsImpl =                                                     \
-        tdoann::ParallelRandomNbrsImpl<Distance, tdoann::RandomNbrQueryWorker, \
-                                       tdoann::HeapAddQuery, DQIntSampler,     \
-                                       RPProgress, RParallel>;                 \
-    RANDOM_NBRS_IMPL()                                                         \
-  } else {                                                                     \
-    using RandomNbrsImpl =                                                     \
-        tdoann::SerialRandomNbrsImpl<Distance, tdoann::RandomNbrQueryWorker,   \
-                                     tdoann::HeapAddQuery, DQIntSampler,       \
-                                     RPProgress>;                              \
-    RANDOM_NBRS_IMPL()                                                         \
-  }
-
-#define RANDOM_NBRS_IMPL()                                                     \
-  return random_knn_impl<RandomNbrsImpl, Distance>(                            \
-      distance, k, order_by_distance, block_size, verbose, n_threads,          \
-      grain_size);
+  return random_knn_query_impl<Distance>(distance, k, order_by_distance,       \
+                                         block_size, verbose, n_threads,       \
+                                         grain_size);
 
 /* Functions */
 
-template <typename RandomNbrsImpl, typename Distance>
-auto random_knn_impl(Distance &distance, std::size_t k, bool order_by_distance,
-                     std::size_t block_size, bool verbose,
-                     std::size_t n_threads, std::size_t grain_size) -> List {
-  uint64_t seed = pseed();
+template <typename Distance>
+auto random_knn_build_impl(Distance &distance, std::size_t k,
+                           bool order_by_distance, std::size_t block_size,
+                           bool verbose, std::size_t n_threads,
+                           std::size_t grain_size) -> List {
   auto nn_graph =
-      RandomNbrsImpl::get_nn(distance, k, seed, order_by_distance, block_size,
-                             verbose, n_threads, grain_size);
+      tdoann::build_nn<Distance, DQIntSampler, RPProgress, RParallel>(
+          distance, k, order_by_distance, block_size, verbose, n_threads,
+          grain_size);
+  return graph_to_r(nn_graph);
+}
 
+template <typename Distance>
+auto random_knn_query_impl(Distance &distance, std::size_t k,
+                           bool order_by_distance, std::size_t block_size,
+                           bool verbose, std::size_t n_threads,
+                           std::size_t grain_size) -> List {
+  auto nn_graph =
+      tdoann::query_nn<Distance, DQIntSampler, RPProgress, RParallel>(
+          distance, k, order_by_distance, block_size, verbose, n_threads,
+          grain_size);
   return graph_to_r(nn_graph);
 }
 

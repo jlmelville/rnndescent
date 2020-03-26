@@ -46,9 +46,10 @@ struct RandomNbrQueryWorker : public BatchParallelWorker {
 
   uint64_t seed;
 
-  RandomNbrQueryWorker(Distance &distance, std::size_t k, uint64_t seed)
+  RandomNbrQueryWorker(Distance &distance, std::size_t k)
       : distance(distance), n_points(distance.ny), k(k), nn_idx(n_points * k),
-        nn_dist(n_points * k, 0.0), nrefs(distance.nx), seed(seed) {}
+        nn_dist(n_points * k, 0.0), nrefs(distance.nx),
+        seed(Sampler::get_seed()) {}
 
   void operator()(std::size_t begin, std::size_t end) {
     Sampler int_sampler(seed, end);
@@ -79,10 +80,10 @@ struct RandomNbrBuildWorker : public BatchParallelWorker {
   int k_minus_1;
   uint64_t seed;
 
-  RandomNbrBuildWorker(Distance &distance, std::size_t k, uint64_t seed)
+  RandomNbrBuildWorker(Distance &distance, std::size_t k)
       : distance(distance), n_points(distance.ny), k(k), nn_idx(n_points * k),
         nn_dist(n_points * k), n_points_minus_1(n_points - 1), k_minus_1(k - 1),
-        seed(seed) {}
+        seed(Sampler::get_seed()) {}
 
   void operator()(std::size_t begin, std::size_t end) {
     Sampler int_sampler(seed, end);
@@ -106,55 +107,66 @@ struct RandomNbrBuildWorker : public BatchParallelWorker {
   }
 };
 
-template <typename Distance, template <typename, typename> class Worker,
-          typename HeapAdd, typename Sampler, typename Progress>
-struct SerialRandomNbrsImpl {
-  static NNGraph get_nn(Distance &distance, std::size_t k, uint64_t seed,
-                        bool sort, std::size_t block_size, bool verbose,
-                        std::size_t, std::size_t) {
-    std::size_t n_points = distance.ny;
+template <typename Distance, typename Progress, typename Parallel,
+          typename Worker, typename HeapAdd>
+NNGraph get_nn(Distance &distance, std::size_t k, bool sort,
+               std::size_t block_size = 4096, bool verbose = false,
+               std::size_t n_threads = 0, std::size_t grain_size = 1) {
+  std::size_t n_points = distance.ny;
+  Progress progress(1, verbose);
 
-    Progress progress(1, verbose);
-
-    Worker<Distance, Sampler> worker(distance, k, seed);
-    batch_serial_for(worker, progress, n_points, block_size);
-
-    NNGraph nn_graph(worker.nn_idx, worker.nn_dist, n_points);
-
-    if (sort) {
-      sort_knn_graph<HeapAdd, NullProgress>(nn_graph);
-    }
-
-    return nn_graph;
-  }
-};
-
-template <typename Distance, template <typename, typename> class Worker,
-          typename HeapAdd, typename Sampler, typename Progress,
-          typename Parallel>
-struct ParallelRandomNbrsImpl {
-  static NNGraph get_nn(Distance &distance, std::size_t k, uint64_t seed,
-                        bool sort, std::size_t block_size = 4096,
-                        bool verbose = false, std::size_t n_threads = 0,
-                        std::size_t grain_size = 1) {
-    std::size_t n_points = distance.ny;
-    Progress progress(1, verbose);
-
-    Worker<Distance, Sampler> worker(distance, k, seed);
+  Worker worker(distance, k);
+  if (n_threads > 0) {
     batch_parallel_for<Parallel>(worker, progress, n_points, n_threads,
                                  block_size, grain_size);
+  } else {
+    batch_serial_for(worker, progress, n_points, block_size);
+  }
 
-    NNGraph nn_graph(worker.nn_idx, worker.nn_dist, n_points);
+  NNGraph nn_graph(worker.nn_idx, worker.nn_dist, n_points);
 
-    if (sort) {
+  if (sort) {
+    if (n_threads > 0) {
+
       sort_knn_graph_parallel<HeapAdd, NullProgress, SimpleNeighborHeap,
                               Parallel>(nn_graph, n_threads, block_size,
                                         grain_size);
+    } else {
+      sort_knn_graph<HeapAdd, NullProgress>(nn_graph);
     }
-
-    return nn_graph;
   }
-};
+
+  return nn_graph;
+}
+
+template <typename Distance, typename Sampler, typename Progress,
+          typename Parallel>
+NNGraph build_nn(Distance &distance, std::size_t k, bool sort,
+                 std::size_t block_size = 4096, bool verbose = false,
+                 std::size_t n_threads = 0, std::size_t grain_size = 1) {
+  using Worker = tdoann::RandomNbrBuildWorker<Distance, Sampler>;
+  if (n_threads > 0) {
+    using HeapAdd = tdoann::LockingHeapAddSymmetric;
+    return get_nn<Distance, Progress, Parallel, Worker, HeapAdd>(
+        distance, k, sort, block_size, verbose, n_threads, grain_size);
+
+  } else {
+    using HeapAdd = tdoann::HeapAddSymmetric;
+    return get_nn<Distance, Progress, Parallel, Worker, HeapAdd>(
+        distance, k, sort, block_size, verbose, n_threads, grain_size);
+  }
+}
+
+template <typename Distance, typename Sampler, typename Progress,
+          typename Parallel>
+NNGraph query_nn(Distance &distance, std::size_t k, bool sort,
+                 std::size_t block_size = 4096, bool verbose = false,
+                 std::size_t n_threads = 0, std::size_t grain_size = 1) {
+  using Worker = tdoann::RandomNbrQueryWorker<Distance, Sampler>;
+  using HeapAdd = tdoann::HeapAddQuery;
+  return get_nn<Distance, Progress, Parallel, Worker, HeapAdd>(
+      distance, k, sort, block_size, verbose, n_threads, grain_size);
+}
 
 } // namespace tdoann
 

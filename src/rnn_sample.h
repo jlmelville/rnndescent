@@ -26,6 +26,8 @@
 
 struct DQIntSampler {
 
+  static uint64_t get_seed() { return pseed(); }
+
   uint64_t seed;
   uint64_t seed2;
   dqrng::rng64_t rng;
