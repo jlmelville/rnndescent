@@ -106,36 +106,19 @@ struct RandomNbrBuildWorker : public BatchParallelWorker {
   }
 };
 
-template <typename ProgressT, typename SamplerT> struct SerialRandomKnnQuery {
-  using Sampler = SamplerT;
-  using Progress = ProgressT;
-
-  using HeapAdd = tdoann::HeapAddQuery;
-  template <typename Distance>
-  using Worker = RandomNbrQueryWorker<Distance, SamplerT>;
-};
-
-template <typename ProgressT, typename SamplerT> struct SerialRandomKnnBuild {
-  using Sampler = SamplerT;
-  using Progress = ProgressT;
-
-  using HeapAdd = tdoann::HeapAddSymmetric;
-  template <typename Distance>
-  using Worker = RandomNbrBuildWorker<Distance, SamplerT>;
-};
-
-template <typename SerialRandomKnn> struct SerialRandomNbrsImpl {
+template <typename Distance, template <typename, typename> class Worker,
+          typename HeapAdd, typename Sampler, typename Progress>
+struct SerialRandomNbrsImpl {
   std::size_t block_size;
   SerialRandomNbrsImpl(std::size_t block_size) : block_size(block_size) {}
 
-  template <typename Distance>
   NNGraph build_knn(Distance &distance, std::size_t k, uint64_t seed, bool sort,
                     bool verbose) {
     std::size_t n_points = distance.ny;
 
     Progress progress(1, verbose);
 
-    Worker<Distance> worker(distance, k, seed);
+    Worker<Distance, Sampler> worker(distance, k, seed);
     tdoann::batch_serial_for(worker, progress, n_points, block_size);
 
     NNGraph nn_graph(worker.nn_idx, worker.nn_dist, n_points);
@@ -146,39 +129,12 @@ template <typename SerialRandomKnn> struct SerialRandomNbrsImpl {
 
     return nn_graph;
   }
-
-  using Progress = typename SerialRandomKnn::Progress;
-  using HeapAdd = typename SerialRandomKnn::HeapAdd;
-  template <typename D>
-  using Worker = typename SerialRandomKnn::template Worker<D>;
 };
 
-template <typename Distance, typename Sampler>
-using ParallelRandomNbrBuildWorker = RandomNbrBuildWorker<Distance, Sampler>;
-
-template <typename ProgressT, typename SamplerT, typename ParallelT>
-struct ParallelRandomKnnBuild {
-  using Sampler = SamplerT;
-  using Progress = ProgressT;
-  using Parallel = ParallelT;
-
-  using HeapAdd = tdoann::LockingHeapAddSymmetric;
-  template <typename Distance>
-  using Worker = RandomNbrBuildWorker<Distance, SamplerT>;
-};
-
-template <typename ProgressT, typename SamplerT, typename ParallelT>
-struct ParallelRandomKnnQuery {
-  using Sampler = SamplerT;
-  using Progress = ProgressT;
-  using Parallel = ParallelT;
-
-  using HeapAdd = tdoann::HeapAddQuery;
-  template <typename Distance>
-  using Worker = RandomNbrQueryWorker<Distance, SamplerT>;
-};
-
-template <typename ParallelRandomKnn> struct ParallelRandomNbrsImpl {
+template <typename Distance, template <typename, typename> class Worker,
+          typename HeapAdd, typename Sampler, typename Progress,
+          typename Parallel>
+struct ParallelRandomNbrsImpl {
   std::size_t n_threads;
   std::size_t block_size;
   std::size_t grain_size;
@@ -188,13 +144,12 @@ template <typename ParallelRandomKnn> struct ParallelRandomNbrsImpl {
                          std::size_t grain_size = 1)
       : n_threads(n_threads), block_size(block_size), grain_size(grain_size) {}
 
-  template <typename Distance>
   NNGraph build_knn(Distance &distance, std::size_t k, uint64_t seed, bool sort,
                     bool verbose) {
     std::size_t n_points = distance.ny;
     Progress progress(1, verbose);
 
-    Worker<Distance> worker(distance, k, seed);
+    Worker<Distance, Sampler> worker(distance, k, seed);
     tdoann::batch_parallel_for<Progress, decltype(worker), Parallel>(
         worker, progress, n_points, n_threads, block_size, grain_size);
 
@@ -208,12 +163,6 @@ template <typename ParallelRandomKnn> struct ParallelRandomNbrsImpl {
 
     return nn_graph;
   }
-
-  using Progress = typename ParallelRandomKnn::Progress;
-  using HeapAdd = typename ParallelRandomKnn::HeapAdd;
-  template <typename D>
-  using Worker = typename ParallelRandomKnn::template Worker<D>;
-  using Parallel = typename ParallelRandomKnn::Parallel;
 };
 
 } // namespace tdoann

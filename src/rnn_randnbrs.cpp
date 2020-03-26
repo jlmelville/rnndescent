@@ -36,13 +36,17 @@ using namespace Rcpp;
 #define RANDOM_NBRS_BUILD()                                                    \
   auto distance = create_build_distance<Distance>(data);                       \
   if (n_threads > 0) {                                                         \
-    using RandomNbrsImpl = tdoann::ParallelRandomNbrsImpl<                     \
-        tdoann::ParallelRandomKnnBuild<RPProgress, DQIntSampler, RParallel>>;  \
+    using RandomNbrsImpl =                                                     \
+        tdoann::ParallelRandomNbrsImpl<Distance, tdoann::RandomNbrBuildWorker, \
+                                       tdoann::LockingHeapAddSymmetric,        \
+                                       DQIntSampler, RPProgress, RParallel>;   \
     RandomNbrsImpl impl(n_threads, block_size, grain_size);                    \
     RANDOM_NBRS_IMPL()                                                         \
   } else {                                                                     \
-    using RandomNbrsImpl = tdoann::SerialRandomNbrsImpl<                       \
-        tdoann::SerialRandomKnnBuild<RPProgress, DQIntSampler>>;               \
+    using RandomNbrsImpl =                                                     \
+        tdoann::SerialRandomNbrsImpl<Distance, tdoann::RandomNbrBuildWorker,   \
+                                     tdoann::HeapAddSymmetric, DQIntSampler,   \
+                                     RPProgress>;                              \
     RandomNbrsImpl impl(block_size);                                           \
     RANDOM_NBRS_IMPL()                                                         \
   }
@@ -50,13 +54,17 @@ using namespace Rcpp;
 #define RANDOM_NBRS_QUERY()                                                    \
   auto distance = create_query_distance<Distance>(reference, query);           \
   if (n_threads > 0) {                                                         \
-    using RandomNbrsImpl = tdoann::ParallelRandomNbrsImpl<                     \
-        tdoann::ParallelRandomKnnQuery<RPProgress, DQIntSampler, RParallel>>;  \
+    using RandomNbrsImpl =                                                     \
+        tdoann::ParallelRandomNbrsImpl<Distance, tdoann::RandomNbrQueryWorker, \
+                                       tdoann::HeapAddQuery, DQIntSampler,     \
+                                       RPProgress, RParallel>;                 \
     RandomNbrsImpl impl(n_threads, block_size, grain_size);                    \
     RANDOM_NBRS_IMPL()                                                         \
   } else {                                                                     \
-    using RandomNbrsImpl = tdoann::SerialRandomNbrsImpl<                       \
-        tdoann::SerialRandomKnnQuery<RPProgress, DQIntSampler>>;               \
+    using RandomNbrsImpl =                                                     \
+        tdoann::SerialRandomNbrsImpl<Distance, tdoann::RandomNbrQueryWorker,   \
+                                     tdoann::HeapAddQuery, DQIntSampler,       \
+                                     RPProgress>;                              \
     RandomNbrsImpl impl(block_size);                                           \
     RANDOM_NBRS_IMPL()                                                         \
   }
