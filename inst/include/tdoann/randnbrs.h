@@ -143,10 +143,10 @@ NNGraph get_nn(Distance &distance, std::size_t k, bool sort,
 
 template <typename Distance, typename Sampler, typename Progress,
           typename Parallel>
-NNGraph build_nn(const std::vector<typename Distance::Input> &data,
-                 std::size_t ndim, std::size_t k, bool sort,
-                 std::size_t block_size = 4096, bool verbose = false,
-                 std::size_t n_threads = 0, std::size_t grain_size = 1) {
+NNGraph random_build(const std::vector<typename Distance::Input> &data,
+                     std::size_t ndim, std::size_t k, bool sort,
+                     std::size_t block_size = 4096, bool verbose = false,
+                     std::size_t n_threads = 0, std::size_t grain_size = 1) {
   Distance distance(data, ndim);
 
   using Worker = tdoann::RandomNbrBuildWorker<Distance, Sampler>;
@@ -164,12 +164,12 @@ NNGraph build_nn(const std::vector<typename Distance::Input> &data,
 
 template <typename Distance, typename Sampler, typename Progress,
           typename Parallel>
-NNGraph query_nn(const std::vector<typename Distance::Input> &reference,
-                 std::size_t ndim,
-                 const std::vector<typename Distance::Input> &query,
-                 std::size_t k, bool sort, std::size_t block_size = 4096,
-                 bool verbose = false, std::size_t n_threads = 0,
-                 std::size_t grain_size = 1) {
+NNGraph random_query(const std::vector<typename Distance::Input> &reference,
+                     std::size_t ndim,
+                     const std::vector<typename Distance::Input> &query,
+                     std::size_t k, bool sort, std::size_t block_size = 4096,
+                     bool verbose = false, std::size_t n_threads = 0,
+                     std::size_t grain_size = 1) {
   Distance distance(reference, query, ndim);
 
   using Worker = tdoann::RandomNbrQueryWorker<Distance, Sampler>;

@@ -33,44 +33,43 @@ using namespace Rcpp;
 /* Macros */
 
 #define RANDOM_NBRS_BUILD()                                                    \
-  return random_knn_build_impl<Distance>(                                      \
-      data, k, order_by_distance, block_size, verbose, n_threads, grain_size);
+  return random_build_impl<Distance>(data, k, order_by_distance, block_size,   \
+                                     verbose, n_threads, grain_size);
 
 #define RANDOM_NBRS_QUERY()                                                    \
-  return random_knn_query_impl<Distance>(reference, query, k,                  \
-                                         order_by_distance, block_size,        \
-                                         verbose, n_threads, grain_size);
+  return random_query_impl<Distance>(reference, query, k, order_by_distance,   \
+                                     block_size, verbose, n_threads,           \
+                                     grain_size);
 
 /* Functions */
 
 template <typename Distance>
-auto random_knn_build_impl(NumericMatrix data, std::size_t k,
-                           bool order_by_distance, std::size_t block_size,
-                           bool verbose, std::size_t n_threads,
-                           std::size_t grain_size) -> List {
+auto random_build_impl(NumericMatrix data, std::size_t k,
+                       bool order_by_distance, std::size_t block_size,
+                       bool verbose, std::size_t n_threads,
+                       std::size_t grain_size) -> List {
 
-  auto vec = r2dvt<Distance>(data);
+  auto data_vec = r2dvt<Distance>(data);
 
   auto nn_graph =
-      tdoann::build_nn<Distance, DQIntSampler, RPProgress, RParallel>(
-          vec, data.ncol(), k, order_by_distance, block_size, verbose,
+      tdoann::random_build<Distance, DQIntSampler, RPProgress, RParallel>(
+          data_vec, data.ncol(), k, order_by_distance, block_size, verbose,
           n_threads, grain_size);
 
   return graph_to_r(nn_graph);
 }
 
 template <typename Distance>
-auto random_knn_query_impl(NumericMatrix reference, NumericMatrix query,
-                           std::size_t k, bool order_by_distance,
-                           std::size_t block_size, bool verbose,
-                           std::size_t n_threads, std::size_t grain_size)
-    -> List {
+auto random_query_impl(NumericMatrix reference, NumericMatrix query,
+                       std::size_t k, bool order_by_distance,
+                       std::size_t block_size, bool verbose,
+                       std::size_t n_threads, std::size_t grain_size) -> List {
 
   auto ref_vec = r2dvt<Distance>(reference);
   auto query_vec = r2dvt<Distance>(query);
 
   auto nn_graph =
-      tdoann::query_nn<Distance, DQIntSampler, RPProgress, RParallel>(
+      tdoann::random_query<Distance, DQIntSampler, RPProgress, RParallel>(
           ref_vec, reference.ncol(), query_vec, k, order_by_distance,
           block_size, verbose, n_threads, grain_size);
 
