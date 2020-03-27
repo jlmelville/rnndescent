@@ -27,6 +27,8 @@
 #ifndef TDOANN_BRUTE_FORCE_H
 #define TDOANN_BRUTE_FORCE_H
 
+#include <vector>
+
 #include "heap.h"
 #include "nngraph.h"
 #include "parallel.h"
@@ -127,6 +129,38 @@ NNGraph nnbf(Distance &distance, std::size_t n_nbrs, bool verbose) {
   neighbor_heap.deheap_sort();
 
   return heap_to_graph(neighbor_heap);
+}
+
+template <typename Distance, typename Progress, typename Parallel>
+NNGraph brute_force_build(const std::vector<typename Distance::Input> &data,
+                          std::size_t ndim, std::size_t k,
+                          std::size_t n_threads = 0,
+                          std::size_t block_size = 64,
+                          std::size_t grain_size = 1, bool verbose = false) {
+  Distance distance(data, ndim);
+
+  if (n_threads > 0) {
+    return nnbf_parallel<Distance, Progress, Parallel>(
+        distance, k, n_threads, block_size, grain_size, verbose);
+  } else {
+    return nnbf<Distance, Progress>(distance, k, verbose);
+  }
+}
+
+template <typename Distance, typename Progress, typename Parallel>
+NNGraph brute_force_query(
+    const std::vector<typename Distance::Input> &reference, std::size_t ndim,
+    const std::vector<typename Distance::Input> &query, std::size_t k,
+    std::size_t n_threads = 0, std::size_t block_size = 64,
+    std::size_t grain_size = 1, bool verbose = false) {
+  Distance distance(reference, query, ndim);
+
+  if (n_threads > 0) {
+    return nnbf_parallel_query<Distance, Progress, Parallel>(
+        distance, k, n_threads, block_size, grain_size, verbose);
+  } else {
+    return nnbf_query<Distance, Progress>(distance, k, verbose);
+  }
 }
 
 } // namespace tdoann

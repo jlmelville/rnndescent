@@ -20,7 +20,6 @@
 #include <Rcpp.h>
 
 #include "tdoann/bruteforce.h"
-#include "tdoann/nngraph.h"
 
 #include "rnn_distance.h"
 #include "rnn_macros.h"
@@ -29,63 +28,39 @@
 #include "rnn_util.h"
 
 using namespace Rcpp;
-using namespace tdoann;
 
 #define BRUTE_FORCE_BUILD()                                                    \
-  auto distance = create_build_distance<Distance>(data);                       \
-  return rnn_brute_force_impl<NNBruteForceBuild, Distance, RPProgress,         \
-                              RParallel>(distance, k, n_threads, block_size,   \
-                                         grain_size, verbose);
+  return bf_build_impl<Distance>(data, k, n_threads, block_size, grain_size,   \
+                                 verbose);
 
 #define BRUTE_FORCE_QUERY()                                                    \
-  auto distance = create_query_distance<Distance>(reference, query);           \
-  return rnn_brute_force_impl<NNBruteForceQuery, Distance, RPProgress,         \
-                              RParallel>(distance, k, n_threads, block_size,   \
-                                         grain_size, verbose);
+  return bf_query_impl<Distance>(reference, query, k, n_threads, block_size,   \
+                                 grain_size, verbose);
 
-template <typename Distance, typename Progress, typename Parallel>
-struct NNBruteForceBuild {
-  static NNGraph calculate(Distance distance, std::size_t k,
-                           std::size_t n_threads = 0,
-                           std::size_t block_size = 64,
-                           std::size_t grain_size = 1, bool verbose = false) {
+template <typename Distance>
+auto bf_query_impl(NumericMatrix reference, NumericMatrix query, std::size_t k,
+                   std::size_t n_threads = 0, std::size_t block_size = 64,
+                   std::size_t grain_size = 1, bool verbose = false) -> List {
+  auto ref_vec = r2dvt<Distance>(reference);
+  auto query_vec = r2dvt<Distance>(query);
 
-    if (n_threads > 0) {
-      return nnbf_parallel<Distance, Progress, Parallel>(
-          distance, k, n_threads, block_size, grain_size, verbose);
-    } else {
-      return nnbf<Distance, Progress>(distance, k, verbose);
-    }
-  }
-};
+  auto nn_graph = tdoann::brute_force_query<Distance, RPProgress, RParallel>(
+      ref_vec, reference.ncol(), query_vec, k, n_threads, block_size,
+      grain_size, verbose);
 
-template <typename Distance, typename Progress, typename Parallel>
-struct NNBruteForceQuery {
-  static NNGraph calculate(Distance distance, std::size_t k,
-                           std::size_t n_threads = 0,
-                           std::size_t block_size = 64,
-                           std::size_t grain_size = 1, bool verbose = false) {
+  return graph_to_r(nn_graph);
+}
 
-    if (n_threads > 0) {
-      return nnbf_parallel_query<Distance, Progress, Parallel>(
-          distance, k, n_threads, block_size, grain_size, verbose);
-    } else {
-      return nnbf_query<Distance, Progress>(distance, k, verbose);
-    }
-  }
-};
+template <typename Distance>
+auto bf_build_impl(NumericMatrix data, std::size_t k, std::size_t n_threads = 0,
+                   std::size_t block_size = 64, std::size_t grain_size = 1,
+                   bool verbose = false) -> List {
+  auto data_vec = r2dvt<Distance>(data);
 
-template <template <typename, typename, typename> class NNBruteForce,
-          typename Distance, typename Progress, typename Parallel>
-auto rnn_brute_force_impl(Distance &distance, std::size_t k,
-                          std::size_t n_threads = 0,
-                          std::size_t block_size = 64,
-                          std::size_t grain_size = 1, bool verbose = false)
-    -> List {
+  auto nn_graph = tdoann::brute_force_build<Distance, RPProgress, RParallel>(
+      data_vec, data.ncol(), k, n_threads, block_size, grain_size, verbose);
 
-  NNGraph neighbor_heap = NNBruteForce<Distance, Progress, Parallel>::calculate(
-      distance, k, n_threads, block_size, grain_size, verbose);
-  return graph_to_r(neighbor_heap);
+  return graph_to_r(nn_graph);
 }
 
 // [[Rcpp::export]]
