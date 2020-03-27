@@ -29,6 +29,11 @@ template <typename T> std::vector<T> r2vt(Rcpp::NumericMatrix data) {
 }
 
 template <typename Distance>
+std::vector<typename Distance::Input> r2dvt(Rcpp::NumericMatrix data) {
+  return r2vt<typename Distance::Input>(data);
+}
+
+template <typename Distance>
 Distance create_build_distance(Rcpp::NumericMatrix data) {
   return Distance(r2vt<typename Distance::Input>(data), data.ncol());
 }
