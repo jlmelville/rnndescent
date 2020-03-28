@@ -102,12 +102,15 @@ bool is_converged(std::size_t n_updates, double tol) {
 }
 
 // Pretty close to the NNDescentFull algorithm (#2 in the paper)
-template <typename GUFactoryT, typename Progress, typename Distance,
+template <typename Distance, typename GUFactoryT, typename Progress,
           typename CandidatePriorityFactory>
-void nnd_full(Distance &distance, NeighborHeap &current_graph,
-              std::size_t max_candidates, std::size_t n_iters,
-              CandidatePriorityFactory &candidate_priority_factory, double tol,
-              bool verbose) {
+void nnd_build(const std::vector<typename Distance::Input> &data,
+               std::size_t ndim, NeighborHeap &current_graph,
+               std::size_t max_candidates, std::size_t n_iters,
+               CandidatePriorityFactory &candidate_priority_factory, double tol,
+               bool verbose) {
+  Distance distance(data, ndim);
+
   Progress progress(current_graph, n_iters, verbose);
   auto graph_updater = GUFactoryT::create(current_graph, distance);
 

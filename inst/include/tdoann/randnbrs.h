@@ -129,7 +129,6 @@ NNGraph get_nn(Distance &distance, std::size_t k, bool sort,
 
   if (sort) {
     if (n_threads > 0) {
-
       sort_knn_graph_parallel<HeapAdd, NullProgress, SimpleNeighborHeap,
                               Parallel>(nn_graph, n_threads, block_size,
                                         grain_size);
