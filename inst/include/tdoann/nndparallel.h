@@ -108,18 +108,17 @@ struct FlagNewCandidatesWorker {
   }
 };
 
-template <typename Distance, template <typename> class GraphUpdater>
-struct LocalJoinWorker {
+template <typename Distance, typename GraphUpdater> struct LocalJoinWorker {
   const NeighborHeap &current_graph;
   const NeighborHeap &new_nbrs;
   const NeighborHeap &old_nbrs;
   std::size_t n_nbrs;
   std::size_t max_candidates;
-  GraphUpdater<Distance> &graph_updater;
+  GraphUpdater &graph_updater;
   std::size_t c;
 
   LocalJoinWorker(const NeighborHeap &current_graph, NeighborHeap &new_nbrs,
-                  NeighborHeap &old_nbrs, GraphUpdater<Distance> &graph_updater)
+                  NeighborHeap &old_nbrs, GraphUpdater &graph_updater)
       : current_graph(current_graph), new_nbrs(new_nbrs), old_nbrs(old_nbrs),
         n_nbrs(current_graph.n_nbrs), max_candidates(new_nbrs.n_nbrs),
         graph_updater(graph_updater), c(0) {}
@@ -155,16 +154,18 @@ struct LocalJoinWorker {
   }
 };
 
-template <typename Distance, typename Parallel,
-          typename CandidatePriorityFactoryImpl, typename Progress,
-          template <typename> class GraphUpdater>
-void nnd_parallel(NeighborHeap &current_graph,
-                  GraphUpdater<Distance> &graph_updater,
+template <typename GUFactoryT, typename Progress, typename Parallel,
+          typename Distance, typename CandidatePriorityFactoryImpl>
+void nnd_parallel(Distance &distance, NeighborHeap &current_graph,
                   std::size_t max_candidates, std::size_t n_iters,
                   CandidatePriorityFactoryImpl &candidate_priority_factory,
-                  Progress &progress, double tol, std::size_t n_threads = 0,
+                  double tol, std::size_t n_threads = 0,
                   std::size_t block_size = 16384, std::size_t grain_size = 1,
                   bool verbose = false) {
+
+  Progress progress(current_graph, n_iters, verbose);
+  auto graph_updater = GUFactoryT::create(current_graph, distance);
+
   std::size_t n_points = current_graph.n_points;
 
   for (std::size_t n = 0; n < n_iters; n++) {
@@ -188,7 +189,7 @@ void nnd_parallel(NeighborHeap &current_graph,
     Parallel::parallel_for(0, n_points, flag_new_candidates_worker, n_threads,
                            grain_size);
 
-    LocalJoinWorker<Distance, GraphUpdater> local_join_worker(
+    LocalJoinWorker<Distance, decltype(graph_updater)> local_join_worker(
         current_graph, new_candidate_neighbors, old_candidate_neighbors,
         graph_updater);
     batch_parallel_for<Parallel>(local_join_worker, progress, n_points,
@@ -227,10 +228,10 @@ template <typename CandidatePriorityFactoryImpl> struct QueryCandidatesWorker {
   }
 };
 
-template <typename Distance, template <typename> class GraphUpdater>
+template <typename Distance, typename GraphUpdater>
 struct QueryNoNSearchWorker : public BatchParallelWorker {
   NeighborHeap &current_graph;
-  GraphUpdater<Distance> &graph_updater;
+  GraphUpdater &graph_updater;
   const NeighborHeap &new_nbrs;
   const NeighborHeap &gn_graph;
   std::size_t max_candidates;
@@ -238,8 +239,7 @@ struct QueryNoNSearchWorker : public BatchParallelWorker {
   NullProgress progress;
   std::size_t n_updates;
 
-  QueryNoNSearchWorker(NeighborHeap &current_graph,
-                       GraphUpdater<Distance> &graph_updater,
+  QueryNoNSearchWorker(NeighborHeap &current_graph, GraphUpdater &graph_updater,
                        const NeighborHeap &new_nbrs,
                        const NeighborHeap &gn_graph, std::size_t max_candidates)
       : current_graph(current_graph), graph_updater(graph_updater),
@@ -250,7 +250,7 @@ struct QueryNoNSearchWorker : public BatchParallelWorker {
     std::size_t ref_idx = 0;
     std::size_t nbr_ref_idx = 0;
     std::size_t n_nbrs = current_graph.n_nbrs;
-    typename GraphUpdater<Distance>::NeighborSet seen(n_nbrs);
+    typename GraphUpdater::NeighborSet seen(n_nbrs);
 
     for (std::size_t query_idx = begin; query_idx < end; query_idx++) {
       for (std::size_t j = 0; j < max_candidates; j++) {
@@ -278,17 +278,19 @@ struct QueryNoNSearchWorker : public BatchParallelWorker {
   }
 };
 
-template <typename Distance, typename Parallel,
-          typename CandidatePriorityFactoryImpl, typename Progress,
-          template <typename> class GraphUpdater>
+template <typename GUFactoryT, typename Progress, typename Parallel,
+          typename Distance, typename CandidatePriorityFactoryImpl>
 void nnd_query_parallel(
-    NeighborHeap &current_graph, GraphUpdater<Distance> &graph_updater,
+    Distance &distance, NeighborHeap &current_graph,
     const std::vector<std::size_t> &reference_idx, std::size_t n_ref_points,
     std::size_t max_candidates, std::size_t n_iters,
-    CandidatePriorityFactoryImpl &candidate_priority_factory,
-    Progress &progress, double tol, std::size_t n_threads = 0,
-    std::size_t block_size = 16384, std::size_t grain_size = 1,
-    bool verbose = false) {
+    CandidatePriorityFactoryImpl &candidate_priority_factory, double tol,
+    std::size_t n_threads = 0, std::size_t block_size = 16384,
+    std::size_t grain_size = 1, bool verbose = false) {
+
+  Progress progress(current_graph, n_iters, verbose);
+  auto graph_updater = GUFactoryT::create(current_graph, distance);
+
   std::size_t n_points = current_graph.n_points;
   std::size_t n_nbrs = current_graph.n_nbrs;
 
@@ -310,8 +312,9 @@ void nnd_query_parallel(
                              grain_size);
     }
 
-    QueryNoNSearchWorker<Distance, GraphUpdater> query_non_search_worker(
-        current_graph, graph_updater, new_nbrs, gn_graph, max_candidates);
+    QueryNoNSearchWorker<Distance, decltype(graph_updater)>
+        query_non_search_worker(current_graph, graph_updater, new_nbrs,
+                                gn_graph, max_candidates);
     batch_parallel_for<Parallel>(query_non_search_worker, progress, n_points,
                                  n_threads, block_size, grain_size);
 

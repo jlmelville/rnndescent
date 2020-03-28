@@ -28,6 +28,7 @@
 #define TDOANN_NNDESCENT_H
 
 #include "candidatepriority.h"
+#include "graphupdate.h"
 #include "heap.h"
 #include "progress.h"
 #include "typedefs.h"
@@ -101,13 +102,15 @@ bool is_converged(std::size_t n_updates, double tol) {
 }
 
 // Pretty close to the NNDescentFull algorithm (#2 in the paper)
-template <template <typename> class GraphUpdater, typename Distance,
-          typename CandidatePriorityFactory, typename Progress>
-void nnd_full(NeighborHeap &current_graph,
-              GraphUpdater<Distance> &graph_updater, std::size_t max_candidates,
-              std::size_t n_iters,
-              CandidatePriorityFactory &candidate_priority_factory,
-              Progress &progress, double tol, bool verbose) {
+template <typename GUFactoryT, typename Progress, typename Distance,
+          typename CandidatePriorityFactory>
+void nnd_full(Distance &distance, NeighborHeap &current_graph,
+              std::size_t max_candidates, std::size_t n_iters,
+              CandidatePriorityFactory &candidate_priority_factory, double tol,
+              bool verbose) {
+  Progress progress(current_graph, n_iters, verbose);
+  auto graph_updater = GUFactoryT::create(current_graph, distance);
+
   std::size_t n_points = current_graph.n_points;
 
   auto candidate_priority = candidate_priority_factory.create();
@@ -192,15 +195,18 @@ std::size_t local_join(NeighborHeap &current_graph,
 //    keep track of old neighbors: if a neighbor is "new" we search all its
 //    general neighbors; otherwise, we don't search it at all because we must
 //    have already tried those candidates.
-template <template <typename> class GraphUpdater, typename Distance,
-          typename CandidatePriorityFactory, typename Progress>
-void nnd_query(NeighborHeap &current_graph,
-               GraphUpdater<Distance> &graph_updater,
+template <typename GUFactoryT, typename Progress, typename Distance,
+          typename CandidatePriorityFactory>
+void nnd_query(Distance &distance, NeighborHeap &current_graph,
                const std::vector<std::size_t> &reference_idx,
                std::size_t n_ref_points, std::size_t max_candidates,
                std::size_t n_iters,
-               CandidatePriorityFactory &candidate_priority_factory,
-               Progress &progress, double tol, bool verbose) {
+               CandidatePriorityFactory &candidate_priority_factory, double tol,
+               bool verbose) {
+
+  Progress progress(current_graph, n_iters, verbose);
+  auto graph_updater = GUFactoryT::create(current_graph, distance);
+
   std::size_t n_points = current_graph.n_points;
   std::size_t n_nbrs = current_graph.n_nbrs;
 

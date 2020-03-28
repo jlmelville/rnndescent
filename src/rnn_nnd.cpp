@@ -147,12 +147,9 @@ struct NNDSerial {
                  std::size_t max_candidates, std::size_t n_iters, double tol,
                  CandidatePriorityFactoryImpl &candidate_priority_factory,
                  bool verbose) {
-
-    Progress progress(current_graph, n_iters, verbose);
-    auto graph_updater = GUFactoryT::create(current_graph, distance);
-
-    nnd_full(current_graph, graph_updater, max_candidates, n_iters,
-             candidate_priority_factory, progress, tol, verbose);
+    nnd_full<GUFactoryT, Progress>(distance, current_graph, max_candidates,
+                                   n_iters, candidate_priority_factory, tol,
+                                   verbose);
   }
   void create_heap(NeighborHeap &current_graph, IntegerMatrix nn_idx,
                    NumericMatrix nn_dist) {
@@ -177,13 +174,10 @@ struct NNDParallel {
                  CandidatePriorityFactoryImpl &candidate_priority_factory,
                  bool verbose) {
 
-    Progress progress(current_graph, n_iters, verbose);
-    auto graph_updater = GUFactoryT::create(current_graph, distance);
-
-    nnd_parallel<Distance, RParallel>(
-        current_graph, graph_updater, max_candidates, n_iters,
-        candidate_priority_factory, progress, tol, n_threads, block_size,
-        grain_size, verbose);
+    nnd_parallel<GUFactoryT, Progress, RParallel>(
+        distance, current_graph, max_candidates, n_iters,
+        candidate_priority_factory, tol, n_threads, block_size, grain_size,
+        verbose);
   }
 
   void create_heap(NeighborHeap &current_graph, IntegerMatrix nn_idx,
@@ -210,12 +204,9 @@ struct NNDQuerySerial {
 
     auto ref_idx_vec = as<std::vector<std::size_t>>(transpose(ref_idx));
 
-    Progress progress(current_graph, n_iters, verbose);
-    auto graph_updater = GUFactoryT::create(current_graph, distance);
-
-    nnd_query(current_graph, graph_updater, ref_idx_vec, n_ref_points,
-              max_candidates, n_iters, candidate_priority_factory, progress,
-              tol, verbose);
+    nnd_query<GUFactoryT, Progress>(distance, current_graph, ref_idx_vec,
+                                    n_ref_points, max_candidates, n_iters,
+                                    candidate_priority_factory, tol, verbose);
   }
   void create_heap(NeighborHeap &current_graph, IntegerMatrix nn_idx,
                    NumericMatrix nn_dist) {
@@ -245,13 +236,10 @@ struct NNDQueryParallel {
                  bool verbose) {
     auto ref_idx_vec = as<std::vector<std::size_t>>(transpose(ref_idx));
 
-    Progress progress(current_graph, n_iters, verbose);
-    auto graph_updater = GUFactoryT::create(current_graph, distance);
-
-    nnd_query_parallel<Distance, RParallel>(
-        current_graph, graph_updater, ref_idx_vec, n_ref_points, max_candidates,
-        n_iters, candidate_priority_factory, progress, tol, n_threads,
-        block_size, grain_size, verbose);
+    nnd_query_parallel<GUFactoryT, Progress, RParallel>(
+        distance, current_graph, ref_idx_vec, n_ref_points, max_candidates,
+        n_iters, candidate_priority_factory, tol, n_threads, block_size,
+        grain_size, verbose);
   }
 
   void create_heap(NeighborHeap &current_graph, IntegerMatrix nn_idx,
