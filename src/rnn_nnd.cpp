@@ -38,7 +38,7 @@ using namespace tdoann;
 using namespace Rcpp;
 
 #define NND_IMPL()                                                             \
-  return nn_descent_impl<NNDImpl, GraphUpdater, Distance,                      \
+  return nn_descent_impl<NNDImpl, GUFactoryT, Distance,                        \
                          CandidatePriorityFactoryImpl, Progress>(              \
       distance, nn_idx, nn_dist, nnd_impl, candidate_priority_factory,         \
       max_candidates, n_iters, delta, verbose);
@@ -98,20 +98,20 @@ using namespace Rcpp;
     using NNDImpl = NNDParallel;                                               \
     NNDImpl nnd_impl(n_threads, block_size, grain_size);                       \
     if (low_memory) {                                                          \
-      using GraphUpdater = BatchGraphUpdater<Distance>;                        \
+      using GUFactoryT = GUFactory<BatchGraphUpdater>;                         \
       NND_CANDIDATE_PRIORITY_PARALLEL()                                        \
     } else {                                                                   \
-      using GraphUpdater = BatchGraphUpdaterHiMem<Distance>;                   \
+      using GUFactoryT = GUFactory<BatchGraphUpdaterHiMem>;                    \
       NND_CANDIDATE_PRIORITY_PARALLEL()                                        \
     }                                                                          \
   } else {                                                                     \
     using NNDImpl = NNDSerial;                                                 \
     NNDImpl nnd_impl;                                                          \
     if (low_memory) {                                                          \
-      using GraphUpdater = SerialGraphUpdater<Distance>;                       \
+      using GUFactoryT = GUFactory<SerialGraphUpdater>;                        \
       NND_CANDIDATE_PRIORITY_SERIAL()                                          \
     } else {                                                                   \
-      using GraphUpdater = SerialGraphUpdaterHiMem<Distance>;                  \
+      using GUFactoryT = GUFactory<SerialGraphUpdaterHiMem>;                   \
       NND_CANDIDATE_PRIORITY_SERIAL()                                          \
     }                                                                          \
   }
@@ -122,32 +122,35 @@ using namespace Rcpp;
     using NNDImpl = NNDQueryParallel;                                          \
     NNDImpl nnd_impl(reference_idx, n_threads, block_size, grain_size);        \
     if (low_memory) {                                                          \
-      using GraphUpdater = QueryBatchGraphUpdater<Distance>;                   \
+      using GUFactoryT = GUFactory<QueryBatchGraphUpdater>;                    \
       NND_CANDIDATE_PRIORITY_PARALLEL()                                        \
     } else {                                                                   \
-      using GraphUpdater = QueryBatchGraphUpdaterHiMem<Distance>;              \
+      using GUFactoryT = GUFactory<QueryBatchGraphUpdaterHiMem>;               \
       NND_CANDIDATE_PRIORITY_PARALLEL()                                        \
     }                                                                          \
   } else {                                                                     \
     using NNDImpl = NNDQuerySerial;                                            \
     NNDImpl nnd_impl(reference_idx);                                           \
     if (low_memory) {                                                          \
-      using GraphUpdater = QuerySerialGraphUpdater<Distance>;                  \
+      using GUFactoryT = GUFactory<QuerySerialGraphUpdater>;                   \
       NND_CANDIDATE_PRIORITY_SERIAL()                                          \
     } else {                                                                   \
-      using GraphUpdater = QuerySerialGraphUpdaterHiMem<Distance>;             \
+      using GUFactoryT = GUFactory<QuerySerialGraphUpdaterHiMem>;              \
       NND_CANDIDATE_PRIORITY_SERIAL()                                          \
     }                                                                          \
   }
 
 struct NNDSerial {
-  template <template <typename> class GraphUpdater, typename Distance,
-            typename Progress, typename CandidatePriorityFactoryImpl>
-  void build_knn(NeighborHeap &current_graph,
-                 GraphUpdater<Distance> &graph_updater,
+  template <typename Progress, typename GUFactoryT,
+            typename CandidatePriorityFactoryImpl, typename Distance>
+  void build_knn(Distance &distance, NeighborHeap &current_graph,
                  std::size_t max_candidates, std::size_t n_iters, double tol,
                  CandidatePriorityFactoryImpl &candidate_priority_factory,
-                 Progress &progress, bool verbose) {
+                 bool verbose) {
+
+    Progress progress(current_graph, n_iters, verbose);
+    auto graph_updater = GUFactoryT::create(current_graph, distance);
+
     nnd_full(current_graph, graph_updater, max_candidates, n_iters,
              candidate_priority_factory, progress, tol, verbose);
   }
@@ -167,17 +170,20 @@ struct NNDParallel {
               std::size_t grain_size)
       : n_threads(n_threads), block_size(block_size), grain_size(grain_size) {}
 
-  template <template <typename> class GraphUpdater, typename Distance,
-            typename Progress, typename CandidatePriorityFactoryImpl>
-  void build_knn(NeighborHeap &current_graph,
-                 GraphUpdater<Distance> &graph_updater,
+  template <typename Progress, typename GUFactoryT,
+            typename CandidatePriorityFactoryImpl, typename Distance>
+  void build_knn(Distance &distance, NeighborHeap &current_graph,
                  std::size_t max_candidates, std::size_t n_iters, double tol,
                  CandidatePriorityFactoryImpl &candidate_priority_factory,
-                 Progress &progress, bool verbose) {
-    nnd_parallel<Distance, CandidatePriorityFactoryImpl, Progress, GraphUpdater,
-                 RParallel>(current_graph, graph_updater, max_candidates,
-                            n_iters, candidate_priority_factory, progress, tol,
-                            n_threads, block_size, grain_size, verbose);
+                 bool verbose) {
+
+    Progress progress(current_graph, n_iters, verbose);
+    auto graph_updater = GUFactoryT::create(current_graph, distance);
+
+    nnd_parallel<Distance, RParallel>(
+        current_graph, graph_updater, max_candidates, n_iters,
+        candidate_priority_factory, progress, tol, n_threads, block_size,
+        grain_size, verbose);
   }
 
   void create_heap(NeighborHeap &current_graph, IntegerMatrix nn_idx,
@@ -195,15 +201,17 @@ struct NNDQuerySerial {
   NNDQuerySerial(IntegerMatrix ref_idx)
       : ref_idx(ref_idx), n_ref_points(ref_idx.nrow()) {}
 
-  template <template <typename> class GraphUpdater, typename Distance,
-            typename Progress, typename CandidatePriorityFactoryImpl>
-  void build_knn(NeighborHeap &current_graph,
-                 GraphUpdater<Distance> &graph_updater,
+  template <typename Progress, typename GUFactoryT,
+            typename CandidatePriorityFactoryImpl, typename Distance>
+  void build_knn(Distance &distance, NeighborHeap &current_graph,
                  std::size_t max_candidates, std::size_t n_iters, double tol,
                  CandidatePriorityFactoryImpl &candidate_priority_factory,
-                 Progress &progress, bool verbose) {
+                 bool verbose) {
 
     auto ref_idx_vec = as<std::vector<std::size_t>>(transpose(ref_idx));
+
+    Progress progress(current_graph, n_iters, verbose);
+    auto graph_updater = GUFactoryT::create(current_graph, distance);
 
     nnd_query(current_graph, graph_updater, ref_idx_vec, n_ref_points,
               max_candidates, n_iters, candidate_priority_factory, progress,
@@ -229,17 +237,18 @@ struct NNDQueryParallel {
       : ref_idx(ref_idx), n_ref_points(ref_idx.nrow()), n_threads(n_threads),
         block_size(block_size), grain_size(grain_size) {}
 
-  template <template <typename> class GraphUpdater, typename Distance,
-            typename Progress, typename CandidatePriorityFactoryImpl>
-  void build_knn(NeighborHeap &current_graph,
-                 GraphUpdater<Distance> &graph_updater,
+  template <typename Progress, typename GUFactoryT,
+            typename CandidatePriorityFactoryImpl, typename Distance>
+  void build_knn(Distance &distance, NeighborHeap &current_graph,
                  std::size_t max_candidates, std::size_t n_iters, double tol,
                  CandidatePriorityFactoryImpl &candidate_priority_factory,
-                 Progress &progress, bool verbose) {
+                 bool verbose) {
     auto ref_idx_vec = as<std::vector<std::size_t>>(transpose(ref_idx));
 
-    nnd_query_parallel<Distance, CandidatePriorityFactoryImpl, Progress,
-                       GraphUpdater, RParallel>(
+    Progress progress(current_graph, n_iters, verbose);
+    auto graph_updater = GUFactoryT::create(current_graph, distance);
+
+    nnd_query_parallel<Distance, RParallel>(
         current_graph, graph_updater, ref_idx_vec, n_ref_points, max_candidates,
         n_iters, candidate_priority_factory, progress, tol, n_threads,
         block_size, grain_size, verbose);
@@ -252,7 +261,7 @@ struct NNDQueryParallel {
   }
 };
 
-template <typename NNDImpl, typename GraphUpdater, typename Distance,
+template <typename NNDImpl, typename GUFactoryT, typename Distance,
           typename CandidatePriorityFactoryImpl, typename Progress>
 List nn_descent_impl(Distance &distance, IntegerMatrix nn_idx,
                      NumericMatrix nn_dist, NNDImpl &nnd_impl,
@@ -265,12 +274,10 @@ List nn_descent_impl(Distance &distance, IntegerMatrix nn_idx,
 
   NeighborHeap current_graph(n_points, n_nbrs);
   nnd_impl.create_heap(current_graph, nn_idx, nn_dist);
-  GraphUpdater graph_updater(current_graph, distance);
 
-  Progress progress(current_graph, n_iters, verbose);
-
-  nnd_impl.build_knn(current_graph, graph_updater, max_candidates, n_iters, tol,
-                     candidate_priority_factory, progress, verbose);
+  nnd_impl.template build_knn<Progress, GUFactoryT>(
+      distance, current_graph, max_candidates, n_iters, tol,
+      candidate_priority_factory, verbose);
 
   return heap_to_r(current_graph);
 }

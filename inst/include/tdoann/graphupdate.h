@@ -592,6 +592,19 @@ template <typename Distance> struct QueryBatchGraphUpdaterHiMem {
   using NeighborSet = UnorderedNeighborSet;
 };
 
+// Template aliases can't be declared inside a function, so this struct is
+// necessary to avoid wanting to write e.g.:
+// template <typename T>
+// using GraphUpdater = SerialGraphUpdater<T>;
+// which won't compile.
+template <template <typename> class GraphUpdater> struct GUFactory {
+  template <typename Distance>
+  static GraphUpdater<Distance> create(NeighborHeap &current_graph,
+                                       Distance &distance) {
+    return GraphUpdater<Distance>(current_graph, distance);
+  }
+};
+
 } // namespace tdoann
 
 #endif // TDOANN_GRAPHUPDATE_H

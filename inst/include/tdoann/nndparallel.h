@@ -155,9 +155,9 @@ struct LocalJoinWorker {
   }
 };
 
-template <typename Distance, typename CandidatePriorityFactoryImpl,
-          typename Progress, template <typename> class GraphUpdater,
-          typename Parallel>
+template <typename Distance, typename Parallel,
+          typename CandidatePriorityFactoryImpl, typename Progress,
+          template <typename> class GraphUpdater>
 void nnd_parallel(NeighborHeap &current_graph,
                   GraphUpdater<Distance> &graph_updater,
                   std::size_t max_candidates, std::size_t n_iters,
@@ -278,9 +278,9 @@ struct QueryNoNSearchWorker : public BatchParallelWorker {
   }
 };
 
-template <typename Distance, typename CandidatePriorityFactoryImpl,
-          typename Progress, template <typename> class GraphUpdater,
-          typename Parallel>
+template <typename Distance, typename Parallel,
+          typename CandidatePriorityFactoryImpl, typename Progress,
+          template <typename> class GraphUpdater>
 void nnd_query_parallel(
     NeighborHeap &current_graph, GraphUpdater<Distance> &graph_updater,
     const std::vector<std::size_t> &reference_idx, std::size_t n_ref_points,
