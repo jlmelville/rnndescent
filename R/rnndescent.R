@@ -383,9 +383,7 @@ nnd_knn <- function(data,
     verbose = verbose,
     progress = progress
   )
-  if (n_threads == 0) {
-    res$idx <- res$idx + 1
-  }
+  res$idx <- res$idx + 1
 
   if (use_alt_metric) {
     res$dist <- apply_alt_metric_correction(metric, res$dist)

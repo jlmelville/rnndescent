@@ -154,19 +154,26 @@ template <typename Distance, typename GraphUpdater> struct LocalJoinWorker {
   }
 };
 
-template <typename GUFactoryT, typename Progress, typename Parallel,
-          typename Distance, typename CandidatePriorityFactoryImpl>
-void nnd_parallel(Distance &distance, NeighborHeap &current_graph,
-                  std::size_t max_candidates, std::size_t n_iters,
-                  CandidatePriorityFactoryImpl &candidate_priority_factory,
-                  double tol, std::size_t n_threads = 0,
-                  std::size_t block_size = 16384, std::size_t grain_size = 1,
-                  bool verbose = false) {
+template <typename Distance, typename GUFactoryT, typename Progress,
+          typename Parallel, typename CandidatePriorityFactoryImpl>
+NNGraph nnd_build_parallel(
+    const std::vector<typename Distance::Input> &data, std::size_t ndim,
+    const NNGraph &nn_init, std::size_t max_candidates, std::size_t n_iters,
+    CandidatePriorityFactoryImpl &candidate_priority_factory, double delta,
+    std::size_t n_threads = 0, std::size_t block_size = 16384,
+    std::size_t grain_size = 1, bool verbose = false) {
+  Distance distance(data, ndim);
+
+  std::size_t n_points = nn_init.n_points;
+  std::size_t n_nbrs = nn_init.n_nbrs;
+  double tol = delta * n_nbrs * n_points;
+
+  NeighborHeap current_graph(n_points, n_nbrs);
+  graph_to_heap_parallel<LockingHeapAddSymmetric>(
+      current_graph, nn_init, n_threads, 1000, grain_size, true);
 
   Progress progress(current_graph, n_iters, verbose);
   auto graph_updater = GUFactoryT::create(current_graph, distance);
-
-  std::size_t n_points = current_graph.n_points;
 
   for (std::size_t n = 0; n < n_iters; n++) {
     NeighborHeap new_candidate_neighbors(n_points, max_candidates);
@@ -199,6 +206,8 @@ void nnd_parallel(Distance &distance, NeighborHeap &current_graph,
     TDOANN_CHECKCONVERGENCE();
   }
   sort_heap_parallel(current_graph, n_threads, block_size, grain_size);
+
+  return heap_to_graph(current_graph);
 }
 
 template <typename CandidatePriorityFactoryImpl> struct QueryCandidatesWorker {

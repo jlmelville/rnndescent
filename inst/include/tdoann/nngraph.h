@@ -164,9 +164,9 @@ template <typename HeapAdd, typename Progress = NullProgress,
           typename NbrHeap = SimpleNeighborHeap, typename Parallel = NoParallel>
 void graph_to_heap_parallel(NbrHeap &heap, const NNGraph &nn_graph,
                             std::size_t n_threads, std::size_t block_size,
-                            std::size_t grain_size) {
+                            std::size_t grain_size, bool transpose = false) {
   VecToHeapWorker<HeapAdd, NbrHeap> worker(
-      heap, nn_graph.idx, nn_graph.n_points, nn_graph.dist, false);
+      heap, nn_graph.idx, nn_graph.n_points, nn_graph.dist, transpose);
   Progress progress;
   batch_parallel_for<Parallel>(worker, progress, nn_graph.n_points, n_threads,
                                block_size, grain_size);

@@ -179,23 +179,15 @@ struct NNDBuildParallel {
               CandidatePriorityFactoryImpl &candidate_priority_factory,
               std::size_t max_candidates = 50, std::size_t n_iters = 10,
               double delta = 0.001, bool verbose = false) {
-    std::size_t n_points = nn_idx.nrow();
-    std::size_t n_nbrs = nn_idx.ncol();
-    double tol = delta * n_nbrs * n_points;
+    auto data_vec = r2dvt<Distance>(data);
+    auto init_nn = r_to_graph(nn_idx, nn_dist, nn_idx.nrow() - 1);
 
-    auto distance = create_build_distance<Distance>(data);
-
-    NeighborHeap current_graph(nn_idx.nrow(), nn_idx.ncol());
-    r_to_heap_parallel<LockingHeapAddSymmetric>(
-        current_graph, nn_idx, nn_dist, n_threads, block_size, grain_size,
-        current_graph.n_points - 1);
-
-    nnd_parallel<GUFactoryT, Progress, RParallel>(
-        distance, current_graph, max_candidates, n_iters,
-        candidate_priority_factory, tol, n_threads, block_size, grain_size,
+    auto result = nnd_build_parallel<Distance, GUFactoryT, Progress, RParallel>(
+        data_vec, data.ncol(), init_nn, max_candidates, n_iters,
+        candidate_priority_factory, delta, n_threads, block_size, grain_size,
         verbose);
 
-    return heap_to_r(current_graph);
+    return graph_to_r(result);
   }
 };
 
