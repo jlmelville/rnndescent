@@ -31,21 +31,21 @@
 #include "rnn_rng.h"
 
 // Uses R API: Not thread safe
-uint64_t pseed() {
+auto pseed() -> uint64_t {
   Rcpp::IntegerVector seed(2, dqrng::R_random_int);
   return dqrng::convert_seed<uint64_t>(seed);
 }
 
-dqrng::rng64_t parallel_rng(uint64_t seed) {
+auto parallel_rng(uint64_t seed) -> dqrng::rng64_t {
   return std::make_shared<dqrng::random_64bit_wrapper<pcg64>>();
 }
 
 // based on code in the dqsample package
-uint64_t random64() {
+auto random64() -> uint64_t {
   return R::runif(0, 1) * (std::numeric_limits<uint64_t>::max)();
 }
 
-double RRand::unif() { return R::runif(0, 1); }
+auto RRand::unif() -> double { return R::runif(0, 1); }
 
 TauRand::TauRand(uint64_t seed, uint64_t seed2) : prng(nullptr) {
   dqrng::rng64_t rng = parallel_rng(seed);
@@ -56,4 +56,4 @@ TauRand::TauRand(uint64_t seed, uint64_t seed2) : prng(nullptr) {
 
   prng.reset(new tdoann::tau_prng(tau_seeds[0], tau_seeds[1], tau_seeds[2]));
 }
-double TauRand::unif() { return prng->rand(); }
+auto TauRand::unif() -> double { return prng->rand(); }

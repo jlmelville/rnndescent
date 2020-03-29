@@ -154,12 +154,12 @@ template <typename Distance, typename GraphUpdater> struct LocalJoinWorker {
 
 template <typename Distance, typename GUFactoryT, typename Progress,
           typename Parallel, typename CandidatePriorityFactoryImpl>
-NNGraph nnd_build_parallel(
+auto nnd_build_parallel(
     const std::vector<typename Distance::Input> &data, std::size_t ndim,
     const NNGraph &nn_init, std::size_t max_candidates, std::size_t n_iters,
     CandidatePriorityFactoryImpl &candidate_priority_factory, double delta,
     std::size_t n_threads = 0, std::size_t block_size = 16384,
-    std::size_t grain_size = 1, bool verbose = false) {
+    std::size_t grain_size = 1, bool verbose = false) -> NNGraph {
   Distance distance(data, ndim);
 
   std::size_t n_points = nn_init.n_points;
@@ -287,14 +287,14 @@ struct QueryNoNSearchWorker : public BatchParallelWorker {
 
 template <typename Distance, typename GUFactoryT, typename Progress,
           typename Parallel, typename CandidatePriorityFactoryImpl>
-NNGraph nnd_query_parallel(
+auto nnd_query_parallel(
     const std::vector<typename Distance::Input> &reference, std::size_t ndim,
     const std::vector<typename Distance::Input> &query, const NNGraph &nn_init,
     const std::vector<std::size_t> &reference_idx, std::size_t max_candidates,
     std::size_t n_iters,
     CandidatePriorityFactoryImpl &candidate_priority_factory, double delta,
     std::size_t n_threads = 0, std::size_t block_size = 16384,
-    std::size_t grain_size = 1, bool verbose = false) {
+    std::size_t grain_size = 1, bool verbose = false) -> NNGraph {
   Distance distance(reference, query, ndim);
 
   std::size_t n_points = nn_init.n_points;

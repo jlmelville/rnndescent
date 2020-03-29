@@ -43,9 +43,9 @@ struct HeapSumProgress {
   void block_finished() {}
   void iter_finished();
   void stopping_early(){};
-  bool check_interrupt();
+  auto check_interrupt() -> bool;
   void converged(std::size_t n_updates, double tol);
-  double dist_sum() const;
+  auto dist_sum() const -> double;
   void iter_msg(std::size_t iter) const;
 };
 
@@ -66,14 +66,14 @@ struct RPProgress {
   void block_finished();
   void iter_finished();
   void stopping_early();
-  bool check_interrupt();
+  auto check_interrupt() -> bool;
   void converged(std::size_t n_updates, double tol);
   // convert float between 0...n_iters to int from 0...scale
-  int scaled(double d);
+  auto scaled(double d) -> int;
 };
 
 struct RInterruptableProgress {
-  bool is_aborted;
+  bool is_aborted{false};
 
   RInterruptableProgress();
   RInterruptableProgress(std::size_t, bool);
@@ -81,7 +81,7 @@ struct RInterruptableProgress {
   void block_finished() {}
   void iter_finished() {}
   void stopping_early() {}
-  bool check_interrupt();
+  auto check_interrupt() -> bool;
 };
 
 #endif // RNN_PROGRESS_H

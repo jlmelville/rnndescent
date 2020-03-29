@@ -24,23 +24,23 @@
 
 #include "tdoann/distance.h"
 
-template <typename T> std::vector<T> r2vt(Rcpp::NumericMatrix data) {
+template <typename T> auto r2vt(Rcpp::NumericMatrix data) -> std::vector<T> {
   return Rcpp::as<std::vector<T>>(Rcpp::transpose(data));
 }
 
 template <typename Distance>
-std::vector<typename Distance::Input> r2dvt(Rcpp::NumericMatrix data) {
+auto r2dvt(Rcpp::NumericMatrix data) -> std::vector<typename Distance::Input> {
   return r2vt<typename Distance::Input>(data);
 }
 
 template <typename Distance>
-Distance create_build_distance(Rcpp::NumericMatrix data) {
+auto create_build_distance(Rcpp::NumericMatrix data) -> Distance {
   return Distance(r2vt<typename Distance::Input>(data), data.ncol());
 }
 
 template <typename Distance>
-Distance create_query_distance(Rcpp::NumericMatrix reference,
-                               Rcpp::NumericMatrix query) {
+auto create_query_distance(Rcpp::NumericMatrix reference,
+                           Rcpp::NumericMatrix query) -> Distance {
   return Distance(r2vt<typename Distance::Input>(reference),
                   r2vt<typename Distance::Input>(query), query.ncol());
 }

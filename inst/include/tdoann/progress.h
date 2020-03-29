@@ -50,13 +50,13 @@ namespace tdoann {
 // Defines the methods required, but does nothing. Safe to use from
 // multi-threaded code if a dummy no-op version is needed.
 struct NullProgress {
-  NullProgress() {}
+  NullProgress() = default;
   NullProgress(std::size_t, bool) {}
   void set_n_blocks(std::size_t) {}
   void block_finished() {}
   void iter_finished() {}
   void stopping_early() {}
-  bool check_interrupt() { return false; }
+  auto check_interrupt() -> bool { return false; }
 };
 } // namespace tdoann
 

@@ -41,7 +41,7 @@ template <typename In, typename Out> struct Euclidean {
             std::size_t ndim)
       : x(x), y(y), ndim(ndim), nx(x.size() / ndim), ny(y.size() / ndim) {}
 
-  Out operator()(std::size_t i, std::size_t j) const {
+  auto operator()(std::size_t i, std::size_t j) const -> Out {
     Out sum = 0.0;
     std::size_t di = ndim * i;
     std::size_t dj = ndim * j;
@@ -70,7 +70,7 @@ template <typename In, typename Out> struct L2Sqr {
   L2Sqr(const std::vector<In> &x, const std::vector<In> &y, std::size_t ndim)
       : x(x), y(y), ndim(ndim), nx(x.size() / ndim), ny(y.size() / ndim) {}
 
-  Out operator()(std::size_t i, std::size_t j) const {
+  auto operator()(std::size_t i, std::size_t j) const -> Out {
     Out sum = 0.0;
     std::size_t di = ndim * i;
     std::size_t dj = ndim * j;
@@ -94,7 +94,7 @@ template <typename In, typename Out> struct L2Sqr {
 
 // relies on NRVO to avoid a copy
 template <typename T>
-std::vector<T> normalize(const std::vector<T> &vec, std::size_t ndim) {
+auto normalize(const std::vector<T> &vec, std::size_t ndim) -> std::vector<T> {
   std::vector<T> normalized(vec.size());
   std::size_t npoints = vec.size() / ndim;
   for (std::size_t i = 0; i < npoints; i++) {
@@ -114,8 +114,9 @@ std::vector<T> normalize(const std::vector<T> &vec, std::size_t ndim) {
 }
 
 template <typename In, typename Out>
-Out cosine_impl(const std::vector<In> &x, std::size_t i,
-                const std::vector<In> &y, std::size_t j, std::size_t ndim) {
+auto cosine_impl(const std::vector<In> &x, std::size_t i,
+                 const std::vector<In> &y, std::size_t j, std::size_t ndim)
+    -> Out {
   std::size_t di = ndim * i;
   std::size_t dj = ndim * j;
 
@@ -136,7 +137,7 @@ template <typename In, typename Out> struct CosineSelf {
   CosineSelf(const std::vector<In> &data, std::size_t ndim)
       : x(normalize(data, ndim)), ndim(ndim), nx(data.size() / ndim), ny(nx) {}
 
-  Out operator()(std::size_t i, std::size_t j) const {
+  auto operator()(std::size_t i, std::size_t j) const -> Out {
     return cosine_impl<In, Out>(x, i, x, j, ndim);
   }
 
@@ -155,7 +156,7 @@ template <typename In, typename Out> struct CosineQuery {
       : x_(normalize(x, ndim)), y_(normalize(y, ndim)), ndim(ndim),
         nx(x.size() / ndim), ny(y.size() / ndim) {}
 
-  Out operator()(std::size_t i, std::size_t j) const {
+  auto operator()(std::size_t i, std::size_t j) const -> Out {
     return cosine_impl<In, Out>(x_, i, y_, j, ndim);
   }
 
@@ -170,7 +171,7 @@ template <typename In, typename Out> struct Manhattan {
             std::size_t ndim)
       : x(x), y(y), ndim(ndim), nx(x.size() / ndim), ny(y.size() / ndim) {}
 
-  Out operator()(std::size_t i, std::size_t j) const {
+  auto operator()(std::size_t i, std::size_t j) const -> Out {
     Out sum = 0.0;
     std::size_t di = ndim * i;
     std::size_t dj = ndim * j;
@@ -199,7 +200,7 @@ using BitVec = std::vector<BitSet<64>>;
 // to use built in integer popcount routines for the bitset count()
 // method. Relies on NRVO to avoid copying return value
 template <typename T>
-BitVec to_bitvec(const std::vector<T> &vec, std::size_t ndim) {
+auto to_bitvec(const std::vector<T> &vec, std::size_t ndim) -> BitVec {
   BitSet<64> bits;
   std::size_t bit_count = 0;
   std::size_t vd_count = 0;
@@ -231,8 +232,8 @@ BitVec to_bitvec(const std::vector<T> &vec, std::size_t ndim) {
 }
 
 template <typename Out>
-Out hamming_impl(const BitVec &x, std::size_t i, const BitVec &y, std::size_t j,
-                 std::size_t ndim) {
+auto hamming_impl(const BitVec &x, std::size_t i, const BitVec &y,
+                  std::size_t j, std::size_t ndim) -> Out {
   Out sum = 0;
   std::size_t di = ndim * i;
   std::size_t dj = ndim * j;
@@ -257,7 +258,7 @@ template <typename In, typename Out> struct HammingSelf {
             std::ceil(ndim / static_cast<float>(BitVec::value_type{}.size()))),
         ndim(ndim), nx(data.size() / ndim), ny(nx) {}
 
-  Out operator()(std::size_t i, std::size_t j) const {
+  auto operator()(std::size_t i, std::size_t j) const -> Out {
     return hamming_impl<Out>(bitvec, i, bitvec, j, ndim_);
   }
 
@@ -279,7 +280,7 @@ template <typename In, typename Out> struct HammingQuery {
             std::ceil(ndim / static_cast<float>(BitVec::value_type{}.size()))),
         ndim(ndim), nx(x.size() / ndim), ny(y.size() / ndim) {}
 
-  Out operator()(std::size_t i, std::size_t j) const {
+  auto operator()(std::size_t i, std::size_t j) const -> Out {
     return hamming_impl<Out>(bx, i, by, j, ndim_);
   }
 

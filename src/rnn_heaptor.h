@@ -44,7 +44,7 @@ void heap_to_r(const NbrHeap &heap, Rcpp::IntegerMatrix nn_idx,
 
 // input heap index is 0-indexed
 // output idx R matrix is 1-indexed and transposed
-template <typename NbrHeap> Rcpp::List heap_to_r(const NbrHeap &heap) {
+template <typename NbrHeap> auto heap_to_r(const NbrHeap &heap) -> Rcpp::List {
   std::size_t n_points = heap.n_points;
   std::size_t n_nbrs = heap.n_nbrs;
 

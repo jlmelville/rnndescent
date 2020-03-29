@@ -146,10 +146,10 @@ struct NNDBuildSerial {
 
   template <typename GUFactoryT, typename Distance,
             typename CandidatePriorityFactoryImpl, typename Progress>
-  List get_nn(IntegerMatrix nn_idx, NumericMatrix nn_dist,
+  auto get_nn(IntegerMatrix nn_idx, NumericMatrix nn_dist,
               CandidatePriorityFactoryImpl &candidate_priority_factory,
               std::size_t max_candidates = 50, std::size_t n_iters = 10,
-              double delta = 0.001, bool verbose = false) {
+              double delta = 0.001, bool verbose = false) -> List {
     auto data_vec = r2dvt<Distance>(data);
     auto init_nn = r_to_graph(nn_idx, nn_dist, data.nrow() - 1);
 
@@ -175,10 +175,10 @@ struct NNDBuildParallel {
 
   template <typename GUFactoryT, typename Distance,
             typename CandidatePriorityFactoryImpl, typename Progress>
-  List get_nn(IntegerMatrix nn_idx, NumericMatrix nn_dist,
+  auto get_nn(IntegerMatrix nn_idx, NumericMatrix nn_dist,
               CandidatePriorityFactoryImpl &candidate_priority_factory,
               std::size_t max_candidates = 50, std::size_t n_iters = 10,
-              double delta = 0.001, bool verbose = false) {
+              double delta = 0.001, bool verbose = false) -> List {
     auto data_vec = r2dvt<Distance>(data);
     auto init_nn = r_to_graph(nn_idx, nn_dist, data.nrow() - 1);
 
@@ -203,10 +203,10 @@ struct NNDQuerySerial {
 
   template <typename GUFactoryT, typename Distance,
             typename CandidatePriorityFactoryImpl, typename Progress>
-  List get_nn(IntegerMatrix nn_idx, NumericMatrix nn_dist,
+  auto get_nn(IntegerMatrix nn_idx, NumericMatrix nn_dist,
               CandidatePriorityFactoryImpl &candidate_priority_factory,
               std::size_t max_candidates = 50, std::size_t n_iters = 10,
-              double delta = 0.001, bool verbose = false) {
+              double delta = 0.001, bool verbose = false) -> List {
 
     auto ref_vec = r2dvt<Distance>(reference);
     auto query_vec = r2dvt<Distance>(query);
@@ -238,10 +238,10 @@ struct NNDQueryParallel {
 
   template <typename GUFactoryT, typename Distance,
             typename CandidatePriorityFactoryImpl, typename Progress>
-  List get_nn(IntegerMatrix nn_idx, NumericMatrix nn_dist,
+  auto get_nn(IntegerMatrix nn_idx, NumericMatrix nn_dist,
               CandidatePriorityFactoryImpl &candidate_priority_factory,
               std::size_t max_candidates = 50, std::size_t n_iters = 10,
-              double delta = 0.001, bool verbose = false) {
+              double delta = 0.001, bool verbose = false) -> List {
     auto ref_vec = r2dvt<Distance>(reference);
     auto query_vec = r2dvt<Distance>(query);
     auto nn_init = r_to_graph(nn_idx, nn_dist, reference.nrow() - 1);

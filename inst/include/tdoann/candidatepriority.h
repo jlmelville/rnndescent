@@ -33,7 +33,7 @@
 // Explore neighbors in increasing distance order (i.e. closest neighbors are
 // processed first)
 struct CandidatePriorityLowDistance {
-  double operator()(const NeighborHeap &current_graph, std::size_t ij) {
+  auto operator()(const NeighborHeap &current_graph, std::size_t ij) -> double {
     return current_graph.dist[ij];
   }
   const constexpr static bool should_sort = true;
@@ -42,7 +42,7 @@ struct CandidatePriorityLowDistance {
 // Explore neighbors in decreases distance order (i.e. furthest neighbors are
 // processed first)
 struct CandidatePriorityHighDistance {
-  double operator()(const NeighborHeap &current_graph, std::size_t ij) {
+  auto operator()(const NeighborHeap &current_graph, std::size_t ij) -> double {
     return -current_graph.dist[ij];
   }
   const constexpr static bool should_sort = true;
@@ -50,9 +50,9 @@ struct CandidatePriorityHighDistance {
 
 template <typename CandidatePriority> struct CandidatePriorityFactory {
   using Type = CandidatePriority;
-  Type create() { return Type(); }
+  auto create() -> Type { return Type(); }
   // Window size in parallel computations.
-  Type create(std::size_t, std::size_t) { return Type(); }
+  auto create(std::size_t, std::size_t) -> Type { return Type(); }
   const constexpr static bool should_sort = Type::should_sort;
 };
 

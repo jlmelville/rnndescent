@@ -65,7 +65,7 @@ void zero_index(IntegerMatrix m, int max_idx) {
   }
 }
 
-List graph_to_r(const NNGraph &graph) {
+auto graph_to_r(const NNGraph &graph) -> List {
   IntegerMatrix indices(graph.n_nbrs, graph.n_points, graph.idx.begin());
   NumericMatrix dist(graph.n_nbrs, graph.n_points, graph.dist.begin());
 

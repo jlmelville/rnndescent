@@ -44,7 +44,7 @@ void HeapSumProgress::iter_finished() {
   ++iter;
   iter_msg(iter);
 }
-bool HeapSumProgress::check_interrupt() {
+auto HeapSumProgress::check_interrupt() -> bool {
   if (is_aborted) {
     return true;
   }
@@ -64,7 +64,7 @@ void HeapSumProgress::converged(std::size_t n_updates, double tol) {
   }
   stopping_early();
 }
-double HeapSumProgress::dist_sum() const {
+auto HeapSumProgress::dist_sum() const -> double {
   std::size_t n_points = neighbor_heap.n_points;
   std::size_t n_nbrs = neighbor_heap.n_nbrs;
   double sum = 0.0;
@@ -103,7 +103,7 @@ void RPProgress::stopping_early() {
   progress.update(n_iters);
   progress.cleanup();
 }
-bool RPProgress::check_interrupt() {
+auto RPProgress::check_interrupt() -> bool {
   if (is_aborted) {
     return true;
   }
@@ -121,15 +121,14 @@ void RPProgress::converged(std::size_t n_updates, double tol) {
                 << " tol = " << tol << std::endl;
   }
 }
-int RPProgress::scaled(double d) {
+auto RPProgress::scaled(double d) -> int {
   int res = std::nearbyint(scale * (d / n_iters));
   return res;
 }
 
-RInterruptableProgress::RInterruptableProgress() : is_aborted(false) {}
-RInterruptableProgress::RInterruptableProgress(std::size_t, bool)
-    : is_aborted(false) {}
-bool RInterruptableProgress::check_interrupt() {
+RInterruptableProgress::RInterruptableProgress() = default;
+RInterruptableProgress::RInterruptableProgress(std::size_t, bool) {}
+auto RInterruptableProgress::check_interrupt() -> bool {
   if (is_aborted) {
     return true;
   }

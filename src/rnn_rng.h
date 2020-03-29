@@ -27,14 +27,14 @@
 #include "dqrng_generator.h"
 #include "tdoann/tauprng.h"
 
-uint64_t pseed();
-dqrng::rng64_t parallel_rng(uint64_t seed);
-uint64_t random64();
+auto pseed() -> uint64_t;
+auto parallel_rng(uint64_t seed) -> dqrng::rng64_t;
+auto random64() -> uint64_t;
 
 // Use R API for RNG
 struct RRand {
   // a random uniform value between 0 and 1
-  double unif();
+  auto unif() -> double;
 };
 
 // Use Taus88 RNG
@@ -43,7 +43,7 @@ struct TauRand {
 
   TauRand(uint64_t seed, uint64_t seed2);
   // a random uniform value between 0 and 1
-  double unif();
+  auto unif() -> double;
 };
 
 #endif // RNN_RNG_H

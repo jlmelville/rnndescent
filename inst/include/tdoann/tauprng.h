@@ -50,7 +50,7 @@ public:
       : state0(state0), state1(state1 > 7 ? state1 : 8),
         state2(state2 > 15 ? state2 : 16) {}
 
-  int32_t operator()() {
+  auto operator()() -> int32_t {
     state0 = (((state0 & MAGIC0) << 12) & 0xffffffff) ^
              ((((state0 << 13) & 0xffffffff) ^ state0) >> 19);
     state1 = (((state1 & MAGIC1) << 4) & 0xffffffff) ^
@@ -61,7 +61,7 @@ public:
     return state0 ^ state1 ^ state2;
   }
 
-  double rand() { return std::abs(operator()() / DINT_MAX); }
+  auto rand() -> double { return std::abs(operator()() / DINT_MAX); }
 };
 } // namespace tdoann
 #endif // TDOANN_TAUPRNG_H

@@ -26,7 +26,7 @@
 
 struct DQIntSampler {
 
-  static uint64_t get_seed() { return pseed(); }
+  static auto get_seed() -> uint64_t { return pseed(); }
 
   uint64_t seed;
   uint64_t seed2;
@@ -37,7 +37,7 @@ struct DQIntSampler {
   }
 
   template <typename Int>
-  std::vector<Int> sample(int n, int size, bool replace = false) {
+  auto sample(int n, int size, bool replace = false) -> std::vector<Int> {
     std::vector<Int> result;
     dqsample::sample<Int>(result, rng, n, size, replace);
     return result;

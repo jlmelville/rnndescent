@@ -60,9 +60,9 @@ struct ParallelHeapImpl {
 };
 
 template <typename MergeImpl, typename HeapAdd>
-List merge_nn_impl(IntegerMatrix nn_idx1, NumericMatrix nn_dist1,
+auto merge_nn_impl(IntegerMatrix nn_idx1, NumericMatrix nn_dist1,
                    IntegerMatrix nn_idx2, NumericMatrix nn_dist2,
-                   MergeImpl &merge_impl, bool verbose = false) {
+                   MergeImpl &merge_impl, bool verbose = false) -> List {
   SimpleNeighborHeap nn_merged(nn_idx1.nrow(), nn_idx1.ncol());
 
   if (verbose) {
@@ -76,8 +76,8 @@ List merge_nn_impl(IntegerMatrix nn_idx1, NumericMatrix nn_dist1,
 }
 
 template <typename MergeImpl, typename HeapAdd>
-List merge_nn_all_impl(List nn_graphs, MergeImpl &merge_impl,
-                       bool verbose = false) {
+auto merge_nn_all_impl(List nn_graphs, MergeImpl &merge_impl,
+                       bool verbose = false) -> List {
   auto n_graphs = static_cast<std::size_t>(nn_graphs.size());
 
   List nn_graph = nn_graphs[0];

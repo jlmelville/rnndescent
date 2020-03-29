@@ -35,11 +35,11 @@
 
 namespace tdoann {
 struct Update {
-  std::size_t p;
-  std::size_t q;
-  double d;
+  std::size_t p{0};
+  std::size_t q{0};
+  double d{0};
 
-  Update() : p(0), q(0), d(0) {}
+  Update() = default;
 
   Update(std::size_t p, std::size_t q, double d) : p(p), q(q), d(d) {}
 
@@ -88,15 +88,15 @@ struct GraphCache {
     GraphCacheInit::init(neighbor_heap, seen);
   }
 
-  bool contains(std::size_t &p, std::size_t &q) const {
+  auto contains(std::size_t &p, std::size_t &q) const -> bool {
     return seen[p].find(q) != seen[p].end();
   }
 
-  bool insert(std::size_t p, std::size_t q) {
+  auto insert(std::size_t p, std::size_t q) -> bool {
     return !seen[p].emplace(q).second;
   }
 
-  std::size_t size() const {
+  auto size() const -> std::size_t {
     std::size_t sum = 0;
     for (std::size_t i = 0; i < seen.size(); i++) {
       sum += seen[i].size();
@@ -123,7 +123,7 @@ template <typename Distance> struct BatchGraphUpdater {
     }
   }
 
-  std::size_t apply() {
+  auto apply() -> std::size_t {
     std::size_t c = 0;
     std::size_t n_points = updates.size();
     for (std::size_t i = 0; i < n_points; i++) {
@@ -165,7 +165,7 @@ template <typename Distance> struct BatchGraphUpdaterHiMem {
     }
   }
 
-  std::size_t apply() {
+  auto apply() -> std::size_t {
     std::size_t c = 0;
     std::size_t n_points = updates.size();
     for (std::size_t i = 0; i < n_points; i++) {
@@ -218,7 +218,7 @@ template <typename Distance> struct SerialGraphUpdater {
         n_nbrs(current_graph.n_nbrs), upd_p(NeighborHeap::npos()),
         upd_q(NeighborHeap::npos()), upd_d(0) {}
 
-  std::size_t generate_and_apply(std::size_t p, std::size_t q) {
+  auto generate_and_apply(std::size_t p, std::size_t q) -> std::size_t {
     generate(p, q, p);
     return apply();
   }
@@ -234,7 +234,7 @@ template <typename Distance> struct SerialGraphUpdater {
     }
   }
 
-  std::size_t apply() {
+  auto apply() -> std::size_t {
     if (upd_p == NeighborHeap::npos()) {
       return 0;
     }
@@ -256,7 +256,7 @@ template <typename Distance> struct SerialGraphUpdaterHiMem {
         n_nbrs(current_graph.n_nbrs), seen(current_graph),
         upd_p(NeighborHeap::npos()), upd_q(NeighborHeap::npos()) {}
 
-  std::size_t generate_and_apply(std::size_t p, std::size_t q) {
+  auto generate_and_apply(std::size_t p, std::size_t q) -> std::size_t {
     generate(p, q);
     return apply();
   }
@@ -270,7 +270,7 @@ template <typename Distance> struct SerialGraphUpdaterHiMem {
     upd_q = qq;
   }
 
-  std::size_t apply() {
+  auto apply() -> std::size_t {
     std::size_t c = 0;
 
     if (seen.contains(upd_p, upd_q)) {
@@ -314,7 +314,7 @@ template <typename Distance> struct SerialGraphUpdaterVeryHiMem {
         n_nbrs(current_graph.n_nbrs), seen(current_graph),
         upd_p(NeighborHeap::npos()), upd_q(NeighborHeap::npos()) {}
 
-  std::size_t generate_and_apply(std::size_t p, std::size_t q) {
+  auto generate_and_apply(std::size_t p, std::size_t q) -> std::size_t {
     generate(p, q);
     return apply();
   }
@@ -328,7 +328,7 @@ template <typename Distance> struct SerialGraphUpdaterVeryHiMem {
     upd_q = qq;
   }
 
-  std::size_t apply() {
+  auto apply() -> std::size_t {
     std::size_t c = 0;
 
     if (seen.insert(upd_p, upd_q)) {
@@ -379,7 +379,7 @@ template <typename Distance> struct BatchGraphUpdaterVeryHiMem {
     }
   }
 
-  std::size_t apply() {
+  auto apply() -> std::size_t {
     std::size_t c = 0;
     std::size_t n_points = updates.size();
     for (std::size_t i = 0; i < n_points; i++) {
@@ -412,7 +412,7 @@ template <typename Distance> struct BatchGraphUpdaterVeryHiMem {
 // For use in queries: whether to cache previously seen points
 struct NullNeighborSet {
   NullNeighborSet(std::size_t) {}
-  bool contains(std::size_t) { return false; }
+  auto contains(std::size_t) -> bool { return false; }
   void clear() {}
 };
 
@@ -420,7 +420,7 @@ struct UnorderedNeighborSet {
   std::unordered_set<std::size_t> seen;
 
   UnorderedNeighborSet(std::size_t n_nbrs) : seen(n_nbrs) {}
-  bool contains(std::size_t idx) { return !seen.emplace(idx).second; }
+  auto contains(std::size_t idx) -> bool { return !seen.emplace(idx).second; }
   void clear() { seen.clear(); }
 };
 
@@ -438,7 +438,8 @@ template <typename Distance> struct QuerySerialGraphUpdater {
         n_nbrs(current_graph.n_nbrs), ref(NeighborHeap::npos()),
         query(NeighborHeap::npos()), dist(0) {}
 
-  std::size_t generate_and_apply(std::size_t query_idx, std::size_t ref_idx) {
+  auto generate_and_apply(std::size_t query_idx, std::size_t ref_idx)
+      -> std::size_t {
     generate(query_idx, ref_idx, 0);
     return apply();
   }
@@ -454,7 +455,7 @@ template <typename Distance> struct QuerySerialGraphUpdater {
     }
   }
 
-  std::size_t apply() {
+  auto apply() -> std::size_t {
     if (ref == NeighborHeap::npos()) {
       return 0;
     }
@@ -479,7 +480,8 @@ template <typename Distance> struct QuerySerialGraphUpdaterHiMem {
         n_nbrs(current_graph.n_nbrs), seen(current_graph),
         ref_(NeighborHeap::npos()), query_(NeighborHeap::npos()) {}
 
-  std::size_t generate_and_apply(std::size_t query_idx, std::size_t ref_idx) {
+  auto generate_and_apply(std::size_t query_idx, std::size_t ref_idx)
+      -> std::size_t {
     generate(query_idx, ref_idx, 0);
     return apply();
   }
@@ -489,7 +491,7 @@ template <typename Distance> struct QuerySerialGraphUpdaterHiMem {
     query_ = query_idx;
   }
 
-  std::size_t apply() {
+  auto apply() -> std::size_t {
     std::size_t c = 0;
     if (seen.contains(query_, ref_)) {
       return c;
@@ -524,7 +526,7 @@ template <typename Distance> struct QueryBatchGraphUpdater {
     }
   }
 
-  std::size_t apply() {
+  auto apply() -> std::size_t {
     std::size_t c = 0;
     std::size_t n_points = updates.size();
     for (std::size_t i = 0; i < n_points; i++) {
@@ -565,7 +567,7 @@ template <typename Distance> struct QueryBatchGraphUpdaterHiMem {
     }
   }
 
-  std::size_t apply() {
+  auto apply() -> std::size_t {
     std::size_t c = 0;
     std::size_t n_points = updates.size();
     for (std::size_t i = 0; i < n_points; i++) {
@@ -599,8 +601,8 @@ template <typename Distance> struct QueryBatchGraphUpdaterHiMem {
 // which won't compile.
 template <template <typename> class GraphUpdater> struct GUFactory {
   template <typename Distance>
-  static GraphUpdater<Distance> create(NeighborHeap &current_graph,
-                                       Distance &distance) {
+  static auto create(NeighborHeap &current_graph, Distance &distance)
+      -> GraphUpdater<Distance> {
     return GraphUpdater<Distance>(current_graph, distance);
   }
 };

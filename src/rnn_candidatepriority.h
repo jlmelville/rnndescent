@@ -28,7 +28,9 @@
 struct CandidatePriorityRandomSerial {
   RRand rand;
   CandidatePriorityRandomSerial() : rand() {}
-  double operator()(const NeighborHeap &, std::size_t) { return rand.unif(); }
+  auto operator()(const NeighborHeap &, std::size_t) -> double {
+    return rand.unif();
+  }
   const constexpr static bool should_sort = false;
 };
 
@@ -37,7 +39,9 @@ struct CandidatePriorityRandomParallel {
   CandidatePriorityRandomParallel(uint64_t seed, std::size_t end)
       : rand(seed, end) {}
 
-  double operator()(const NeighborHeap &, std::size_t) { return rand.unif(); }
+  auto operator()(const NeighborHeap &, std::size_t) -> double {
+    return rand.unif();
+  }
   const constexpr static bool should_sort = false;
 };
 
@@ -46,9 +50,9 @@ template <> struct CandidatePriorityFactory<CandidatePriorityRandomParallel> {
   uint64_t seed;
   CandidatePriorityFactory(uint64_t seed) : seed(seed) {}
 
-  Type create() { return Type(seed, 42); }
+  auto create() -> Type { return Type(seed, 42); }
 
-  Type create(std::size_t, std::size_t end) { return Type(seed, end); }
+  auto create(std::size_t, std::size_t end) -> Type { return Type(seed, end); }
   const constexpr static bool should_sort = Type::should_sort;
 };
 

@@ -30,6 +30,6 @@ void print_time(bool print_date = false);
 void ts(const std::string &);
 void zero_index(Rcpp::IntegerMatrix,
                 int max_idx = (std::numeric_limits<int>::max)());
-Rcpp::List graph_to_r(const tdoann::NNGraph &);
+auto graph_to_r(const tdoann::NNGraph &) -> Rcpp::List;
 
 #endif // RNN_UTIL_H
