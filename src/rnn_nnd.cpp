@@ -247,23 +247,17 @@ struct NNDQueryParallel {
               CandidatePriorityFactoryImpl &candidate_priority_factory,
               std::size_t max_candidates = 50, std::size_t n_iters = 10,
               double delta = 0.001, bool verbose = false) {
-    std::size_t n_points = nn_idx.nrow();
-    std::size_t n_nbrs = nn_idx.ncol();
-    double tol = delta * n_nbrs * n_points;
+    auto ref_vec = r2dvt<Distance>(reference);
+    auto query_vec = r2dvt<Distance>(query);
+    auto nn_init = r_to_graph(nn_idx, nn_dist, reference.nrow() - 1);
+    std::vector<std::size_t> ref_idx_vec = r_to_idx<std::size_t>(ref_idx);
 
-    auto distance = create_query_distance<Distance>(reference, query);
-    NeighborHeap current_graph(nn_idx.nrow(), nn_idx.ncol());
-    r_to_heap_parallel<HeapAddQuery>(current_graph, nn_idx, nn_dist, n_threads,
-                                     block_size, grain_size, n_ref_points - 1);
+    auto result = nnd_query_parallel<Distance, GUFactoryT, Progress, RParallel>(
+        ref_vec, reference.ncol(), query_vec, nn_init, ref_idx_vec,
+        n_ref_points, max_candidates, n_iters, candidate_priority_factory,
+        delta, n_threads, block_size, grain_size, verbose);
 
-    auto ref_idx_vec = as<std::vector<std::size_t>>(transpose(ref_idx));
-
-    nnd_query_parallel<GUFactoryT, Progress, RParallel>(
-        distance, current_graph, ref_idx_vec, n_ref_points, max_candidates,
-        n_iters, candidate_priority_factory, tol, n_threads, block_size,
-        grain_size, verbose);
-
-    return heap_to_r(current_graph);
+    return graph_to_r(result);
   }
 };
 
