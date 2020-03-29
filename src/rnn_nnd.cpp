@@ -151,7 +151,7 @@ struct NNDBuildSerial {
               std::size_t max_candidates = 50, std::size_t n_iters = 10,
               double delta = 0.001, bool verbose = false) {
     auto data_vec = r2dvt<Distance>(data);
-    auto init_nn = r_to_graph(nn_idx, nn_dist, nn_idx.nrow() - 1);
+    auto init_nn = r_to_graph(nn_idx, nn_dist, data.nrow() - 1);
 
     auto result = nnd_build<Distance, GUFactoryT, Progress>(
         data_vec, data.ncol(), init_nn, max_candidates, n_iters,
@@ -180,7 +180,7 @@ struct NNDBuildParallel {
               std::size_t max_candidates = 50, std::size_t n_iters = 10,
               double delta = 0.001, bool verbose = false) {
     auto data_vec = r2dvt<Distance>(data);
-    auto init_nn = r_to_graph(nn_idx, nn_dist, nn_idx.nrow() - 1);
+    auto init_nn = r_to_graph(nn_idx, nn_dist, data.nrow() - 1);
 
     auto result = nnd_build_parallel<Distance, GUFactoryT, Progress, RParallel>(
         data_vec, data.ncol(), init_nn, max_candidates, n_iters,
@@ -209,23 +209,18 @@ struct NNDQuerySerial {
               CandidatePriorityFactoryImpl &candidate_priority_factory,
               std::size_t max_candidates = 50, std::size_t n_iters = 10,
               double delta = 0.001, bool verbose = false) {
-    std::size_t n_points = nn_idx.nrow();
-    std::size_t n_nbrs = nn_idx.ncol();
-    double tol = delta * n_nbrs * n_points;
 
-    auto distance = create_query_distance<Distance>(reference, query);
-    NeighborHeap current_graph(nn_idx.nrow(), nn_idx.ncol());
+    auto ref_vec = r2dvt<Distance>(reference);
+    auto query_vec = r2dvt<Distance>(query);
+    auto nn_init = r_to_graph(nn_idx, nn_dist, reference.nrow() - 1);
+    std::vector<std::size_t> ref_idx_vec = r_to_idx<std::size_t>(ref_idx);
 
-    r_to_heap_serial<HeapAddQuery>(current_graph, nn_idx, nn_dist, 1000,
-                                   n_ref_points - 1);
+    auto result = nnd_query<Distance, GUFactoryT, Progress>(
+        ref_vec, reference.ncol(), query_vec, nn_init, ref_idx_vec,
+        n_ref_points, max_candidates, n_iters, candidate_priority_factory,
+        delta, verbose);
 
-    auto ref_idx_vec = as<std::vector<std::size_t>>(transpose(ref_idx));
-
-    nnd_query<GUFactoryT, Progress>(distance, current_graph, ref_idx_vec,
-                                    n_ref_points, max_candidates, n_iters,
-                                    candidate_priority_factory, tol, verbose);
-
-    return heap_to_r(current_graph);
+    return graph_to_r(result);
   }
 };
 

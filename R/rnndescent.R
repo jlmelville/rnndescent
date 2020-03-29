@@ -771,8 +771,10 @@ nnd_knn_query <- function(reference,
   }
   # init indices are zero indexed in the C++ code
   # reference indices need to be zero-indexed manually
-  reference_idx <- prepare_ref_idx(reference_idx, k) - 1
-
+  reference_idx <- prepare_ref_idx(reference_idx, k)
+  if (n_threads > 0) {
+    reference_idx <- reference_idx - 1
+  }
   res <-
     nn_descent_query(
       reference,
@@ -792,7 +794,9 @@ nnd_knn_query <- function(reference,
       verbose = verbose,
       progress = progress
     )
-
+  if (n_threads == 0) {
+    res$idx <- res$idx + 1
+  }
   if (use_alt_metric) {
     res$dist <- apply_alt_metric_correction(metric, res$dist)
   }

@@ -206,20 +206,27 @@ std::size_t local_join(NeighborHeap &current_graph,
 //    keep track of old neighbors: if a neighbor is "new" we search all its
 //    general neighbors; otherwise, we don't search it at all because we must
 //    have already tried those candidates.
-template <typename GUFactoryT, typename Progress, typename Distance,
+template <typename Distance, typename GUFactoryT, typename Progress,
           typename CandidatePriorityFactory>
-void nnd_query(Distance &distance, NeighborHeap &current_graph,
-               const std::vector<std::size_t> &reference_idx,
-               std::size_t n_ref_points, std::size_t max_candidates,
-               std::size_t n_iters,
-               CandidatePriorityFactory &candidate_priority_factory, double tol,
-               bool verbose) {
+NNGraph
+nnd_query(const std::vector<typename Distance::Input> &reference,
+          std::size_t ndim, const std::vector<typename Distance::Input> &query,
+          const NNGraph &nn_init, const std::vector<std::size_t> &reference_idx,
+          std::size_t n_ref_points, std::size_t max_candidates,
+          std::size_t n_iters,
+          CandidatePriorityFactory &candidate_priority_factory, double delta,
+          bool verbose) {
+  Distance distance(reference, query, ndim);
+
+  std::size_t n_points = nn_init.n_points;
+  std::size_t n_nbrs = nn_init.n_nbrs;
+  double tol = delta * n_nbrs * n_points;
+
+  NeighborHeap current_graph(n_points, n_nbrs);
+  graph_to_heap_serial<HeapAddQuery>(current_graph, nn_init, 1000, true);
 
   Progress progress(current_graph, n_iters, verbose);
   auto graph_updater = GUFactoryT::create(current_graph, distance);
-
-  std::size_t n_points = current_graph.n_points;
-  std::size_t n_nbrs = current_graph.n_nbrs;
 
   auto candidate_priority = candidate_priority_factory.create();
 
@@ -253,6 +260,7 @@ void nnd_query(Distance &distance, NeighborHeap &current_graph,
     }
   }
   current_graph.deheap_sort();
+  return heap_to_graph(current_graph);
 }
 
 template <typename CandidatePriority>

@@ -70,4 +70,13 @@ r_to_graph(Rcpp::IntegerMatrix nn_idx, Rcpp::NumericMatrix nn_dist,
   return tdoann::NNGraph(nn_idxv, nn_distv, n_points);
 }
 
+template <typename Int>
+inline std::vector<Int>
+r_to_idx(Rcpp::IntegerMatrix nn_idx,
+         int max_idx = (std::numeric_limits<int>::max)()) {
+  zero_index(nn_idx, max_idx);
+
+  return Rcpp::as<std::vector<Int>>(nn_idx);
+}
+
 #endif // RNN_RTOHEAP_H
