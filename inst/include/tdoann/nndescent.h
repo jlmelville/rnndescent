@@ -136,8 +136,8 @@ NNGraph nnd_build(const std::vector<typename Distance::Input> &data,
       old_nbrs.deheap_sort();
     }
 
-    std::size_t c = local_join(current_graph, graph_updater, new_nbrs, old_nbrs,
-                               n_points, max_candidates, progress);
+    std::size_t c = local_join(graph_updater, new_nbrs, old_nbrs, n_points,
+                               max_candidates, progress);
     TDOANN_ITERFINISHED();
     if (is_converged(c, tol)) {
       progress.converged(c, tol);
@@ -154,8 +154,7 @@ NNGraph nnd_build(const std::vector<typename Distance::Input> &data,
 // candidate for p, and vice versa.
 template <template <typename> class GraphUpdater, typename Distance,
           typename Progress>
-std::size_t local_join(NeighborHeap &current_graph,
-                       GraphUpdater<Distance> &graph_updater,
+std::size_t local_join(GraphUpdater<Distance> &graph_updater,
                        const NeighborHeap &new_nbrs,
                        const NeighborHeap &old_nbrs, std::size_t n_points,
                        std::size_t max_candidates, Progress &progress) {

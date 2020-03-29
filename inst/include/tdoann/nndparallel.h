@@ -149,9 +149,7 @@ template <typename Distance, typename GraphUpdater> struct LocalJoinWorker {
       }
     }
   }
-  void after_parallel(std::size_t begin, std::size_t end) {
-    c += graph_updater.apply();
-  }
+  void after_parallel(std::size_t, std::size_t) { c += graph_updater.apply(); }
 };
 
 template <typename Distance, typename GUFactoryT, typename Progress,
@@ -282,7 +280,7 @@ struct QueryNoNSearchWorker : public BatchParallelWorker {
       seen.clear();
     }
   }
-  void after_parallel(std::size_t begin, std::size_t end) {
+  void after_parallel(std::size_t, std::size_t) {
     n_updates += graph_updater.apply();
   }
 };

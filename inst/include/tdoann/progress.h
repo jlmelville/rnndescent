@@ -51,8 +51,8 @@ namespace tdoann {
 // multi-threaded code if a dummy no-op version is needed.
 struct NullProgress {
   NullProgress() {}
-  NullProgress(std::size_t n_iters, bool verbose) {}
-  void set_n_blocks(std::size_t n_blocks) {}
+  NullProgress(std::size_t, bool) {}
+  void set_n_blocks(std::size_t) {}
   void block_finished() {}
   void iter_finished() {}
   void stopping_early() {}

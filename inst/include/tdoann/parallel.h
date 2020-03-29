@@ -40,7 +40,7 @@ struct NoParallel {
 };
 
 struct BatchParallelWorker {
-  void after_parallel(std::size_t begin, std::size_t end) {}
+  void after_parallel(std::size_t, std::size_t) {}
 };
 
 template <typename Parallel, typename Progress, typename Worker>

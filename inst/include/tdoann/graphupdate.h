@@ -411,7 +411,7 @@ template <typename Distance> struct BatchGraphUpdaterVeryHiMem {
 
 // For use in queries: whether to cache previously seen points
 struct NullNeighborSet {
-  NullNeighborSet(std::size_t n_nbrs) {}
+  NullNeighborSet(std::size_t) {}
   bool contains(std::size_t) { return false; }
   void clear() {}
 };

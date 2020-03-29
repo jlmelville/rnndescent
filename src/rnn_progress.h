@@ -77,7 +77,7 @@ struct RInterruptableProgress {
 
   RInterruptableProgress();
   RInterruptableProgress(std::size_t, bool);
-  void set_n_blocks(std::size_t n_blocks) {}
+  void set_n_blocks(std::size_t) {}
   void block_finished() {}
   void iter_finished() {}
   void stopping_early() {}
