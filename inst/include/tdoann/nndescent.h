@@ -30,6 +30,7 @@
 #include "candidatepriority.h"
 #include "graphupdate.h"
 #include "heap.h"
+#include "nngraph.h"
 #include "progress.h"
 #include "typedefs.h"
 
@@ -104,17 +105,22 @@ bool is_converged(std::size_t n_updates, double tol) {
 // Pretty close to the NNDescentFull algorithm (#2 in the paper)
 template <typename Distance, typename GUFactoryT, typename Progress,
           typename CandidatePriorityFactory>
-void nnd_build(const std::vector<typename Distance::Input> &data,
-               std::size_t ndim, NeighborHeap &current_graph,
-               std::size_t max_candidates, std::size_t n_iters,
-               CandidatePriorityFactory &candidate_priority_factory, double tol,
-               bool verbose) {
+NNGraph nnd_build(const std::vector<typename Distance::Input> &data,
+                  std::size_t ndim, const NNGraph &nn_init,
+                  std::size_t max_candidates, std::size_t n_iters,
+                  CandidatePriorityFactory &candidate_priority_factory,
+                  double delta, bool verbose) {
   Distance distance(data, ndim);
+
+  std::size_t n_points = nn_init.n_points;
+  std::size_t n_nbrs = nn_init.n_nbrs;
+  double tol = delta * n_nbrs * n_points;
+
+  NeighborHeap current_graph(n_points, n_nbrs);
+  graph_to_heap_serial<HeapAddSymmetric>(current_graph, nn_init, 1000, true);
 
   Progress progress(current_graph, n_iters, verbose);
   auto graph_updater = GUFactoryT::create(current_graph, distance);
-
-  std::size_t n_points = current_graph.n_points;
 
   auto candidate_priority = candidate_priority_factory.create();
 
@@ -139,6 +145,8 @@ void nnd_build(const std::vector<typename Distance::Input> &data,
     }
   }
   current_graph.deheap_sort();
+
+  return heap_to_graph(current_graph);
 }
 
 // Local join update: instead of updating item i with the neighbors of the

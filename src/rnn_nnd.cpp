@@ -150,21 +150,14 @@ struct NNDBuildSerial {
               CandidatePriorityFactoryImpl &candidate_priority_factory,
               std::size_t max_candidates = 50, std::size_t n_iters = 10,
               double delta = 0.001, bool verbose = false) {
-    std::size_t n_points = nn_idx.nrow();
-    std::size_t n_nbrs = nn_idx.ncol();
-    double tol = delta * n_nbrs * n_points;
-
     auto data_vec = r2dvt<Distance>(data);
+    auto init_nn = r_to_graph(nn_idx, nn_dist, nn_idx.nrow() - 1);
 
-    NeighborHeap current_graph(nn_idx.nrow(), nn_idx.ncol());
-    r_to_heap_serial<HeapAddSymmetric>(current_graph, nn_idx, nn_dist, 1000,
-                                       current_graph.n_points - 1);
+    auto result = nnd_build<Distance, GUFactoryT, Progress>(
+        data_vec, data.ncol(), init_nn, max_candidates, n_iters,
+        candidate_priority_factory, delta, verbose);
 
-    nnd_build<Distance, GUFactoryT, Progress>(
-        data_vec, data.ncol(), current_graph, max_candidates, n_iters,
-        candidate_priority_factory, tol, verbose);
-
-    return heap_to_r(current_graph);
+    return graph_to_r(result);
   }
 };
 

@@ -194,9 +194,9 @@ void vec_to_heap_serial(NbrHeap &heap, std::vector<int> &nn_idx,
 template <typename HeapAdd, typename Progress = NullProgress,
           typename NbrHeap = SimpleNeighborHeap>
 void graph_to_heap_serial(NbrHeap &heap, const NNGraph &nn_graph,
-                          std::size_t block_size) {
+                          std::size_t block_size, bool transpose = false) {
   VecToHeapWorker<HeapAdd, NbrHeap> worker(
-      heap, nn_graph.idx, nn_graph.n_points, nn_graph.dist, false);
+      heap, nn_graph.idx, nn_graph.n_points, nn_graph.dist, transpose);
   Progress progress;
   batch_serial_for(worker, progress, nn_graph.n_points, block_size);
 }

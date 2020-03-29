@@ -58,4 +58,16 @@ void r_to_heap_parallel(NbrHeap &heap, Rcpp::IntegerMatrix nn_idx,
       heap, nn_idxv, n_points, nn_distv, n_threads, block_size, grain_size);
 }
 
+inline tdoann::NNGraph
+r_to_graph(Rcpp::IntegerMatrix nn_idx, Rcpp::NumericMatrix nn_dist,
+           int max_idx = (std::numeric_limits<int>::max)()) {
+  zero_index(nn_idx, max_idx);
+
+  auto nn_idxv = Rcpp::as<std::vector<int>>(nn_idx);
+  auto nn_distv = Rcpp::as<std::vector<double>>(nn_dist);
+  std::size_t n_points = nn_idx.nrow();
+
+  return tdoann::NNGraph(nn_idxv, nn_distv, n_points);
+}
+
 #endif // RNN_RTOHEAP_H
