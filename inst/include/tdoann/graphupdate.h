@@ -34,6 +34,9 @@
 #include "typedefs.h"
 
 namespace tdoann {
+
+namespace upd {
+
 struct Update {
   std::size_t p{0};
   std::size_t q{0};
@@ -105,14 +108,14 @@ struct GraphCache {
   }
 };
 
-template <typename Distance> struct BatchGraphUpdater {
+template <typename Distance> struct Batch {
   NeighborHeap &current_graph;
   const Distance &distance;
   std::size_t n_nbrs;
 
   std::vector<std::vector<Update>> updates;
 
-  BatchGraphUpdater(NeighborHeap &current_graph, const Distance &distance)
+  Batch(NeighborHeap &current_graph, const Distance &distance)
       : current_graph(current_graph), distance(distance),
         n_nbrs(current_graph.n_nbrs), updates(current_graph.n_points) {}
 
@@ -138,7 +141,7 @@ template <typename Distance> struct BatchGraphUpdater {
   }
 };
 
-template <typename Distance> struct BatchGraphUpdaterHiMem {
+template <typename Distance> struct BatchHiMem {
   NeighborHeap &current_graph;
   const Distance &distance;
   std::size_t n_nbrs;
@@ -146,7 +149,7 @@ template <typename Distance> struct BatchGraphUpdaterHiMem {
   GraphCache<> seen;
   std::vector<std::vector<Update>> updates;
 
-  BatchGraphUpdaterHiMem(NeighborHeap &current_graph, const Distance &distance)
+  BatchHiMem(NeighborHeap &current_graph, const Distance &distance)
       : current_graph(current_graph), distance(distance),
         n_nbrs(current_graph.n_nbrs), seen(current_graph),
         updates(current_graph.n_points) {}
@@ -204,7 +207,7 @@ template <typename Distance> struct BatchGraphUpdaterHiMem {
   }
 };
 
-template <typename Distance> struct SerialGraphUpdater {
+template <typename Distance> struct Serial {
   NeighborHeap &current_graph;
   const Distance &distance;
   std::size_t n_nbrs;
@@ -213,7 +216,7 @@ template <typename Distance> struct SerialGraphUpdater {
   std::size_t upd_q;
   double upd_d;
 
-  SerialGraphUpdater(NeighborHeap &current_graph, const Distance &distance)
+  Serial(NeighborHeap &current_graph, const Distance &distance)
       : current_graph(current_graph), distance(distance),
         n_nbrs(current_graph.n_nbrs), upd_p(NeighborHeap::npos()),
         upd_q(NeighborHeap::npos()), upd_d(0) {}
@@ -242,7 +245,7 @@ template <typename Distance> struct SerialGraphUpdater {
   }
 };
 
-template <typename Distance> struct SerialGraphUpdaterHiMem {
+template <typename Distance> struct SerialHiMem {
   NeighborHeap &current_graph;
   const Distance &distance;
   std::size_t n_nbrs;
@@ -251,7 +254,7 @@ template <typename Distance> struct SerialGraphUpdaterHiMem {
   std::size_t upd_p;
   std::size_t upd_q;
 
-  SerialGraphUpdaterHiMem(NeighborHeap &current_graph, const Distance &distance)
+  SerialHiMem(NeighborHeap &current_graph, const Distance &distance)
       : current_graph(current_graph), distance(distance),
         n_nbrs(current_graph.n_nbrs), seen(current_graph),
         upd_p(NeighborHeap::npos()), upd_q(NeighborHeap::npos()) {}
@@ -299,7 +302,7 @@ template <typename Distance> struct SerialGraphUpdaterHiMem {
 // Caches all seen pairs. Compared to HiMem, it's a bit faster (~25%) but stores
 // 6-7 times the number of items when tested on MNIST (70,000 items), k = 15,
 // max_candidates = 20
-template <typename Distance> struct SerialGraphUpdaterVeryHiMem {
+template <typename Distance> struct SerialVeryHiMem {
   NeighborHeap &current_graph;
   const Distance &distance;
   std::size_t n_nbrs;
@@ -308,8 +311,7 @@ template <typename Distance> struct SerialGraphUpdaterVeryHiMem {
   std::size_t upd_p;
   std::size_t upd_q;
 
-  SerialGraphUpdaterVeryHiMem(NeighborHeap &current_graph,
-                              const Distance &distance)
+  SerialVeryHiMem(NeighborHeap &current_graph, const Distance &distance)
       : current_graph(current_graph), distance(distance),
         n_nbrs(current_graph.n_nbrs), seen(current_graph),
         upd_p(NeighborHeap::npos()), upd_q(NeighborHeap::npos()) {}
@@ -349,9 +351,9 @@ template <typename Distance> struct SerialGraphUpdaterVeryHiMem {
   }
 };
 
-// Not quite as memory hungry as SerialGraphUpdaterVeryHiMem, only storing
+// Not quite as memory hungry as SerialVeryHiMem, only storing
 // ~30% more items, but shows negligible performance improvement.
-template <typename Distance> struct BatchGraphUpdaterVeryHiMem {
+template <typename Distance> struct BatchVeryHiMem {
   NeighborHeap &current_graph;
   const Distance &distance;
   std::size_t n_nbrs;
@@ -359,8 +361,7 @@ template <typename Distance> struct BatchGraphUpdaterVeryHiMem {
   GraphCache<> seen;
   std::vector<std::vector<Update>> updates;
 
-  BatchGraphUpdaterVeryHiMem(NeighborHeap &current_graph,
-                             const Distance &distance)
+  BatchVeryHiMem(NeighborHeap &current_graph, const Distance &distance)
       : current_graph(current_graph), distance(distance),
         n_nbrs(current_graph.n_nbrs), seen(current_graph),
         updates(current_graph.n_points) {}
@@ -424,7 +425,7 @@ struct UnorderedNeighborSet {
   void clear() { seen.clear(); }
 };
 
-template <typename Distance> struct QuerySerialGraphUpdater {
+template <typename Distance> struct QuerySerial {
   NeighborHeap &current_graph;
   const Distance &distance;
   std::size_t n_nbrs;
@@ -433,7 +434,7 @@ template <typename Distance> struct QuerySerialGraphUpdater {
   std::size_t query;
   double dist;
 
-  QuerySerialGraphUpdater(NeighborHeap &current_graph, const Distance &distance)
+  QuerySerial(NeighborHeap &current_graph, const Distance &distance)
       : current_graph(current_graph), distance(distance),
         n_nbrs(current_graph.n_nbrs), ref(NeighborHeap::npos()),
         query(NeighborHeap::npos()), dist(0) {}
@@ -465,7 +466,7 @@ template <typename Distance> struct QuerySerialGraphUpdater {
   using NeighborSet = NullNeighborSet;
 };
 
-template <typename Distance> struct QuerySerialGraphUpdaterHiMem {
+template <typename Distance> struct QuerySerialHiMem {
   NeighborHeap &current_graph;
   const Distance &distance;
   std::size_t n_nbrs;
@@ -474,8 +475,7 @@ template <typename Distance> struct QuerySerialGraphUpdaterHiMem {
   std::size_t ref_;
   std::size_t query_;
 
-  QuerySerialGraphUpdaterHiMem(NeighborHeap &current_graph,
-                               const Distance &distance)
+  QuerySerialHiMem(NeighborHeap &current_graph, const Distance &distance)
       : current_graph(current_graph), distance(distance),
         n_nbrs(current_graph.n_nbrs), seen(current_graph),
         ref_(NeighborHeap::npos()), query_(NeighborHeap::npos()) {}
@@ -508,14 +508,14 @@ template <typename Distance> struct QuerySerialGraphUpdaterHiMem {
   using NeighborSet = UnorderedNeighborSet;
 };
 
-template <typename Distance> struct QueryBatchGraphUpdater {
+template <typename Distance> struct QueryBatch {
   NeighborHeap &current_graph;
   const Distance &distance;
   std::size_t n_nbrs;
 
   std::vector<std::vector<Update>> updates;
 
-  QueryBatchGraphUpdater(NeighborHeap &current_graph, const Distance &distance)
+  QueryBatch(NeighborHeap &current_graph, const Distance &distance)
       : current_graph(current_graph), distance(distance),
         n_nbrs(current_graph.n_nbrs), updates(current_graph.n_points) {}
 
@@ -543,7 +543,7 @@ template <typename Distance> struct QueryBatchGraphUpdater {
   using NeighborSet = NullNeighborSet;
 };
 
-template <typename Distance> struct QueryBatchGraphUpdaterHiMem {
+template <typename Distance> struct QueryBatchHiMem {
   NeighborHeap &current_graph;
   const Distance &distance;
   std::size_t n_nbrs;
@@ -551,8 +551,7 @@ template <typename Distance> struct QueryBatchGraphUpdaterHiMem {
   GraphCache<GraphCacheQueryInit> seen;
   std::vector<std::vector<Update>> updates;
 
-  QueryBatchGraphUpdaterHiMem(NeighborHeap &current_graph,
-                              const Distance &distance)
+  QueryBatchHiMem(NeighborHeap &current_graph, const Distance &distance)
       : current_graph(current_graph), distance(distance),
         n_nbrs(current_graph.n_nbrs), seen(current_graph),
         updates(current_graph.n_points) {}
@@ -597,16 +596,16 @@ template <typename Distance> struct QueryBatchGraphUpdaterHiMem {
 // Template aliases can't be declared inside a function, so this struct is
 // necessary to avoid wanting to write e.g.:
 // template <typename T>
-// using GraphUpdater = SerialGraphUpdater<T>;
+// using  = Serial<T>;
 // which won't compile.
-template <template <typename> class GraphUpdater> struct GUFactory {
+template <template <typename> class Impl> struct Factory {
   template <typename Distance>
   static auto create(NeighborHeap &current_graph, Distance &distance)
-      -> GraphUpdater<Distance> {
-    return GraphUpdater<Distance>(current_graph, distance);
+      -> Impl<Distance> {
+    return Impl<Distance>(current_graph, distance);
   }
 };
-
+} // namespace upd
 } // namespace tdoann
 
 #endif // TDOANN_GRAPHUPDATE_H
