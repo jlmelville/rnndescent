@@ -72,8 +72,3 @@ List graph_to_r(const NNGraph &graph) {
   return List::create(_("idx") = transpose(indices),
                       _("dist") = transpose(dist));
 }
-
-// [[Rcpp::export]]
-unsigned int hardware_concurrency() {
-  return std::thread::hardware_concurrency();
-}

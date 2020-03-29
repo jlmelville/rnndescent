@@ -162,16 +162,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// hardware_concurrency
-unsigned int hardware_concurrency();
-RcppExport SEXP _rnndescent_hardware_concurrency() {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    rcpp_result_gen = Rcpp::wrap(hardware_concurrency());
-    return rcpp_result_gen;
-END_RCPP
-}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_rnndescent_rnn_brute_force", (DL_FUNC) &_rnndescent_rnn_brute_force, 7},
@@ -182,7 +172,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_rnndescent_nn_descent_query", (DL_FUNC) &_rnndescent_nn_descent_query, 16},
     {"_rnndescent_random_knn_cpp", (DL_FUNC) &_rnndescent_random_knn_cpp, 8},
     {"_rnndescent_random_knn_query_cpp", (DL_FUNC) &_rnndescent_random_knn_query_cpp, 9},
-    {"_rnndescent_hardware_concurrency", (DL_FUNC) &_rnndescent_hardware_concurrency, 0},
     {NULL, NULL, 0}
 };
 

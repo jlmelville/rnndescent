@@ -33,7 +33,3 @@ random_knn_query_cpp <- function(reference, query, k, metric = "euclidean", orde
     .Call(`_rnndescent_random_knn_query_cpp`, reference, query, k, metric, order_by_distance, n_threads, block_size, grain_size, verbose)
 }
 
-hardware_concurrency <- function() {
-    .Call(`_rnndescent_hardware_concurrency`)
-}
-
