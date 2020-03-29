@@ -45,6 +45,7 @@ struct CandidatePriorityRandomParallel {
   const constexpr static bool should_sort = false;
 };
 
+namespace tdoann {
 template <> struct CandidatePriorityFactory<CandidatePriorityRandomParallel> {
   using Type = CandidatePriorityRandomParallel;
   uint64_t seed;
@@ -55,5 +56,6 @@ template <> struct CandidatePriorityFactory<CandidatePriorityRandomParallel> {
   auto create(std::size_t, std::size_t end) -> Type { return Type(seed, end); }
   const constexpr static bool should_sort = Type::should_sort;
 };
+} // namespace tdoann
 
 #endif // RNN_CANDIDATEPRIORITY_H

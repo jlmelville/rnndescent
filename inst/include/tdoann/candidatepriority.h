@@ -30,6 +30,8 @@
 #include "heap.h"
 #include "typedefs.h"
 
+namespace tdoann {
+
 // Explore neighbors in increasing distance order (i.e. closest neighbors are
 // processed first)
 struct CandidatePriorityLowDistance {
@@ -56,4 +58,5 @@ template <typename CandidatePriority> struct CandidatePriorityFactory {
   const constexpr static bool should_sort = Type::should_sort;
 };
 
+} // namespace tdoann
 #endif // TDOANN_CANDIDATEPRIORITY_H

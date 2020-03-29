@@ -34,7 +34,6 @@
 #include "rnn_rng.h"
 #include "rnn_rtoheap.h"
 
-using namespace tdoann;
 using namespace Rcpp;
 
 #define NND_IMPL()                                                             \
@@ -55,17 +54,17 @@ using namespace Rcpp;
 #define NND_CANDIDATE_PRIORITY_SERIAL()                                        \
   if (candidate_priority == "random") {                                        \
     using CandidatePriorityFactoryImpl =                                       \
-        CandidatePriorityFactory<CandidatePriorityRandomSerial>;               \
+        tdoann::CandidatePriorityFactory<CandidatePriorityRandomSerial>;       \
     CandidatePriorityFactoryImpl candidate_priority_factory;                   \
     NND_PROGRESS()                                                             \
   } else if (candidate_priority == "distance") {                               \
-    using CandidatePriorityFactoryImpl =                                       \
-        CandidatePriorityFactory<CandidatePriorityLowDistance>;                \
+    using CandidatePriorityFactoryImpl = tdoann::CandidatePriorityFactory<     \
+        tdoann::CandidatePriorityLowDistance>;                                 \
     CandidatePriorityFactoryImpl candidate_priority_factory;                   \
     NND_PROGRESS()                                                             \
   } else if (candidate_priority == "highdistance") {                           \
-    using CandidatePriorityFactoryImpl =                                       \
-        CandidatePriorityFactory<CandidatePriorityHighDistance>;               \
+    using CandidatePriorityFactoryImpl = tdoann::CandidatePriorityFactory<     \
+        tdoann::CandidatePriorityHighDistance>;                                \
     CandidatePriorityFactoryImpl candidate_priority_factory;                   \
     NND_PROGRESS()                                                             \
   } else {                                                                     \
@@ -75,17 +74,17 @@ using namespace Rcpp;
 #define NND_CANDIDATE_PRIORITY_PARALLEL()                                      \
   if (candidate_priority == "random") {                                        \
     using CandidatePriorityFactoryImpl =                                       \
-        CandidatePriorityFactory<CandidatePriorityRandomParallel>;             \
+        tdoann::CandidatePriorityFactory<CandidatePriorityRandomParallel>;     \
     CandidatePriorityFactoryImpl candidate_priority_factory(pseed());          \
     NND_PROGRESS()                                                             \
   } else if (candidate_priority == "distance") {                               \
-    using CandidatePriorityFactoryImpl =                                       \
-        CandidatePriorityFactory<CandidatePriorityLowDistance>;                \
+    using CandidatePriorityFactoryImpl = tdoann::CandidatePriorityFactory<     \
+        tdoann::CandidatePriorityLowDistance>;                                 \
     CandidatePriorityFactoryImpl candidate_priority_factory;                   \
     NND_PROGRESS()                                                             \
   } else if (candidate_priority == "highdistance") {                           \
-    using CandidatePriorityFactoryImpl =                                       \
-        CandidatePriorityFactory<CandidatePriorityHighDistance>;               \
+    using CandidatePriorityFactoryImpl = tdoann::CandidatePriorityFactory<     \
+        tdoann::CandidatePriorityHighDistance>;                                \
     CandidatePriorityFactoryImpl candidate_priority_factory;                   \
     NND_PROGRESS()                                                             \
   } else {                                                                     \
@@ -97,20 +96,20 @@ using namespace Rcpp;
     using NNDImpl = NNDBuildParallel;                                          \
     NNDImpl nnd_impl(data, n_threads, block_size, grain_size);                 \
     if (low_memory) {                                                          \
-      using GUFactoryT = GUFactory<BatchGraphUpdater>;                         \
+      using GUFactoryT = tdoann::GUFactory<tdoann::BatchGraphUpdater>;         \
       NND_CANDIDATE_PRIORITY_PARALLEL()                                        \
     } else {                                                                   \
-      using GUFactoryT = GUFactory<BatchGraphUpdaterHiMem>;                    \
+      using GUFactoryT = tdoann::GUFactory<tdoann::BatchGraphUpdaterHiMem>;    \
       NND_CANDIDATE_PRIORITY_PARALLEL()                                        \
     }                                                                          \
   } else {                                                                     \
     using NNDImpl = NNDBuildSerial;                                            \
     NNDImpl nnd_impl(data);                                                    \
     if (low_memory) {                                                          \
-      using GUFactoryT = GUFactory<SerialGraphUpdater>;                        \
+      using GUFactoryT = tdoann::GUFactory<tdoann::SerialGraphUpdater>;        \
       NND_CANDIDATE_PRIORITY_SERIAL()                                          \
     } else {                                                                   \
-      using GUFactoryT = GUFactory<SerialGraphUpdaterHiMem>;                   \
+      using GUFactoryT = tdoann::GUFactory<tdoann::SerialGraphUpdaterHiMem>;   \
       NND_CANDIDATE_PRIORITY_SERIAL()                                          \
     }                                                                          \
   }
@@ -121,20 +120,22 @@ using namespace Rcpp;
     NNDImpl nnd_impl(reference, query, reference_idx, n_threads, block_size,   \
                      grain_size);                                              \
     if (low_memory) {                                                          \
-      using GUFactoryT = GUFactory<QueryBatchGraphUpdater>;                    \
+      using GUFactoryT = tdoann::GUFactory<tdoann::QueryBatchGraphUpdater>;    \
       NND_CANDIDATE_PRIORITY_PARALLEL()                                        \
     } else {                                                                   \
-      using GUFactoryT = GUFactory<QueryBatchGraphUpdaterHiMem>;               \
+      using GUFactoryT =                                                       \
+          tdoann::GUFactory<tdoann::QueryBatchGraphUpdaterHiMem>;              \
       NND_CANDIDATE_PRIORITY_PARALLEL()                                        \
     }                                                                          \
   } else {                                                                     \
     using NNDImpl = NNDQuerySerial;                                            \
     NNDImpl nnd_impl(reference, query, reference_idx);                         \
     if (low_memory) {                                                          \
-      using GUFactoryT = GUFactory<QuerySerialGraphUpdater>;                   \
+      using GUFactoryT = tdoann::GUFactory<tdoann::QuerySerialGraphUpdater>;   \
       NND_CANDIDATE_PRIORITY_SERIAL()                                          \
     } else {                                                                   \
-      using GUFactoryT = GUFactory<QuerySerialGraphUpdaterHiMem>;              \
+      using GUFactoryT =                                                       \
+          tdoann::GUFactory<tdoann::QuerySerialGraphUpdaterHiMem>;             \
       NND_CANDIDATE_PRIORITY_SERIAL()                                          \
     }                                                                          \
   }
@@ -153,7 +154,7 @@ struct NNDBuildSerial {
     auto data_vec = r2dvt<Distance>(data);
     auto init_nn = r_to_graph(nn_idx, nn_dist, data.nrow() - 1);
 
-    auto result = nnd_build<Distance, GUFactoryT, Progress>(
+    auto result = tdoann::nnd_build<Distance, GUFactoryT, Progress>(
         data_vec, data.ncol(), init_nn, max_candidates, n_iters,
         candidate_priority_factory, delta, verbose);
 
@@ -182,10 +183,11 @@ struct NNDBuildParallel {
     auto data_vec = r2dvt<Distance>(data);
     auto init_nn = r_to_graph(nn_idx, nn_dist, data.nrow() - 1);
 
-    auto result = nnd_build_parallel<Distance, GUFactoryT, Progress, RParallel>(
-        data_vec, data.ncol(), init_nn, max_candidates, n_iters,
-        candidate_priority_factory, delta, n_threads, block_size, grain_size,
-        verbose);
+    auto result =
+        tdoann::nnd_build_parallel<Distance, GUFactoryT, Progress, RParallel>(
+            data_vec, data.ncol(), init_nn, max_candidates, n_iters,
+            candidate_priority_factory, delta, n_threads, block_size,
+            grain_size, verbose);
 
     return graph_to_r(result);
   }
@@ -211,9 +213,9 @@ struct NNDQuerySerial {
     auto ref_vec = r2dvt<Distance>(reference);
     auto query_vec = r2dvt<Distance>(query);
     auto nn_init = r_to_graph(nn_idx, nn_dist, reference.nrow() - 1);
-    std::vector<std::size_t> ref_idx_vec = r_to_idx<std::size_t>(ref_idx);
+    auto ref_idx_vec = r_to_idx<std::size_t>(ref_idx);
 
-    auto result = nnd_query<Distance, GUFactoryT, Progress>(
+    auto result = tdoann::nnd_query<Distance, GUFactoryT, Progress>(
         ref_vec, reference.ncol(), query_vec, nn_init, ref_idx_vec,
         max_candidates, n_iters, candidate_priority_factory, delta, verbose);
 
@@ -245,12 +247,13 @@ struct NNDQueryParallel {
     auto ref_vec = r2dvt<Distance>(reference);
     auto query_vec = r2dvt<Distance>(query);
     auto nn_init = r_to_graph(nn_idx, nn_dist, reference.nrow() - 1);
-    std::vector<std::size_t> ref_idx_vec = r_to_idx<std::size_t>(ref_idx);
+    auto ref_idx_vec = r_to_idx<std::size_t>(ref_idx);
 
-    auto result = nnd_query_parallel<Distance, GUFactoryT, Progress, RParallel>(
-        ref_vec, reference.ncol(), query_vec, nn_init, ref_idx_vec,
-        max_candidates, n_iters, candidate_priority_factory, delta, n_threads,
-        block_size, grain_size, verbose);
+    auto result =
+        tdoann::nnd_query_parallel<Distance, GUFactoryT, Progress, RParallel>(
+            ref_vec, reference.ncol(), query_vec, nn_init, ref_idx_vec,
+            max_candidates, n_iters, candidate_priority_factory, delta,
+            n_threads, block_size, grain_size, verbose);
 
     return graph_to_r(result);
   }
