@@ -215,7 +215,7 @@ template <typename CandidatePriorityFactoryImpl> struct QueryCandidatesWorker {
   std::size_t n_points;
   std::size_t n_nbrs;
   std::size_t max_candidates;
-  const bool flag_on_add;
+  bool flag_on_add;
 
   NeighborHeap &new_candidate_neighbors;
   CandidatePriorityFactoryImpl &candidate_priority_factory;

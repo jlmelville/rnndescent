@@ -47,7 +47,7 @@ template <typename In, typename Out> struct Euclidean {
     std::size_t dj = ndim * j;
 
     for (std::size_t d = 0; d < ndim; d++) {
-      const Out diff = x[di + d] - y[dj + d];
+      Out diff = x[di + d] - y[dj + d];
       sum += diff * diff;
     }
 
@@ -76,7 +76,7 @@ template <typename In, typename Out> struct L2Sqr {
     std::size_t dj = ndim * j;
 
     for (std::size_t d = 0; d < ndim; d++) {
-      const Out diff = x[di + d] - y[dj + d];
+      Out diff = x[di + d] - y[dj + d];
       sum += diff * diff;
     }
 

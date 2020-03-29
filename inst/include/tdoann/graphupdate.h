@@ -575,7 +575,7 @@ template <typename Distance> struct QueryBatchGraphUpdaterHiMem {
         auto &query_idx = update.p;
         auto &ref_idx = update.q;
         auto &d = update.d;
-        const bool bad_queryd = !current_graph.accepts(query_idx, d);
+        bool bad_queryd = !current_graph.accepts(query_idx, d);
         if (bad_queryd || seen.contains(query_idx, ref_idx)) {
           continue;
         }
