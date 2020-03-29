@@ -37,10 +37,8 @@
 using namespace Rcpp;
 
 #define NND_IMPL()                                                             \
-  return nnd_impl                                                              \
-      .get_nn<GUFactoryT, Distance, CandidatePriorityFactoryImpl, Progress>(   \
-          nn_idx, nn_dist, candidate_priority_factory, max_candidates,         \
-          n_iters, delta, verbose);
+  return nnd_impl.get_nn<GUFactoryT, Distance, CandidatePriority, Progress>(   \
+      nn_idx, nn_dist, cp, max_candidates, n_iters, delta, verbose);
 
 #define NND_PROGRESS()                                                         \
   if (progress == "bar") {                                                     \
@@ -53,19 +51,16 @@ using namespace Rcpp;
 
 #define NND_CANDIDATE_PRIORITY_SERIAL()                                        \
   if (candidate_priority == "random") {                                        \
-    using CandidatePriorityFactoryImpl =                                       \
-        tdoann::CandidatePriorityFactory<CandidatePriorityRandomSerial>;       \
-    CandidatePriorityFactoryImpl candidate_priority_factory;                   \
+    using CandidatePriority = tdoann::cp::Factory<rnnd::cp::RandomSerial>;     \
+    CandidatePriority cp;                                                      \
     NND_PROGRESS()                                                             \
   } else if (candidate_priority == "distance") {                               \
-    using CandidatePriorityFactoryImpl = tdoann::CandidatePriorityFactory<     \
-        tdoann::CandidatePriorityLowDistance>;                                 \
-    CandidatePriorityFactoryImpl candidate_priority_factory;                   \
+    using CandidatePriority = tdoann::cp::Factory<tdoann::cp::LowDistance>;    \
+    CandidatePriority cp;                                                      \
     NND_PROGRESS()                                                             \
   } else if (candidate_priority == "highdistance") {                           \
-    using CandidatePriorityFactoryImpl = tdoann::CandidatePriorityFactory<     \
-        tdoann::CandidatePriorityHighDistance>;                                \
-    CandidatePriorityFactoryImpl candidate_priority_factory;                   \
+    using CandidatePriority = tdoann::cp::Factory<tdoann::cp::HighDistance>;   \
+    CandidatePriority cp;                                                      \
     NND_PROGRESS()                                                             \
   } else {                                                                     \
     stop("Unknown candidate priority '%s'", candidate_priority);               \
@@ -73,19 +68,16 @@ using namespace Rcpp;
 
 #define NND_CANDIDATE_PRIORITY_PARALLEL()                                      \
   if (candidate_priority == "random") {                                        \
-    using CandidatePriorityFactoryImpl =                                       \
-        tdoann::CandidatePriorityFactory<CandidatePriorityRandomParallel>;     \
-    CandidatePriorityFactoryImpl candidate_priority_factory(pseed());          \
+    using CandidatePriority = tdoann::cp::Factory<rnnd::cp::RandomParallel>;   \
+    CandidatePriority cp(pseed());                                             \
     NND_PROGRESS()                                                             \
   } else if (candidate_priority == "distance") {                               \
-    using CandidatePriorityFactoryImpl = tdoann::CandidatePriorityFactory<     \
-        tdoann::CandidatePriorityLowDistance>;                                 \
-    CandidatePriorityFactoryImpl candidate_priority_factory;                   \
+    using CandidatePriority = tdoann::cp::Factory<tdoann::cp::LowDistance>;    \
+    CandidatePriority cp;                                                      \
     NND_PROGRESS()                                                             \
   } else if (candidate_priority == "highdistance") {                           \
-    using CandidatePriorityFactoryImpl = tdoann::CandidatePriorityFactory<     \
-        tdoann::CandidatePriorityHighDistance>;                                \
-    CandidatePriorityFactoryImpl candidate_priority_factory;                   \
+    using CandidatePriority = tdoann::cp::Factory<tdoann::cp::HighDistance>;   \
+    CandidatePriority cp;                                                      \
     NND_PROGRESS()                                                             \
   } else {                                                                     \
     stop("Unknown candidate priority '%s'", candidate_priority);               \
@@ -145,10 +137,10 @@ struct NNDBuildSerial {
 
   NNDBuildSerial(NumericMatrix data) : data(data) {}
 
-  template <typename GUFactoryT, typename Distance,
-            typename CandidatePriorityFactoryImpl, typename Progress>
+  template <typename GUFactoryT, typename Distance, typename CandidatePriority,
+            typename Progress>
   auto get_nn(IntegerMatrix nn_idx, NumericMatrix nn_dist,
-              CandidatePriorityFactoryImpl &candidate_priority_factory,
+              CandidatePriority &candidate_priority,
               std::size_t max_candidates = 50, std::size_t n_iters = 10,
               double delta = 0.001, bool verbose = false) -> List {
     auto data_vec = r2dvt<Distance>(data);
@@ -156,7 +148,7 @@ struct NNDBuildSerial {
 
     auto result = tdoann::nnd_build<Distance, GUFactoryT, Progress>(
         data_vec, data.ncol(), init_nn, max_candidates, n_iters,
-        candidate_priority_factory, delta, verbose);
+        candidate_priority, delta, verbose);
 
     return graph_to_r(result);
   }
@@ -174,10 +166,10 @@ struct NNDBuildParallel {
       : data(data), n_threads(n_threads), block_size(block_size),
         grain_size(grain_size) {}
 
-  template <typename GUFactoryT, typename Distance,
-            typename CandidatePriorityFactoryImpl, typename Progress>
+  template <typename GUFactoryT, typename Distance, typename CandidatePriority,
+            typename Progress>
   auto get_nn(IntegerMatrix nn_idx, NumericMatrix nn_dist,
-              CandidatePriorityFactoryImpl &candidate_priority_factory,
+              CandidatePriority &candidate_priority,
               std::size_t max_candidates = 50, std::size_t n_iters = 10,
               double delta = 0.001, bool verbose = false) -> List {
     auto data_vec = r2dvt<Distance>(data);
@@ -186,8 +178,8 @@ struct NNDBuildParallel {
     auto result =
         tdoann::nnd_build_parallel<Distance, GUFactoryT, Progress, RParallel>(
             data_vec, data.ncol(), init_nn, max_candidates, n_iters,
-            candidate_priority_factory, delta, n_threads, block_size,
-            grain_size, verbose);
+            candidate_priority, delta, n_threads, block_size, grain_size,
+            verbose);
 
     return graph_to_r(result);
   }
@@ -203,10 +195,10 @@ struct NNDQuerySerial {
                  IntegerMatrix ref_idx)
       : reference(reference), query(query), ref_idx(ref_idx) {}
 
-  template <typename GUFactoryT, typename Distance,
-            typename CandidatePriorityFactoryImpl, typename Progress>
+  template <typename GUFactoryT, typename Distance, typename CandidatePriority,
+            typename Progress>
   auto get_nn(IntegerMatrix nn_idx, NumericMatrix nn_dist,
-              CandidatePriorityFactoryImpl &candidate_priority_factory,
+              CandidatePriority &candidate_priority,
               std::size_t max_candidates = 50, std::size_t n_iters = 10,
               double delta = 0.001, bool verbose = false) -> List {
 
@@ -217,7 +209,7 @@ struct NNDQuerySerial {
 
     auto result = tdoann::nnd_query<Distance, GUFactoryT, Progress>(
         ref_vec, reference.ncol(), query_vec, nn_init, ref_idx_vec,
-        max_candidates, n_iters, candidate_priority_factory, delta, verbose);
+        max_candidates, n_iters, candidate_priority, delta, verbose);
 
     return graph_to_r(result);
   }
@@ -238,10 +230,10 @@ struct NNDQueryParallel {
       : reference(reference), query(query), ref_idx(ref_idx),
         n_threads(n_threads), block_size(block_size), grain_size(grain_size) {}
 
-  template <typename GUFactoryT, typename Distance,
-            typename CandidatePriorityFactoryImpl, typename Progress>
+  template <typename GUFactoryT, typename Distance, typename CandidatePriority,
+            typename Progress>
   auto get_nn(IntegerMatrix nn_idx, NumericMatrix nn_dist,
-              CandidatePriorityFactoryImpl &candidate_priority_factory,
+              CandidatePriority &candidate_priority,
               std::size_t max_candidates = 50, std::size_t n_iters = 10,
               double delta = 0.001, bool verbose = false) -> List {
     auto ref_vec = r2dvt<Distance>(reference);
@@ -252,8 +244,8 @@ struct NNDQueryParallel {
     auto result =
         tdoann::nnd_query_parallel<Distance, GUFactoryT, Progress, RParallel>(
             ref_vec, reference.ncol(), query_vec, nn_init, ref_idx_vec,
-            max_candidates, n_iters, candidate_priority_factory, delta,
-            n_threads, block_size, grain_size, verbose);
+            max_candidates, n_iters, candidate_priority, delta, n_threads,
+            block_size, grain_size, verbose);
 
     return graph_to_r(result);
   }

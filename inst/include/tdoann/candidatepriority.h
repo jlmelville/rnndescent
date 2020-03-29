@@ -32,9 +32,11 @@
 
 namespace tdoann {
 
+namespace cp {
+
 // Explore neighbors in increasing distance order (i.e. closest neighbors are
 // processed first)
-struct CandidatePriorityLowDistance {
+struct LowDistance {
   auto operator()(const NeighborHeap &current_graph, std::size_t ij) -> double {
     return current_graph.dist[ij];
   }
@@ -43,20 +45,21 @@ struct CandidatePriorityLowDistance {
 
 // Explore neighbors in decreases distance order (i.e. furthest neighbors are
 // processed first)
-struct CandidatePriorityHighDistance {
+struct HighDistance {
   auto operator()(const NeighborHeap &current_graph, std::size_t ij) -> double {
     return -current_graph.dist[ij];
   }
   const constexpr static bool should_sort = true;
 };
 
-template <typename CandidatePriority> struct CandidatePriorityFactory {
+template <typename CandidatePriority> struct Factory {
   using Type = CandidatePriority;
   auto create() -> Type { return Type(); }
   // Window size in parallel computations.
   auto create(std::size_t, std::size_t) -> Type { return Type(); }
   const constexpr static bool should_sort = Type::should_sort;
 };
+} // namespace cp
 
 } // namespace tdoann
 #endif // TDOANN_CANDIDATEPRIORITY_H

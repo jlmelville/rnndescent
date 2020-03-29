@@ -25,37 +25,42 @@
 
 #include "rnn_rng.h"
 
-struct CandidatePriorityRandomSerial {
+namespace rnnd {
+namespace cp {
+struct RandomSerial {
   RRand rand;
-  CandidatePriorityRandomSerial() : rand() {}
+  RandomSerial() : rand() {}
   auto operator()(const NeighborHeap &, std::size_t) -> double {
     return rand.unif();
   }
   const constexpr static bool should_sort = false;
 };
 
-struct CandidatePriorityRandomParallel {
+struct RandomParallel {
   TauRand rand;
-  CandidatePriorityRandomParallel(uint64_t seed, std::size_t end)
-      : rand(seed, end) {}
+  RandomParallel(uint64_t seed, std::size_t end) : rand(seed, end) {}
 
   auto operator()(const NeighborHeap &, std::size_t) -> double {
     return rand.unif();
   }
   const constexpr static bool should_sort = false;
 };
+} // namespace cp
+} // namespace rnnd
 
 namespace tdoann {
-template <> struct CandidatePriorityFactory<CandidatePriorityRandomParallel> {
-  using Type = CandidatePriorityRandomParallel;
+namespace cp {
+template <> struct Factory<rnnd::cp::RandomParallel> {
+  using Type = rnnd::cp::RandomParallel;
   uint64_t seed;
-  CandidatePriorityFactory(uint64_t seed) : seed(seed) {}
+  Factory(uint64_t seed) : seed(seed) {}
 
   auto create() -> Type { return Type(seed, 42); }
 
   auto create(std::size_t, std::size_t end) -> Type { return Type(seed, end); }
   const constexpr static bool should_sort = Type::should_sort;
 };
+} // namespace cp
 } // namespace tdoann
 
 #endif // RNN_CANDIDATEPRIORITY_H
