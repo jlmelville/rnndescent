@@ -292,8 +292,8 @@ template <typename Distance, typename GUFactoryT, typename Progress,
 NNGraph nnd_query_parallel(
     const std::vector<typename Distance::Input> &reference, std::size_t ndim,
     const std::vector<typename Distance::Input> &query, const NNGraph &nn_init,
-    const std::vector<std::size_t> &reference_idx, std::size_t n_ref_points,
-    std::size_t max_candidates, std::size_t n_iters,
+    const std::vector<std::size_t> &reference_idx, std::size_t max_candidates,
+    std::size_t n_iters,
     CandidatePriorityFactoryImpl &candidate_priority_factory, double delta,
     std::size_t n_threads = 0, std::size_t block_size = 16384,
     std::size_t grain_size = 1, bool verbose = false) {
@@ -309,6 +309,7 @@ NNGraph nnd_query_parallel(
   Progress progress(current_graph, n_iters, verbose);
   auto graph_updater = GUFactoryT::create(current_graph, distance);
 
+  std::size_t n_ref_points = reference.size() / ndim;
   NeighborHeap gn_graph(n_ref_points, max_candidates);
   auto candidate_priority = candidate_priority_factory.create();
   build_general_nbrs(reference_idx, gn_graph, candidate_priority, n_ref_points,

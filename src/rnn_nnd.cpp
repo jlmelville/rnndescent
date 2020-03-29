@@ -196,12 +196,10 @@ struct NNDQuerySerial {
   NumericMatrix query;
 
   IntegerMatrix ref_idx;
-  std::size_t n_ref_points;
 
   NNDQuerySerial(NumericMatrix reference, NumericMatrix query,
                  IntegerMatrix ref_idx)
-      : reference(reference), query(query), ref_idx(ref_idx),
-        n_ref_points(ref_idx.nrow()) {}
+      : reference(reference), query(query), ref_idx(ref_idx) {}
 
   template <typename GUFactoryT, typename Distance,
             typename CandidatePriorityFactoryImpl, typename Progress>
@@ -217,8 +215,7 @@ struct NNDQuerySerial {
 
     auto result = nnd_query<Distance, GUFactoryT, Progress>(
         ref_vec, reference.ncol(), query_vec, nn_init, ref_idx_vec,
-        n_ref_points, max_candidates, n_iters, candidate_priority_factory,
-        delta, verbose);
+        max_candidates, n_iters, candidate_priority_factory, delta, verbose);
 
     return graph_to_r(result);
   }
@@ -227,9 +224,8 @@ struct NNDQuerySerial {
 struct NNDQueryParallel {
   NumericMatrix reference;
   NumericMatrix query;
-
   IntegerMatrix ref_idx;
-  std::size_t n_ref_points;
+
   std::size_t n_threads;
   std::size_t block_size;
   std::size_t grain_size;
@@ -238,8 +234,7 @@ struct NNDQueryParallel {
                    IntegerMatrix ref_idx, std::size_t n_threads,
                    std::size_t block_size, std::size_t grain_size)
       : reference(reference), query(query), ref_idx(ref_idx),
-        n_ref_points(ref_idx.nrow()), n_threads(n_threads),
-        block_size(block_size), grain_size(grain_size) {}
+        n_threads(n_threads), block_size(block_size), grain_size(grain_size) {}
 
   template <typename GUFactoryT, typename Distance,
             typename CandidatePriorityFactoryImpl, typename Progress>
@@ -254,8 +249,8 @@ struct NNDQueryParallel {
 
     auto result = nnd_query_parallel<Distance, GUFactoryT, Progress, RParallel>(
         ref_vec, reference.ncol(), query_vec, nn_init, ref_idx_vec,
-        n_ref_points, max_candidates, n_iters, candidate_priority_factory,
-        delta, n_threads, block_size, grain_size, verbose);
+        max_candidates, n_iters, candidate_priority_factory, delta, n_threads,
+        block_size, grain_size, verbose);
 
     return graph_to_r(result);
   }

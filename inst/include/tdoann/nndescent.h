@@ -212,8 +212,7 @@ NNGraph
 nnd_query(const std::vector<typename Distance::Input> &reference,
           std::size_t ndim, const std::vector<typename Distance::Input> &query,
           const NNGraph &nn_init, const std::vector<std::size_t> &reference_idx,
-          std::size_t n_ref_points, std::size_t max_candidates,
-          std::size_t n_iters,
+          std::size_t max_candidates, std::size_t n_iters,
           CandidatePriorityFactory &candidate_priority_factory, double delta,
           bool verbose) {
   Distance distance(reference, query, ndim);
@@ -230,6 +229,7 @@ nnd_query(const std::vector<typename Distance::Input> &reference,
 
   auto candidate_priority = candidate_priority_factory.create();
 
+  std::size_t n_ref_points = reference.size() / ndim;
   NeighborHeap gn_graph(n_ref_points, max_candidates);
   build_general_nbrs(reference_idx, gn_graph, candidate_priority, n_ref_points,
                      n_nbrs);
