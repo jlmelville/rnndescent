@@ -33,16 +33,4 @@ auto r2dvt(Rcpp::NumericMatrix data) -> std::vector<typename Distance::Input> {
   return r2vt<typename Distance::Input>(data);
 }
 
-template <typename Distance>
-auto create_build_distance(Rcpp::NumericMatrix data) -> Distance {
-  return Distance(r2vt<typename Distance::Input>(data), data.ncol());
-}
-
-template <typename Distance>
-auto create_query_distance(Rcpp::NumericMatrix reference,
-                           Rcpp::NumericMatrix query) -> Distance {
-  return Distance(r2vt<typename Distance::Input>(reference),
-                  r2vt<typename Distance::Input>(query), query.ncol());
-}
-
 #endif // RNN_DISTANCE_H

@@ -67,15 +67,7 @@ void heap_to_graph(const NbrHeap &heap, NNGraph &nn_graph) {
 template <typename NbrHeap = SimpleNeighborHeap>
 auto heap_to_graph(const NbrHeap &heap) -> NNGraph {
   NNGraph nn_graph(heap.n_points, heap.n_nbrs);
-
-  for (std::size_t c = 0; c < nn_graph.n_points; c++) {
-    std::size_t cnnbrs = c * nn_graph.n_nbrs;
-    for (std::size_t r = 0; r < nn_graph.n_nbrs; r++) {
-      std::size_t rc = cnnbrs + r;
-      nn_graph.idx[rc] = static_cast<int>(heap.idx[rc]);
-      nn_graph.dist[rc] = static_cast<double>(heap.dist[rc]);
-    }
-  }
+  heap_to_graph(heap, nn_graph);
 
   return nn_graph;
 }
