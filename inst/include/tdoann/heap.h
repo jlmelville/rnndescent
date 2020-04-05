@@ -35,7 +35,9 @@
 namespace tdoann {
 
 // Base class storing neighbor data as a series of heaps
-template <typename DistanceOut = double> struct NNDHeap {
+template <typename DistT = double> struct NNDHeap {
+  using DistanceT = DistT;
+
   // used in analogy with std::string::npos as used in std::string::find
   // to represent not found
   static constexpr auto npos() -> std::size_t {
@@ -45,13 +47,13 @@ template <typename DistanceOut = double> struct NNDHeap {
   std::size_t n_points;
   std::size_t n_nbrs;
   std::vector<std::size_t> idx;
-  std::vector<DistanceOut> dist;
+  std::vector<DistT> dist;
   std::vector<char> flags;
   std::size_t n_nbrs1;
 
   NNDHeap(std::size_t n_points, std::size_t n_nbrs)
       : n_points(n_points), n_nbrs(n_nbrs), idx(n_points * n_nbrs, npos()),
-        dist(n_points * n_nbrs, (std::numeric_limits<DistanceOut>::max)()),
+        dist(n_points * n_nbrs, (std::numeric_limits<DistT>::max)()),
         flags(n_points * n_nbrs, 0), n_nbrs1(n_nbrs - 1) {}
 
   NNDHeap(const NNDHeap &) = default;
@@ -69,17 +71,17 @@ template <typename DistanceOut = double> struct NNDHeap {
   }
 
   // returns true if either p or q would accept a neighbor with distance d
-  auto accepts_either(std::size_t p, std::size_t q, DistanceOut d) const
+  auto accepts_either(std::size_t p, std::size_t q, DistT d) const
       -> bool {
     return d < dist[p * n_nbrs] || (p != q && d < dist[q * n_nbrs]);
   }
 
   // returns true if p would accept a neighbor with distance d
-  auto accepts(std::size_t p, DistanceOut d) const -> bool {
+  auto accepts(std::size_t p, DistT d) const -> bool {
     return d < dist[p * n_nbrs];
   }
 
-  auto checked_push_pair(std::size_t row, DistanceOut weight, std::size_t idx,
+  auto checked_push_pair(std::size_t row, DistT weight, std::size_t idx,
                          char flag = 1) -> std::size_t {
     std::size_t c = checked_push(row, weight, idx, flag);
     if (row != idx) {
@@ -88,7 +90,7 @@ template <typename DistanceOut = double> struct NNDHeap {
     return c;
   }
 
-  auto checked_push(std::size_t row, DistanceOut weight, std::size_t idx,
+  auto checked_push(std::size_t row, DistT weight, std::size_t idx,
                     char flag = 1) -> std::size_t {
     if (!accepts(row, weight) || contains(row, idx)) {
       return 0;
@@ -98,7 +100,7 @@ template <typename DistanceOut = double> struct NNDHeap {
   }
 
   // This differs from the pynndescent version as it is truly unchecked
-  auto unchecked_push(std::size_t row, DistanceOut weight, std::size_t index,
+  auto unchecked_push(std::size_t row, DistT weight, std::size_t index,
                       char flag = 1) -> std::size_t {
     std::size_t r0 = row * n_nbrs;
 
@@ -205,10 +207,10 @@ template <typename DistanceOut = double> struct NNDHeap {
     return idx[i * n_nbrs + j];
   }
 
-  auto distance(std::size_t i, std::size_t j) const -> DistanceOut {
+  auto distance(std::size_t i, std::size_t j) const -> DistT {
     return dist[i * n_nbrs + j];
   }
-  auto distance(std::size_t i, std::size_t j) -> DistanceOut & {
+  auto distance(std::size_t i, std::size_t j) -> DistT & {
     return dist[i * n_nbrs + j];
   }
 
@@ -221,7 +223,9 @@ template <typename DistanceOut = double> struct NNDHeap {
 };
 
 // Like NNDHeap, but no flag vector
-template <typename DistanceOut = double> struct NNHeap {
+template <typename DistT = double> struct NNHeap {
+  using DistanceT = DistT;
+
   static constexpr auto npos() -> std::size_t {
     return static_cast<std::size_t>(-1);
   }
@@ -229,12 +233,12 @@ template <typename DistanceOut = double> struct NNHeap {
   std::size_t n_points;
   std::size_t n_nbrs;
   std::vector<std::size_t> idx;
-  std::vector<DistanceOut> dist;
+  std::vector<DistT> dist;
   std::size_t n_nbrs1;
 
   NNHeap(std::size_t n_points, std::size_t n_nbrs)
       : n_points(n_points), n_nbrs(n_nbrs), idx(n_points * n_nbrs, npos()),
-        dist(n_points * n_nbrs, (std::numeric_limits<DistanceOut>::max)()),
+        dist(n_points * n_nbrs, (std::numeric_limits<DistT>::max)()),
         n_nbrs1(n_nbrs - 1) {}
 
   NNHeap(const NNHeap &) = default;
@@ -252,17 +256,17 @@ template <typename DistanceOut = double> struct NNHeap {
   }
 
   // returns true if either p or q would accept a neighbor with distance d
-  auto accepts_either(std::size_t p, std::size_t q, DistanceOut d) const
+  auto accepts_either(std::size_t p, std::size_t q, DistT d) const
       -> bool {
     return d < dist[p * n_nbrs] || (p != q && d < dist[q * n_nbrs]);
   }
 
   // returns true if p would accept a neighbor with distance d
-  auto accepts(std::size_t p, DistanceOut d) const -> bool {
+  auto accepts(std::size_t p, DistT d) const -> bool {
     return d < dist[p * n_nbrs];
   }
 
-  auto checked_push_pair(std::size_t row, DistanceOut weight, std::size_t idx)
+  auto checked_push_pair(std::size_t row, DistT weight, std::size_t idx)
       -> std::size_t {
     std::size_t c = checked_push(row, weight, idx);
     if (row != idx) {
@@ -271,7 +275,7 @@ template <typename DistanceOut = double> struct NNHeap {
     return c;
   }
 
-  auto checked_push(std::size_t row, DistanceOut weight, std::size_t idx)
+  auto checked_push(std::size_t row, DistT weight, std::size_t idx)
       -> std::size_t {
     if (!accepts(row, weight) || contains(row, idx)) {
       return 0;
@@ -280,7 +284,7 @@ template <typename DistanceOut = double> struct NNHeap {
     return unchecked_push(row, weight, idx);
   }
 
-  auto unchecked_push(std::size_t row, DistanceOut weight, std::size_t index)
+  auto unchecked_push(std::size_t row, DistT weight, std::size_t index)
       -> std::size_t {
     std::size_t r0 = row * n_nbrs;
 
@@ -381,7 +385,7 @@ template <typename DistanceOut = double> struct NNHeap {
     return idx[i * n_nbrs + j];
   }
 
-  auto distance(std::size_t i, std::size_t j) const -> DistanceOut {
+  auto distance(std::size_t i, std::size_t j) const -> DistT {
     return dist[i * n_nbrs + j];
   }
 };

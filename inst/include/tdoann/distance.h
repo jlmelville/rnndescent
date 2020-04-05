@@ -61,6 +61,7 @@ template <typename In, typename Out> struct Euclidean {
   std::size_t ny;
 
   using Input = In;
+  using Output = Out;
 };
 
 template <typename In, typename Out> struct L2Sqr {
@@ -90,6 +91,7 @@ template <typename In, typename Out> struct L2Sqr {
   std::size_t ny;
 
   using Input = In;
+  using Output = Out;
 };
 
 // relies on NRVO to avoid a copy
@@ -142,6 +144,7 @@ template <typename In, typename Out> struct CosineSelf {
   }
 
   using Input = In;
+  using Output = Out;
 };
 
 template <typename In, typename Out> struct CosineQuery {
@@ -161,6 +164,7 @@ template <typename In, typename Out> struct CosineQuery {
   }
 
   using Input = In;
+  using Output = Out;
 };
 
 template <typename In, typename Out> struct Manhattan {
@@ -190,6 +194,7 @@ template <typename In, typename Out> struct Manhattan {
   std::size_t ny;
 
   using Input = In;
+  using Output = Out;
 };
 
 template <int n> using BitSet = std::bitset<n>;
@@ -263,6 +268,7 @@ template <typename In, typename Out> struct HammingSelf {
   }
 
   using Input = In;
+  using Output = Out;
 };
 
 template <typename In, typename Out> struct HammingQuery {
@@ -285,6 +291,7 @@ template <typename In, typename Out> struct HammingQuery {
   }
 
   using Input = In;
+  using Output = Out;
 };
 
 } // namespace tdoann
