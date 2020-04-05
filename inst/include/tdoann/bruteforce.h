@@ -38,8 +38,9 @@
 namespace tdoann {
 
 template <typename Distance, typename Progress>
-void nnbf_query_window(NNHeap<typename Distance::Output> &neighbor_heap, Distance &distance,
-                       Progress &progress, std::size_t begin, std::size_t end) {
+void nnbf_query_window(NNHeap<typename Distance::Output> &neighbor_heap,
+                       Distance &distance, Progress &progress,
+                       std::size_t begin, std::size_t end) {
 
   std::size_t n_ref_points = distance.nx;
   for (std::size_t ref = 0; ref < n_ref_points; ref++) {
@@ -60,7 +61,8 @@ struct BruteForceWorker : public BatchParallelWorker {
   Distance &distance;
   NullProgress progress;
 
-  BruteForceWorker(NNHeap<typename Distance::Output> &neighbor_heap, Distance &distance)
+  BruteForceWorker(NNHeap<typename Distance::Output> &neighbor_heap,
+                   Distance &distance)
       : neighbor_heap(neighbor_heap), distance(distance), progress() {}
 
   void operator()(std::size_t begin, std::size_t end) {
@@ -108,7 +110,8 @@ auto nnbf_query(Distance &distance, std::size_t n_nbrs, bool verbose)
 }
 
 template <typename Distance, typename Progress>
-auto nnbf(Distance &distance, std::size_t n_nbrs, bool verbose) -> NNGraph<typename Distance::Output> {
+auto nnbf(Distance &distance, std::size_t n_nbrs, bool verbose)
+    -> NNGraph<typename Distance::Output> {
   // distance.nx == distance.ny but this pattern is consistent with the
   // query usage
   NNHeap<typename Distance::Output> neighbor_heap(distance.ny, n_nbrs);
@@ -155,7 +158,8 @@ auto brute_force_query(const std::vector<typename Distance::Input> &reference,
                        const std::vector<typename Distance::Input> &query,
                        std::size_t k, std::size_t n_threads = 0,
                        std::size_t block_size = 64, std::size_t grain_size = 1,
-                       bool verbose = false) -> NNGraph<typename Distance::Output> {
+                       bool verbose = false)
+    -> NNGraph<typename Distance::Output> {
   Distance distance(reference, query, ndim);
 
   if (n_threads > 0) {

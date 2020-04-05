@@ -71,8 +71,7 @@ template <typename DistT = double> struct NNDHeap {
   }
 
   // returns true if either p or q would accept a neighbor with distance d
-  auto accepts_either(std::size_t p, std::size_t q, DistT d) const
-      -> bool {
+  auto accepts_either(std::size_t p, std::size_t q, DistT d) const -> bool {
     return d < dist[p * n_nbrs] || (p != q && d < dist[q * n_nbrs]);
   }
 
@@ -256,8 +255,7 @@ template <typename DistT = double> struct NNHeap {
   }
 
   // returns true if either p or q would accept a neighbor with distance d
-  auto accepts_either(std::size_t p, std::size_t q, DistT d) const
-      -> bool {
+  auto accepts_either(std::size_t p, std::size_t q, DistT d) const -> bool {
     return d < dist[p * n_nbrs] || (p != q && d < dist[q * n_nbrs]);
   }
 
