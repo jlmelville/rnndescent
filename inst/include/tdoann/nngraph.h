@@ -34,44 +34,40 @@
 
 namespace tdoann {
 
-template <typename DistT = float> struct NNGraph {
-  std::vector<int> idx;
+template <typename DistT = float, typename IdxT = uint32_t> struct NNGraph {
+  std::vector<IdxT> idx;
   std::vector<DistT> dist;
 
   std::size_t n_points;
   std::size_t n_nbrs;
 
-  NNGraph(const std::vector<int> &idx, const std::vector<DistT> &dist,
+  NNGraph(const std::vector<IdxT> &idx, const std::vector<DistT> &dist,
           std::size_t n_points)
       : idx(idx), dist(dist), n_points(n_points),
         n_nbrs(idx.size() / n_points) {}
 
   NNGraph(std::size_t n_points, std::size_t n_nbrs)
-      : idx(std::vector<int>(n_points * n_nbrs)),
+      : idx(std::vector<IdxT>(n_points * n_nbrs)),
         dist(std::vector<DistT>(n_points * n_nbrs)), n_points(n_points),
         n_nbrs(n_nbrs) {}
 
   using DistanceT = DistT;
+  using IndexT = IdxT;
 };
 
 template <typename NbrHeap>
-void heap_to_graph(const NbrHeap &heap,
-                   NNGraph<typename NbrHeap::DistanceT> &nn_graph) {
-  for (std::size_t c = 0; c < nn_graph.n_points; c++) {
-    std::size_t cnnbrs = c * nn_graph.n_nbrs;
-    for (std::size_t r = 0; r < nn_graph.n_nbrs; r++) {
-      std::size_t rc = cnnbrs + r;
-      nn_graph.idx[rc] = static_cast<int>(heap.idx[rc]);
-      nn_graph.dist[rc] =
-          static_cast<typename NbrHeap::DistanceT>(heap.dist[rc]);
-    }
-  }
+void heap_to_graph(
+    const NbrHeap &heap,
+    NNGraph<typename NbrHeap::DistanceT, typename NbrHeap::IndexT> &nn_graph) {
+  nn_graph.idx = heap.idx;
+  nn_graph.dist = heap.dist;
 }
 
 template <typename NbrHeap>
 auto heap_to_graph(const NbrHeap &heap)
-    -> NNGraph<typename NbrHeap::DistanceT> {
-  NNGraph<typename NbrHeap::DistanceT> nn_graph(heap.n_points, heap.n_nbrs);
+    -> NNGraph<typename NbrHeap::DistanceT, typename NbrHeap::IndexT> {
+  NNGraph<typename NbrHeap::DistanceT, typename NbrHeap::IndexT> nn_graph(
+      heap.n_points, heap.n_nbrs);
   heap_to_graph(heap, nn_graph);
 
   return nn_graph;
@@ -111,7 +107,8 @@ struct LockingHeapAddSymmetric {
 // input idx vector is 0-indexed and transposed
 // output heap index is 0-indexed
 template <typename HeapAdd, typename NbrHeap>
-void vec_to_heap(NbrHeap &current_graph, const std::vector<int> &nn_idx,
+void vec_to_heap(NbrHeap &current_graph,
+                 const std::vector<typename NbrHeap::IndexT> &nn_idx,
                  std::size_t nrow,
                  const std::vector<typename NbrHeap::DistanceT> &nn_dist,
                  std::size_t begin, std::size_t end, HeapAdd &heap_add,
