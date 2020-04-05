@@ -38,9 +38,10 @@
 namespace tdoann {
 
 template <typename Distance, typename Progress>
-void nnbf_query_window(NNHeap<typename Distance::Output> &neighbor_heap,
-                       Distance &distance, Progress &progress,
-                       std::size_t begin, std::size_t end) {
+void nnbf_query_window(
+    NNHeap<typename Distance::Output, typename Distance::Index> &neighbor_heap,
+    Distance &distance, Progress &progress, std::size_t begin,
+    std::size_t end) {
 
   std::size_t n_ref_points = distance.nx;
   for (std::size_t ref = 0; ref < n_ref_points; ref++) {
@@ -57,11 +58,12 @@ void nnbf_query_window(NNHeap<typename Distance::Output> &neighbor_heap,
 template <typename Distance>
 struct BruteForceWorker : public BatchParallelWorker {
 
-  NNHeap<typename Distance::Output> &neighbor_heap;
+  NNHeap<typename Distance::Output, typename Distance::Index> &neighbor_heap;
   Distance &distance;
   NullProgress progress;
 
-  BruteForceWorker(NNHeap<typename Distance::Output> &neighbor_heap,
+  BruteForceWorker(NNHeap<typename Distance::Output, typename Distance::Index>
+                       &neighbor_heap,
                    Distance &distance)
       : neighbor_heap(neighbor_heap), distance(distance), progress() {}
 
@@ -74,8 +76,9 @@ template <typename Distance, typename Progress, typename Parallel>
 auto nnbf_parallel_query(Distance &distance, std::size_t n_nbrs,
                          std::size_t n_threads = 0, std::size_t block_size = 64,
                          std::size_t grain_size = 1, bool verbose = false)
-    -> NNGraph<typename Distance::Output> {
-  NNHeap<typename Distance::Output> neighbor_heap(distance.ny, n_nbrs);
+    -> NNGraph<typename Distance::Output, typename Distance::Index> {
+  NNHeap<typename Distance::Output, typename Distance::Index> neighbor_heap(
+      distance.ny, n_nbrs);
   Progress progress(1, verbose);
 
   BruteForceWorker<Distance> worker(neighbor_heap, distance);
@@ -91,15 +94,16 @@ template <typename Distance, typename Progress, typename Parallel>
 auto nnbf_parallel(Distance &distance, std::size_t n_nbrs,
                    std::size_t n_threads = 0, std::size_t block_size = 64,
                    std::size_t grain_size = 1, bool verbose = false)
-    -> NNGraph<typename Distance::Output> {
+    -> NNGraph<typename Distance::Output, typename Distance::Index> {
   return nnbf_parallel_query<Distance, Progress, Parallel>(
       distance, n_nbrs, n_threads, block_size, grain_size, verbose);
 }
 
 template <typename Distance, typename Progress>
 auto nnbf_query(Distance &distance, std::size_t n_nbrs, bool verbose)
-    -> NNGraph<typename Distance::Output> {
-  NNHeap<typename Distance::Output> neighbor_heap(distance.ny, n_nbrs);
+    -> NNGraph<typename Distance::Output, typename Distance::Index> {
+  NNHeap<typename Distance::Output, typename Distance::Index> neighbor_heap(
+      distance.ny, n_nbrs);
   Progress progress(distance.nx, verbose);
 
   nnbf_query_window(neighbor_heap, distance, progress, 0,
@@ -111,10 +115,11 @@ auto nnbf_query(Distance &distance, std::size_t n_nbrs, bool verbose)
 
 template <typename Distance, typename Progress>
 auto nnbf(Distance &distance, std::size_t n_nbrs, bool verbose)
-    -> NNGraph<typename Distance::Output> {
+    -> NNGraph<typename Distance::Output, typename Distance::Index> {
   // distance.nx == distance.ny but this pattern is consistent with the
   // query usage
-  NNHeap<typename Distance::Output> neighbor_heap(distance.ny, n_nbrs);
+  NNHeap<typename Distance::Output, typename Distance::Index> neighbor_heap(
+      distance.ny, n_nbrs);
   Progress progress(distance.nx, verbose);
 
   std::size_t n_points = neighbor_heap.n_points;
@@ -141,7 +146,7 @@ auto brute_force_build(const std::vector<typename Distance::Input> &data,
                        std::size_t ndim, std::size_t k,
                        std::size_t n_threads = 0, std::size_t block_size = 64,
                        std::size_t grain_size = 1, bool verbose = false)
-    -> NNGraph<typename Distance::Output> {
+    -> NNGraph<typename Distance::Output, typename Distance::Index> {
   Distance distance(data, ndim);
 
   if (n_threads > 0) {
@@ -159,7 +164,7 @@ auto brute_force_query(const std::vector<typename Distance::Input> &reference,
                        std::size_t k, std::size_t n_threads = 0,
                        std::size_t block_size = 64, std::size_t grain_size = 1,
                        bool verbose = false)
-    -> NNGraph<typename Distance::Output> {
+    -> NNGraph<typename Distance::Output, typename Distance::Index> {
   Distance distance(reference, query, ndim);
 
   if (n_threads > 0) {
