@@ -32,7 +32,7 @@
 #include <vector>
 
 namespace tdoann {
-template <typename In, typename Out> struct Euclidean {
+template <typename In, typename Out, typename Idx = uint32_t> struct Euclidean {
   Euclidean(const std::vector<In> &data, std::size_t ndim)
       : x(data), y(data), ndim(ndim), nx(data.size() / ndim),
         ny(data.size() / ndim) {}
@@ -41,7 +41,7 @@ template <typename In, typename Out> struct Euclidean {
             std::size_t ndim)
       : x(x), y(y), ndim(ndim), nx(x.size() / ndim), ny(y.size() / ndim) {}
 
-  auto operator()(std::size_t i, std::size_t j) const -> Out {
+  auto operator()(Idx i, Idx j) const -> Out {
     Out sum = 0.0;
     std::size_t di = ndim * i;
     std::size_t dj = ndim * j;
@@ -57,21 +57,22 @@ template <typename In, typename Out> struct Euclidean {
   const std::vector<In> x;
   const std::vector<In> y;
   std::size_t ndim;
-  std::size_t nx;
-  std::size_t ny;
+  Idx nx;
+  Idx ny;
 
   using Input = In;
   using Output = Out;
+  using Index = Idx;
 };
 
-template <typename In, typename Out> struct L2Sqr {
+template <typename In, typename Out, typename Idx = uint32_t> struct L2Sqr {
   L2Sqr(const std::vector<In> &data, std::size_t ndim)
       : x(data), y(data), ndim(ndim), nx(data.size() / ndim),
         ny(data.size() / ndim) {}
   L2Sqr(const std::vector<In> &x, const std::vector<In> &y, std::size_t ndim)
       : x(x), y(y), ndim(ndim), nx(x.size() / ndim), ny(y.size() / ndim) {}
 
-  auto operator()(std::size_t i, std::size_t j) const -> Out {
+  auto operator()(Idx i, Idx j) const -> Out {
     Out sum = 0.0;
     std::size_t di = ndim * i;
     std::size_t dj = ndim * j;
@@ -87,11 +88,12 @@ template <typename In, typename Out> struct L2Sqr {
   const std::vector<In> x;
   const std::vector<In> y;
   std::size_t ndim;
-  std::size_t nx;
-  std::size_t ny;
+  Idx nx;
+  Idx ny;
 
   using Input = In;
   using Output = Out;
+  using Index = Idx;
 };
 
 // relies on NRVO to avoid a copy
@@ -115,10 +117,9 @@ auto normalize(const std::vector<T> &vec, std::size_t ndim) -> std::vector<T> {
   return normalized;
 }
 
-template <typename In, typename Out>
-auto cosine_impl(const std::vector<In> &x, std::size_t i,
-                 const std::vector<In> &y, std::size_t j, std::size_t ndim)
-    -> Out {
+template <typename In, typename Out, typename Idx = uint32_t>
+auto cosine_impl(const std::vector<In> &x, Idx i, const std::vector<In> &y,
+                 Idx j, std::size_t ndim) -> Out {
   std::size_t di = ndim * i;
   std::size_t dj = ndim * j;
 
@@ -130,44 +131,48 @@ auto cosine_impl(const std::vector<In> &x, std::size_t i,
   return 1.0 - sum;
 }
 
-template <typename In, typename Out> struct CosineSelf {
+template <typename In, typename Out, typename Idx = uint32_t>
+struct CosineSelf {
   const std::vector<In> x;
   std::size_t ndim;
-  std::size_t nx;
-  std::size_t ny;
+  Idx nx;
+  Idx ny;
 
   CosineSelf(const std::vector<In> &data, std::size_t ndim)
       : x(normalize(data, ndim)), ndim(ndim), nx(data.size() / ndim), ny(nx) {}
 
-  auto operator()(std::size_t i, std::size_t j) const -> Out {
-    return cosine_impl<In, Out>(x, i, x, j, ndim);
+  auto operator()(Idx i, Idx j) const -> Out {
+    return cosine_impl<In, Out, Idx>(x, i, x, j, ndim);
   }
 
   using Input = In;
   using Output = Out;
+  using Index = Idx;
 };
 
-template <typename In, typename Out> struct CosineQuery {
+template <typename In, typename Out, typename Idx = uint32_t>
+struct CosineQuery {
   const std::vector<In> x_;
   const std::vector<In> y_;
   std::size_t ndim;
-  std::size_t nx;
-  std::size_t ny;
+  Idx nx;
+  Idx ny;
 
   CosineQuery(const std::vector<In> &x, const std::vector<In> &y,
               std::size_t ndim)
       : x_(normalize(x, ndim)), y_(normalize(y, ndim)), ndim(ndim),
         nx(x.size() / ndim), ny(y.size() / ndim) {}
 
-  auto operator()(std::size_t i, std::size_t j) const -> Out {
-    return cosine_impl<In, Out>(x_, i, y_, j, ndim);
+  auto operator()(Idx i, Idx j) const -> Out {
+    return cosine_impl<In, Out, Idx>(x_, i, y_, j, ndim);
   }
 
   using Input = In;
   using Output = Out;
+  using Index = Idx;
 };
 
-template <typename In, typename Out> struct Manhattan {
+template <typename In, typename Out, typename Idx = uint32_t> struct Manhattan {
   Manhattan(const std::vector<In> &data, std::size_t ndim)
       : x(data), y(data), ndim(ndim), nx(data.size() / ndim),
         ny(data.size() / ndim) {}
@@ -175,7 +180,7 @@ template <typename In, typename Out> struct Manhattan {
             std::size_t ndim)
       : x(x), y(y), ndim(ndim), nx(x.size() / ndim), ny(y.size() / ndim) {}
 
-  auto operator()(std::size_t i, std::size_t j) const -> Out {
+  auto operator()(Idx i, Idx j) const -> Out {
     Out sum = 0.0;
     std::size_t di = ndim * i;
     std::size_t dj = ndim * j;
@@ -190,11 +195,12 @@ template <typename In, typename Out> struct Manhattan {
   const std::vector<In> x;
   const std::vector<In> y;
   std::size_t ndim;
-  std::size_t nx;
-  std::size_t ny;
+  Idx nx;
+  Idx ny;
 
   using Input = In;
   using Output = Out;
+  using Index = Idx;
 };
 
 template <int n> using BitSet = std::bitset<n>;
@@ -236,62 +242,66 @@ auto to_bitvec(const std::vector<T> &vec, std::size_t ndim) -> BitVec {
   return bitvec;
 }
 
-template <typename Out>
-auto hamming_impl(const BitVec &x, std::size_t i, const BitVec &y,
-                  std::size_t j, std::size_t ndim) -> Out {
+template <typename Out, typename Idx = uint32_t>
+auto hamming_impl(const BitVec &x, Idx i, const BitVec &y, Idx j,
+                  std::size_t len) -> Out {
   Out sum = 0;
-  std::size_t di = ndim * i;
-  std::size_t dj = ndim * j;
+  std::size_t di = len * i;
+  std::size_t dj = len * j;
 
-  for (std::size_t d = 0; d < ndim; d++) {
+  for (std::size_t d = 0; d < len; d++) {
     sum += (x[di + d] ^ y[dj + d]).count();
   }
 
   return sum;
 }
 
-template <typename In, typename Out> struct HammingSelf {
+template <typename In, typename Out, typename Idx = uint32_t>
+struct HammingSelf {
   const BitVec bitvec;
-  std::size_t ndim_;
+  std::size_t vec_len; // size of the bitvec
   std::size_t ndim;
-  std::size_t nx;
-  std::size_t ny;
+  Idx nx;
+  Idx ny;
 
   HammingSelf(const std::vector<In> &data, std::size_t ndim)
       : bitvec(to_bitvec(data, ndim)),
-        ndim_(
+        vec_len(
             std::ceil(ndim / static_cast<float>(BitVec::value_type{}.size()))),
         ndim(ndim), nx(data.size() / ndim), ny(nx) {}
 
-  auto operator()(std::size_t i, std::size_t j) const -> Out {
-    return hamming_impl<Out>(bitvec, i, bitvec, j, ndim_);
+  auto operator()(Idx i, Idx j) const -> Out {
+    return hamming_impl<Out>(bitvec, i, bitvec, j, vec_len);
   }
 
   using Input = In;
   using Output = Out;
+  using Index = Idx;
 };
 
-template <typename In, typename Out> struct HammingQuery {
+template <typename In, typename Out, typename Idx = uint32_t>
+struct HammingQuery {
   const BitVec bx;
   const BitVec by;
-  std::size_t ndim_;
+  std::size_t vec_len;
   std::size_t ndim;
-  std::size_t nx;
-  std::size_t ny;
+  Idx nx;
+  Idx ny;
 
   HammingQuery(const std::vector<In> &x, const std::vector<In> &y,
                std::size_t ndim)
       : bx(to_bitvec(x, ndim)), by(to_bitvec(y, ndim)),
-        ndim_(
+        vec_len(
             std::ceil(ndim / static_cast<float>(BitVec::value_type{}.size()))),
         ndim(ndim), nx(x.size() / ndim), ny(y.size() / ndim) {}
 
-  auto operator()(std::size_t i, std::size_t j) const -> Out {
-    return hamming_impl<Out>(bx, i, by, j, ndim_);
+  auto operator()(Idx i, Idx j) const -> Out {
+    return hamming_impl<Out>(bx, i, by, j, vec_len);
   }
 
   using Input = In;
   using Output = Out;
+  using Index = Idx;
 };
 
 } // namespace tdoann
