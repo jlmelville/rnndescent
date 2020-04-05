@@ -45,7 +45,7 @@ void nnbf_query_window(NNHeap<typename Distance::Output> &neighbor_heap,
   std::size_t n_ref_points = distance.nx;
   for (std::size_t ref = 0; ref < n_ref_points; ref++) {
     for (std::size_t query = begin; query < end; query++) {
-      double d = distance(ref, query);
+      typename Distance::Output d = distance(ref, query);
       if (neighbor_heap.accepts(query, d)) {
         neighbor_heap.unchecked_push(query, d, ref);
       }
@@ -120,7 +120,7 @@ auto nnbf(Distance &distance, std::size_t n_nbrs, bool verbose)
   std::size_t n_points = neighbor_heap.n_points;
   for (std::size_t i = 0; i < n_points; i++) {
     for (std::size_t j = i; j < n_points; j++) {
-      double d = distance(i, j);
+      typename Distance::Output d = distance(i, j);
       if (neighbor_heap.accepts(i, d)) {
         neighbor_heap.unchecked_push(i, d, j);
       }
