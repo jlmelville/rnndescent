@@ -125,13 +125,14 @@ void vec_to_heap(NbrHeap &current_graph,
 template <typename HeapAdd, typename NbrHeap>
 struct VecToHeapWorker : public BatchParallelWorker {
   NbrHeap &heap;
-  const std::vector<int> &nn_idx;
+  const std::vector<typename NbrHeap::Index> &nn_idx;
   std::size_t nrow;
   const std::vector<typename NbrHeap::DistanceOut> &nn_dist;
   HeapAdd heap_add;
   bool transpose;
 
-  VecToHeapWorker(NbrHeap &heap, const std::vector<int> &nn_idx,
+  VecToHeapWorker(NbrHeap &heap,
+                  const std::vector<typename NbrHeap::Index> &nn_idx,
                   std::size_t nrow,
                   const std::vector<typename NbrHeap::DistanceOut> &nn_dist,
                   bool transpose = true)
@@ -146,7 +147,8 @@ struct VecToHeapWorker : public BatchParallelWorker {
 
 template <typename HeapAdd, typename Progress = NullProgress,
           typename Parallel = NoParallel, typename NbrHeap>
-void vec_to_heap_parallel(NbrHeap &heap, std::vector<int> &nn_idx,
+void vec_to_heap_parallel(NbrHeap &heap,
+                          std::vector<typename NbrHeap::Index> &nn_idx,
                           std::size_t n_points,
                           std::vector<typename NbrHeap::DistanceOut> &nn_dist,
                           std::size_t n_threads, std::size_t block_size,
@@ -159,10 +161,11 @@ void vec_to_heap_parallel(NbrHeap &heap, std::vector<int> &nn_idx,
 
 template <typename HeapAdd, typename Progress = NullProgress,
           typename Parallel = NoParallel, typename NbrHeap>
-void graph_to_heap_parallel(
-    NbrHeap &heap, const NNGraph<typename NbrHeap::DistanceOut> &nn_graph,
-    std::size_t n_threads, std::size_t block_size, std::size_t grain_size,
-    bool transpose = false) {
+void graph_to_heap_parallel(NbrHeap &heap,
+                            const NNGraph<typename NbrHeap::DistanceOut,
+                                          typename NbrHeap::Index> &nn_graph,
+                            std::size_t n_threads, std::size_t block_size,
+                            std::size_t grain_size, bool transpose = false) {
   VecToHeapWorker<HeapAdd, NbrHeap> worker(
       heap, nn_graph.idx, nn_graph.n_points, nn_graph.dist, transpose);
   Progress progress;
@@ -171,7 +174,8 @@ void graph_to_heap_parallel(
 }
 
 template <typename HeapAdd, typename NbrHeap>
-void vec_to_heap(NbrHeap &current_graph, const std::vector<int> &nn_idx,
+void vec_to_heap(NbrHeap &current_graph,
+                 const std::vector<typename NbrHeap::Index> &nn_idx,
                  std::size_t nrow,
                  const std::vector<typename NbrHeap::DistanceOut> &nn_dist,
                  bool transpose = true) {
@@ -181,7 +185,8 @@ void vec_to_heap(NbrHeap &current_graph, const std::vector<int> &nn_idx,
 }
 
 template <typename HeapAdd, typename Progress = NullProgress, typename NbrHeap>
-void vec_to_heap_serial(NbrHeap &heap, std::vector<int> &nn_idx,
+void vec_to_heap_serial(NbrHeap &heap,
+                        std::vector<typename NbrHeap::Index> &nn_idx,
                         std::size_t n_points,
                         std::vector<typename NbrHeap::DistanceOut> &nn_dist,
                         std::size_t block_size) {
@@ -191,9 +196,10 @@ void vec_to_heap_serial(NbrHeap &heap, std::vector<int> &nn_idx,
 }
 
 template <typename HeapAdd, typename Progress = NullProgress, typename NbrHeap>
-void graph_to_heap_serial(
-    NbrHeap &heap, const NNGraph<typename NbrHeap::DistanceOut> &nn_graph,
-    std::size_t block_size, bool transpose = false) {
+void graph_to_heap_serial(NbrHeap &heap,
+                          const NNGraph<typename NbrHeap::DistanceOut,
+                                        typename NbrHeap::Index> &nn_graph,
+                          std::size_t block_size, bool transpose = false) {
   VecToHeapWorker<HeapAdd, NbrHeap> worker(
       heap, nn_graph.idx, nn_graph.n_points, nn_graph.dist, transpose);
   Progress progress;
@@ -201,11 +207,11 @@ void graph_to_heap_serial(
 }
 
 template <typename HeapAdd, typename Progress = NullProgress,
-          typename Parallel = NoParallel, typename NbrHeap>
-void sort_knn_graph_parallel(NNGraph<typename NbrHeap::DistanceOut> &nn_graph,
+          typename Parallel = NoParallel, typename DistOut, typename Idx>
+void sort_knn_graph_parallel(NNGraph<DistOut, Idx> &nn_graph,
                              std::size_t n_threads, std::size_t block_size,
                              std::size_t grain_size) {
-  NbrHeap heap(nn_graph.n_points, nn_graph.n_nbrs);
+  NNHeap<DistOut, Idx> heap(nn_graph.n_points, nn_graph.n_nbrs);
   graph_to_heap_parallel<HeapAdd, Progress>(heap, nn_graph, n_threads,
                                             block_size, grain_size);
   sort_heap_parallel(heap, n_threads, block_size, grain_size);
@@ -213,9 +219,10 @@ void sort_knn_graph_parallel(NNGraph<typename NbrHeap::DistanceOut> &nn_graph,
   heap_to_graph(heap, nn_graph);
 }
 
-template <typename HeapAdd, typename Progress = NullProgress, typename NbrHeap>
-void sort_knn_graph(NNGraph<typename NbrHeap::DistanceOut> &nn_graph) {
-  NbrHeap heap(nn_graph.n_points, nn_graph.n_nbrs);
+template <typename HeapAdd, typename Progress = NullProgress, typename DistOut,
+          typename Idx>
+void sort_knn_graph(NNGraph<DistOut, Idx> &nn_graph) {
+  NNHeap<DistOut, Idx> heap(nn_graph.n_points, nn_graph.n_nbrs);
   graph_to_heap_serial<HeapAdd, Progress>(heap, nn_graph, 1000);
 
   heap.deheap_sort();

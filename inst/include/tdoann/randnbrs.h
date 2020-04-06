@@ -41,8 +41,8 @@ struct RandomNbrQueryWorker : public BatchParallelWorker {
 
   std::size_t n_points;
   std::size_t k;
-  std::vector<int> nn_idx;
-  std::vector<double> nn_dist;
+  std::vector<typename Distance::Index> nn_idx;
+  std::vector<typename Distance::Output> nn_dist;
 
   int nrefs;
 
@@ -57,7 +57,8 @@ struct RandomNbrQueryWorker : public BatchParallelWorker {
     Sampler int_sampler(seed, end);
 
     for (int qi = static_cast<int>(begin); qi < static_cast<int>(end); qi++) {
-      auto idxi = int_sampler.template sample<uint32_t>(nrefs, k);
+      auto idxi =
+          int_sampler.template sample<typename Distance::Index>(nrefs, k);
       std::size_t kqi = k * qi;
       for (std::size_t j = 0; j < k; j++) {
         auto &ri = idxi[j];
@@ -75,8 +76,8 @@ struct RandomNbrBuildWorker : public BatchParallelWorker {
 
   std::size_t n_points;
   std::size_t k;
-  std::vector<int> nn_idx;
-  std::vector<double> nn_dist;
+  std::vector<typename Distance::Index> nn_idx;
+  std::vector<typename Distance::Output> nn_dist;
 
   int n_points_minus_1;
   int k_minus_1;
@@ -94,8 +95,8 @@ struct RandomNbrBuildWorker : public BatchParallelWorker {
       std::size_t kqi = k * qi;
       std::size_t kqi1 = kqi + 1;
       nn_idx[0 + kqi] = qi;
-      auto ris =
-          int_sampler.template sample<uint32_t>(n_points_minus_1, k_minus_1);
+      auto ris = int_sampler.template sample<typename Distance::Index>(
+          n_points_minus_1, k_minus_1);
 
       for (auto j = 0; j < k_minus_1; j++) {
         int ri = ris[j];
@@ -113,7 +114,8 @@ template <typename Distance, typename Progress, typename Parallel,
           typename Worker, typename HeapAdd>
 auto get_nn(Distance &distance, std::size_t k, bool sort,
             std::size_t block_size = 4096, bool verbose = false,
-            std::size_t n_threads = 0, std::size_t grain_size = 1) -> NNGraph {
+            std::size_t n_threads = 0, std::size_t grain_size = 1)
+    -> NNGraph<typename Distance::Output, typename Distance::Index> {
   std::size_t n_points = distance.ny;
   Progress progress(1, verbose);
 
@@ -125,13 +127,13 @@ auto get_nn(Distance &distance, std::size_t k, bool sort,
     batch_serial_for(worker, progress, n_points, block_size);
   }
 
-  NNGraph nn_graph(worker.nn_idx, worker.nn_dist, n_points);
+  NNGraph<typename Distance::Output, typename Distance::Index> nn_graph(
+      worker.nn_idx, worker.nn_dist, n_points);
 
   if (sort) {
     if (n_threads > 0) {
-      sort_knn_graph_parallel<HeapAdd, NullProgress, SimpleNeighborHeap,
-                              Parallel>(nn_graph, n_threads, block_size,
-                                        grain_size);
+      sort_knn_graph_parallel<HeapAdd, NullProgress, Parallel>(
+          nn_graph, n_threads, block_size, grain_size);
     } else {
       sort_knn_graph<HeapAdd, NullProgress>(nn_graph);
     }
@@ -146,7 +148,7 @@ auto random_build(const std::vector<typename Distance::Input> &data,
                   std::size_t ndim, std::size_t k, bool sort,
                   std::size_t block_size = 4096, bool verbose = false,
                   std::size_t n_threads = 0, std::size_t grain_size = 1)
-    -> NNGraph {
+    -> NNGraph<typename Distance::Output, typename Distance::Index> {
   Distance distance(data, ndim);
 
   using Worker = tdoann::RandomNbrBuildWorker<Distance, Sampler>;
@@ -169,7 +171,8 @@ auto random_query(const std::vector<typename Distance::Input> &reference,
                   const std::vector<typename Distance::Input> &query,
                   std::size_t k, bool sort, std::size_t block_size = 4096,
                   bool verbose = false, std::size_t n_threads = 0,
-                  std::size_t grain_size = 1) -> NNGraph {
+                  std::size_t grain_size = 1)
+    -> NNGraph<typename Distance::Output, typename Distance::Index> {
   Distance distance(reference, query, ndim);
 
   using Worker = tdoann::RandomNbrQueryWorker<Distance, Sampler>;
