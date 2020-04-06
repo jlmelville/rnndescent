@@ -35,8 +35,8 @@
 namespace tdoann {
 
 // Base class storing neighbor data as a series of heaps
-template <typename DistT = double> struct NNDHeap {
-  using DistanceT = DistT;
+template <typename DistOut = double> struct NNDHeap {
+  using DistanceOut = DistOut;
 
   // used in analogy with std::string::npos as used in std::string::find
   // to represent not found
@@ -47,13 +47,13 @@ template <typename DistT = double> struct NNDHeap {
   std::size_t n_points;
   std::size_t n_nbrs;
   std::vector<std::size_t> idx;
-  std::vector<DistT> dist;
+  std::vector<DistOut> dist;
   std::vector<char> flags;
   std::size_t n_nbrs1;
 
   NNDHeap(std::size_t n_points, std::size_t n_nbrs)
       : n_points(n_points), n_nbrs(n_nbrs), idx(n_points * n_nbrs, npos()),
-        dist(n_points * n_nbrs, (std::numeric_limits<DistT>::max)()),
+        dist(n_points * n_nbrs, (std::numeric_limits<DistOut>::max)()),
         flags(n_points * n_nbrs, 0), n_nbrs1(n_nbrs - 1) {}
 
   NNDHeap(const NNDHeap &) = default;
@@ -71,16 +71,16 @@ template <typename DistT = double> struct NNDHeap {
   }
 
   // returns true if either p or q would accept a neighbor with distance d
-  auto accepts_either(std::size_t p, std::size_t q, DistT d) const -> bool {
+  auto accepts_either(std::size_t p, std::size_t q, DistOut d) const -> bool {
     return d < dist[p * n_nbrs] || (p != q && d < dist[q * n_nbrs]);
   }
 
   // returns true if p would accept a neighbor with distance d
-  auto accepts(std::size_t p, DistT d) const -> bool {
+  auto accepts(std::size_t p, DistOut d) const -> bool {
     return d < dist[p * n_nbrs];
   }
 
-  auto checked_push_pair(std::size_t row, DistT weight, std::size_t idx,
+  auto checked_push_pair(std::size_t row, DistOut weight, std::size_t idx,
                          char flag = 1) -> std::size_t {
     std::size_t c = checked_push(row, weight, idx, flag);
     if (row != idx) {
@@ -89,7 +89,7 @@ template <typename DistT = double> struct NNDHeap {
     return c;
   }
 
-  auto checked_push(std::size_t row, DistT weight, std::size_t idx,
+  auto checked_push(std::size_t row, DistOut weight, std::size_t idx,
                     char flag = 1) -> std::size_t {
     if (!accepts(row, weight) || contains(row, idx)) {
       return 0;
@@ -99,7 +99,7 @@ template <typename DistT = double> struct NNDHeap {
   }
 
   // This differs from the pynndescent version as it is truly unchecked
-  auto unchecked_push(std::size_t row, DistT weight, std::size_t index,
+  auto unchecked_push(std::size_t row, DistOut weight, std::size_t index,
                       char flag = 1) -> std::size_t {
     std::size_t r0 = row * n_nbrs;
 
@@ -206,10 +206,10 @@ template <typename DistT = double> struct NNDHeap {
     return idx[i * n_nbrs + j];
   }
 
-  auto distance(std::size_t i, std::size_t j) const -> DistT {
+  auto distance(std::size_t i, std::size_t j) const -> DistOut {
     return dist[i * n_nbrs + j];
   }
-  auto distance(std::size_t i, std::size_t j) -> DistT & {
+  auto distance(std::size_t i, std::size_t j) -> DistOut & {
     return dist[i * n_nbrs + j];
   }
 
@@ -222,28 +222,28 @@ template <typename DistT = double> struct NNDHeap {
 };
 
 // Like NNDHeap, but no flag vector
-template <typename DistT = float, typename IdxT = uint32_t> struct NNHeap {
-  using DistanceT = DistT;
-  using IndexT = IdxT;
+template <typename DistOut = float, typename Idx = uint32_t> struct NNHeap {
+  using DistanceOut = DistOut;
+  using Index = Idx;
 
-  static constexpr auto npos() -> IdxT { return static_cast<IdxT>(-1); }
+  static constexpr auto npos() -> Idx { return static_cast<Idx>(-1); }
 
-  IdxT n_points;
-  IdxT n_nbrs;
-  std::vector<IdxT> idx;
-  std::vector<DistT> dist;
-  IdxT n_nbrs1;
+  Idx n_points;
+  Idx n_nbrs;
+  std::vector<Idx> idx;
+  std::vector<DistOut> dist;
+  Idx n_nbrs1;
 
-  NNHeap(IdxT n_points, IdxT n_nbrs)
+  NNHeap(Idx n_points, Idx n_nbrs)
       : n_points(n_points), n_nbrs(n_nbrs), idx(n_points * n_nbrs, npos()),
-        dist(n_points * n_nbrs, (std::numeric_limits<DistT>::max)()),
+        dist(n_points * n_nbrs, (std::numeric_limits<DistOut>::max)()),
         n_nbrs1(n_nbrs - 1) {}
 
   NNHeap(const NNHeap &) = default;
   ~NNHeap() = default;
   auto operator=(const NNHeap &) -> NNHeap & = default;
 
-  auto contains(IdxT row, IdxT index) const -> bool {
+  auto contains(Idx row, Idx index) const -> bool {
     std::size_t rnnbrs = row * n_nbrs;
     for (std::size_t i = 0; i < n_nbrs; i++) {
       if (index == idx[rnnbrs + i]) {
@@ -254,14 +254,14 @@ template <typename DistT = float, typename IdxT = uint32_t> struct NNHeap {
   }
 
   // returns true if either p or q would accept a neighbor with distance d
-  auto accepts_either(IdxT p, IdxT q, DistT d) const -> bool {
+  auto accepts_either(Idx p, Idx q, DistOut d) const -> bool {
     return d < dist[p * n_nbrs] || (p != q && d < dist[q * n_nbrs]);
   }
 
   // returns true if p would accept a neighbor with distance d
-  auto accepts(IdxT p, DistT d) const -> bool { return d < dist[p * n_nbrs]; }
+  auto accepts(Idx p, DistOut d) const -> bool { return d < dist[p * n_nbrs]; }
 
-  auto checked_push_pair(std::size_t row, DistT weight, IdxT idx)
+  auto checked_push_pair(std::size_t row, DistOut weight, Idx idx)
       -> std::size_t {
     std::size_t c = checked_push(row, weight, idx);
     if (row != idx) {
@@ -270,7 +270,7 @@ template <typename DistT = float, typename IdxT = uint32_t> struct NNHeap {
     return c;
   }
 
-  auto checked_push(IdxT row, DistT weight, IdxT idx) -> std::size_t {
+  auto checked_push(Idx row, DistOut weight, Idx idx) -> std::size_t {
     if (!accepts(row, weight) || contains(row, idx)) {
       return 0;
     }
@@ -278,7 +278,7 @@ template <typename DistT = float, typename IdxT = uint32_t> struct NNHeap {
     return unchecked_push(row, weight, idx);
   }
 
-  auto unchecked_push(IdxT row, DistT weight, IdxT index) -> std::size_t {
+  auto unchecked_push(Idx row, DistOut weight, Idx index) -> std::size_t {
     std::size_t r0 = row * n_nbrs;
 
     // insert val at position zero
@@ -330,12 +330,12 @@ template <typename DistT = float, typename IdxT = uint32_t> struct NNHeap {
   }
 
   void deheap_sort() {
-    for (IdxT i = 0; i < n_points; i++) {
+    for (Idx i = 0; i < n_points; i++) {
       deheap_sort(i);
     }
   }
 
-  void deheap_sort(IdxT i) {
+  void deheap_sort(Idx i) {
     std::size_t r0 = i * n_nbrs;
     for (std::size_t j = 0; j < n_nbrs1; j++) {
       std::size_t n1j = n_nbrs1 - j;
@@ -374,9 +374,9 @@ template <typename DistT = float, typename IdxT = uint32_t> struct NNHeap {
     }
   }
 
-  auto index(IdxT i, IdxT j) const -> IdxT { return idx[i * n_nbrs + j]; }
+  auto index(Idx i, Idx j) const -> Idx { return idx[i * n_nbrs + j]; }
 
-  auto distance(IdxT i, IdxT j) const -> DistT { return dist[i * n_nbrs + j]; }
+  auto distance(Idx i, Idx j) const -> DistOut { return dist[i * n_nbrs + j]; }
 };
 
 template <typename NbrHeap> struct HeapSortWorker : public BatchParallelWorker {
