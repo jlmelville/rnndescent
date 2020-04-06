@@ -6,13 +6,13 @@
 using namespace Rcpp;
 
 // rnn_brute_force
-List rnn_brute_force(NumericMatrix data, int k, const std::string& metric, std::size_t n_threads, std::size_t block_size, std::size_t grain_size, bool verbose);
+List rnn_brute_force(NumericMatrix data, uint32_t k, const std::string& metric, std::size_t n_threads, std::size_t block_size, std::size_t grain_size, bool verbose);
 RcppExport SEXP _rnndescent_rnn_brute_force(SEXP dataSEXP, SEXP kSEXP, SEXP metricSEXP, SEXP n_threadsSEXP, SEXP block_sizeSEXP, SEXP grain_sizeSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericMatrix >::type data(dataSEXP);
-    Rcpp::traits::input_parameter< int >::type k(kSEXP);
+    Rcpp::traits::input_parameter< uint32_t >::type k(kSEXP);
     Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type n_threads(n_threadsSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type block_size(block_sizeSEXP);
@@ -23,14 +23,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // rnn_brute_force_query
-List rnn_brute_force_query(NumericMatrix reference, NumericMatrix query, int k, const std::string& metric, std::size_t n_threads, std::size_t block_size, std::size_t grain_size, bool verbose);
+List rnn_brute_force_query(NumericMatrix reference, NumericMatrix query, uint32_t k, const std::string& metric, std::size_t n_threads, std::size_t block_size, std::size_t grain_size, bool verbose);
 RcppExport SEXP _rnndescent_rnn_brute_force_query(SEXP referenceSEXP, SEXP querySEXP, SEXP kSEXP, SEXP metricSEXP, SEXP n_threadsSEXP, SEXP block_sizeSEXP, SEXP grain_sizeSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericMatrix >::type reference(referenceSEXP);
     Rcpp::traits::input_parameter< NumericMatrix >::type query(querySEXP);
-    Rcpp::traits::input_parameter< int >::type k(kSEXP);
+    Rcpp::traits::input_parameter< uint32_t >::type k(kSEXP);
     Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type n_threads(n_threadsSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type block_size(block_sizeSEXP);

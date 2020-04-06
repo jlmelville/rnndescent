@@ -64,15 +64,15 @@ auto bf_build_impl(NumericMatrix data, std::size_t k, std::size_t n_threads = 0,
 }
 
 // [[Rcpp::export]]
-List rnn_brute_force(NumericMatrix data, int k,
+List rnn_brute_force(NumericMatrix data, uint32_t k,
                      const std::string &metric = "euclidean",
                      std::size_t n_threads = 0, std::size_t block_size = 64,
                      std::size_t grain_size = 1, bool verbose = false){
     DISPATCH_ON_DISTANCES(BRUTE_FORCE_BUILD)}
 
 // [[Rcpp::export]]
-List rnn_brute_force_query(NumericMatrix reference, NumericMatrix query, int k,
-                           const std::string &metric = "euclidean",
+List rnn_brute_force_query(NumericMatrix reference, NumericMatrix query,
+                           uint32_t k, const std::string &metric = "euclidean",
                            std::size_t n_threads = 0,
                            std::size_t block_size = 64,
                            std::size_t grain_size = 1, bool verbose = false) {
