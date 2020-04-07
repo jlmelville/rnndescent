@@ -40,6 +40,41 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// merge_nn
+List merge_nn(IntegerMatrix nn_idx1, NumericMatrix nn_dist1, IntegerMatrix nn_idx2, NumericMatrix nn_dist2, bool is_query, std::size_t n_threads, std::size_t block_size, std::size_t grain_size, bool verbose);
+RcppExport SEXP _rnndescent_merge_nn(SEXP nn_idx1SEXP, SEXP nn_dist1SEXP, SEXP nn_idx2SEXP, SEXP nn_dist2SEXP, SEXP is_querySEXP, SEXP n_threadsSEXP, SEXP block_sizeSEXP, SEXP grain_sizeSEXP, SEXP verboseSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< IntegerMatrix >::type nn_idx1(nn_idx1SEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type nn_dist1(nn_dist1SEXP);
+    Rcpp::traits::input_parameter< IntegerMatrix >::type nn_idx2(nn_idx2SEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type nn_dist2(nn_dist2SEXP);
+    Rcpp::traits::input_parameter< bool >::type is_query(is_querySEXP);
+    Rcpp::traits::input_parameter< std::size_t >::type n_threads(n_threadsSEXP);
+    Rcpp::traits::input_parameter< std::size_t >::type block_size(block_sizeSEXP);
+    Rcpp::traits::input_parameter< std::size_t >::type grain_size(grain_sizeSEXP);
+    Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
+    rcpp_result_gen = Rcpp::wrap(merge_nn(nn_idx1, nn_dist1, nn_idx2, nn_dist2, is_query, n_threads, block_size, grain_size, verbose));
+    return rcpp_result_gen;
+END_RCPP
+}
+// merge_nn_all
+List merge_nn_all(List nn_graphs, bool is_query, std::size_t n_threads, std::size_t block_size, std::size_t grain_size, bool verbose);
+RcppExport SEXP _rnndescent_merge_nn_all(SEXP nn_graphsSEXP, SEXP is_querySEXP, SEXP n_threadsSEXP, SEXP block_sizeSEXP, SEXP grain_sizeSEXP, SEXP verboseSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< List >::type nn_graphs(nn_graphsSEXP);
+    Rcpp::traits::input_parameter< bool >::type is_query(is_querySEXP);
+    Rcpp::traits::input_parameter< std::size_t >::type n_threads(n_threadsSEXP);
+    Rcpp::traits::input_parameter< std::size_t >::type block_size(block_sizeSEXP);
+    Rcpp::traits::input_parameter< std::size_t >::type grain_size(grain_sizeSEXP);
+    Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
+    rcpp_result_gen = Rcpp::wrap(merge_nn_all(nn_graphs, is_query, n_threads, block_size, grain_size, verbose));
+    return rcpp_result_gen;
+END_RCPP
+}
 // random_knn_cpp
 List random_knn_cpp(Rcpp::NumericMatrix data, uint32_t k, const std::string& metric, bool order_by_distance, std::size_t n_threads, std::size_t block_size, std::size_t grain_size, bool verbose);
 RcppExport SEXP _rnndescent_random_knn_cpp(SEXP dataSEXP, SEXP kSEXP, SEXP metricSEXP, SEXP order_by_distanceSEXP, SEXP n_threadsSEXP, SEXP block_sizeSEXP, SEXP grain_sizeSEXP, SEXP verboseSEXP) {
@@ -81,6 +116,8 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_rnndescent_rnn_brute_force", (DL_FUNC) &_rnndescent_rnn_brute_force, 7},
     {"_rnndescent_rnn_brute_force_query", (DL_FUNC) &_rnndescent_rnn_brute_force_query, 8},
+    {"_rnndescent_merge_nn", (DL_FUNC) &_rnndescent_merge_nn, 9},
+    {"_rnndescent_merge_nn_all", (DL_FUNC) &_rnndescent_merge_nn_all, 6},
     {"_rnndescent_random_knn_cpp", (DL_FUNC) &_rnndescent_random_knn_cpp, 8},
     {"_rnndescent_random_knn_query_cpp", (DL_FUNC) &_rnndescent_random_knn_query_cpp, 9},
     {NULL, NULL, 0}

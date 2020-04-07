@@ -26,48 +26,51 @@
 #include "tdoann/nngraph.h"
 #include "tdoann/progress.h"
 
+#include "rnn_parallel.h"
 #include "rnn_progress.h"
 #include "rnn_util.h"
 
-template <typename HeapAdd, typename NbrHeap = SimpleNeighborHeap>
+template <typename HeapAdd, typename NbrHeap>
 void r_to_heap_serial(NbrHeap &heap, Rcpp::IntegerMatrix nn_idx,
                       Rcpp::NumericMatrix nn_dist, std::size_t block_size,
                       int max_idx = (std::numeric_limits<int>::max)()) {
   zero_index(nn_idx, max_idx);
 
-  auto nn_idxv = Rcpp::as<std::vector<int>>(nn_idx);
-  auto nn_distv = Rcpp::as<std::vector<double>>(nn_dist);
+  auto nn_idxv = Rcpp::as<std::vector<typename NbrHeap::Index>>(nn_idx);
+  auto nn_distv = Rcpp::as<std::vector<typename NbrHeap::DistanceOut>>(nn_dist);
   std::size_t n_points = nn_idx.nrow();
 
   return tdoann::vec_to_heap_serial<HeapAdd, RInterruptableProgress, NbrHeap>(
       heap, nn_idxv, n_points, nn_distv, block_size);
 }
 
-template <typename HeapAdd, typename NbrHeap = SimpleNeighborHeap>
+template <typename HeapAdd, typename NbrHeap>
 void r_to_heap_parallel(NbrHeap &heap, Rcpp::IntegerMatrix nn_idx,
                         Rcpp::NumericMatrix nn_dist, std::size_t n_threads,
                         std::size_t block_size, std::size_t grain_size,
                         int max_idx = (std::numeric_limits<int>::max)()) {
   zero_index(nn_idx, max_idx);
 
-  auto nn_idxv = Rcpp::as<std::vector<int>>(nn_idx);
-  auto nn_distv = Rcpp::as<std::vector<double>>(nn_dist);
+  auto nn_idxv = Rcpp::as<std::vector<typename NbrHeap::Index>>(nn_idx);
+  auto nn_distv = Rcpp::as<std::vector<typename NbrHeap::DistanceOut>>(nn_dist);
   std::size_t n_points = nn_idx.nrow();
 
-  tdoann::vec_to_heap_parallel<HeapAdd, tdoann::NullProgress, NbrHeap>(
-      heap, nn_idxv, n_points, nn_distv, n_threads, block_size, grain_size);
+  tdoann::vec_to_heap_parallel<HeapAdd, tdoann::NullProgress, RParallel,
+                               NbrHeap>(heap, nn_idxv, n_points, nn_distv,
+                                        n_threads, block_size, grain_size);
 }
 
-inline auto r_to_graph(Rcpp::IntegerMatrix nn_idx, Rcpp::NumericMatrix nn_dist,
-                       int max_idx = (std::numeric_limits<int>::max)())
-    -> tdoann::NNGraph {
+template <typename Idx, typename DistOut>
+auto r_to_graph(Rcpp::IntegerMatrix nn_idx, Rcpp::NumericMatrix nn_dist,
+                int max_idx = (std::numeric_limits<int>::max)())
+    -> tdoann::NNGraph<Idx, DistOut> {
   zero_index(nn_idx, max_idx);
 
-  auto nn_idxv = Rcpp::as<std::vector<int>>(nn_idx);
-  auto nn_distv = Rcpp::as<std::vector<double>>(nn_dist);
+  auto nn_idxv = Rcpp::as<std::vector<Idx>>(nn_idx);
+  auto nn_distv = Rcpp::as<std::vector<DistOut>>(nn_dist);
   std::size_t n_points = nn_idx.nrow();
 
-  return tdoann::NNGraph(nn_idxv, nn_distv, n_points);
+  return tdoann::NNGraph<Idx, DistOut>(nn_idxv, nn_distv, n_points);
 }
 
 template <typename Int>
