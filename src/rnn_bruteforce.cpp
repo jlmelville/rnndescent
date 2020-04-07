@@ -38,9 +38,10 @@ using namespace Rcpp;
                                  grain_size, verbose);
 
 template <typename Distance>
-auto bf_query_impl(NumericMatrix reference, NumericMatrix query, std::size_t k,
-                   std::size_t n_threads = 0, std::size_t block_size = 64,
-                   std::size_t grain_size = 1, bool verbose = false) -> List {
+auto bf_query_impl(NumericMatrix reference, NumericMatrix query,
+                   typename Distance::Index k, std::size_t n_threads = 0,
+                   std::size_t block_size = 64, std::size_t grain_size = 1,
+                   bool verbose = false) -> List {
   auto ref_vec = r2dvt<Distance>(reference);
   auto query_vec = r2dvt<Distance>(query);
 
@@ -52,9 +53,9 @@ auto bf_query_impl(NumericMatrix reference, NumericMatrix query, std::size_t k,
 }
 
 template <typename Distance>
-auto bf_build_impl(NumericMatrix data, std::size_t k, std::size_t n_threads = 0,
-                   std::size_t block_size = 64, std::size_t grain_size = 1,
-                   bool verbose = false) -> List {
+auto bf_build_impl(NumericMatrix data, typename Distance::Index k,
+                   std::size_t n_threads = 0, std::size_t block_size = 64,
+                   std::size_t grain_size = 1, bool verbose = false) -> List {
   auto data_vec = r2dvt<Distance>(data);
 
   auto nn_graph = tdoann::brute_force_build<Distance, RPProgress, RParallel>(

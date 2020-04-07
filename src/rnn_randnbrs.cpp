@@ -44,7 +44,7 @@ using namespace Rcpp;
 /* Functions */
 
 template <typename Distance>
-auto random_build_impl(NumericMatrix data, std::size_t k,
+auto random_build_impl(NumericMatrix data, typename Distance::Index k,
                        bool order_by_distance, std::size_t block_size,
                        bool verbose, std::size_t n_threads,
                        std::size_t grain_size) -> List {
@@ -61,7 +61,7 @@ auto random_build_impl(NumericMatrix data, std::size_t k,
 
 template <typename Distance>
 auto random_query_impl(NumericMatrix reference, NumericMatrix query,
-                       std::size_t k, bool order_by_distance,
+                       typename Distance::Index k, bool order_by_distance,
                        std::size_t block_size, bool verbose,
                        std::size_t n_threads, std::size_t grain_size) -> List {
 
@@ -79,7 +79,7 @@ auto random_query_impl(NumericMatrix reference, NumericMatrix query,
 /* Exports */
 
 // [[Rcpp::export]]
-List random_knn_cpp(Rcpp::NumericMatrix data, int k,
+List random_knn_cpp(Rcpp::NumericMatrix data, uint32_t k,
                     const std::string &metric = "euclidean",
                     bool order_by_distance = true, std::size_t n_threads = 0,
                     std::size_t block_size = 4096, std::size_t grain_size = 1,
@@ -87,8 +87,8 @@ List random_knn_cpp(Rcpp::NumericMatrix data, int k,
     DISPATCH_ON_DISTANCES(RANDOM_NBRS_BUILD)}
 
 // [[Rcpp::export]]
-List random_knn_query_cpp(NumericMatrix reference, NumericMatrix query, int k,
-                          const std::string &metric = "euclidean",
+List random_knn_query_cpp(NumericMatrix reference, NumericMatrix query,
+                          uint32_t k, const std::string &metric = "euclidean",
                           bool order_by_distance = true,
                           std::size_t n_threads = 0,
                           std::size_t block_size = 4096,
