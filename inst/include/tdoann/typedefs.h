@@ -29,7 +29,7 @@
 
 #include "heap.h"
 
-using SimpleNeighborHeap = tdoann::NNHeap<float>;
-using NeighborHeap = tdoann::NNDHeap<float>;
+// using SimpleNeighborHeap = tdoann::NNHeap<float>;
+// using NeighborHeap = tdoann::NNDHeap<float>;
 
 #endif // TDOANN_TYPDEFS_H

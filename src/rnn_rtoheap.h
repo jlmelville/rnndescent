@@ -60,17 +60,17 @@ void r_to_heap_parallel(NbrHeap &heap, Rcpp::IntegerMatrix nn_idx,
                                         n_threads, block_size, grain_size);
 }
 
-template <typename Idx, typename DistOut>
+template <typename DistOut, typename Idx>
 auto r_to_graph(Rcpp::IntegerMatrix nn_idx, Rcpp::NumericMatrix nn_dist,
                 int max_idx = (std::numeric_limits<int>::max)())
-    -> tdoann::NNGraph<Idx, DistOut> {
+    -> tdoann::NNGraph<DistOut, Idx> {
   zero_index(nn_idx, max_idx);
 
   auto nn_idxv = Rcpp::as<std::vector<Idx>>(nn_idx);
   auto nn_distv = Rcpp::as<std::vector<DistOut>>(nn_dist);
   std::size_t n_points = nn_idx.nrow();
 
-  return tdoann::NNGraph<Idx, DistOut>(nn_idxv, nn_distv, n_points);
+  return tdoann::NNGraph<DistOut, Idx>(nn_idxv, nn_distv, n_points);
 }
 
 template <typename Int>

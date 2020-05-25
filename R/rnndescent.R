@@ -225,15 +225,6 @@ random_knn <-
 #'   the only reason to set this to \code{FALSE} is if you suspect that some
 #'   sort of numeric issue is occurring with your data in the alternative code
 #'   path.
-#' @param candidate_priority How priority is assigned to candidate neighbors,
-#'   which affects the order in which they are processed during the local join
-#'   stage. One of: \code{"random"} for random order (default),
-#'   \code{"distance"} for higher priority to smaller distances (i.e. closest
-#'   neighbors are processed first), or \code{"highdistance"} for higher
-#'   priority to larger distances (i.e. furthest neighbors are processed first).
-#'   Using \code{"distance"} or \code{"highdistance"} requires the candidate
-#'   neighbors to be sorted (once per nearest neighbor descent iteration), which
-#'   can increase run time.
 #' @param n_threads Number of threads to use.
 #' @param block_size Batch size for creating/applying local join updates. A
 #'  smaller value will apply the update more often, which may help reduce the
@@ -319,17 +310,16 @@ nnd_knn <- function(data,
                     delta = 0.001,
                     low_memory = TRUE,
                     use_alt_metric = TRUE,
-                    candidate_priority = "random",
                     n_threads = 0,
                     block_size = 16384,
                     grain_size = 1,
                     verbose = FALSE,
                     progress = "bar") {
   stopifnot(tolower(progress) %in% c("bar", "dist"))
-  candidate_priority <- match.arg(
-    tolower(candidate_priority),
-    c("random", "distance", "highdistance")
-  )
+  # candidate_priority <- match.arg(
+  #   tolower(candidate_priority),
+  #   c("random", "distance", "highdistance")
+  # )
   data <- x2m(data)
 
   if (use_alt_metric) {
@@ -376,7 +366,7 @@ nnd_knn <- function(data,
     max_candidates = max_candidates,
     delta = delta,
     low_memory = low_memory,
-    candidate_priority = candidate_priority,
+    # candidate_priority = candidate_priority,
     n_threads = n_threads,
     block_size = block_size,
     grain_size = grain_size,
@@ -391,6 +381,7 @@ nnd_knn <- function(data,
   tsmessage("Finished")
   res
 }
+NULL
 
 
 # kNN Queries -------------------------------------------------------------
@@ -620,15 +611,6 @@ random_knn_query <-
 #'   the only reason to set this to \code{FALSE} is if you suspect that some
 #'   sort of numeric issue is occurring with your data in the alternative code
 #'   path.
-#' @param candidate_priority How priority is assigned to candidate neighbors,
-#'   which affects the order in which they are processed during the local join
-#'   stage. One of: \code{"random"} for random order (default),
-#'   \code{"distance"} for higher priority to smaller distances (i.e. closest
-#'   neighbors are processed first), or \code{"highdistance"} for higher
-#'   priority to larger distances (i.e. furthest neighbors are processed first).
-#'   Using \code{"distance"} or \code{"highdistance"} requires the candidate
-#'   neighbors to be sorted (once per nearest neighbor descent iteration), which
-#'   can increase run time.
 #' @param init Initial data to optimize. If not provided, \code{k} random
 #'   neighbors are created. The input format should be the same as the return
 #'   value: a list containing:
@@ -719,17 +701,16 @@ nnd_knn_query <- function(reference,
                           delta = 0.001,
                           low_memory = TRUE,
                           use_alt_metric = TRUE,
-                          candidate_priority = "random",
                           n_threads = 0,
                           block_size = 16384,
                           grain_size = 1,
                           verbose = FALSE,
                           progress = "bar") {
   stopifnot(tolower(progress) %in% c("bar", "dist"))
-  candidate_priority <- match.arg(
-    tolower(candidate_priority),
-    c("random", "distance", "highdistance")
-  )
+  # candidate_priority <- match.arg(
+  #   tolower(candidate_priority),
+  #   c("random", "distance", "highdistance")
+  # )
 
   reference <- x2m(reference)
   query <- x2m(query)
@@ -783,7 +764,7 @@ nnd_knn_query <- function(reference,
       max_candidates = max_candidates,
       delta = delta,
       low_memory = low_memory,
-      candidate_priority = candidate_priority,
+      # candidate_priority = candidate_priority,
       n_threads = n_threads,
       block_size = block_size,
       grain_size = grain_size,

@@ -35,32 +35,29 @@
 namespace tdoann {
 
 // Base class storing neighbor data as a series of heaps
-template <typename DistOut = double> struct NNDHeap {
+template <typename DistOut = float, typename Idx = uint32_t> struct NNDHeap {
   using DistanceOut = DistOut;
+  using Index = Idx;
 
-  // used in analogy with std::string::npos as used in std::string::find
-  // to represent not found
-  static constexpr auto npos() -> std::size_t {
-    return static_cast<std::size_t>(-1);
-  }
+  static constexpr auto npos() -> Idx { return static_cast<Idx>(-1); }
 
-  std::size_t n_points;
-  std::size_t n_nbrs;
-  std::vector<std::size_t> idx;
+  Idx n_points;
+  Idx n_nbrs;
+  std::vector<Idx> idx;
   std::vector<DistOut> dist;
+  Idx n_nbrs1;
   std::vector<char> flags;
-  std::size_t n_nbrs1;
 
   NNDHeap(std::size_t n_points, std::size_t n_nbrs)
       : n_points(n_points), n_nbrs(n_nbrs), idx(n_points * n_nbrs, npos()),
         dist(n_points * n_nbrs, (std::numeric_limits<DistOut>::max)()),
-        flags(n_points * n_nbrs, 0), n_nbrs1(n_nbrs - 1) {}
+        n_nbrs1(n_nbrs - 1), flags(n_points * n_nbrs, 0) {}
 
   NNDHeap(const NNDHeap &) = default;
   ~NNDHeap() = default;
   auto operator=(const NNDHeap &) -> NNDHeap & = default;
 
-  auto contains(std::size_t row, std::size_t index) const -> bool {
+  auto contains(Idx row, Idx index) const -> bool {
     std::size_t rnnbrs = row * n_nbrs;
     for (std::size_t i = 0; i < n_nbrs; i++) {
       if (index == idx[rnnbrs + i]) {
@@ -71,17 +68,16 @@ template <typename DistOut = double> struct NNDHeap {
   }
 
   // returns true if either p or q would accept a neighbor with distance d
-  auto accepts_either(std::size_t p, std::size_t q, DistOut d) const -> bool {
+  auto accepts_either(Idx p, Idx q, DistOut d) const -> bool {
     return d < dist[p * n_nbrs] || (p != q && d < dist[q * n_nbrs]);
   }
 
   // returns true if p would accept a neighbor with distance d
-  auto accepts(std::size_t p, DistOut d) const -> bool {
-    return d < dist[p * n_nbrs];
-  }
+  auto accepts(Idx p, DistOut d) const -> bool { return d < dist[p * n_nbrs]; }
 
-  auto checked_push_pair(std::size_t row, DistOut weight, std::size_t idx,
-                         char flag = 1) -> std::size_t {
+  auto checked_push_pair(Idx row, DistOut weight, Idx idx, char flag = 1)
+      -> std::size_t {
+
     std::size_t c = checked_push(row, weight, idx, flag);
     if (row != idx) {
       c += checked_push(idx, weight, row, flag);
@@ -89,8 +85,8 @@ template <typename DistOut = double> struct NNDHeap {
     return c;
   }
 
-  auto checked_push(std::size_t row, DistOut weight, std::size_t idx,
-                    char flag = 1) -> std::size_t {
+  auto checked_push(Idx row, DistOut weight, Idx idx, char flag = 1)
+      -> std::size_t {
     if (!accepts(row, weight) || contains(row, idx)) {
       return 0;
     }
@@ -99,8 +95,8 @@ template <typename DistOut = double> struct NNDHeap {
   }
 
   // This differs from the pynndescent version as it is truly unchecked
-  auto unchecked_push(std::size_t row, DistOut weight, std::size_t index,
-                      char flag = 1) -> std::size_t {
+  auto unchecked_push(Idx row, DistOut weight, Idx index, char flag = 1)
+      -> std::size_t {
     std::size_t r0 = row * n_nbrs;
 
     // insert val at position zero
@@ -155,12 +151,12 @@ template <typename DistOut = double> struct NNDHeap {
   }
 
   void deheap_sort() {
-    for (std::size_t i = 0; i < n_points; i++) {
+    for (Idx i = 0; i < n_points; i++) {
       deheap_sort(i);
     }
   }
 
-  void deheap_sort(std::size_t i) {
+  void deheap_sort(Idx i) {
     std::size_t r0 = i * n_nbrs;
     for (std::size_t j = 0; j < n_nbrs1; j++) {
       std::size_t n1j = n_nbrs1 - j;
@@ -199,26 +195,14 @@ template <typename DistOut = double> struct NNDHeap {
     }
   }
 
-  auto index(std::size_t i, std::size_t j) const -> std::size_t {
-    return idx[i * n_nbrs + j];
-  }
-  auto index(std::size_t i, std::size_t j) -> std::size_t & {
-    return idx[i * n_nbrs + j];
-  }
+  auto index(Idx i, Idx j) const -> Idx { return idx[i * n_nbrs + j]; }
+  auto index(Idx i, Idx j) -> Idx & { return idx[i * n_nbrs + j]; }
 
-  auto distance(std::size_t i, std::size_t j) const -> DistOut {
-    return dist[i * n_nbrs + j];
-  }
-  auto distance(std::size_t i, std::size_t j) -> DistOut & {
-    return dist[i * n_nbrs + j];
-  }
+  auto distance(Idx i, Idx j) const -> DistOut { return dist[i * n_nbrs + j]; }
+  auto distance(Idx i, Idx j) -> DistOut & { return dist[i * n_nbrs + j]; }
 
-  auto flag(std::size_t i, std::size_t j) const -> char {
-    return flags[i * n_nbrs + j];
-  }
-  auto flag(std::size_t i, std::size_t j) -> char & {
-    return flags[i * n_nbrs + j];
-  }
+  auto flag(Idx i, Idx j) const -> char { return flags[i * n_nbrs + j]; }
+  auto flag(Idx i, Idx j) -> char & { return flags[i * n_nbrs + j]; }
 };
 
 // Like NNDHeap, but no flag vector

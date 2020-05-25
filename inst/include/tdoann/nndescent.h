@@ -27,7 +27,6 @@
 #ifndef TDOANN_NNDESCENT_H
 #define TDOANN_NNDESCENT_H
 
-#include "candidatepriority.h"
 #include "graphupdate.h"
 #include "heap.h"
 #include "nngraph.h"
@@ -37,9 +36,11 @@
 namespace tdoann {
 // mark any neighbor in the current graph that was retained in the new
 // candidates as false
-void flag_retained_new_candidates(NeighborHeap &current_graph,
-                                  const NeighborHeap &new_candidate_neighbors,
-                                  std::size_t begin, std::size_t end) {
+template <typename DistOut, typename Idx>
+void flag_retained_new_candidates(
+    NNDHeap<DistOut, Idx> &current_graph,
+    const NNDHeap<DistOut, Idx> &new_candidate_neighbors, std::size_t begin,
+    std::size_t end) {
   std::size_t n_nbrs = current_graph.n_nbrs;
   for (auto i = begin; i < end; i++) {
     std::size_t innbrs = i * n_nbrs;
@@ -55,8 +56,10 @@ void flag_retained_new_candidates(NeighborHeap &current_graph,
 }
 
 // overload for serial processing case which does entire graph in one chunk
-void flag_retained_new_candidates(NeighborHeap &current_graph,
-                                  const NeighborHeap &new_candidate_neighbors) {
+template <typename DistOut, typename Idx>
+void flag_retained_new_candidates(
+    NNDHeap<DistOut, Idx> &current_graph,
+    const NNDHeap<DistOut, Idx> &new_candidate_neighbors) {
   flag_retained_new_candidates(current_graph, new_candidate_neighbors, 0,
                                current_graph.n_points);
 }
@@ -72,11 +75,10 @@ void flag_retained_new_candidates(NeighborHeap &current_graph,
 // of the KNN are assigned into old and new based on their flag value, with the
 // size of the final candidate list controlled by the maximum size of
 // the candidates neighbors lists.
-template <typename CandidatePriority>
-void build_candidates_full(NeighborHeap &current_graph,
-                           CandidatePriority &candidate_priority,
-                           NeighborHeap &new_candidate_neighbors,
-                           NeighborHeap &old_candidate_neighbors) {
+template <typename DistOut, typename Idx>
+void build_candidates_full(NNDHeap<DistOut, Idx> &current_graph,
+                           NNDHeap<DistOut, Idx> &new_candidate_neighbors,
+                           NNDHeap<DistOut, Idx> &old_candidate_neighbors) {
   std::size_t n_points = current_graph.n_points;
   std::size_t n_nbrs = current_graph.n_nbrs;
 
@@ -86,7 +88,7 @@ void build_candidates_full(NeighborHeap &current_graph,
       std::size_t ij = innbrs + j;
       std::size_t idx = current_graph.idx[ij];
 
-      double d = candidate_priority(current_graph, ij);
+      auto d = current_graph.dist[ij];
       char isn = current_graph.flags[ij];
       if (isn == 1) {
         new_candidate_neighbors.checked_push_pair(i, d, idx, isn);
@@ -103,46 +105,38 @@ auto is_converged(std::size_t n_updates, double tol) -> bool {
 }
 
 // Pretty close to the NNDescentFull algorithm (#2 in the paper)
-template <typename Distance, typename GUFactoryT, typename Progress,
-          typename CandidatePriorityFactory>
-auto nnd_build(const std::vector<typename Distance::Input> &data,
-               std::size_t ndim, const NNGraph &nn_init,
-               std::size_t max_candidates, std::size_t n_iters,
-               CandidatePriorityFactory &candidate_priority_factory,
-               double delta, bool verbose) -> NNGraph {
+template <typename Distance, typename GUFactoryT, typename Progress>
+auto nnd_build(
+    const std::vector<typename Distance::Input> &data, std::size_t ndim,
+    const NNGraph<typename Distance::Output, typename Distance::Index> &nn_init,
+    std::size_t max_candidates, std::size_t n_iters, double delta,
+    Progress &progress, bool verbose)
+    -> NNGraph<typename Distance::Output, typename Distance::Index> {
   Distance distance(data, ndim);
 
   std::size_t n_points = nn_init.n_points;
   std::size_t n_nbrs = nn_init.n_nbrs;
   double tol = delta * n_nbrs * n_points;
 
-  NeighborHeap current_graph(n_points, n_nbrs);
+  NNDHeap<typename Distance::Output, typename Distance::Index> current_graph(
+      n_points, n_nbrs);
   graph_to_heap_serial<HeapAddSymmetric>(current_graph, nn_init, 1000, true);
 
-  Progress progress(current_graph, n_iters, verbose);
   auto graph_updater = GUFactoryT::create(current_graph, distance);
 
-  auto candidate_priority = candidate_priority_factory.create();
-
   for (std::size_t n = 0; n < n_iters; n++) {
-    NeighborHeap new_nbrs(n_points, max_candidates);
-    NeighborHeap old_nbrs(n_points, max_candidates);
+    NNDHeap<typename Distance::Output, typename Distance::Index> new_nbrs(
+        n_points, max_candidates);
+    NNDHeap<typename Distance::Output, typename Distance::Index> old_nbrs(
+        n_points, max_candidates);
 
-    build_candidates_full(current_graph, candidate_priority, new_nbrs,
-                          old_nbrs);
-
-    if (CandidatePriorityFactory::should_sort) {
-      new_nbrs.deheap_sort();
-      old_nbrs.deheap_sort();
-    }
+    build_candidates_full(current_graph, new_nbrs, old_nbrs);
 
     std::size_t c = local_join(graph_updater, new_nbrs, old_nbrs, n_points,
                                max_candidates, progress);
     TDOANN_ITERFINISHED();
-    if (is_converged(c, tol)) {
-      progress.converged(c, tol);
-      break;
-    }
+    progress.heap_report(current_graph);
+    TDOANN_CHECKCONVERGENCE();
   }
   current_graph.deheap_sort();
 
@@ -155,7 +149,10 @@ auto nnd_build(const std::vector<typename Distance::Input> &data,
 template <template <typename> class GraphUpdater, typename Distance,
           typename Progress>
 auto local_join(GraphUpdater<Distance> &graph_updater,
-                const NeighborHeap &new_nbrs, const NeighborHeap &old_nbrs,
+                const NNDHeap<typename Distance::Output,
+                              typename Distance::Index> &new_nbrs,
+                const NNDHeap<typename Distance::Output,
+                              typename Distance::Index> &old_nbrs,
                 std::size_t n_points, std::size_t max_candidates,
                 Progress &progress) -> std::size_t {
   progress.set_n_blocks(n_points);
@@ -163,12 +160,12 @@ auto local_join(GraphUpdater<Distance> &graph_updater,
   for (std::size_t i = 0; i < n_points; i++) {
     for (std::size_t j = 0; j < max_candidates; j++) {
       std::size_t p = new_nbrs.index(i, j);
-      if (p == NeighborHeap::npos()) {
+      if (p == new_nbrs.npos()) {
         continue;
       }
       for (std::size_t k = j; k < max_candidates; k++) {
         std::size_t q = new_nbrs.index(i, k);
-        if (q == NeighborHeap::npos()) {
+        if (q == new_nbrs.npos()) {
           continue;
         }
         c += graph_updater.generate_and_apply(p, q);
@@ -176,7 +173,7 @@ auto local_join(GraphUpdater<Distance> &graph_updater,
 
       for (std::size_t k = 0; k < max_candidates; k++) {
         std::size_t q = old_nbrs.index(i, k);
-        if (q == NeighborHeap::npos()) {
+        if (q == old_nbrs.npos()) {
           continue;
         }
         c += graph_updater.generate_and_apply(p, q);
@@ -206,83 +203,72 @@ auto local_join(GraphUpdater<Distance> &graph_updater,
 //    general neighbors; otherwise, we don't search it at all because we must
 //    have already tried those candidates.
 template <typename Distance, typename GUFactoryT, typename Progress,
-          typename CandidatePriorityFactory>
-auto nnd_query(const std::vector<typename Distance::Input> &reference,
-               std::size_t ndim,
-               const std::vector<typename Distance::Input> &query,
-               const NNGraph &nn_init,
-               const std::vector<std::size_t> &reference_idx,
-               std::size_t max_candidates, std::size_t n_iters,
-               CandidatePriorityFactory &candidate_priority_factory,
-               double delta, bool verbose) -> NNGraph {
+          typename Rand>
+auto nnd_query(
+    const std::vector<typename Distance::Input> &reference, std::size_t ndim,
+    const std::vector<typename Distance::Input> &query,
+    const NNGraph<typename Distance::Output, typename Distance::Index> &nn_init,
+    const std::vector<typename Distance::Index> &reference_idx,
+    std::size_t max_candidates, std::size_t n_iters, double delta, Rand &rand,
+    Progress &progress, bool verbose)
+    -> NNGraph<typename Distance::Output, typename Distance::Index> {
   Distance distance(reference, query, ndim);
 
   std::size_t n_points = nn_init.n_points;
   std::size_t n_nbrs = nn_init.n_nbrs;
   double tol = delta * n_nbrs * n_points;
 
-  NeighborHeap current_graph(n_points, n_nbrs);
+  NNDHeap<typename Distance::Output, typename Distance::Index> current_graph(
+      n_points, n_nbrs);
   graph_to_heap_serial<HeapAddQuery>(current_graph, nn_init, 1000, true);
 
-  Progress progress(current_graph, n_iters, verbose);
   auto graph_updater = GUFactoryT::create(current_graph, distance);
 
-  auto candidate_priority = candidate_priority_factory.create();
-
   std::size_t n_ref_points = reference.size() / ndim;
-  NeighborHeap gn_graph(n_ref_points, max_candidates);
-  build_general_nbrs(reference_idx, gn_graph, candidate_priority, n_ref_points,
-                     n_nbrs);
+  NNDHeap<float, typename Distance::Index> gn_graph(n_ref_points,
+                                                    max_candidates);
+  build_general_nbrs(reference_idx, gn_graph, n_ref_points, n_nbrs, rand);
   const bool flag_on_add = max_candidates >= n_nbrs;
 
   for (std::size_t n = 0; n < n_iters; n++) {
-    NeighborHeap new_nbrs(n_points, max_candidates);
+    NNDHeap<typename Distance::Output, typename Distance::Index> new_nbrs(
+        n_points, max_candidates);
 
-    build_query_candidates(current_graph, candidate_priority, new_nbrs,
-                           flag_on_add);
+    build_query_candidates(current_graph, new_nbrs, flag_on_add);
     if (!flag_on_add) {
       // Can't be sure all candidates that were pushed were retained, so we
       // check now: mark any neighbor in the current graph that was retained in
       // the new candidates
       flag_retained_new_candidates(current_graph, new_nbrs);
     }
-    if (CandidatePriorityFactory::should_sort) {
-      new_nbrs.deheap_sort();
-    }
-
     std::size_t c = non_search_query(current_graph, graph_updater, new_nbrs,
                                      gn_graph, max_candidates, progress);
 
     TDOANN_ITERFINISHED();
-    if (is_converged(c, tol)) {
-      progress.converged(c, tol);
-      break;
-    }
+    TDOANN_CHECKCONVERGENCE();
   }
   current_graph.deheap_sort();
   return heap_to_graph(current_graph);
 }
 
-template <typename CandidatePriority>
-void build_general_nbrs(const std::vector<std::size_t> &reference_idx,
-                        NeighborHeap &gn_graph,
-                        CandidatePriority &candidate_priority,
-                        std::size_t n_points, std::size_t n_nbrs) {
+template <typename Idx, typename Rand>
+void build_general_nbrs(const std::vector<Idx> &reference_idx,
+                        NNDHeap<float, Idx> &gn_graph, std::size_t n_points,
+                        std::size_t n_nbrs, Rand &rand) {
   for (std::size_t i = 0; i < n_points; i++) {
     std::size_t innbrs = i * n_nbrs;
     for (std::size_t j = 0; j < n_nbrs; j++) {
       std::size_t ij = innbrs + j;
-      double d = candidate_priority(gn_graph, ij);
+      auto d = rand.unif();
       std::size_t ref = reference_idx[ij];
       gn_graph.checked_push_pair(i, d, ref);
     }
   }
 }
 
-template <typename CandidatePriority>
-void build_query_candidates(NeighborHeap &current_graph,
-                            CandidatePriority &candidate_priority,
-                            NeighborHeap &new_candidate_neighbors,
+template <typename DistOut, typename Idx>
+void build_query_candidates(NNDHeap<DistOut, Idx> &current_graph,
+                            NNDHeap<DistOut, Idx> &new_candidate_neighbors,
                             std::size_t begin, std::size_t end,
                             bool flag_on_add) {
   std::size_t n_nbrs = current_graph.n_nbrs;
@@ -290,37 +276,38 @@ void build_query_candidates(NeighborHeap &current_graph,
     std::size_t innbrs = i * n_nbrs;
     for (std::size_t j = 0; j < n_nbrs; j++) {
       std::size_t ij = innbrs + j;
-      char isn = current_graph.flags[ij];
-      if (isn == 1) {
-        double d = candidate_priority(current_graph, ij);
-        new_candidate_neighbors.checked_push(i, d, current_graph.idx[ij], isn);
-        if (flag_on_add) {
-          current_graph.flags[ij] = 0;
-        }
+      auto isn = current_graph.flags[ij];
+      if (isn != 1) {
+        continue;
+      }
+      auto d = current_graph.dist[ij];
+      new_candidate_neighbors.checked_push(i, d, current_graph.idx[ij], isn);
+      if (flag_on_add) {
+        current_graph.flags[ij] = 0;
       }
     }
   }
 }
 
-template <typename CandidatePriority>
-void build_query_candidates(NeighborHeap &current_graph,
-                            CandidatePriority &candidate_priority,
-                            NeighborHeap &new_candidate_neighbors,
+template <typename DistOut, typename Idx>
+void build_query_candidates(NNDHeap<DistOut, Idx> &current_graph,
+                            NNDHeap<DistOut, Idx> &new_candidate_neighbors,
                             bool flag_on_add) {
-  std::size_t n_points = current_graph.n_points;
-  build_query_candidates(current_graph, candidate_priority,
-                         new_candidate_neighbors, 0, n_points, flag_on_add);
+  build_query_candidates(current_graph, new_candidate_neighbors, 0,
+                         current_graph.n_points, flag_on_add);
 }
 
 // Use neighbor-of-neighbor search rather than local join to update the kNN.
 template <template <typename> class GraphUpdater, typename Distance,
           typename Progress>
-auto non_search_query(NeighborHeap &current_graph,
-                      GraphUpdater<Distance> &graph_updater,
-                      const NeighborHeap &new_nbrs,
-                      const NeighborHeap &gn_graph, std::size_t max_candidates,
-                      std::size_t begin, std::size_t end, Progress &progress)
-    -> std::size_t {
+auto non_search_query(
+    NNDHeap<typename Distance::Output, typename Distance::Index> &current_graph,
+    GraphUpdater<Distance> &graph_updater,
+    const NNDHeap<typename Distance::Output, typename Distance::Index>
+        &new_nbrs,
+    const NNDHeap<float, typename Distance::Index> &gn_graph,
+    std::size_t max_candidates, std::size_t begin, std::size_t end,
+    Progress &progress) -> std::size_t {
   std::size_t c = 0;
   std::size_t ref_idx = 0;
   std::size_t nbr_ref_idx = 0;
@@ -330,13 +317,15 @@ auto non_search_query(NeighborHeap &current_graph,
   for (std::size_t query_idx = begin; query_idx < end; query_idx++) {
     for (std::size_t j = 0; j < max_candidates; j++) {
       ref_idx = new_nbrs.index(query_idx, j);
-      if (ref_idx == NeighborHeap::npos()) {
+      if (ref_idx == new_nbrs.npos()) {
         continue;
       }
+
       std::size_t rnidx = ref_idx * max_candidates;
       for (std::size_t k = 0; k < max_candidates; k++) {
         nbr_ref_idx = gn_graph.idx[rnidx + k];
-        if (nbr_ref_idx == NeighborHeap::npos() || seen.contains(nbr_ref_idx)) {
+
+        if (nbr_ref_idx == gn_graph.npos() || seen.contains(nbr_ref_idx)) {
           continue;
         }
         c += graph_updater.generate_and_apply(query_idx, nbr_ref_idx);
@@ -350,11 +339,13 @@ auto non_search_query(NeighborHeap &current_graph,
 
 template <template <typename> class GraphUpdater, typename Distance,
           typename Progress>
-auto non_search_query(NeighborHeap &current_graph,
-                      GraphUpdater<Distance> &graph_updater,
-                      const NeighborHeap &new_nbrs,
-                      const NeighborHeap &gn_graph, std::size_t max_candidates,
-                      Progress &progress) -> std::size_t {
+auto non_search_query(
+    NNDHeap<typename Distance::Output, typename Distance::Index> &current_graph,
+    GraphUpdater<Distance> &graph_updater,
+    const NNDHeap<typename Distance::Output, typename Distance::Index>
+        &new_nbrs,
+    const NNDHeap<float, typename Distance::Index> &gn_graph,
+    std::size_t max_candidates, Progress &progress) -> std::size_t {
   std::size_t n_points = current_graph.n_points;
   progress.set_n_blocks(n_points);
   return non_search_query(current_graph, graph_updater, new_nbrs, gn_graph,

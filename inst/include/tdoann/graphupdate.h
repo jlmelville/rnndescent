@@ -37,27 +37,29 @@ namespace tdoann {
 
 namespace upd {
 
-struct Update {
-  std::size_t p{0};
-  std::size_t q{0};
-  double d{0};
+template <typename DistOut, typename Idx> struct Update {
+  Idx p{0};
+  Idx q{0};
+  DistOut d{0};
 
   Update() = default;
 
-  Update(std::size_t p, std::size_t q, double d) : p(p), q(q), d(d) {}
+  Update(Idx p, Idx q, DistOut d) : p(p), q(q), d(d) {}
 
   Update(Update &&) = default;
 };
 
-struct GraphCacheConstructionInit {
-  static void init(const NeighborHeap &neighbor_heap,
-                   std::vector<std::unordered_set<std::size_t>> &seen) {
+template <typename DistOut, typename Idx> struct GraphCacheConstructionInit {
+  using DistanceOut = DistOut;
+  using Index = Idx;
+  static void init(const NNDHeap<DistOut, Idx> &neighbor_heap,
+                   std::vector<std::unordered_set<Idx>> &seen) {
     std::size_t n_points = neighbor_heap.n_points;
     std::size_t n_nbrs = neighbor_heap.n_nbrs;
-    for (std::size_t i = 0; i < n_points; i++) {
+    for (Idx i = 0; i < n_points; i++) {
       std::size_t innbrs = i * n_nbrs;
       for (std::size_t j = 0; j < n_nbrs; j++) {
-        std::size_t p = neighbor_heap.idx[innbrs + j];
+        Idx p = neighbor_heap.idx[innbrs + j];
         if (i > p) {
           seen[p].emplace(i);
         } else {
@@ -68,9 +70,11 @@ struct GraphCacheConstructionInit {
   }
 };
 
-struct GraphCacheQueryInit {
-  static void init(const NeighborHeap &neighbor_heap,
-                   std::vector<std::unordered_set<std::size_t>> &seen) {
+template <typename DistOut, typename Idx> struct GraphCacheQueryInit {
+  using DistanceOut = DistOut;
+  using Index = Idx;
+  static void init(const NNDHeap<DistOut, Idx> &neighbor_heap,
+                   std::vector<std::unordered_set<Idx>> &seen) {
     std::size_t n_points = neighbor_heap.n_points;
     std::size_t n_nbrs = neighbor_heap.n_nbrs;
     for (std::size_t q = 0; q < n_points; q++) {
@@ -83,21 +87,22 @@ struct GraphCacheQueryInit {
   }
 };
 
-template <typename GraphCacheInit = GraphCacheConstructionInit>
+template <typename DistOut, typename Idx,
+          template <typename DistOut, typename Idx> class GraphCacheInit =
+              GraphCacheConstructionInit>
 struct GraphCache {
-  std::vector<std::unordered_set<std::size_t>> seen;
+  std::vector<std::unordered_set<Idx>> seen;
 
-  GraphCache(const NeighborHeap &neighbor_heap) : seen(neighbor_heap.n_points) {
-    GraphCacheInit::init(neighbor_heap, seen);
+  GraphCache(const NNDHeap<DistOut, Idx> &neighbor_heap)
+      : seen(neighbor_heap.n_points) {
+    GraphCacheInit<DistOut, Idx>::init(neighbor_heap, seen);
   }
 
-  auto contains(std::size_t &p, std::size_t &q) const -> bool {
+  auto contains(Idx &p, Idx &q) const -> bool {
     return seen[p].find(q) != seen[p].end();
   }
 
-  auto insert(std::size_t p, std::size_t q) -> bool {
-    return !seen[p].emplace(q).second;
-  }
+  auto insert(Idx p, Idx q) -> bool { return !seen[p].emplace(q).second; }
 
   auto size() const -> std::size_t {
     std::size_t sum = 0;
@@ -109,18 +114,23 @@ struct GraphCache {
 };
 
 template <typename Distance> struct Batch {
-  NeighborHeap &current_graph;
+  NNDHeap<typename Distance::Output, typename Distance::Index> &current_graph;
   const Distance &distance;
   std::size_t n_nbrs;
 
-  std::vector<std::vector<Update>> updates;
+  std::vector<
+      std::vector<Update<typename Distance::Output, typename Distance::Index>>>
+      updates;
 
-  Batch(NeighborHeap &current_graph, const Distance &distance)
+  Batch(NNDHeap<typename Distance::Output, typename Distance::Index>
+            &current_graph,
+        const Distance &distance)
       : current_graph(current_graph), distance(distance),
         n_nbrs(current_graph.n_nbrs), updates(current_graph.n_points) {}
 
-  void generate(std::size_t p, std::size_t q, std::size_t key) {
-    double d = distance(p, q);
+  void generate(typename Distance::Index p, typename Distance::Index q,
+                std::size_t key) {
+    typename Distance::Output d = distance(p, q);
     if (current_graph.accepts_either(p, q, d)) {
       updates[key].emplace_back(p, q, d);
     }
@@ -142,27 +152,34 @@ template <typename Distance> struct Batch {
 };
 
 template <typename Distance> struct BatchHiMem {
-  NeighborHeap &current_graph;
+  NNDHeap<typename Distance::Output, typename Distance::Index> &current_graph;
   const Distance &distance;
   std::size_t n_nbrs;
 
-  GraphCache<> seen;
-  std::vector<std::vector<Update>> updates;
+  GraphCache<typename Distance::Output, typename Distance::Index,
+             GraphCacheConstructionInit>
+      seen;
+  std::vector<
+      std::vector<Update<typename Distance::Output, typename Distance::Index>>>
+      updates;
 
-  BatchHiMem(NeighborHeap &current_graph, const Distance &distance)
+  BatchHiMem(NNDHeap<typename Distance::Output, typename Distance::Index>
+                 &current_graph,
+             const Distance &distance)
       : current_graph(current_graph), distance(distance),
         n_nbrs(current_graph.n_nbrs), seen(current_graph),
         updates(current_graph.n_points) {}
 
-  void generate(std::size_t p, std::size_t q, std::size_t key) {
+  void generate(typename Distance::Index p, typename Distance::Index q,
+                std::size_t key) {
     // canonicalize the order of (p, q) so that qq >= pp
-    std::size_t pp = p > q ? q : p;
-    std::size_t qq = pp == p ? q : p;
+    typename Distance::Index pp = p > q ? q : p;
+    typename Distance::Index qq = pp == p ? q : p;
 
     if (seen.contains(pp, qq)) {
       return;
     }
-    double d = distance(p, q);
+    typename Distance::Output d = distance(p, q);
     if (current_graph.accepts_either(p, q, d)) {
       updates[key].emplace_back(pp, qq, d);
     }
@@ -179,8 +196,8 @@ template <typename Distance> struct BatchHiMem {
         auto &q = update.q;
         auto &d = update.d;
 
-        const bool bad_pd = !current_graph.accepts(p, d);
-        const bool bad_qd = !current_graph.accepts(q, d);
+        bool bad_pd = !current_graph.accepts(p, d);
+        bool bad_qd = !current_graph.accepts(q, d);
         if ((bad_pd && bad_qd) || seen.contains(p, q)) {
           continue;
         }
@@ -208,37 +225,47 @@ template <typename Distance> struct BatchHiMem {
 };
 
 template <typename Distance> struct Serial {
-  NeighborHeap &current_graph;
+  NNDHeap<typename Distance::Output, typename Distance::Index> &current_graph;
   const Distance &distance;
   std::size_t n_nbrs;
 
-  std::size_t upd_p;
-  std::size_t upd_q;
-  double upd_d;
+  typename Distance::Index upd_p;
+  typename Distance::Index upd_q;
+  typename Distance::Output upd_d;
 
-  Serial(NeighborHeap &current_graph, const Distance &distance)
+  Serial(NNDHeap<typename Distance::Output, typename Distance::Index>
+             &current_graph,
+         const Distance &distance)
       : current_graph(current_graph), distance(distance),
-        n_nbrs(current_graph.n_nbrs), upd_p(NeighborHeap::npos()),
-        upd_q(NeighborHeap::npos()), upd_d(0) {}
+        n_nbrs(current_graph.n_nbrs),
+        upd_p(NNDHeap<typename Distance::Output,
+                      typename Distance::Index>::npos()),
+        upd_q(NNDHeap<typename Distance::Output,
+                      typename Distance::Index>::npos()),
+        upd_d(0) {}
 
-  auto generate_and_apply(std::size_t p, std::size_t q) -> std::size_t {
+  auto generate_and_apply(typename Distance::Index p,
+                          typename Distance::Index q) -> std::size_t {
     generate(p, q, p);
     return apply();
   }
 
-  void generate(std::size_t p, std::size_t q, std::size_t) {
-    double d = distance(p, q);
+  void generate(typename Distance::Index p, typename Distance::Index q,
+                std::size_t) {
+    typename Distance::Output d = distance(p, q);
     if (current_graph.accepts_either(p, q, d)) {
       upd_p = p;
       upd_q = q;
       upd_d = d;
     } else {
-      upd_p = NeighborHeap::npos();
+      upd_p =
+          NNDHeap<typename Distance::Output, typename Distance::Index>::npos();
     }
   }
 
   auto apply() -> std::size_t {
-    if (upd_p == NeighborHeap::npos()) {
+    if (upd_p ==
+        NNDHeap<typename Distance::Output, typename Distance::Index>::npos()) {
       return 0;
     }
     return current_graph.checked_push_pair(upd_p, upd_d, upd_q);
@@ -246,28 +273,36 @@ template <typename Distance> struct Serial {
 };
 
 template <typename Distance> struct SerialHiMem {
-  NeighborHeap &current_graph;
+  NNDHeap<typename Distance::Output, typename Distance::Index> &current_graph;
   const Distance &distance;
   std::size_t n_nbrs;
 
-  GraphCache<> seen;
-  std::size_t upd_p;
-  std::size_t upd_q;
+  GraphCache<typename Distance::Output, typename Distance::Index,
+             GraphCacheConstructionInit>
+      seen;
+  typename Distance::Index upd_p;
+  typename Distance::Index upd_q;
 
-  SerialHiMem(NeighborHeap &current_graph, const Distance &distance)
+  SerialHiMem(NNDHeap<typename Distance::Output, typename Distance::Index>
+                  &current_graph,
+              const Distance &distance)
       : current_graph(current_graph), distance(distance),
         n_nbrs(current_graph.n_nbrs), seen(current_graph),
-        upd_p(NeighborHeap::npos()), upd_q(NeighborHeap::npos()) {}
+        upd_p(NNDHeap<typename Distance::Output,
+                      typename Distance::Index>::npos()),
+        upd_q(NNDHeap<typename Distance::Output,
+                      typename Distance::Index>::npos()) {}
 
-  auto generate_and_apply(std::size_t p, std::size_t q) -> std::size_t {
+  auto generate_and_apply(typename Distance::Index p,
+                          typename Distance::Index q) -> std::size_t {
     generate(p, q);
     return apply();
   }
 
-  void generate(std::size_t p, std::size_t q) {
+  void generate(typename Distance::Index p, typename Distance::Index q) {
     // canonicalize the order of (p, q) so that qq >= pp
-    std::size_t pp = p > q ? q : p;
-    std::size_t qq = pp == p ? q : p;
+    typename Distance::Index pp = p > q ? q : p;
+    typename Distance::Index qq = pp == p ? q : p;
 
     upd_p = pp;
     upd_q = qq;
@@ -280,7 +315,7 @@ template <typename Distance> struct SerialHiMem {
       return c;
     }
 
-    double d = distance(upd_p, upd_q);
+    typename Distance::Output d = distance(upd_p, upd_q);
 
     if (current_graph.accepts(upd_p, d)) {
       current_graph.unchecked_push(upd_p, d, upd_q);
@@ -303,28 +338,36 @@ template <typename Distance> struct SerialHiMem {
 // 6-7 times the number of items when tested on MNIST (70,000 items), k = 15,
 // max_candidates = 20
 template <typename Distance> struct SerialVeryHiMem {
-  NeighborHeap &current_graph;
+  NNDHeap<typename Distance::Output, typename Distance::Index> &current_graph;
   const Distance &distance;
   std::size_t n_nbrs;
 
-  GraphCache<> seen;
-  std::size_t upd_p;
-  std::size_t upd_q;
+  GraphCache<typename Distance::Output, typename Distance::Index,
+             GraphCacheConstructionInit>
+      seen;
+  typename Distance::Index upd_p;
+  typename Distance::Index upd_q;
 
-  SerialVeryHiMem(NeighborHeap &current_graph, const Distance &distance)
+  SerialVeryHiMem(NNDHeap<typename Distance::Output, typename Distance::Index>
+                      &current_graph,
+                  const Distance &distance)
       : current_graph(current_graph), distance(distance),
         n_nbrs(current_graph.n_nbrs), seen(current_graph),
-        upd_p(NeighborHeap::npos()), upd_q(NeighborHeap::npos()) {}
+        upd_p(NNDHeap<typename Distance::Output,
+                      typename Distance::Index>::npos()),
+        upd_q(NNDHeap<typename Distance::Output,
+                      typename Distance::Index>::npos()) {}
 
-  auto generate_and_apply(std::size_t p, std::size_t q) -> std::size_t {
+  auto generate_and_apply(typename Distance::Index p,
+                          typename Distance::Index q) -> std::size_t {
     generate(p, q);
     return apply();
   }
 
-  void generate(std::size_t p, std::size_t q) {
+  void generate(typename Distance::Index p, typename Distance::Index q) {
     // canonicalize the order of (p, q) so that qq >= pp
-    std::size_t pp = p > q ? q : p;
-    std::size_t qq = pp == p ? q : p;
+    typename Distance::Index pp = p > q ? q : p;
+    typename Distance::Index qq = pp == p ? q : p;
 
     upd_p = pp;
     upd_q = qq;
@@ -337,7 +380,7 @@ template <typename Distance> struct SerialVeryHiMem {
       return c;
     }
 
-    double d = distance(upd_p, upd_q);
+    typename Distance::Output d = distance(upd_p, upd_q);
     if (current_graph.accepts(upd_p, d)) {
       current_graph.unchecked_push(upd_p, d, upd_q);
       c += 1;
@@ -354,19 +397,25 @@ template <typename Distance> struct SerialVeryHiMem {
 // Not quite as memory hungry as SerialVeryHiMem, only storing
 // ~30% more items, but shows negligible performance improvement.
 template <typename Distance> struct BatchVeryHiMem {
-  NeighborHeap &current_graph;
+  NNDHeap<typename Distance::Output, typename Distance::Index> &current_graph;
   const Distance &distance;
   std::size_t n_nbrs;
 
-  GraphCache<> seen;
-  std::vector<std::vector<Update>> updates;
-
-  BatchVeryHiMem(NeighborHeap &current_graph, const Distance &distance)
+  GraphCache<typename Distance::Output, typename Distance::Index,
+             GraphCacheConstructionInit>
+      seen;
+  std::vector<
+      std::vector<Update<typename Distance::Output, typename Distance::Index>>>
+      updates;
+  BatchVeryHiMem(NNDHeap<typename Distance::Output, typename Distance::Index>
+                     &current_graph,
+                 const Distance &distance)
       : current_graph(current_graph), distance(distance),
         n_nbrs(current_graph.n_nbrs), seen(current_graph),
         updates(current_graph.n_points) {}
 
-  void generate(std::size_t p, std::size_t q, std::size_t key) {
+  void generate(typename Distance::Index p, typename Distance::Index q,
+                std::size_t key) {
     // canonicalize the order of (p, q) so that qq >= pp
     std::size_t pp = p > q ? q : p;
     std::size_t qq = pp == p ? q : p;
@@ -374,7 +423,7 @@ template <typename Distance> struct BatchVeryHiMem {
     if (seen.contains(pp, qq)) {
       return;
     }
-    double d = distance(p, q);
+    typename Distance::Output d = distance(p, q);
     if (current_graph.accepts_either(p, q, d)) {
       updates[key].emplace_back(pp, qq, d);
     }
@@ -411,82 +460,99 @@ template <typename Distance> struct BatchVeryHiMem {
 };
 
 // For use in queries: whether to cache previously seen points
-struct NullNeighborSet {
+template <typename Idx> struct NullNeighborSet {
   NullNeighborSet(std::size_t) {}
-  auto contains(std::size_t) -> bool { return false; }
+  auto contains(Idx) -> bool { return false; }
   void clear() {}
 };
 
-struct UnorderedNeighborSet {
-  std::unordered_set<std::size_t> seen;
+template <typename Idx> struct UnorderedNeighborSet {
+  std::unordered_set<Idx> seen;
 
   UnorderedNeighborSet(std::size_t n_nbrs) : seen(n_nbrs) {}
-  auto contains(std::size_t idx) -> bool { return !seen.emplace(idx).second; }
+  auto contains(Idx idx) -> bool { return !seen.emplace(idx).second; }
   void clear() { seen.clear(); }
 };
 
 template <typename Distance> struct QuerySerial {
-  NeighborHeap &current_graph;
+  NNDHeap<typename Distance::Output, typename Distance::Index> &current_graph;
   const Distance &distance;
   std::size_t n_nbrs;
 
   std::size_t ref;
   std::size_t query;
-  double dist;
+  typename Distance::Output dist;
 
-  QuerySerial(NeighborHeap &current_graph, const Distance &distance)
+  QuerySerial(NNDHeap<typename Distance::Output, typename Distance::Index>
+                  &current_graph,
+              const Distance &distance)
       : current_graph(current_graph), distance(distance),
-        n_nbrs(current_graph.n_nbrs), ref(NeighborHeap::npos()),
-        query(NeighborHeap::npos()), dist(0) {}
+        n_nbrs(current_graph.n_nbrs),
+        ref(NNDHeap<typename Distance::Output,
+                    typename Distance::Index>::npos()),
+        query(NNDHeap<typename Distance::Output,
+                      typename Distance::Index>::npos()),
+        dist(0) {}
 
-  auto generate_and_apply(std::size_t query_idx, std::size_t ref_idx)
-      -> std::size_t {
+  auto generate_and_apply(typename Distance::Index query_idx,
+                          typename Distance::Index ref_idx) -> std::size_t {
     generate(query_idx, ref_idx, 0);
     return apply();
   }
 
-  void generate(std::size_t query_idx, std::size_t ref_idx, std::size_t) {
-    double d = distance(ref_idx, query_idx);
+  void generate(typename Distance::Index query_idx,
+                typename Distance::Index ref_idx, std::size_t) {
+    typename Distance::Output d = distance(ref_idx, query_idx);
     if (current_graph.accepts(query_idx, d)) {
       ref = ref_idx;
       query = query_idx;
       dist = d;
     } else {
-      ref = NeighborHeap::npos();
+      ref =
+          NNDHeap<typename Distance::Output, typename Distance::Index>::npos();
     }
   }
 
   auto apply() -> std::size_t {
-    if (ref == NeighborHeap::npos()) {
+    if (ref ==
+        NNDHeap<typename Distance::Output, typename Distance::Index>::npos()) {
       return 0;
     }
     return current_graph.checked_push(query, dist, ref);
   }
 
-  using NeighborSet = NullNeighborSet;
+  using NeighborSet = NullNeighborSet<typename Distance::Index>;
 };
 
 template <typename Distance> struct QuerySerialHiMem {
-  NeighborHeap &current_graph;
+  NNDHeap<typename Distance::Output, typename Distance::Index> &current_graph;
   const Distance &distance;
   std::size_t n_nbrs;
 
-  GraphCache<GraphCacheQueryInit> seen;
-  std::size_t ref_;
-  std::size_t query_;
+  GraphCache<typename Distance::Output, typename Distance::Index,
+             GraphCacheQueryInit>
+      seen;
+  typename Distance::Index ref_;
+  typename Distance::Index query_;
 
-  QuerySerialHiMem(NeighborHeap &current_graph, const Distance &distance)
+  QuerySerialHiMem(NNDHeap<typename Distance::Output, typename Distance::Index>
+                       &current_graph,
+                   const Distance &distance)
       : current_graph(current_graph), distance(distance),
         n_nbrs(current_graph.n_nbrs), seen(current_graph),
-        ref_(NeighborHeap::npos()), query_(NeighborHeap::npos()) {}
+        ref_(NNDHeap<typename Distance::Output,
+                     typename Distance::Index>::npos()),
+        query_(NNDHeap<typename Distance::Output,
+                       typename Distance::Index>::npos()) {}
 
-  auto generate_and_apply(std::size_t query_idx, std::size_t ref_idx)
-      -> std::size_t {
+  auto generate_and_apply(typename Distance::Index query_idx,
+                          typename Distance::Index ref_idx) -> std::size_t {
     generate(query_idx, ref_idx, 0);
     return apply();
   }
 
-  void generate(std::size_t query_idx, std::size_t ref_idx, std::size_t) {
+  void generate(typename Distance::Index query_idx,
+                typename Distance::Index ref_idx, std::size_t) {
     ref_ = ref_idx;
     query_ = query_idx;
   }
@@ -505,22 +571,26 @@ template <typename Distance> struct QuerySerialHiMem {
     return c;
   }
 
-  using NeighborSet = UnorderedNeighborSet;
+  using NeighborSet = UnorderedNeighborSet<typename Distance::Index>;
 };
 
 template <typename Distance> struct QueryBatch {
-  NeighborHeap &current_graph;
+  NNDHeap<typename Distance::Output, typename Distance::Index> &current_graph;
   const Distance &distance;
   std::size_t n_nbrs;
 
-  std::vector<std::vector<Update>> updates;
-
-  QueryBatch(NeighborHeap &current_graph, const Distance &distance)
+  std::vector<
+      std::vector<Update<typename Distance::Output, typename Distance::Index>>>
+      updates;
+  QueryBatch(NNDHeap<typename Distance::Output, typename Distance::Index>
+                 &current_graph,
+             const Distance &distance)
       : current_graph(current_graph), distance(distance),
         n_nbrs(current_graph.n_nbrs), updates(current_graph.n_points) {}
 
-  void generate(std::size_t query_idx, std::size_t ref_idx, std::size_t) {
-    double d = distance(ref_idx, query_idx);
+  void generate(typename Distance::Index query_idx,
+                typename Distance::Index ref_idx, std::size_t) {
+    typename Distance::Output d = distance(ref_idx, query_idx);
     if (current_graph.accepts(query_idx, d)) {
       updates[query_idx].emplace_back(query_idx, ref_idx, d);
     }
@@ -540,27 +610,34 @@ template <typename Distance> struct QueryBatch {
     return c;
   }
 
-  using NeighborSet = NullNeighborSet;
+  using NeighborSet = NullNeighborSet<typename Distance::Index>;
 };
 
 template <typename Distance> struct QueryBatchHiMem {
-  NeighborHeap &current_graph;
+  NNDHeap<typename Distance::Output, typename Distance::Index> &current_graph;
   const Distance &distance;
   std::size_t n_nbrs;
 
-  GraphCache<GraphCacheQueryInit> seen;
-  std::vector<std::vector<Update>> updates;
+  GraphCache<typename Distance::Output, typename Distance::Index,
+             GraphCacheQueryInit>
+      seen;
+  std::vector<
+      std::vector<Update<typename Distance::Output, typename Distance::Index>>>
+      updates;
 
-  QueryBatchHiMem(NeighborHeap &current_graph, const Distance &distance)
+  QueryBatchHiMem(NNDHeap<typename Distance::Output, typename Distance::Index>
+                      &current_graph,
+                  const Distance &distance)
       : current_graph(current_graph), distance(distance),
         n_nbrs(current_graph.n_nbrs), seen(current_graph),
         updates(current_graph.n_points) {}
 
-  void generate(std::size_t query_idx, std::size_t ref_idx, std::size_t) {
+  void generate(typename Distance::Index query_idx,
+                typename Distance::Index ref_idx, std::size_t) {
     if (seen.contains(query_idx, ref_idx)) {
       return;
     }
-    double d = distance(ref_idx, query_idx);
+    typename Distance::Output d = distance(ref_idx, query_idx);
     if (current_graph.accepts(query_idx, d)) {
       updates[query_idx].emplace_back(query_idx, ref_idx, d);
     }
@@ -590,7 +667,7 @@ template <typename Distance> struct QueryBatchHiMem {
     }
     return c;
   }
-  using NeighborSet = UnorderedNeighborSet;
+  using NeighborSet = UnorderedNeighborSet<typename Distance::Index>;
 };
 
 // Template aliases can't be declared inside a function, so this struct is
@@ -600,8 +677,9 @@ template <typename Distance> struct QueryBatchHiMem {
 // which won't compile.
 template <template <typename> class Impl> struct Factory {
   template <typename Distance>
-  static auto create(NeighborHeap &current_graph, Distance &distance)
-      -> Impl<Distance> {
+  static auto create(NNDHeap<typename Distance::Output,
+                             typename Distance::Index> &current_graph,
+                     Distance &distance) -> Impl<Distance> {
     return Impl<Distance>(current_graph, distance);
   }
 };

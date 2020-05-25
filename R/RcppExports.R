@@ -17,12 +17,12 @@ merge_nn_all <- function(nn_graphs, is_query, n_threads, block_size, grain_size 
     .Call(`_rnndescent_merge_nn_all`, nn_graphs, is_query, n_threads, block_size, grain_size, verbose)
 }
 
-nn_descent <- function(data, nn_idx, nn_dist, metric = "euclidean", max_candidates = 50L, n_iters = 10L, delta = 0.001, low_memory = TRUE, candidate_priority = "random", n_threads = 0L, block_size = 16384L, grain_size = 1L, verbose = FALSE, progress = "bar") {
-    .Call(`_rnndescent_nn_descent`, data, nn_idx, nn_dist, metric, max_candidates, n_iters, delta, low_memory, candidate_priority, n_threads, block_size, grain_size, verbose, progress)
+nn_descent <- function(data, nn_idx, nn_dist, metric = "euclidean", max_candidates = 50L, n_iters = 10L, delta = 0.001, low_memory = TRUE, n_threads = 0L, block_size = 16384L, grain_size = 1L, verbose = FALSE, progress = "bar") {
+    .Call(`_rnndescent_nn_descent`, data, nn_idx, nn_dist, metric, max_candidates, n_iters, delta, low_memory, n_threads, block_size, grain_size, verbose, progress)
 }
 
-nn_descent_query <- function(reference, reference_idx, query, nn_idx, nn_dist, metric = "euclidean", max_candidates = 50L, n_iters = 10L, delta = 0.001, low_memory = TRUE, candidate_priority = "random", n_threads = 0L, block_size = 16384L, grain_size = 1L, verbose = FALSE, progress = "bar") {
-    .Call(`_rnndescent_nn_descent_query`, reference, reference_idx, query, nn_idx, nn_dist, metric, max_candidates, n_iters, delta, low_memory, candidate_priority, n_threads, block_size, grain_size, verbose, progress)
+nn_descent_query <- function(reference, reference_idx, query, nn_idx, nn_dist, metric = "euclidean", max_candidates = 50L, n_iters = 10L, delta = 0.001, low_memory = TRUE, n_threads = 0L, block_size = 16384L, grain_size = 1L, verbose = FALSE, progress = "bar") {
+    .Call(`_rnndescent_nn_descent_query`, reference, reference_idx, query, nn_idx, nn_dist, metric, max_candidates, n_iters, delta, low_memory, n_threads, block_size, grain_size, verbose, progress)
 }
 
 random_knn_cpp <- function(data, k, metric = "euclidean", order_by_distance = TRUE, n_threads = 0L, block_size = 4096L, grain_size = 1L, verbose = FALSE) {
