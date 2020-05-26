@@ -295,8 +295,8 @@ struct QueryNoNSearchWorker : public BatchParallelWorker {
   }
 };
 
-template <typename Distance, typename GUFactoryT, typename Progress,
-          typename Rand, typename Parallel>
+template <typename Distance, typename GUFactoryT, typename Parallel,
+          typename Rand, typename Progress>
 auto nnd_query_parallel(
     const std::vector<typename Distance::Input> &reference, std::size_t ndim,
     const std::vector<typename Distance::Input> &query,

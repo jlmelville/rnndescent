@@ -222,8 +222,7 @@ struct NNDQueryParallel {
     Progress progress(n_iters, verbose);
     NNDProgress nnd_progress(progress);
 
-    auto result = tdoann::nnd_query_parallel<Distance, GraphUpdate, NNDProgress,
-                                             decltype(rand), RParallel>(
+    auto result = tdoann::nnd_query_parallel<Distance, GraphUpdate, RParallel>(
         ref_vec, reference.ncol(), query_vec, nn_init, ref_idx_vec,
         max_candidates, n_iters, delta, rand, nnd_progress, n_threads,
         block_size, grain_size, verbose);
