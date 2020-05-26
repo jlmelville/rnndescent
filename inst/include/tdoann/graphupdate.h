@@ -88,7 +88,7 @@ template <typename DistOut, typename Idx> struct GraphCacheQueryInit {
 };
 
 template <typename DistOut, typename Idx,
-          template <typename DistOut, typename Idx> class GraphCacheInit =
+          template <typename D, typename I> class GraphCacheInit =
               GraphCacheConstructionInit>
 struct GraphCache {
   std::vector<std::unordered_set<Idx>> seen;
