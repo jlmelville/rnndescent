@@ -215,144 +215,143 @@ auto nnd_build_parallel(
   return heap_to_graph(current_graph);
 }
 
-// template <typename CandidatePriorityFactoryImpl> struct QueryCandidatesWorker
-// {
-//   NNDHeap<typename Distance::Output, typename Distance::Index>
-//   &current_graph; std::size_t n_points; std::size_t n_nbrs; std::size_t
-//   max_candidates; bool flag_on_add;
-//
-//   NNDHeap<typename Distance::Output, typename Distance::Index>
-//   &new_candidate_neighbors; CandidatePriorityFactoryImpl
-//   &candidate_priority_factory;
-//
-//   QueryCandidatesWorker(
-//       NeighborHeap &current_graph, NeighborHeap &new_candidate_neighbors,
-//       CandidatePriorityFactoryImpl &candidate_priority_factory)
-//       : current_graph(current_graph), n_points(current_graph.n_points),
-//         n_nbrs(current_graph.n_nbrs),
-//         max_candidates(new_candidate_neighbors.n_nbrs),
-//         flag_on_add(new_candidate_neighbors.n_nbrs >= current_graph.n_nbrs),
-//         new_candidate_neighbors(new_candidate_neighbors),
-//         candidate_priority_factory(candidate_priority_factory) {}
-//
-//   void operator()(std::size_t begin, std::size_t end) {
-//     auto candidate_priority = candidate_priority_factory.create(begin, end);
-//     build_query_candidates(current_graph, candidate_priority,
-//                            new_candidate_neighbors, begin, end, flag_on_add);
-//   }
-// };
+template <typename Distance> struct QueryCandidatesWorker {
+  NNDHeap<typename Distance::Output, typename Distance::Index> &current_graph;
+  std::size_t n_points;
+  std::size_t n_nbrs;
+  std::size_t max_candidates;
+  bool flag_on_add;
 
-// template <typename Distance, typename GraphUpdater>
-// struct QueryNoNSearchWorker : public BatchParallelWorker {
-//   NeighborHeap &current_graph;
-//   GraphUpdater &graph_updater;
-//   const NNDHeap<typename Distance::Output, typename Distance::Index>
-//   &new_nbrs; const NNDHeap<typename Distance::Output, typename
-//   Distance::Index> &gn_graph; std::size_t max_candidates; std::mutex mutex;
-//   NullProgress progress;
-//   std::size_t n_updates;
-//
-//   QueryNoNSearchWorker(NNDHeap<typename Distance::Output, typename
-//   Distance::Index> &current_graph, GraphUpdater &graph_updater,
-//                        const NNDHeap<typename Distance::Output, typename
-//                        Distance::Index> &new_nbrs, const NNDHeap<typename
-//                        Distance::Output, typename Distance::Index> &gn_graph,
-//                        std::size_t max_candidates)
-//       : current_graph(current_graph), graph_updater(graph_updater),
-//         new_nbrs(new_nbrs), gn_graph(gn_graph),
-//         max_candidates(max_candidates), progress(), n_updates(0) {}
-//
-//   void operator()(std::size_t begin, std::size_t end) {
-//     std::size_t ref_idx = 0;
-//     std::size_t nbr_ref_idx = 0;
-//     std::size_t n_nbrs = current_graph.n_nbrs;
-//     typename GraphUpdater::NeighborSet seen(n_nbrs);
-//
-//     for (std::size_t query_idx = begin; query_idx < end; query_idx++) {
-//       for (std::size_t j = 0; j < max_candidates; j++) {
-//         ref_idx = new_nbrs.index(query_idx, j);
-//         if (ref_idx == NeighborHeap::npos()) {
-//           continue;
-//         }
-//         std::size_t rnidx = ref_idx * max_candidates;
-//         for (std::size_t k = 0; k < max_candidates; k++) {
-//           nbr_ref_idx = gn_graph.idx[rnidx + k];
-//           if (nbr_ref_idx == NeighborHeap::npos() ||
-//               seen.contains(nbr_ref_idx)) {
-//             continue;
-//           } else {
-//             graph_updater.generate(query_idx, nbr_ref_idx, -1);
-//           }
-//         }
-//       }
-//       TDOANN_BLOCKFINISHED();
-//       seen.clear();
-//     }
-//   }
-//   void after_parallel(std::size_t, std::size_t) {
-//     n_updates += graph_updater.apply();
-//   }
-// };
+  NNDHeap<typename Distance::Output, typename Distance::Index>
+      &new_candidate_neighbors;
 
-// template <typename Distance, typename GUFactoryT, typename Progress,
-//           typename Parallel, typename CandidatePriorityFactoryImpl>
-// auto nnd_query_parallel(
-//     const std::vector<typename Distance::Input> &reference, std::size_t ndim,
-//     const std::vector<typename Distance::Input> &query, const NNGraph
-//     &nn_init, const std::vector<std::size_t> &reference_idx, std::size_t
-//     max_candidates, std::size_t n_iters, CandidatePriorityFactoryImpl
-//     &candidate_priority_factory, double delta, std::size_t n_threads = 0,
-//     std::size_t block_size = 16384, std::size_t grain_size = 1, bool verbose
-//     = false) -> NNGraph {
-//   Distance distance(reference, query, ndim);
-//
-//   std::size_t n_points = nn_init.n_points;
-//   std::size_t n_nbrs = nn_init.n_nbrs;
-//   double tol = delta * n_nbrs * n_points;
-//
-//   NNDHeap<typename Distance::Output, typename Distance::Index>
-//   current_graph(n_points, n_nbrs);
-//   graph_to_heap_serial<HeapAddQuery>(current_graph, nn_init, 1000, true);
-//
-//   Progress progress(current_graph, n_iters, verbose);
-//   auto graph_updater = GUFactoryT::create(current_graph, distance);
-//
-//   std::size_t n_ref_points = reference.size() / ndim;
-//   NNDHeap<typename Distance::Output, typename Distance::Index>
-//   gn_graph(n_ref_points, max_candidates); auto candidate_priority =
-//   candidate_priority_factory.create(); build_general_nbrs(reference_idx,
-//   gn_graph, candidate_priority, n_ref_points,
-//                      n_nbrs);
-//   for (std::size_t n = 0; n < n_iters; n++) {
-//     NNDHeap<typename Distance::Output, typename Distance::Index>
-//     new_nbrs(n_points, max_candidates);
-//     QueryCandidatesWorker<CandidatePriorityFactoryImpl>
-//     query_candidates_worker(
-//         current_graph, new_nbrs, candidate_priority_factory);
-//     Parallel::parallel_for(0, n_points, query_candidates_worker, n_threads,
-//                            grain_size);
-//
-//     if (!query_candidates_worker.flag_on_add) {
-//       FlagNewCandidatesWorker flag_new_candidates_worker(new_nbrs,
-//                                                          current_graph);
-//       Parallel::parallel_for(0, n_points, flag_new_candidates_worker,
-//       n_threads,
-//                              grain_size);
-//     }
-//
-//     QueryNoNSearchWorker<Distance, decltype(graph_updater)>
-//         query_non_search_worker(current_graph, graph_updater, new_nbrs,
-//                                 gn_graph, max_candidates);
-//     batch_parallel_for<Parallel>(query_non_search_worker, progress, n_points,
-//                                  n_threads, block_size, grain_size);
-//
-//     TDOANN_ITERFINISHED();
-//     std::size_t c = query_non_search_worker.n_updates;
-//     TDOANN_CHECKCONVERGENCE();
-//   }
-//   sort_heap_parallel(current_graph, n_threads, block_size, grain_size);
-//
-//   return heap_to_graph(current_graph);
-// }
+  QueryCandidatesWorker(
+      NNDHeap<typename Distance::Output, typename Distance::Index>
+          &current_graph,
+      NNDHeap<typename Distance::Output, typename Distance::Index>
+          &new_candidate_neighbors)
+      : current_graph(current_graph), n_points(current_graph.n_points),
+        n_nbrs(current_graph.n_nbrs),
+        max_candidates(new_candidate_neighbors.n_nbrs),
+        flag_on_add(new_candidate_neighbors.n_nbrs >= current_graph.n_nbrs),
+        new_candidate_neighbors(new_candidate_neighbors) {}
+
+  void operator()(std::size_t begin, std::size_t end) {
+    build_query_candidates(current_graph, new_candidate_neighbors, begin, end,
+                           flag_on_add);
+  }
+};
+
+template <typename Distance, typename GraphUpdater>
+struct QueryNoNSearchWorker : public BatchParallelWorker {
+  NNDHeap<typename Distance::Output, typename Distance::Index> &current_graph;
+  GraphUpdater &graph_updater;
+  const NNDHeap<typename Distance::Output, typename Distance::Index> &new_nbrs;
+  const NNDHeap<float, typename Distance::Index> &gn_graph;
+  std::size_t max_candidates;
+  std::mutex mutex;
+  NullProgress progress;
+  std::size_t n_updates;
+
+  QueryNoNSearchWorker(NNDHeap<typename Distance::Output,
+                               typename Distance::Index> &current_graph,
+                       GraphUpdater &graph_updater,
+                       const NNDHeap<typename Distance::Output,
+                                     typename Distance::Index> &new_nbrs,
+                       const NNDHeap<float, typename Distance::Index> &gn_graph,
+                       std::size_t max_candidates)
+      : current_graph(current_graph), graph_updater(graph_updater),
+        new_nbrs(new_nbrs), gn_graph(gn_graph), max_candidates(max_candidates),
+        progress(), n_updates(0) {}
+
+  void operator()(std::size_t begin, std::size_t end) {
+    std::size_t ref_idx = 0;
+    std::size_t nbr_ref_idx = 0;
+    std::size_t n_nbrs = current_graph.n_nbrs;
+    typename GraphUpdater::NeighborSet seen(n_nbrs);
+
+    for (std::size_t query_idx = begin; query_idx < end; query_idx++) {
+      for (std::size_t j = 0; j < max_candidates; j++) {
+        ref_idx = new_nbrs.index(query_idx, j);
+        if (ref_idx == new_nbrs.npos()) {
+          continue;
+        }
+        std::size_t rnidx = ref_idx * max_candidates;
+        for (std::size_t k = 0; k < max_candidates; k++) {
+          nbr_ref_idx = gn_graph.idx[rnidx + k];
+          if (nbr_ref_idx == gn_graph.npos() || seen.contains(nbr_ref_idx)) {
+            continue;
+          } else {
+            graph_updater.generate(query_idx, nbr_ref_idx, -1);
+          }
+        }
+      }
+      TDOANN_BLOCKFINISHED();
+      seen.clear();
+    }
+  }
+  void after_parallel(std::size_t, std::size_t) {
+    n_updates += graph_updater.apply();
+  }
+};
+
+template <typename Distance, typename GUFactoryT, typename Progress,
+          typename Rand, typename Parallel>
+auto nnd_query_parallel(
+    const std::vector<typename Distance::Input> &reference, std::size_t ndim,
+    const std::vector<typename Distance::Input> &query,
+    const NNGraph<typename Distance::Output, typename Distance::Index> &nn_init,
+    const std::vector<typename Distance::Index> &reference_idx,
+    std::size_t max_candidates, std::size_t n_iters, double delta, Rand &rand,
+    Progress &progress, std::size_t n_threads = 0,
+    std::size_t block_size = 16384, std::size_t grain_size = 1,
+    bool verbose = false)
+    -> NNGraph<typename Distance::Output, typename Distance::Index> {
+  Distance distance(reference, query, ndim);
+
+  std::size_t n_points = nn_init.n_points;
+  std::size_t n_nbrs = nn_init.n_nbrs;
+  double tol = delta * n_nbrs * n_points;
+
+  NNDHeap<typename Distance::Output, typename Distance::Index> current_graph(
+      n_points, n_nbrs);
+  graph_to_heap_serial<HeapAddQuery>(current_graph, nn_init, 1000, true);
+
+  auto graph_updater = GUFactoryT::create(current_graph, distance);
+
+  std::size_t n_ref_points = reference.size() / ndim;
+  NNDHeap<float, typename Distance::Index> gn_graph(n_ref_points,
+                                                    max_candidates);
+
+  build_general_nbrs(reference_idx, gn_graph, n_ref_points, n_nbrs, rand);
+  for (std::size_t n = 0; n < n_iters; n++) {
+    NNDHeap<typename Distance::Output, typename Distance::Index> new_nbrs(
+        n_points, max_candidates);
+    QueryCandidatesWorker<Distance> query_candidates_worker(current_graph,
+                                                            new_nbrs);
+    Parallel::parallel_for(0, n_points, query_candidates_worker, n_threads,
+                           grain_size);
+
+    if (!query_candidates_worker.flag_on_add) {
+      FlagNewCandidatesWorker<Distance> flag_new_candidates_worker(
+          new_nbrs, current_graph);
+      Parallel::parallel_for(0, n_points, flag_new_candidates_worker, n_threads,
+                             grain_size);
+    }
+
+    QueryNoNSearchWorker<Distance, decltype(graph_updater)>
+        query_non_search_worker(current_graph, graph_updater, new_nbrs,
+                                gn_graph, max_candidates);
+    batch_parallel_for<Parallel>(query_non_search_worker, progress, n_points,
+                                 n_threads, block_size, grain_size);
+
+    TDOANN_ITERFINISHED();
+    std::size_t c = query_non_search_worker.n_updates;
+    TDOANN_CHECKCONVERGENCE();
+  }
+  sort_heap_parallel(current_graph, n_threads, block_size, grain_size);
+
+  return heap_to_graph(current_graph);
+}
 } // namespace tdoann
 #endif // TDOANN_NNDPARALLEL_H
