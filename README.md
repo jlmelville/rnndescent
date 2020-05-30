@@ -1,6 +1,7 @@
 # rnndescent
 
 [![Travis-CI Build Status](https://travis-ci.org/jlmelville/rnndescent.svg?branch=master)](https://travis-ci.org/jlmelville/rnndescent) [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/jlmelville/rnndescent?branch=master&svg=true)](https://ci.appveyor.com/project/jlmelville/rnndescent) [![Coverage Status](https://img.shields.io/codecov/c/github/jlmelville/rnndescent/master.svg)](https://codecov.io/github/jlmelville/rnndescent?branch=master)
+[![Last Commit](https://img.shields.io/github/last-commit/jlmelville/rnndescent)](https://github.com/jlmelville/rnndescent)
 
 An R package implementing the Nearest Neighbor Descent method
 ([Dong et al., 2011](https://doi.org/10.1145/1963405.1963487)) for finding
@@ -47,23 +48,6 @@ Mac owners more.
 [The R for Mac OS X FAQ](https://cran.r-project.org/bin/macosx/RMacOSX-FAQ.html#Installation-of-source-packages)
 may be helpful here to work out what you can get away with. To be on the safe
 side, I would advise building without a custom `Makevars`.
-
-**Everybody**: if your `.Rprofile` files print any messages, be sure to wrap
-them in `if (interactive()) { ... }` statements:
-
-```R
-# Example of a good .Rprofile file:
-if (interactive()) {
-    cat("I am printing this message in interactive sessions\n")
-}
-
-# Example of a bad .Rprofile file:
-cat("I am printing this message all of the time\n")
-```
-
-This project's `Makevars` file relies on a clean output to correctly configure [RcppParallel](https://cran.r-project.org/package=RcppParallel). If compilation
-fails and you see startup messages in the build output, this is what is
-happening.
 
 ## Example
 
