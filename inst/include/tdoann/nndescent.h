@@ -105,42 +105,32 @@ auto is_converged(std::size_t n_updates, double tol) -> bool {
 }
 
 // Pretty close to the NNDescentFull algorithm (#2 in the paper)
-template <typename Distance, typename GUFactoryT, typename Progress>
-auto nnd_build(
-    const std::vector<typename Distance::Input> &data, std::size_t ndim,
-    const NNGraph<typename Distance::Output, typename Distance::Index> &nn_init,
-    std::size_t max_candidates, std::size_t n_iters, double delta,
-    Progress &progress, bool verbose)
+template <typename Distance, typename Progress, typename GraphUpdate>
+auto nnd_build(Distance &distance, GraphUpdate &graph_updater,
+               std::size_t max_candidates, std::size_t n_iters, double delta,
+               Progress &progress, bool verbose)
     -> NNGraph<typename Distance::Output, typename Distance::Index> {
-  Distance distance(data, ndim);
 
-  std::size_t n_points = nn_init.n_points;
-  std::size_t n_nbrs = nn_init.n_nbrs;
-  double tol = delta * n_nbrs * n_points;
-
-  NNDHeap<typename Distance::Output, typename Distance::Index> current_graph(
-      n_points, n_nbrs);
-  graph_to_heap_serial<HeapAddSymmetric>(current_graph, nn_init, 1000, true);
-
-  auto graph_updater = GUFactoryT::create(current_graph, distance);
+  auto &graph = graph_updater.current_graph;
+  const std::size_t n_points = graph.n_points;
+  const double tol = delta * graph.n_nbrs * n_points;
 
   for (std::size_t n = 0; n < n_iters; n++) {
     NNDHeap<typename Distance::Output, typename Distance::Index> new_nbrs(
         n_points, max_candidates);
-    NNDHeap<typename Distance::Output, typename Distance::Index> old_nbrs(
-        n_points, max_candidates);
+    decltype(new_nbrs) old_nbrs(n_points, max_candidates);
 
-    build_candidates_full(current_graph, new_nbrs, old_nbrs);
+    build_candidates_full(graph, new_nbrs, old_nbrs);
 
     std::size_t c = local_join(graph_updater, new_nbrs, old_nbrs, n_points,
                                max_candidates, progress);
     TDOANN_ITERFINISHED();
-    progress.heap_report(current_graph);
+    progress.heap_report(graph);
     TDOANN_CHECKCONVERGENCE();
   }
-  current_graph.deheap_sort();
+  graph.deheap_sort();
 
-  return heap_to_graph(current_graph);
+  return heap_to_graph(graph);
 }
 
 // Local join update: instead of updating item i with the neighbors of the

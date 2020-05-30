@@ -112,12 +112,20 @@ struct NNDBuildSerial {
         r_to_graph<typename Distance::Output, typename Distance::Index>(
             nn_idx, nn_dist, data.nrow() - 1);
 
+    Distance distance(data_vec, data.ncol());
+
+    tdoann::NNDHeap<typename Distance::Output, typename Distance::Index>
+        current_graph(nn_init.n_points, nn_init.n_nbrs);
+    tdoann::graph_to_heap_serial<tdoann::HeapAddSymmetric>(current_graph,
+                                                           nn_init, 1000, true);
+
+    auto graph_updater = GraphUpdate::create(current_graph, distance);
+
     Progress progress(n_iters, verbose);
     NNDProgress nnd_progress(progress);
 
-    auto result = tdoann::nnd_build<Distance, GraphUpdate, NNDProgress>(
-        data_vec, data.ncol(), nn_init, max_candidates, n_iters, delta,
-        nnd_progress, verbose);
+    auto result = tdoann::nnd_build(distance, graph_updater, max_candidates,
+                                    n_iters, delta, nnd_progress, verbose);
 
     return graph_to_r(result);
   }
