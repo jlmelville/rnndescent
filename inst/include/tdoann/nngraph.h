@@ -206,6 +206,18 @@ void graph_to_heap_serial(NbrHeap &heap,
   batch_serial_for(worker, progress, nn_graph.n_points, block_size);
 }
 
+template <typename HeapAdd, template <class, class> class NbrHeap, class D,
+          class I, typename Progress = NullProgress>
+auto graph_to_heap_serial(const NNGraph<D, I> &nn_graph, std::size_t block_size,
+                          bool transpose = false) -> NbrHeap<D, I> {
+  NbrHeap<D, I> nbr_heap(nn_graph.n_points, nn_graph.n_nbrs);
+  VecToHeapWorker<HeapAdd, decltype(nbr_heap)> worker(
+      nbr_heap, nn_graph.idx, nn_graph.n_points, nn_graph.dist, transpose);
+  Progress progress;
+  batch_serial_for(worker, progress, nn_graph.n_points, block_size);
+  return nbr_heap;
+}
+
 template <typename HeapAdd, typename Progress = NullProgress,
           typename Parallel = NoParallel, typename DistOut, typename Idx>
 void sort_knn_graph_parallel(NNGraph<DistOut, Idx> &nn_graph,

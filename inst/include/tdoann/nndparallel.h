@@ -44,9 +44,9 @@ template <typename Distance> struct LockingCandidatesWorker {
   std::size_t n_points;
   std::size_t n_nbrs;
   std::size_t max_candidates;
-  NNDHeap<typename Distance::Output, typename Distance::Index>
+  NNHeap<typename Distance::Output, typename Distance::Index>
       &new_candidate_neighbors;
-  NNDHeap<typename Distance::Output, typename Distance::Index>
+  NNHeap<typename Distance::Output, typename Distance::Index>
       &old_candidate_neighbors;
   static const constexpr std::size_t n_mutexes = 10;
   std::mutex mutexes[n_mutexes];
@@ -54,9 +54,9 @@ template <typename Distance> struct LockingCandidatesWorker {
   LockingCandidatesWorker(
       const NNDHeap<typename Distance::Output, typename Distance::Index>
           &current_graph,
-      NNDHeap<typename Distance::Output, typename Distance::Index>
+      NNHeap<typename Distance::Output, typename Distance::Index>
           &new_candidate_neighbors,
-      NNDHeap<typename Distance::Output, typename Distance::Index>
+      NNHeap<typename Distance::Output, typename Distance::Index>
           &old_candidate_neighbors)
       : current_graph(current_graph), n_points(current_graph.n_points),
         n_nbrs(current_graph.n_nbrs),
@@ -76,11 +76,11 @@ template <typename Distance> struct LockingCandidatesWorker {
             isn == 1 ? new_candidate_neighbors : old_candidate_neighbors;
         {
           std::lock_guard<std::mutex> guard(mutexes[i % n_mutexes]);
-          nbrs.checked_push(i, d, idx, isn);
+          nbrs.checked_push(i, d, idx);
         }
         if (i != idx) {
           std::lock_guard<std::mutex> guard(mutexes[idx % n_mutexes]);
-          nbrs.checked_push(idx, d, i, isn);
+          nbrs.checked_push(idx, d, i);
         }
       }
     }
@@ -90,7 +90,7 @@ template <typename Distance> struct LockingCandidatesWorker {
 // mark any neighbor in the current graph that was retained in the new
 // candidates as true
 template <typename Distance> struct FlagNewCandidatesWorker {
-  const NNDHeap<typename Distance::Output, typename Distance::Index>
+  const NNHeap<typename Distance::Output, typename Distance::Index>
       &new_candidate_neighbors;
   NNDHeap<typename Distance::Output, typename Distance::Index> &current_graph;
   std::size_t n_points;
@@ -98,7 +98,7 @@ template <typename Distance> struct FlagNewCandidatesWorker {
   std::size_t max_candidates;
 
   FlagNewCandidatesWorker(
-      const NNDHeap<typename Distance::Output, typename Distance::Index>
+      const NNHeap<typename Distance::Output, typename Distance::Index>
           &new_candidate_neighbors,
       NNDHeap<typename Distance::Output, typename Distance::Index>
           &current_graph)
@@ -116,8 +116,8 @@ template <typename Distance> struct FlagNewCandidatesWorker {
 template <typename Distance, typename GraphUpdater> struct LocalJoinWorker {
   const NNDHeap<typename Distance::Output, typename Distance::Index>
       &current_graph;
-  const NNDHeap<typename Distance::Output, typename Distance::Index> &new_nbrs;
-  const NNDHeap<typename Distance::Output, typename Distance::Index> &old_nbrs;
+  const NNHeap<typename Distance::Output, typename Distance::Index> &new_nbrs;
+  const NNHeap<typename Distance::Output, typename Distance::Index> &old_nbrs;
   std::size_t n_nbrs;
   std::size_t max_candidates;
   GraphUpdater &graph_updater;
@@ -126,8 +126,8 @@ template <typename Distance, typename GraphUpdater> struct LocalJoinWorker {
   LocalJoinWorker(
       const NNDHeap<typename Distance::Output, typename Distance::Index>
           &current_graph,
-      NNDHeap<typename Distance::Output, typename Distance::Index> &new_nbrs,
-      NNDHeap<typename Distance::Output, typename Distance::Index> &old_nbrs,
+      NNHeap<typename Distance::Output, typename Distance::Index> &new_nbrs,
+      NNHeap<typename Distance::Output, typename Distance::Index> &old_nbrs,
       GraphUpdater &graph_updater)
       : current_graph(current_graph), new_nbrs(new_nbrs), old_nbrs(old_nbrs),
         n_nbrs(current_graph.n_nbrs), max_candidates(new_nbrs.n_nbrs),
@@ -186,10 +186,10 @@ auto nnd_build_parallel(
   auto graph_updater = GUFactoryT::create(current_graph, distance);
 
   for (std::size_t n = 0; n < n_iters; n++) {
-    NNDHeap<typename Distance::Output, typename Distance::Index>
+    NNHeap<typename Distance::Output, typename Distance::Index>
         new_candidate_neighbors(n_points, max_candidates);
-    NNDHeap<typename Distance::Output, typename Distance::Index>
-        old_candidate_neighbors(n_points, max_candidates);
+    decltype(new_candidate_neighbors) old_candidate_neighbors(n_points,
+                                                              max_candidates);
 
     LockingCandidatesWorker<Distance> candidates_worker(
         current_graph, new_candidate_neighbors, old_candidate_neighbors);
@@ -222,13 +222,13 @@ template <typename Distance> struct QueryCandidatesWorker {
   std::size_t max_candidates;
   bool flag_on_add;
 
-  NNDHeap<typename Distance::Output, typename Distance::Index>
+  NNHeap<typename Distance::Output, typename Distance::Index>
       &new_candidate_neighbors;
 
   QueryCandidatesWorker(
       NNDHeap<typename Distance::Output, typename Distance::Index>
           &current_graph,
-      NNDHeap<typename Distance::Output, typename Distance::Index>
+      NNHeap<typename Distance::Output, typename Distance::Index>
           &new_candidate_neighbors)
       : current_graph(current_graph), n_points(current_graph.n_points),
         n_nbrs(current_graph.n_nbrs),
@@ -246,8 +246,8 @@ template <typename Distance, typename GraphUpdater>
 struct QueryNoNSearchWorker : public BatchParallelWorker {
   NNDHeap<typename Distance::Output, typename Distance::Index> &current_graph;
   GraphUpdater &graph_updater;
-  const NNDHeap<typename Distance::Output, typename Distance::Index> &new_nbrs;
-  const NNDHeap<float, typename Distance::Index> &gn_graph;
+  const NNHeap<typename Distance::Output, typename Distance::Index> &new_nbrs;
+  const NNHeap<float, typename Distance::Index> &gn_graph;
   std::size_t max_candidates;
   std::mutex mutex;
   NullProgress progress;
@@ -256,9 +256,9 @@ struct QueryNoNSearchWorker : public BatchParallelWorker {
   QueryNoNSearchWorker(NNDHeap<typename Distance::Output,
                                typename Distance::Index> &current_graph,
                        GraphUpdater &graph_updater,
-                       const NNDHeap<typename Distance::Output,
-                                     typename Distance::Index> &new_nbrs,
-                       const NNDHeap<float, typename Distance::Index> &gn_graph,
+                       const NNHeap<typename Distance::Output,
+                                    typename Distance::Index> &new_nbrs,
+                       const NNHeap<float, typename Distance::Index> &gn_graph,
                        std::size_t max_candidates)
       : current_graph(current_graph), graph_updater(graph_updater),
         new_nbrs(new_nbrs), gn_graph(gn_graph), max_candidates(max_candidates),
@@ -320,12 +320,12 @@ auto nnd_query_parallel(
   auto graph_updater = GUFactoryT::create(current_graph, distance);
 
   std::size_t n_ref_points = reference.size() / ndim;
-  NNDHeap<float, typename Distance::Index> gn_graph(n_ref_points,
-                                                    max_candidates);
+  NNHeap<float, typename Distance::Index> gn_graph(n_ref_points,
+                                                   max_candidates);
 
-  build_general_nbrs(reference_idx, gn_graph, n_ref_points, n_nbrs, rand);
+  build_general_nbrs(reference_idx, n_nbrs, gn_graph, rand);
   for (std::size_t n = 0; n < n_iters; n++) {
-    NNDHeap<typename Distance::Output, typename Distance::Index> new_nbrs(
+    NNHeap<typename Distance::Output, typename Distance::Index> new_nbrs(
         n_points, max_candidates);
     QueryCandidatesWorker<Distance> query_candidates_worker(current_graph,
                                                             new_nbrs);
