@@ -125,8 +125,8 @@ struct NNDBuildSerial {
 
     Progress progress(n_iters, verbose);
     NNDProgress nnd_progress(progress);
-
-    tdoann::nnd_build(graph_updater, max_candidates, n_iters, delta,
+    RRand rand;
+    tdoann::nnd_build(graph_updater, max_candidates, n_iters, delta, rand,
                       nnd_progress);
 
     nnd_heap.deheap_sort();
