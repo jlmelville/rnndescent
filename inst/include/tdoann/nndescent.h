@@ -77,8 +77,7 @@ void flag_retained_new_candidates(
 template <typename DistOut, typename Idx, typename Rand>
 void build_candidates_full(NNDHeap<DistOut, Idx> &current_graph,
                            NNHeap<DistOut, Idx> &new_nbrs,
-                           decltype(new_nbrs) &old_nbrs,
-                           Rand &rand) {
+                           decltype(new_nbrs) &old_nbrs, Rand &rand) {
   const std::size_t n_points = current_graph.n_points;
   const std::size_t n_nbrs = current_graph.n_nbrs;
   std::size_t innbrs = 0;
@@ -239,6 +238,7 @@ void nnd_query(const std::vector<typename Distance::Index> &reference_idx,
         non_search_query(graph_updater, new_nbrs, gn_heap, progress);
 
     TDOANN_ITERFINISHED();
+    progress.heap_report(nn_heap);
     TDOANN_CHECKCONVERGENCE();
   }
 }

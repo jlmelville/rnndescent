@@ -152,18 +152,32 @@ struct NNDBuildParallel {
   auto get_nn(IntegerMatrix nn_idx, NumericMatrix nn_dist,
               std::size_t max_candidates = 50, std::size_t n_iters = 10,
               double delta = 0.001, bool verbose = false) -> List {
+
     auto data_vec = r2dvt<Distance>(data);
-    auto init_nn =
-        r_to_graph<typename Distance::Output, typename Distance::Index>(
-            nn_idx, nn_dist, data.nrow() - 1);
+    Distance distance(data_vec, data.ncol());
+
+    using Out = typename Distance::Output;
+    using Index = typename Distance::Index;
+    using Graph = tdoann::NNGraph<Out, Index>;
+
+    Graph nn_graph = r_to_graph<Out, Index>(nn_idx, nn_dist, data.nrow() - 1);
+    const std::size_t g2h_block_size = 1000;
+    const bool is_transposed = true;
+    auto nnd_heap =
+        tdoann::graph_to_heap_parallel<tdoann::LockingHeapAddSymmetric,
+                                       tdoann::NNDHeap>(
+            nn_graph, n_threads, g2h_block_size, grain_size, is_transposed);
+    auto graph_updater = GraphUpdate::create(nnd_heap, distance);
 
     Progress progress(n_iters, verbose);
+    NNDProgress nnd_progress(progress);
+    // RRand rand;
+    tdoann::nnd_build_parallel<RParallel>(graph_updater, max_candidates,
+                                          n_iters, delta, nnd_progress,
+                                          n_threads, block_size, grain_size);
 
-    auto result =
-        tdoann::nnd_build_parallel<Distance, GraphUpdate, Progress, RParallel>(
-            data_vec, data.ncol(), init_nn, max_candidates, n_iters, delta,
-            progress, n_threads, block_size, grain_size, verbose);
-
+    tdoann::sort_heap_parallel(nnd_heap, n_threads, block_size, grain_size);
+    Graph result = tdoann::heap_to_graph(nnd_heap);
     return graph_to_r(result);
   }
 };
@@ -236,23 +250,35 @@ struct NNDQueryParallel {
   auto get_nn(IntegerMatrix nn_idx, NumericMatrix nn_dist,
               std::size_t max_candidates = 50, std::size_t n_iters = 10,
               double delta = 0.001, bool verbose = false) -> List {
+    using Out = typename Distance::Output;
+    using Index = typename Distance::Index;
+    using Graph = tdoann::NNGraph<Out, Index>;
+
     auto ref_vec = r2dvt<Distance>(reference);
     auto query_vec = r2dvt<Distance>(query);
-    auto nn_init =
-        r_to_graph<typename Distance::Output, typename Distance::Index>(
-            nn_idx, nn_dist, reference.nrow() - 1);
-    auto ref_idx_vec = r_to_idx<typename Distance::Index>(ref_idx);
+    auto nn_graph =
+        r_to_graph<Out, Index>(nn_idx, nn_dist, reference.nrow() - 1);
+
+    const std::size_t g2h_block_size = 1000;
+    const bool is_transposed = true;
+    auto nnd_heap =
+        tdoann::graph_to_heap_serial<tdoann::HeapAddQuery, tdoann::NNDHeap>(
+            nn_graph, g2h_block_size, is_transposed);
+
+    auto ref_idx_vec = r_to_idx<Index>(ref_idx);
 
     RRand rand;
-
+    Distance distance(ref_vec, query_vec, reference.ncol());
+    auto graph_updater = GraphUpdate::create(nnd_heap, distance);
     Progress progress(n_iters, verbose);
     NNDProgress nnd_progress(progress);
 
-    auto result = tdoann::nnd_query_parallel<Distance, GraphUpdate, RParallel>(
-        ref_vec, reference.ncol(), query_vec, nn_init, ref_idx_vec,
-        max_candidates, n_iters, delta, rand, nnd_progress, n_threads,
-        block_size, grain_size, verbose);
+    tdoann::nnd_query_parallel<RParallel>(
+        ref_idx_vec, graph_updater, max_candidates, n_iters, delta, rand,
+        nnd_progress, n_threads, block_size, grain_size);
 
+    nnd_heap.deheap_sort();
+    Graph result = heap_to_graph(nnd_heap);
     return graph_to_r(result);
   }
 };

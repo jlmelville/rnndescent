@@ -173,6 +173,18 @@ void graph_to_heap_parallel(NbrHeap &heap,
                                block_size, grain_size);
 }
 
+template <typename HeapAdd, template <class, class> class NbrHeap, class D,
+          class I, typename Progress = NullProgress>
+auto graph_to_heap_parallel(const NNGraph<D, I> &nn_graph,
+                            std::size_t n_threads, std::size_t block_size,
+                            std::size_t grain_size, bool transpose = false)
+    -> NbrHeap<D, I> {
+  NbrHeap<D, I> nbr_heap(nn_graph.n_points, nn_graph.n_nbrs);
+  graph_to_heap_parallel<HeapAdd>(nbr_heap, nn_graph, n_threads, block_size,
+                                  grain_size, transpose);
+  return nbr_heap;
+}
+
 template <typename HeapAdd, typename NbrHeap>
 void vec_to_heap(NbrHeap &current_graph,
                  const std::vector<typename NbrHeap::Index> &nn_idx,
