@@ -36,7 +36,7 @@ auto pseed() -> uint64_t {
   return dqrng::convert_seed<uint64_t>(seed);
 }
 
-auto parallel_rng(uint64_t seed) -> dqrng::rng64_t {
+auto parallel_rng() -> dqrng::rng64_t {
   return std::make_shared<dqrng::random_64bit_wrapper<pcg64>>();
 }
 
@@ -48,7 +48,7 @@ auto random64() -> uint64_t {
 auto RRand::unif() -> double { return R::runif(0, 1); }
 
 TauRand::TauRand(uint64_t seed, uint64_t seed2) : prng(nullptr) {
-  dqrng::rng64_t rng = parallel_rng(seed);
+  dqrng::rng64_t rng = parallel_rng();
   rng->seed(seed, seed2);
   std::vector<uint64_t> tau_seeds;
   dqsample::sample<uint64_t>(tau_seeds, rng,

@@ -28,7 +28,7 @@
 #include "tdoann/tauprng.h"
 
 auto pseed() -> uint64_t;
-auto parallel_rng(uint64_t seed) -> dqrng::rng64_t;
+auto parallel_rng() -> dqrng::rng64_t;
 auto random64() -> uint64_t;
 
 // Use R API for RNG

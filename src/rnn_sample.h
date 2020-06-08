@@ -32,7 +32,7 @@ struct DQIntSampler {
   uint64_t seed2;
   dqrng::rng64_t rng;
 
-  DQIntSampler(uint64_t seed, uint64_t seed2) : rng(parallel_rng(seed)) {
+  DQIntSampler(uint64_t seed, uint64_t seed2) : rng(parallel_rng()) {
     rng->seed(seed, seed2);
   }
 
