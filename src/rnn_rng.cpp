@@ -57,3 +57,9 @@ TauRand::TauRand(uint64_t seed, uint64_t seed2) : prng(nullptr) {
   prng.reset(new tdoann::tau_prng(tau_seeds[0], tau_seeds[1], tau_seeds[2]));
 }
 auto TauRand::unif() -> double { return prng->rand(); }
+
+ParallelRand::ParallelRand() : seed(0) {}
+void ParallelRand::reseed() { seed = pseed(); }
+auto ParallelRand::get_rand(uint64_t seed2) -> TauRand {
+  return TauRand(seed, seed2);
+}

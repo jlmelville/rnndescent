@@ -46,4 +46,12 @@ struct TauRand {
   auto unif() -> double;
 };
 
+struct ParallelRand {
+  uint64_t seed;
+
+  ParallelRand();
+  void reseed();
+  auto get_rand(uint64_t seed2) -> TauRand;
+};
+
 #endif // RNN_RNG_H
