@@ -171,10 +171,10 @@ struct NNDBuildParallel {
 
     Progress progress(n_iters, verbose);
     NNDProgress nnd_progress(progress);
-    // RRand rand;
-    tdoann::nnd_build_parallel<RParallel>(graph_updater, max_candidates,
-                                          n_iters, delta, nnd_progress,
-                                          n_threads, block_size, grain_size);
+    ParallelRand parallel_rand;
+    tdoann::nnd_build_parallel<RParallel>(
+        graph_updater, max_candidates, n_iters, delta, nnd_progress,
+        parallel_rand, n_threads, block_size, grain_size);
 
     tdoann::sort_heap_parallel(nnd_heap, n_threads, block_size, grain_size);
     Graph result = tdoann::heap_to_graph(nnd_heap);
@@ -267,7 +267,7 @@ struct NNDQueryParallel {
 
     auto ref_idx_vec = r_to_idx<Index>(ref_idx);
 
-    RRand rand;
+    ParallelRand rand;
     Distance distance(ref_vec, query_vec, reference.ncol());
     auto graph_updater = GraphUpdate::create(nnd_heap, distance);
     Progress progress(n_iters, verbose);

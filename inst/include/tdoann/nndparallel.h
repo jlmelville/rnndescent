@@ -38,7 +38,8 @@
 
 namespace tdoann {
 
-template <typename Distance> struct LockingCandidatesWorker {
+template <typename ParallelRand, typename Distance>
+struct LockingCandidatesWorker {
   const NNDHeap<typename Distance::Output, typename Distance::Index>
       &current_graph;
   std::size_t n_points;
@@ -51,26 +52,35 @@ template <typename Distance> struct LockingCandidatesWorker {
   static const constexpr std::size_t n_mutexes = 10;
   std::mutex mutexes[n_mutexes];
 
+  ParallelRand &parallel_rand;
+
   LockingCandidatesWorker(
       const NNDHeap<typename Distance::Output, typename Distance::Index>
           &current_graph,
       NNHeap<typename Distance::Output, typename Distance::Index>
           &new_candidate_neighbors,
       NNHeap<typename Distance::Output, typename Distance::Index>
-          &old_candidate_neighbors)
+          &old_candidate_neighbors,
+      ParallelRand &parallel_rand)
       : current_graph(current_graph), n_points(current_graph.n_points),
         n_nbrs(current_graph.n_nbrs),
         max_candidates(new_candidate_neighbors.n_nbrs),
         new_candidate_neighbors(new_candidate_neighbors),
-        old_candidate_neighbors(old_candidate_neighbors) {}
+        old_candidate_neighbors(old_candidate_neighbors),
+        parallel_rand(parallel_rand) {
+    parallel_rand.reseed();
+  }
 
   void operator()(std::size_t begin, std::size_t end) {
+
+    auto rand = parallel_rand.get_rand(end);
+
     for (auto i = begin; i < end; i++) {
       std::size_t innbrs = i * n_nbrs;
       for (std::size_t j = 0; j < n_nbrs; j++) {
         std::size_t ij = innbrs + j;
         std::size_t idx = current_graph.idx[ij];
-        auto d = current_graph.dist[ij];
+        auto d = rand.unif();
         char isn = current_graph.flags[ij];
         auto &nbrs =
             isn == 1 ? new_candidate_neighbors : old_candidate_neighbors;
@@ -162,12 +172,13 @@ template <typename Distance, typename GraphUpdater> struct LocalJoinWorker {
   void after_parallel(std::size_t, std::size_t) { c += graph_updater.apply(); }
 };
 
-template <typename Parallel, template <typename> class GraphUpdater,
-          typename Distance, typename Progress>
+template <typename Parallel, typename ParallelRand,
+          template <typename> class GraphUpdater, typename Distance,
+          typename Progress>
 void nnd_build_parallel(GraphUpdater<Distance> &graph_updater,
                         std::size_t max_candidates, std::size_t n_iters,
                         double delta, Progress &progress,
-                        std::size_t n_threads = 0,
+                        ParallelRand &parallel_rand, std::size_t n_threads = 0,
                         std::size_t block_size = 16384,
                         std::size_t grain_size = 1) {
 
@@ -181,8 +192,8 @@ void nnd_build_parallel(GraphUpdater<Distance> &graph_updater,
     NNHeap<DistOut, Idx> new_nbrs(n_points, max_candidates);
     decltype(new_nbrs) old_nbrs(n_points, max_candidates);
 
-    LockingCandidatesWorker<Distance> candidates_worker(nn_heap, new_nbrs,
-                                                        old_nbrs);
+    LockingCandidatesWorker<ParallelRand, Distance> candidates_worker(
+        nn_heap, new_nbrs, old_nbrs, parallel_rand);
     Parallel::parallel_for(0, n_points, candidates_worker, n_threads,
                            grain_size);
 
@@ -282,14 +293,48 @@ struct QueryNoNSearchWorker : public BatchParallelWorker {
   }
 };
 
+template <typename Idx, typename ParallelRand> struct GNWorker {
+  const std::vector<Idx> &reference_idx;
+  std::size_t n_nbrs;
+  NNHeap<float, Idx> &gn_heap;
+  ParallelRand &parallel_rand;
+
+  GNWorker(const std::vector<Idx> &reference_idx, std::size_t n_nbrs,
+           NNHeap<float, Idx> &gn_heap, ParallelRand &parallel_rand)
+      : reference_idx(reference_idx), n_nbrs(n_nbrs), gn_heap(gn_heap),
+        parallel_rand(parallel_rand) {
+    parallel_rand.reseed();
+  }
+
+  void operator()(std::size_t begin, std::size_t end) {
+    auto rand = parallel_rand.get_rand(end);
+    build_general_nbrs(reference_idx, n_nbrs, gn_heap, rand, begin, end);
+  }
+};
+
+template <typename Parallel, typename Idx, typename ParallelRand>
+auto build_general_nbrs_parallel(std::size_t n_ref_points,
+                                 std::size_t max_candidates,
+                                 const std::vector<Idx> &reference_idx,
+                                 std::size_t n_nbrs,
+                                 ParallelRand &parallel_rand,
+                                 std::size_t n_threads, std::size_t grain_size)
+    -> NNHeap<float, Idx> {
+  NNHeap<float, Idx> gn_heap(n_ref_points, max_candidates);
+  GNWorker<Idx, ParallelRand> gn_worker(reference_idx, n_nbrs, gn_heap,
+                                        parallel_rand);
+  Parallel::parallel_for(0, gn_heap.n_points, gn_worker, n_threads, grain_size);
+  return gn_heap;
+}
+
 template <typename Parallel, template <typename> class GraphUpdater,
-          typename Distance, typename Progress, typename Rand>
+          typename Distance, typename Progress, typename ParallelRand>
 void nnd_query_parallel(
     const std::vector<typename Distance::Index> &reference_idx,
     GraphUpdater<Distance> &graph_updater, std::size_t max_candidates,
-    std::size_t n_iters, double delta, Rand &rand, Progress &progress,
-    std::size_t n_threads = 0, std::size_t block_size = 16384,
-    std::size_t grain_size = 1) {
+    std::size_t n_iters, double delta, ParallelRand &parallel_rand,
+    Progress &progress, std::size_t n_threads = 0,
+    std::size_t block_size = 16384, std::size_t grain_size = 1) {
   using DistOut = typename Distance::Output;
   using Idx = typename Distance::Index;
   auto &nn_heap = graph_updater.current_graph;
@@ -298,8 +343,9 @@ void nnd_query_parallel(
   const double tol = delta * n_nbrs * n_points;
 
   const std::size_t n_ref_points = graph_updater.distance.nx;
-  NNHeap<float, Idx> gn_heap = build_general_nbrs(n_ref_points, max_candidates,
-                                                  reference_idx, n_nbrs, rand);
+  auto gn_heap = build_general_nbrs_parallel<Parallel>(
+      n_ref_points, max_candidates, reference_idx, n_nbrs, parallel_rand,
+      n_threads, grain_size);
 
   for (std::size_t n = 0; n < n_iters; n++) {
     NNHeap<DistOut, Idx> new_nbrs(n_points, max_candidates);

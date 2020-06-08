@@ -168,15 +168,21 @@ auto local_join(
 template <typename Idx, typename Rand>
 void build_general_nbrs(const std::vector<Idx> &reference_idx,
                         std::size_t n_nbrs, NNHeap<float, Idx> &gn_heap,
-                        Rand &rand) {
-  const std::size_t n_points = gn_heap.n_points;
-  for (std::size_t i = 0; i < n_points; i++) {
+                        Rand &rand, std::size_t begin, std::size_t end) {
+  for (std::size_t i = begin; i < end; i++) {
     std::size_t innbrs = i * n_nbrs;
     for (std::size_t j = 0; j < n_nbrs; j++) {
       auto d = rand.unif();
       gn_heap.checked_push_pair(i, d, reference_idx[innbrs + j]);
     }
   }
+}
+
+template <typename Idx, typename Rand>
+void build_general_nbrs(const std::vector<Idx> &reference_idx,
+                        std::size_t n_nbrs, NNHeap<float, Idx> &gn_heap,
+                        Rand &rand) {
+  build_general_nbrs(reference_idx, n_nbrs, gn_heap, rand, 0, gn_heap.n_points);
 }
 
 template <typename Idx, typename Rand>
