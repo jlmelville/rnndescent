@@ -134,26 +134,27 @@ auto local_join(
     const NNHeap<typename Distance::Output, typename Distance::Index> &new_nbrs,
     decltype(new_nbrs) &old_nbrs, Progress &progress) -> std::size_t {
 
-  const std::size_t n_points = new_nbrs.n_points;
-  const std::size_t max_candidates = new_nbrs.n_nbrs;
+  using Idx = typename Distance::Index;
+  const auto n_points = new_nbrs.n_points;
+  const auto max_candidates = new_nbrs.n_nbrs;
   progress.set_n_blocks(n_points);
   std::size_t c = 0;
-  for (std::size_t i = 0; i < n_points; i++) {
-    for (std::size_t j = 0; j < max_candidates; j++) {
-      std::size_t p = new_nbrs.index(i, j);
+  for (Idx i = 0; i < n_points; i++) {
+    for (Idx j = 0; j < max_candidates; j++) {
+      auto p = new_nbrs.index(i, j);
       if (p == new_nbrs.npos()) {
         continue;
       }
-      for (std::size_t k = j; k < max_candidates; k++) {
-        std::size_t q = new_nbrs.index(i, k);
+      for (Idx k = j; k < max_candidates; k++) {
+        auto q = new_nbrs.index(i, k);
         if (q == new_nbrs.npos()) {
           continue;
         }
         c += graph_updater.generate_and_apply(p, q);
       }
 
-      for (std::size_t k = 0; k < max_candidates; k++) {
-        std::size_t q = old_nbrs.index(i, k);
+      for (Idx k = 0; k < max_candidates; k++) {
+        auto q = old_nbrs.index(i, k);
         if (q == old_nbrs.npos()) {
           continue;
         }
