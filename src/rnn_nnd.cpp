@@ -114,7 +114,8 @@ struct NNDBuildSerial {
     using Index = typename Distance::Index;
     using Graph = tdoann::NNGraph<Out, Index>;
 
-    Graph nn_graph = r_to_graph<Out, Index>(nn_idx, nn_dist, data.nrow() - 1);
+    auto nn_idx_copy = Rcpp::clone(nn_idx);
+    Graph nn_graph = r_to_graph<Out, Index>(nn_idx_copy, nn_dist, data.nrow() - 1);
     const std::size_t g2h_block_size = 1000;
     const bool is_transposed = true;
     auto nnd_heap =
@@ -160,7 +161,8 @@ struct NNDBuildParallel {
     using Index = typename Distance::Index;
     using Graph = tdoann::NNGraph<Out, Index>;
 
-    Graph nn_graph = r_to_graph<Out, Index>(nn_idx, nn_dist, data.nrow() - 1);
+    auto nn_idx_copy = Rcpp::clone(nn_idx);
+    Graph nn_graph = r_to_graph<Out, Index>(nn_idx_copy, nn_dist, data.nrow() - 1);
     const std::size_t g2h_block_size = 1000;
     const bool is_transposed = true;
     auto nnd_heap =
@@ -204,8 +206,10 @@ struct NNDQuerySerial {
 
     auto ref_vec = r2dvt<Distance>(reference);
     auto query_vec = r2dvt<Distance>(query);
+
+    auto nn_idx_copy = Rcpp::clone(nn_idx);
     auto nn_graph =
-        r_to_graph<Out, Index>(nn_idx, nn_dist, reference.nrow() - 1);
+        r_to_graph<Out, Index>(nn_idx_copy, nn_dist, reference.nrow() - 1);
 
     const std::size_t g2h_block_size = 1000;
     const bool is_transposed = true;
@@ -256,8 +260,9 @@ struct NNDQueryParallel {
 
     auto ref_vec = r2dvt<Distance>(reference);
     auto query_vec = r2dvt<Distance>(query);
+    auto nn_idx_copy = Rcpp::clone(nn_idx);
     auto nn_graph =
-        r_to_graph<Out, Index>(nn_idx, nn_dist, reference.nrow() - 1);
+        r_to_graph<Out, Index>(nn_idx_copy, nn_dist, reference.nrow() - 1);
 
     const std::size_t g2h_block_size = 1000;
     const bool is_transposed = true;
