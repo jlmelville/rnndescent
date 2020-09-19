@@ -1,13 +1,13 @@
 Package: rnndescent
 Type: Package
 Title: Nearest Neighbor Descent Method for Approximate Nearest Neighbors
-Version: 0.0.7
+Version: 0.0.8
 Authors@R: person("James", "Melville", email = "jlmelville@gmail.com", role = c("aut", "cre"))
 Description: The Nearest Neighbor Descent method (Dong and co-workers, 
     <doi:10.1145/1963405.1963487>) for finding approximate nearest
     neighbors. This is a translation of the Python implementation, "pynndescent"
     (<https://github.com/lmcinnes/pynndescent>).
-License: GPL-3
+License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true
 Suggests: 
