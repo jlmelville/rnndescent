@@ -28,8 +28,9 @@ nnd_knn(
 specified.}
 
 \item{metric}{Type of distance calculation to use. One of \code{"euclidean"},
-\code{"l2sqr"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"}
-or \code{"hamming"}.}
+\code{"l2sqr"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"},
+\code{"correlation"} (1 minus the Pearson correlation), or
+\code{"hamming"}.}
 
 \item{init}{Initial data to optimize. If not provided, \code{k} random
   neighbors are created. The input format should be the same as the return

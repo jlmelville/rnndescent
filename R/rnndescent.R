@@ -5,8 +5,9 @@
 #' @param data Matrix of \code{n} items to generate random neighbors for.
 #' @param k Number of nearest neighbors to return.
 #' @param metric Type of distance calculation to use. One of \code{"euclidean"},
-#'   \code{"l2sqr"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"}
-#'   or \code{"hamming"}.
+#'   \code{"l2sqr"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"},
+#'   \code{"correlation"} (1 minus the Pearson correlation), or
+#'   \code{"hamming"}.
 #' @param use_alt_metric If \code{TRUE}, use faster metrics that maintain the
 #'   ordering of distances internally (e.g. squared Euclidean distances if using
 #'   \code{metric = "euclidean"}), then apply a correction at the end. Probably
@@ -59,6 +60,10 @@ brute_force_knn <- function(data,
   data <- x2m(data)
   check_k(k, nrow(data))
 
+  if (metric == "correlation") {
+    data <- row_center(data)
+    metric <- "cosine"
+  }
   if (use_alt_metric) {
     actual_metric <- find_alt_metric(metric)
   }
@@ -90,8 +95,9 @@ brute_force_knn <- function(data,
 #' @param data Matrix of \code{n} items to generate random neighbors for.
 #' @param k Number of nearest neighbors to return.
 #' @param metric Type of distance calculation to use. One of \code{"euclidean"},
-#'   \code{"l2sqr"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"}
-#'   or \code{"hamming"}.
+#'   \code{"l2sqr"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"},
+#'   \code{"correlation"} (1 minus the Pearson correlation), or
+#'   \code{"hamming"}.
 #' @param use_alt_metric If \code{TRUE}, use faster metrics that maintain the
 #'   ordering of distances internally (e.g. squared Euclidean distances if using
 #'   \code{metric = "euclidean"}), then apply a correction at the end. Probably
@@ -154,7 +160,10 @@ random_knn <-
            verbose = FALSE) {
     data <- x2m(data)
     check_k(k, nrow(data))
-
+    if (metric == "correlation") {
+      data <- row_center(data)
+      metric <- "cosine"
+    }
     if (use_alt_metric) {
       actual_metric <- find_alt_metric(metric)
     }
@@ -188,8 +197,9 @@ random_knn <-
 #' @param k Number of nearest neighbors to return. Optional if \code{init} is
 #'   specified.
 #' @param metric Type of distance calculation to use. One of \code{"euclidean"},
-#'   \code{"l2sqr"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"}
-#'   or \code{"hamming"}.
+#'   \code{"l2sqr"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"},
+#'   \code{"correlation"} (1 minus the Pearson correlation), or
+#'   \code{"hamming"}.
 #' @param init Initial data to optimize. If not provided, \code{k} random
 #'   neighbors are created. The input format should be the same as the return
 #'   value: a list containing:
@@ -317,7 +327,10 @@ nnd_knn <- function(data,
                     progress = "bar") {
   stopifnot(tolower(progress) %in% c("bar", "dist"))
   data <- x2m(data)
-
+  if (metric == "correlation") {
+    data <- row_center(data)
+    metric <- "cosine"
+  }
   if (use_alt_metric) {
     actual_metric <- find_alt_metric(metric)
     if (!(is.null(init))) {
@@ -389,8 +402,9 @@ NULL
 #' @param query Matrix of \code{n} query items.
 #' @param k Number of nearest neighbors to return.
 #' @param metric Type of distance calculation to use. One of \code{"euclidean"},
-#'   \code{"l2sqr"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"}
-#'   or \code{"hamming"}.
+#'   \code{"l2sqr"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"},
+#'   \code{"correlation"} (1 minus the Pearson correlation), or
+#'   \code{"hamming"}.
 #' @param use_alt_metric If \code{TRUE}, use faster metrics that maintain the
 #'   ordering of distances internally (e.g. squared Euclidean distances if using
 #'   \code{metric = "euclidean"}), then apply a correction at the end. Probably
@@ -455,7 +469,11 @@ brute_force_knn_query <- function(reference,
       " items in the reference data"
     )
   }
-
+  if (metric == "correlation") {
+    reference <- row_center(reference)
+    query <- row_center(query)
+    metric <- "cosine"
+  }
   if (use_alt_metric) {
     actual_metric <- find_alt_metric(metric)
   }
@@ -488,8 +506,9 @@ brute_force_knn_query <- function(reference,
 #' @param query Matrix of \code{n} query items.
 #' @param k Number of nearest neighbors to return.
 #' @param metric Type of distance calculation to use. One of \code{"euclidean"},
-#'   \code{"l2sqr"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"}
-#'   or \code{"hamming"}.
+#'   \code{"l2sqr"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"},
+#'   \code{"correlation"} (1 minus the Pearson correlation), or
+#'   \code{"hamming"}.
 #' @param use_alt_metric If \code{TRUE}, use faster metrics that maintain the
 #'   ordering of distances internally (e.g. squared Euclidean distances if using
 #'   \code{metric = "euclidean"}), then apply a correction at the end. Probably
@@ -562,6 +581,11 @@ random_knn_query <-
       )
     }
 
+    if (metric == "correlation") {
+      reference <- row_center(reference)
+      query <- row_center(query)
+      metric <- "cosine"
+    }
     if (use_alt_metric) {
       actual_metric <- find_alt_metric(metric)
     }
@@ -599,8 +623,9 @@ random_knn_query <-
 #' @param k Number of nearest neighbors to return. Optional if \code{init} is
 #'   specified.
 #' @param metric Type of distance calculation to use. One of \code{"euclidean"},
-#'   \code{"l2sqr"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"}
-#'   or \code{"hamming"}.
+#'   \code{"l2sqr"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"},
+#'   \code{"correlation"} (1 minus the Pearson correlation), or
+#'   \code{"hamming"}.
 #' @param use_alt_metric If \code{TRUE}, use faster metrics that maintain the
 #'   ordering of distances internally (e.g. squared Euclidean distances if using
 #'   \code{metric = "euclidean"}), then apply a correction at the end. Probably
@@ -707,6 +732,11 @@ nnd_knn_query <- function(reference,
   reference <- x2m(reference)
   query <- x2m(query)
 
+  if (metric == "correlation") {
+    reference <- row_center(reference)
+    query <- row_center(query)
+    metric <- "cosine"
+  }
   if (use_alt_metric) {
     actual_metric <- find_alt_metric(metric)
     if (!(is.null(init))) {
@@ -842,7 +872,6 @@ merge_knn <- function(nn_graph1,
                       grain_size = 1,
                       verbose = FALSE) {
   validate_are_mergeable(nn_graph1, nn_graph2)
-
 
   merge_nn(
     nn_graph1$idx,
@@ -1115,4 +1144,8 @@ validate_nn_graph_matrix <- function(nn, nr, nc, msg = "matrix") {
   if (nc != nnc) {
     stop(msg, " has ", nnc, " cols, should have ", nc)
   }
+}
+
+row_center <- function(data) {
+  sweep(data, 1, rowMeans(data))
 }
