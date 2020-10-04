@@ -157,5 +157,5 @@ Efficient k-nearest neighbor graph construction for generic similarity measures.
 In \emph{Proceedings of the 20th international conference on World Wide Web}
 (pp. 577-586).
 ACM.
-\url{doi.org/10.1145/1963405.1963487}.
+\url{https://doi.org/10.1145/1963405.1963487}.
 }
