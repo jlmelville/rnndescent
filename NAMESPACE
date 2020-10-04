@@ -2,6 +2,7 @@
 
 export(brute_force_knn)
 export(brute_force_knn_query)
+export(k_occur)
 export(merge_knn)
 export(merge_knnl)
 export(nnd_knn)
