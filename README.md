@@ -188,7 +188,7 @@ iris_nnd <- nnd_knn(iris, k = 15)
 kos <- k_occur(iris_nnd$idx)
 ```
 
-The k-occurrence can take a value between 0 and $N$, the number of items in the
+The k-occurrence can take a value between 0 and `N` the number of items in the
 dataset. Values much larger than `k` indicate that the item is potentially a
 hub. The presence of hubs in a dataset can reduce the accuracy of the
 approximate nearest neighbors returned by nearest neighbor descent, but the
