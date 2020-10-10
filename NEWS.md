@@ -1,4 +1,19 @@
-# rnndescent 0.0.7
+# rnndescent 0.0.8 (10 October 2020)
+
+There was a major rewrite of the internal organization of the C++ to be less
+R-specific.
+
+## New features
+
+* New metric: `"correlation"`. This is (1 minus) the Pearson correlation.
+* New function: `k_occur` which counts the k-occurrences of each item in the
+`idx` matrix, which is the number of times an item appears in the k-nearest
+neighbor list in the dataset. The distribution of the k-occurrences can be
+used to diagnose the "hubness" of a dataset. Items with a large k-occurrence
+(>> k, e.g. 10k), may indicate low accuracy of the approximate nearest neighbor
+result.
+
+# rnndescent 0.0.7 (1 March 2020)
 
 ## Bug fixes and minor improvements
 
