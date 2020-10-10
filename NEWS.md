@@ -3,6 +3,10 @@
 There was a major rewrite of the internal organization of the C++ to be less
 R-specific.
 
+## Minor License Change
+
+The license for rnndescent has changed from GPLv3 to GPLv3 or later.
+
 ## New features
 
 * New metric: `"correlation"`. This is (1 minus) the Pearson correlation.
