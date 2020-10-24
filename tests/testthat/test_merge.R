@@ -97,6 +97,16 @@ qnbrsml3t <- merge_knnl(list(qnbrs1, qnbrs2, qnbrs3), is_query = TRUE, n_threads
 expect_true(sum(qnbrsml3t$dist) <= sum(qnbrsmt$dist))
 check_query_nbrs(nn = qnbrsml3, query = ui4, ref_range = 1:6, query_range = 7:10, k = 4, expected_dist = ui10_eucd, tol = 1e-6)
 
+# missing indices
+ui10rnn2$idx[1, 2] <- 0
+ui10rnn2$dist[1, 2] <- .Machine$double.xmax
+ui10mergemissing <- merge_knn(ui10rnn1, ui10rnn2)
+expect_equal(range(ui10mergemissing$idx), c(1, 10))
+
+ui10mergemissingl <- merge_knnl(list(ui10rnn1, ui10rnn2, ui10rnn3))
+expect_equal(range(ui10mergemissingl$idx), c(1, 10))
+
+
 # Errors ------------------------------------------------------------------
 
 expect_error(
