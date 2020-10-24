@@ -33,11 +33,10 @@ template <typename NeighborHeap> struct SerialHeapImpl {
 
   template <typename HeapAdd>
   void init(NeighborHeap &heap, IntegerMatrix nn_idx, NumericMatrix nn_dist) {
-    r_to_heap_serial<HeapAdd>(heap, nn_idx, nn_dist, block_size, RNND_MAX_IDX, true);
+    r_to_heap_serial<HeapAdd>(heap, nn_idx, nn_dist, block_size, RNND_MAX_IDX,
+                              true);
   }
-  void sort_heap(NeighborHeap &heap) {
-    heap.deheap_sort();
-  }
+  void sort_heap(NeighborHeap &heap) { heap.deheap_sort(); }
 };
 
 template <typename NeighborHeap> struct ParallelHeapImpl {

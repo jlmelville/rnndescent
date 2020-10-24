@@ -33,8 +33,7 @@
 template <typename HeapAdd, typename NbrHeap>
 void r_to_heap_serial(NbrHeap &heap, Rcpp::IntegerMatrix nn_idx,
                       Rcpp::NumericMatrix nn_dist, std::size_t block_size,
-                      int max_idx = RNND_MAX_IDX,
-                      bool missing_ok = false) {
+                      int max_idx = RNND_MAX_IDX, bool missing_ok = false) {
   zero_index(nn_idx, max_idx, missing_ok);
 
   auto nn_idxv = Rcpp::as<std::vector<typename NbrHeap::Index>>(nn_idx);
@@ -49,8 +48,7 @@ template <typename HeapAdd, typename NbrHeap>
 void r_to_heap_parallel(NbrHeap &heap, Rcpp::IntegerMatrix nn_idx,
                         Rcpp::NumericMatrix nn_dist, std::size_t n_threads,
                         std::size_t block_size, std::size_t grain_size,
-                        int max_idx = RNND_MAX_IDX,
-                        bool missing_ok = false) {
+                        int max_idx = RNND_MAX_IDX, bool missing_ok = false) {
   zero_index(nn_idx, max_idx, missing_ok);
 
   auto nn_idxv = Rcpp::as<std::vector<typename NbrHeap::Index>>(nn_idx);
@@ -64,8 +62,7 @@ void r_to_heap_parallel(NbrHeap &heap, Rcpp::IntegerMatrix nn_idx,
 
 template <typename DistOut, typename Idx>
 auto r_to_graph(Rcpp::IntegerMatrix nn_idx, Rcpp::NumericMatrix nn_dist,
-                int max_idx = RNND_MAX_IDX)
-    -> tdoann::NNGraph<DistOut, Idx> {
+                int max_idx = RNND_MAX_IDX) -> tdoann::NNGraph<DistOut, Idx> {
   zero_index(nn_idx, max_idx, true);
 
   auto nn_idxv = Rcpp::as<std::vector<Idx>>(nn_idx);
@@ -76,8 +73,7 @@ auto r_to_graph(Rcpp::IntegerMatrix nn_idx, Rcpp::NumericMatrix nn_dist,
 }
 
 template <typename Int>
-inline auto r_to_idx(Rcpp::IntegerMatrix nn_idx,
-                     int max_idx = RNND_MAX_IDX)
+inline auto r_to_idx(Rcpp::IntegerMatrix nn_idx, int max_idx = RNND_MAX_IDX)
     -> std::vector<Int> {
   zero_index(nn_idx, max_idx, true);
 
@@ -85,8 +81,7 @@ inline auto r_to_idx(Rcpp::IntegerMatrix nn_idx,
 }
 
 template <typename Int>
-inline auto r_to_idxt(Rcpp::IntegerMatrix nn_idx,
-                     int max_idx = RNND_MAX_IDX)
+inline auto r_to_idxt(Rcpp::IntegerMatrix nn_idx, int max_idx = RNND_MAX_IDX)
     -> std::vector<Int> {
   zero_index(nn_idx, max_idx, true);
 

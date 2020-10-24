@@ -69,11 +69,14 @@ template <typename DistOut = float, typename Idx = uint32_t> struct NNDHeap {
 
   // returns true if either p or q would accept a neighbor with distance d
   auto accepts_either(Idx p, Idx q, DistOut d) const -> bool {
-    return (p < n_points && d < dist[p * n_nbrs]) || (p != q && q < n_points && d < dist[q * n_nbrs]);
+    return (p < n_points && d < dist[p * n_nbrs]) ||
+           (p != q && q < n_points && d < dist[q * n_nbrs]);
   }
 
   // returns true if p would accept a neighbor with distance d
-  auto accepts(Idx p, DistOut d) const -> bool { return p < n_points && d < dist[p * n_nbrs]; }
+  auto accepts(Idx p, DistOut d) const -> bool {
+    return p < n_points && d < dist[p * n_nbrs];
+  }
 
   auto checked_push_pair(Idx row, DistOut weight, Idx idx, char flag = 1)
       -> std::size_t {
@@ -238,11 +241,14 @@ template <typename DistOut = float, typename Idx = uint32_t> struct NNHeap {
 
   // returns true if either p or q would accept a neighbor with distance d
   auto accepts_either(Idx p, Idx q, DistOut d) const -> bool {
-    return (p < n_points && d < dist[p * n_nbrs]) || (p != q && q < n_points && d < dist[q * n_nbrs]);
+    return (p < n_points && d < dist[p * n_nbrs]) ||
+           (p != q && q < n_points && d < dist[q * n_nbrs]);
   }
 
   // returns true if p would accept a neighbor with distance d
-  auto accepts(Idx p, DistOut d) const -> bool { return p < n_points && d < dist[p * n_nbrs]; }
+  auto accepts(Idx p, DistOut d) const -> bool {
+    return p < n_points && d < dist[p * n_nbrs];
+  }
 
   auto checked_push_pair(std::size_t row, DistOut weight, Idx idx)
       -> std::size_t {

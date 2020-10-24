@@ -115,7 +115,8 @@ struct NNDBuildSerial {
     using Graph = tdoann::NNGraph<Out, Index>;
 
     auto nn_idx_copy = Rcpp::clone(nn_idx);
-    Graph nn_graph = r_to_graph<Out, Index>(nn_idx_copy, nn_dist, data.nrow() - 1);
+    Graph nn_graph =
+        r_to_graph<Out, Index>(nn_idx_copy, nn_dist, data.nrow() - 1);
 
     const std::size_t g2h_block_size = 1000;
     const bool is_transposed = true;
@@ -163,7 +164,8 @@ struct NNDBuildParallel {
     using Graph = tdoann::NNGraph<Out, Index>;
 
     auto nn_idx_copy = Rcpp::clone(nn_idx);
-    Graph nn_graph = r_to_graph<Out, Index>(nn_idx_copy, nn_dist, data.nrow() - 1);
+    Graph nn_graph =
+        r_to_graph<Out, Index>(nn_idx_copy, nn_dist, data.nrow() - 1);
     const std::size_t g2h_block_size = 1000;
     const bool is_transposed = true;
     auto nnd_heap =

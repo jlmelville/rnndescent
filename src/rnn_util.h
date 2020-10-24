@@ -30,8 +30,7 @@
 
 void print_time(bool print_date = false);
 void ts(const std::string &);
-void zero_index(Rcpp::IntegerMatrix,
-                int max_idx = RNND_MAX_IDX,
+void zero_index(Rcpp::IntegerMatrix, int max_idx = RNND_MAX_IDX,
                 bool missing_ok = false);
 
 template <typename DistOut>

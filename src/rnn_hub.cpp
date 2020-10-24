@@ -3,8 +3,7 @@
 using namespace Rcpp;
 
 // [[Rcpp::export]]
-IntegerVector reverse_nbr_size_impl(IntegerMatrix nn_idx,
-                                    std::size_t k,
+IntegerVector reverse_nbr_size_impl(IntegerMatrix nn_idx, std::size_t k,
                                     std::size_t len,
                                     bool include_self = false) {
   const std::size_t nr = nn_idx.nrow();
@@ -29,4 +28,3 @@ IntegerVector reverse_nbr_size_impl(IntegerMatrix nn_idx,
   }
   return IntegerVector(n_reverse.begin(), n_reverse.end());
 }
-
