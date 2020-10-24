@@ -116,6 +116,7 @@ struct NNDBuildSerial {
 
     auto nn_idx_copy = Rcpp::clone(nn_idx);
     Graph nn_graph = r_to_graph<Out, Index>(nn_idx_copy, nn_dist, data.nrow() - 1);
+
     const std::size_t g2h_block_size = 1000;
     const bool is_transposed = true;
     auto nnd_heap =
@@ -129,9 +130,9 @@ struct NNDBuildSerial {
     RRand rand;
     tdoann::nnd_build(graph_updater, max_candidates, n_iters, delta, rand,
                       nnd_progress);
-
     nnd_heap.deheap_sort();
     Graph result = tdoann::heap_to_graph(nnd_heap);
+
     return graph_to_r(result);
   }
 };
@@ -153,8 +154,8 @@ struct NNDBuildParallel {
   auto get_nn(IntegerMatrix nn_idx, NumericMatrix nn_dist,
               std::size_t max_candidates = 50, std::size_t n_iters = 10,
               double delta = 0.001, bool verbose = false) -> List {
-
     auto data_vec = r2dvt<Distance>(data);
+
     Distance distance(data_vec, data.ncol());
 
     using Out = typename Distance::Output;
@@ -174,6 +175,7 @@ struct NNDBuildParallel {
     Progress progress(n_iters, verbose);
     NNDProgress nnd_progress(progress);
     ParallelRand parallel_rand;
+
     tdoann::nnd_build_parallel<RParallel>(
         graph_updater, max_candidates, n_iters, delta, nnd_progress,
         parallel_rand, n_threads, block_size, grain_size);

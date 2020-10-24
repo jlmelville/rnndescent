@@ -80,10 +80,13 @@ struct LockingCandidatesWorker {
       for (std::size_t j = 0; j < n_nbrs; j++) {
         std::size_t ij = innbrs + j;
         std::size_t idx = current_graph.idx[ij];
-        auto d = rand.unif();
         char isn = current_graph.flags[ij];
         auto &nbrs =
             isn == 1 ? new_candidate_neighbors : old_candidate_neighbors;
+        if (idx == nbrs.npos()) {
+          continue;
+        }
+        auto d = rand.unif();
         {
           std::lock_guard<std::mutex> guard(mutexes[i % n_mutexes]);
           nbrs.checked_push(i, d, idx);

@@ -26,10 +26,13 @@
 
 #include "tdoann/nngraph.h"
 
+#define RNND_MAX_IDX (std::numeric_limits<int>::max)()
+
 void print_time(bool print_date = false);
 void ts(const std::string &);
 void zero_index(Rcpp::IntegerMatrix,
-                int max_idx = (std::numeric_limits<int>::max)());
+                int max_idx = RNND_MAX_IDX,
+                bool missing_ok = false);
 
 template <typename DistOut>
 auto graph_to_r(const tdoann::NNGraph<DistOut> &graph) -> Rcpp::List {

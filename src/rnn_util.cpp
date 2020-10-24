@@ -49,11 +49,12 @@ void ts(const std::string &msg) {
   Rcerr << msg << std::endl;
 }
 
-void zero_index(IntegerMatrix m, int max_idx) {
+void zero_index(IntegerMatrix m, int max_idx, bool missing_ok) {
+  const int min_idx = missing_ok ? -1 : 0;
   for (auto j = 0; j < m.ncol(); j++) {
     for (auto i = 0; i < m.nrow(); i++) {
       auto idx0 = m(i, j) - 1;
-      if (idx0 < 0 || idx0 > max_idx) {
+      if (idx0 < min_idx || idx0 > max_idx) {
         stop("Bad indexes in input: " + std::to_string(idx0));
       }
       m(i, j) = idx0;

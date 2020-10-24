@@ -88,6 +88,9 @@ void build_candidates_full(NNDHeap<DistOut, Idx> &current_graph,
     for (std::size_t j = 0; j < n_nbrs; j++) {
       ij = innbrs + j;
       auto &nbrs = current_graph.flags[ij] == 1 ? new_nbrs : old_nbrs;
+      if (current_graph.idx[ij] == nbrs.npos()) {
+        continue;
+      }
       auto d = rand.unif();
       nbrs.checked_push_pair(i, d, current_graph.idx[ij]);
     }
@@ -116,8 +119,8 @@ void nnd_build(GraphUpdater<Distance> &graph_updater,
     decltype(new_nbrs) old_nbrs(n_points, max_candidates);
 
     build_candidates_full(nn_heap, new_nbrs, old_nbrs, rand);
-
     std::size_t c = local_join(graph_updater, new_nbrs, old_nbrs, progress);
+
     TDOANN_ITERFINISHED();
     progress.heap_report(nn_heap);
     TDOANN_CHECKCONVERGENCE();
@@ -173,8 +176,12 @@ void build_general_nbrs(const std::vector<Idx> &reference_idx,
   for (std::size_t i = begin; i < end; i++) {
     std::size_t innbrs = i * n_nbrs;
     for (std::size_t j = 0; j < n_nbrs; j++) {
+      auto nbr = reference_idx[innbrs + j];
+      if (nbr == gn_heap.npos()) {
+        continue;
+      }
       auto d = rand.unif();
-      gn_heap.checked_push_pair(i, d, reference_idx[innbrs + j]);
+      gn_heap.checked_push_pair(i, d, nbr);
     }
   }
 }
@@ -262,7 +269,11 @@ void build_query_candidates(NNDHeap<DistOut, Idx> &current_graph,
       if (current_graph.flags[ij] != 1) {
         continue;
       }
-      new_nbrs.checked_push(i, current_graph.dist[ij], current_graph.idx[ij]);
+      auto nbr = current_graph.idx[ij];
+      if (nbr == new_nbrs.npos()) {
+        continue;
+      }
+      new_nbrs.checked_push(i, current_graph.dist[ij], nbr);
       if (flag_on_add) {
         current_graph.flags[ij] = 0;
       }

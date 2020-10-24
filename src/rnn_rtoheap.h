@@ -33,8 +33,9 @@
 template <typename HeapAdd, typename NbrHeap>
 void r_to_heap_serial(NbrHeap &heap, Rcpp::IntegerMatrix nn_idx,
                       Rcpp::NumericMatrix nn_dist, std::size_t block_size,
-                      int max_idx = (std::numeric_limits<int>::max)()) {
-  zero_index(nn_idx, max_idx);
+                      int max_idx = RNND_MAX_IDX,
+                      bool missing_ok = false) {
+  zero_index(nn_idx, max_idx, missing_ok);
 
   auto nn_idxv = Rcpp::as<std::vector<typename NbrHeap::Index>>(nn_idx);
   auto nn_distv = Rcpp::as<std::vector<typename NbrHeap::DistanceOut>>(nn_dist);
@@ -48,8 +49,9 @@ template <typename HeapAdd, typename NbrHeap>
 void r_to_heap_parallel(NbrHeap &heap, Rcpp::IntegerMatrix nn_idx,
                         Rcpp::NumericMatrix nn_dist, std::size_t n_threads,
                         std::size_t block_size, std::size_t grain_size,
-                        int max_idx = (std::numeric_limits<int>::max)()) {
-  zero_index(nn_idx, max_idx);
+                        int max_idx = RNND_MAX_IDX,
+                        bool missing_ok = false) {
+  zero_index(nn_idx, max_idx, missing_ok);
 
   auto nn_idxv = Rcpp::as<std::vector<typename NbrHeap::Index>>(nn_idx);
   auto nn_distv = Rcpp::as<std::vector<typename NbrHeap::DistanceOut>>(nn_dist);
@@ -62,9 +64,9 @@ void r_to_heap_parallel(NbrHeap &heap, Rcpp::IntegerMatrix nn_idx,
 
 template <typename DistOut, typename Idx>
 auto r_to_graph(Rcpp::IntegerMatrix nn_idx, Rcpp::NumericMatrix nn_dist,
-                int max_idx = (std::numeric_limits<int>::max)())
+                int max_idx = RNND_MAX_IDX)
     -> tdoann::NNGraph<DistOut, Idx> {
-  zero_index(nn_idx, max_idx);
+  zero_index(nn_idx, max_idx, true);
 
   auto nn_idxv = Rcpp::as<std::vector<Idx>>(nn_idx);
   auto nn_distv = Rcpp::as<std::vector<DistOut>>(nn_dist);
@@ -75,11 +77,20 @@ auto r_to_graph(Rcpp::IntegerMatrix nn_idx, Rcpp::NumericMatrix nn_dist,
 
 template <typename Int>
 inline auto r_to_idx(Rcpp::IntegerMatrix nn_idx,
-                     int max_idx = (std::numeric_limits<int>::max)())
+                     int max_idx = RNND_MAX_IDX)
     -> std::vector<Int> {
-  zero_index(nn_idx, max_idx);
+  zero_index(nn_idx, max_idx, true);
 
   return Rcpp::as<std::vector<Int>>(nn_idx);
+}
+
+template <typename Int>
+inline auto r_to_idxt(Rcpp::IntegerMatrix nn_idx,
+                     int max_idx = RNND_MAX_IDX)
+    -> std::vector<Int> {
+  zero_index(nn_idx, max_idx, true);
+
+  return Rcpp::as<std::vector<Int>>(Rcpp::transpose(nn_idx));
 }
 
 #endif // RNN_RTOHEAP_H
