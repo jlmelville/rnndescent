@@ -54,6 +54,20 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rnn_idx_to_graph
+List rnn_idx_to_graph(NumericMatrix data, IntegerMatrix idx, const std::string& metric, bool verbose);
+RcppExport SEXP _rnndescent_rnn_idx_to_graph(SEXP dataSEXP, SEXP idxSEXP, SEXP metricSEXP, SEXP verboseSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< IntegerMatrix >::type idx(idxSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
+    Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
+    rcpp_result_gen = Rcpp::wrap(rnn_idx_to_graph(data, idx, metric, verbose));
+    return rcpp_result_gen;
+END_RCPP
+}
 // merge_nn
 List merge_nn(IntegerMatrix nn_idx1, NumericMatrix nn_dist1, IntegerMatrix nn_idx2, NumericMatrix nn_dist2, bool is_query, std::size_t n_threads, std::size_t block_size, std::size_t grain_size, bool verbose);
 RcppExport SEXP _rnndescent_merge_nn(SEXP nn_idx1SEXP, SEXP nn_dist1SEXP, SEXP nn_idx2SEXP, SEXP nn_dist2SEXP, SEXP is_querySEXP, SEXP n_threadsSEXP, SEXP block_sizeSEXP, SEXP grain_sizeSEXP, SEXP verboseSEXP) {
@@ -179,6 +193,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_rnndescent_rnn_brute_force", (DL_FUNC) &_rnndescent_rnn_brute_force, 7},
     {"_rnndescent_rnn_brute_force_query", (DL_FUNC) &_rnndescent_rnn_brute_force_query, 8},
     {"_rnndescent_reverse_nbr_size_impl", (DL_FUNC) &_rnndescent_reverse_nbr_size_impl, 4},
+    {"_rnndescent_rnn_idx_to_graph", (DL_FUNC) &_rnndescent_rnn_idx_to_graph, 4},
     {"_rnndescent_merge_nn", (DL_FUNC) &_rnndescent_merge_nn, 9},
     {"_rnndescent_merge_nn_all", (DL_FUNC) &_rnndescent_merge_nn_all, 6},
     {"_rnndescent_nn_descent", (DL_FUNC) &_rnndescent_nn_descent, 13},

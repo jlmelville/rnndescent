@@ -1039,6 +1039,26 @@ k_occur <- function(idx, k = ncol(idx), include_self = TRUE) {
   reverse_nbr_size_impl(idx, k, len, include_self)
 }
 
+
+# Idx to Graph ------------------------------------------------------------
+
+idx_to_graph <- function(X, idx) {
+  if (is.list(idx)) {
+    if (is.null(idx$idx)) {
+      stop("Couldn't find 'idx' matrix in graph")
+    }
+    idx <- idx$idx
+  }
+  stopifnot(methods::is(idx, "matrix"))
+
+  stopifnot(nrow(X) == nrow(idx))
+  stopifnot(nrow(X) >= ncol(idx))
+
+  res <- rnn_idx_to_graph(x2m(X), idx)
+  res$idx <- res$idx + 1
+  res
+}
+
 # Internals ---------------------------------------------------------------
 
 #' @useDynLib rnndescent, .registration = TRUE
