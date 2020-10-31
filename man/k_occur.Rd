@@ -65,7 +65,7 @@ Hubs in space: Popular nearest neighbors in high-dimensional data.
 \emph{Journal of Machine Learning Research}, \emph{11}, 2487-2531.
 \url{https://www.jmlr.org/papers/v11/radovanovic10a.html}
 
-\enc{Bratić}{Bratic}, B., Houle, M. E., Kurbalija, V., Oria, V., & \enc{Radovanović}{Radovanovic}, M. (2019).
+Bratic, B., Houle, M. E., Kurbalija, V., Oria, V., & Radovanovic, M. (2019).
 The Influence of Hubness on NN-Descent.
 \emph{International Journal on Artificial Intelligence Tools}, \emph{28}(06), 1960002.
 \url{https://doi.org/10.1142/S0218213019600029}
