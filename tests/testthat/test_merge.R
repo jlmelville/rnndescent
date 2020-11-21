@@ -106,6 +106,68 @@ expect_equal(range(ui10mergemissing$idx), c(1, 10))
 ui10mergemissingl <- merge_knnl(list(ui10rnn1, ui10rnn2, ui10rnn3))
 expect_equal(range(ui10mergemissingl$idx), c(1, 10))
 
+# Ensure that repeated merging doesn't change old result
+r1 <- random_knn(ui10, k = 4, order_by_distance = FALSE)
+r2 <- random_knn(ui10, k = 4, order_by_distance = FALSE)
+m12 <- merge_knn(r1, r2)
+m12_idx_copy <- matrix(m12$idx, nrow = nrow(m12$idx))
+m12_dist_copy <- matrix(m12$dist, nrow = nrow(m12$dist))
+r3 <- random_knn(ui10, k = 4, order_by_distance = FALSE)
+r3_idx_copy <- matrix(r3$idx, nrow = nrow(r3$idx))
+r3_dist_copy <- matrix(r3$dist, nrow = nrow(r3$dist))
+m123 <- merge_knn(m12, r3)
+expect_equal(m12$idx, m12_idx_copy)
+expect_equal(m12$dist, m12_dist_copy)
+expect_equal(r3$idx, r3_idx_copy)
+expect_equal(r3$dist, r3_dist_copy)
+
+# reverse order of arguments
+r1 <- random_knn(ui10, k = 4, order_by_distance = FALSE)
+r2 <- random_knn(ui10, k = 4, order_by_distance = FALSE)
+m12 <- merge_knn(r1, r2)
+m12_idx_copy <- matrix(m12$idx, nrow = nrow(m12$idx))
+m12_dist_copy <- matrix(m12$dist, nrow = nrow(m12$dist))
+r3 <- random_knn(ui10, k = 4, order_by_distance = FALSE)
+r3_idx_copy <- matrix(r3$idx, nrow = nrow(r3$idx))
+r3_dist_copy <- matrix(r3$dist, nrow = nrow(r3$dist))
+m123 <- merge_knn(r3, m12)
+expect_equal(m12$idx, m12_idx_copy)
+expect_equal(m12$dist, m12_dist_copy)
+expect_equal(r3$idx, r3_idx_copy)
+expect_equal(r3$dist, r3_dist_copy)
+
+
+# check list merge
+r1 <- random_knn(ui10, k = 4, order_by_distance = FALSE)
+r2 <- random_knn(ui10, k = 4, order_by_distance = FALSE)
+m12 <- merge_knnl(list(r1, r2))
+m12_idx_copy <- matrix(m12$idx, nrow = nrow(m12$idx))
+m12_dist_copy <- matrix(m12$dist, nrow = nrow(m12$dist))
+r3 <- random_knn(ui10, k = 4, order_by_distance = FALSE)
+r3_idx_copy <- matrix(r3$idx, nrow = nrow(r3$idx))
+r3_dist_copy <- matrix(r3$dist, nrow = nrow(r3$dist))
+m123 <- merge_knnl(list(m12, r3))
+expect_equal(m12$idx, m12_idx_copy)
+expect_equal(m12$dist, m12_dist_copy)
+expect_equal(r3$idx, r3_idx_copy)
+expect_equal(r3$dist, r3_dist_copy)
+
+
+r1 <- random_knn(ui10, k = 4, order_by_distance = FALSE)
+r2 <- random_knn(ui10, k = 4, order_by_distance = FALSE)
+m12 <- merge_knnl(list(r1, r2))
+m12_idx_copy <- matrix(m12$idx, nrow = nrow(m12$idx))
+m12_dist_copy <- matrix(m12$dist, nrow = nrow(m12$dist))
+r3 <- random_knn(ui10, k = 4, order_by_distance = FALSE)
+r3_idx_copy <- matrix(r3$idx, nrow = nrow(r3$idx))
+r3_dist_copy <- matrix(r3$dist, nrow = nrow(r3$dist))
+m123 <- merge_knnl(list(r3, m12))
+expect_equal(m12$idx, m12_idx_copy)
+expect_equal(m12$dist, m12_dist_copy)
+expect_equal(r3$idx, r3_idx_copy)
+expect_equal(r3$dist, r3_dist_copy)
+
+
 
 # Errors ------------------------------------------------------------------
 

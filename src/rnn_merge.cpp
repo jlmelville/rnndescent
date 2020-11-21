@@ -64,11 +64,14 @@ auto merge_nn_impl(IntegerMatrix nn_idx1, NumericMatrix nn_dist1,
                    MergeImpl &merge_impl, bool verbose = false) -> List {
   NeighborHeap nn_merged(nn_idx1.nrow(), nn_idx1.ncol());
 
+  auto nn_idx1c = clone(nn_idx1);
+  auto nn_idx2c = clone(nn_idx2);
+
   if (verbose) {
     ts("Merging graphs");
   }
-  merge_impl.template init<HeapAdd>(nn_merged, nn_idx1, nn_dist1);
-  merge_impl.template init<HeapAdd>(nn_merged, nn_idx2, nn_dist2);
+  merge_impl.template init<HeapAdd>(nn_merged, nn_idx1c, nn_dist1);
+  merge_impl.template init<HeapAdd>(nn_merged, nn_idx2c, nn_dist2);
 
   merge_impl.sort_heap(nn_merged);
   return heap_to_r(nn_merged);
@@ -82,10 +85,11 @@ auto merge_nn_all_impl(List nn_graphs, MergeImpl &merge_impl,
   List nn_graph = nn_graphs[0];
   NumericMatrix nn_dist = nn_graph["dist"];
   IntegerMatrix nn_idx = nn_graph["idx"];
+  auto nn_idxc = clone(nn_idx);
 
   RPProgress progress(n_graphs, verbose);
-  NeighborHeap nn_merged(nn_idx.nrow(), nn_idx.ncol());
-  merge_impl.template init<HeapAdd>(nn_merged, nn_idx, nn_dist);
+  NeighborHeap nn_merged(nn_idxc.nrow(), nn_idxc.ncol());
+  merge_impl.template init<HeapAdd>(nn_merged, nn_idxc, nn_dist);
   progress.iter_finished();
 
   // iterate over other graphs
@@ -93,7 +97,8 @@ auto merge_nn_all_impl(List nn_graphs, MergeImpl &merge_impl,
     List nn_graphi = nn_graphs[i];
     NumericMatrix nn_disti = nn_graphi["dist"];
     IntegerMatrix nn_idxi = nn_graphi["idx"];
-    merge_impl.template init<HeapAdd>(nn_merged, nn_idxi, nn_disti);
+    auto nn_idxic = clone(nn_idxi);
+    merge_impl.template init<HeapAdd>(nn_merged, nn_idxic, nn_disti);
     TDOANN_ITERFINISHED()
   }
 
