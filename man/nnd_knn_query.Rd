@@ -6,7 +6,7 @@
 \usage{
 nnd_knn_query(
   reference,
-  reference_idx,
+  reference_nn,
   query,
   k = NULL,
   metric = "euclidean",
@@ -27,9 +27,14 @@ nnd_knn_query(
 \item{reference}{Matrix of \code{m} reference items. The nearest neighbors to the
 queries are calculated from this data.}
 
-\item{reference_idx}{Matrix of \code{m} by \code{k} integer indices
-representing the (possibly approximate) \code{k}-nearest neighbors graph
-of the \code{reference} data.}
+\item{reference_nn}{Nearest neighbors for the \code{reference} data, for
+  example, the output of running `nnd_knn`. The format is a list containing:
+\itemize{
+  \item \code{idx} an n by k matrix containing the nearest neighbor indices
+  of the data in \code{reference}.
+  \item \code{dist} an n by k matrix containing the nearest neighbor
+  distances.
+}}
 
 \item{query}{Matrix of \code{n} query items.}
 
@@ -130,7 +135,7 @@ iris_ref_knn <- nnd_knn(iris_ref, k = 4)
 # 'idx' matrix in the return value of nnd_knn).
 # If you pass a data frame, non-numeric columns are removed.
 # set verbose = TRUE to get details on the progress being made
-iris_query_nn <- nnd_knn_query(iris_ref, iris_ref_knn$idx, iris_query,
+iris_query_nn <- nnd_knn_query(iris_ref, iris_ref_knn, iris_query,
   k = 4, metric = "euclidean",
   verbose = TRUE
 )

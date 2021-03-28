@@ -196,111 +196,110 @@ context("NN descent Euclidean queries")
 
 set.seed(1337)
 ui6_nnd <- nnd_knn(ui6, k = 4)
-qnbrs4 <- nnd_knn_query(reference = ui6, reference_idx = ui6_nnd$idx, query = ui4, k = 4)
+qnbrs4 <- nnd_knn_query(reference = ui6, reference_nn = ui6_nnd, query = ui4, k = 4)
 check_query_nbrs(nn = qnbrs4, query = ui4, ref_range = 1:6, query_range = 7:10, k = 4, expected_dist = ui10_eucd, tol = 1e-6)
 expect_equal(sum(qnbrs4$dist), ui4q_edsum)
 
 set.seed(1337)
 ui4_nnd <- nnd_knn(ui4, k = 4)
-qnbrs6 <- nnd_knn_query(reference = ui4, reference_idx = ui4_nnd$idx, query = ui6, k = 4)
+qnbrs6 <- nnd_knn_query(reference = ui4, reference_nn = ui4_nnd, query = ui6, k = 4)
 check_query_nbrs(nn = qnbrs6, query = ui6, ref_range = 7:10, query_range = 1:6, k = 4, expected_dist = ui10_eucd, tol = 1e-6)
 expect_equal(sum(qnbrs6$dist), ui6q_edsum, tol = 1e-6)
 
 # max candidates
 set.seed(1337)
-qnbrs6 <- nnd_knn_query(reference = ui4, reference_idx = ui4_nnd$idx, query = ui6, k = 4, max_candidates = 3)
+qnbrs6 <- nnd_knn_query(reference = ui4, reference_nn = ui4_nnd, query = ui6, k = 4, max_candidates = 3)
 check_query_nbrs(nn = qnbrs6, query = ui6, ref_range = 7:10, query_range = 1:6, k = 4, expected_dist = ui10_eucd, tol = 1e-6)
 expect_equal(sum(qnbrs6$dist), ui6q_edsum, tol = 1e-6)
 
 # turn off alt metric
 set.seed(1337)
-qnbrs6 <- nnd_knn_query(reference = ui4, reference_idx = ui4_nnd$idx, query = ui6, k = 4, use_alt_metric = FALSE)
+qnbrs6 <- nnd_knn_query(reference = ui4, reference_nn = ui4_nnd, query = ui6, k = 4, use_alt_metric = FALSE)
 check_query_nbrs(nn = qnbrs6, query = ui6, ref_range = 7:10, query_range = 1:6, k = 4, expected_dist = ui10_eucd, tol = 1e-6)
 expect_equal(sum(qnbrs6$dist), ui6q_edsum, tol = 1e-6)
 
 # initialize separately
 rnbrs4 <- random_knn_query(reference = ui6, query = ui4, k = 4)
-qnbrs4 <- nnd_knn_query(reference = ui6, reference_idx = ui6_nnd$idx, query = ui4, init = rnbrs4)
+qnbrs4 <- nnd_knn_query(reference = ui6, reference_nn = ui6_nnd, query = ui4, init = rnbrs4)
 check_query_nbrs(nn = qnbrs4, query = ui4, ref_range = 1:6, query_range = 7:10, k = 4, expected_dist = ui10_eucd, tol = 1e-6)
 expect_equal(sum(qnbrs4$dist), ui4q_edsum)
 
 # initialize separately and reduce graph
 rnbrs5 <- random_knn_query(reference = ui6, query = ui4, k = 5)
-qnbrs4 <- nnd_knn_query(reference = ui6, reference_idx = ui6_nnd$idx, query = ui4, init = rnbrs5, k = 4)
+qnbrs4 <- nnd_knn_query(reference = ui6, reference_nn = ui6_nnd, query = ui4, init = rnbrs5, k = 4)
 check_query_nbrs(nn = qnbrs4, query = ui4, ref_range = 1:6, query_range = 7:10, k = 4, expected_dist = ui10_eucd, tol = 1e-6)
 expect_equal(sum(qnbrs4$dist), ui4q_edsum)
 
 # chop down reference index if needed
-qnbrs4 <- nnd_knn_query(reference = ui6, reference_idx = ui6_nnd$idx, query = ui4, init = rnbrs5, k = 3)
+qnbrs4 <- nnd_knn_query(reference = ui6, reference_nn = ui6_nnd, query = ui4, init = rnbrs5, k = 3)
 check_query_nbrs(nn = qnbrs4, query = ui4, ref_range = 1:6, query_range = 7:10, k = 3, expected_dist = ui10_eucd, tol = 1e-6)
 
 # use k from reference indices
-qnbrs6 <- nnd_knn_query(reference = ui4, reference_idx = ui4_nnd$idx, query = ui6)
+qnbrs6 <- nnd_knn_query(reference = ui4, reference_nn = ui4_nnd, query = ui6)
 check_query_nbrs(nn = qnbrs6, query = ui6, ref_range = 7:10, query_range = 1:6, k = 4, expected_dist = ui10_eucd, tol = 1e-6)
 expect_equal(sum(qnbrs6$dist), ui6q_edsum, tol = 1e-6)
 
 # high memory
 set.seed(1337)
-qnbrs4 <- nnd_knn_query(reference = ui6, reference_idx = ui6_nnd$idx, query = ui4, k = 4, low_memory = FALSE)
+qnbrs4 <- nnd_knn_query(reference = ui6, reference_nn = ui6_nnd, query = ui4, k = 4, low_memory = FALSE)
 check_query_nbrs(nn = qnbrs4, query = ui4, ref_range = 1:6, query_range = 7:10, k = 4, expected_dist = ui10_eucd, tol = 1e-6)
 expect_equal(sum(qnbrs4$dist), ui4q_edsum)
 
 set.seed(1337)
-qnbrs6 <- nnd_knn_query(reference = ui4, reference_idx = ui4_nnd$idx, query = ui6, k = 4, low_memory = FALSE)
+qnbrs6 <- nnd_knn_query(reference = ui4, reference_nn = ui4_nnd, query = ui6, k = 4, low_memory = FALSE)
 check_query_nbrs(nn = qnbrs6, query = ui6, ref_range = 7:10, query_range = 1:6, k = 4, expected_dist = ui10_eucd, tol = 1e-6)
 expect_equal(sum(qnbrs6$dist), ui6q_edsum, tol = 1e-6)
 
 # multi-threading
 set.seed(1337)
-qnbrs6 <- nnd_knn_query(reference = ui4, reference_idx = ui4_nnd$idx, query = ui6, k = 4, n_threads = 1)
+qnbrs6 <- nnd_knn_query(reference = ui4, reference_nn = ui4_nnd, query = ui6, k = 4, n_threads = 1)
 check_query_nbrs(nn = qnbrs6, query = ui6, ref_range = 7:10, query_range = 1:6, k = 4, expected_dist = ui10_eucd, tol = 1e-6)
 expect_equal(sum(qnbrs6$dist), ui6q_edsum, tol = 1e-6)
 
-qnbrs4 <- nnd_knn_query(reference = ui6, reference_idx = ui6_nnd$idx, query = ui4, k = 4, n_threads = 1)
+qnbrs4 <- nnd_knn_query(reference = ui6, reference_nn = ui6_nnd, query = ui4, k = 4, n_threads = 1)
 check_query_nbrs(nn = qnbrs4, query = ui4, ref_range = 1:6, query_range = 7:10, k = 4, expected_dist = ui10_eucd, tol = 1e-6)
 expect_equal(sum(qnbrs4$dist), ui4q_edsum)
 
 # max candidates
 set.seed(1337)
-qnbrs6 <- nnd_knn_query(reference = ui4, reference_idx = ui4_nnd$idx, query = ui6, k = 4, n_threads = 1, max_candidates = 3)
+qnbrs6 <- nnd_knn_query(reference = ui4, reference_nn = ui4_nnd, query = ui6, k = 4, n_threads = 1, max_candidates = 3)
 check_query_nbrs(nn = qnbrs6, query = ui6, ref_range = 7:10, query_range = 1:6, k = 4, expected_dist = ui10_eucd, tol = 1e-6)
 expect_equal(sum(qnbrs6$dist), ui6q_edsum, tol = 1e-6)
 
 # multi-threading himem
 set.seed(1337)
-qnbrs6 <- nnd_knn_query(reference = ui4, reference_idx = ui4_nnd$idx, query = ui6, k = 4, n_threads = 1, low_memory = FALSE)
+qnbrs6 <- nnd_knn_query(reference = ui4, reference_nn = ui4_nnd, query = ui6, k = 4, n_threads = 1, low_memory = FALSE)
 check_query_nbrs(nn = qnbrs6, query = ui6, ref_range = 7:10, query_range = 1:6, k = 4, expected_dist = ui10_eucd, tol = 1e-6)
 expect_equal(sum(qnbrs6$dist), ui6q_edsum, tol = 1e-6)
 
-qnbrs4 <- nnd_knn_query(reference = ui6, reference_idx = ui6_nnd$idx, query = ui4, k = 4, n_threads = 1, low_memory = FALSE)
+qnbrs4 <- nnd_knn_query(reference = ui6, reference_nn = ui6_nnd, query = ui4, k = 4, n_threads = 1, low_memory = FALSE)
 check_query_nbrs(nn = qnbrs4, query = ui4, ref_range = 1:6, query_range = 7:10, k = 4, expected_dist = ui10_eucd, tol = 1e-6)
 expect_equal(sum(qnbrs4$dist), ui4q_edsum)
 
 # block size
 set.seed(1337)
-qnbrs6 <- nnd_knn_query(reference = ui4, reference_idx = ui4_nnd$idx, query = ui6, k = 4, n_threads = 1, block_size = 3)
+qnbrs6 <- nnd_knn_query(reference = ui4, reference_nn = ui4_nnd, query = ui6, k = 4, n_threads = 1, block_size = 3)
 check_query_nbrs(nn = qnbrs6, query = ui6, ref_range = 7:10, query_range = 1:6, k = 4, expected_dist = ui10_eucd, tol = 1e-6)
 expect_equal(sum(qnbrs6$dist), ui6q_edsum, tol = 1e-6)
 
 # errors
 expect_error(nnd_knn_query(
-  reference = ui4, reference_idx = ui4_nnd$idx,
+  reference = ui4, reference_nn = ui4_nnd,
   query = ui6, k = 5
 ), "items in the reference data")
 expect_error(nnd_knn_query(
-  reference = ui6, reference_idx = ui6_nnd$idx,
+  reference = ui6, reference_nn = ui6_nnd,
   query = ui4, init = rnbrs5, k = 6
 ), "Not enough initial")
 expect_error(nnd_knn_query(
-  reference = ui6, reference_idx = ui6_nnd$idx,
+  reference = ui6, reference_nn = ui6_nnd,
   query = ui4, init = rnbrs5, k = 5
 ), "Not enough reference")
 expect_error(nnd_knn_query(
-  reference = ui4, reference_idx = ui4_nnd$idx,
+  reference = ui4, reference_nn = ui4_nnd,
   query = ui6, k = 4, metric = "not-a-real metric"
 ), "metric")
 expect_error(nnd_knn_query(
-  reference = ui4, reference_idx = ui4_nnd$idx,
+  reference = ui4, reference_nn = ui4_nnd,
   query = ui6, init = rnbrs5, k = 4, metric = "not-a-real metric"
 ), "metric")
-# expect_error(nnd_knn_query(reference = ui4, reference_idx = ui4_nnd$idx, query = ui6, init = rnbrs5, k = 4, candidate_priority = "unknown"), "should be one of")

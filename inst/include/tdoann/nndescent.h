@@ -65,7 +65,7 @@ void flag_retained_new_candidates(
 
 // This corresponds to the construction of new, old, new' and old' in
 // Algorithm 2, with some minor differences:
-// 1. old' and new' (the reverse candidates) are build at the same time as old
+// 1. old' and new' (the reverse candidates) are built at the same time as old
 // and new respectively, based on the fact that if j is a candidate of new[i],
 // then i is a reverse candidate of new[j]. This saves on building the entire
 // reverse candidates list and then down-sampling.
@@ -169,10 +169,11 @@ auto local_join(
   return c;
 }
 
-template <typename Idx, typename Rand>
+template <typename DistOut, typename Idx>
 void build_general_nbrs(const std::vector<Idx> &reference_idx,
-                        std::size_t n_nbrs, NNHeap<float, Idx> &gn_heap,
-                        Rand &rand, std::size_t begin, std::size_t end) {
+                        const std::vector<DistOut> &reference_dist,
+                        std::size_t n_nbrs, NNHeap<DistOut, Idx> &gn_heap,
+                        std::size_t begin, std::size_t end) {
   for (std::size_t i = begin; i < end; i++) {
     std::size_t innbrs = i * n_nbrs;
     for (std::size_t j = 0; j < n_nbrs; j++) {
@@ -180,25 +181,26 @@ void build_general_nbrs(const std::vector<Idx> &reference_idx,
       if (nbr == gn_heap.npos()) {
         continue;
       }
-      auto d = rand.unif();
-      gn_heap.checked_push_pair(i, d, nbr);
+      gn_heap.checked_push_pair(i, reference_dist[innbrs + j], nbr);
     }
   }
 }
 
-template <typename Idx, typename Rand>
+template <typename DistOut, typename Idx>
 void build_general_nbrs(const std::vector<Idx> &reference_idx,
-                        std::size_t n_nbrs, NNHeap<float, Idx> &gn_heap,
-                        Rand &rand) {
-  build_general_nbrs(reference_idx, n_nbrs, gn_heap, rand, 0, gn_heap.n_points);
+                        const std::vector<DistOut> &reference_dist,
+                        std::size_t n_nbrs, NNHeap<DistOut, Idx> &gn_heap) {
+  build_general_nbrs(reference_idx, reference_dist, n_nbrs, gn_heap, 0,
+                     gn_heap.n_points);
 }
 
-template <typename Idx, typename Rand>
+template <typename DistOut, typename Idx>
 auto build_general_nbrs(std::size_t n_ref_points, std::size_t max_candidates,
                         const std::vector<Idx> &reference_idx,
-                        std::size_t n_nbrs, Rand &rand) -> NNHeap<float, Idx> {
-  NNHeap<float, Idx> gn_heap(n_ref_points, max_candidates);
-  build_general_nbrs(reference_idx, n_nbrs, gn_heap, rand);
+                        const std::vector<DistOut> &reference_dist,
+                        std::size_t n_nbrs) -> NNHeap<DistOut, Idx> {
+  NNHeap<DistOut, Idx> gn_heap(n_ref_points, max_candidates);
+  build_general_nbrs(reference_idx, reference_dist, n_nbrs, gn_heap);
   return gn_heap;
 }
 
@@ -221,11 +223,12 @@ auto build_general_nbrs(std::size_t n_ref_points, std::size_t max_candidates,
 //    general neighbors; otherwise, we don't search it at all because we must
 //    have already tried those candidates.
 template <template <typename> class GraphUpdater, typename Distance,
-          typename Progress, typename Rand>
+          typename Progress>
 void nnd_query(const std::vector<typename Distance::Index> &reference_idx,
+               const std::vector<typename Distance::Output> &reference_dist,
                GraphUpdater<Distance> &graph_updater,
                std::size_t max_candidates, std::size_t n_iters, double delta,
-               Rand &rand, Progress &progress) {
+               Progress &progress) {
   using DistOut = typename Distance::Output;
   using Idx = typename Distance::Index;
 
@@ -234,8 +237,8 @@ void nnd_query(const std::vector<typename Distance::Index> &reference_idx,
   const std::size_t n_nbrs = nn_heap.n_nbrs;
 
   const std::size_t n_ref_points = graph_updater.distance.nx;
-  NNHeap<float, Idx> gn_heap = build_general_nbrs(n_ref_points, max_candidates,
-                                                  reference_idx, n_nbrs, rand);
+  NNHeap<DistOut, Idx> gn_heap = build_general_nbrs(
+      n_ref_points, max_candidates, reference_idx, reference_dist, n_nbrs);
 
   const double tol = delta * n_nbrs * n_points;
   const bool flag_on_add = max_candidates >= n_nbrs;
@@ -294,8 +297,8 @@ template <template <typename> class GraphUpdater, typename Distance,
 auto non_search_query(
     GraphUpdater<Distance> &graph_updater,
     const NNHeap<typename Distance::Output, typename Distance::Index> &new_nbrs,
-    const NNHeap<float, typename Distance::Index> &gn_heap, Progress &progress)
-    -> std::size_t {
+    const NNHeap<typename Distance::Output, typename Distance::Index> &gn_heap,
+    Progress &progress) -> std::size_t {
   const std::size_t n_points = new_nbrs.n_points;
   progress.set_n_blocks(n_points);
 

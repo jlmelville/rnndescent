@@ -615,9 +615,14 @@ random_knn_query <-
 #'
 #' @param reference Matrix of \code{m} reference items. The nearest neighbors to the
 #'   queries are calculated from this data.
-#' @param reference_idx Matrix of \code{m} by \code{k} integer indices
-#'   representing the (possibly approximate) \code{k}-nearest neighbors graph
-#'   of the \code{reference} data.
+#' @param reference_nn Nearest neighbors for the \code{reference} data, for
+#'   example, the output of running `nnd_knn`. The format is a list containing:
+#' \itemize{
+#'   \item \code{idx} an n by k matrix containing the nearest neighbor indices
+#'   of the data in \code{reference}.
+#'   \item \code{dist} an n by k matrix containing the nearest neighbor
+#'   distances.
+#' }
 #' @param query Matrix of \code{n} query items.
 #' @param k Number of nearest neighbors to return. Optional if \code{init} is
 #'   specified.
@@ -698,7 +703,7 @@ random_knn_query <-
 #' # 'idx' matrix in the return value of nnd_knn).
 #' # If you pass a data frame, non-numeric columns are removed.
 #' # set verbose = TRUE to get details on the progress being made
-#' iris_query_nn <- nnd_knn_query(iris_ref, iris_ref_knn$idx, iris_query,
+#' iris_query_nn <- nnd_knn_query(iris_ref, iris_ref_knn, iris_query,
 #'   k = 4, metric = "euclidean",
 #'   verbose = TRUE
 #' )
@@ -711,7 +716,7 @@ random_knn_query <-
 #' \url{https://doi.org/10.1145/1963405.1963487}.
 #' @export
 nnd_knn_query <- function(reference,
-                          reference_idx,
+                          reference_nn,
                           query,
                           k = NULL,
                           metric = "euclidean",
@@ -746,6 +751,9 @@ nnd_knn_query <- function(reference,
     actual_metric <- metric
   }
 
+  reference_dist <- reference_nn$dist
+  reference_idx <- reference_nn$idx
+
   if (is.null(init)) {
     if (is.null(k)) {
       k <- ncol(reference_idx)
@@ -777,6 +785,7 @@ nnd_knn_query <- function(reference,
     nn_descent_query(
       reference,
       reference_idx,
+      reference_dist,
       query,
       init$idx,
       init$dist,
@@ -785,7 +794,6 @@ nnd_knn_query <- function(reference,
       max_candidates = max_candidates,
       delta = delta,
       low_memory = low_memory,
-      # candidate_priority = candidate_priority,
       n_threads = n_threads,
       block_size = block_size,
       grain_size = grain_size,
