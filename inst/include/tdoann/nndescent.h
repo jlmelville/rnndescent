@@ -169,39 +169,41 @@ auto local_join(
   return c;
 }
 
+// Create the neighbor list for each reference item, i.e. the
+// neighbor-of-neighbors that are used when doing NND queries
 template <typename DistOut, typename Idx>
-void build_general_nbrs(const std::vector<Idx> &reference_idx,
-                        const std::vector<DistOut> &reference_dist,
-                        std::size_t n_nbrs, NNHeap<DistOut, Idx> &gn_heap,
-                        std::size_t begin, std::size_t end) {
+void build_ref_nbrs(const std::vector<Idx> &reference_idx,
+                    const std::vector<DistOut> &reference_dist,
+                    std::size_t n_nbrs, NNHeap<DistOut, Idx> &ref_heap,
+                    std::size_t begin, std::size_t end) {
   for (std::size_t i = begin; i < end; i++) {
     std::size_t innbrs = i * n_nbrs;
     for (std::size_t j = 0; j < n_nbrs; j++) {
       auto nbr = reference_idx[innbrs + j];
-      if (nbr == gn_heap.npos()) {
+      if (nbr == ref_heap.npos()) {
         continue;
       }
-      gn_heap.checked_push_pair(i, reference_dist[innbrs + j], nbr);
+      ref_heap.checked_push_pair(i, reference_dist[innbrs + j], nbr);
     }
   }
 }
 
 template <typename DistOut, typename Idx>
-void build_general_nbrs(const std::vector<Idx> &reference_idx,
-                        const std::vector<DistOut> &reference_dist,
-                        std::size_t n_nbrs, NNHeap<DistOut, Idx> &gn_heap) {
-  build_general_nbrs(reference_idx, reference_dist, n_nbrs, gn_heap, 0,
-                     gn_heap.n_points);
+void build_ref_nbrs(const std::vector<Idx> &reference_idx,
+                    const std::vector<DistOut> &reference_dist,
+                    std::size_t n_nbrs, NNHeap<DistOut, Idx> &ref_heap) {
+  build_ref_nbrs(reference_idx, reference_dist, n_nbrs, ref_heap, 0,
+                 ref_heap.n_points);
 }
 
 template <typename DistOut, typename Idx>
-auto build_general_nbrs(std::size_t n_ref_points, std::size_t max_candidates,
-                        const std::vector<Idx> &reference_idx,
-                        const std::vector<DistOut> &reference_dist,
-                        std::size_t n_nbrs) -> NNHeap<DistOut, Idx> {
-  NNHeap<DistOut, Idx> gn_heap(n_ref_points, max_candidates);
-  build_general_nbrs(reference_idx, reference_dist, n_nbrs, gn_heap);
-  return gn_heap;
+auto build_ref_nbrs(std::size_t n_ref_points, std::size_t max_candidates,
+                    const std::vector<Idx> &reference_idx,
+                    const std::vector<DistOut> &reference_dist,
+                    std::size_t n_nbrs) -> NNHeap<DistOut, Idx> {
+  NNHeap<DistOut, Idx> ref_heap(n_ref_points, max_candidates);
+  build_ref_nbrs(reference_idx, reference_dist, n_nbrs, ref_heap);
+  return ref_heap;
 }
 
 // No local join available when querying because there's no symmetry in the
@@ -210,10 +212,14 @@ auto build_general_nbrs(std::size_t n_ref_points, std::size_t max_candidates,
 // 1. The existing "reference" knn graph doesn't get updated during a query,
 //    so each query item has no reverse neighbors, only the "forward" neighbors,
 //    i.e. the knn.
-// 2. The members of the query knn are from the reference knn and they *do* have
-//    reverse neighbors, so the overall search is: for each neighbor in the
-//    "forward" neighbors (the current query knn), try each of its general
-//    neighbors.
+// 2. The members of the query knn are from the reference knn and those *do*
+//    have reverse neighbors, but from testing, there is a noticeable
+//    difference for datasets with hubs, where only looking at the forward
+//    neighbors gives better results (other da;tasets are unaffected). Perhaps
+//    this is due to a lack of diversity in the general neighbor list:
+//    increasing max_candidates for ameliorates the difference. The overall
+//    search is: for each neighbor in the "forward" neighbors (the current
+//    query knn), try each of its forward general neighbors.
 // 3. Because the reference knn doesn't get updated during the query, the
 //    reference general neighbor list only needs to get built once.
 // 4. Incremental search is also simplified. Each member of the query knn
@@ -237,7 +243,7 @@ void nnd_query(const std::vector<typename Distance::Index> &reference_idx,
   const std::size_t n_nbrs = nn_heap.n_nbrs;
 
   const std::size_t n_ref_points = graph_updater.distance.nx;
-  NNHeap<DistOut, Idx> gn_heap = build_general_nbrs(
+  NNHeap<DistOut, Idx> ref_heap = build_ref_nbrs(
       n_ref_points, max_candidates, reference_idx, reference_dist, n_nbrs);
 
   const double tol = delta * n_nbrs * n_points;
@@ -252,7 +258,7 @@ void nnd_query(const std::vector<typename Distance::Index> &reference_idx,
       flag_retained_new_candidates(nn_heap, new_nbrs);
     }
     std::size_t c =
-        non_search_query(graph_updater, new_nbrs, gn_heap, progress);
+        non_search_query(graph_updater, new_nbrs, ref_heap, progress);
 
     TDOANN_ITERFINISHED();
     progress.heap_report(nn_heap);
@@ -297,7 +303,7 @@ template <template <typename> class GraphUpdater, typename Distance,
 auto non_search_query(
     GraphUpdater<Distance> &graph_updater,
     const NNHeap<typename Distance::Output, typename Distance::Index> &new_nbrs,
-    const NNHeap<typename Distance::Output, typename Distance::Index> &gn_heap,
+    const NNHeap<typename Distance::Output, typename Distance::Index> &ref_heap,
     Progress &progress) -> std::size_t {
   const std::size_t n_points = new_nbrs.n_points;
   progress.set_n_blocks(n_points);
@@ -319,8 +325,8 @@ auto non_search_query(
       }
       rnidx = ref_idx * max_candidates;
       for (std::size_t k = 0; k < max_candidates; k++) {
-        nbr_ref_idx = gn_heap.idx[rnidx + k];
-        if (nbr_ref_idx == gn_heap.npos() || seen.contains(nbr_ref_idx)) {
+        nbr_ref_idx = ref_heap.idx[rnidx + k];
+        if (nbr_ref_idx == ref_heap.npos() || seen.contains(nbr_ref_idx)) {
           continue;
         }
         c += graph_updater.generate_and_apply(query_idx, nbr_ref_idx);

@@ -248,7 +248,7 @@ struct QueryNoNSearchWorker : public BatchParallelWorker {
   NNDHeap<typename Distance::Output, typename Distance::Index> &current_graph;
   GraphUpdater<Distance> &graph_updater;
   const NNHeap<typename Distance::Output, typename Distance::Index> &new_nbrs;
-  const NNHeap<typename Distance::Output, typename Distance::Index> &gn_graph;
+  const NNHeap<typename Distance::Output, typename Distance::Index> &ref_heap;
   std::size_t max_candidates;
   std::mutex mutex;
   NullProgress progress;
@@ -261,10 +261,10 @@ struct QueryNoNSearchWorker : public BatchParallelWorker {
       const NNHeap<typename Distance::Output, typename Distance::Index>
           &new_nbrs,
       const NNHeap<typename Distance::Output, typename Distance::Index>
-          &gn_graph,
+          &ref_heap,
       std::size_t max_candidates)
       : current_graph(current_graph), graph_updater(graph_updater),
-        new_nbrs(new_nbrs), gn_graph(gn_graph), max_candidates(max_candidates),
+        new_nbrs(new_nbrs), ref_heap(ref_heap), max_candidates(max_candidates),
         progress(), n_updates(0) {}
 
   void operator()(std::size_t begin, std::size_t end) {
@@ -281,8 +281,8 @@ struct QueryNoNSearchWorker : public BatchParallelWorker {
         }
         std::size_t rnidx = ref_idx * max_candidates;
         for (std::size_t k = 0; k < max_candidates; k++) {
-          nbr_ref_idx = gn_graph.idx[rnidx + k];
-          if (nbr_ref_idx == gn_graph.npos() || seen.contains(nbr_ref_idx)) {
+          nbr_ref_idx = ref_heap.idx[rnidx + k];
+          if (nbr_ref_idx == ref_heap.npos() || seen.contains(nbr_ref_idx)) {
             continue;
           } else {
             graph_updater.generate(query_idx, nbr_ref_idx, -1);
@@ -298,37 +298,35 @@ struct QueryNoNSearchWorker : public BatchParallelWorker {
   }
 };
 
-template <typename DistOut, typename Idx> struct GNWorker {
+template <typename DistOut, typename Idx> struct RNWorker {
   const std::vector<Idx> &reference_idx;
   const std::vector<DistOut> &reference_dist;
   std::size_t n_nbrs;
-  NNHeap<DistOut, Idx> &gn_heap;
+  NNHeap<DistOut, Idx> &ref_heap;
 
-  GNWorker(const std::vector<Idx> &reference_idx,
+  RNWorker(const std::vector<Idx> &reference_idx,
            const std::vector<DistOut> &reference_dist, std::size_t n_nbrs,
-           NNHeap<DistOut, Idx> &gn_heap)
+           NNHeap<DistOut, Idx> &ref_heap)
       : reference_idx(reference_idx), reference_dist(reference_dist),
-        n_nbrs(n_nbrs), gn_heap(gn_heap) {}
+        n_nbrs(n_nbrs), ref_heap(ref_heap) {}
 
   void operator()(std::size_t begin, std::size_t end) {
-    build_general_nbrs(reference_idx, reference_dist, n_nbrs, gn_heap, begin,
-                       end);
+    build_ref_nbrs(reference_idx, reference_dist, n_nbrs, ref_heap, begin, end);
   }
 };
 
 template <typename Parallel, typename DistOut, typename Idx>
-auto build_general_nbrs_parallel(std::size_t n_ref_points,
-                                 std::size_t max_candidates,
-                                 const std::vector<Idx> &reference_idx,
-                                 const std::vector<DistOut> &reference_dist,
-                                 std::size_t n_nbrs, std::size_t n_threads,
-                                 std::size_t grain_size)
-    -> NNHeap<DistOut, Idx> {
-  NNHeap<DistOut, Idx> gn_heap(n_ref_points, max_candidates);
-  GNWorker<DistOut, Idx> gn_worker(reference_idx, reference_dist, n_nbrs,
-                                   gn_heap);
-  Parallel::parallel_for(0, gn_heap.n_points, gn_worker, n_threads, grain_size);
-  return gn_heap;
+auto build_ref_nbrs_parallel(std::size_t n_ref_points,
+                             std::size_t max_candidates,
+                             const std::vector<Idx> &reference_idx,
+                             const std::vector<DistOut> &reference_dist,
+                             std::size_t n_nbrs, std::size_t n_threads,
+                             std::size_t grain_size) -> NNHeap<DistOut, Idx> {
+  NNHeap<DistOut, Idx> ref_heap(n_ref_points, max_candidates);
+  RNWorker<DistOut, Idx> worker(reference_idx, reference_dist, n_nbrs,
+                                ref_heap);
+  Parallel::parallel_for(0, ref_heap.n_points, worker, n_threads, grain_size);
+  return ref_heap;
 }
 
 template <typename Parallel, template <typename> class GraphUpdater,
@@ -348,7 +346,7 @@ void nnd_query_parallel(
   const double tol = delta * n_nbrs * n_points;
 
   const std::size_t n_ref_points = graph_updater.distance.nx;
-  auto gn_heap = build_general_nbrs_parallel<Parallel>(
+  auto ref_heap = build_ref_nbrs_parallel<Parallel>(
       n_ref_points, max_candidates, reference_idx, reference_dist, n_nbrs,
       n_threads, grain_size);
 
@@ -366,7 +364,7 @@ void nnd_query_parallel(
     }
 
     QueryNoNSearchWorker<GraphUpdater, Distance> query_non_search_worker(
-        nn_heap, graph_updater, new_nbrs, gn_heap, max_candidates);
+        nn_heap, graph_updater, new_nbrs, ref_heap, max_candidates);
     batch_parallel_for<Parallel>(query_non_search_worker, progress, n_points,
                                  n_threads, block_size, grain_size);
 
