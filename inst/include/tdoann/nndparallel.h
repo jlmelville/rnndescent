@@ -221,7 +221,6 @@ template <typename Distance> struct QueryCandidatesWorker {
   std::size_t n_points;
   std::size_t n_nbrs;
   std::size_t max_candidates;
-  bool flag_on_add;
 
   NNHeap<typename Distance::Output, typename Distance::Index>
       &new_candidate_neighbors;
@@ -234,12 +233,10 @@ template <typename Distance> struct QueryCandidatesWorker {
       : current_graph(current_graph), n_points(current_graph.n_points),
         n_nbrs(current_graph.n_nbrs),
         max_candidates(new_candidate_neighbors.n_nbrs),
-        flag_on_add(new_candidate_neighbors.n_nbrs >= current_graph.n_nbrs),
         new_candidate_neighbors(new_candidate_neighbors) {}
 
   void operator()(std::size_t begin, std::size_t end) {
-    build_query_candidates(current_graph, new_candidate_neighbors, begin, end,
-                           flag_on_add);
+    build_query_candidates(current_graph, new_candidate_neighbors, begin, end);
   }
 };
 
@@ -249,8 +246,6 @@ struct QueryNoNSearchWorker : public BatchParallelWorker {
   GraphUpdater<Distance> &graph_updater;
   const NNHeap<typename Distance::Output, typename Distance::Index> &new_nbrs;
   const NNHeap<typename Distance::Output, typename Distance::Index> &ref_heap;
-  std::size_t max_candidates;
-  std::mutex mutex;
   NullProgress progress;
   std::size_t n_updates;
 
@@ -261,20 +256,19 @@ struct QueryNoNSearchWorker : public BatchParallelWorker {
       const NNHeap<typename Distance::Output, typename Distance::Index>
           &new_nbrs,
       const NNHeap<typename Distance::Output, typename Distance::Index>
-          &ref_heap,
-      std::size_t max_candidates)
+          &ref_heap)
       : current_graph(current_graph), graph_updater(graph_updater),
-        new_nbrs(new_nbrs), ref_heap(ref_heap), max_candidates(max_candidates),
-        progress(), n_updates(0) {}
+        new_nbrs(new_nbrs), ref_heap(ref_heap), progress(), n_updates(0) {}
 
   void operator()(std::size_t begin, std::size_t end) {
     std::size_t ref_idx = 0;
     std::size_t nbr_ref_idx = 0;
-    std::size_t n_nbrs = current_graph.n_nbrs;
+    const std::size_t n_nbrs = current_graph.n_nbrs;
+    const std::size_t max_candidates = ref_heap.n_nbrs;
     typename GraphUpdater<Distance>::NeighborSet seen(n_nbrs);
 
     for (std::size_t query_idx = begin; query_idx < end; query_idx++) {
-      for (std::size_t j = 0; j < max_candidates; j++) {
+      for (std::size_t j = 0; j < n_nbrs; j++) {
         ref_idx = new_nbrs.index(query_idx, j);
         if (ref_idx == new_nbrs.npos()) {
           continue;
@@ -351,20 +345,13 @@ void nnd_query_parallel(
       n_threads, grain_size);
 
   for (std::size_t n = 0; n < n_iters; n++) {
-    NNHeap<DistOut, Idx> new_nbrs(n_points, max_candidates);
+    NNHeap<DistOut, Idx> new_nbrs(n_points, n_nbrs);
     QueryCandidatesWorker<Distance> query_candidates_worker(nn_heap, new_nbrs);
     Parallel::parallel_for(0, n_points, query_candidates_worker, n_threads,
                            grain_size);
 
-    if (!query_candidates_worker.flag_on_add) {
-      FlagNewCandidatesWorker<Distance> flag_new_candidates_worker(new_nbrs,
-                                                                   nn_heap);
-      Parallel::parallel_for(0, n_points, flag_new_candidates_worker, n_threads,
-                             grain_size);
-    }
-
     QueryNoNSearchWorker<GraphUpdater, Distance> query_non_search_worker(
-        nn_heap, graph_updater, new_nbrs, ref_heap, max_candidates);
+        nn_heap, graph_updater, new_nbrs, ref_heap);
     batch_parallel_for<Parallel>(query_non_search_worker, progress, n_points,
                                  n_threads, block_size, grain_size);
 

@@ -247,19 +247,11 @@ void nnd_query(const std::vector<typename Distance::Index> &reference_idx,
       n_ref_points, max_candidates, reference_idx, reference_dist, n_nbrs);
 
   const double tol = delta * n_nbrs * n_points;
-  const bool flag_on_add = max_candidates >= n_nbrs;
   for (std::size_t n = 0; n < n_iters; n++) {
-    NNHeap<DistOut, Idx> new_nbrs(n_points, max_candidates);
-    build_query_candidates(nn_heap, new_nbrs, flag_on_add);
-    if (!flag_on_add) {
-      // Can't be sure all candidates that were pushed were retained, so we
-      // check now: mark any neighbor in the current graph that was retained in
-      // the new candidates
-      flag_retained_new_candidates(nn_heap, new_nbrs);
-    }
+    NNHeap<DistOut, Idx> new_nbrs(n_points, n_nbrs);
+    build_query_candidates(nn_heap, new_nbrs);
     std::size_t c =
         non_search_query(graph_updater, new_nbrs, ref_heap, progress);
-
     TDOANN_ITERFINISHED();
     progress.heap_report(nn_heap);
     TDOANN_CHECKCONVERGENCE();
@@ -269,7 +261,7 @@ void nnd_query(const std::vector<typename Distance::Index> &reference_idx,
 template <typename DistOut, typename Idx>
 void build_query_candidates(NNDHeap<DistOut, Idx> &current_graph,
                             NNHeap<DistOut, Idx> &new_nbrs, std::size_t begin,
-                            std::size_t end, bool flag_on_add) {
+                            std::size_t end) {
   const std::size_t n_nbrs = current_graph.n_nbrs;
   for (auto i = begin; i < end; i++) {
     std::size_t innbrs = i * n_nbrs;
@@ -283,18 +275,15 @@ void build_query_candidates(NNDHeap<DistOut, Idx> &current_graph,
         continue;
       }
       new_nbrs.checked_push(i, current_graph.dist[ij], nbr);
-      if (flag_on_add) {
-        current_graph.flags[ij] = 0;
-      }
+      current_graph.flags[ij] = 0;
     }
   }
 }
 
 template <typename DistOut, typename Idx>
 void build_query_candidates(NNDHeap<DistOut, Idx> &current_graph,
-                            NNHeap<DistOut, Idx> &new_nbrs, bool flag_on_add) {
-  build_query_candidates(current_graph, new_nbrs, 0, current_graph.n_points,
-                         flag_on_add);
+                            NNHeap<DistOut, Idx> &new_nbrs) {
+  build_query_candidates(current_graph, new_nbrs, 0, current_graph.n_points);
 }
 
 // Use neighbor-of-neighbor search rather than local join to update the kNN.
@@ -314,11 +303,11 @@ auto non_search_query(
   std::size_t rnidx = 0;
 
   const std::size_t n_nbrs = graph_updater.current_graph.n_nbrs;
-  const std::size_t max_candidates = new_nbrs.n_nbrs;
+  const std::size_t max_candidates = ref_heap.n_nbrs;
   typename GraphUpdater<Distance>::NeighborSet seen(n_nbrs);
 
   for (std::size_t query_idx = 0; query_idx < n_points; query_idx++) {
-    for (std::size_t j = 0; j < max_candidates; j++) {
+    for (std::size_t j = 0; j < n_nbrs; j++) {
       ref_idx = new_nbrs.index(query_idx, j);
       if (ref_idx == new_nbrs.npos()) {
         continue;
