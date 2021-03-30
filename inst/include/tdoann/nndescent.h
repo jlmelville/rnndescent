@@ -215,7 +215,7 @@ auto build_ref_nbrs(std::size_t n_ref_points, std::size_t max_candidates,
 // 2. The members of the query knn are from the reference knn and those *do*
 //    have reverse neighbors, but from testing, there is a noticeable
 //    difference for datasets with hubs, where only looking at the forward
-//    neighbors gives better results (other da;tasets are unaffected). Perhaps
+//    neighbors gives better results (other datasets are unaffected). Perhaps
 //    this is due to a lack of diversity in the general neighbor list:
 //    increasing max_candidates for ameliorates the difference. The overall
 //    search is: for each neighbor in the "forward" neighbors (the current
@@ -223,11 +223,12 @@ auto build_ref_nbrs(std::size_t n_ref_points, std::size_t max_candidates,
 // 3. Because the reference knn doesn't get updated during the query, the
 //    reference general neighbor list only needs to get built once.
 // 4. Incremental search is also simplified. Each member of the query knn
-//    is marked as new when it's selected for search as usual, but because of
-//    the static nature of the reference general neighbors, we don't need to
-//    keep track of old neighbors: if a neighbor is "new" we search all its
-//    general neighbors; otherwise, we don't search it at all because we must
-//    have already tried those candidates.
+//    is marked as new when it's searched and because the update isn't
+//    symmetric, we can operate on the graph directly. And because of the
+//    static nature of the reference general neighbors, we don't need to keep
+//    track of old neighbors: if a neighbor is "new" we search all its general
+//    neighbors; otherwise, we don't search it at all because we must have
+//    already tried those candidates.
 template <template <typename> class GraphUpdater, typename Distance,
           typename Progress>
 void nnd_query(const std::vector<typename Distance::Index> &reference_idx,
@@ -248,42 +249,11 @@ void nnd_query(const std::vector<typename Distance::Index> &reference_idx,
 
   const double tol = delta * n_nbrs * n_points;
   for (std::size_t n = 0; n < n_iters; n++) {
-    NNHeap<DistOut, Idx> new_nbrs(n_points, n_nbrs);
-    build_query_candidates(nn_heap, new_nbrs);
-    std::size_t c =
-        non_search_query(graph_updater, new_nbrs, ref_heap, progress);
+    std::size_t c = non_search_query(graph_updater, ref_heap, progress);
     TDOANN_ITERFINISHED();
     progress.heap_report(nn_heap);
     TDOANN_CHECKCONVERGENCE();
   }
-}
-
-template <typename DistOut, typename Idx>
-void build_query_candidates(NNDHeap<DistOut, Idx> &current_graph,
-                            NNHeap<DistOut, Idx> &new_nbrs, std::size_t begin,
-                            std::size_t end) {
-  const std::size_t n_nbrs = current_graph.n_nbrs;
-  for (auto i = begin; i < end; i++) {
-    std::size_t innbrs = i * n_nbrs;
-    for (std::size_t j = 0; j < n_nbrs; j++) {
-      std::size_t ij = innbrs + j;
-      if (current_graph.flags[ij] != 1) {
-        continue;
-      }
-      auto nbr = current_graph.idx[ij];
-      if (nbr == new_nbrs.npos()) {
-        continue;
-      }
-      new_nbrs.checked_push(i, current_graph.dist[ij], nbr);
-      current_graph.flags[ij] = 0;
-    }
-  }
-}
-
-template <typename DistOut, typename Idx>
-void build_query_candidates(NNDHeap<DistOut, Idx> &current_graph,
-                            NNHeap<DistOut, Idx> &new_nbrs) {
-  build_query_candidates(current_graph, new_nbrs, 0, current_graph.n_points);
 }
 
 // Use neighbor-of-neighbor search rather than local join to update the kNN.
@@ -291,10 +261,10 @@ template <template <typename> class GraphUpdater, typename Distance,
           typename Progress>
 auto non_search_query(
     GraphUpdater<Distance> &graph_updater,
-    const NNHeap<typename Distance::Output, typename Distance::Index> &new_nbrs,
     const NNHeap<typename Distance::Output, typename Distance::Index> &ref_heap,
     Progress &progress) -> std::size_t {
-  const std::size_t n_points = new_nbrs.n_points;
+  auto &current_graph = graph_updater.current_graph;
+  const std::size_t n_points = current_graph.n_points;
   progress.set_n_blocks(n_points);
 
   std::size_t c = 0;
@@ -302,16 +272,20 @@ auto non_search_query(
   std::size_t nbr_ref_idx = 0;
   std::size_t rnidx = 0;
 
-  const std::size_t n_nbrs = graph_updater.current_graph.n_nbrs;
+  const std::size_t n_nbrs = current_graph.n_nbrs;
   const std::size_t max_candidates = ref_heap.n_nbrs;
   typename GraphUpdater<Distance>::NeighborSet seen(n_nbrs);
 
   for (std::size_t query_idx = 0; query_idx < n_points; query_idx++) {
     for (std::size_t j = 0; j < n_nbrs; j++) {
-      ref_idx = new_nbrs.index(query_idx, j);
-      if (ref_idx == new_nbrs.npos()) {
+      ref_idx = current_graph.index(query_idx, j);
+      if (ref_idx == current_graph.npos()) {
         continue;
       }
+      if (current_graph.flag(query_idx, j) == 0) {
+        continue;
+      }
+      current_graph.flag(query_idx, j) = 0;
       rnidx = ref_idx * max_candidates;
       for (std::size_t k = 0; k < max_candidates; k++) {
         nbr_ref_idx = ref_heap.idx[rnidx + k];
