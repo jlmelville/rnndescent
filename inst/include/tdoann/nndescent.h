@@ -233,24 +233,21 @@ auto build_ref_nbrs(std::size_t n_ref_points, std::size_t max_candidates,
 //    track of old neighbors: if a neighbor is "new" we search all its general
 //    neighbors; otherwise, we don't search it at all because we must have
 //    already tried those candidates.
-template <template <typename> class GraphUpdater, typename Distance,
-          typename Progress>
-void nnd_query(const std::vector<typename Distance::Index> &reference_idx,
-               const std::vector<typename Distance::Output> &reference_dist,
-               GraphUpdater<Distance> &graph_updater,
-               std::size_t max_candidates, double epsilon, std::size_t n_iters,
-               Progress &progress) {
+template <typename Distance, typename Progress>
+void nnd_query(
+    const std::vector<typename Distance::Index> &reference_idx,
+    const std::vector<typename Distance::Output> &reference_dist,
+    NNDHeap<typename Distance::Output, typename Distance::Index> &nn_heap,
+    const Distance &distance, std::size_t max_candidates, double epsilon,
+    std::size_t n_iters, Progress &progress) {
   using DistOut = typename Distance::Output;
   using Idx = typename Distance::Index;
-
-  auto &nn_heap = graph_updater.current_graph;
   const std::size_t n_nbrs = nn_heap.n_nbrs;
-
-  const std::size_t n_ref_points = graph_updater.distance.nx;
+  const std::size_t n_ref_points = distance.nx;
   NNHeap<DistOut, Idx> ref_heap = build_ref_nbrs(
       n_ref_points, max_candidates, reference_idx, reference_dist, n_nbrs);
 
-  non_search_query(graph_updater, ref_heap, epsilon, progress, n_iters);
+  non_search_query(nn_heap, distance, ref_heap, epsilon, progress, n_iters);
   progress.heap_report(nn_heap);
 }
 
@@ -266,10 +263,10 @@ auto pop(std::priority_queue<T, Container, Compare> &pq) -> T {
   return result;
 }
 
-template <template <typename> class GraphUpdater, typename Distance,
-          typename Progress>
+template <typename Distance, typename Progress>
 void non_search_query(
-    GraphUpdater<Distance> &graph_updater,
+    NNDHeap<typename Distance::Output, typename Distance::Index> &current_graph,
+    const Distance &distance,
     const NNHeap<typename Distance::Output, typename Distance::Index> &ref_heap,
     double epsilon, Progress &progress, std::size_t n_iters, std::size_t begin,
     std::size_t end) {
@@ -277,9 +274,6 @@ void non_search_query(
   using DistOut = typename Distance::Output;
   using Idx = typename Distance::Index;
   using Seed = std::pair<DistOut, Idx>;
-
-  auto &distance = graph_updater.distance;
-  auto &current_graph = graph_updater.current_graph;
 
   Idx ref_idx = 0;
   Idx nbr_ref_idx = 0;
@@ -347,15 +341,15 @@ void non_search_query(
 }
 
 // Use neighbor-of-neighbor search rather than local join to update the kNN.
-template <template <typename> class GraphUpdater, typename Distance,
-          typename Progress>
+template <typename Distance, typename Progress>
 void non_search_query(
-    GraphUpdater<Distance> &graph_updater,
+    NNDHeap<typename Distance::Output, typename Distance::Index> &current_graph,
+    const Distance &distance,
     const NNHeap<typename Distance::Output, typename Distance::Index> &ref_heap,
     double epsilon, Progress &progress, std::size_t n_iters) {
 
-  non_search_query(graph_updater, ref_heap, epsilon, progress, n_iters, 0,
-                   graph_updater.current_graph.n_points);
+  non_search_query(current_graph, distance, ref_heap, epsilon, progress,
+                   n_iters, 0, current_graph.n_points);
 }
 } // namespace tdoann
 #endif // TDOANN_NNDESCENT_H

@@ -40,7 +40,7 @@ using namespace Rcpp;
       nn_idx, nn_dist, max_candidates, n_iters, delta, verbose);
 
 #define NND_QUERY_IMPL()                                                       \
-  return nnd_impl.get_nn<GraphUpdate, Distance, Progress, NNDProgress>(        \
+  return nnd_impl.get_nn<Distance, Progress, NNDProgress>(                     \
       nn_idx, nn_dist, max_candidates, epsilon, n_iters, verbose);
 
 #define NND_PROGRESS()                                                         \
@@ -87,23 +87,11 @@ using namespace Rcpp;
     using NNDImpl = NNDQueryParallel;                                          \
     NNDImpl nnd_impl(reference, query, reference_idx, reference_dist,          \
                      n_threads, grain_size);                                   \
-    if (low_memory) {                                                          \
-      using GraphUpdate = tdoann::upd::Factory<tdoann::upd::QueryBatch>;       \
-      NND_QUERY_PROGRESS()                                                     \
-    } else {                                                                   \
-      using GraphUpdate = tdoann::upd::Factory<tdoann::upd::QueryBatchHiMem>;  \
-      NND_QUERY_PROGRESS()                                                     \
-    }                                                                          \
+    NND_QUERY_PROGRESS()                                                       \
   } else {                                                                     \
     using NNDImpl = NNDQuerySerial;                                            \
     NNDImpl nnd_impl(reference, query, reference_idx, reference_dist);         \
-    if (low_memory) {                                                          \
-      using GraphUpdate = tdoann::upd::Factory<tdoann::upd::QuerySerial>;      \
-      NND_QUERY_PROGRESS()                                                     \
-    } else {                                                                   \
-      using GraphUpdate = tdoann::upd::Factory<tdoann::upd::QuerySerialHiMem>; \
-      NND_QUERY_PROGRESS()                                                     \
-    }                                                                          \
+    NND_QUERY_PROGRESS()                                                       \
   }
 
 struct NNDBuildSerial {
@@ -209,8 +197,7 @@ struct NNDQuerySerial {
       : reference(reference), query(query), ref_idx(ref_idx),
         ref_dist(ref_dist) {}
 
-  template <typename GraphUpdate, typename Distance, typename Progress,
-            typename NNDProgress>
+  template <typename Distance, typename Progress, typename NNDProgress>
   auto get_nn(IntegerMatrix nn_idx, NumericMatrix nn_dist,
               std::size_t max_candidates = 50, double epsilon = 0.1,
               std::size_t n_iters = 10, bool verbose = false) -> List {
@@ -234,16 +221,14 @@ struct NNDQuerySerial {
 
     Distance distance(ref_vec, query_vec, reference.ncol());
 
-    auto graph_updater = GraphUpdate::create(nnd_heap, distance);
-
     auto ref_idx_vec = r_to_idx<Index>(ref_idx);
     auto ref_dist_vec = Rcpp::as<std::vector<Out>>(ref_dist);
 
     Progress progress(query.nrow(), verbose);
     NNDProgress nnd_progress(progress);
 
-    tdoann::nnd_query(ref_idx_vec, ref_dist_vec, graph_updater, max_candidates,
-                      epsilon, n_iters, nnd_progress);
+    tdoann::nnd_query(ref_idx_vec, ref_dist_vec, nnd_heap, distance,
+                      max_candidates, epsilon, n_iters, nnd_progress);
     nnd_heap.deheap_sort();
     Graph result = heap_to_graph(nnd_heap);
     return graph_to_r(result);
@@ -266,8 +251,7 @@ struct NNDQueryParallel {
       : reference(reference), query(query), ref_idx(ref_idx),
         ref_dist(ref_dist), n_threads(n_threads), grain_size(grain_size) {}
 
-  template <typename GraphUpdate, typename Distance, typename Progress,
-            typename NNDProgress>
+  template <typename Distance, typename Progress, typename NNDProgress>
   auto get_nn(IntegerMatrix nn_idx, NumericMatrix nn_dist,
               std::size_t max_candidates = 50, double epsilon = 0.1,
               std::size_t n_iters = 10, bool verbose = false) -> List {
@@ -291,12 +275,11 @@ struct NNDQueryParallel {
     auto ref_dist_vec = Rcpp::as<std::vector<Out>>(ref_dist);
 
     Distance distance(ref_vec, query_vec, reference.ncol());
-    auto graph_updater = GraphUpdate::create(nnd_heap, distance);
     Progress progress(n_iters, verbose);
     NNDProgress nnd_progress(progress);
 
     tdoann::nnd_query_parallel<RParallel>(
-        ref_idx_vec, ref_dist_vec, graph_updater, max_candidates, epsilon,
+        ref_idx_vec, ref_dist_vec, nnd_heap, distance, max_candidates, epsilon,
         n_iters, nnd_progress, n_threads, grain_size);
 
     nnd_heap.deheap_sort();

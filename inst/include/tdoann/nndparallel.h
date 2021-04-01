@@ -216,24 +216,26 @@ void nnd_build_parallel(GraphUpdater<Distance> &graph_updater,
   }
 }
 
-template <template <typename> class GraphUpdater, typename Distance>
-struct QueryNoNSearchWorker {
-  GraphUpdater<Distance> &graph_updater;
+template <typename Distance> struct QueryNoNSearchWorker {
+  NNDHeap<typename Distance::Output, typename Distance::Index> &current_graph;
+  const Distance &distance;
   const NNHeap<typename Distance::Output, typename Distance::Index> &ref_heap;
   double epsilon;
   NullProgress progress;
   std::size_t n_iters;
 
-  QueryNoNSearchWorker(GraphUpdater<Distance> &graph_updater,
+  QueryNoNSearchWorker(NNDHeap<typename Distance::Output,
+                               typename Distance::Index> &current_graph,
+                       const Distance &distance,
                        const NNHeap<typename Distance::Output,
                                     typename Distance::Index> &ref_heap,
                        double epsilon, std::size_t n_iters)
-      : graph_updater(graph_updater), ref_heap(ref_heap), epsilon(epsilon),
-        progress(), n_iters(n_iters) {}
+      : current_graph(current_graph), distance(distance), ref_heap(ref_heap),
+        epsilon(epsilon), progress(), n_iters(n_iters) {}
 
   void operator()(std::size_t begin, std::size_t end) {
-    non_search_query(graph_updater, ref_heap, epsilon, progress, n_iters, begin,
-                     end);
+    non_search_query(current_graph, distance, ref_heap, epsilon, progress,
+                     n_iters, begin, end);
   }
 };
 
@@ -268,25 +270,24 @@ auto build_ref_nbrs_parallel(std::size_t n_ref_points,
   return ref_heap;
 }
 
-template <typename Parallel, template <typename> class GraphUpdater,
-          typename Distance, typename Progress>
+template <typename Parallel, typename Distance, typename Progress>
 void nnd_query_parallel(
     const std::vector<typename Distance::Index> &reference_idx,
     const std::vector<typename Distance::Output> &reference_dist,
-    GraphUpdater<Distance> &graph_updater, std::size_t max_candidates,
-    double epsilon, std::size_t n_iters, Progress &progress,
-    std::size_t n_threads = 0, std::size_t grain_size = 1) {
-  auto &nn_heap = graph_updater.current_graph;
+    NNDHeap<typename Distance::Output, typename Distance::Index> &nn_heap,
+    const Distance &distance, std::size_t max_candidates, double epsilon,
+    std::size_t n_iters, Progress &progress, std::size_t n_threads = 0,
+    std::size_t grain_size = 1) {
   const std::size_t n_points = nn_heap.n_points;
   const std::size_t n_nbrs = nn_heap.n_nbrs;
 
-  const std::size_t n_ref_points = graph_updater.distance.nx;
+  const std::size_t n_ref_points = distance.nx;
   auto ref_heap = build_ref_nbrs_parallel<Parallel>(
       n_ref_points, max_candidates, reference_idx, reference_dist, n_nbrs,
       n_threads, grain_size);
 
-  QueryNoNSearchWorker<GraphUpdater, Distance> query_non_search_worker(
-      graph_updater, ref_heap, epsilon, n_iters);
+  QueryNoNSearchWorker<Distance> query_non_search_worker(
+      nn_heap, distance, ref_heap, epsilon, n_iters);
   Parallel::parallel_for(0, n_points, query_non_search_worker, n_threads,
                          grain_size);
 }
