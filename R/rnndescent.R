@@ -667,11 +667,6 @@ random_knn_query <-
 #' @param max_candidates Maximum number of candidate neighbors to try for each
 #'   item in each iteration. Use relative to \code{k} to emulate the "rho"
 #'   sampling parameter in the nearest neighbor descent paper.
-#' @param low_memory If \code{TRUE}, use a lower memory, but more
-#'   computationally expensive approach to index construction. If set to
-#'   \code{FALSE}, you should see a noticeable speed improvement, especially
-#'   when using a smaller number of threads, so this is worth trying if you
-#'   have the memory to spare.
 #' @param n_threads Number of threads to use.
 #' @param grain_size Minimum batch size for multithreading. If the number of
 #'   items to process in a thread falls below this number, then no threads will
@@ -719,7 +714,6 @@ nnd_knn_query <- function(reference,
                           n_iters = 10,
                           epsilon = 0.1,
                           max_candidates = 20,
-                          low_memory = TRUE,
                           use_alt_metric = TRUE,
                           n_threads = 0,
                           grain_size = 1,
@@ -784,7 +778,6 @@ nnd_knn_query <- function(reference,
       max_candidates = max_candidates,
       epsilon = epsilon,
       n_iters = n_iters,
-      low_memory = low_memory,
       n_threads = n_threads,
       grain_size = grain_size,
       verbose = verbose

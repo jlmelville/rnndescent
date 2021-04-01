@@ -14,7 +14,6 @@ nnd_knn_query(
   n_iters = 10,
   epsilon = 0.1,
   max_candidates = 20,
-  low_memory = TRUE,
   use_alt_metric = TRUE,
   n_threads = 0,
   grain_size = 1,
@@ -78,12 +77,6 @@ comparison. Use this parameter in conjunction with \code{n_iters} and
 \item{max_candidates}{Maximum number of candidate neighbors to try for each
 item in each iteration. Use relative to \code{k} to emulate the "rho"
 sampling parameter in the nearest neighbor descent paper.}
-
-\item{low_memory}{If \code{TRUE}, use a lower memory, but more
-computationally expensive approach to index construction. If set to
-\code{FALSE}, you should see a noticeable speed improvement, especially
-when using a smaller number of threads, so this is worth trying if you
-have the memory to spare.}
 
 \item{use_alt_metric}{If \code{TRUE}, use faster metrics that maintain the
 ordering of distances internally (e.g. squared Euclidean distances if using

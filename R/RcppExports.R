@@ -29,8 +29,8 @@ nn_descent <- function(data, nn_idx, nn_dist, metric = "euclidean", max_candidat
     .Call(`_rnndescent_nn_descent`, data, nn_idx, nn_dist, metric, max_candidates, n_iters, delta, low_memory, n_threads, block_size, grain_size, verbose, progress)
 }
 
-nn_descent_query <- function(reference, reference_idx, reference_dist, query, nn_idx, nn_dist, metric = "euclidean", max_candidates = 50L, epsilon = 0.1, n_iters = 10L, low_memory = TRUE, n_threads = 0L, grain_size = 1L, verbose = FALSE) {
-    .Call(`_rnndescent_nn_descent_query`, reference, reference_idx, reference_dist, query, nn_idx, nn_dist, metric, max_candidates, epsilon, n_iters, low_memory, n_threads, grain_size, verbose)
+nn_descent_query <- function(reference, reference_idx, reference_dist, query, nn_idx, nn_dist, metric = "euclidean", max_candidates = 50L, epsilon = 0.1, n_iters = 10L, n_threads = 0L, grain_size = 1L, verbose = FALSE) {
+    .Call(`_rnndescent_nn_descent_query`, reference, reference_idx, reference_dist, query, nn_idx, nn_dist, metric, max_candidates, epsilon, n_iters, n_threads, grain_size, verbose)
 }
 
 random_knn_cpp <- function(data, k, metric = "euclidean", order_by_distance = TRUE, n_threads = 0L, block_size = 4096L, grain_size = 1L, verbose = FALSE) {
