@@ -38,9 +38,9 @@ class tau_prng {
   uint64_t state1; // technically this needs to always be > 7
   uint64_t state2; // and this should be > 15
 
-  static constexpr uint64_t MAGIC0 = static_cast<uint64_t>(4294967294);
-  static constexpr uint64_t MAGIC1 = static_cast<uint64_t>(4294967288);
-  static constexpr uint64_t MAGIC2 = static_cast<uint64_t>(4294967280);
+  static constexpr uint64_t MAGIC0{4294967294};
+  static constexpr uint64_t MAGIC1{4294967288};
+  static constexpr uint64_t MAGIC2{4294967280};
 
 public:
   static constexpr double DINT_MAX =
