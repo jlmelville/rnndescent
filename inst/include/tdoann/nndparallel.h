@@ -208,7 +208,7 @@ void nnd_build_parallel(GraphUpdater<Distance> &graph_updater,
     LocalJoinWorker<Distance, decltype(graph_updater)> local_join_worker(
         nn_heap, new_nbrs, old_nbrs, graph_updater);
     batch_parallel_for<Parallel>(local_join_worker, progress, n_points,
-                                 n_threads, block_size, grain_size);
+                                 block_size, n_threads, grain_size);
     TDOANN_ITERFINISHED();
     progress.heap_report(nn_heap);
     std::size_t c = local_join_worker.c;
@@ -216,7 +216,8 @@ void nnd_build_parallel(GraphUpdater<Distance> &graph_updater,
   }
 }
 
-template <typename Distance> struct QueryNoNSearchWorker {
+template <typename Distance>
+struct QueryNoNSearchWorker : public BatchParallelWorker {
   NNHeap<typename Distance::Output, typename Distance::Index> &current_graph;
   const Distance &distance;
   const NNHeap<typename Distance::Output, typename Distance::Index>

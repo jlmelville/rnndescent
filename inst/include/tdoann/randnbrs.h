@@ -122,8 +122,8 @@ auto get_nn(Distance &distance, typename Distance::Index n_nbrs, bool sort,
 
   Worker worker(distance, n_nbrs);
   if (n_threads > 0) {
-    batch_parallel_for<Parallel>(worker, progress, n_points, n_threads,
-                                 block_size, grain_size);
+    batch_parallel_for<Parallel>(worker, progress, n_points, block_size,
+                                 n_threads, grain_size);
   } else {
     batch_serial_for(worker, progress, n_points, block_size);
   }

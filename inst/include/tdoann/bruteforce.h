@@ -83,7 +83,7 @@ auto nnbf_parallel_query(Distance &distance, typename Distance::Index n_nbrs,
 
   BruteForceWorker<Distance> worker(neighbor_heap, distance);
   batch_parallel_for<Parallel>(worker, progress, neighbor_heap.n_points,
-                               n_threads, block_size, grain_size);
+                               block_size, n_threads, grain_size);
 
   sort_heap_parallel(neighbor_heap, n_threads, block_size, grain_size);
 

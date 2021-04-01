@@ -155,8 +155,8 @@ void vec_to_heap_parallel(NbrHeap &heap,
                           std::size_t grain_size) {
   VecToHeapWorker<HeapAdd, NbrHeap> worker(heap, nn_idx, n_points, nn_dist);
   Progress progress;
-  batch_parallel_for<Parallel>(worker, progress, n_points, n_threads,
-                               block_size, grain_size);
+  batch_parallel_for<Parallel>(worker, progress, n_points, block_size,
+                               n_threads, grain_size);
 }
 
 template <typename HeapAdd, typename Progress = NullProgress,
@@ -169,8 +169,8 @@ void graph_to_heap_parallel(NbrHeap &heap,
   VecToHeapWorker<HeapAdd, NbrHeap> worker(
       heap, nn_graph.idx, nn_graph.n_points, nn_graph.dist, transpose);
   Progress progress;
-  batch_parallel_for<Parallel>(worker, progress, nn_graph.n_points, n_threads,
-                               block_size, grain_size);
+  batch_parallel_for<Parallel>(worker, progress, nn_graph.n_points, block_size,
+                               n_threads, grain_size);
 }
 
 template <typename HeapAdd, template <class, class> class NbrHeap, class D,

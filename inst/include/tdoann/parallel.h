@@ -45,7 +45,7 @@ struct BatchParallelWorker {
 
 template <typename Parallel, typename Progress, typename Worker>
 void batch_parallel_for(Worker &worker, Progress &progress, std::size_t n,
-                        std::size_t n_threads, std::size_t block_size,
+                        std::size_t block_size, std::size_t n_threads,
                         std::size_t grain_size) {
   auto n_blocks = (n / block_size) + 1;
   progress.set_n_blocks(n_blocks);
@@ -59,6 +59,14 @@ void batch_parallel_for(Worker &worker, Progress &progress, std::size_t n,
   }
 }
 
+template <typename Parallel, typename Progress, typename Worker>
+void batch_parallel_for(Worker &worker, Progress &progress, std::size_t n,
+                        std::size_t n_threads, std::size_t grain_size) {
+  const std::size_t block_size = std::max(grain_size, n / std::size_t{10});
+  batch_parallel_for<Parallel>(worker, progress, n, block_size, n_threads,
+                               grain_size);
+}
+
 template <typename Progress, typename Worker>
 void batch_serial_for(Worker &worker, Progress &progress, std::size_t n,
                       std::size_t block_size) {
@@ -70,6 +78,12 @@ void batch_serial_for(Worker &worker, Progress &progress, std::size_t n,
     worker(begin, end);
     TDOANN_BLOCKFINISHED();
   }
+}
+
+template <typename Parallel, typename Progress, typename Worker>
+void batch_serial_for(Worker &worker, Progress &progress, std::size_t n) {
+  const std::size_t block_size = std::max(std::size_t{1}, n / std::size_t{10});
+  batch_serial_for(worker, progress, n, block_size);
 }
 
 } // namespace tdoann
