@@ -11,7 +11,7 @@ nnd_knn_query(
   k = NULL,
   metric = "euclidean",
   init = NULL,
-  n_iters = 10,
+  n_iters = Inf,
   epsilon = 0.1,
   max_candidates = 20,
   use_alt_metric = TRUE,
@@ -60,7 +60,11 @@ transformation from the distances to the internal distance representation
 is available. In this case, the distances will be recalculated internally
 and only the contents of \code{init$idx} will be used.}
 
-\item{n_iters}{Number of iterations of nearest neighbor descent to carry out.}
+\item{n_iters}{Number of iterations of nearest neighbor descent to carry out.
+This is set to \code{Inf} by default. For controlling the time cost of
+querying, it is recommended to modify \code{epsilon} initially. However,
+setting this parameter can also provide a safe-guard against excessive
+search time.}
 
 \item{epsilon}{Controls trade-off between accuracy and search cost, by
 specifying a distance tolerance on whether to explore the neighbors of

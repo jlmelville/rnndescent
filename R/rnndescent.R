@@ -653,6 +653,10 @@ random_knn_query <-
 #' is available. In this case, the distances will be recalculated internally
 #' and only the contents of \code{init$idx} will be used.
 #' @param n_iters Number of iterations of nearest neighbor descent to carry out.
+#'   This is set to \code{Inf} by default. For controlling the time cost of
+#'   querying, it is recommended to modify \code{epsilon} initially. However,
+#'   setting this parameter can also provide a safe-guard against excessive
+#'   search time.
 #' @param epsilon Controls trade-off between accuracy and search cost, by
 #'   specifying a distance tolerance on whether to explore the neighbors of
 #'   candidate points. The larger the value, the more neighbors will be
