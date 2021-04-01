@@ -215,8 +215,8 @@ struct NNDQuerySerial {
 
     const std::size_t g2h_block_size = 1000;
     const bool is_transposed = true;
-    auto nnd_heap =
-        tdoann::graph_to_heap_serial<tdoann::HeapAddQuery, tdoann::NNDHeap>(
+    auto nn_heap =
+        tdoann::graph_to_heap_serial<tdoann::HeapAddQuery, tdoann::NNHeap>(
             nn_graph, g2h_block_size, is_transposed);
 
     Distance distance(ref_vec, query_vec, reference.ncol());
@@ -227,10 +227,10 @@ struct NNDQuerySerial {
     Progress progress(query.nrow(), verbose);
     NNDProgress nnd_progress(progress);
 
-    tdoann::nnd_query(ref_idx_vec, ref_dist_vec, nnd_heap, distance,
+    tdoann::nnd_query(ref_idx_vec, ref_dist_vec, nn_heap, distance,
                       max_candidates, epsilon, n_iters, nnd_progress);
-    nnd_heap.deheap_sort();
-    Graph result = heap_to_graph(nnd_heap);
+    nn_heap.deheap_sort();
+    Graph result = heap_to_graph(nn_heap);
     return graph_to_r(result);
   }
 };
@@ -267,8 +267,8 @@ struct NNDQueryParallel {
 
     const std::size_t g2h_block_size = 1000;
     const bool is_transposed = true;
-    auto nnd_heap =
-        tdoann::graph_to_heap_serial<tdoann::HeapAddQuery, tdoann::NNDHeap>(
+    auto nn_heap =
+        tdoann::graph_to_heap_serial<tdoann::HeapAddQuery, tdoann::NNHeap>(
             nn_graph, g2h_block_size, is_transposed);
 
     auto ref_idx_vec = r_to_idx<Index>(ref_idx);
@@ -279,11 +279,11 @@ struct NNDQueryParallel {
     NNDProgress nnd_progress(progress);
 
     tdoann::nnd_query_parallel<RParallel>(
-        ref_idx_vec, ref_dist_vec, nnd_heap, distance, max_candidates, epsilon,
+        ref_idx_vec, ref_dist_vec, nn_heap, distance, max_candidates, epsilon,
         n_iters, nnd_progress, n_threads, grain_size);
 
-    nnd_heap.deheap_sort();
-    Graph result = heap_to_graph(nnd_heap);
+    nn_heap.deheap_sort();
+    Graph result = heap_to_graph(nn_heap);
     return graph_to_r(result);
   }
 };

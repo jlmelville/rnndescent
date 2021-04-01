@@ -217,15 +217,15 @@ void nnd_build_parallel(GraphUpdater<Distance> &graph_updater,
 }
 
 template <typename Distance> struct QueryNoNSearchWorker {
-  NNDHeap<typename Distance::Output, typename Distance::Index> &current_graph;
+  NNHeap<typename Distance::Output, typename Distance::Index> &current_graph;
   const Distance &distance;
   const NNHeap<typename Distance::Output, typename Distance::Index> &ref_heap;
   double epsilon;
   NullProgress progress;
   std::size_t n_iters;
 
-  QueryNoNSearchWorker(NNDHeap<typename Distance::Output,
-                               typename Distance::Index> &current_graph,
+  QueryNoNSearchWorker(NNHeap<typename Distance::Output,
+                              typename Distance::Index> &current_graph,
                        const Distance &distance,
                        const NNHeap<typename Distance::Output,
                                     typename Distance::Index> &ref_heap,
@@ -274,7 +274,7 @@ template <typename Parallel, typename Distance, typename Progress>
 void nnd_query_parallel(
     const std::vector<typename Distance::Index> &reference_idx,
     const std::vector<typename Distance::Output> &reference_dist,
-    NNDHeap<typename Distance::Output, typename Distance::Index> &nn_heap,
+    NNHeap<typename Distance::Output, typename Distance::Index> &nn_heap,
     const Distance &distance, std::size_t max_candidates, double epsilon,
     std::size_t n_iters, Progress &progress, std::size_t n_threads = 0,
     std::size_t grain_size = 1) {
