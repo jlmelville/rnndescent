@@ -677,13 +677,6 @@ random_knn_query <-
 #'   items to process in a thread falls below this number, then no threads will
 #'   be used. Ignored if \code{n_threads < 1}.
 #' @param verbose If \code{TRUE}, log information to the console.
-#' @param progress Determines the type of progress information logged if
-#'   \code{verbose = TRUE}. Options are:
-#'   \itemize{
-#'     \item \code{"bar"}: a simple text progress bar.
-#'     \item \code{"dist"}: the sum of the distances in the approximate knn
-#'     graph at the end of each iteration.
-#'   }
 #' @return a list containing:
 #' \itemize{
 #'   \item \code{idx} an n by k matrix containing the nearest neighbor indices.
@@ -730,10 +723,7 @@ nnd_knn_query <- function(reference,
                           use_alt_metric = TRUE,
                           n_threads = 0,
                           grain_size = 1,
-                          verbose = FALSE,
-                          progress = "bar") {
-  stopifnot(tolower(progress) %in% c("bar", "dist"))
-
+                          verbose = FALSE) {
   reference <- x2m(reference)
   query <- x2m(query)
 
@@ -797,8 +787,7 @@ nnd_knn_query <- function(reference,
       low_memory = low_memory,
       n_threads = n_threads,
       grain_size = grain_size,
-      verbose = verbose,
-      progress = progress
+      verbose = verbose
     )
   res$idx <- res$idx + 1
   if (use_alt_metric) {

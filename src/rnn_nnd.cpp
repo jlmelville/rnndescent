@@ -324,7 +324,6 @@ List nn_descent_query(NumericMatrix reference, IntegerMatrix reference_idx,
                       std::size_t max_candidates = 50, double epsilon = 0.1,
                       std::size_t n_iters = 10, bool low_memory = true,
                       std::size_t n_threads = 0, std::size_t grain_size = 1,
-                      bool verbose = false,
-                      const std::string &progress = "bar") {
+                      bool verbose = false) {
   DISPATCH_ON_QUERY_DISTANCES(NND_QUERY_UPDATER)
 }
