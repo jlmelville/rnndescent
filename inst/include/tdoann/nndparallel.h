@@ -274,7 +274,7 @@ void nnd_query_parallel(
     const std::vector<typename Distance::Index> &reference_idx,
     const std::vector<typename Distance::Output> &reference_dist,
     GraphUpdater<Distance> &graph_updater, std::size_t max_candidates,
-    std::size_t n_iters, double delta, Progress &progress,
+    double epsilon, std::size_t n_iters, Progress &progress,
     std::size_t n_threads = 0, std::size_t grain_size = 1) {
   auto &nn_heap = graph_updater.current_graph;
   const std::size_t n_points = nn_heap.n_points;
@@ -285,7 +285,6 @@ void nnd_query_parallel(
       n_ref_points, max_candidates, reference_idx, reference_dist, n_nbrs,
       n_threads, grain_size);
 
-  const double epsilon = 0.1;
   QueryNoNSearchWorker<GraphUpdater, Distance> query_non_search_worker(
       graph_updater, ref_heap, epsilon, n_iters);
   Parallel::parallel_for(0, n_points, query_non_search_worker, n_threads,

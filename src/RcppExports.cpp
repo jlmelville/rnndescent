@@ -127,8 +127,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // nn_descent_query
-List nn_descent_query(NumericMatrix reference, IntegerMatrix reference_idx, NumericMatrix reference_dist, NumericMatrix query, IntegerMatrix nn_idx, NumericMatrix nn_dist, const std::string& metric, std::size_t max_candidates, std::size_t n_iters, double delta, bool low_memory, std::size_t n_threads, std::size_t grain_size, bool verbose, const std::string& progress);
-RcppExport SEXP _rnndescent_nn_descent_query(SEXP referenceSEXP, SEXP reference_idxSEXP, SEXP reference_distSEXP, SEXP querySEXP, SEXP nn_idxSEXP, SEXP nn_distSEXP, SEXP metricSEXP, SEXP max_candidatesSEXP, SEXP n_itersSEXP, SEXP deltaSEXP, SEXP low_memorySEXP, SEXP n_threadsSEXP, SEXP grain_sizeSEXP, SEXP verboseSEXP, SEXP progressSEXP) {
+List nn_descent_query(NumericMatrix reference, IntegerMatrix reference_idx, NumericMatrix reference_dist, NumericMatrix query, IntegerMatrix nn_idx, NumericMatrix nn_dist, const std::string& metric, std::size_t max_candidates, double epsilon, std::size_t n_iters, bool low_memory, std::size_t n_threads, std::size_t grain_size, bool verbose, const std::string& progress);
+RcppExport SEXP _rnndescent_nn_descent_query(SEXP referenceSEXP, SEXP reference_idxSEXP, SEXP reference_distSEXP, SEXP querySEXP, SEXP nn_idxSEXP, SEXP nn_distSEXP, SEXP metricSEXP, SEXP max_candidatesSEXP, SEXP epsilonSEXP, SEXP n_itersSEXP, SEXP low_memorySEXP, SEXP n_threadsSEXP, SEXP grain_sizeSEXP, SEXP verboseSEXP, SEXP progressSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -140,14 +140,14 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< NumericMatrix >::type nn_dist(nn_distSEXP);
     Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type max_candidates(max_candidatesSEXP);
+    Rcpp::traits::input_parameter< double >::type epsilon(epsilonSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type n_iters(n_itersSEXP);
-    Rcpp::traits::input_parameter< double >::type delta(deltaSEXP);
     Rcpp::traits::input_parameter< bool >::type low_memory(low_memorySEXP);
     Rcpp::traits::input_parameter< std::size_t >::type n_threads(n_threadsSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type grain_size(grain_sizeSEXP);
     Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
     Rcpp::traits::input_parameter< const std::string& >::type progress(progressSEXP);
-    rcpp_result_gen = Rcpp::wrap(nn_descent_query(reference, reference_idx, reference_dist, query, nn_idx, nn_dist, metric, max_candidates, n_iters, delta, low_memory, n_threads, grain_size, verbose, progress));
+    rcpp_result_gen = Rcpp::wrap(nn_descent_query(reference, reference_idx, reference_dist, query, nn_idx, nn_dist, metric, max_candidates, epsilon, n_iters, low_memory, n_threads, grain_size, verbose, progress));
     return rcpp_result_gen;
 END_RCPP
 }

@@ -653,14 +653,20 @@ random_knn_query <-
 #' is available. In this case, the distances will be recalculated internally
 #' and only the contents of \code{init$idx} will be used.
 #' @param n_iters Number of iterations of nearest neighbor descent to carry out.
+#' @param epsilon Controls trade-off between accuracy and search cost, by
+#'   specifying a distance tolerance on whether to explore the neighbors of
+#'   candidate points. The larger the value, the more neighbors will be
+#'   searched. A value of 0.1 allows query-candidate distances to be 10% larger
+#'   than the current most-distant neighbor of the query point, 0.2 means 20%,
+#'   and so on. Suggested values are between 0-0.5, although this value is
+#'   highly dependent on the distribution of distances in the dataset (higher
+#'   dimensional data should choose a smaller cutoff). Too large a value of
+#'   \code{epsilon} will result in the query search approaching brute force
+#'   comparison. Use this parameter in conjunction with \code{n_iters} and
+#'   \code{max_candidates} to prevent excessive run time. Default is 0.1.
 #' @param max_candidates Maximum number of candidate neighbors to try for each
 #'   item in each iteration. Use relative to \code{k} to emulate the "rho"
 #'   sampling parameter in the nearest neighbor descent paper.
-#' @param delta The minimum relative change in the neighbor graph allowed before
-#'   early stopping. Should be a value between 0 and 1. The smaller the value,
-#'   the smaller the amount of progress between iterations is allowed. Default
-#'   value of \code{0.001} means that at least 0.1% of the neighbor graph must
-#'   be updated at each iteration.
 #' @param low_memory If \code{TRUE}, use a lower memory, but more
 #'   computationally expensive approach to index construction. If set to
 #'   \code{FALSE}, you should see a noticeable speed improvement, especially
@@ -718,8 +724,8 @@ nnd_knn_query <- function(reference,
                           metric = "euclidean",
                           init = NULL,
                           n_iters = 10,
+                          epsilon = 0.1,
                           max_candidates = 20,
-                          delta = 0.001,
                           low_memory = TRUE,
                           use_alt_metric = TRUE,
                           n_threads = 0,
@@ -785,9 +791,9 @@ nnd_knn_query <- function(reference,
       init$idx,
       init$dist,
       metric = actual_metric,
-      n_iters = n_iters,
       max_candidates = max_candidates,
-      delta = delta,
+      epsilon = epsilon,
+      n_iters = n_iters,
       low_memory = low_memory,
       n_threads = n_threads,
       grain_size = grain_size,

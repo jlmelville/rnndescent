@@ -238,7 +238,7 @@ template <template <typename> class GraphUpdater, typename Distance,
 void nnd_query(const std::vector<typename Distance::Index> &reference_idx,
                const std::vector<typename Distance::Output> &reference_dist,
                GraphUpdater<Distance> &graph_updater,
-               std::size_t max_candidates, std::size_t n_iters, double delta,
+               std::size_t max_candidates, double epsilon, std::size_t n_iters,
                Progress &progress) {
   using DistOut = typename Distance::Output;
   using Idx = typename Distance::Index;
@@ -250,7 +250,6 @@ void nnd_query(const std::vector<typename Distance::Index> &reference_idx,
   NNHeap<DistOut, Idx> ref_heap = build_ref_nbrs(
       n_ref_points, max_candidates, reference_idx, reference_dist, n_nbrs);
 
-  const double epsilon = 0.1;
   non_search_query(graph_updater, ref_heap, epsilon, progress, n_iters);
   progress.heap_report(nn_heap);
 }

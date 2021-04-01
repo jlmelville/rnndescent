@@ -12,12 +12,11 @@ nnd_knn_query(
   metric = "euclidean",
   init = NULL,
   n_iters = 10,
+  epsilon = 0.1,
   max_candidates = 20,
-  delta = 0.001,
   low_memory = TRUE,
   use_alt_metric = TRUE,
   n_threads = 0,
-  block_size = 16384,
   grain_size = 1,
   verbose = FALSE,
   progress = "bar"
@@ -65,15 +64,21 @@ and only the contents of \code{init$idx} will be used.}
 
 \item{n_iters}{Number of iterations of nearest neighbor descent to carry out.}
 
+\item{epsilon}{Controls trade-off between accuracy and search cost, by
+specifying a distance tolerance on whether to explore the neighbors of
+candidate points. The larger the value, the more neighbors will be
+searched. A value of 0.1 allows query-candidate distances to be 10% larger
+than the current most-distant neighbor of the query point, 0.2 means 20%,
+and so on. Suggested values are between 0-0.5, although this value is
+highly dependent on the distribution of distances in the dataset (higher
+dimensional data should choose a smaller cutoff). Too large a value of
+\code{epsilon} will result in the query search approaching brute force
+comparison. Use this parameter in conjunction with \code{n_iters} and
+\code{max_candidates} to prevent excessive run time. Default is 0.1.}
+
 \item{max_candidates}{Maximum number of candidate neighbors to try for each
 item in each iteration. Use relative to \code{k} to emulate the "rho"
 sampling parameter in the nearest neighbor descent paper.}
-
-\item{delta}{The minimum relative change in the neighbor graph allowed before
-early stopping. Should be a value between 0 and 1. The smaller the value,
-the smaller the amount of progress between iterations is allowed. Default
-value of \code{0.001} means that at least 0.1% of the neighbor graph must
-be updated at each iteration.}
 
 \item{low_memory}{If \code{TRUE}, use a lower memory, but more
 computationally expensive approach to index construction. If set to
@@ -89,11 +94,6 @@ sort of numeric issue is occurring with your data in the alternative code
 path.}
 
 \item{n_threads}{Number of threads to use.}
-
-\item{block_size}{Batch size for creating/applying local join updates. A
-smaller value will apply the update more often, which may help reduce the
-number of unnecessary distance calculations, at the cost of more overhead
-associated with multi-threading code. Ignored if \code{n_threads < 1}.}
 
 \item{grain_size}{Minimum batch size for multithreading. If the number of
 items to process in a thread falls below this number, then no threads will

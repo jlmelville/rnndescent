@@ -39,6 +39,10 @@ using namespace Rcpp;
   return nnd_impl.get_nn<GraphUpdate, Distance, Progress, NNDProgress>(        \
       nn_idx, nn_dist, max_candidates, n_iters, delta, verbose);
 
+#define NND_QUERY_IMPL()                                                       \
+  return nnd_impl.get_nn<GraphUpdate, Distance, Progress, NNDProgress>(        \
+      nn_idx, nn_dist, max_candidates, epsilon, n_iters, verbose);
+
 #define NND_PROGRESS()                                                         \
   if (progress == "bar") {                                                     \
     using Progress = RPProgress;                                               \
@@ -49,6 +53,11 @@ using namespace Rcpp;
     using NNDProgress = tdoann::HeapSumProgress<Progress>;                     \
     NND_IMPL()                                                                 \
   }
+
+#define NND_QUERY_PROGRESS()                                                   \
+  using Progress = RPProgress;                                                 \
+  using NNDProgress = tdoann::NNDProgress<Progress>;                           \
+  NND_QUERY_IMPL()
 
 #define NND_BUILD_UPDATER()                                                    \
   if (n_threads > 0) {                                                         \
@@ -80,20 +89,20 @@ using namespace Rcpp;
                      n_threads, grain_size);                                   \
     if (low_memory) {                                                          \
       using GraphUpdate = tdoann::upd::Factory<tdoann::upd::QueryBatch>;       \
-      NND_PROGRESS()                                                           \
+      NND_QUERY_PROGRESS()                                                     \
     } else {                                                                   \
       using GraphUpdate = tdoann::upd::Factory<tdoann::upd::QueryBatchHiMem>;  \
-      NND_PROGRESS()                                                           \
+      NND_QUERY_PROGRESS()                                                     \
     }                                                                          \
   } else {                                                                     \
     using NNDImpl = NNDQuerySerial;                                            \
     NNDImpl nnd_impl(reference, query, reference_idx, reference_dist);         \
     if (low_memory) {                                                          \
       using GraphUpdate = tdoann::upd::Factory<tdoann::upd::QuerySerial>;      \
-      NND_PROGRESS()                                                           \
+      NND_QUERY_PROGRESS()                                                     \
     } else {                                                                   \
       using GraphUpdate = tdoann::upd::Factory<tdoann::upd::QuerySerialHiMem>; \
-      NND_PROGRESS()                                                           \
+      NND_QUERY_PROGRESS()                                                     \
     }                                                                          \
   }
 
@@ -203,8 +212,8 @@ struct NNDQuerySerial {
   template <typename GraphUpdate, typename Distance, typename Progress,
             typename NNDProgress>
   auto get_nn(IntegerMatrix nn_idx, NumericMatrix nn_dist,
-              std::size_t max_candidates = 50, std::size_t n_iters = 10,
-              double delta = 0.001, bool verbose = false) -> List {
+              std::size_t max_candidates = 50, double epsilon = 0.1,
+              std::size_t n_iters = 10, bool verbose = false) -> List {
 
     using Out = typename Distance::Output;
     using Index = typename Distance::Index;
@@ -234,7 +243,7 @@ struct NNDQuerySerial {
     NNDProgress nnd_progress(progress);
 
     tdoann::nnd_query(ref_idx_vec, ref_dist_vec, graph_updater, max_candidates,
-                      n_iters, delta, nnd_progress);
+                      epsilon, n_iters, nnd_progress);
     nnd_heap.deheap_sort();
     Graph result = heap_to_graph(nnd_heap);
     return graph_to_r(result);
@@ -260,8 +269,8 @@ struct NNDQueryParallel {
   template <typename GraphUpdate, typename Distance, typename Progress,
             typename NNDProgress>
   auto get_nn(IntegerMatrix nn_idx, NumericMatrix nn_dist,
-              std::size_t max_candidates = 50, std::size_t n_iters = 10,
-              double delta = 0.001, bool verbose = false) -> List {
+              std::size_t max_candidates = 50, double epsilon = 0.1,
+              std::size_t n_iters = 10, bool verbose = false) -> List {
     using Out = typename Distance::Output;
     using Index = typename Distance::Index;
     using Graph = tdoann::NNGraph<Out, Index>;
@@ -287,8 +296,8 @@ struct NNDQueryParallel {
     NNDProgress nnd_progress(progress);
 
     tdoann::nnd_query_parallel<RParallel>(
-        ref_idx_vec, ref_dist_vec, graph_updater, max_candidates, n_iters,
-        delta, nnd_progress, n_threads, grain_size);
+        ref_idx_vec, ref_dist_vec, graph_updater, max_candidates, epsilon,
+        n_iters, nnd_progress, n_threads, grain_size);
 
     nnd_heap.deheap_sort();
     Graph result = heap_to_graph(nnd_heap);
@@ -312,8 +321,8 @@ List nn_descent_query(NumericMatrix reference, IntegerMatrix reference_idx,
                       NumericMatrix reference_dist, NumericMatrix query,
                       IntegerMatrix nn_idx, NumericMatrix nn_dist,
                       const std::string &metric = "euclidean",
-                      std::size_t max_candidates = 50, std::size_t n_iters = 10,
-                      double delta = 0.001, bool low_memory = true,
+                      std::size_t max_candidates = 50, double epsilon = 0.1,
+                      std::size_t n_iters = 10, bool low_memory = true,
                       std::size_t n_threads = 0, std::size_t grain_size = 1,
                       bool verbose = false,
                       const std::string &progress = "bar") {
