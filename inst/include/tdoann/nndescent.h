@@ -27,6 +27,10 @@
 #ifndef TDOANN_NNDESCENT_H
 #define TDOANN_NNDESCENT_H
 
+#include <queue>
+#include <unordered_set>
+#include <utility>
+
 #include "graphupdate.h"
 #include "heap.h"
 #include "nngraph.h"
@@ -240,65 +244,119 @@ void nnd_query(const std::vector<typename Distance::Index> &reference_idx,
   using Idx = typename Distance::Index;
 
   auto &nn_heap = graph_updater.current_graph;
-  const std::size_t n_points = nn_heap.n_points;
   const std::size_t n_nbrs = nn_heap.n_nbrs;
 
   const std::size_t n_ref_points = graph_updater.distance.nx;
   NNHeap<DistOut, Idx> ref_heap = build_ref_nbrs(
       n_ref_points, max_candidates, reference_idx, reference_dist, n_nbrs);
 
-  const double tol = delta * n_nbrs * n_points;
-  for (std::size_t n = 0; n < n_iters; n++) {
-    std::size_t c = non_search_query(graph_updater, ref_heap, progress);
+  const double epsilon = 0.1;
+  non_search_query(graph_updater, ref_heap, epsilon, progress, n_iters);
+  progress.heap_report(nn_heap);
+}
+
+template <typename T>
+auto contains(const std::unordered_set<T> &set, T &e) -> bool {
+  return set.find(e) != set.end();
+}
+
+template <typename T, typename Container, typename Compare>
+auto pop(std::priority_queue<T, Container, Compare> &pq) -> T {
+  auto result = pq.top();
+  pq.pop();
+  return result;
+}
+
+template <template <typename> class GraphUpdater, typename Distance,
+          typename Progress>
+void non_search_query(
+    GraphUpdater<Distance> &graph_updater,
+    const NNHeap<typename Distance::Output, typename Distance::Index> &ref_heap,
+    double epsilon, Progress &progress, std::size_t n_iters, std::size_t begin,
+    std::size_t end) {
+
+  using DistOut = typename Distance::Output;
+  using Idx = typename Distance::Index;
+  using Seed = std::pair<DistOut, Idx>;
+
+  auto &distance = graph_updater.distance;
+  auto &current_graph = graph_updater.current_graph;
+
+  Idx ref_idx = 0;
+  Idx nbr_ref_idx = 0;
+  std::size_t rnidx = 0;
+
+  const std::size_t n_nbrs = current_graph.n_nbrs;
+  const std::size_t max_candidates = ref_heap.n_nbrs;
+  std::unordered_set<Idx> visited;
+
+  // std::priority_queue is a max heap, so we need to implement the comparison
+  // as "greater than" to get the smallest distance first
+  auto cmp = [](Seed left, Seed right) { return left.first > right.first; };
+  const double distance_scale = 1.0 + epsilon;
+
+  for (std::size_t query_idx = begin; query_idx < end; query_idx++) {
+    std::priority_queue<Seed, std::vector<Seed>, decltype(cmp)> seed_set(cmp);
+    for (std::size_t j = 0; j < n_nbrs; j++) {
+      if (ref_idx == current_graph.npos()) {
+        continue;
+      }
+      Idx candidate = current_graph.index(query_idx, j);
+      seed_set.emplace(current_graph.distance(query_idx, j), candidate);
+      visited.insert(candidate);
+    }
+
+    double distance_bound =
+        distance_scale *
+        static_cast<double>(current_graph.max_distance(query_idx));
+
+    for (std::size_t n = 0; n < n_iters; n++) {
+      if (seed_set.empty()) {
+        break;
+      }
+
+      Seed vertex = pop(seed_set);
+      DistOut d_vertex = vertex.first;
+      Idx ref_idx = vertex.second;
+
+      if (d_vertex >= distance_bound) {
+        break;
+      }
+
+      rnidx = ref_idx * max_candidates;
+      for (std::size_t k = 0; k < max_candidates; k++) {
+        nbr_ref_idx = ref_heap.idx[rnidx + k];
+        if (nbr_ref_idx == ref_heap.npos() || contains(visited, nbr_ref_idx)) {
+          continue;
+        }
+        visited.insert(nbr_ref_idx);
+        DistOut d = distance(nbr_ref_idx, query_idx);
+        if (static_cast<double>(d) >= distance_bound) {
+          continue;
+        }
+        current_graph.checked_push(query_idx, d, nbr_ref_idx);
+        seed_set.emplace(d, nbr_ref_idx);
+        distance_bound =
+            distance_scale *
+            static_cast<double>(current_graph.max_distance(query_idx));
+      }
+    }
+
     TDOANN_ITERFINISHED();
-    progress.heap_report(nn_heap);
-    TDOANN_CHECKCONVERGENCE();
+    visited.clear();
   }
 }
 
 // Use neighbor-of-neighbor search rather than local join to update the kNN.
 template <template <typename> class GraphUpdater, typename Distance,
           typename Progress>
-auto non_search_query(
+void non_search_query(
     GraphUpdater<Distance> &graph_updater,
     const NNHeap<typename Distance::Output, typename Distance::Index> &ref_heap,
-    Progress &progress) -> std::size_t {
-  auto &current_graph = graph_updater.current_graph;
-  const std::size_t n_points = current_graph.n_points;
-  progress.set_n_blocks(n_points);
+    double epsilon, Progress &progress, std::size_t n_iters) {
 
-  std::size_t c = 0;
-  std::size_t ref_idx = 0;
-  std::size_t nbr_ref_idx = 0;
-  std::size_t rnidx = 0;
-
-  const std::size_t n_nbrs = current_graph.n_nbrs;
-  const std::size_t max_candidates = ref_heap.n_nbrs;
-  typename GraphUpdater<Distance>::NeighborSet seen(n_nbrs);
-
-  for (std::size_t query_idx = 0; query_idx < n_points; query_idx++) {
-    for (std::size_t j = 0; j < n_nbrs; j++) {
-      ref_idx = current_graph.index(query_idx, j);
-      if (ref_idx == current_graph.npos()) {
-        continue;
-      }
-      if (current_graph.flag(query_idx, j) == 0) {
-        continue;
-      }
-      current_graph.flag(query_idx, j) = 0;
-      rnidx = ref_idx * max_candidates;
-      for (std::size_t k = 0; k < max_candidates; k++) {
-        nbr_ref_idx = ref_heap.idx[rnidx + k];
-        if (nbr_ref_idx == ref_heap.npos() || seen.contains(nbr_ref_idx)) {
-          continue;
-        }
-        c += graph_updater.generate_and_apply(query_idx, nbr_ref_idx);
-      }
-    }
-    TDOANN_BLOCKFINISHED();
-    seen.clear();
-  }
-  return c;
+  non_search_query(graph_updater, ref_heap, epsilon, progress, n_iters, 0,
+                   graph_updater.current_graph.n_points);
 }
 } // namespace tdoann
 #endif // TDOANN_NNDESCENT_H

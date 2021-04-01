@@ -205,6 +205,8 @@ template <typename DistOut = float, typename Idx = uint32_t> struct NNDHeap {
 
   auto flag(Idx i, Idx j) const -> char { return flags[i * n_nbrs + j]; }
   auto flag(Idx i, Idx j) -> char & { return flags[i * n_nbrs + j]; }
+
+  auto max_distance(Idx i) const -> DistOut { return dist[i * n_nbrs]; }
 };
 
 // Like NNDHeap, but no flag vector
@@ -366,6 +368,8 @@ template <typename DistOut = float, typename Idx = uint32_t> struct NNHeap {
   auto index(Idx i, Idx j) const -> Idx { return idx[i * n_nbrs + j]; }
 
   auto distance(Idx i, Idx j) const -> DistOut { return dist[i * n_nbrs + j]; }
+
+  auto max_distance(Idx i) const -> DistOut { return dist[i * n_nbrs]; }
 };
 
 template <typename NbrHeap> struct HeapSortWorker : public BatchParallelWorker {
