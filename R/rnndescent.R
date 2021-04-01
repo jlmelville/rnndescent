@@ -711,7 +711,7 @@ nnd_knn_query <- function(reference,
                           k = NULL,
                           metric = "euclidean",
                           init = NULL,
-                          n_iters = 10,
+                          n_iters = Inf,
                           epsilon = 0.1,
                           max_candidates = 20,
                           use_alt_metric = TRUE,
@@ -765,6 +765,12 @@ nnd_knn_query <- function(reference,
     }
   }
   reference_idx <- prepare_ref_idx(reference_idx, k)
+
+  # We need to convert from Inf to an actual integer value. This is sufficiently
+  # big for our purposes
+  if (is.infinite(n_iters)) {
+    n_iters <- .Machine$integer.max
+  }
 
   res <-
     nn_descent_query(
