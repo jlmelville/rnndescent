@@ -176,38 +176,42 @@ auto local_join(
 // Create the neighbor list for each reference item, i.e. the
 // neighbor-of-neighbors that are used when doing NND queries
 template <typename DistOut, typename Idx>
-void build_ref_nbrs(const std::vector<Idx> &reference_idx,
-                    const std::vector<DistOut> &reference_dist,
-                    std::size_t n_nbrs, NNHeap<DistOut, Idx> &ref_heap,
-                    std::size_t begin, std::size_t end) {
+void build_query_candidates(const std::vector<Idx> &reference_idx,
+                            const std::vector<DistOut> &reference_dist,
+                            std::size_t n_nbrs,
+                            NNHeap<DistOut, Idx> &query_candidates,
+                            std::size_t begin, std::size_t end) {
   for (std::size_t i = begin; i < end; i++) {
     std::size_t innbrs = i * n_nbrs;
     for (std::size_t j = 0; j < n_nbrs; j++) {
       auto nbr = reference_idx[innbrs + j];
-      if (nbr == ref_heap.npos()) {
+      if (nbr == query_candidates.npos()) {
         continue;
       }
-      ref_heap.checked_push_pair(i, reference_dist[innbrs + j], nbr);
+      query_candidates.checked_push_pair(i, reference_dist[innbrs + j], nbr);
     }
   }
 }
 
 template <typename DistOut, typename Idx>
-void build_ref_nbrs(const std::vector<Idx> &reference_idx,
-                    const std::vector<DistOut> &reference_dist,
-                    std::size_t n_nbrs, NNHeap<DistOut, Idx> &ref_heap) {
-  build_ref_nbrs(reference_idx, reference_dist, n_nbrs, ref_heap, 0,
-                 ref_heap.n_points);
+void build_query_candidates(const std::vector<Idx> &reference_idx,
+                            const std::vector<DistOut> &reference_dist,
+                            std::size_t n_nbrs,
+                            NNHeap<DistOut, Idx> &query_candidates) {
+  build_query_candidates(reference_idx, reference_dist, n_nbrs,
+                         query_candidates, 0, query_candidates.n_points);
 }
 
 template <typename DistOut, typename Idx>
-auto build_ref_nbrs(std::size_t n_ref_points, std::size_t max_candidates,
-                    const std::vector<Idx> &reference_idx,
-                    const std::vector<DistOut> &reference_dist,
-                    std::size_t n_nbrs) -> NNHeap<DistOut, Idx> {
-  NNHeap<DistOut, Idx> ref_heap(n_ref_points, max_candidates);
-  build_ref_nbrs(reference_idx, reference_dist, n_nbrs, ref_heap);
-  return ref_heap;
+auto build_query_candidates(std::size_t n_ref_points,
+                            std::size_t max_candidates,
+                            const std::vector<Idx> &reference_idx,
+                            const std::vector<DistOut> &reference_dist,
+                            std::size_t n_nbrs) -> NNHeap<DistOut, Idx> {
+  NNHeap<DistOut, Idx> query_candidates(n_ref_points, max_candidates);
+  build_query_candidates(reference_idx, reference_dist, n_nbrs,
+                         query_candidates);
+  return query_candidates;
 }
 
 // No local join available when querying because there's no symmetry in the
@@ -244,10 +248,11 @@ void nnd_query(
   using Idx = typename Distance::Index;
   const std::size_t n_nbrs = nn_heap.n_nbrs;
   const std::size_t n_ref_points = distance.nx;
-  NNHeap<DistOut, Idx> ref_heap = build_ref_nbrs(
+  NNHeap<DistOut, Idx> query_candidates = build_query_candidates(
       n_ref_points, max_candidates, reference_idx, reference_dist, n_nbrs);
 
-  non_search_query(nn_heap, distance, ref_heap, epsilon, progress, n_iters);
+  non_search_query(nn_heap, distance, query_candidates, epsilon, progress,
+                   n_iters);
   progress.heap_report(nn_heap);
 }
 
@@ -267,7 +272,8 @@ template <typename Distance, typename Progress>
 void non_search_query(
     NNHeap<typename Distance::Output, typename Distance::Index> &current_graph,
     const Distance &distance,
-    const NNHeap<typename Distance::Output, typename Distance::Index> &ref_heap,
+    const NNHeap<typename Distance::Output, typename Distance::Index>
+        &query_candidates,
     double epsilon, Progress &progress, std::size_t n_iters, std::size_t begin,
     std::size_t end) {
 
@@ -275,12 +281,8 @@ void non_search_query(
   using Idx = typename Distance::Index;
   using Seed = std::pair<DistOut, Idx>;
 
-  Idx ref_idx = 0;
-  Idx nbr_ref_idx = 0;
-  std::size_t rnidx = 0;
-
   const std::size_t n_nbrs = current_graph.n_nbrs;
-  const std::size_t max_candidates = ref_heap.n_nbrs;
+  const std::size_t max_candidates = query_candidates.n_nbrs;
   std::unordered_set<Idx> visited;
 
   // std::priority_queue is a max heap, so we need to implement the comparison
@@ -291,12 +293,12 @@ void non_search_query(
   for (std::size_t query_idx = begin; query_idx < end; query_idx++) {
     std::priority_queue<Seed, std::vector<Seed>, decltype(cmp)> seed_set(cmp);
     for (std::size_t j = 0; j < n_nbrs; j++) {
-      if (ref_idx == current_graph.npos()) {
+      Idx candidate_idx = current_graph.index(query_idx, j);
+      if (candidate_idx == current_graph.npos()) {
         continue;
       }
-      Idx candidate = current_graph.index(query_idx, j);
-      seed_set.emplace(current_graph.distance(query_idx, j), candidate);
-      visited.insert(candidate);
+      seed_set.emplace(current_graph.distance(query_idx, j), candidate_idx);
+      visited.insert(candidate_idx);
     }
 
     double distance_bound =
@@ -310,25 +312,24 @@ void non_search_query(
 
       Seed vertex = pop(seed_set);
       DistOut d_vertex = vertex.first;
-      Idx ref_idx = vertex.second;
-
       if (d_vertex >= distance_bound) {
         break;
       }
-
-      rnidx = ref_idx * max_candidates;
+      Idx vertex_idx = vertex.second;
+      std::size_t vidx = vertex_idx * max_candidates;
       for (std::size_t k = 0; k < max_candidates; k++) {
-        nbr_ref_idx = ref_heap.idx[rnidx + k];
-        if (nbr_ref_idx == ref_heap.npos() || contains(visited, nbr_ref_idx)) {
+        Idx candidate_idx = query_candidates.idx[vidx + k];
+        if (candidate_idx == query_candidates.npos() ||
+            contains(visited, candidate_idx)) {
           continue;
         }
-        visited.insert(nbr_ref_idx);
-        DistOut d = distance(nbr_ref_idx, query_idx);
+        visited.insert(candidate_idx);
+        DistOut d = distance(candidate_idx, query_idx);
         if (static_cast<double>(d) >= distance_bound) {
           continue;
         }
-        current_graph.checked_push(query_idx, d, nbr_ref_idx);
-        seed_set.emplace(d, nbr_ref_idx);
+        current_graph.checked_push(query_idx, d, candidate_idx);
+        seed_set.emplace(d, candidate_idx);
         distance_bound =
             distance_scale *
             static_cast<double>(current_graph.max_distance(query_idx));
@@ -345,10 +346,11 @@ template <typename Distance, typename Progress>
 void non_search_query(
     NNHeap<typename Distance::Output, typename Distance::Index> &current_graph,
     const Distance &distance,
-    const NNHeap<typename Distance::Output, typename Distance::Index> &ref_heap,
+    const NNHeap<typename Distance::Output, typename Distance::Index>
+        &query_candidates,
     double epsilon, Progress &progress, std::size_t n_iters) {
 
-  non_search_query(current_graph, distance, ref_heap, epsilon, progress,
+  non_search_query(current_graph, distance, query_candidates, epsilon, progress,
                    n_iters, 0, current_graph.n_points);
 }
 } // namespace tdoann
