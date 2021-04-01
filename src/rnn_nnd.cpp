@@ -275,7 +275,7 @@ struct NNDQueryParallel {
     auto ref_dist_vec = Rcpp::as<std::vector<Out>>(ref_dist);
 
     Distance distance(ref_vec, query_vec, reference.ncol());
-    Progress progress(n_iters, verbose);
+    Progress progress(1, verbose);
     NNDProgress nnd_progress(progress);
 
     tdoann::nnd_query_parallel<RParallel>(

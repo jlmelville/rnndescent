@@ -295,8 +295,8 @@ void nnd_query_parallel(
 
   QueryNoNSearchWorker<Distance> query_non_search_worker(
       nn_heap, distance, query_candidates, epsilon, n_iters);
-  Parallel::parallel_for(0, n_points, query_non_search_worker, n_threads,
-                         grain_size);
+  batch_parallel_for<Parallel>(query_non_search_worker, progress, n_points,
+                               n_threads, grain_size);
 }
 } // namespace tdoann
 #endif // TDOANN_NNDPARALLEL_H
