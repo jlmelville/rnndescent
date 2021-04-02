@@ -35,7 +35,6 @@
 #include "heap.h"
 #include "nngraph.h"
 #include "progress.h"
-#include "typedefs.h"
 
 namespace tdoann {
 // mark any neighbor in the current graph that was retained in the new

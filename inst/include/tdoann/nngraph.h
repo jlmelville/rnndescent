@@ -30,7 +30,8 @@
 #include <mutex>
 #include <vector>
 
-#include "typedefs.h"
+#include "heap.h"
+#include "parallel.h"
 
 namespace tdoann {
 

@@ -31,7 +31,6 @@
 #include <vector>
 
 #include "heap.h"
-#include "typedefs.h"
 
 namespace tdoann {
 

@@ -25,7 +25,6 @@
 
 #include "tdoann/heap.h"
 #include "tdoann/progress.h"
-#include "tdoann/typedefs.h"
 
 #include "rnn_util.h"
 
