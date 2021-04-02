@@ -201,18 +201,6 @@ void build_query_candidates(const std::vector<Idx> &reference_idx,
                          query_candidates, 0, query_candidates.n_points);
 }
 
-template <typename DistOut, typename Idx>
-auto build_query_candidates(std::size_t n_ref_points,
-                            std::size_t max_candidates,
-                            const std::vector<Idx> &reference_idx,
-                            const std::vector<DistOut> &reference_dist,
-                            std::size_t n_nbrs) -> NNHeap<DistOut, Idx> {
-  NNHeap<DistOut, Idx> query_candidates(n_ref_points, max_candidates);
-  build_query_candidates(reference_idx, reference_dist, n_nbrs,
-                         query_candidates);
-  return query_candidates;
-}
-
 // No local join available when querying because there's no symmetry in the
 // distances to take advantage of, so this is similar to algo #1 in the NND
 // paper with the following differences:
@@ -247,9 +235,10 @@ void nnd_query(
   using Idx = typename Distance::Index;
   const std::size_t n_nbrs = nn_heap.n_nbrs;
   const std::size_t n_ref_points = distance.nx;
-  NNHeap<DistOut, Idx> query_candidates = build_query_candidates(
-      n_ref_points, max_candidates, reference_idx, reference_dist, n_nbrs);
 
+  NNHeap<DistOut, Idx> query_candidates(n_ref_points, max_candidates);
+  build_query_candidates(reference_idx, reference_dist, n_nbrs,
+                         query_candidates);
   non_search_query(nn_heap, distance, query_candidates, epsilon, progress,
                    n_iters);
 }
