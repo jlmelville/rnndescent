@@ -40,8 +40,8 @@ using namespace Rcpp;
       nn_idx, nn_dist, max_candidates, n_iters, delta, verbose);
 
 #define NND_QUERY_IMPL()                                                       \
-  return nnd_impl.get_nn<Distance, Progress, NNDProgress>(                     \
-      nn_idx, nn_dist, max_candidates, epsilon, n_iters, verbose);
+  return nnd_impl.get_nn<Distance, Progress>(nn_idx, nn_dist, max_candidates,  \
+                                             epsilon, n_iters, verbose);
 
 #define NND_PROGRESS()                                                         \
   if (progress == "bar") {                                                     \
@@ -56,7 +56,6 @@ using namespace Rcpp;
 
 #define NND_QUERY_PROGRESS()                                                   \
   using Progress = RPProgress;                                                 \
-  using NNDProgress = tdoann::NNDProgress<Progress>;                           \
   NND_QUERY_IMPL()
 
 #define NND_BUILD_UPDATER()                                                    \
@@ -197,7 +196,7 @@ struct NNDQuerySerial {
       : reference(reference), query(query), ref_idx(ref_idx),
         ref_dist(ref_dist) {}
 
-  template <typename Distance, typename Progress, typename NNDProgress>
+  template <typename Distance, typename Progress>
   auto get_nn(IntegerMatrix nn_idx, NumericMatrix nn_dist,
               std::size_t max_candidates = 50, double epsilon = 0.1,
               std::size_t n_iters = 10, bool verbose = false) -> List {
@@ -250,7 +249,7 @@ struct NNDQueryParallel {
       : reference(reference), query(query), ref_idx(ref_idx),
         ref_dist(ref_dist), n_threads(n_threads), grain_size(grain_size) {}
 
-  template <typename Distance, typename Progress, typename NNDProgress>
+  template <typename Distance, typename Progress>
   auto get_nn(IntegerMatrix nn_idx, NumericMatrix nn_dist,
               std::size_t max_candidates = 50, double epsilon = 0.1,
               std::size_t n_iters = 10, bool verbose = false) -> List {
