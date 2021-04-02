@@ -188,7 +188,7 @@ void build_query_candidates(const std::vector<Idx> &reference_idx,
       if (nbr == query_candidates.npos()) {
         continue;
       }
-      query_candidates.checked_push_pair(i, reference_dist[innbrs + j], nbr);
+      query_candidates.checked_push(i, reference_dist[innbrs + j], nbr);
     }
   }
 }
