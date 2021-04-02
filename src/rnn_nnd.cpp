@@ -225,10 +225,9 @@ struct NNDQuerySerial {
     auto ref_dist_vec = Rcpp::as<std::vector<Out>>(ref_dist);
 
     Progress progress(query.nrow(), verbose);
-    NNDProgress nnd_progress(progress);
 
     tdoann::nnd_query(ref_idx_vec, ref_dist_vec, nn_heap, distance,
-                      max_candidates, epsilon, n_iters, nnd_progress);
+                      max_candidates, epsilon, n_iters, progress);
     nn_heap.deheap_sort();
     Graph result = heap_to_graph(nn_heap);
     return graph_to_r(result);
@@ -276,11 +275,10 @@ struct NNDQueryParallel {
 
     Distance distance(ref_vec, query_vec, reference.ncol());
     Progress progress(1, verbose);
-    NNDProgress nnd_progress(progress);
 
     tdoann::nnd_query_parallel<RParallel>(
         ref_idx_vec, ref_dist_vec, nn_heap, distance, max_candidates, epsilon,
-        n_iters, nnd_progress, n_threads, grain_size);
+        n_iters, progress, n_threads, grain_size);
 
     nn_heap.deheap_sort();
     Graph result = heap_to_graph(nn_heap);

@@ -253,7 +253,6 @@ void nnd_query(
 
   non_search_query(nn_heap, distance, query_candidates, epsilon, progress,
                    n_iters);
-  progress.heap_report(nn_heap);
 }
 
 template <typename T>
