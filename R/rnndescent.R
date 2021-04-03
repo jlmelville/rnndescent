@@ -219,7 +219,7 @@ random_knn <-
 #' @param max_candidates Maximum number of candidate neighbors to try for each
 #'   item in each iteration. Use relative to \code{k} to emulate the "rho"
 #'   sampling parameter in the nearest neighbor descent paper. By default, this
-#'   is set to \code{k} or \code(60), whichever is smaller.
+#'   is set to \code{k} or \code{60}, whichever is smaller.
 #' @param delta The minimum relative change in the neighbor graph allowed before
 #'   early stopping. Should be a value between 0 and 1. The smaller the value,
 #'   the smaller the amount of progress between iterations is allowed. Default
@@ -675,7 +675,7 @@ random_knn_query <-
 #' @param max_candidates Maximum number of candidate neighbors to try for each
 #'   item in each iteration. Use relative to \code{k} to emulate the "rho"
 #'   sampling parameter in the nearest neighbor descent paper. By default, this
-#'   is set to \code{k} or \code(60), whichever is smaller.
+#'   is set to \code{k} or \code{60}, whichever is smaller.
 #' @param n_threads Number of threads to use.
 #' @param grain_size Minimum batch size for multithreading. If the number of
 #'   items to process in a thread falls below this number, then no threads will

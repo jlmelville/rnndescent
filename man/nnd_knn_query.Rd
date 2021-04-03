@@ -81,7 +81,7 @@ comparison. Use this parameter in conjunction with \code{n_iters} and
 \item{max_candidates}{Maximum number of candidate neighbors to try for each
 item in each iteration. Use relative to \code{k} to emulate the "rho"
 sampling parameter in the nearest neighbor descent paper. By default, this
-is set to \code{k} or \code(60), whichever is smaller.}
+is set to \code{k} or \code{60}, whichever is smaller.}
 
 \item{use_alt_metric}{If \code{TRUE}, use faster metrics that maintain the
 ordering of distances internally (e.g. squared Euclidean distances if using

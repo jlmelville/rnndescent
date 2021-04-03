@@ -53,7 +53,7 @@ and only the contents of \code{init$idx} will be used.}
 \item{max_candidates}{Maximum number of candidate neighbors to try for each
 item in each iteration. Use relative to \code{k} to emulate the "rho"
 sampling parameter in the nearest neighbor descent paper. By default, this
-is set to \code{k} or \code(60), whichever is smaller.}
+is set to \code{k} or \code{60}, whichever is smaller.}
 
 \item{delta}{The minimum relative change in the neighbor graph allowed before
 early stopping. Should be a value between 0 and 1. The smaller the value,
