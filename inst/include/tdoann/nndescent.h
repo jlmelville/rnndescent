@@ -302,32 +302,40 @@ void non_search_query(
         distance_scale *
         static_cast<double>(current_graph.max_distance(query_idx));
 
+    bool stop_early = false;
     for (std::size_t n = 0; n < n_iters; n++) {
-      if (seed_set.empty()) {
-        break;
-      }
+      for (std::size_t n2 = 0; n2 < max_candidates; n2++) {
+        if (seed_set.empty()) {
+          stop_early = true;
+          break;
+        }
 
-      Seed vertex = pop(seed_set);
-      DistOut d_vertex = vertex.first;
-      if (d_vertex >= distance_bound) {
+        Seed vertex = pop(seed_set);
+        DistOut d_vertex = vertex.first;
+        if (d_vertex >= distance_bound) {
+          stop_early = true;
+          break;
+        }
+        Idx vertex_idx = vertex.second;
+        for (std::size_t k = 0; k < max_candidates; k++) {
+          Idx candidate_idx = query_candidates.index(vertex_idx, k);
+          if (candidate_idx == query_candidates.npos() ||
+              has_been_and_mark_visited(visited, candidate_idx)) {
+            continue;
+          }
+          DistOut d = distance(candidate_idx, query_idx);
+          if (static_cast<double>(d) >= distance_bound) {
+            continue;
+          }
+          current_graph.checked_push(query_idx, d, candidate_idx);
+          seed_set.emplace(d, candidate_idx);
+          distance_bound =
+              distance_scale *
+              static_cast<double>(current_graph.max_distance(query_idx));
+        }
+      };
+      if (stop_early) {
         break;
-      }
-      Idx vertex_idx = vertex.second;
-      for (std::size_t k = 0; k < max_candidates; k++) {
-        Idx candidate_idx = query_candidates.index(vertex_idx, k);
-        if (candidate_idx == query_candidates.npos() ||
-            has_been_and_mark_visited(visited, candidate_idx)) {
-          continue;
-        }
-        DistOut d = distance(candidate_idx, query_idx);
-        if (static_cast<double>(d) >= distance_bound) {
-          continue;
-        }
-        current_graph.checked_push(query_idx, d, candidate_idx);
-        seed_set.emplace(d, candidate_idx);
-        distance_bound =
-            distance_scale *
-            static_cast<double>(current_graph.max_distance(query_idx));
       }
     }
 
