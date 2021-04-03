@@ -10,7 +10,7 @@ nnd_knn(
   metric = "euclidean",
   init = NULL,
   n_iters = 10,
-  max_candidates = 20,
+  max_candidates = NULL,
   delta = 0.001,
   low_memory = TRUE,
   use_alt_metric = TRUE,
@@ -52,7 +52,8 @@ and only the contents of \code{init$idx} will be used.}
 
 \item{max_candidates}{Maximum number of candidate neighbors to try for each
 item in each iteration. Use relative to \code{k} to emulate the "rho"
-sampling parameter in the nearest neighbor descent paper.}
+sampling parameter in the nearest neighbor descent paper. By default, this
+is set to \code{k} or \code(60), whichever is smaller.}
 
 \item{delta}{The minimum relative change in the neighbor graph allowed before
 early stopping. Should be a value between 0 and 1. The smaller the value,

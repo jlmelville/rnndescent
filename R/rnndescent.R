@@ -218,7 +218,8 @@ random_knn <-
 #' @param n_iters Number of iterations of nearest neighbor descent to carry out.
 #' @param max_candidates Maximum number of candidate neighbors to try for each
 #'   item in each iteration. Use relative to \code{k} to emulate the "rho"
-#'   sampling parameter in the nearest neighbor descent paper.
+#'   sampling parameter in the nearest neighbor descent paper. By default, this
+#'   is set to \code{k} or \code(60), whichever is smaller.
 #' @param delta The minimum relative change in the neighbor graph allowed before
 #'   early stopping. Should be a value between 0 and 1. The smaller the value,
 #'   the smaller the amount of progress between iterations is allowed. Default
@@ -316,7 +317,7 @@ nnd_knn <- function(data,
                     metric = "euclidean",
                     init = NULL,
                     n_iters = 10,
-                    max_candidates = 20,
+                    max_candidates = NULL,
                     delta = 0.001,
                     low_memory = TRUE,
                     use_alt_metric = TRUE,
@@ -364,6 +365,9 @@ nnd_knn <- function(data,
     else {
       init <- prepare_init_graph(init, k)
     }
+  }
+  if (is.null(max_candidates)) {
+    max_candidates <- min(k, 60)
   }
   tsmessage("Running nearest neighbor descent for ", n_iters, " iterations")
   res <- nn_descent(
@@ -670,7 +674,8 @@ random_knn_query <-
 #'   \code{max_candidates} to prevent excessive run time. Default is 0.1.
 #' @param max_candidates Maximum number of candidate neighbors to try for each
 #'   item in each iteration. Use relative to \code{k} to emulate the "rho"
-#'   sampling parameter in the nearest neighbor descent paper.
+#'   sampling parameter in the nearest neighbor descent paper. By default, this
+#'   is set to \code{k} or \code(60), whichever is smaller.
 #' @param n_threads Number of threads to use.
 #' @param grain_size Minimum batch size for multithreading. If the number of
 #'   items to process in a thread falls below this number, then no threads will
@@ -717,7 +722,7 @@ nnd_knn_query <- function(reference,
                           init = NULL,
                           n_iters = Inf,
                           epsilon = 0.1,
-                          max_candidates = 20,
+                          max_candidates = NULL,
                           use_alt_metric = TRUE,
                           n_threads = 0,
                           grain_size = 1,
@@ -770,6 +775,9 @@ nnd_knn_query <- function(reference,
   }
   reference_idx <- prepare_ref_idx(reference_idx, k)
 
+  if (is.null(max_candidates)) {
+    max_candidates <- min(k, 60)
+  }
   # We need to convert from Inf to an actual integer value. This is sufficiently
   # big for our purposes
   if (is.infinite(n_iters)) {
