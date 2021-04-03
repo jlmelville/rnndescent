@@ -28,9 +28,9 @@
 #define TDOANN_NNDESCENT_H
 
 #include <queue>
-#include <unordered_set>
 #include <utility>
 
+#include "bitvec.h"
 #include "graphupdate.h"
 #include "heap.h"
 #include "nngraph.h"
@@ -243,16 +243,25 @@ void nnd_query(
                    n_iters);
 }
 
-template <typename T>
-auto contains(const std::unordered_set<T> &set, T &e) -> bool {
-  return set.find(e) != set.end();
-}
-
 template <typename T, typename Container, typename Compare>
 auto pop(std::priority_queue<T, Container, Compare> &pq) -> T {
   auto result = pq.top();
   pq.pop();
   return result;
+}
+
+template <typename T> void mark_visited(BitVec &table, T candidate) {
+  auto res = std::ldiv(candidate, BITVEC_BIT_WIDTH);
+  table[res.quot].set(res.rem);
+}
+
+template <typename T>
+auto has_been_and_mark_visited(BitVec &table, T candidate) -> bool {
+  auto res = std::ldiv(candidate, BITVEC_BIT_WIDTH);
+  auto &chunk = table[res.quot];
+  auto is_visited = chunk.test(res.rem);
+  chunk.set(res.rem);
+  return is_visited;
 }
 
 template <typename Distance, typename Progress>
@@ -270,14 +279,15 @@ void non_search_query(
 
   const std::size_t n_nbrs = current_graph.n_nbrs;
   const std::size_t max_candidates = query_candidates.n_nbrs;
-  std::unordered_set<Idx> visited;
 
   // std::priority_queue is a max heap, so we need to implement the comparison
   // as "greater than" to get the smallest distance first
   auto cmp = [](Seed left, Seed right) { return left.first > right.first; };
   const double distance_scale = 1.0 + epsilon;
+  const std::size_t n_bitsets = bitvec_size(query_candidates.n_points);
 
   for (std::size_t query_idx = begin; query_idx < end; query_idx++) {
+    BitVec visited(n_bitsets);
     std::priority_queue<Seed, std::vector<Seed>, decltype(cmp)> seed_set(cmp);
     for (std::size_t j = 0; j < n_nbrs; j++) {
       Idx candidate_idx = current_graph.index(query_idx, j);
@@ -285,7 +295,7 @@ void non_search_query(
         continue;
       }
       seed_set.emplace(current_graph.distance(query_idx, j), candidate_idx);
-      visited.insert(candidate_idx);
+      mark_visited(visited, candidate_idx);
     }
 
     double distance_bound =
@@ -303,14 +313,12 @@ void non_search_query(
         break;
       }
       Idx vertex_idx = vertex.second;
-      std::size_t vidx = vertex_idx * max_candidates;
       for (std::size_t k = 0; k < max_candidates; k++) {
-        Idx candidate_idx = query_candidates.idx[vidx + k];
+        Idx candidate_idx = query_candidates.index(vertex_idx, k);
         if (candidate_idx == query_candidates.npos() ||
-            contains(visited, candidate_idx)) {
+            has_been_and_mark_visited(visited, candidate_idx)) {
           continue;
         }
-        visited.insert(candidate_idx);
         DistOut d = distance(candidate_idx, query_idx);
         if (static_cast<double>(d) >= distance_bound) {
           continue;
