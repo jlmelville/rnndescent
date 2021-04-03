@@ -27,9 +27,9 @@
 #ifndef TDOANN_DISTANCE_H
 #define TDOANN_DISTANCE_H
 
-#include <bitset>
-#include <cmath>
 #include <vector>
+
+#include "bitvec.h"
 
 namespace tdoann {
 template <typename In, typename Out, typename Idx = uint32_t> struct Euclidean {
@@ -203,45 +203,6 @@ template <typename In, typename Out, typename Idx = uint32_t> struct Manhattan {
   using Index = Idx;
 };
 
-template <int n> using BitSet = std::bitset<n>;
-using BitVec = std::vector<BitSet<64>>;
-
-// Instead of storing each bit as an element, we will pack them
-// into a series of 64-bit bitsets. Possibly compilers are smart enough
-// to use built in integer popcount routines for the bitset count()
-// method. Relies on NRVO to avoid copying return value
-template <typename T>
-auto to_bitvec(const std::vector<T> &vec, std::size_t ndim) -> BitVec {
-  BitSet<64> bits;
-  std::size_t bit_count = 0;
-  std::size_t vd_count = 0;
-
-  BitVec bitvec;
-
-  for (std::size_t i = 0; i < vec.size(); i++) {
-    if (bit_count == bits.size() || vd_count == ndim) {
-      // filled up current bitset
-      bitvec.push_back(bits);
-      bit_count = 0;
-      bits.reset();
-
-      if (vd_count == ndim) {
-        // end of item
-        vd_count = 0;
-      }
-    }
-    bits[bit_count] = vec[i];
-
-    ++vd_count;
-    ++bit_count;
-  }
-  if (bit_count > 0) {
-    bitvec.push_back(bits);
-  }
-
-  return bitvec;
-}
-
 template <typename Out, typename Idx = uint32_t>
 auto hamming_impl(const BitVec &x, Idx i, const BitVec &y, Idx j,
                   std::size_t len) -> Out {
@@ -265,10 +226,8 @@ struct HammingSelf {
   Idx ny;
 
   HammingSelf(const std::vector<In> &data, std::size_t ndim)
-      : bitvec(to_bitvec(data, ndim)),
-        vec_len(
-            std::ceil(ndim / static_cast<float>(BitVec::value_type{}.size()))),
-        ndim(ndim), nx(data.size() / ndim), ny(nx) {}
+      : bitvec(to_bitvec(data, ndim)), vec_len(bitvec_size(ndim)), ndim(ndim),
+        nx(data.size() / ndim), ny(nx) {}
 
   auto operator()(Idx i, Idx j) const -> Out {
     return hamming_impl<Out>(bitvec, i, bitvec, j, vec_len);
@@ -291,9 +250,8 @@ struct HammingQuery {
   HammingQuery(const std::vector<In> &x, const std::vector<In> &y,
                std::size_t ndim)
       : bx(to_bitvec(x, ndim)), by(to_bitvec(y, ndim)),
-        vec_len(
-            std::ceil(ndim / static_cast<float>(BitVec::value_type{}.size()))),
-        ndim(ndim), nx(x.size() / ndim), ny(y.size() / ndim) {}
+        vec_len(bitvec_size(ndim)), ndim(ndim), nx(x.size() / ndim),
+        ny(y.size() / ndim) {}
 
   auto operator()(Idx i, Idx j) const -> Out {
     return hamming_impl<Out>(bx, i, by, j, vec_len);
