@@ -103,7 +103,7 @@ struct NNDBuildSerial {
   auto get_nn(IntegerMatrix nn_idx, NumericMatrix nn_dist,
               std::size_t max_candidates = 50, std::size_t n_iters = 10,
               double delta = 0.001, bool verbose = false) -> List {
-    auto data_vec = r2dvt<Distance>(data);
+    auto data_vec = r_to_dist_vect<Distance>(data);
     Distance distance(data_vec, data.ncol());
 
     using Out = typename Distance::Output;
@@ -151,7 +151,7 @@ struct NNDBuildParallel {
   auto get_nn(IntegerMatrix nn_idx, NumericMatrix nn_dist,
               std::size_t max_candidates = 50, std::size_t n_iters = 10,
               double delta = 0.001, bool verbose = false) -> List {
-    auto data_vec = r2dvt<Distance>(data);
+    auto data_vec = r_to_dist_vect<Distance>(data);
 
     Distance distance(data_vec, data.ncol());
 
@@ -206,7 +206,7 @@ struct NNDQuerySerial {
     auto nn_heap =
         r_to_heap_serial<tdoann::HeapAddQuery, tdoann::NNHeap<Out, Index>>(
             nn_idx, nn_dist);
-    auto distance = r_to_distance<Distance>(reference, query);
+    auto distance = r_to_dist<Distance>(reference, query);
     auto ref_idx_vec = r_to_idx<Index>(ref_idx);
     auto ref_dist_vec = r_to_vec<Out>(ref_dist);
     Progress progress(1, verbose);
@@ -246,7 +246,7 @@ struct NNDQueryParallel {
     auto nn_heap =
         r_to_heap_serial<tdoann::HeapAddQuery, tdoann::NNHeap<Out, Index>>(
             nn_idx, nn_dist);
-    auto distance = r_to_distance<Distance>(reference, query);
+    auto distance = r_to_dist<Distance>(reference, query);
     auto ref_idx_vec = r_to_idx<Index>(ref_idx);
     auto ref_dist_vec = r_to_vec<Out>(ref_dist);
     Progress progress(1, verbose);

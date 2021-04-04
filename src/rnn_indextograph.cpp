@@ -27,12 +27,12 @@
 
 using namespace Rcpp;
 
-#define IDX_TO_GRAPH() return i2g_impl<Distance>(data, idx, verbose);
+#define IDX_TO_GRAPH() return idx_to_graph_impl<Distance>(data, idx, verbose);
 
 template <typename Distance>
-auto i2g_impl(NumericMatrix data, IntegerMatrix idx, bool verbose = false)
-    -> List {
-  auto data_vec = r2dvt<Distance>(data);
+auto idx_to_graph_impl(NumericMatrix data, IntegerMatrix idx,
+                       bool verbose = false) -> List {
+  auto data_vec = r_to_dist_vect<Distance>(data);
   auto idx_vec = r_to_idxt<typename Distance::Index>(idx);
   auto nn_graph = tdoann::indices_to_graph<Distance, RPProgress>(
       data_vec, data.ncol(), idx_vec, verbose);

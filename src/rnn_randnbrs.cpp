@@ -49,7 +49,7 @@ auto random_build_impl(NumericMatrix data, typename Distance::Index k,
                        bool verbose, std::size_t n_threads,
                        std::size_t grain_size) -> List {
 
-  auto data_vec = r2dvt<Distance>(data);
+  auto data_vec = r_to_dist_vect<Distance>(data);
 
   auto nn_graph =
       tdoann::random_build<Distance, DQIntSampler, RPProgress, RParallel>(
@@ -65,8 +65,8 @@ auto random_query_impl(NumericMatrix reference, NumericMatrix query,
                        std::size_t block_size, bool verbose,
                        std::size_t n_threads, std::size_t grain_size) -> List {
 
-  auto ref_vec = r2dvt<Distance>(reference);
-  auto query_vec = r2dvt<Distance>(query);
+  auto ref_vec = r_to_dist_vect<Distance>(reference);
+  auto query_vec = r_to_dist_vect<Distance>(query);
 
   auto nn_graph =
       tdoann::random_query<Distance, DQIntSampler, RPProgress, RParallel>(
