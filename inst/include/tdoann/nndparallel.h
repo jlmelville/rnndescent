@@ -89,6 +89,32 @@ void build_candidates(
   }
 }
 
+template <typename Parallel, typename Distance, typename ParallelRand>
+void build_candidates(
+    const NNDHeap<typename Distance::Output, typename Distance::Index> &nn_heap,
+    NNHeap<typename Distance::Output, typename Distance::Index> &new_nbrs,
+    NNHeap<typename Distance::Output, typename Distance::Index> &old_nbrs,
+    ParallelRand &parallel_rand, LockingHeapAdder<Distance> &heap_adder,
+    std::size_t n_threads, std::size_t grain_size) {
+  parallel_rand.reseed();
+  auto worker = [&](std::size_t begin, std::size_t end) {
+    build_candidates(nn_heap, new_nbrs, old_nbrs, parallel_rand, heap_adder,
+                     begin, end);
+  };
+  Parallel::parallel_for(0, nn_heap.n_points, worker, n_threads, grain_size);
+}
+
+template <typename Parallel, typename Distance>
+void flag_new_candidates(
+    NNDHeap<typename Distance::Output, typename Distance::Index> &nn_heap,
+    const NNHeap<typename Distance::Output, typename Distance::Index> &new_nbrs,
+    std::size_t n_threads, std::size_t grain_size) {
+  auto worker = [&](std::size_t begin, std::size_t end) {
+    flag_retained_new_candidates(nn_heap, new_nbrs, begin, end);
+  };
+  Parallel::parallel_for(0, nn_heap.n_points, worker, n_threads, grain_size);
+}
+
 template <typename Distance, typename GraphUpdater>
 void local_join(
     GraphUpdater &graph_updater,
@@ -121,6 +147,28 @@ void local_join(
   }
 }
 
+template <typename Parallel, typename Distance, typename GraphUpdater,
+          typename Progress>
+auto local_join(
+    GraphUpdater &graph_updater,
+    const NNHeap<typename Distance::Output, typename Distance::Index> &new_nbrs,
+    const NNHeap<typename Distance::Output, typename Distance::Index> &old_nbrs,
+    Progress &progress, std::size_t block_size, std::size_t n_threads,
+    std::size_t grain_size) -> std::size_t {
+  std::size_t c = 0;
+  auto local_join_worker = [&](std::size_t begin, std::size_t end) {
+    local_join<Distance, decltype(graph_updater)>(
+        graph_updater, new_nbrs, old_nbrs, new_nbrs.n_nbrs, begin, end);
+  };
+  auto after_local_join = [&](std::size_t, std::size_t) {
+    c += graph_updater.apply();
+  };
+  batch_parallel_for<Parallel>(local_join_worker, after_local_join, progress,
+                               graph_updater.current_graph.n_points, block_size,
+                               n_threads, grain_size);
+  return c;
+}
+
 template <typename Parallel, typename ParallelRand,
           template <typename> class GraphUpdater, typename Distance,
           typename Progress>
@@ -142,32 +190,18 @@ void nnd_build(GraphUpdater<Distance> &graph_updater,
     NNHeap<DistOut, Idx> new_nbrs(n_points, max_candidates);
     decltype(new_nbrs) old_nbrs(n_points, max_candidates);
 
-    parallel_rand.reseed();
-    auto candidates_worker = [&](std::size_t begin, std::size_t end) {
-      build_candidates(nn_heap, new_nbrs, old_nbrs, parallel_rand, heap_adder,
-                       begin, end);
-    };
-    Parallel::parallel_for(0, n_points, candidates_worker, n_threads,
-                           grain_size);
+    build_candidates<Parallel, Distance>(nn_heap, new_nbrs, old_nbrs,
+                                         parallel_rand, heap_adder, n_threads,
+                                         grain_size);
 
     // mark any neighbor in the current graph that was retained in the new
     // candidates as true
-    auto flag_new_candidates_worker = [&](std::size_t begin, std::size_t end) {
-      flag_retained_new_candidates(nn_heap, new_nbrs, begin, end);
-    };
-    Parallel::parallel_for(0, n_points, flag_new_candidates_worker, n_threads,
-                           grain_size);
+    flag_new_candidates<Parallel, Distance>(nn_heap, new_nbrs, n_threads,
+                                            grain_size);
 
-    auto local_join_worker = [&](std::size_t begin, std::size_t end) {
-      local_join<Distance, decltype(graph_updater)>(
-          graph_updater, new_nbrs, old_nbrs, max_candidates, begin, end);
-    };
-    std::size_t c = 0;
-    auto after_local_join = [&](std::size_t, std::size_t) {
-      c += graph_updater.apply();
-    };
-    batch_parallel_for<Parallel>(local_join_worker, after_local_join, progress,
-                                 n_points, block_size, n_threads, grain_size);
+    std::size_t c = local_join<Parallel, Distance>(
+        graph_updater, new_nbrs, old_nbrs, progress, block_size, n_threads,
+        grain_size);
 
     TDOANN_ITERFINISHED();
     progress.heap_report(nn_heap);
