@@ -58,11 +58,11 @@ auto r_to_heap_serial(Rcpp::IntegerMatrix nn_idx, Rcpp::NumericMatrix nn_dist,
 }
 
 template <typename HeapAdd, typename NbrHeap>
-void r_to_heap_parallel(NbrHeap &heap, Rcpp::IntegerMatrix nn_idx,
-                        Rcpp::NumericMatrix nn_dist, std::size_t n_threads,
-                        std::size_t grain_size, std::size_t block_size = 1024,
-                        int max_idx = RNND_MAX_IDX, bool missing_ok = false,
-                        bool transpose = true) {
+void r_to_heap(NbrHeap &heap, Rcpp::IntegerMatrix nn_idx,
+               Rcpp::NumericMatrix nn_dist, std::size_t n_threads,
+               std::size_t grain_size, std::size_t block_size = 1024,
+               int max_idx = RNND_MAX_IDX, bool missing_ok = false,
+               bool transpose = true) {
   zero_index(nn_idx, max_idx, missing_ok);
 
   auto nn_idxv = Rcpp::as<std::vector<typename NbrHeap::Index>>(nn_idx);
@@ -76,16 +76,14 @@ void r_to_heap_parallel(NbrHeap &heap, Rcpp::IntegerMatrix nn_idx,
 }
 
 template <typename HeapAdd, typename NbrHeap>
-auto r_to_heap_parallel(Rcpp::IntegerMatrix nn_idx, Rcpp::NumericMatrix nn_dist,
-                        std::size_t n_threads, std::size_t grain_size = 1,
-                        std::size_t block_size = 1024,
-                        int max_idx = RNND_MAX_IDX, bool missing_ok = false,
-                        bool transpose = true) -> NbrHeap {
+auto r_to_heap(Rcpp::IntegerMatrix nn_idx, Rcpp::NumericMatrix nn_dist,
+               std::size_t n_threads, std::size_t grain_size = 1,
+               std::size_t block_size = 1024, int max_idx = RNND_MAX_IDX,
+               bool missing_ok = false, bool transpose = true) -> NbrHeap {
   auto nn_idx_copy = Rcpp::clone(nn_idx);
   NbrHeap nn_heap(nn_idx_copy.nrow(), nn_idx_copy.ncol());
-  r_to_heap_parallel<HeapAdd>(nn_heap, nn_idx_copy, nn_dist, n_threads,
-                              grain_size, block_size, max_idx, missing_ok,
-                              transpose);
+  r_to_heap<HeapAdd>(nn_heap, nn_idx_copy, nn_dist, n_threads, grain_size,
+                     block_size, max_idx, missing_ok, transpose);
   return nn_heap;
 }
 

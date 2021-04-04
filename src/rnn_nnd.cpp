@@ -144,9 +144,9 @@ struct NNDBuildParallel {
     using Out = typename Distance::Output;
     using Index = typename Distance::Index;
 
-    auto nnd_heap = r_to_heap_parallel<tdoann::LockingHeapAddSymmetric,
-                                       tdoann::NNDHeap<Out, Index>>(
-        nn_idx, nn_dist, n_threads, grain_size);
+    auto nnd_heap =
+        r_to_heap<tdoann::LockingHeapAddSymmetric, tdoann::NNDHeap<Out, Index>>(
+            nn_idx, nn_dist, n_threads, grain_size);
     auto distance = r_to_dist<Distance>(data);
     auto graph_updater = GraphUpdate::create(nnd_heap, distance);
     Progress progress(n_iters, verbose);
@@ -222,9 +222,8 @@ struct NNDQueryParallel {
     using Out = typename Distance::Output;
     using Index = typename Distance::Index;
 
-    auto nn_heap =
-        r_to_heap_parallel<tdoann::HeapAddQuery, tdoann::NNHeap<Out, Index>>(
-            nn_idx, nn_dist, n_threads, grain_size);
+    auto nn_heap = r_to_heap<tdoann::HeapAddQuery, tdoann::NNHeap<Out, Index>>(
+        nn_idx, nn_dist, n_threads, grain_size);
     auto distance = r_to_dist<Distance>(reference, query);
     auto ref_idx_vec = r_to_idx<Index>(ref_idx);
     auto ref_dist_vec = r_to_vec<Out>(ref_dist);
