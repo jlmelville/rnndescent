@@ -33,14 +33,14 @@
 template <typename HeapAdd, typename NbrHeap>
 void r_to_heap_serial(NbrHeap &heap, Rcpp::IntegerMatrix nn_idx,
                       Rcpp::NumericMatrix nn_dist, std::size_t block_size,
-                      int max_idx = RNND_MAX_IDX, bool missing_ok = false) {
+                      int max_idx = RNND_MAX_IDX, bool missing_ok = false,
+                      bool transpose = true) {
   zero_index(nn_idx, max_idx, missing_ok);
 
   auto nn_idxv = Rcpp::as<std::vector<typename NbrHeap::Index>>(nn_idx);
   auto nn_distv = Rcpp::as<std::vector<typename NbrHeap::DistanceOut>>(nn_dist);
   std::size_t n_points = nn_idx.nrow();
 
-  const bool transpose = true;
   tdoann::vec_to_heap_serial<HeapAdd, RInterruptableProgress, NbrHeap>(
       heap, nn_idxv, n_points, nn_distv, block_size, transpose);
 }
@@ -49,14 +49,14 @@ template <typename HeapAdd, typename NbrHeap>
 void r_to_heap_parallel(NbrHeap &heap, Rcpp::IntegerMatrix nn_idx,
                         Rcpp::NumericMatrix nn_dist, std::size_t n_threads,
                         std::size_t block_size, std::size_t grain_size,
-                        int max_idx = RNND_MAX_IDX, bool missing_ok = false) {
+                        int max_idx = RNND_MAX_IDX, bool missing_ok = false,
+                        bool transpose = true) {
   zero_index(nn_idx, max_idx, missing_ok);
 
   auto nn_idxv = Rcpp::as<std::vector<typename NbrHeap::Index>>(nn_idx);
   auto nn_distv = Rcpp::as<std::vector<typename NbrHeap::DistanceOut>>(nn_dist);
   std::size_t n_points = nn_idx.nrow();
 
-  const bool transpose = true;
   tdoann::vec_to_heap_parallel<HeapAdd, tdoann::NullProgress, RParallel,
                                NbrHeap>(heap, nn_idxv, n_points, nn_distv,
                                         n_threads, block_size, grain_size,
