@@ -24,6 +24,11 @@
 
 #include "tdoann/distance.h"
 
+template <typename T>
+auto r_to_vec(Rcpp::NumericMatrix data) -> std::vector<T> {
+  return Rcpp::as<std::vector<T>>(data);
+}
+
 template <typename T> auto r2vt(Rcpp::NumericMatrix data) -> std::vector<T> {
   return Rcpp::as<std::vector<T>>(Rcpp::transpose(data));
 }
@@ -31,6 +36,14 @@ template <typename T> auto r2vt(Rcpp::NumericMatrix data) -> std::vector<T> {
 template <typename Distance>
 auto r2dvt(Rcpp::NumericMatrix data) -> std::vector<typename Distance::Input> {
   return r2vt<typename Distance::Input>(data);
+}
+
+template <typename Distance>
+auto r_to_distance(Rcpp::NumericMatrix reference, Rcpp::NumericMatrix query)
+    -> Distance {
+  auto ref_vec = r2dvt<Distance>(reference);
+  auto query_vec = r2dvt<Distance>(query);
+  return Distance(ref_vec, query_vec, reference.ncol());
 }
 
 #endif // RNN_DISTANCE_H
