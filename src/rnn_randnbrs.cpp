@@ -82,7 +82,7 @@ auto random_query_impl(NumericMatrix reference, NumericMatrix query,
 List random_knn_cpp(Rcpp::NumericMatrix data, uint32_t k,
                     const std::string &metric = "euclidean",
                     bool order_by_distance = true, std::size_t n_threads = 0,
-                    std::size_t block_size = 4096, std::size_t grain_size = 1,
+                    std::size_t grain_size = 1, std::size_t block_size = 4096,
                     bool verbose = false){
     DISPATCH_ON_DISTANCES(RANDOM_NBRS_BUILD)}
 
@@ -90,8 +90,7 @@ List random_knn_cpp(Rcpp::NumericMatrix data, uint32_t k,
 List random_knn_query_cpp(NumericMatrix reference, NumericMatrix query,
                           uint32_t k, const std::string &metric = "euclidean",
                           bool order_by_distance = true,
-                          std::size_t n_threads = 0,
-                          std::size_t block_size = 4096,
-                          std::size_t grain_size = 1, bool verbose = false) {
+                          std::size_t n_threads = 0, std::size_t grain_size = 1,
+                          std::size_t block_size = 4096, bool verbose = false) {
   DISPATCH_ON_QUERY_DISTANCES(RANDOM_NBRS_QUERY)
 }

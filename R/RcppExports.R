@@ -33,11 +33,11 @@ nn_descent_query <- function(reference, reference_idx, reference_dist, query, nn
     .Call(`_rnndescent_nn_descent_query`, reference, reference_idx, reference_dist, query, nn_idx, nn_dist, metric, max_candidates, epsilon, n_iters, n_threads, grain_size, verbose)
 }
 
-random_knn_cpp <- function(data, k, metric = "euclidean", order_by_distance = TRUE, n_threads = 0L, block_size = 4096L, grain_size = 1L, verbose = FALSE) {
-    .Call(`_rnndescent_random_knn_cpp`, data, k, metric, order_by_distance, n_threads, block_size, grain_size, verbose)
+random_knn_cpp <- function(data, k, metric = "euclidean", order_by_distance = TRUE, n_threads = 0L, grain_size = 1L, block_size = 4096L, verbose = FALSE) {
+    .Call(`_rnndescent_random_knn_cpp`, data, k, metric, order_by_distance, n_threads, grain_size, block_size, verbose)
 }
 
-random_knn_query_cpp <- function(reference, query, k, metric = "euclidean", order_by_distance = TRUE, n_threads = 0L, block_size = 4096L, grain_size = 1L, verbose = FALSE) {
-    .Call(`_rnndescent_random_knn_query_cpp`, reference, query, k, metric, order_by_distance, n_threads, block_size, grain_size, verbose)
+random_knn_query_cpp <- function(reference, query, k, metric = "euclidean", order_by_distance = TRUE, n_threads = 0L, grain_size = 1L, block_size = 4096L, verbose = FALSE) {
+    .Call(`_rnndescent_random_knn_query_cpp`, reference, query, k, metric, order_by_distance, n_threads, grain_size, block_size, verbose)
 }
 
