@@ -24,15 +24,7 @@
 
 #include "tdoann/distance.h"
 
-template <typename T>
-auto r_to_vec(Rcpp::NumericMatrix data) -> std::vector<T> {
-  return Rcpp::as<std::vector<T>>(data);
-}
-
-template <typename T>
-auto r_to_vect(Rcpp::NumericMatrix data) -> std::vector<T> {
-  return Rcpp::as<std::vector<T>>(Rcpp::transpose(data));
-}
+#include "rnn_util.h"
 
 template <typename Distance>
 auto r_to_dist_vect(Rcpp::NumericMatrix data)
