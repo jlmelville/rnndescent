@@ -230,9 +230,8 @@ auto graph_to_heap_serial(const NNGraph<D, I> &nn_graph, std::size_t block_size,
 
 template <typename HeapAdd, typename Progress = NullProgress,
           typename Parallel = NoParallel, typename DistOut, typename Idx>
-void sort_knn_graph_parallel(NNGraph<DistOut, Idx> &nn_graph,
-                             std::size_t block_size, std::size_t n_threads,
-                             std::size_t grain_size) {
+void sort_knn_graph(NNGraph<DistOut, Idx> &nn_graph, std::size_t block_size,
+                    std::size_t n_threads, std::size_t grain_size) {
   NNHeap<DistOut, Idx> heap(nn_graph.n_points, nn_graph.n_nbrs);
   graph_to_heap_parallel<HeapAdd, Progress>(heap, nn_graph, block_size,
                                             n_threads, grain_size);

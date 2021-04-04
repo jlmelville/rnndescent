@@ -133,8 +133,8 @@ auto get_nn(Distance &distance, typename Distance::Index n_nbrs, bool sort,
 
   if (sort) {
     if (n_threads > 0) {
-      sort_knn_graph_parallel<HeapAdd, NullProgress, Parallel>(
-          nn_graph, block_size, n_threads, grain_size);
+      sort_knn_graph<HeapAdd, NullProgress, Parallel>(nn_graph, block_size,
+                                                      n_threads, grain_size);
     } else {
       sort_knn_graph<HeapAdd, NullProgress>(nn_graph);
     }
