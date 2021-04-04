@@ -252,10 +252,13 @@ void sort_knn_graph(NNGraph<DistOut, Idx> &nn_graph) {
 }
 
 template <typename Distance, typename Progress>
-auto indices_to_graph(const std::vector<typename Distance::Input> &data,
-                      std::size_t ndim,
-                      std::vector<typename Distance::Index> idx, bool verbose)
+auto idx_to_graph(const std::vector<typename Distance::Input> &data,
+                  std::size_t ndim, std::vector<typename Distance::Index> idx,
+                  bool verbose)
     -> NNGraph<typename Distance::Output, typename Distance::Index> {
+  using Out = typename Distance::Output;
+  using Index = typename Distance::Index;
+
   Distance distance(data, ndim);
 
   Progress progress(distance.nx, verbose);
@@ -263,14 +266,14 @@ auto indices_to_graph(const std::vector<typename Distance::Input> &data,
   const std::size_t n_points = distance.ny;
   const std::size_t n_nbrs = idx.size() / n_points;
 
-  std::vector<typename Distance::Output> dist;
+  std::vector<Out> dist;
   dist.reserve(idx.size());
 
   std::size_t i = 0;
   std::size_t j = 0;
 
   for (auto nbr : idx) {
-    typename Distance::Output d = distance(i, nbr);
+    Out d = distance(i, nbr);
     dist.push_back(d);
 
     ++j;
@@ -281,8 +284,7 @@ auto indices_to_graph(const std::vector<typename Distance::Input> &data,
     }
   }
 
-  return NNGraph<typename Distance::Output, typename Distance::Index>(idx, dist,
-                                                                      n_points);
+  return NNGraph<Out, Index>(idx, dist, n_points);
 }
 
 } // namespace tdoann

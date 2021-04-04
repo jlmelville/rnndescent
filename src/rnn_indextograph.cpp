@@ -34,7 +34,7 @@ auto idx_to_graph_impl(NumericMatrix data, IntegerMatrix idx,
                        bool verbose = false) -> List {
   auto data_vec = r_to_dist_vect<Distance>(data);
   auto idx_vec = r_to_idxt<typename Distance::Index>(idx);
-  auto nn_graph = tdoann::indices_to_graph<Distance, RPProgress>(
+  auto nn_graph = tdoann::idx_to_graph<Distance, RPProgress>(
       data_vec, data.ncol(), idx_vec, verbose);
   return graph_to_r(nn_graph);
 }
