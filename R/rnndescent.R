@@ -177,10 +177,10 @@ random_knn <-
         k,
         actual_metric,
         order_by_distance,
-        n_threads,
-        block_size,
-        grain_size,
-        verbose
+        block_size = block_size,
+        n_threads = n_threads,
+        grain_size = grain_size,
+        verbose = verbose
       )
     res$idx <- res$idx + 1
 
@@ -602,10 +602,10 @@ random_knn_query <-
       k,
       actual_metric,
       order_by_distance,
-      n_threads,
-      block_size,
-      grain_size,
-      verbose
+      block_size = block_size,
+      n_threads = n_threads,
+      grain_size = grain_size,
+      verbose = verbose
     )
     res$idx <- res$idx + 1
     if (use_alt_metric) {
