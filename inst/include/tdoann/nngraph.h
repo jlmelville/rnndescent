@@ -153,8 +153,8 @@ void vec_to_heap_parallel(NbrHeap &heap,
                           std::size_t n_points,
                           std::vector<typename NbrHeap::DistanceOut> &nn_dist,
                           std::size_t n_threads, std::size_t block_size,
-                          std::size_t grain_size) {
-  VecToHeapWorker<HeapAdd, NbrHeap> worker(heap, nn_idx, n_points, nn_dist);
+                          std::size_t grain_size, bool transpose) {
+  VecToHeapWorker<HeapAdd, NbrHeap> worker(heap, nn_idx, n_points, nn_dist, transpose);
   Progress progress;
   batch_parallel_for<Parallel>(worker, progress, n_points, block_size,
                                n_threads, grain_size);
@@ -202,8 +202,8 @@ void vec_to_heap_serial(NbrHeap &heap,
                         std::vector<typename NbrHeap::Index> &nn_idx,
                         std::size_t n_points,
                         std::vector<typename NbrHeap::DistanceOut> &nn_dist,
-                        std::size_t block_size) {
-  VecToHeapWorker<HeapAdd, NbrHeap> worker(heap, nn_idx, n_points, nn_dist);
+                        std::size_t block_size, bool transpose) {
+  VecToHeapWorker<HeapAdd, NbrHeap> worker(heap, nn_idx, n_points, nn_dist, transpose);
   Progress progress;
   batch_serial_for(worker, progress, n_points, block_size);
 }
