@@ -148,12 +148,11 @@ struct VecToHeapWorker : public BatchParallelWorker {
 
 template <typename HeapAdd, typename Progress = NullProgress,
           typename Parallel = NoParallel, typename NbrHeap>
-void vec_to_heap_parallel(NbrHeap &heap,
-                          std::vector<typename NbrHeap::Index> &nn_idx,
-                          std::size_t n_points,
-                          std::vector<typename NbrHeap::DistanceOut> &nn_dist,
-                          std::size_t block_size, std::size_t n_threads,
-                          std::size_t grain_size, bool transpose) {
+void vec_to_heap(NbrHeap &heap, std::vector<typename NbrHeap::Index> &nn_idx,
+                 std::size_t n_points,
+                 std::vector<typename NbrHeap::DistanceOut> &nn_dist,
+                 std::size_t block_size, std::size_t n_threads,
+                 std::size_t grain_size, bool transpose) {
   VecToHeapWorker<HeapAdd, NbrHeap> worker(heap, nn_idx, n_points, nn_dist,
                                            transpose);
   Progress progress;
@@ -199,11 +198,10 @@ void vec_to_heap(NbrHeap &current_graph,
 }
 
 template <typename HeapAdd, typename Progress = NullProgress, typename NbrHeap>
-void vec_to_heap_serial(NbrHeap &heap,
-                        std::vector<typename NbrHeap::Index> &nn_idx,
-                        std::size_t n_points,
-                        std::vector<typename NbrHeap::DistanceOut> &nn_dist,
-                        std::size_t block_size, bool transpose) {
+void vec_to_heap(NbrHeap &heap, std::vector<typename NbrHeap::Index> &nn_idx,
+                 std::size_t n_points,
+                 std::vector<typename NbrHeap::DistanceOut> &nn_dist,
+                 std::size_t block_size, bool transpose) {
   VecToHeapWorker<HeapAdd, NbrHeap> worker(heap, nn_idx, n_points, nn_dist,
                                            transpose);
   Progress progress;

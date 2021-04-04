@@ -41,7 +41,7 @@ void r_to_heap(NbrHeap &heap, Rcpp::IntegerMatrix nn_idx,
   auto nn_distv = Rcpp::as<std::vector<typename NbrHeap::DistanceOut>>(nn_dist);
   std::size_t n_points = nn_idx.nrow();
 
-  tdoann::vec_to_heap_serial<HeapAdd, RInterruptableProgress, NbrHeap>(
+  tdoann::vec_to_heap<HeapAdd, RInterruptableProgress, NbrHeap>(
       heap, nn_idxv, n_points, nn_distv, block_size, transpose);
 }
 
@@ -68,10 +68,9 @@ void r_to_heap(NbrHeap &heap, Rcpp::IntegerMatrix nn_idx,
   auto nn_distv = Rcpp::as<std::vector<typename NbrHeap::DistanceOut>>(nn_dist);
   std::size_t n_points = nn_idx.nrow();
 
-  tdoann::vec_to_heap_parallel<HeapAdd, tdoann::NullProgress, RParallel,
-                               NbrHeap>(heap, nn_idxv, n_points, nn_distv,
-                                        block_size, n_threads, grain_size,
-                                        transpose);
+  tdoann::vec_to_heap<HeapAdd, tdoann::NullProgress, RParallel, NbrHeap>(
+      heap, nn_idxv, n_points, nn_distv, block_size, n_threads, grain_size,
+      transpose);
 }
 
 template <typename HeapAdd, typename NbrHeap>
