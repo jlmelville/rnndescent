@@ -38,142 +38,88 @@
 
 namespace tdoann {
 
-template <typename ParallelRand, typename Distance>
-struct LockingCandidatesWorker {
-  const NNDHeap<typename Distance::Output, typename Distance::Index>
-      &current_graph;
-  std::size_t n_points;
-  std::size_t n_nbrs;
-  std::size_t max_candidates;
-  NNHeap<typename Distance::Output, typename Distance::Index>
-      &new_candidate_neighbors;
-  NNHeap<typename Distance::Output, typename Distance::Index>
-      &old_candidate_neighbors;
+template <typename Distance> struct LockingHeapAdder {
+  using Idx = typename Distance::Index;
+  using Out = typename Distance::Output;
+
   static const constexpr std::size_t n_mutexes = 10;
   std::mutex mutexes[n_mutexes];
 
-  ParallelRand &parallel_rand;
+  LockingHeapAdder() {}
+  LockingHeapAdder(LockingHeapAdder const &) = delete;
+  LockingHeapAdder &operator=(LockingHeapAdder const &) = delete;
 
-  LockingCandidatesWorker(
-      const NNDHeap<typename Distance::Output, typename Distance::Index>
-          &current_graph,
-      NNHeap<typename Distance::Output, typename Distance::Index>
-          &new_candidate_neighbors,
-      NNHeap<typename Distance::Output, typename Distance::Index>
-          &old_candidate_neighbors,
-      ParallelRand &parallel_rand)
-      : current_graph(current_graph), n_points(current_graph.n_points),
-        n_nbrs(current_graph.n_nbrs),
-        max_candidates(new_candidate_neighbors.n_nbrs),
-        new_candidate_neighbors(new_candidate_neighbors),
-        old_candidate_neighbors(old_candidate_neighbors),
-        parallel_rand(parallel_rand) {
-    parallel_rand.reseed();
-  }
-
-  void operator()(std::size_t begin, std::size_t end) {
-
-    auto rand = parallel_rand.get_rand(end);
-
-    for (auto i = begin; i < end; i++) {
-      std::size_t innbrs = i * n_nbrs;
-      for (std::size_t j = 0; j < n_nbrs; j++) {
-        std::size_t ij = innbrs + j;
-        std::size_t idx = current_graph.idx[ij];
-        char isn = current_graph.flags[ij];
-        auto &nbrs =
-            isn == 1 ? new_candidate_neighbors : old_candidate_neighbors;
-        if (idx == nbrs.npos()) {
-          continue;
-        }
-        auto d = rand.unif();
-        {
-          std::lock_guard<std::mutex> guard(mutexes[i % n_mutexes]);
-          nbrs.checked_push(i, d, idx);
-        }
-        if (i != idx) {
-          std::lock_guard<std::mutex> guard(mutexes[idx % n_mutexes]);
-          nbrs.checked_push(idx, d, i);
-        }
-      }
+  void add(NNHeap<Out, Idx> &nbrs, Idx i, Idx idx, Out d) {
+    {
+      std::lock_guard<std::mutex> guard(mutexes[i % n_mutexes]);
+      nbrs.checked_push(i, d, idx);
+    }
+    if (i != idx) {
+      std::lock_guard<std::mutex> guard(mutexes[idx % n_mutexes]);
+      nbrs.checked_push(idx, d, i);
     }
   }
 };
 
-// mark any neighbor in the current graph that was retained in the new
-// candidates as true
-template <typename Distance> struct FlagNewCandidatesWorker {
-  const NNHeap<typename Distance::Output, typename Distance::Index>
-      &new_candidate_neighbors;
-  NNDHeap<typename Distance::Output, typename Distance::Index> &current_graph;
-  std::size_t n_points;
-  std::size_t n_nbrs;
-  std::size_t max_candidates;
+template <typename ParallelRand, typename Distance>
+void build_candidates(
+    const NNDHeap<typename Distance::Output, typename Distance::Index>
+        &current_graph,
+    NNHeap<typename Distance::Output, typename Distance::Index> &new_nbrs,
+    NNHeap<typename Distance::Output, typename Distance::Index> &old_nbrs,
+    ParallelRand &parallel_rand, LockingHeapAdder<Distance> &heap_adder,
+    std::size_t begin, std::size_t end) {
 
-  FlagNewCandidatesWorker(
-      const NNHeap<typename Distance::Output, typename Distance::Index>
-          &new_candidate_neighbors,
-      NNDHeap<typename Distance::Output, typename Distance::Index>
-          &current_graph)
-      : new_candidate_neighbors(new_candidate_neighbors),
-        current_graph(current_graph), n_points(current_graph.n_points),
-        n_nbrs(current_graph.n_nbrs),
-        max_candidates(new_candidate_neighbors.n_nbrs) {}
+  const std::size_t n_nbrs = current_graph.n_nbrs;
+  auto rand = parallel_rand.get_rand(end);
 
-  void operator()(std::size_t begin, std::size_t end) {
-    flag_retained_new_candidates(current_graph, new_candidate_neighbors, begin,
-                                 end);
+  for (auto i = begin; i < end; i++) {
+    std::size_t innbrs = i * n_nbrs;
+    for (std::size_t j = 0; j < n_nbrs; j++) {
+      std::size_t ij = innbrs + j;
+      std::size_t idx = current_graph.idx[ij];
+      char isn = current_graph.flags[ij];
+      auto &nbrs = isn == 1 ? new_nbrs : old_nbrs;
+      if (idx == nbrs.npos()) {
+        continue;
+      }
+      auto d = rand.unif();
+      heap_adder.add(nbrs, i, idx, d);
+    }
   }
-};
+}
 
-template <typename Distance, typename GraphUpdater> struct LocalJoinWorker {
-  const NNDHeap<typename Distance::Output, typename Distance::Index>
-      &current_graph;
-  const NNHeap<typename Distance::Output, typename Distance::Index> &new_nbrs;
-  const NNHeap<typename Distance::Output, typename Distance::Index> &old_nbrs;
-  std::size_t n_nbrs;
-  std::size_t max_candidates;
-  GraphUpdater &graph_updater;
-  std::size_t c;
-
-  LocalJoinWorker(
-      const NNDHeap<typename Distance::Output, typename Distance::Index>
-          &current_graph,
-      NNHeap<typename Distance::Output, typename Distance::Index> &new_nbrs,
-      NNHeap<typename Distance::Output, typename Distance::Index> &old_nbrs,
-      GraphUpdater &graph_updater)
-      : current_graph(current_graph), new_nbrs(new_nbrs), old_nbrs(old_nbrs),
-        n_nbrs(current_graph.n_nbrs), max_candidates(new_nbrs.n_nbrs),
-        graph_updater(graph_updater), c(0) {}
-
-  void operator()(std::size_t begin, std::size_t end) {
-    for (auto i = begin; i < end; i++) {
-      std::size_t imaxc = i * max_candidates;
-      for (std::size_t j = 0; j < max_candidates; j++) {
-        std::size_t p = new_nbrs.idx[imaxc + j];
-        if (p == new_nbrs.npos()) {
+template <typename Distance, typename GraphUpdater>
+void local_join(
+    GraphUpdater &graph_updater,
+    const NNHeap<typename Distance::Output, typename Distance::Index> &new_nbrs,
+    const NNHeap<typename Distance::Output, typename Distance::Index> &old_nbrs,
+    std::size_t max_candidates, std::size_t begin, std::size_t end) {
+  for (auto i = begin; i < end; i++) {
+    std::size_t imaxc = i * max_candidates;
+    for (std::size_t j = 0; j < max_candidates; j++) {
+      std::size_t p = new_nbrs.idx[imaxc + j];
+      if (p == new_nbrs.npos()) {
+        continue;
+      }
+      for (std::size_t k = j; k < max_candidates; k++) {
+        std::size_t q = new_nbrs.idx[imaxc + k];
+        if (q == new_nbrs.npos()) {
           continue;
         }
-        for (std::size_t k = j; k < max_candidates; k++) {
-          std::size_t q = new_nbrs.idx[imaxc + k];
-          if (q == new_nbrs.npos()) {
-            continue;
-          }
-          graph_updater.generate(p, q, i);
-        }
+        graph_updater.generate(p, q, i);
+      }
 
-        for (std::size_t k = 0; k < max_candidates; k++) {
-          std::size_t q = old_nbrs.idx[imaxc + k];
-          if (q == old_nbrs.npos()) {
-            continue;
-          }
-          graph_updater.generate(p, q, i);
+      for (std::size_t k = 0; k < max_candidates; k++) {
+        std::size_t q = old_nbrs.idx[imaxc + k];
+        if (q == old_nbrs.npos()) {
+          continue;
         }
+        graph_updater.generate(p, q, i);
       }
     }
   }
-  void after_parallel(std::size_t, std::size_t) { c += graph_updater.apply(); }
-};
+}
 
 template <typename Parallel, typename ParallelRand,
           template <typename> class GraphUpdater, typename Distance,
@@ -190,75 +136,44 @@ void nnd_build(GraphUpdater<Distance> &graph_updater,
   const std::size_t n_points = nn_heap.n_points;
   const double tol = delta * nn_heap.n_nbrs * n_points;
 
+  LockingHeapAdder<Distance> heap_adder;
+
   for (std::size_t n = 0; n < n_iters; n++) {
     NNHeap<DistOut, Idx> new_nbrs(n_points, max_candidates);
     decltype(new_nbrs) old_nbrs(n_points, max_candidates);
 
-    LockingCandidatesWorker<ParallelRand, Distance> candidates_worker(
-        nn_heap, new_nbrs, old_nbrs, parallel_rand);
+    parallel_rand.reseed();
+    auto candidates_worker = [&](std::size_t begin, std::size_t end) {
+      build_candidates(nn_heap, new_nbrs, old_nbrs, parallel_rand, heap_adder,
+                       begin, end);
+    };
     Parallel::parallel_for(0, n_points, candidates_worker, n_threads,
                            grain_size);
 
-    FlagNewCandidatesWorker<Distance> flag_new_candidates_worker(new_nbrs,
-                                                                 nn_heap);
+    // mark any neighbor in the current graph that was retained in the new
+    // candidates as true
+    auto flag_new_candidates_worker = [&](std::size_t begin, std::size_t end) {
+      flag_retained_new_candidates(nn_heap, new_nbrs, begin, end);
+    };
     Parallel::parallel_for(0, n_points, flag_new_candidates_worker, n_threads,
                            grain_size);
 
-    LocalJoinWorker<Distance, decltype(graph_updater)> local_join_worker(
-        nn_heap, new_nbrs, old_nbrs, graph_updater);
-    batch_parallel_for<Parallel>(local_join_worker, progress, n_points,
-                                 block_size, n_threads, grain_size);
+    auto local_join_worker = [&](std::size_t begin, std::size_t end) {
+      local_join<Distance, decltype(graph_updater)>(
+          graph_updater, new_nbrs, old_nbrs, max_candidates, begin, end);
+    };
+    std::size_t c = 0;
+    auto after_local_join = [&](std::size_t, std::size_t) {
+      c += graph_updater.apply();
+    };
+    batch_parallel_for<Parallel>(local_join_worker, after_local_join, progress,
+                                 n_points, block_size, n_threads, grain_size);
+
     TDOANN_ITERFINISHED();
     progress.heap_report(nn_heap);
-    std::size_t c = local_join_worker.c;
     TDOANN_CHECKCONVERGENCE();
   }
 }
-
-template <typename Distance>
-struct QueryNoNSearchWorker : public BatchParallelWorker {
-  NNHeap<typename Distance::Output, typename Distance::Index> &current_graph;
-  const Distance &distance;
-  const NNHeap<typename Distance::Output, typename Distance::Index>
-      &query_candidates;
-  double epsilon;
-  NullProgress progress;
-  std::size_t n_iters;
-
-  QueryNoNSearchWorker(NNHeap<typename Distance::Output,
-                              typename Distance::Index> &current_graph,
-                       const Distance &distance,
-                       const NNHeap<typename Distance::Output,
-                                    typename Distance::Index> &query_candidates,
-                       double epsilon, std::size_t n_iters)
-      : current_graph(current_graph), distance(distance),
-        query_candidates(query_candidates), epsilon(epsilon), progress(),
-        n_iters(n_iters) {}
-
-  void operator()(std::size_t begin, std::size_t end) {
-    non_search_query(current_graph, distance, query_candidates, epsilon,
-                     progress, n_iters, begin, end);
-  }
-};
-
-template <typename DistOut, typename Idx> struct QueryCandidatesWorker {
-  const std::vector<Idx> &reference_idx;
-  const std::vector<DistOut> &reference_dist;
-  std::size_t n_nbrs;
-  NNHeap<DistOut, Idx> &query_candidates;
-
-  QueryCandidatesWorker(const std::vector<Idx> &reference_idx,
-                        const std::vector<DistOut> &reference_dist,
-                        std::size_t n_nbrs,
-                        NNHeap<DistOut, Idx> &query_candidates)
-      : reference_idx(reference_idx), reference_dist(reference_dist),
-        n_nbrs(n_nbrs), query_candidates(query_candidates) {}
-
-  void operator()(std::size_t begin, std::size_t end) {
-    build_query_candidates(reference_idx, reference_dist, n_nbrs,
-                           query_candidates, begin, end);
-  }
-};
 
 template <typename Parallel, typename DistOut, typename Idx>
 auto build_query_candidates(std::size_t n_ref_points,
@@ -268,8 +183,10 @@ auto build_query_candidates(std::size_t n_ref_points,
                             std::size_t n_nbrs, std::size_t n_threads,
                             std::size_t grain_size) -> NNHeap<DistOut, Idx> {
   NNHeap<DistOut, Idx> query_candidates(n_ref_points, max_candidates);
-  QueryCandidatesWorker<DistOut, Idx> worker(reference_idx, reference_dist,
-                                             n_nbrs, query_candidates);
+  auto worker = [&](std::size_t begin, std::size_t end) {
+    build_query_candidates(reference_idx, reference_dist, n_nbrs,
+                           query_candidates, begin, end);
+  };
   Parallel::parallel_for(0, query_candidates.n_points, worker, n_threads,
                          grain_size);
   return query_candidates;
@@ -291,8 +208,11 @@ void nnd_query(
       n_ref_points, max_candidates, reference_idx, reference_dist, n_nbrs,
       n_threads, grain_size);
 
-  QueryNoNSearchWorker<Distance> query_non_search_worker(
-      nn_heap, distance, query_candidates, epsilon, n_iters);
+  NullProgress null_progress;
+  auto query_non_search_worker = [&](std::size_t begin, std::size_t end) {
+    non_search_query(nn_heap, distance, query_candidates, epsilon,
+                     null_progress, n_iters, begin, end);
+  };
   batch_parallel_for<Parallel>(query_non_search_worker, progress, n_points,
                                n_threads, grain_size);
 }

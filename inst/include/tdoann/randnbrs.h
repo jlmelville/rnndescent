@@ -34,21 +34,21 @@
 
 namespace tdoann {
 
-template <typename Distance, typename Sampler>
-struct RandomNbrQueryWorker : public BatchParallelWorker {
-
+template <typename Distance, typename Sampler> struct RandomNbrQueryWorker {
+  using Idx = typename Distance::Index;
+  using Out = typename Distance::Output;
   Distance &distance;
 
   std::size_t n_points;
-  typename Distance::Index n_nbrs;
-  std::vector<typename Distance::Index> nn_idx;
-  std::vector<typename Distance::Output> nn_dist;
+  Idx n_nbrs;
+  std::vector<Idx> nn_idx;
+  std::vector<Out> nn_dist;
 
   int nrefs;
 
   uint64_t seed;
 
-  RandomNbrQueryWorker(Distance &distance, typename Distance::Index n_nbrs)
+  RandomNbrQueryWorker(Distance &distance, Idx n_nbrs)
       : distance(distance), n_points(distance.ny), n_nbrs(n_nbrs),
         nn_idx(n_points * n_nbrs), nn_dist(n_points * n_nbrs, 0.0),
         nrefs(distance.nx), seed(Sampler::get_seed()) {}
@@ -57,8 +57,7 @@ struct RandomNbrQueryWorker : public BatchParallelWorker {
     Sampler int_sampler(seed, end);
 
     for (int qi = static_cast<int>(begin); qi < static_cast<int>(end); qi++) {
-      auto idxi =
-          int_sampler.template sample<typename Distance::Index>(nrefs, n_nbrs);
+      auto idxi = int_sampler.template sample<Idx>(nrefs, n_nbrs);
       std::size_t kqi = n_nbrs * qi;
       for (std::size_t j = 0; j < n_nbrs; j++) {
         auto &ri = idxi[j];
@@ -69,21 +68,21 @@ struct RandomNbrQueryWorker : public BatchParallelWorker {
   }
 };
 
-template <typename Distance, typename Sampler>
-struct RandomNbrBuildWorker : public BatchParallelWorker {
-
+template <typename Distance, typename Sampler> struct RandomNbrBuildWorker {
+  using Idx = typename Distance::Index;
+  using Out = typename Distance::Output;
   Distance &distance;
 
   std::size_t n_points;
-  typename Distance::Index n_nbrs;
-  std::vector<typename Distance::Index> nn_idx;
-  std::vector<typename Distance::Output> nn_dist;
+  Idx n_nbrs;
+  std::vector<Idx> nn_idx;
+  std::vector<Out> nn_dist;
 
   int n_points_minus_1;
   int k_minus_1;
   uint64_t seed;
 
-  RandomNbrBuildWorker(Distance &distance, typename Distance::Index n_nbrs)
+  RandomNbrBuildWorker(Distance &distance, Idx n_nbrs)
       : distance(distance), n_points(distance.ny), n_nbrs(n_nbrs),
         nn_idx(n_points * n_nbrs), nn_dist(n_points * n_nbrs),
         n_points_minus_1(n_points - 1), k_minus_1(n_nbrs - 1),
@@ -96,8 +95,7 @@ struct RandomNbrBuildWorker : public BatchParallelWorker {
       std::size_t kqi = n_nbrs * qi;
       std::size_t kqi1 = kqi + 1;
       nn_idx[0 + kqi] = qi;
-      auto ris = int_sampler.template sample<typename Distance::Index>(
-          n_points_minus_1, k_minus_1);
+      auto ris = int_sampler.template sample<Idx>(n_points_minus_1, k_minus_1);
 
       for (auto j = 0; j < k_minus_1; j++) {
         int ri = ris[j];

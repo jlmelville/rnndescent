@@ -39,10 +39,6 @@ struct NoParallel {
   }
 };
 
-struct BatchParallelWorker {
-  void after_parallel(std::size_t, std::size_t) {}
-};
-
 template <typename Parallel, typename Progress, typename Worker>
 void batch_parallel_for(Worker &worker, Progress &progress, std::size_t n,
                         std::size_t block_size, std::size_t n_threads,
@@ -54,7 +50,24 @@ void batch_parallel_for(Worker &worker, Progress &progress, std::size_t n,
     auto end = std::min(n, begin + block_size);
     Parallel::parallel_for(begin, end, worker, n_threads, grain_size);
     TDOANN_BREAKIFINTERRUPTED();
-    worker.after_parallel(begin, end);
+    TDOANN_BLOCKFINISHED();
+  }
+}
+
+template <typename Parallel, typename Progress, typename Worker,
+          typename AfterWorker>
+void batch_parallel_for(Worker &worker, AfterWorker &after_worker,
+                        Progress &progress, std::size_t n,
+                        std::size_t block_size, std::size_t n_threads,
+                        std::size_t grain_size) {
+  auto n_blocks = (n / block_size) + 1;
+  progress.set_n_blocks(n_blocks);
+  for (std::size_t i = 0; i < n_blocks; i++) {
+    auto begin = i * block_size;
+    auto end = std::min(n, begin + block_size);
+    Parallel::parallel_for(begin, end, worker, n_threads, grain_size);
+    TDOANN_BREAKIFINTERRUPTED();
+    after_worker(begin, end);
     TDOANN_BLOCKFINISHED();
   }
 }
