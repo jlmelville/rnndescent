@@ -200,35 +200,22 @@ struct NNDQuerySerial {
   auto get_nn(IntegerMatrix nn_idx, NumericMatrix nn_dist,
               std::size_t max_candidates = 50, double epsilon = 0.1,
               std::size_t n_iters = 10, bool verbose = false) -> List {
-
     using Out = typename Distance::Output;
     using Index = typename Distance::Index;
-    using Graph = tdoann::NNGraph<Out, Index>;
 
-    auto ref_vec = r2dvt<Distance>(reference);
-    auto query_vec = r2dvt<Distance>(query);
-
-    auto nn_idx_copy = Rcpp::clone(nn_idx);
-    auto nn_graph =
-        r_to_graph<Out, Index>(nn_idx_copy, nn_dist, reference.nrow() - 1);
-
-    const std::size_t g2h_block_size = 1000;
-    const bool is_transposed = true;
     auto nn_heap =
-        tdoann::graph_to_heap_serial<tdoann::HeapAddQuery, tdoann::NNHeap>(
-            nn_graph, g2h_block_size, is_transposed);
-
-    Distance distance(ref_vec, query_vec, reference.ncol());
-
+        r_to_heap_serial<tdoann::HeapAddQuery, tdoann::NNHeap<Out, Index>>(
+            nn_idx, nn_dist);
+    auto distance = r_to_distance<Distance>(reference, query);
     auto ref_idx_vec = r_to_idx<Index>(ref_idx);
-    auto ref_dist_vec = Rcpp::as<std::vector<Out>>(ref_dist);
-
-    Progress progress(query.nrow(), verbose);
+    auto ref_dist_vec = r_to_vec<Out>(ref_dist);
+    Progress progress(1, verbose);
 
     tdoann::nnd_query(ref_idx_vec, ref_dist_vec, nn_heap, distance,
                       max_candidates, epsilon, n_iters, progress);
+
     nn_heap.deheap_sort();
-    Graph result = heap_to_graph(nn_heap);
+    tdoann::NNGraph<Out, Index> result = heap_to_graph(nn_heap);
     return graph_to_r(result);
   }
 };
@@ -255,24 +242,13 @@ struct NNDQueryParallel {
               std::size_t n_iters = 10, bool verbose = false) -> List {
     using Out = typename Distance::Output;
     using Index = typename Distance::Index;
-    using Graph = tdoann::NNGraph<Out, Index>;
 
-    auto ref_vec = r2dvt<Distance>(reference);
-    auto query_vec = r2dvt<Distance>(query);
-    auto nn_idx_copy = Rcpp::clone(nn_idx);
-    auto nn_graph =
-        r_to_graph<Out, Index>(nn_idx_copy, nn_dist, reference.nrow() - 1);
-
-    const std::size_t g2h_block_size = 1000;
-    const bool is_transposed = true;
     auto nn_heap =
-        tdoann::graph_to_heap_serial<tdoann::HeapAddQuery, tdoann::NNHeap>(
-            nn_graph, g2h_block_size, is_transposed);
-
+        r_to_heap_serial<tdoann::HeapAddQuery, tdoann::NNHeap<Out, Index>>(
+            nn_idx, nn_dist);
+    auto distance = r_to_distance<Distance>(reference, query);
     auto ref_idx_vec = r_to_idx<Index>(ref_idx);
-    auto ref_dist_vec = Rcpp::as<std::vector<Out>>(ref_dist);
-
-    Distance distance(ref_vec, query_vec, reference.ncol());
+    auto ref_dist_vec = r_to_vec<Out>(ref_dist);
     Progress progress(1, verbose);
 
     tdoann::nnd_query_parallel<RParallel>(
@@ -280,7 +256,7 @@ struct NNDQueryParallel {
         n_iters, progress, n_threads, grain_size);
 
     nn_heap.deheap_sort();
-    Graph result = heap_to_graph(nn_heap);
+    tdoann::NNGraph<Out, Index> result = heap_to_graph(nn_heap);
     return graph_to_r(result);
   }
 };
