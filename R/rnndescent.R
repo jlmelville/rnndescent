@@ -886,8 +886,8 @@ merge_knn <- function(nn_graph1,
     nn_graph2$idx,
     nn_graph2$dist,
     is_query,
-    n_threads,
     block_size,
+    n_threads,
     grain_size,
     verbose
   )
@@ -972,8 +972,8 @@ merge_knnl <- function(nn_graphs,
   merge_nn_all(
     nn_graphs,
     is_query,
-    n_threads,
     block_size,
+    n_threads,
     grain_size,
     verbose
   )

@@ -40,13 +40,13 @@ template <typename NeighborHeap> struct SerialHeapImpl {
 };
 
 template <typename NeighborHeap> struct ParallelHeapImpl {
-  std::size_t n_threads;
   std::size_t block_size;
+  std::size_t n_threads;
   std::size_t grain_size;
 
-  ParallelHeapImpl(std::size_t n_threads, std::size_t block_size,
+  ParallelHeapImpl(std::size_t block_size, std::size_t n_threads,
                    std::size_t grain_size)
-      : n_threads(n_threads), block_size(block_size), grain_size(grain_size) {}
+      : block_size(block_size), n_threads(n_threads), grain_size(grain_size) {}
 
   template <typename HeapAdd>
   void init(NeighborHeap &heap, IntegerMatrix nn_idx, NumericMatrix nn_dist) {
@@ -109,7 +109,7 @@ auto merge_nn_all_impl(List nn_graphs, MergeImpl &merge_impl,
 #define CONFIGURE_MERGE(NEXT_MACRO)                                            \
   if (n_threads > 0) {                                                         \
     using MergeImpl = ParallelHeapImpl<tdoann::NNHeap<float>>;                 \
-    MergeImpl merge_impl(n_threads, block_size, grain_size);                   \
+    MergeImpl merge_impl(block_size, n_threads, grain_size);                   \
     if (is_query) {                                                            \
       using HeapAdd = tdoann::HeapAddQuery;                                    \
       NEXT_MACRO();                                                            \
@@ -140,14 +140,14 @@ auto merge_nn_all_impl(List nn_graphs, MergeImpl &merge_impl,
 // [[Rcpp::export]]
 List merge_nn(IntegerMatrix nn_idx1, NumericMatrix nn_dist1,
               IntegerMatrix nn_idx2, NumericMatrix nn_dist2, bool is_query,
-              std::size_t n_threads, std::size_t block_size,
+              std::size_t block_size, std::size_t n_threads,
               std::size_t grain_size = 1, bool verbose = false) {
   CONFIGURE_MERGE(MERGE_NN);
 }
 
 // [[Rcpp::export]]
-List merge_nn_all(List nn_graphs, bool is_query, std::size_t n_threads,
-                  std::size_t block_size, std::size_t grain_size = 1,
+List merge_nn_all(List nn_graphs, bool is_query, std::size_t block_size,
+                  std::size_t n_threads, std::size_t grain_size = 1,
                   bool verbose = false) {
   CONFIGURE_MERGE(MERGE_NN_ALL);
 }
