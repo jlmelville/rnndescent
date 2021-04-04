@@ -178,12 +178,11 @@ template <typename Distance, typename GraphUpdater> struct LocalJoinWorker {
 template <typename Parallel, typename ParallelRand,
           template <typename> class GraphUpdater, typename Distance,
           typename Progress>
-void nnd_build_parallel(GraphUpdater<Distance> &graph_updater,
-                        std::size_t max_candidates, std::size_t n_iters,
-                        double delta, Progress &progress,
-                        ParallelRand &parallel_rand,
-                        std::size_t block_size = 16384,
-                        std::size_t n_threads = 0, std::size_t grain_size = 1) {
+void nnd_build(GraphUpdater<Distance> &graph_updater,
+               std::size_t max_candidates, std::size_t n_iters, double delta,
+               Progress &progress, ParallelRand &parallel_rand,
+               std::size_t block_size = 16384, std::size_t n_threads = 0,
+               std::size_t grain_size = 1) {
 
   using DistOut = typename Distance::Output;
   using Idx = typename Distance::Index;
@@ -262,13 +261,12 @@ template <typename DistOut, typename Idx> struct QueryCandidatesWorker {
 };
 
 template <typename Parallel, typename DistOut, typename Idx>
-auto build_query_candidates_parallel(std::size_t n_ref_points,
-                                     std::size_t max_candidates,
-                                     const std::vector<Idx> &reference_idx,
-                                     const std::vector<DistOut> &reference_dist,
-                                     std::size_t n_nbrs, std::size_t n_threads,
-                                     std::size_t grain_size)
-    -> NNHeap<DistOut, Idx> {
+auto build_query_candidates(std::size_t n_ref_points,
+                            std::size_t max_candidates,
+                            const std::vector<Idx> &reference_idx,
+                            const std::vector<DistOut> &reference_dist,
+                            std::size_t n_nbrs, std::size_t n_threads,
+                            std::size_t grain_size) -> NNHeap<DistOut, Idx> {
   NNHeap<DistOut, Idx> query_candidates(n_ref_points, max_candidates);
   QueryCandidatesWorker<DistOut, Idx> worker(reference_idx, reference_dist,
                                              n_nbrs, query_candidates);
@@ -278,7 +276,7 @@ auto build_query_candidates_parallel(std::size_t n_ref_points,
 }
 
 template <typename Parallel, typename Distance, typename Progress>
-void nnd_query_parallel(
+void nnd_query(
     const std::vector<typename Distance::Index> &reference_idx,
     const std::vector<typename Distance::Output> &reference_dist,
     NNHeap<typename Distance::Output, typename Distance::Index> &nn_heap,
@@ -289,7 +287,7 @@ void nnd_query_parallel(
   const std::size_t n_nbrs = nn_heap.n_nbrs;
 
   const std::size_t n_ref_points = distance.nx;
-  auto query_candidates = build_query_candidates_parallel<Parallel>(
+  auto query_candidates = build_query_candidates<Parallel>(
       n_ref_points, max_candidates, reference_idx, reference_dist, n_nbrs,
       n_threads, grain_size);
 

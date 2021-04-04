@@ -46,7 +46,7 @@ auto bf_query_impl(NumericMatrix reference, NumericMatrix query,
   auto query_vec = r_to_dist_vect<Distance>(query);
 
   auto nn_graph = tdoann::brute_force_query<Distance, RPProgress, RParallel>(
-      ref_vec, reference.ncol(), query_vec, k, n_threads, block_size,
+      ref_vec, reference.ncol(), query_vec, k, block_size, n_threads,
       grain_size, verbose);
 
   return graph_to_r(nn_graph);

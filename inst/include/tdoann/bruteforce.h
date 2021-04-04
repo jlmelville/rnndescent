@@ -72,9 +72,9 @@ struct BruteForceWorker : public BatchParallelWorker {
 };
 
 template <typename Distance, typename Progress, typename Parallel>
-auto nnbf_parallel_query(Distance &distance, typename Distance::Index n_nbrs,
-                         std::size_t block_size = 64, std::size_t n_threads = 0,
-                         std::size_t grain_size = 1, bool verbose = false)
+auto nnbf_query(Distance &distance, typename Distance::Index n_nbrs,
+                std::size_t block_size = 64, std::size_t n_threads = 0,
+                std::size_t grain_size = 1, bool verbose = false)
     -> NNGraph<typename Distance::Output, typename Distance::Index> {
   NNHeap<typename Distance::Output, typename Distance::Index> neighbor_heap(
       distance.ny, n_nbrs);
@@ -94,7 +94,7 @@ auto nnbf_parallel(Distance &distance, typename Distance::Index n_nbrs,
                    std::size_t block_size = 64, std::size_t n_threads = 0,
                    std::size_t grain_size = 1, bool verbose = false)
     -> NNGraph<typename Distance::Output, typename Distance::Index> {
-  return nnbf_parallel_query<Distance, Progress, Parallel>(
+  return nnbf_query<Distance, Progress, Parallel>(
       distance, n_nbrs, block_size, n_threads, grain_size, verbose);
 }
 
@@ -162,13 +162,13 @@ auto brute_force_query(const std::vector<typename Distance::Input> &reference,
                        std::size_t ndim,
                        const std::vector<typename Distance::Input> &query,
                        typename Distance::Index n_nbrs,
-                       std::size_t n_threads = 0, std::size_t block_size = 64,
+                       std::size_t block_size = 64, std::size_t n_threads = 0,
                        std::size_t grain_size = 1, bool verbose = false)
     -> NNGraph<typename Distance::Output, typename Distance::Index> {
   Distance distance(reference, query, ndim);
 
   if (n_threads > 0) {
-    return nnbf_parallel_query<Distance, Progress, Parallel>(
+    return nnbf_query<Distance, Progress, Parallel>(
         distance, n_nbrs, block_size, n_threads, grain_size, verbose);
   } else {
     return nnbf_query<Distance, Progress>(distance, n_nbrs, verbose);
