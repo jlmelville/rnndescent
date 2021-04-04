@@ -48,4 +48,10 @@ auto r_to_dist(Rcpp::NumericMatrix reference, Rcpp::NumericMatrix query)
   return Distance(ref_vec, query_vec, reference.ncol());
 }
 
+template <typename Distance>
+auto r_to_dist(Rcpp::NumericMatrix data) -> Distance {
+  auto data_vec = r_to_dist_vect<Distance>(data);
+  return Distance(data_vec, data.ncol());
+}
+
 #endif // RNN_DISTANCE_H
