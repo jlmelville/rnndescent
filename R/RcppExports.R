@@ -5,8 +5,8 @@ rnn_brute_force <- function(data, k, metric = "euclidean", n_threads = 0L, block
     .Call(`_rnndescent_rnn_brute_force`, data, k, metric, n_threads, block_size, grain_size, verbose)
 }
 
-rnn_brute_force_query <- function(reference, query, k, metric = "euclidean", n_threads = 0L, block_size = 64L, grain_size = 1L, verbose = FALSE) {
-    .Call(`_rnndescent_rnn_brute_force_query`, reference, query, k, metric, n_threads, block_size, grain_size, verbose)
+rnn_brute_force_query <- function(reference, query, k, metric = "euclidean", block_size = 64L, n_threads = 0L, grain_size = 1L, verbose = FALSE) {
+    .Call(`_rnndescent_rnn_brute_force_query`, reference, query, k, metric, block_size, n_threads, grain_size, verbose)
 }
 
 reverse_nbr_size_impl <- function(nn_idx, k, len, include_self = FALSE) {

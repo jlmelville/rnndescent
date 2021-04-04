@@ -489,8 +489,8 @@ brute_force_knn_query <- function(reference,
     query,
     k,
     actual_metric,
-    n_threads,
     block_size,
+    n_threads,
     grain_size,
     verbose
   )
