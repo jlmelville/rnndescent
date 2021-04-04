@@ -107,7 +107,7 @@ struct NNDBuildSerial {
     using Index = typename Distance::Index;
 
     auto nnd_heap =
-        r_to_heap_serial<tdoann::HeapAddSymmetric, tdoann::NNDHeap<Out, Index>>(
+        r_to_heap<tdoann::HeapAddSymmetric, tdoann::NNDHeap<Out, Index>>(
             nn_idx, nn_dist);
     auto distance = r_to_dist<Distance>(data);
     auto graph_updater = GraphUpdate::create(nnd_heap, distance);
@@ -182,9 +182,8 @@ struct NNDQuerySerial {
     using Out = typename Distance::Output;
     using Index = typename Distance::Index;
 
-    auto nn_heap =
-        r_to_heap_serial<tdoann::HeapAddQuery, tdoann::NNHeap<Out, Index>>(
-            nn_idx, nn_dist);
+    auto nn_heap = r_to_heap<tdoann::HeapAddQuery, tdoann::NNHeap<Out, Index>>(
+        nn_idx, nn_dist);
     auto distance = r_to_dist<Distance>(reference, query);
     auto ref_idx_vec = r_to_idx<Index>(ref_idx);
     auto ref_dist_vec = r_to_vec<Out>(ref_dist);
