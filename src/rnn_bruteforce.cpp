@@ -59,7 +59,7 @@ auto bf_build_impl(NumericMatrix data, typename Distance::Index k,
   auto data_vec = r_to_dist_vect<Distance>(data);
 
   auto nn_graph = tdoann::brute_force_build<Distance, RPProgress, RParallel>(
-      data_vec, data.ncol(), k, n_threads, block_size, grain_size, verbose);
+      data_vec, data.ncol(), k, block_size, n_threads, grain_size, verbose);
 
   return graph_to_r(nn_graph);
 }
