@@ -50,8 +50,8 @@ template <typename NeighborHeap> struct ParallelHeapImpl {
 
   template <typename HeapAdd>
   void init(NeighborHeap &heap, IntegerMatrix nn_idx, NumericMatrix nn_dist) {
-    r_to_heap_parallel<HeapAdd>(heap, nn_idx, nn_dist, n_threads, block_size,
-                                grain_size, RNND_MAX_IDX, true);
+    r_to_heap_parallel<HeapAdd>(heap, nn_idx, nn_dist, n_threads, grain_size,
+                                block_size, RNND_MAX_IDX, true);
   }
   void sort_heap(NeighborHeap &heap) {
     sort_heap_parallel(heap, n_threads, block_size, grain_size);
