@@ -25,8 +25,8 @@ merge_nn_all <- function(nn_graphs, is_query, block_size, n_threads, grain_size 
     .Call(`_rnndescent_merge_nn_all`, nn_graphs, is_query, block_size, n_threads, grain_size, verbose)
 }
 
-nn_descent <- function(data, nn_idx, nn_dist, metric = "euclidean", max_candidates = 50L, n_iters = 10L, delta = 0.001, low_memory = TRUE, n_threads = 0L, block_size = 16384L, grain_size = 1L, verbose = FALSE, progress = "bar") {
-    .Call(`_rnndescent_nn_descent`, data, nn_idx, nn_dist, metric, max_candidates, n_iters, delta, low_memory, n_threads, block_size, grain_size, verbose, progress)
+nn_descent <- function(data, nn_idx, nn_dist, metric = "euclidean", max_candidates = 50L, n_iters = 10L, delta = 0.001, low_memory = TRUE, block_size = 16384L, n_threads = 0L, grain_size = 1L, verbose = FALSE, progress = "bar") {
+    .Call(`_rnndescent_nn_descent`, data, nn_idx, nn_dist, metric, max_candidates, n_iters, delta, low_memory, block_size, n_threads, grain_size, verbose, progress)
 }
 
 nn_descent_query <- function(reference, reference_idx, reference_dist, query, nn_idx, nn_dist, metric = "euclidean", max_candidates = 50L, epsilon = 0.1, n_iters = 10L, n_threads = 0L, grain_size = 1L, verbose = FALSE) {

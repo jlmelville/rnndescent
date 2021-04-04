@@ -245,7 +245,7 @@ List nn_descent(NumericMatrix data, IntegerMatrix nn_idx, NumericMatrix nn_dist,
                 const std::string &metric = "euclidean",
                 std::size_t max_candidates = 50, std::size_t n_iters = 10,
                 double delta = 0.001, bool low_memory = true,
-                std::size_t n_threads = 0, std::size_t block_size = 16384,
+                std::size_t block_size = 16384, std::size_t n_threads = 0,
                 std::size_t grain_size = 1, bool verbose = false,
                 const std::string &progress = "bar") {
   DISPATCH_ON_DISTANCES(NND_BUILD_UPDATER);
