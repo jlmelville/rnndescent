@@ -181,9 +181,9 @@ template <typename Parallel, typename ParallelRand,
 void nnd_build_parallel(GraphUpdater<Distance> &graph_updater,
                         std::size_t max_candidates, std::size_t n_iters,
                         double delta, Progress &progress,
-                        ParallelRand &parallel_rand, std::size_t n_threads = 0,
+                        ParallelRand &parallel_rand,
                         std::size_t block_size = 16384,
-                        std::size_t grain_size = 1) {
+                        std::size_t n_threads = 0, std::size_t grain_size = 1) {
 
   using DistOut = typename Distance::Output;
   using Idx = typename Distance::Index;
