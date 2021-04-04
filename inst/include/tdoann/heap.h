@@ -392,5 +392,9 @@ void sort_heap(NbrHeap &neighbor_heap, std::size_t block_size,
                                block_size, n_threads, grain_size);
 }
 
+template <typename NbrHeap> void sort_heap(NbrHeap &neighbor_heap) {
+  neighbor_heap.deheap_sort();
+}
+
 } // namespace tdoann
 #endif // TDOANN_HEAP_H

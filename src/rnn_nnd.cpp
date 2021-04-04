@@ -118,9 +118,7 @@ struct NNDBuildSerial {
     tdoann::nnd_build(graph_updater, max_candidates, n_iters, delta, rand,
                       nnd_progress);
 
-    nnd_heap.deheap_sort();
-    tdoann::NNGraph<Out, Index> result = tdoann::heap_to_graph(nnd_heap);
-    return graph_to_r(result);
+    return heap_to_r(nnd_heap);
   }
 };
 
@@ -157,9 +155,7 @@ struct NNDBuildParallel {
                                  nnd_progress, parallel_rand, block_size,
                                  n_threads, grain_size);
 
-    tdoann::sort_heap(nnd_heap, block_size, n_threads, grain_size);
-    tdoann::NNGraph<Out, Index> result = tdoann::heap_to_graph(nnd_heap);
-    return graph_to_r(result);
+    return heap_to_r(nnd_heap, block_size, n_threads, grain_size);
   }
 };
 
@@ -192,9 +188,7 @@ struct NNDQuerySerial {
     tdoann::nnd_query(ref_idx_vec, ref_dist_vec, nn_heap, distance,
                       max_candidates, epsilon, n_iters, progress);
 
-    nn_heap.deheap_sort();
-    tdoann::NNGraph<Out, Index> result = heap_to_graph(nn_heap);
-    return graph_to_r(result);
+    return heap_to_r(nn_heap);
   }
 };
 
@@ -232,9 +226,7 @@ struct NNDQueryParallel {
                                  max_candidates, epsilon, n_iters, progress,
                                  n_threads, grain_size);
 
-    nn_heap.deheap_sort();
-    tdoann::NNGraph<Out, Index> result = heap_to_graph(nn_heap);
-    return graph_to_r(result);
+    return heap_to_r(nn_heap, 1024, n_threads, grain_size);
   }
 };
 

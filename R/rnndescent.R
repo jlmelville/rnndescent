@@ -385,15 +385,12 @@ nnd_knn <- function(data,
     verbose = verbose,
     progress = progress
   )
-  res$idx <- res$idx + 1
-
   if (use_alt_metric) {
     res$dist <- apply_alt_metric_correction(metric, res$dist)
   }
   tsmessage("Finished")
   res
 }
-NULL
 
 
 # kNN Queries -------------------------------------------------------------
@@ -800,7 +797,6 @@ nnd_knn_query <- function(reference,
       grain_size = grain_size,
       verbose = verbose
     )
-  res$idx <- res$idx + 1
   if (use_alt_metric) {
     res$dist <- apply_alt_metric_correction(metric, res$dist)
   }

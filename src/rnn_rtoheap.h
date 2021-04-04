@@ -35,11 +35,11 @@ void r_to_heap(NbrHeap &heap, Rcpp::IntegerMatrix nn_idx,
                Rcpp::NumericMatrix nn_dist, std::size_t block_size = 1024,
                int max_idx = RNND_MAX_IDX, bool missing_ok = false,
                bool transpose = true) {
-  zero_index(nn_idx, max_idx, missing_ok);
-
-  auto nn_idxv = Rcpp::as<std::vector<typename NbrHeap::Index>>(nn_idx);
+  auto nn_idx_copy = Rcpp::clone(nn_idx);
+  zero_index(nn_idx_copy, max_idx, missing_ok);
+  auto nn_idxv = Rcpp::as<std::vector<typename NbrHeap::Index>>(nn_idx_copy);
   auto nn_distv = Rcpp::as<std::vector<typename NbrHeap::DistanceOut>>(nn_dist);
-  std::size_t n_points = nn_idx.nrow();
+  std::size_t n_points = nn_idx_copy.nrow();
 
   tdoann::vec_to_heap<HeapAdd, RInterruptableProgress, NbrHeap>(
       heap, nn_idxv, n_points, nn_distv, block_size, transpose);
@@ -49,10 +49,9 @@ template <typename HeapAdd, typename NbrHeap>
 auto r_to_heap(Rcpp::IntegerMatrix nn_idx, Rcpp::NumericMatrix nn_dist,
                std::size_t block_size = 1024, int max_idx = RNND_MAX_IDX,
                bool missing_ok = false, bool transpose = true) -> NbrHeap {
-  auto nn_idx_copy = Rcpp::clone(nn_idx);
-  NbrHeap nn_heap(nn_idx_copy.nrow(), nn_idx_copy.ncol());
-  r_to_heap<HeapAdd>(nn_heap, nn_idx_copy, nn_dist, block_size, max_idx,
-                     missing_ok, transpose);
+  NbrHeap nn_heap(nn_idx.nrow(), nn_idx.ncol());
+  r_to_heap<HeapAdd>(nn_heap, nn_idx, nn_dist, block_size, max_idx, missing_ok,
+                     transpose);
   return nn_heap;
 }
 
@@ -62,11 +61,11 @@ void r_to_heap(NbrHeap &heap, Rcpp::IntegerMatrix nn_idx,
                std::size_t grain_size, std::size_t block_size = 1024,
                int max_idx = RNND_MAX_IDX, bool missing_ok = false,
                bool transpose = true) {
-  zero_index(nn_idx, max_idx, missing_ok);
-
-  auto nn_idxv = Rcpp::as<std::vector<typename NbrHeap::Index>>(nn_idx);
+  auto nn_idx_copy = Rcpp::clone(nn_idx);
+  zero_index(nn_idx_copy, max_idx, missing_ok);
+  auto nn_idxv = Rcpp::as<std::vector<typename NbrHeap::Index>>(nn_idx_copy);
   auto nn_distv = Rcpp::as<std::vector<typename NbrHeap::DistanceOut>>(nn_dist);
-  std::size_t n_points = nn_idx.nrow();
+  std::size_t n_points = nn_idx_copy.nrow();
 
   tdoann::vec_to_heap<HeapAdd, tdoann::NullProgress, RParallel, NbrHeap>(
       heap, nn_idxv, n_points, nn_distv, block_size, n_threads, grain_size,
@@ -78,39 +77,26 @@ auto r_to_heap(Rcpp::IntegerMatrix nn_idx, Rcpp::NumericMatrix nn_dist,
                std::size_t n_threads, std::size_t grain_size = 1,
                std::size_t block_size = 1024, int max_idx = RNND_MAX_IDX,
                bool missing_ok = false, bool transpose = true) -> NbrHeap {
-  auto nn_idx_copy = Rcpp::clone(nn_idx);
-  NbrHeap nn_heap(nn_idx_copy.nrow(), nn_idx_copy.ncol());
-  r_to_heap<HeapAdd>(nn_heap, nn_idx_copy, nn_dist, n_threads, grain_size,
+  NbrHeap nn_heap(nn_idx.nrow(), nn_idx.ncol());
+  r_to_heap<HeapAdd>(nn_heap, nn_idx, nn_dist, n_threads, grain_size,
                      block_size, max_idx, missing_ok, transpose);
   return nn_heap;
-}
-
-template <typename DistOut, typename Idx>
-auto r_to_graph(Rcpp::IntegerMatrix nn_idx, Rcpp::NumericMatrix nn_dist,
-                int max_idx = RNND_MAX_IDX) -> tdoann::NNGraph<DistOut, Idx> {
-  zero_index(nn_idx, max_idx, true);
-
-  auto nn_idxv = Rcpp::as<std::vector<Idx>>(nn_idx);
-  auto nn_distv = Rcpp::as<std::vector<DistOut>>(nn_dist);
-  std::size_t n_points = nn_idx.nrow();
-
-  return tdoann::NNGraph<DistOut, Idx>(nn_idxv, nn_distv, n_points);
 }
 
 template <typename Int>
 inline auto r_to_idx(Rcpp::IntegerMatrix nn_idx, int max_idx = RNND_MAX_IDX)
     -> std::vector<Int> {
-  zero_index(nn_idx, max_idx, true);
-
-  return Rcpp::as<std::vector<Int>>(nn_idx);
+  auto nn_idx_copy = Rcpp::clone(nn_idx);
+  zero_index(nn_idx_copy, max_idx, true);
+  return Rcpp::as<std::vector<Int>>(nn_idx_copy);
 }
 
 template <typename Int>
 inline auto r_to_idxt(Rcpp::IntegerMatrix nn_idx, int max_idx = RNND_MAX_IDX)
     -> std::vector<Int> {
-  zero_index(nn_idx, max_idx, true);
-
-  return Rcpp::as<std::vector<Int>>(Rcpp::transpose(nn_idx));
+  auto nn_idx_copy = Rcpp::clone(nn_idx);
+  zero_index(nn_idx_copy, max_idx, true);
+  return Rcpp::as<std::vector<Int>>(Rcpp::transpose(nn_idx_copy));
 }
 
 #endif // RNN_RTOHEAP_H

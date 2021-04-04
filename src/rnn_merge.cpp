@@ -35,7 +35,7 @@ template <typename NeighborHeap> struct SerialHeapImpl {
   void init(NeighborHeap &heap, IntegerMatrix nn_idx, NumericMatrix nn_dist) {
     r_to_heap<HeapAdd>(heap, nn_idx, nn_dist, block_size, RNND_MAX_IDX, true);
   }
-  void sort_heap(NeighborHeap &heap) { heap.deheap_sort(); }
+  auto to_r(NeighborHeap &heap) -> List { return heap_to_r(heap); }
 };
 
 template <typename NeighborHeap> struct ParallelHeapImpl {
@@ -52,8 +52,8 @@ template <typename NeighborHeap> struct ParallelHeapImpl {
     r_to_heap<HeapAdd>(heap, nn_idx, nn_dist, n_threads, grain_size, block_size,
                        RNND_MAX_IDX, true);
   }
-  void sort_heap(NeighborHeap &heap) {
-    tdoann::sort_heap(heap, block_size, n_threads, grain_size);
+  auto to_r(NeighborHeap &heap) -> List {
+    return heap_to_r(heap, block_size, n_threads, grain_size);
   }
 };
 
@@ -72,8 +72,7 @@ auto merge_nn_impl(IntegerMatrix nn_idx1, NumericMatrix nn_dist1,
   merge_impl.template init<HeapAdd>(nn_merged, nn_idx1c, nn_dist1);
   merge_impl.template init<HeapAdd>(nn_merged, nn_idx2c, nn_dist2);
 
-  merge_impl.sort_heap(nn_merged);
-  return heap_to_r(nn_merged);
+  return merge_impl.to_r(nn_merged);
 }
 
 template <typename NeighborHeap, typename MergeImpl, typename HeapAdd>
@@ -101,8 +100,7 @@ auto merge_nn_all_impl(List nn_graphs, MergeImpl &merge_impl,
     TDOANN_ITERFINISHED()
   }
 
-  merge_impl.sort_heap(nn_merged);
-  return heap_to_r(nn_merged);
+  return merge_impl.to_r(nn_merged);
 }
 
 #define CONFIGURE_MERGE(NEXT_MACRO)                                            \
