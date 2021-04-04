@@ -71,7 +71,7 @@ void r_to_heap_parallel(NbrHeap &heap, Rcpp::IntegerMatrix nn_idx,
 
   tdoann::vec_to_heap_parallel<HeapAdd, tdoann::NullProgress, RParallel,
                                NbrHeap>(heap, nn_idxv, n_points, nn_distv,
-                                        n_threads, block_size, grain_size,
+                                        block_size, n_threads, grain_size,
                                         transpose);
 }
 
