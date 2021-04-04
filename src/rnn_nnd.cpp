@@ -244,8 +244,8 @@ struct NNDQueryParallel {
     using Index = typename Distance::Index;
 
     auto nn_heap =
-        r_to_heap_serial<tdoann::HeapAddQuery, tdoann::NNHeap<Out, Index>>(
-            nn_idx, nn_dist);
+        r_to_heap_parallel<tdoann::HeapAddQuery, tdoann::NNHeap<Out, Index>>(
+            nn_idx, nn_dist, n_threads, 1000, grain_size);
     auto distance = r_to_dist<Distance>(reference, query);
     auto ref_idx_vec = r_to_idx<Index>(ref_idx);
     auto ref_dist_vec = r_to_vec<Out>(ref_dist);

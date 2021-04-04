@@ -52,9 +52,8 @@ auto r_to_heap_serial(Rcpp::IntegerMatrix nn_idx, Rcpp::NumericMatrix nn_dist,
     -> NbrHeap {
   auto nn_idx_copy = Rcpp::clone(nn_idx);
   NbrHeap nn_heap(nn_idx_copy.nrow(), nn_idx_copy.ncol());
-  r_to_heap_serial<tdoann::HeapAddQuery>(nn_heap, nn_idx_copy, nn_dist,
-                                         block_size, RNND_MAX_IDX, missing_ok,
-                                         transpose);
+  r_to_heap_serial<HeapAdd>(nn_heap, nn_idx_copy, nn_dist, block_size, max_idx,
+                            missing_ok, transpose);
   return nn_heap;
 }
 
@@ -74,6 +73,20 @@ void r_to_heap_parallel(NbrHeap &heap, Rcpp::IntegerMatrix nn_idx,
                                NbrHeap>(heap, nn_idxv, n_points, nn_distv,
                                         n_threads, block_size, grain_size,
                                         transpose);
+}
+
+template <typename HeapAdd, typename NbrHeap>
+auto r_to_heap_parallel(Rcpp::IntegerMatrix nn_idx, Rcpp::NumericMatrix nn_dist,
+                        std::size_t n_threads, std::size_t block_size = 1000,
+                        std::size_t grain_size = 1, int max_idx = RNND_MAX_IDX,
+                        bool missing_ok = false, bool transpose = true)
+    -> NbrHeap {
+  auto nn_idx_copy = Rcpp::clone(nn_idx);
+  NbrHeap nn_heap(nn_idx_copy.nrow(), nn_idx_copy.ncol());
+  r_to_heap_parallel<HeapAdd>(nn_heap, nn_idx_copy, nn_dist, n_threads,
+                              block_size, grain_size, max_idx, missing_ok,
+                              transpose);
+  return nn_heap;
 }
 
 template <typename DistOut, typename Idx>
