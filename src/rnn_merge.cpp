@@ -54,7 +54,7 @@ template <typename NeighborHeap> struct ParallelHeapImpl {
                        RNND_MAX_IDX, true);
   }
   void sort_heap(NeighborHeap &heap) {
-    sort_heap_parallel(heap, block_size, n_threads, grain_size);
+    tdoann::sort_heap(heap, block_size, n_threads, grain_size);
   }
 };
 

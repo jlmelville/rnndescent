@@ -238,7 +238,7 @@ void sort_knn_graph_parallel(NNGraph<DistOut, Idx> &nn_graph,
   NNHeap<DistOut, Idx> heap(nn_graph.n_points, nn_graph.n_nbrs);
   graph_to_heap_parallel<HeapAdd, Progress>(heap, nn_graph, block_size,
                                             n_threads, grain_size);
-  sort_heap_parallel(heap, block_size, n_threads, grain_size);
+  sort_heap(heap, block_size, n_threads, grain_size);
 
   heap_to_graph(heap, nn_graph);
 }

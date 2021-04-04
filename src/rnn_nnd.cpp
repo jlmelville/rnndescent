@@ -157,7 +157,7 @@ struct NNDBuildParallel {
         graph_updater, max_candidates, n_iters, delta, nnd_progress,
         parallel_rand, block_size, n_threads, grain_size);
 
-    tdoann::sort_heap_parallel(nnd_heap, block_size, n_threads, grain_size);
+    tdoann::sort_heap(nnd_heap, block_size, n_threads, grain_size);
     tdoann::NNGraph<Out, Index> result = tdoann::heap_to_graph(nnd_heap);
     return graph_to_r(result);
   }
