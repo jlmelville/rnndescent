@@ -198,20 +198,22 @@ auto graph_to_heap(const NNGraph<D, I> &nn_graph, std::size_t block_size,
 }
 
 template <typename HeapAdd, typename Progress, typename Parallel,
-          typename DistOut, typename Idx>
-void sort_knn_graph(NNGraph<DistOut, Idx> &nn_graph, std::size_t block_size,
+          typename NbrGraph>
+void sort_knn_graph(NbrGraph &nn_graph, std::size_t block_size,
                     std::size_t n_threads, std::size_t grain_size) {
-  NNHeap<DistOut, Idx> heap(nn_graph.n_points, nn_graph.n_nbrs);
+  NNHeap<typename NbrGraph::DistanceOut, typename NbrGraph::Index> heap(
+      nn_graph.n_points, nn_graph.n_nbrs);
   graph_to_heap<HeapAdd, Progress, Parallel>(heap, nn_graph, block_size,
                                              n_threads, grain_size);
   sort_heap(heap, block_size, n_threads, grain_size);
   heap_to_graph(heap, nn_graph);
 }
 
-template <typename HeapAdd, typename Progress, typename DistOut, typename Idx>
-void sort_knn_graph(NNGraph<DistOut, Idx> &nn_graph) {
-  NNHeap<DistOut, Idx> heap(nn_graph.n_points, nn_graph.n_nbrs);
-  graph_to_heap<HeapAdd, Progress>(heap, nn_graph, 1000);
+template <typename HeapAdd, typename Progress, typename NbrGraph>
+void sort_knn_graph(NbrGraph &nn_graph, std::size_t block_size = 1000) {
+  NNHeap<typename NbrGraph::DistanceOut, typename NbrGraph::Index> heap(
+      nn_graph.n_points, nn_graph.n_nbrs);
+  graph_to_heap<HeapAdd, Progress>(heap, nn_graph, block_size);
   sort_heap(heap);
   heap_to_graph(heap, nn_graph);
 }
