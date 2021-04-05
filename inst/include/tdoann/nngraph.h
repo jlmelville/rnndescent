@@ -168,17 +168,6 @@ void graph_to_heap(NbrHeap &heap,
       n_threads, grain_size, transpose);
 }
 
-template <typename HeapAdd, template <class, class> class NbrHeap, class D,
-          class I, typename Progress>
-auto graph_to_heap(const NNGraph<D, I> &nn_graph, std::size_t block_size,
-                   std::size_t n_threads, std::size_t grain_size,
-                   bool transpose = false) -> NbrHeap<D, I> {
-  NbrHeap<D, I> nbr_heap(nn_graph.n_points, nn_graph.n_nbrs);
-  graph_to_heap<HeapAdd, Progress>(nbr_heap, nn_graph, block_size, n_threads,
-                                   grain_size, transpose);
-  return nbr_heap;
-}
-
 template <typename HeapAdd, typename Progress, typename NbrHeap>
 void graph_to_heap(NbrHeap &heap,
                    const NNGraph<typename NbrHeap::DistanceOut,
@@ -186,15 +175,6 @@ void graph_to_heap(NbrHeap &heap,
                    std::size_t block_size, bool transpose = false) {
   vec_to_heap<HeapAdd, Progress>(heap, nn_graph.idx, nn_graph.n_points,
                                  nn_graph.dist, block_size, transpose);
-}
-
-template <typename HeapAdd, template <class, class> class NbrHeap, class D,
-          class I, typename Progress = NullProgress>
-auto graph_to_heap(const NNGraph<D, I> &nn_graph, std::size_t block_size,
-                   bool transpose = false) -> NbrHeap<D, I> {
-  NbrHeap<D, I> nbr_heap(nn_graph.n_points, nn_graph.n_nbrs);
-  graph_to_heap<HeapAdd>(nbr_heap, nn_graph, block_size, transpose);
-  return nbr_heap;
 }
 
 template <typename HeapAdd, typename Progress, typename Parallel,
@@ -220,7 +200,8 @@ void sort_knn_graph(NbrGraph &nn_graph, std::size_t block_size = 1000) {
 
 template <typename Distance, typename Progress>
 auto idx_to_graph(const std::vector<typename Distance::Input> &data,
-                  std::size_t ndim, std::vector<typename Distance::Index> idx,
+                  std::size_t ndim,
+                  const std::vector<typename Distance::Index> &idx,
                   bool verbose)
     -> NNGraph<typename Distance::Output, typename Distance::Index> {
   using Out = typename Distance::Output;
