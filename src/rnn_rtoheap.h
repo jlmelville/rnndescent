@@ -41,7 +41,7 @@ void r_to_heap(NbrHeap &heap, Rcpp::IntegerMatrix nn_idx,
   auto nn_distv = Rcpp::as<std::vector<typename NbrHeap::DistanceOut>>(nn_dist);
   std::size_t n_points = nn_idx_copy.nrow();
 
-  tdoann::vec_to_heap<HeapAdd, RInterruptableProgress, NbrHeap>(
+  tdoann::vec_to_heap<HeapAdd, RInterruptableProgress>(
       heap, nn_idxv, n_points, nn_distv, block_size, transpose);
 }
 
@@ -67,7 +67,7 @@ void r_to_heap(NbrHeap &heap, Rcpp::IntegerMatrix nn_idx,
   auto nn_distv = Rcpp::as<std::vector<typename NbrHeap::DistanceOut>>(nn_dist);
   std::size_t n_points = nn_idx_copy.nrow();
 
-  tdoann::vec_to_heap<HeapAdd, tdoann::NullProgress, RParallel, NbrHeap>(
+  tdoann::vec_to_heap<HeapAdd, tdoann::NullProgress, RParallel>(
       heap, nn_idxv, n_points, nn_distv, block_size, n_threads, grain_size,
       transpose);
 }
