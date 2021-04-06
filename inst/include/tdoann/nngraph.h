@@ -199,6 +199,24 @@ void sort_knn_graph(NbrGraph &nn_graph, std::size_t block_size = 1000) {
 }
 
 template <typename Distance, typename Progress>
+void idx_to_graph(const Distance &distance,
+                  const std::vector<typename Distance::Index> &idx,
+                  std::vector<typename Distance::Output> &dist,
+                  Progress &progress, std::size_t n_nbrs, std::size_t begin,
+                  std::size_t end) {
+  std::size_t innbrs = 0;
+  std::size_t ij = 0;
+  for (std::size_t i = begin; i < end; i++) {
+    innbrs = i * n_nbrs;
+    for (std::size_t j = 0; j < n_nbrs; j++) {
+      ij = innbrs + j;
+      dist[ij] = distance(i, idx[ij]);
+    }
+    TDOANN_ITERFINISHED();
+  }
+}
+
+template <typename Distance, typename Progress>
 auto idx_to_graph(const std::vector<typename Distance::Input> &data,
                   std::size_t ndim,
                   const std::vector<typename Distance::Index> &idx,
@@ -208,29 +226,12 @@ auto idx_to_graph(const std::vector<typename Distance::Input> &data,
   using Index = typename Distance::Index;
 
   Distance distance(data, ndim);
-
   Progress progress(distance.nx, verbose);
-
   const std::size_t n_points = distance.ny;
   const std::size_t n_nbrs = idx.size() / n_points;
+  std::vector<Out> dist(idx.size());
 
-  std::vector<Out> dist;
-  dist.reserve(idx.size());
-
-  std::size_t i = 0;
-  std::size_t j = 0;
-
-  for (auto nbr : idx) {
-    Out d = distance(i, nbr);
-    dist.push_back(d);
-
-    ++j;
-    if (j == n_nbrs) {
-      TDOANN_ITERFINISHED();
-      j = 0;
-      ++i;
-    }
-  }
+  idx_to_graph(distance, idx, dist, progress, n_nbrs, 0, n_points);
 
   return NNGraph<Out, Index>(idx, dist, n_points);
 }
