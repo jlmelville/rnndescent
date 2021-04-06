@@ -38,7 +38,7 @@ auto idx_to_graph_impl(NumericMatrix data, IntegerMatrix idx,
   auto data_vec = r_to_dist_vect<Distance>(data);
   auto idx_vec = r_to_idxt<typename Distance::Index>(idx);
 
-  if (n_threads > 1) {
+  if (n_threads > 0) {
     auto nn_graph = tdoann::idx_to_graph<Distance, RPProgress, RParallel>(
         data_vec, data.ncol(), idx_vec, n_threads, grain_size, verbose);
     return graph_to_r(nn_graph);

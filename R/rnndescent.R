@@ -364,10 +364,13 @@ nnd_knn <- function(data,
     }
   }
   init <-
-    prepare_init_graph(init,
+    prepare_init_graph(
+      init,
       k,
       data = data,
       metric = actual_metric,
+      n_threads = n_threads,
+      grain_size = grain_size,
       verbose = verbose
     )
 
@@ -777,10 +780,13 @@ nnd_knn_query <- function(query,
     }
   }
   init <-
-    prepare_init_graph(init,
+    prepare_init_graph(
+      init,
       k,
       data = query,
       metric = actual_metric,
+      n_threads = n_threads,
+      grain_size = grain_size,
       verbose = verbose
     )
   reference_graph <- prepare_reference_graph(reference_graph, k)
@@ -1138,6 +1144,8 @@ prepare_init_graph <-
            k,
            data,
            metric = "euclidean",
+           n_threads = 0,
+           grain_size = 1,
            verbose = FALSE) {
     if (k != ncol(nn$idx)) {
       if (k > ncol(nn$idx)) {
@@ -1152,7 +1160,15 @@ prepare_init_graph <-
       nn$dist <- nn$dist[, 1:k]
     }
     else {
-      nn <- idx_to_graph(data, nn, metric = metric, verbose = verbose)
+      nn <-
+        idx_to_graph(
+          data,
+          nn,
+          metric = metric,
+          n_threads = n_threads,
+          grain_size = grain_size,
+          verbose = verbose
+        )
     }
     nn
   }

@@ -21,7 +21,7 @@ testthat::test_that("convert reference graph", {
   expect_equal(i2g$idx, ui4_nndc$idx)
 
   # multi-threading
-  i2g <- idx_to_graph(ui4, ui4_nnd$idx, n_threads = 2)
+  i2g <- idx_to_graph(ui4, ui4_nnd$idx, n_threads = 1)
   expect_equal(i2g$dist, ui4_nnd$dist, tol = 1e-7)
   expect_equal(i2g$idx, ui4_nnd$idx)
 })
