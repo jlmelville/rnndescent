@@ -5,8 +5,8 @@
 \title{Nearest Neighbors Query by Random Selection}
 \usage{
 random_knn_query(
-  reference,
   query,
+  reference,
   k,
   metric = "euclidean",
   use_alt_metric = TRUE,
@@ -18,10 +18,10 @@ random_knn_query(
 )
 }
 \arguments{
+\item{query}{Matrix of \code{n} query items.}
+
 \item{reference}{Matrix of \code{m} reference items. The nearest neighbors to the
 queries are randomly selected from this data.}
-
-\item{query}{Matrix of \code{n} query items.}
 
 \item{k}{Number of nearest neighbors to return.}
 
@@ -82,10 +82,12 @@ iris_query <- iris[iris$Species == "versicolor", ]
 # For each item in iris_query find 4 random neighbors in iris_ref
 # If you pass a data frame, non-numeric columns are removed
 # set verbose = TRUE to get details on the progress being made
-iris_query_random_nbrs <- random_knn_query(iris_ref, iris_query,
+iris_query_random_nbrs <- random_knn_query(iris_query, reference = iris_ref,
   k = 4, metric = "euclidean", verbose = TRUE
 )
 
 # Manhattan (l1) distance
-iris_query_random_nbrs <- random_knn_query(iris_ref, iris_query, k = 4, metric = "manhattan")
+iris_query_random_nbrs <- random_knn_query(iris_query, reference = iris_ref,
+  k = 4, metric = "manhattan"
+)
 }

@@ -397,10 +397,10 @@ nnd_knn <- function(data,
 
 #' Query Exact Nearest Neighbors by Brute Force
 #'
-#' @param reference Matrix of \code{m} reference items. The nearest neighbors to the
-#'   queries are calculated from this data.
 #' @param query Matrix of \code{n} query items.
 #' @param k Number of nearest neighbors to return.
+#' @param reference Matrix of \code{m} reference items. The nearest neighbors to the
+#'   queries are calculated from this data.
 #' @param metric Type of distance calculation to use. One of \code{"euclidean"},
 #'   \code{"l2sqr"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"},
 #'   \code{"correlation"} (1 minus the Pearson correlation), or
@@ -441,16 +441,19 @@ nnd_knn <- function(data,
 #' # For each item in iris_query find the 4 nearest neighbors in iris_ref
 #' # If you pass a data frame, non-numeric columns are removed
 #' # set verbose = TRUE to get details on the progress being made
-#' iris_query_nn <- brute_force_knn_query(iris_ref, iris_query,
-#'   k = 4, metric = "euclidean",
-#'   verbose = TRUE
+#' iris_query_nn <- brute_force_knn_query(iris_query,
+#'   reference = iris_ref,
+#'   k = 4, metric = "euclidean", verbose = TRUE
 #' )
 #'
 #' # Manhattan (l1) distance
-#' iris_query_nn <- brute_force_knn_query(iris_ref, iris_query, k = 4, metric = "manhattan")
+#' iris_query_nn <- brute_force_knn_query(iris_query,
+#'   reference = iris_ref,
+#'   k = 4, metric = "manhattan"
+#' )
 #' @export
-brute_force_knn_query <- function(reference,
-                                  query,
+brute_force_knn_query <- function(query,
+                                  reference,
                                   k,
                                   metric = "euclidean",
                                   use_alt_metric = TRUE,
@@ -501,9 +504,9 @@ brute_force_knn_query <- function(reference,
 
 #' Nearest Neighbors Query by Random Selection
 #'
+#' @param query Matrix of \code{n} query items.
 #' @param reference Matrix of \code{m} reference items. The nearest neighbors to the
 #'   queries are randomly selected from this data.
-#' @param query Matrix of \code{n} query items.
 #' @param k Number of nearest neighbors to return.
 #' @param metric Type of distance calculation to use. One of \code{"euclidean"},
 #'   \code{"l2sqr"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"},
@@ -550,16 +553,20 @@ brute_force_knn_query <- function(reference,
 #' # For each item in iris_query find 4 random neighbors in iris_ref
 #' # If you pass a data frame, non-numeric columns are removed
 #' # set verbose = TRUE to get details on the progress being made
-#' iris_query_random_nbrs <- random_knn_query(iris_ref, iris_query,
+#' iris_query_random_nbrs <- random_knn_query(iris_query,
+#'   reference = iris_ref,
 #'   k = 4, metric = "euclidean", verbose = TRUE
 #' )
 #'
 #' # Manhattan (l1) distance
-#' iris_query_random_nbrs <- random_knn_query(iris_ref, iris_query, k = 4, metric = "manhattan")
+#' iris_query_random_nbrs <- random_knn_query(iris_query,
+#'   reference = iris_ref,
+#'   k = 4, metric = "manhattan"
+#' )
 #' @export
 random_knn_query <-
-  function(reference,
-           query,
+  function(query,
+           reference,
            k,
            metric = "euclidean",
            use_alt_metric = TRUE,
@@ -614,17 +621,17 @@ random_knn_query <-
 
 #' Find Nearest Neighbors and Distances
 #'
-#' @param reference Matrix of \code{m} reference items. The nearest neighbors to the
-#'   queries are calculated from this data.
-#' @param reference_nn Nearest neighbors for the \code{reference} data, for
-#'   example, the output of running `nnd_knn`. The format is a list containing:
-#' \itemize{
-#'   \item \code{idx} an n by k matrix containing the nearest neighbor indices
-#'   of the data in \code{reference}.
-#'   \item \code{dist} an n by k matrix containing the nearest neighbor
-#'   distances.
-#' }
 #' @param query Matrix of \code{n} query items.
+#' @param reference Matrix of \code{m} reference items. The nearest neighbors to the
+#'   items in \code{query} are calculated from this data.
+#' @param reference_graph Nearest neighbor graph of the \code{reference} data,
+#'   the output of running \code{nnd_knn}. The format is a list containing:
+#' \itemize{
+#'   \item \code{idx} an \code{m} by \code{k} matrix containing the nearest
+#'   neighbor indices of the data in \code{reference}.
+#'   \item \code{dist} an \code{m} by \code{k} matrix containing the nearest
+#'   neighbor distances.
+#' }
 #' @param k Number of nearest neighbors to return. Optional if \code{init} is
 #'   specified.
 #' @param metric Type of distance calculation to use. One of \code{"euclidean"},
@@ -637,22 +644,23 @@ random_knn_query <-
 #'   the only reason to set this to \code{FALSE} is if you suspect that some
 #'   sort of numeric issue is occurring with your data in the alternative code
 #'   path.
-#' @param init Initial data to optimize. If not provided, \code{k} random
-#'   neighbors are created. The input format should be the same as the return
-#'   value: a list containing:
+#' @param init Initial \code{query} neighbor graph to optimize. If not
+#'   provided, \code{k} random neighbors from \code{reference} are used. The
+#'   format should be the same as the return value of this function, a list
+#'   containing:
 #' \itemize{
-#'   \item \code{idx} an n by k matrix containing the nearest neighbor indices
-#'   of the data in \code{reference}.
-#'   \item \code{dist} an n by k matrix containing the nearest neighbor
-#'   distances.
+#'   \item \code{idx} a \code{n} by \code{k} matrix containing the nearest neighbor
+#'   indices specifying the row of the neighbor in \code{reference}.
+#'   \item \code{dist} a \code{n} by \code{k} matrix containing the nearest neighbor
+#'    distances.
 #' }
-#' If \code{k} and \code{init} are provided then \code{k} must be equal to or
-#' smaller than the number of neighbors provided in \code{init}. If smaller,
-#' only the \code{k} closest value in \code{init} are retained. The input
-#' distances may be ignored if \code{use_alt_metric = TRUE} and no
-#' transformation from the distances to the internal distance representation
-#' is available. In this case, the distances will be recalculated internally
-#' and only the contents of \code{init$idx} will be used.
+#'   If \code{k} and \code{init} are provided then \code{k} must be equal to or
+#'   smaller than the number of neighbors provided in \code{init}. If smaller,
+#'   only the \code{k} closest value in \code{init} are retained. The input
+#'   distances may be ignored if \code{use_alt_metric = TRUE} and no
+#'   transformation from the distances to the internal distance representation
+#'   is available. In this case, the distances will be recalculated internally
+#'   and only the contents of \code{init$idx} will be used.
 #' @param n_iters Number of iterations of nearest neighbor descent to carry out.
 #'   This is set to \code{Inf} by default. For controlling the time cost of
 #'   querying, it is recommended to modify \code{epsilon} initially. However,
@@ -678,10 +686,11 @@ random_knn_query <-
 #'   items to process in a thread falls below this number, then no threads will
 #'   be used. Ignored if \code{n_threads < 1}.
 #' @param verbose If \code{TRUE}, log information to the console.
-#' @return a list containing:
+#' @return the optimized query neighbor graph, a list containing:
 #' \itemize{
-#'   \item \code{idx} an n by k matrix containing the nearest neighbor indices.
-#'   \item \code{dist} an n by k matrix containing the nearest neighbor
+#'   \item \code{idx} a \code{n} by \code{k} matrix containing the nearest neighbor
+#'   indices specifying the row of the neighbor in \code{reference}.
+#'   \item \code{dist} a \code{n} by \code{k} matrix containing the nearest neighbor
 #'    distances.
 #' }
 #' @examples
@@ -692,16 +701,14 @@ random_knn_query <-
 #' iris_query <- iris[iris$Species == "versicolor", ]
 #'
 #' # First, find the approximate 4-nearest neighbor graph for the references:
-#' iris_ref_knn <- nnd_knn(iris_ref, k = 4)
+#' iris_ref_graph <- nnd_knn(iris_ref, k = 4)
 #'
 #' # For each item in iris_query find the 4 nearest neighbors in iris_ref.
-#' # You need to pass both the reference data and the knn graph indices (the
-#' # 'idx' matrix in the return value of nnd_knn).
+#' # You need to pass both the reference data and the reference graph.
 #' # If you pass a data frame, non-numeric columns are removed.
 #' # set verbose = TRUE to get details on the progress being made
-#' iris_query_nn <- nnd_knn_query(iris_ref, iris_ref_knn, iris_query,
-#'   k = 4, metric = "euclidean",
-#'   verbose = TRUE
+#' iris_query_nn <- nnd_knn_query(iris_query, iris_ref, iris_ref_graph,
+#'   k = 4, metric = "euclidean", verbose = TRUE
 #' )
 #' @references
 #' Dong, W., Moses, C., & Li, K. (2011, March).
@@ -711,9 +718,9 @@ random_knn_query <-
 #' ACM.
 #' \url{https://doi.org/10.1145/1963405.1963487}.
 #' @export
-nnd_knn_query <- function(reference,
-                          reference_nn,
-                          query,
+nnd_knn_query <- function(query,
+                          reference,
+                          reference_graph,
                           k = NULL,
                           metric = "euclidean",
                           init = NULL,
@@ -742,19 +749,16 @@ nnd_knn_query <- function(reference,
     actual_metric <- metric
   }
 
-  reference_dist <- reference_nn$dist
-  reference_idx <- reference_nn$idx
-
   if (is.null(init)) {
     if (is.null(k)) {
-      k <- ncol(reference_idx)
-      tsmessage("Using k = ", k, " from reference graph indices")
+      k <- get_reference_graph_k(reference_graph)
+      tsmessage("Using k = ", k, " nnd model")
     }
     tsmessage("Initializing from random neighbors")
     init <- random_knn_query(
-      reference,
-      query,
-      k,
+      query = query,
+      reference = reference,
+      k = k,
       order_by_distance = FALSE,
       metric = actual_metric,
       n_threads = n_threads,
@@ -770,7 +774,7 @@ nnd_knn_query <- function(reference,
       init <- prepare_init_graph(init, k)
     }
   }
-  reference_idx <- prepare_ref_idx(reference_idx, k)
+  reference_graph <- prepare_reference_graph(reference_graph, k)
 
   if (is.null(max_candidates)) {
     max_candidates <- min(k, 60)
@@ -780,6 +784,35 @@ nnd_knn_query <- function(reference,
   if (is.infinite(n_iters)) {
     n_iters <- .Machine$integer.max
   }
+
+  reference_dist <- reference_graph$dist
+  reference_idx <- reference_graph$idx
+  stopifnot(!is.null(reference), is.matrix(reference))
+  stopifnot(
+    !is.null(reference_idx),
+    is.matrix(reference_idx),
+    ncol(reference_idx) == k,
+    nrow(reference_idx) == nrow(reference)
+  )
+  stopifnot(
+    !is.null(reference_dist),
+    is.matrix(reference_dist),
+    ncol(reference_dist) == k,
+    nrow(reference_dist) == nrow(reference)
+  )
+  stopifnot(!is.null(query), is.matrix(query))
+  stopifnot(
+    !is.null(init$idx),
+    is.matrix(init$idx),
+    ncol(init$idx) == k,
+    nrow(init$idx) == nrow(query)
+  )
+  stopifnot(
+    !is.null(init$dist),
+    is.matrix(init$dist),
+    ncol(init$dist) == k,
+    nrow(init$dist) == nrow(query)
+  )
 
   res <-
     nn_descent_query(
@@ -1034,7 +1067,9 @@ merge_knnl <- function(nn_graphs,
 #' \emph{International Journal on Artificial Intelligence Tools}, \emph{28}(06), 1960002.
 #' \url{https://doi.org/10.1142/S0218213019600029}
 #' @export
-k_occur <- function(idx, k = ncol(idx), include_self = TRUE) {
+k_occur <- function(idx,
+                    k = ncol(idx),
+                    include_self = TRUE) {
   stopifnot(methods::is(idx, "matrix"))
   nc <- ncol(idx)
   stopifnot(k >= 1)
@@ -1090,14 +1125,25 @@ prepare_init_graph <- function(nn, k) {
   nn
 }
 
-prepare_ref_idx <- function(idx, k) {
-  if (k != ncol(idx)) {
-    if (k > ncol(idx)) {
-      stop("Not enough reference indices provided for k = ", k)
+prepare_reference_graph <- function(reference_graph, k) {
+  for (name in c("idx", "dist")) {
+    m <- reference_graph[[name]]
+    stopifnot(
+      "null" = !is.null(m),
+      "not a matrix" = is.matrix(m),
+      "insufficient neighbors in reference graph" = ncol(m) >= k
+    )
+    if (k != ncol(m)) {
+      m <- m[, 1:k]
     }
-    idx <- idx[, 1:k]
+    reference_graph[[name]] <- m
   }
-  idx
+
+  reference_graph
+}
+
+get_reference_graph_k <- function(reference_graph) {
+  ncol(reference_graph$idx)
 }
 
 find_alt_metric <- function(metric) {

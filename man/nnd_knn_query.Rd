@@ -5,9 +5,9 @@
 \title{Find Nearest Neighbors and Distances}
 \usage{
 nnd_knn_query(
-  reference,
-  reference_nn,
   query,
+  reference,
+  reference_graph,
   k = NULL,
   metric = "euclidean",
   init = NULL,
@@ -21,19 +21,19 @@ nnd_knn_query(
 )
 }
 \arguments{
-\item{reference}{Matrix of \code{m} reference items. The nearest neighbors to the
-queries are calculated from this data.}
-
-\item{reference_nn}{Nearest neighbors for the \code{reference} data, for
-  example, the output of running `nnd_knn`. The format is a list containing:
-\itemize{
-  \item \code{idx} an n by k matrix containing the nearest neighbor indices
-  of the data in \code{reference}.
-  \item \code{dist} an n by k matrix containing the nearest neighbor
-  distances.
-}}
-
 \item{query}{Matrix of \code{n} query items.}
+
+\item{reference}{Matrix of \code{m} reference items. The nearest neighbors to the
+items in \code{query} are calculated from this data.}
+
+\item{reference_graph}{Nearest neighbor graph of the \code{reference} data,
+  the output of running \code{nnd_knn}. The format is a list containing:
+\itemize{
+  \item \code{idx} an \code{m} by \code{k} matrix containing the nearest
+  neighbor indices of the data in \code{reference}.
+  \item \code{dist} an \code{m} by \code{k} matrix containing the nearest
+  neighbor distances.
+}}
 
 \item{k}{Number of nearest neighbors to return. Optional if \code{init} is
 specified.}
@@ -43,22 +43,23 @@ specified.}
 \code{"correlation"} (1 minus the Pearson correlation), or
 \code{"hamming"}.}
 
-\item{init}{Initial data to optimize. If not provided, \code{k} random
-  neighbors are created. The input format should be the same as the return
-  value: a list containing:
+\item{init}{Initial \code{query} neighbor graph to optimize. If not
+  provided, \code{k} random neighbors from \code{reference} are used. The
+  format should be the same as the return value of this function, a list
+  containing:
 \itemize{
-  \item \code{idx} an n by k matrix containing the nearest neighbor indices
-  of the data in \code{reference}.
-  \item \code{dist} an n by k matrix containing the nearest neighbor
-  distances.
+  \item \code{idx} a \code{n} by \code{k} matrix containing the nearest neighbor
+  indices specifying the row of the neighbor in \code{reference}.
+  \item \code{dist} a \code{n} by \code{k} matrix containing the nearest neighbor
+   distances.
 }
-If \code{k} and \code{init} are provided then \code{k} must be equal to or
-smaller than the number of neighbors provided in \code{init}. If smaller,
-only the \code{k} closest value in \code{init} are retained. The input
-distances may be ignored if \code{use_alt_metric = TRUE} and no
-transformation from the distances to the internal distance representation
-is available. In this case, the distances will be recalculated internally
-and only the contents of \code{init$idx} will be used.}
+  If \code{k} and \code{init} are provided then \code{k} must be equal to or
+  smaller than the number of neighbors provided in \code{init}. If smaller,
+  only the \code{k} closest value in \code{init} are retained. The input
+  distances may be ignored if \code{use_alt_metric = TRUE} and no
+  transformation from the distances to the internal distance representation
+  is available. In this case, the distances will be recalculated internally
+  and only the contents of \code{init$idx} will be used.}
 
 \item{n_iters}{Number of iterations of nearest neighbor descent to carry out.
 This is set to \code{Inf} by default. For controlling the time cost of
@@ -99,10 +100,11 @@ be used. Ignored if \code{n_threads < 1}.}
 \item{verbose}{If \code{TRUE}, log information to the console.}
 }
 \value{
-a list containing:
+the optimized query neighbor graph, a list containing:
 \itemize{
-  \item \code{idx} an n by k matrix containing the nearest neighbor indices.
-  \item \code{dist} an n by k matrix containing the nearest neighbor
+  \item \code{idx} a \code{n} by \code{k} matrix containing the nearest neighbor
+  indices specifying the row of the neighbor in \code{reference}.
+  \item \code{dist} a \code{n} by \code{k} matrix containing the nearest neighbor
    distances.
 }
 }
@@ -117,16 +119,14 @@ iris_ref <- iris[iris$Species \%in\% c("setosa", "versicolor"), ]
 iris_query <- iris[iris$Species == "versicolor", ]
 
 # First, find the approximate 4-nearest neighbor graph for the references:
-iris_ref_knn <- nnd_knn(iris_ref, k = 4)
+iris_ref_graph <- nnd_knn(iris_ref, k = 4)
 
 # For each item in iris_query find the 4 nearest neighbors in iris_ref.
-# You need to pass both the reference data and the knn graph indices (the
-# 'idx' matrix in the return value of nnd_knn).
+# You need to pass both the reference data and the reference graph.
 # If you pass a data frame, non-numeric columns are removed.
 # set verbose = TRUE to get details on the progress being made
-iris_query_nn <- nnd_knn_query(iris_ref, iris_ref_knn, iris_query,
-  k = 4, metric = "euclidean",
-  verbose = TRUE
+iris_query_nn <- nnd_knn_query(iris_query, iris_ref, iris_ref_graph,
+  k = 4, metric = "euclidean", verbose = TRUE
 )
 }
 \references{
