@@ -13,8 +13,8 @@ reverse_nbr_size_impl <- function(nn_idx, k, len, include_self = FALSE) {
     .Call(`_rnndescent_reverse_nbr_size_impl`, nn_idx, k, len, include_self)
 }
 
-rnn_idx_to_graph <- function(data, idx, metric = "euclidean", verbose = FALSE) {
-    .Call(`_rnndescent_rnn_idx_to_graph`, data, idx, metric, verbose)
+rnn_idx_to_graph <- function(data, idx, metric = "euclidean", n_threads = 0L, grain_size = 1L, verbose = FALSE) {
+    .Call(`_rnndescent_rnn_idx_to_graph`, data, idx, metric, n_threads, grain_size, verbose)
 }
 
 merge_nn <- function(nn_idx1, nn_dist1, nn_idx2, nn_dist2, is_query, block_size, n_threads, grain_size = 1L, verbose = FALSE) {

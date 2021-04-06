@@ -778,10 +778,10 @@ nnd_knn_query <- function(query,
   }
   init <-
     prepare_init_graph(init,
-                       k,
-                       data = query,
-                       metric = actual_metric,
-                       verbose = verbose
+      k,
+      data = query,
+      metric = actual_metric,
+      verbose = verbose
     )
   reference_graph <- prepare_reference_graph(reference_graph, k)
 
@@ -1094,6 +1094,8 @@ idx_to_graph <-
   function(data,
            idx,
            metric = "euclidean",
+           n_threads = 0,
+           grain_size = 1,
            verbose = FALSE) {
     if (is.list(idx)) {
       if (is.null(idx$idx)) {
@@ -1109,7 +1111,8 @@ idx_to_graph <-
     )
 
     tsmessage("Calculating distances for neighbor indexes")
-    res <- rnn_idx_to_graph(x2m(data), idx, metric = metric)
+    res <-
+      rnn_idx_to_graph(x2m(data), idx, metric = metric, n_threads = n_threads)
     res$idx <- res$idx + 1
     res
   }

@@ -236,6 +236,30 @@ auto idx_to_graph(const std::vector<typename Distance::Input> &data,
   return NNGraph<Out, Index>(idx, dist, n_points);
 }
 
+template <typename Distance, typename Progress, typename Parallel>
+auto idx_to_graph(const std::vector<typename Distance::Input> &data,
+                  std::size_t ndim,
+                  const std::vector<typename Distance::Index> &idx,
+                  std::size_t n_threads, std::size_t grain_size, bool verbose)
+    -> NNGraph<typename Distance::Output, typename Distance::Index> {
+  using Out = typename Distance::Output;
+  using Index = typename Distance::Index;
+
+  Distance distance(data, ndim);
+  Progress progress(distance.nx, verbose);
+  const std::size_t n_points = distance.ny;
+  const std::size_t n_nbrs = idx.size() / n_points;
+  std::vector<Out> dist(idx.size());
+
+  NullProgress null_progress;
+  auto worker = [&](std::size_t begin, std::size_t end) {
+    idx_to_graph(distance, idx, dist, null_progress, n_nbrs, begin, end);
+  };
+  batch_parallel_for<Parallel>(worker, progress, n_points, 1024, n_threads,
+                               grain_size);
+
+  return NNGraph<Out, Index>(idx, dist, n_points);
+}
 } // namespace tdoann
 
 #endif // TDOANN_NNGRAPH_H

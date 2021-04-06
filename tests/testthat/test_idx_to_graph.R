@@ -19,4 +19,9 @@ testthat::test_that("convert reference graph", {
   i2g <- idx_to_graph(ui4, ui4_nndc$idx, metric = "cosine")
   expect_equal(i2g$dist, ui4_nndc$dist, tol = 1e-7)
   expect_equal(i2g$idx, ui4_nndc$idx)
+
+  # multi-threading
+  i2g <- idx_to_graph(ui4, ui4_nnd$idx, n_threads = 2)
+  expect_equal(i2g$dist, ui4_nnd$dist, tol = 1e-7)
+  expect_equal(i2g$idx, ui4_nnd$idx)
 })
