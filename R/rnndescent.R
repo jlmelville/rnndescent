@@ -1081,19 +1081,21 @@ k_occur <- function(idx,
 
 # Idx to Graph ------------------------------------------------------------
 
-idx_to_graph <- function(X, idx) {
+idx_to_graph <- function(data, idx, metric = "euclidean") {
   if (is.list(idx)) {
     if (is.null(idx$idx)) {
       stop("Couldn't find 'idx' matrix in graph")
     }
     idx <- idx$idx
   }
-  stopifnot(methods::is(idx, "matrix"))
+  stopifnot(
+    "not a matrix" = methods::is(idx, "matrix"),
+    "incorrect dimensions" = nrow(data) == nrow(idx),
+    "insufficient data" = nrow(data) >= ncol(idx),
+    "bad data" = max(idx) <= nrow(data)
+  )
 
-  stopifnot(nrow(X) == nrow(idx))
-  stopifnot(nrow(X) >= ncol(idx))
-
-  res <- rnn_idx_to_graph(x2m(X), idx)
+  res <- rnn_idx_to_graph(x2m(data), idx, metric = metric)
   res$idx <- res$idx + 1
   res
 }
