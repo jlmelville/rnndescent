@@ -787,29 +787,29 @@ nnd_knn_query <- function(query,
 
   reference_dist <- reference_graph$dist
   reference_idx <- reference_graph$idx
-  stopifnot(!is.null(reference), is.matrix(reference))
+  stopifnot(!is.null(reference), methods::is(reference, "matrix"))
   stopifnot(
     !is.null(reference_idx),
-    is.matrix(reference_idx),
+    methods::is(reference_idx, "matrix"),
     ncol(reference_idx) == k,
     nrow(reference_idx) == nrow(reference)
   )
   stopifnot(
     !is.null(reference_dist),
-    is.matrix(reference_dist),
+    methods::is(reference_dist, "matrix"),
     ncol(reference_dist) == k,
     nrow(reference_dist) == nrow(reference)
   )
-  stopifnot(!is.null(query), is.matrix(query))
+  stopifnot(!is.null(query), methods::is(query, "matrix"))
   stopifnot(
     !is.null(init$idx),
-    is.matrix(init$idx),
+    methods::is(init$idx, "matrix"),
     ncol(init$idx) == k,
     nrow(init$idx) == nrow(query)
   )
   stopifnot(
     !is.null(init$dist),
-    is.matrix(init$dist),
+    methods::is(init$dist, "matrix"),
     ncol(init$dist) == k,
     nrow(init$dist) == nrow(query)
   )
@@ -1130,7 +1130,7 @@ prepare_reference_graph <- function(reference_graph, k) {
     m <- reference_graph[[name]]
     stopifnot(
       "null" = !is.null(m),
-      "not a matrix" = is.matrix(m),
+      "not a matrix" = methods::is(m, "matrix"),
       "insufficient neighbors in reference graph" = ncol(m) >= k
     )
     if (k != ncol(m)) {
