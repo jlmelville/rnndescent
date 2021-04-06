@@ -1102,10 +1102,10 @@ idx_to_graph <-
       idx <- idx$idx
     }
     stopifnot(
-      "not a matrix" = methods::is(idx, "matrix"),
-      "incorrect dimensions" = nrow(data) == nrow(idx),
-      "insufficient data" = nrow(data) >= ncol(idx),
-      "bad data" = max(idx) <= nrow(data)
+      methods::is(idx, "matrix"),
+      nrow(data) == nrow(idx),
+      nrow(data) >= ncol(idx),
+      max(idx) <= nrow(data)
     )
 
     tsmessage("Calculating distances for neighbor indexes")
@@ -1158,9 +1158,9 @@ prepare_reference_graph <- function(reference_graph, k) {
   for (name in c("idx", "dist")) {
     m <- reference_graph[[name]]
     stopifnot(
-      "null" = !is.null(m),
-      "not a matrix" = methods::is(m, "matrix"),
-      "insufficient neighbors in reference graph" = ncol(m) >= k
+      !is.null(m),
+      methods::is(m, "matrix"),
+      ncol(m) >= k
     )
     if (k != ncol(m)) {
       m <- m[, 1:k]

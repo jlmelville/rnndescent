@@ -276,7 +276,7 @@ expect_error(nnd_knn_query(
 expect_error(nnd_knn_query(
   reference = ui6, reference_graph = ui6_nnd,
   query = ui4, init = rnbrs5, k = 5
-), "insufficient neighbor")
+), "ncol")
 expect_error(nnd_knn_query(
   reference = ui4, reference_graph = ui4_nnd,
   query = ui6, k = 4, metric = "not-a-real metric"
