@@ -334,7 +334,7 @@ nnd_knn <- function(data,
   }
   if (use_alt_metric) {
     actual_metric <- find_alt_metric(metric)
-    if (!(is.null(init))) {
+    if (!is.null(init) && !is.null(init$dist)) {
       init$dist <- apply_alt_metric_uncorrection(metric, init$dist)
     }
   }
@@ -362,10 +362,15 @@ nnd_knn <- function(data,
     if (is.null(k)) {
       k <- ncol(init$idx)
     }
-    else {
-      init <- prepare_init_graph(init, k)
-    }
   }
+  init <-
+    prepare_init_graph(init,
+      k,
+      data = data,
+      metric = actual_metric,
+      verbose = verbose
+    )
+
   if (is.null(max_candidates)) {
     max_candidates <- min(k, 60)
   }
@@ -741,7 +746,7 @@ nnd_knn_query <- function(query,
   }
   if (use_alt_metric) {
     actual_metric <- find_alt_metric(metric)
-    if (!(is.null(init))) {
+    if (!is.null(init) && !is.null(init$dist)) {
       init$dist <- apply_alt_metric_uncorrection(metric, init$dist)
     }
   }
@@ -770,10 +775,14 @@ nnd_knn_query <- function(query,
       k <- ncol(init$idx)
       message("Using k = ", k, " from initial graph")
     }
-    else {
-      init <- prepare_init_graph(init, k)
-    }
   }
+  init <-
+    prepare_init_graph(init,
+                       k,
+                       data = query,
+                       metric = actual_metric,
+                       verbose = verbose
+    )
   reference_graph <- prepare_reference_graph(reference_graph, k)
 
   if (is.null(max_candidates)) {
@@ -1081,24 +1090,29 @@ k_occur <- function(idx,
 
 # Idx to Graph ------------------------------------------------------------
 
-idx_to_graph <- function(data, idx, metric = "euclidean") {
-  if (is.list(idx)) {
-    if (is.null(idx$idx)) {
-      stop("Couldn't find 'idx' matrix in graph")
+idx_to_graph <-
+  function(data,
+           idx,
+           metric = "euclidean",
+           verbose = FALSE) {
+    if (is.list(idx)) {
+      if (is.null(idx$idx)) {
+        stop("Couldn't find 'idx' matrix in graph")
+      }
+      idx <- idx$idx
     }
-    idx <- idx$idx
-  }
-  stopifnot(
-    "not a matrix" = methods::is(idx, "matrix"),
-    "incorrect dimensions" = nrow(data) == nrow(idx),
-    "insufficient data" = nrow(data) >= ncol(idx),
-    "bad data" = max(idx) <= nrow(data)
-  )
+    stopifnot(
+      "not a matrix" = methods::is(idx, "matrix"),
+      "incorrect dimensions" = nrow(data) == nrow(idx),
+      "insufficient data" = nrow(data) >= ncol(idx),
+      "bad data" = max(idx) <= nrow(data)
+    )
 
-  res <- rnn_idx_to_graph(x2m(data), idx, metric = metric)
-  res$idx <- res$idx + 1
-  res
-}
+    tsmessage("Calculating distances for neighbor indexes")
+    res <- rnn_idx_to_graph(x2m(data), idx, metric = metric)
+    res$idx <- res$idx + 1
+    res
+  }
 
 # Internals ---------------------------------------------------------------
 
@@ -1116,16 +1130,29 @@ check_k <- function(k, max_k) {
   }
 }
 
-prepare_init_graph <- function(nn, k) {
-  if (k != ncol(nn$idx)) {
-    if (k > ncol(nn$idx)) {
-      stop("Not enough initial neighbors provided for k = ", k)
+prepare_init_graph <-
+  function(nn,
+           k,
+           data,
+           metric = "euclidean",
+           verbose = FALSE) {
+    if (k != ncol(nn$idx)) {
+      if (k > ncol(nn$idx)) {
+        stop("Not enough initial neighbors provided for k = ", k)
+      }
+      nn$idx <- nn$idx[, 1:k]
     }
-    nn$idx <- nn$idx[, 1:k]
-    nn$dist <- nn$dist[, 1:k]
+    if (!is.null(nn$dist)) {
+      if (k > ncol(nn$dist)) {
+        stop("Not enough initial distances provided for k = ", k)
+      }
+      nn$dist <- nn$dist[, 1:k]
+    }
+    else {
+      nn <- idx_to_graph(data, nn, metric = metric, verbose = verbose)
+    }
+    nn
   }
-  nn
-}
 
 prepare_reference_graph <- function(reference_graph, k) {
   for (name in c("idx", "dist")) {

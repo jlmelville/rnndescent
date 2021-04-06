@@ -132,6 +132,11 @@ set.seed(1337)
 iris_nnd <- nnd_knn(uirism, init = iris_nbrs)
 expect_equal(sum(iris_nnd$dist), ui_edsum, tol = 1e-3)
 
+# initialize from existing knn indices
+set.seed(1337)
+iris_nnd <- nnd_knn(uirism, init = list(idx = iris_nbrs$idx))
+expect_equal(sum(iris_nnd$dist), ui_edsum, tol = 1e-3)
+
 # Use larger initialization for smaller k
 set.seed(1337)
 iris_nnd <- nnd_knn(uirism, init = random_knn(uirism, 20), k = 15)
