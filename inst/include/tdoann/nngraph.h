@@ -210,22 +210,20 @@ void idx_to_graph(const Distance &distance,
     innbrs = i * n_nbrs;
     for (std::size_t j = 0; j < n_nbrs; j++) {
       ij = innbrs + j;
-      dist[ij] = distance(i, idx[ij]);
+      dist[ij] = distance(idx[ij], i);
     }
     TDOANN_ITERFINISHED();
   }
 }
 
 template <typename Distance, typename Progress>
-auto idx_to_graph(const std::vector<typename Distance::Input> &data,
-                  std::size_t ndim,
+auto idx_to_graph(const Distance &distance,
                   const std::vector<typename Distance::Index> &idx,
                   bool verbose)
     -> NNGraph<typename Distance::Output, typename Distance::Index> {
   using Out = typename Distance::Output;
   using Index = typename Distance::Index;
 
-  Distance distance(data, ndim);
   Progress progress(distance.nx, verbose);
   const std::size_t n_points = distance.ny;
   const std::size_t n_nbrs = idx.size() / n_points;
@@ -237,15 +235,13 @@ auto idx_to_graph(const std::vector<typename Distance::Input> &data,
 }
 
 template <typename Distance, typename Progress, typename Parallel>
-auto idx_to_graph(const std::vector<typename Distance::Input> &data,
-                  std::size_t ndim,
+auto idx_to_graph(const Distance &distance,
                   const std::vector<typename Distance::Index> &idx,
                   std::size_t n_threads, std::size_t grain_size, bool verbose)
     -> NNGraph<typename Distance::Output, typename Distance::Index> {
   using Out = typename Distance::Output;
   using Index = typename Distance::Index;
 
-  Distance distance(data, ndim);
   Progress progress(distance.nx, verbose);
   const std::size_t n_points = distance.ny;
   const std::size_t n_nbrs = idx.size() / n_points;
@@ -260,6 +256,7 @@ auto idx_to_graph(const std::vector<typename Distance::Input> &data,
 
   return NNGraph<Out, Index>(idx, dist, n_points);
 }
+
 } // namespace tdoann
 
 #endif // TDOANN_NNGRAPH_H

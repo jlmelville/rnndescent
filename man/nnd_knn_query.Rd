@@ -50,16 +50,13 @@ specified.}
 \itemize{
   \item \code{idx} a \code{n} by \code{k} matrix containing the nearest neighbor
   indices specifying the row of the neighbor in \code{reference}.
-  \item \code{dist} a \code{n} by \code{k} matrix containing the nearest neighbor
-   distances.
+  \item \code{dist} (optional) a \code{n} by \code{k} matrix containing the
+  nearest neighbor distances.
 }
   If \code{k} and \code{init} are provided then \code{k} must be equal to or
   smaller than the number of neighbors provided in \code{init}. If smaller,
-  only the \code{k} closest value in \code{init} are retained. The input
-  distances may be ignored if \code{use_alt_metric = TRUE} and no
-  transformation from the distances to the internal distance representation
-  is available. In this case, the distances will be recalculated internally
-  and only the contents of \code{init$idx} will be used.}
+  only the \code{k} closest value in \code{init} are retained. If the input
+distances are omitted, they will be calculated for you.}
 
 \item{n_iters}{Number of iterations of nearest neighbor descent to carry out.
 This is set to \code{Inf} by default. For controlling the time cost of

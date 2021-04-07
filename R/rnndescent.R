@@ -204,17 +204,14 @@ random_knn <-
 #'   neighbors are created. The input format should be the same as the return
 #'   value: a list containing:
 #' \itemize{
-#'   \item \code{idx} an n by k matrix containing the nearest neighbor indices.
-#'   \item \code{dist} an n by k matrix containing the nearest neighbor
+#'   \item \code{idx} an \code{n} by \code{k} matrix containing the nearest neighbor indices.
+#'   \item \code{dist} (optional) an \code{n} by \code{k} matrix containing the nearest neighbor
 #'   distances.
 #' }
 #' If \code{k} and \code{init} are provided then \code{k} must be equal to or
 #' smaller than the number of neighbors provided in \code{init}. If smaller,
-#' only the \code{k} closest value in \code{init} are retained. The input
-#' distances may be ignored if \code{use_alt_metric = TRUE} and no
-#' transformation from the distances to the internal distance representation
-#' is available. In this case, the distances will be recalculated internally
-#' and only the contents of \code{init$idx} will be used.
+#' only the \code{k} closest value in \code{init} are retained. If the input
+#' distances are omitted, they will be calculated for you.
 #' @param n_iters Number of iterations of nearest neighbor descent to carry out.
 #' @param max_candidates Maximum number of candidate neighbors to try for each
 #'   item in each iteration. Use relative to \code{k} to emulate the "rho"
@@ -659,16 +656,13 @@ random_knn_query <-
 #' \itemize{
 #'   \item \code{idx} a \code{n} by \code{k} matrix containing the nearest neighbor
 #'   indices specifying the row of the neighbor in \code{reference}.
-#'   \item \code{dist} a \code{n} by \code{k} matrix containing the nearest neighbor
-#'    distances.
+#'   \item \code{dist} (optional) a \code{n} by \code{k} matrix containing the
+#'   nearest neighbor distances.
 #' }
 #'   If \code{k} and \code{init} are provided then \code{k} must be equal to or
 #'   smaller than the number of neighbors provided in \code{init}. If smaller,
-#'   only the \code{k} closest value in \code{init} are retained. The input
-#'   distances may be ignored if \code{use_alt_metric = TRUE} and no
-#'   transformation from the distances to the internal distance representation
-#'   is available. In this case, the distances will be recalculated internally
-#'   and only the contents of \code{init$idx} will be used.
+#'   only the \code{k} closest value in \code{init} are retained. If the input
+#' distances are omitted, they will be calculated for you.
 #' @param n_iters Number of iterations of nearest neighbor descent to carry out.
 #'   This is set to \code{Inf} by default. For controlling the time cost of
 #'   querying, it is recommended to modify \code{epsilon} initially. However,
@@ -781,9 +775,10 @@ nnd_knn_query <- function(query,
   }
   init <-
     prepare_init_graph(
-      init,
-      k,
-      data = query,
+      nn = init,
+      k = k,
+      query = query,
+      data = reference,
       metric = actual_metric,
       n_threads = n_threads,
       grain_size = grain_size,
@@ -1117,11 +1112,38 @@ idx_to_graph <-
     )
 
     tsmessage("Calculating distances for neighbor indexes")
-    res <-
-      rnn_idx_to_graph(x2m(data), idx, metric = metric, n_threads = n_threads)
-    res$idx <- res$idx + 1
-    res
+    rnn_idx_to_graph_self(x2m(data), idx, metric = metric, n_threads = n_threads)
   }
+
+idx_to_graph_query <-
+  function(query,
+           reference,
+           idx,
+           metric = "euclidean",
+           n_threads = 0,
+           grain_size = 1,
+           verbose = FALSE) {
+    if (is.list(idx)) {
+      if (is.null(idx$idx)) {
+        stop("Couldn't find 'idx' matrix in graph")
+      }
+      idx <- idx$idx
+    }
+    stopifnot(
+      methods::is(idx, "matrix"),
+      nrow(query) == nrow(idx),
+      nrow(reference) >= ncol(idx),
+      max(idx) <= nrow(reference)
+    )
+
+    tsmessage("Calculating distances for neighbor indexes")
+    rnn_idx_to_graph_query(
+      reference = x2m(reference),
+      query = x2m(query),
+      idx = idx, metric = metric, n_threads = n_threads
+    )
+  }
+
 
 # Internals ---------------------------------------------------------------
 
@@ -1143,6 +1165,7 @@ prepare_init_graph <-
   function(nn,
            k,
            data,
+           query = NULL,
            metric = "euclidean",
            n_threads = 0,
            grain_size = 1,
@@ -1160,16 +1183,31 @@ prepare_init_graph <-
       nn$dist <- nn$dist[, 1:k]
     }
     else {
-      nn <-
-        idx_to_graph(
-          data,
-          nn,
-          metric = metric,
-          n_threads = n_threads,
-          grain_size = grain_size,
-          verbose = verbose
-        )
+      if (!is.null(query)) {
+        nn <-
+          rnn_idx_to_graph_query(
+            reference = data,
+            query = query,
+            idx = nn$idx,
+            metric = metric,
+            n_threads = n_threads,
+            grain_size = grain_size,
+            verbose = verbose
+          )
+      }
+      else {
+        nn <-
+          rnn_idx_to_graph_self(
+            data = data,
+            idx = nn$idx,
+            metric = metric,
+            n_threads = n_threads,
+            grain_size = grain_size,
+            verbose = verbose
+          )
+      }
     }
+
     nn
   }
 
