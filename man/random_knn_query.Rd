@@ -82,12 +82,14 @@ iris_query <- iris[iris$Species == "versicolor", ]
 # For each item in iris_query find 4 random neighbors in iris_ref
 # If you pass a data frame, non-numeric columns are removed
 # set verbose = TRUE to get details on the progress being made
-iris_query_random_nbrs <- random_knn_query(iris_query, reference = iris_ref,
+iris_query_random_nbrs <- random_knn_query(iris_query,
+  reference = iris_ref,
   k = 4, metric = "euclidean", verbose = TRUE
 )
 
 # Manhattan (l1) distance
-iris_query_random_nbrs <- random_knn_query(iris_query, reference = iris_ref,
+iris_query_random_nbrs <- random_knn_query(iris_query,
+  reference = iris_ref,
   k = 4, metric = "manhattan"
 )
 }
