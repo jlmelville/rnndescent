@@ -18,3 +18,4 @@ expect_equal(k_occur(qnbrs4$idx), c(1, 3, 4, 3, 4, 1))
 
 qnbrs6 <- brute_force_knn_query(reference = ui4, query = ui6, k = 4)
 expect_equal(k_occur(qnbrs6$idx, k = 2), c(5, 4, 1, 2))
+expect_equal(k_occur(qnbrs6$idx), c(6, 6, 6, 6))
