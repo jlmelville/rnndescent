@@ -183,7 +183,7 @@ struct NNDQuerySerial {
     auto distance = r_to_dist<Distance>(reference, query);
     auto ref_idx_vec = r_to_idx<Index>(ref_idx);
     auto ref_dist_vec = r_to_vec<Out>(ref_dist);
-    Progress progress(1, verbose);
+    Progress progress(nn_heap.n_points, verbose);
 
     tdoann::nnd_query(ref_idx_vec, ref_dist_vec, nn_heap, distance,
                       max_candidates, epsilon, n_iters, progress);
