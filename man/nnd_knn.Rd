@@ -14,6 +14,7 @@ nnd_knn(
   delta = 0.001,
   low_memory = TRUE,
   use_alt_metric = TRUE,
+  weighted = FALSE,
   n_threads = 0,
   block_size = 16384,
   grain_size = 1,
@@ -70,6 +71,14 @@ ordering of distances internally (e.g. squared Euclidean distances if using
 the only reason to set this to \code{FALSE} is if you suspect that some
 sort of numeric issue is occurring with your data in the alternative code
 path.}
+
+\item{weighted}{If \code{TRUE} then instead of ordering general neighbor
+candidates randomly, they are ordered by increasing in-degree. This gives
+priority to nodes which don't appear in many other neighbor lists, and
+which might get crowded out of the few candidate lists they appear in by
+more "popular" nodes. For high dimensional datasets, this can slightly
+ameliorate the effect of hubs and modestly improve query times (for a given
+accuracy).}
 
 \item{n_threads}{Number of threads to use.}
 

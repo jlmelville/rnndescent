@@ -4,14 +4,16 @@
 \alias{k_occur}
 \title{k-Occurrence}
 \usage{
-k_occur(idx, k = ncol(idx), include_self = TRUE)
+k_occur(idx, k = NULL, include_self = TRUE)
 }
 \arguments{
 \item{idx}{integer matrix containing the nearest neighbor indices, integers
 labeled starting at 1. Note that the integer labels do \emph{not} have to
 refer to the rows of \code{idx}, for example if the nearest neighbor result
 is from querying one set of objects with respect to another (for instance
-from running \code{\link{nnd_knn_query}}).}
+from running \code{\link{nnd_knn_query}}). You may also pass a nearest
+neighbor graph object (e.g. the output of running \code{\link{nnd_knn}}),
+and the indices will be extracted from it.}
 
 \item{k}{The number of closest neighbors to use. Must be between 1 and the
 number of columns in \code{idx}. By default, all columns of \code{idx} are
@@ -53,6 +55,8 @@ iris_nbrs <- brute_force_knn(iris, k = 15)
 iris_ko <- k_occur(iris_nbrs$idx)
 # items 42 and 107 are not in 15 nearest neighbors of any other members of
 # iris
+# for convenience you can also pass iris_nbrs directly:
+# iris_ko <- k_occur(iris_nbrs)
 which(iris_ko == 1) # they are only their own nearest neighbor
 max(iris_ko) # most "popular" item appears on 29 15-nearest neighbor lists
 which(iris_ko == max(iris_ko)) # it's iris item 64

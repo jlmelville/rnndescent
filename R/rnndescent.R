@@ -233,6 +233,13 @@ random_knn <-
 #'   the only reason to set this to \code{FALSE} is if you suspect that some
 #'   sort of numeric issue is occurring with your data in the alternative code
 #'   path.
+#' @param weighted If \code{TRUE} then instead of ordering general neighbor
+#'   candidates randomly, they are ordered by increasing in-degree. This gives
+#'   priority to nodes which don't appear in many other neighbor lists, and
+#'   which might get crowded out of the few candidate lists they appear in by
+#'   more "popular" nodes. For high dimensional datasets, this can slightly
+#'   ameliorate the effect of hubs and modestly improve query times (for a given
+#'   accuracy).
 #' @param n_threads Number of threads to use.
 #' @param block_size Batch size for creating/applying local join updates. A
 #'  smaller value will apply the update more often, which may help reduce the
@@ -318,11 +325,12 @@ nnd_knn <- function(data,
                     delta = 0.001,
                     low_memory = TRUE,
                     use_alt_metric = TRUE,
+                    weighted = FALSE,
                     n_threads = 0,
                     block_size = 16384,
                     grain_size = 1,
                     verbose = FALSE,
-                    progress = "bar", weighted = FALSE) {
+                    progress = "bar") {
   stopifnot(tolower(progress) %in% c("bar", "dist"))
   data <- x2m(data)
   if (metric == "correlation") {
@@ -795,7 +803,8 @@ nnd_knn_query <- function(query,
     max_candidates <- min(k, 60)
   }
   reference_graph <- prepare_reference_graph(reference_graph, max_candidates,
-                                             verbose = verbose)
+    verbose = verbose
+  )
   # We need to convert from Inf to an actual integer value. This is sufficiently
   # big for our purposes
   if (is.infinite(n_iters)) {
@@ -1047,7 +1056,9 @@ merge_knnl <- function(nn_graphs,
 #'   labeled starting at 1. Note that the integer labels do \emph{not} have to
 #'   refer to the rows of \code{idx}, for example if the nearest neighbor result
 #'   is from querying one set of objects with respect to another (for instance
-#'   from running \code{\link{nnd_knn_query}}).
+#'   from running \code{\link{nnd_knn_query}}). You may also pass a nearest
+#'   neighbor graph object (e.g. the output of running \code{\link{nnd_knn}}),
+#'   and the indices will be extracted from it.
 #' @param k The number of closest neighbors to use. Must be between 1 and the
 #'   number of columns in \code{idx}. By default, all columns of \code{idx} are
 #'   used.
@@ -1066,6 +1077,8 @@ merge_knnl <- function(nn_graphs,
 #' iris_ko <- k_occur(iris_nbrs$idx)
 #' # items 42 and 107 are not in 15 nearest neighbors of any other members of
 #' # iris
+#' # for convenience you can also pass iris_nbrs directly:
+#' # iris_ko <- k_occur(iris_nbrs)
 #' which(iris_ko == 1) # they are only their own nearest neighbor
 #' max(iris_ko) # most "popular" item appears on 29 15-nearest neighbor lists
 #' which(iris_ko == max(iris_ko)) # it's iris item 64
@@ -1297,8 +1310,10 @@ prepare_reference_graph <- function(reference_graph, max_candidates, verbose = F
   }
   stopifnot(dim(reference_graph$idx) == dim(reference_graph$dist))
   if (ncol(reference_graph$idx) < max_candidates) {
-    tsmessage("Note: reference graph columns = ", ncol(reference_graph$idx),
-              " < requested max_candidates = ", max_candidates)
+    tsmessage(
+      "Note: reference graph columns = ", ncol(reference_graph$idx),
+      " < requested max_candidates = ", max_candidates
+    )
     max_candidates <- ncol(reference_graph$idx)
   }
   else if (ncol(reference_graph$idx) > max_candidates) {
