@@ -59,7 +59,58 @@ template <typename Distance> struct LockingHeapAdder {
       nbrs.checked_push(idx, d, i);
     }
   }
+  void add(NNHeap<Out, Idx> &nbrs, Idx i, Idx idx, Out d_i, Out d_idx) {
+    {
+      std::lock_guard<std::mutex> guard(mutexes[i % n_mutexes]);
+      nbrs.checked_push(i, d_i, idx);
+    }
+    if (i != idx) {
+      std::lock_guard<std::mutex> guard(mutexes[idx % n_mutexes]);
+      nbrs.checked_push(idx, d_idx, i);
+    }
+  }
 };
+
+template <typename Distance>
+void build_candidates_weighted(
+    const NNDHeap<typename Distance::Output, typename Distance::Index>
+        &current_graph,
+    NNHeap<typename Distance::Output, typename Distance::Index> &new_nbrs,
+    NNHeap<typename Distance::Output, typename Distance::Index> &old_nbrs,
+    LockingHeapAdder<Distance> &heap_adder, const std::vector<double> &weights,
+    std::size_t begin, std::size_t end) {
+
+  const std::size_t n_nbrs = current_graph.n_nbrs;
+
+  for (auto i = begin; i < end; i++) {
+    std::size_t innbrs = i * n_nbrs;
+    for (std::size_t j = 0; j < n_nbrs; j++) {
+      std::size_t ij = innbrs + j;
+      auto nbr = current_graph.idx[ij];
+      char isn = current_graph.flags[ij];
+      auto &nbrs = isn == 1 ? new_nbrs : old_nbrs;
+      if (nbr == nbrs.npos()) {
+        continue;
+      }
+      heap_adder.add(nbrs, i, nbr, weights[nbr], weights[i]);
+    }
+  }
+}
+
+template <typename Parallel, typename Distance>
+void build_candidates_weighted(
+    const NNDHeap<typename Distance::Output, typename Distance::Index> &nn_heap,
+    NNHeap<typename Distance::Output, typename Distance::Index> &new_nbrs,
+    NNHeap<typename Distance::Output, typename Distance::Index> &old_nbrs,
+    LockingHeapAdder<Distance> &heap_adder, std::size_t n_threads,
+    std::size_t grain_size) {
+  std::vector<double> weights = koccur_weights(nn_heap);
+  auto worker = [&](std::size_t begin, std::size_t end) {
+    build_candidates_weighted(nn_heap, new_nbrs, old_nbrs, heap_adder, weights,
+                              begin, end);
+  };
+  Parallel::parallel_for(0, nn_heap.n_points, worker, n_threads, grain_size);
+}
 
 template <typename ParallelRand, typename Distance>
 void build_candidates(
@@ -77,14 +128,14 @@ void build_candidates(
     std::size_t innbrs = i * n_nbrs;
     for (std::size_t j = 0; j < n_nbrs; j++) {
       std::size_t ij = innbrs + j;
-      std::size_t idx = current_graph.idx[ij];
+      auto nbr = current_graph.idx[ij];
       char isn = current_graph.flags[ij];
       auto &nbrs = isn == 1 ? new_nbrs : old_nbrs;
-      if (idx == nbrs.npos()) {
+      if (nbr == nbrs.npos()) {
         continue;
       }
       auto d = rand.unif();
-      heap_adder.add(nbrs, i, idx, d);
+      heap_adder.add(nbrs, i, nbr, d);
     }
   }
 }
@@ -176,7 +227,7 @@ void nnd_build(GraphUpdater<Distance> &graph_updater,
                std::size_t max_candidates, std::size_t n_iters, double delta,
                Progress &progress, ParallelRand &parallel_rand,
                std::size_t block_size = 16384, std::size_t n_threads = 0,
-               std::size_t grain_size = 1) {
+               std::size_t grain_size = 1, bool weighted = false) {
 
   using DistOut = typename Distance::Output;
   using Idx = typename Distance::Index;
@@ -190,9 +241,14 @@ void nnd_build(GraphUpdater<Distance> &graph_updater,
     NNHeap<DistOut, Idx> new_nbrs(n_points, max_candidates);
     decltype(new_nbrs) old_nbrs(n_points, max_candidates);
 
-    build_candidates<Parallel, Distance>(nn_heap, new_nbrs, old_nbrs,
-                                         parallel_rand, heap_adder, n_threads,
-                                         grain_size);
+    if (weighted) {
+      build_candidates_weighted<Parallel, Distance>(
+          nn_heap, new_nbrs, old_nbrs, heap_adder, n_threads, grain_size);
+    } else {
+      build_candidates<Parallel, Distance>(nn_heap, new_nbrs, old_nbrs,
+                                           parallel_rand, heap_adder, n_threads,
+                                           grain_size);
+    }
 
     // mark any neighbor in the current graph that was retained in the new
     // candidates as true
@@ -229,18 +285,17 @@ auto build_query_candidates(std::size_t n_ref_points,
 template <typename Parallel, typename Distance, typename Progress>
 void nnd_query(
     const std::vector<typename Distance::Index> &reference_idx,
+    std::size_t n_reference_nbrs,
     const std::vector<typename Distance::Output> &reference_dist,
     NNHeap<typename Distance::Output, typename Distance::Index> &nn_heap,
     const Distance &distance, std::size_t max_candidates, double epsilon,
     std::size_t n_iters, Progress &progress, std::size_t n_threads = 0,
     std::size_t grain_size = 1) {
   const std::size_t n_points = nn_heap.n_points;
-  const std::size_t n_nbrs = nn_heap.n_nbrs;
-
-  const std::size_t n_ref_points = distance.nx;
+  const std::size_t n_reference_points = distance.nx;
   auto query_candidates = build_query_candidates<Parallel>(
-      n_ref_points, max_candidates, reference_idx, reference_dist, n_nbrs,
-      n_threads, grain_size);
+      n_reference_points, max_candidates, reference_idx, reference_dist,
+      n_reference_nbrs, n_threads, grain_size);
 
   NullProgress null_progress;
   auto query_non_search_worker = [&](std::size_t begin, std::size_t end) {

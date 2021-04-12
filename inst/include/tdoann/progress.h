@@ -27,40 +27,11 @@
 #ifndef TDOANN_PROGRESS_H
 #define TDOANN_PROGRESS_H
 
-#define TDOANN_BREAKIFINTERRUPTED()                                            \
-  if (progress.check_interrupt()) {                                            \
-    break;                                                                     \
-  }
+#include <string>
 
-#define TDOANN_ITERFINISHED()                                                  \
-  TDOANN_BREAKIFINTERRUPTED()                                                  \
-  progress.iter_finished();
-
-#define TDOANN_BLOCKFINISHED()                                                 \
-  TDOANN_BREAKIFINTERRUPTED()                                                  \
-  progress.block_finished();
-
-#define TDOANN_CHECKCONVERGENCE()                                              \
-  if (is_converged(c, tol)) {                                                  \
-    progress.converged(c, tol);                                                \
-    break;                                                                     \
-  }
+#include "progressbase.h"
 
 namespace tdoann {
-// Defines the methods required, but does nothing. Safe to use from
-// multi-threaded code if a dummy no-op version is needed.
-struct NullProgress {
-  NullProgress() = default;
-  NullProgress(std::size_t, bool) {}
-  void set_n_blocks(std::size_t) {}
-  void block_finished() {}
-  void iter_finished() {}
-  void stopping_early() {}
-  auto check_interrupt() -> bool { return false; }
-  void converged(std::size_t, double) {}
-  void log(const std::string &) {}
-};
-
 template <typename Progress> struct NNDProgress {
   Progress progress;
 

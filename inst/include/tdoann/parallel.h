@@ -27,7 +27,7 @@
 #ifndef TDOANN_PARALLEL_H
 #define TDOANN_PARALLEL_H
 
-#include "progress.h"
+#include "progressbase.h"
 
 namespace tdoann {
 

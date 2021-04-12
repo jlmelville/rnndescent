@@ -133,4 +133,9 @@ In \emph{Proceedings of the 20th international conference on World Wide Web}
 (pp. 577-586).
 ACM.
 \url{https://doi.org/10.1145/1963405.1963487}.
+
+Iwasaki, M., & Miyazaki, D. (2018).
+Optimization of indexing based on k-nearest neighbor graph for proximity
+search in high-dimensional data.
+\emph{arXiv preprint arXiv:1810.07355.}
 }

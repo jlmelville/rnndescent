@@ -322,7 +322,7 @@ nnd_knn <- function(data,
                     block_size = 16384,
                     grain_size = 1,
                     verbose = FALSE,
-                    progress = "bar") {
+                    progress = "bar", weighted = FALSE) {
   stopifnot(tolower(progress) %in% c("bar", "dist"))
   data <- x2m(data)
   if (metric == "correlation") {
@@ -388,7 +388,8 @@ nnd_knn <- function(data,
     n_threads = n_threads,
     grain_size = grain_size,
     verbose = verbose,
-    progress = progress
+    progress = progress,
+    weighted = weighted
   )
   if (use_alt_metric) {
     res$dist <- apply_alt_metric_correction(metric, res$dist)
@@ -719,6 +720,12 @@ random_knn_query <-
 #' (pp. 577-586).
 #' ACM.
 #' \url{https://doi.org/10.1145/1963405.1963487}.
+#'
+#' Iwasaki, M., & Miyazaki, D. (2018).
+#' Optimization of indexing based on k-nearest neighbor graph for proximity
+#' search in high-dimensional data.
+#' \emph{arXiv preprint arXiv:1810.07355.}
+#'
 #' @export
 nnd_knn_query <- function(query,
                           reference,
@@ -784,11 +791,11 @@ nnd_knn_query <- function(query,
       grain_size = grain_size,
       verbose = verbose
     )
-  reference_graph <- prepare_reference_graph(reference_graph, k)
-
   if (is.null(max_candidates)) {
     max_candidates <- min(k, 60)
   }
+  reference_graph <- prepare_reference_graph(reference_graph, max_candidates,
+                                             verbose = verbose)
   # We need to convert from Inf to an actual integer value. This is sufficiently
   # big for our purposes
   if (is.infinite(n_iters)) {
@@ -801,13 +808,11 @@ nnd_knn_query <- function(query,
   stopifnot(
     !is.null(reference_idx),
     methods::is(reference_idx, "matrix"),
-    ncol(reference_idx) == k,
     nrow(reference_idx) == nrow(reference)
   )
   stopifnot(
     !is.null(reference_dist),
     methods::is(reference_dist, "matrix"),
-    ncol(reference_dist) == k,
     nrow(reference_dist) == nrow(reference)
   )
   stopifnot(!is.null(query), methods::is(query, "matrix"))
@@ -1078,9 +1083,15 @@ merge_knnl <- function(nn_graphs,
 #' \url{https://doi.org/10.1142/S0218213019600029}
 #' @export
 k_occur <- function(idx,
-                    k = ncol(idx),
+                    k = NULL,
                     include_self = TRUE) {
+  if (is.list(idx)) {
+    idx <- idx$idx
+  }
   stopifnot(methods::is(idx, "matrix"))
+  if (is.null(k)) {
+    k <- ncol(idx)
+  }
   nc <- ncol(idx)
   stopifnot(k >= 1)
   stopifnot(k <= nc)
@@ -1088,6 +1099,70 @@ k_occur <- function(idx,
   reverse_nbr_size_impl(idx, k, len, include_self)
 }
 
+
+reverse_knn <- function(idx, dist = NULL, k = NULL) {
+  if (is.null(dist) && is.list(idx)) {
+    dist <- idx$dist
+  }
+  if (is.list(idx)) {
+    idx <- idx$idx
+  }
+  stopifnot(methods::is(idx, "matrix"))
+  stopifnot(methods::is(dist, "matrix"))
+  stopifnot(dim(idx) == dim(dist))
+  if (is.null(k)) {
+    k <- ncol(idx)
+  }
+  stopifnot(k > 0)
+
+  reverse_knn_impl(idx = idx, dist = dist, n_neighbors = k)
+}
+
+ko_adj_graph <- function(idx, dist = NULL, rev_k = NULL, fwd_k = NULL) {
+  if (is.null(dist) && is.list(idx)) {
+    dist <- idx$dist
+  }
+  if (is.list(idx)) {
+    idx <- idx$idx
+  }
+  if (is.null(rev_k)) {
+    rev_k <- ncol(idx)
+  }
+  if (is.null(fwd_k)) {
+    fwd_k <- ncol(idx)
+  }
+
+  stopifnot(methods::is(idx, "matrix"))
+  stopifnot(methods::is(dist, "matrix"))
+  stopifnot(dim(idx) == dim(dist))
+  stopifnot(rev_k > 0)
+  stopifnot(fwd_k > 0)
+
+  ko_adj_graph_impl(idx = idx, dist = dist, n_rev_nbrs = rev_k, n_adj_nbrs = fwd_k)
+}
+
+deg_adj_graph <- function(idx, dist = NULL, rev_k = NULL, fwd_k = NULL) {
+  if (is.null(dist) && is.list(idx)) {
+    dist <- idx$dist
+  }
+  if (is.list(idx)) {
+    idx <- idx$idx
+  }
+  if (is.null(rev_k)) {
+    rev_k <- ncol(idx)
+  }
+  if (is.null(fwd_k)) {
+    fwd_k <- ncol(idx)
+  }
+
+  stopifnot(methods::is(idx, "matrix"))
+  stopifnot(methods::is(dist, "matrix"))
+  stopifnot(dim(idx) == dim(dist))
+  stopifnot(rev_k > 0)
+  stopifnot(fwd_k > 0)
+
+  deg_adj_graph_impl(idx = idx, dist = dist, n_rev_nbrs = rev_k, n_adj_nbrs = fwd_k)
+}
 
 # Idx to Graph ------------------------------------------------------------
 
@@ -1211,16 +1286,29 @@ prepare_init_graph <-
     nn
   }
 
-prepare_reference_graph <- function(reference_graph, k) {
+prepare_reference_graph <- function(reference_graph, max_candidates, verbose = FALSE) {
   for (name in c("idx", "dist")) {
     m <- reference_graph[[name]]
     stopifnot(
       !is.null(m),
-      methods::is(m, "matrix"),
-      ncol(m) >= k
+      methods::is(m, "matrix")
     )
-    if (k != ncol(m)) {
-      m <- m[, 1:k]
+    reference_graph[[name]] <- m
+  }
+  stopifnot(dim(reference_graph$idx) == dim(reference_graph$dist))
+  if (ncol(reference_graph$idx) < max_candidates) {
+    tsmessage("Note: reference graph columns = ", ncol(reference_graph$idx),
+              " < requested max_candidates = ", max_candidates)
+    max_candidates <- ncol(reference_graph$idx)
+  }
+  else if (ncol(reference_graph$idx) > max_candidates) {
+    tsmessage("Reducing reference graph columns to ", max_candidates)
+  }
+
+  for (name in c("idx", "dist")) {
+    m <- reference_graph[[name]]
+    if (max_candidates != ncol(m)) {
+      m <- m[, 1:max_candidates]
     }
     reference_graph[[name]] <- m
   }

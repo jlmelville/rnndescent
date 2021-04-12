@@ -56,6 +56,16 @@ auto r_to_heap(Rcpp::IntegerMatrix nn_idx, Rcpp::NumericMatrix nn_dist,
 }
 
 template <typename HeapAdd, typename NbrHeap>
+auto r_to_heap_missing_ok(Rcpp::IntegerMatrix nn_idx,
+                          Rcpp::NumericMatrix nn_dist,
+                          std::size_t block_size = 1024,
+                          int max_idx = RNND_MAX_IDX, bool transpose = true)
+    -> NbrHeap {
+  return r_to_heap<HeapAdd, NbrHeap>(nn_idx, nn_dist, block_size, max_idx, true,
+                                     transpose);
+}
+
+template <typename HeapAdd, typename NbrHeap>
 void r_to_heap(NbrHeap &heap, Rcpp::IntegerMatrix nn_idx,
                Rcpp::NumericMatrix nn_dist, std::size_t n_threads,
                std::size_t grain_size, std::size_t block_size = 1024,
@@ -81,6 +91,17 @@ auto r_to_heap(Rcpp::IntegerMatrix nn_idx, Rcpp::NumericMatrix nn_dist,
   r_to_heap<HeapAdd>(nn_heap, nn_idx, nn_dist, n_threads, grain_size,
                      block_size, max_idx, missing_ok, transpose);
   return nn_heap;
+}
+
+template <typename HeapAdd, typename NbrHeap>
+auto r_to_heap_missing_ok(Rcpp::IntegerMatrix nn_idx,
+                          Rcpp::NumericMatrix nn_dist, std::size_t n_threads,
+                          std::size_t grain_size = 1,
+                          std::size_t block_size = 1024,
+                          int max_idx = RNND_MAX_IDX, bool transpose = true)
+    -> NbrHeap {
+  return r_to_heap<HeapAdd, NbrHeap>(nn_idx, nn_dist, n_threads, grain_size,
+                                     block_size, max_idx, true, transpose);
 }
 
 template <typename Int>

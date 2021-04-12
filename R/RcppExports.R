@@ -13,6 +13,18 @@ reverse_nbr_size_impl <- function(nn_idx, k, len, include_self = FALSE) {
     .Call(`_rnndescent_reverse_nbr_size_impl`, nn_idx, k, len, include_self)
 }
 
+reverse_knn_impl <- function(idx, dist, n_neighbors) {
+    .Call(`_rnndescent_reverse_knn_impl`, idx, dist, n_neighbors)
+}
+
+deg_adj_graph_impl <- function(idx, dist, n_rev_nbrs, n_adj_nbrs) {
+    .Call(`_rnndescent_deg_adj_graph_impl`, idx, dist, n_rev_nbrs, n_adj_nbrs)
+}
+
+ko_adj_graph_impl <- function(idx, dist, n_rev_nbrs, n_adj_nbrs) {
+    .Call(`_rnndescent_ko_adj_graph_impl`, idx, dist, n_rev_nbrs, n_adj_nbrs)
+}
+
 rnn_idx_to_graph_self <- function(data, idx, metric = "euclidean", n_threads = 0L, grain_size = 1L, verbose = FALSE) {
     .Call(`_rnndescent_rnn_idx_to_graph_self`, data, idx, metric, n_threads, grain_size, verbose)
 }
@@ -29,8 +41,8 @@ merge_nn_all <- function(nn_graphs, is_query, block_size, n_threads, grain_size 
     .Call(`_rnndescent_merge_nn_all`, nn_graphs, is_query, block_size, n_threads, grain_size, verbose)
 }
 
-nn_descent <- function(data, nn_idx, nn_dist, metric = "euclidean", max_candidates = 50L, n_iters = 10L, delta = 0.001, low_memory = TRUE, block_size = 16384L, n_threads = 0L, grain_size = 1L, verbose = FALSE, progress = "bar") {
-    .Call(`_rnndescent_nn_descent`, data, nn_idx, nn_dist, metric, max_candidates, n_iters, delta, low_memory, block_size, n_threads, grain_size, verbose, progress)
+nn_descent <- function(data, nn_idx, nn_dist, metric = "euclidean", max_candidates = 50L, n_iters = 10L, delta = 0.001, low_memory = TRUE, block_size = 16384L, n_threads = 0L, grain_size = 1L, verbose = FALSE, progress = "bar", weighted = FALSE) {
+    .Call(`_rnndescent_nn_descent`, data, nn_idx, nn_dist, metric, max_candidates, n_iters, delta, low_memory, block_size, n_threads, grain_size, verbose, progress, weighted)
 }
 
 nn_descent_query <- function(reference, reference_idx, reference_dist, query, nn_idx, nn_dist, metric = "euclidean", max_candidates = 50L, epsilon = 0.1, n_iters = 10L, n_threads = 0L, grain_size = 1L, verbose = FALSE) {

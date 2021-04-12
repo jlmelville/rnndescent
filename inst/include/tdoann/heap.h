@@ -27,6 +27,7 @@
 #ifndef TDOANN_HEAP_H
 #define TDOANN_HEAP_H
 
+#include <algorithm>
 #include <limits>
 #include <vector>
 
@@ -207,6 +208,8 @@ template <typename DistOut = float, typename Idx = uint32_t> struct NNDHeap {
   auto flag(Idx i, Idx j) -> char & { return flags[i * n_nbrs + j]; }
 
   auto max_distance(Idx i) const -> DistOut { return dist[i * n_nbrs]; }
+
+  auto is_full(Idx i) const -> bool { return idx[i * n_nbrs] != npos(); }
 };
 
 // Like NNDHeap, but no flag vector
@@ -370,6 +373,8 @@ template <typename DistOut = float, typename Idx = uint32_t> struct NNHeap {
   auto distance(Idx i, Idx j) const -> DistOut { return dist[i * n_nbrs + j]; }
 
   auto max_distance(Idx i) const -> DistOut { return dist[i * n_nbrs]; }
+
+  auto is_full(Idx i) const -> bool { return idx[i * n_nbrs] != npos(); }
 };
 
 template <typename NbrHeap, typename Parallel = NoParallel>
@@ -387,6 +392,30 @@ void sort_heap(NbrHeap &heap, std::size_t block_size, std::size_t n_threads,
 
 template <typename NbrHeap> void sort_heap(NbrHeap &neighbor_heap) {
   neighbor_heap.deheap_sort();
+}
+
+// Construct a heap containing the reverse neighbors of the input neighbor heap.
+// n_reverse_nbrs is the number of neighbors to retain in the returned heap
+// (note that the full  reverse neighbor list for a vertex could be as large as
+// N).
+// n_forward_nbrs restricts the search to the specified number of nearest
+// neighbors (i.e. effectively passes heap[, 1:n_forward_nbrs]).
+template <typename NbrHeap>
+auto reverse_heap(const NbrHeap &heap, typename NbrHeap::Index n_reverse_nbrs,
+                  typename NbrHeap::Index n_forward_nbrs) -> NbrHeap {
+  NbrHeap reversed(heap.n_points, n_reverse_nbrs);
+  const auto n_fwd_nbrs = std::min(n_forward_nbrs, heap.n_nbrs);
+
+  for (typename NbrHeap::Index i = 0; i < heap.n_points; i++) {
+    for (std::size_t j = 0; j < n_fwd_nbrs; j++) {
+      reversed.checked_push(heap.index(i, j), heap.distance(i, j), i);
+    }
+  }
+  return reversed;
+}
+
+template <typename NbrHeap> auto reverse_heap(const NbrHeap &heap) -> NbrHeap {
+  return reverse_heap(heap, heap.n_nbrs, heap.n_nbrs);
 }
 
 } // namespace tdoann
