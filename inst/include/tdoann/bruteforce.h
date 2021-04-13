@@ -62,16 +62,13 @@ auto nnbf_query(Distance &distance, typename Distance::Index n_nbrs,
   NNHeap<typename Distance::Output, typename Distance::Index> neighbor_heap(
       distance.ny, n_nbrs);
   Progress progress(1, verbose);
-
   NullProgress null_progress;
   auto worker = [&](std::size_t begin, std::size_t end) {
     nnbf_query(neighbor_heap, distance, null_progress, begin, end);
   };
   batch_parallel_for<Parallel>(worker, progress, neighbor_heap.n_points,
                                block_size, n_threads, grain_size);
-
   sort_heap(neighbor_heap, block_size, n_threads, grain_size);
-
   return heap_to_graph(neighbor_heap);
 }
 
@@ -82,10 +79,8 @@ auto nnbf_query(Distance &distance, typename Distance::Index n_nbrs,
   NNHeap<typename Distance::Output, typename Distance::Index> neighbor_heap(
       distance.ny, n_nbrs);
   Progress progress(distance.nx, verbose);
-
   nnbf_query(neighbor_heap, distance, progress, 0, neighbor_heap.n_points);
-  neighbor_heap.deheap_sort();
-
+  sort_heap(neighbor_heap);
   return heap_to_graph(neighbor_heap);
 }
 
@@ -121,7 +116,7 @@ auto nnbf(Distance &distance, typename Distance::Index n_nbrs, bool verbose)
     TDOANN_ITERFINISHED();
   }
 
-  neighbor_heap.deheap_sort();
+  sort_heap(neighbor_heap);
 
   return heap_to_graph(neighbor_heap);
 }

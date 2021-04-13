@@ -156,7 +156,7 @@ auto deg_adj_graph(NbrHeap &heap, std::size_t n_rev_nbrs,
   auto rev_heap = reverse_heap(heap, n_rev_nbrs, n_adj_nbrs);
   NbrHeap adj_heap(heap.n_points, n_adj_nbrs);
 
-  heap.deheap_sort();
+  sort_heap(heap);
 
   for (typename NbrHeap::Index i = 0; i < rev_heap.n_points; i++) {
     for (std::size_t j = 0; j < rev_heap.n_nbrs; j++) {
@@ -196,7 +196,7 @@ auto ko_adj_graph(const NbrHeap &heap, std::size_t n_rev_nbrs,
   NbrHeap adj_heap(heap.n_points, n_adj_nbrs);
 
   auto ko_heap = kograph(heap);
-  ko_heap.deheap_sort();
+  sort_heap(ko_heap);
 
   for (typename NbrHeap::Index i = 0; i < rev_heap.n_points; i++) {
     for (std::size_t j = 0; j < rev_heap.n_nbrs; j++) {
