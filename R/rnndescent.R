@@ -769,7 +769,7 @@ nnd_knn_query <- function(query,
   if (is.null(init)) {
     if (is.null(k)) {
       k <- get_reference_graph_k(reference_graph)
-      tsmessage("Using k = ", k, " nnd model")
+      tsmessage("Using k = ", k, " from nnd model")
     }
     tsmessage("Initializing from random neighbors")
     init <- random_knn_query(
@@ -785,7 +785,7 @@ nnd_knn_query <- function(query,
   else {
     if (is.null(k)) {
       k <- ncol(init$idx)
-      message("Using k = ", k, " from initial graph")
+      tsmessage("Using k = ", k, " from initial graph")
     }
   }
   init <-
