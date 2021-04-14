@@ -1262,13 +1262,13 @@ prepare_init_graph <-
       if (k > ncol(nn$idx)) {
         stop("Not enough initial neighbors provided for k = ", k)
       }
-      nn$idx <- nn$idx[, 1:k]
+      nn$idx <- nn$idx[, 1:k, drop = FALSE]
     }
     if (!is.null(nn$dist)) {
       if (k > ncol(nn$dist)) {
         stop("Not enough initial distances provided for k = ", k)
       }
-      nn$dist <- nn$dist[, 1:k]
+      nn$dist <- nn$dist[, 1:k, drop = FALSE]
     }
     else {
       if (!is.null(query)) {
@@ -1323,7 +1323,7 @@ prepare_reference_graph <- function(reference_graph, max_candidates, verbose = F
   for (name in c("idx", "dist")) {
     m <- reference_graph[[name]]
     if (max_candidates != ncol(m)) {
-      m <- m[, 1:max_candidates]
+      m <- m[, 1:max_candidates, drop = FALSE]
     }
     reference_graph[[name]] <- m
   }
