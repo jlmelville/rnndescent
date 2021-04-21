@@ -71,6 +71,7 @@ brute_force_knn <- function(data,
     actual_metric <- metric
   }
 
+  tsmessage("Calculating brute force k-nearest neighbors with k = ", k)
   res <-
     rnn_brute_force(
       data,
@@ -86,7 +87,7 @@ brute_force_knn <- function(data,
   if (use_alt_metric) {
     res$dist <- apply_alt_metric_correction(metric, res$dist)
   }
-
+  tsmessage("Finished")
   res
 }
 
@@ -171,6 +172,7 @@ random_knn <-
       actual_metric <- metric
     }
 
+    tsmessage("Generating random k-nearest neighbor graph with k = ", k)
     res <-
       random_knn_cpp(
         data,
@@ -188,6 +190,7 @@ random_knn <-
       res$dist <- apply_alt_metric_correction(metric, res$dist)
     }
 
+    tsmessage("Finished")
     res
   }
 
@@ -498,6 +501,7 @@ brute_force_knn_query <- function(query,
     actual_metric <- metric
   }
 
+  tsmessage("Calculating brute force k-nearest neighbors from reference with k = ", k)
   res <- rnn_brute_force_query(
     reference,
     query,
@@ -513,6 +517,8 @@ brute_force_knn_query <- function(query,
   if (use_alt_metric) {
     res$dist <- apply_alt_metric_correction(metric, res$dist)
   }
+  tsmessage("Finished")
+
   res
 }
 
@@ -614,6 +620,7 @@ random_knn_query <-
       actual_metric <- metric
     }
 
+    tsmessage("Generating random k-nearest neighbor graph from reference with k = ", k)
     res <- random_knn_query_cpp(
       reference,
       query,
@@ -629,6 +636,8 @@ random_knn_query <-
     if (use_alt_metric) {
       res$dist <- apply_alt_metric_correction(metric, res$dist)
     }
+    tsmessage("Finished")
+
     res
   }
 
@@ -838,6 +847,7 @@ nnd_knn_query <- function(query,
     nrow(init$dist) == nrow(query)
   )
 
+  tsmessage("Searching nearest neighbor graph")
   res <-
     nn_descent_query(
       reference,
@@ -857,6 +867,7 @@ nnd_knn_query <- function(query,
   if (use_alt_metric) {
     res$dist <- apply_alt_metric_correction(metric, res$dist)
   }
+  tsmessage("Finished")
   res
 }
 
