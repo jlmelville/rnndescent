@@ -42,15 +42,18 @@ template <typename DistOut = float, typename Idx = uint32_t> struct NNGraph {
   std::size_t n_points;
   std::size_t n_nbrs;
 
+  static constexpr auto npos() -> Idx { return static_cast<Idx>(-1); }
+
   NNGraph(const std::vector<Idx> &idx, const std::vector<DistOut> &dist,
           std::size_t n_points)
       : idx(idx), dist(dist), n_points(n_points),
         n_nbrs(idx.size() / n_points) {}
 
   NNGraph(std::size_t n_points, std::size_t n_nbrs)
-      : idx(std::vector<Idx>(n_points * n_nbrs)),
-        dist(std::vector<DistOut>(n_points * n_nbrs)), n_points(n_points),
-        n_nbrs(n_nbrs) {}
+      : idx(std::vector<Idx>(n_points * n_nbrs, npos())),
+        dist(std::vector<DistOut>(n_points * n_nbrs,
+                                  (std::numeric_limits<DistOut>::max)())),
+        n_points(n_points), n_nbrs(n_nbrs) {}
 
   using DistanceOut = DistOut;
   using Index = Idx;
