@@ -95,6 +95,61 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// mutualize_graph_impl
+List mutualize_graph_impl(IntegerMatrix idx, NumericMatrix dist, std::size_t n_nbrs);
+RcppExport SEXP _rnndescent_mutualize_graph_impl(SEXP idxSEXP, SEXP distSEXP, SEXP n_nbrsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< IntegerMatrix >::type idx(idxSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type dist(distSEXP);
+    Rcpp::traits::input_parameter< std::size_t >::type n_nbrs(n_nbrsSEXP);
+    rcpp_result_gen = Rcpp::wrap(mutualize_graph_impl(idx, dist, n_nbrs));
+    return rcpp_result_gen;
+END_RCPP
+}
+// partial_mutualize_graph_impl
+List partial_mutualize_graph_impl(IntegerMatrix idx, NumericMatrix dist, std::size_t n_nbrs);
+RcppExport SEXP _rnndescent_partial_mutualize_graph_impl(SEXP idxSEXP, SEXP distSEXP, SEXP n_nbrsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< IntegerMatrix >::type idx(idxSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type dist(distSEXP);
+    Rcpp::traits::input_parameter< std::size_t >::type n_nbrs(n_nbrsSEXP);
+    rcpp_result_gen = Rcpp::wrap(partial_mutualize_graph_impl(idx, dist, n_nbrs));
+    return rcpp_result_gen;
+END_RCPP
+}
+// connected_components_undirected
+List connected_components_undirected(std::size_t N, const std::vector<int>& indices1, const std::vector<int>& indptr1, const std::vector<int>& indices2, const std::vector<int>& indptr2);
+RcppExport SEXP _rnndescent_connected_components_undirected(SEXP NSEXP, SEXP indices1SEXP, SEXP indptr1SEXP, SEXP indices2SEXP, SEXP indptr2SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< std::size_t >::type N(NSEXP);
+    Rcpp::traits::input_parameter< const std::vector<int>& >::type indices1(indices1SEXP);
+    Rcpp::traits::input_parameter< const std::vector<int>& >::type indptr1(indptr1SEXP);
+    Rcpp::traits::input_parameter< const std::vector<int>& >::type indices2(indices2SEXP);
+    Rcpp::traits::input_parameter< const std::vector<int>& >::type indptr2(indptr2SEXP);
+    rcpp_result_gen = Rcpp::wrap(connected_components_undirected(N, indices1, indptr1, indices2, indptr2));
+    return rcpp_result_gen;
+END_RCPP
+}
+// diversify_cpp
+List diversify_cpp(NumericMatrix data, IntegerMatrix idx, NumericMatrix dist, const std::string& metric);
+RcppExport SEXP _rnndescent_diversify_cpp(SEXP dataSEXP, SEXP idxSEXP, SEXP distSEXP, SEXP metricSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< IntegerMatrix >::type idx(idxSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type dist(distSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
+    rcpp_result_gen = Rcpp::wrap(diversify_cpp(data, idx, dist, metric));
+    return rcpp_result_gen;
+END_RCPP
+}
 // rnn_idx_to_graph_self
 List rnn_idx_to_graph_self(NumericMatrix data, IntegerMatrix idx, const std::string& metric, std::size_t n_threads, std::size_t grain_size, bool verbose);
 RcppExport SEXP _rnndescent_rnn_idx_to_graph_self(SEXP dataSEXP, SEXP idxSEXP, SEXP metricSEXP, SEXP n_threadsSEXP, SEXP grain_sizeSEXP, SEXP verboseSEXP) {
@@ -255,6 +310,10 @@ static const R_CallMethodDef CallEntries[] = {
     {"_rnndescent_reverse_knn_impl", (DL_FUNC) &_rnndescent_reverse_knn_impl, 3},
     {"_rnndescent_deg_adj_graph_impl", (DL_FUNC) &_rnndescent_deg_adj_graph_impl, 4},
     {"_rnndescent_ko_adj_graph_impl", (DL_FUNC) &_rnndescent_ko_adj_graph_impl, 4},
+    {"_rnndescent_mutualize_graph_impl", (DL_FUNC) &_rnndescent_mutualize_graph_impl, 3},
+    {"_rnndescent_partial_mutualize_graph_impl", (DL_FUNC) &_rnndescent_partial_mutualize_graph_impl, 3},
+    {"_rnndescent_connected_components_undirected", (DL_FUNC) &_rnndescent_connected_components_undirected, 5},
+    {"_rnndescent_diversify_cpp", (DL_FUNC) &_rnndescent_diversify_cpp, 4},
     {"_rnndescent_rnn_idx_to_graph_self", (DL_FUNC) &_rnndescent_rnn_idx_to_graph_self, 6},
     {"_rnndescent_rnn_idx_to_graph_query", (DL_FUNC) &_rnndescent_rnn_idx_to_graph_query, 7},
     {"_rnndescent_merge_nn", (DL_FUNC) &_rnndescent_merge_nn, 9},

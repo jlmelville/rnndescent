@@ -2,11 +2,14 @@
 #include <algorithm>
 #include <vector>
 
+#include "connected_components.h"
 #include "tdoann/hub.h"
 
 #include <Rcpp.h>
 
+#include "rnn_distance.h"
 #include "rnn_heaptor.h"
+#include "rnn_macros.h"
 #include "rnn_parallel.h"
 #include "rnn_rtoheap.h"
 
@@ -73,4 +76,57 @@ List ko_adj_graph_impl(IntegerMatrix idx, NumericMatrix dist,
                            tdoann::NNHeap<float, std::size_t>>(idx, dist);
   auto dag = tdoann::ko_adj_graph(nn_heap, n_rev_nbrs, n_adj_nbrs);
   return heap_to_r(dag);
+}
+
+// [[Rcpp::export]]
+List mutualize_graph_impl(IntegerMatrix idx, NumericMatrix dist,
+                          std::size_t n_nbrs) {
+  auto nn_heap =
+      r_to_heap_missing_ok<tdoann::HeapAddSymmetric,
+                           tdoann::NNHeap<float, std::size_t>>(idx, dist);
+  auto mheap = tdoann::mutualize_heap(nn_heap, n_nbrs);
+  return heap_to_r(mheap);
+}
+
+// [[Rcpp::export]]
+List partial_mutualize_graph_impl(IntegerMatrix idx, NumericMatrix dist,
+                                  std::size_t n_nbrs) {
+  auto nn_heap =
+      r_to_heap_missing_ok<tdoann::HeapAddSymmetric,
+                           tdoann::NNHeap<float, std::size_t>>(idx, dist);
+  auto pmheap = tdoann::partial_mutualize_heap(nn_heap, n_nbrs);
+  return heap_to_r(pmheap);
+}
+
+// [[Rcpp::export]]
+List connected_components_undirected(std::size_t N,
+                                     const std::vector<int> &indices1,
+                                     const std::vector<int> &indptr1,
+                                     const std::vector<int> &indices2,
+                                     const std::vector<int> &indptr2) {
+
+  std::pair<unsigned int, std::vector<int>> result =
+      tdoann::connected_components_undirected(N, indices1, indptr1, indices2,
+                                              indptr2);
+
+  return List::create(_["n_components"] = result.first,
+                      _["labels"] = result.second);
+}
+
+#define DIVERSIFY_IMPL() return diversify_impl<Distance>(data, idx, dist);
+
+template <typename Distance>
+List diversify_impl(NumericMatrix data, IntegerMatrix idx, NumericMatrix dist) {
+  auto distance = r_to_dist<Distance>(data);
+  auto graph = r_to_graph<Distance>(idx, dist);
+
+  auto diversified = tdoann::remove_long_edges(graph, distance);
+
+  return graph_to_r(diversified, true);
+}
+
+// [[Rcpp::export]]
+List diversify_cpp(NumericMatrix data, IntegerMatrix idx, NumericMatrix dist,
+                   const std::string &metric = "euclidean") {
+  DISPATCH_ON_DISTANCES(DIVERSIFY_IMPL)
 }

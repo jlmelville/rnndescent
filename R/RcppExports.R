@@ -25,6 +25,22 @@ ko_adj_graph_impl <- function(idx, dist, n_rev_nbrs, n_adj_nbrs) {
     .Call(`_rnndescent_ko_adj_graph_impl`, idx, dist, n_rev_nbrs, n_adj_nbrs)
 }
 
+mutualize_graph_impl <- function(idx, dist, n_nbrs) {
+    .Call(`_rnndescent_mutualize_graph_impl`, idx, dist, n_nbrs)
+}
+
+partial_mutualize_graph_impl <- function(idx, dist, n_nbrs) {
+    .Call(`_rnndescent_partial_mutualize_graph_impl`, idx, dist, n_nbrs)
+}
+
+connected_components_undirected <- function(N, indices1, indptr1, indices2, indptr2) {
+    .Call(`_rnndescent_connected_components_undirected`, N, indices1, indptr1, indices2, indptr2)
+}
+
+diversify_cpp <- function(data, idx, dist, metric = "euclidean") {
+    .Call(`_rnndescent_diversify_cpp`, data, idx, dist, metric)
+}
+
 rnn_idx_to_graph_self <- function(data, idx, metric = "euclidean", n_threads = 0L, grain_size = 1L, verbose = FALSE) {
     .Call(`_rnndescent_rnn_idx_to_graph_self`, data, idx, metric, n_threads, grain_size, verbose)
 }

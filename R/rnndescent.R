@@ -1123,8 +1123,7 @@ k_occur <- function(idx,
   reverse_nbr_size_impl(idx, k, len, include_self)
 }
 
-
-reverse_knn <- function(idx, dist = NULL, k = NULL) {
+check_graph <- function(idx, dist = NULL, k = NULL) {
   if (is.null(dist) && is.list(idx)) {
     dist <- idx$dist
   }
@@ -1138,9 +1137,26 @@ reverse_knn <- function(idx, dist = NULL, k = NULL) {
     k <- ncol(idx)
   }
   stopifnot(k > 0)
-
-  reverse_knn_impl(idx = idx, dist = dist, n_neighbors = k)
+  list(idx = idx, dist = dist, k = k)
 }
+
+reverse_knn <- function(idx, dist = NULL, k = NULL) {
+  cg_res <- check_graph(idx = idx, dist = dist, k = k)
+
+  reverse_knn_impl(idx = cg_res$idx, dist = cg_res$dist, n_neighbors = cg_res$k)
+}
+
+mutualize_knn <- function(idx, dist = NULL, k = NULL) {
+  cg_res <- check_graph(idx = idx, dist = dist, k = k)
+  mutualize_graph_impl(idx = cg_res$idx, dist = cg_res$dist, n_nbrs = cg_res$k)
+}
+
+partial_mutualize_knn <- function(idx, dist = NULL, k = NULL) {
+  cg_res <- check_graph(idx = idx, dist = dist, k = k)
+  partial_mutualize_graph_impl(idx = cg_res$idx, dist = cg_res$dist, n_nbrs = cg_res$k)
+}
+
+
 
 ko_adj_graph <- function(idx, dist = NULL, rev_k = NULL, fwd_k = NULL) {
   if (is.null(dist) && is.list(idx)) {
@@ -1187,6 +1203,87 @@ deg_adj_graph <- function(idx, dist = NULL, rev_k = NULL, fwd_k = NULL) {
 
   deg_adj_graph_impl(idx = idx, dist = dist, n_rev_nbrs = rev_k, n_adj_nbrs = fwd_k)
 }
+
+unreachable <- function(idx, k = NULL) {
+  if (is.list(idx)) {
+    idx <- idx$idx
+  }
+  ko <- k_occur(idx, k = k, include_self = FALSE)
+  sum(ko == 0) / length(ko)
+}
+
+reachable <- function(idx, k = NULL) {
+  if (is.list(idx)) {
+    idx <- idx$idx
+  }
+  ko <- k_occur(idx, k = k, include_self = FALSE)
+  1 - (sum(ko == 0) / length(ko))
+}
+
+graph_components <- function(graph, n_nbrs = NULL, n_ref = NULL) {
+  connected_components(graph_to_csr(graph, n_nbrs = n_nbrs))$n_components
+}
+
+graph_to_csr <- function(graph, n_nbrs = NULL, n_ref = NULL) {
+  if (is.list(graph)) {
+    idx <- graph$idx
+    dist <- graph$dist
+  }
+  else {
+    idx <- graph
+    dist <- 1
+  }
+  if (is.null(n_nbrs)) {
+    n_nbrs <- ncol(idx)
+  }
+  else {
+    idx <- idx[, 1:n_nbrs]
+    if (methods::is(dist, "matrix")) {
+      dist <- dist[, 1:n_nbrs]
+    }
+  }
+  n_row <- nrow(idx)
+  # If this is query data, you need to provide the number of reference items
+  # yourself: we can't guarantee that all indices are included in idx
+  if (is.null(n_ref)) {
+    n_ref <- nrow(idx)
+  }
+  Matrix::sparseMatrix(
+    i = rep(1:n_row, times = n_nbrs),
+    j = as.vector(idx),
+    x = as.vector(dist),
+    dims = c(n_row, n_ref),
+    repr = "R"
+  )
+}
+
+connected_components <- function(X_csr) {
+  X_t_csr <- Matrix::t(X_csr)
+  connected_components_undirected(nrow(X_csr), X_csr@j, X_csr@p, X_t_csr@j, X_t_csr@p)
+}
+
+diversify <- function(data,
+                      graph,
+                      metric = "euclidean",
+                      verbose = FALSE) {
+  idx <- graph$idx
+  dist <- graph$dist
+
+  stopifnot(
+    methods::is(idx, "matrix"),
+    nrow(data) == nrow(idx),
+    nrow(data) >= ncol(idx),
+    max(idx) <= nrow(data)
+  )
+  nnz_before <- sum(idx != 0)
+  res <- diversify_cpp(x2m(data), idx, dist)
+  nnz_after <- sum(res$idx != 0)
+  tsmessage("Diversifying reduced # edges from ", nnz_before,
+            " to ", nnz_after,
+            " (", scales::percent(1 - (nnz_after / nnz_before) ), " sparse)")
+  res
+}
+
 
 # Idx to Graph ------------------------------------------------------------
 
@@ -1243,7 +1340,6 @@ idx_to_graph_query <-
     )
   }
 
-
 # Internals ---------------------------------------------------------------
 
 #' @useDynLib rnndescent, .registration = TRUE
@@ -1282,6 +1378,7 @@ prepare_init_graph <-
       nn$dist <- nn$dist[, 1:k, drop = FALSE]
     }
     else {
+      tsmessage("Generating distances for initial indices")
       if (!is.null(query)) {
         nn <-
           rnn_idx_to_graph_query(

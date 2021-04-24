@@ -34,6 +34,7 @@
 #include <vector>
 
 #include "heap.h"
+#include "nngraph.h"
 
 namespace tdoann {
 
@@ -225,6 +226,123 @@ auto ko_adj_graph(const NbrHeap &heap, std::size_t n_rev_nbrs,
 
 template <typename NbrHeap> auto ko_adj_graph(const NbrHeap &heap) -> NbrHeap {
   return ko_adj_graph(heap, heap.n_nbrs, heap.n_nbrs);
+}
+
+// Create a heap containing both forward and reverse neighbors up to size
+// n_nbrs. Effectively the same as the degree_prune function in pynndescent
+// with n_nbrs = max_degree (I think)
+template <typename NbrHeap>
+auto mutualize_heap(const NbrHeap &heap, std::size_t n_nbrs) -> NbrHeap {
+  NbrHeap mutual_heap(heap.n_points, n_nbrs);
+
+  for (typename NbrHeap::Index i = 0; i < heap.n_points; i++) {
+    for (typename NbrHeap::Index j = 0; j < heap.n_nbrs; j++) {
+      auto nbr = heap.index(i, j);
+      if (nbr == heap.npos()) {
+        continue;
+      }
+      mutual_heap.checked_push_pair(i, heap.distance(i, j), nbr);
+    }
+  }
+
+  return mutual_heap;
+}
+
+template <typename NbrHeap>
+auto mutualize_heap(const NbrHeap &heap) -> NbrHeap {
+  return mutualize_heap(heap.n_points, heap.n_nbrs);
+}
+
+// Create a heap containing all forward neighbors and add on as many reverse
+// neighbors until full. n_nbrs should be > heap.n_nbrs
+template <typename NbrHeap>
+auto partial_mutualize_heap(const NbrHeap &heap, std::size_t n_nbrs)
+    -> NbrHeap {
+  auto reversed_heap = reverse_heap(heap, n_nbrs, heap.n_nbrs);
+  NbrHeap pmutual_heap(heap.n_points, n_nbrs);
+
+  for (typename NbrHeap::Index i = 0; i < heap.n_points; i++) {
+    for (typename NbrHeap::Index j = 0; j < heap.n_nbrs; j++) {
+      auto nbr = heap.index(i, j);
+      if (nbr == heap.npos()) {
+        continue;
+      }
+      pmutual_heap.checked_push(i, heap.distance(i, j), nbr);
+    }
+    for (typename NbrHeap::Index j = 0; j < reversed_heap.n_nbrs; j++) {
+      if (pmutual_heap.is_full(i)) {
+        break;
+      }
+      auto nbr = reversed_heap.index(i, j);
+      if (nbr == reversed_heap.npos()) {
+        continue;
+      }
+      pmutual_heap.checked_push(i, reversed_heap.distance(i, j), nbr);
+    }
+  }
+
+  return pmutual_heap;
+}
+
+template <typename NbrHeap>
+auto partial_mutualize_heap(const NbrHeap &heap) -> NbrHeap {
+  return partial_mutualize_heap(heap.n_points, 2 * heap.n_nbrs);
+}
+
+// for point i, if neighbor p is closer to another neighbor q, remove p from the
+// neighbors of i, i.e. remove if d(p, q) < d(i, p)
+template <typename NNGraph, typename Distance>
+auto remove_long_edges(const NNGraph &graph, const Distance &distance)
+    -> NNGraph {
+  using DistOut = typename NNGraph::DistanceOut;
+  using Idx = typename NNGraph::Index;
+
+  const std::size_t n_points = graph.n_points;
+  const std::size_t n_nbrs = graph.n_nbrs;
+
+  NNGraph new_graph(n_points, n_nbrs);
+
+  std::size_t innbrs = 0;
+  std::size_t ij = 0;
+
+  for (std::size_t i = 0; i < n_points; i++) {
+    innbrs = i * n_nbrs;
+
+    // initialize new graph with closest neighbor
+    new_graph.idx[innbrs] = graph.idx[innbrs];
+    new_graph.dist[innbrs] = graph.dist[innbrs];
+
+    std::size_t n_new_nbrs = 1;
+
+    // search all other neighbors (NB: start at 1)
+    for (std::size_t j = 1; j < n_nbrs; j++) {
+      ij = innbrs + j;
+      Idx nbr = graph.idx[ij];
+      if (nbr == graph.npos()) {
+        break;
+      }
+
+      bool add_nbr = true;
+      DistOut nbr_dist = graph.dist[ij];
+      // Compare this neighbor with those that previously passed the filter
+      for (std::size_t k = 0; k < n_new_nbrs; k++) {
+        Idx ng_nbr = new_graph.idx[innbrs + k];
+        DistOut d = distance(nbr, ng_nbr);
+        if (d < nbr_dist) {
+          // TODO: if prob() < prune_prob
+          add_nbr = false;
+          break;
+        }
+      }
+
+      if (add_nbr) {
+        new_graph.idx[innbrs + n_new_nbrs] = nbr;
+        new_graph.dist[innbrs + n_new_nbrs] = nbr_dist;
+        ++n_new_nbrs;
+      }
+    }
+  }
+  return new_graph;
 }
 
 } // namespace tdoann
