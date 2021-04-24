@@ -54,4 +54,32 @@ auto r_to_vect(Rcpp::NumericMatrix data) -> std::vector<T> {
   return Rcpp::as<std::vector<T>>(Rcpp::transpose(data));
 }
 
+template <typename Int>
+inline auto r_to_idx(Rcpp::IntegerMatrix nn_idx, int max_idx = RNND_MAX_IDX)
+    -> std::vector<Int> {
+  auto nn_idx_copy = Rcpp::clone(nn_idx);
+  zero_index(nn_idx_copy, max_idx, true);
+  return Rcpp::as<std::vector<Int>>(nn_idx_copy);
+}
+
+template <typename Int>
+inline auto r_to_idxt(Rcpp::IntegerMatrix nn_idx, int max_idx = RNND_MAX_IDX)
+    -> std::vector<Int> {
+  auto nn_idx_copy = Rcpp::clone(nn_idx);
+  zero_index(nn_idx_copy, max_idx, true);
+  return Rcpp::as<std::vector<Int>>(Rcpp::transpose(nn_idx_copy));
+}
+
+template <typename Distance>
+auto r_to_graph(Rcpp::IntegerMatrix idx, Rcpp::NumericMatrix dist)
+    -> tdoann::NNGraph<typename Distance::Output, typename Distance::Index> {
+  using Out = typename Distance::Output;
+  using Idx = typename Distance::Index;
+
+  auto idx_vec = r_to_idxt<Idx>(idx);
+  auto dist_vec = r_to_vect<Out>(dist);
+
+  return tdoann::NNGraph<Out, Idx>(idx_vec, dist_vec, idx.nrow());
+}
+
 #endif // RNN_UTIL_H

@@ -104,20 +104,4 @@ auto r_to_heap_missing_ok(Rcpp::IntegerMatrix nn_idx,
                                      block_size, max_idx, true, transpose);
 }
 
-template <typename Int>
-inline auto r_to_idx(Rcpp::IntegerMatrix nn_idx, int max_idx = RNND_MAX_IDX)
-    -> std::vector<Int> {
-  auto nn_idx_copy = Rcpp::clone(nn_idx);
-  zero_index(nn_idx_copy, max_idx, true);
-  return Rcpp::as<std::vector<Int>>(nn_idx_copy);
-}
-
-template <typename Int>
-inline auto r_to_idxt(Rcpp::IntegerMatrix nn_idx, int max_idx = RNND_MAX_IDX)
-    -> std::vector<Int> {
-  auto nn_idx_copy = Rcpp::clone(nn_idx);
-  zero_index(nn_idx_copy, max_idx, true);
-  return Rcpp::as<std::vector<Int>>(Rcpp::transpose(nn_idx_copy));
-}
-
 #endif // RNN_RTOHEAP_H
