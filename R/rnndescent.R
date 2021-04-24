@@ -1280,8 +1280,12 @@ diversify <- function(data,
   nnz_after <- sum(res$idx != 0)
   tsmessage("Diversifying reduced # edges from ", nnz_before,
             " to ", nnz_after,
-            " (", scales::percent(1 - (nnz_after / nnz_before) ), " sparse)")
+            " (", formatC(100 * nn_sparsity(res)), "% sparse)")
   res
+}
+
+nn_sparsity <- function(graph) {
+  sum(graph$idx == 0) / prod(dim(graph$idx))
 }
 
 
