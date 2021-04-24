@@ -229,7 +229,9 @@ void build_query_candidates(const std::vector<Idx> &reference_idx,
     std::size_t innbrs = i * n_nbrs;
     for (std::size_t j = 0; j < n_nbrs; j++) {
       auto nbr = reference_idx[innbrs + j];
-      if (nbr == query_candidates.npos()) {
+      // for querying, a reference that is a neighbor of itself is not
+      // interesting
+      if (nbr == query_candidates.npos() || i == nbr) {
         continue;
       }
       query_candidates.checked_push(i, reference_dist[innbrs + j], nbr);
