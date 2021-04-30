@@ -266,16 +266,13 @@ void nnd_build(GraphUpdater<Distance> &graph_updater,
 }
 
 template <typename Parallel, typename DistOut, typename Idx>
-auto build_query_candidates(std::size_t n_ref_points,
-                            std::size_t max_candidates,
-                            const std::vector<Idx> &reference_idx,
-                            const std::vector<DistOut> &reference_dist,
-                            std::size_t n_nbrs, std::size_t n_threads,
+auto build_query_candidates(const SparseNNGraph<DistOut, Idx> &reference_graph,
+                            std::size_t max_candidates, std::size_t n_threads,
                             std::size_t grain_size) -> NNHeap<DistOut, Idx> {
-  NNHeap<DistOut, Idx> query_candidates(n_ref_points, max_candidates);
+  NNHeap<DistOut, Idx> query_candidates(reference_graph.n_points,
+                                        max_candidates);
   auto worker = [&](std::size_t begin, std::size_t end) {
-    build_query_candidates(reference_idx, reference_dist, n_nbrs,
-                           query_candidates, begin, end);
+    build_query_candidates(reference_graph, query_candidates, begin, end);
   };
   Parallel::parallel_for(0, query_candidates.n_points, worker, n_threads,
                          grain_size);
@@ -284,18 +281,15 @@ auto build_query_candidates(std::size_t n_ref_points,
 
 template <typename Parallel, typename Distance, typename Progress>
 void nnd_query(
-    const std::vector<typename Distance::Index> &reference_idx,
-    std::size_t n_reference_nbrs,
-    const std::vector<typename Distance::Output> &reference_dist,
+    const SparseNNGraph<typename Distance::Output, typename Distance::Index>
+        &reference_graph,
     NNHeap<typename Distance::Output, typename Distance::Index> &nn_heap,
     const Distance &distance, std::size_t max_candidates, double epsilon,
     std::size_t n_iters, Progress &progress, std::size_t n_threads = 0,
     std::size_t grain_size = 1) {
   const std::size_t n_points = nn_heap.n_points;
-  const std::size_t n_reference_points = distance.nx;
   auto query_candidates = build_query_candidates<Parallel>(
-      n_reference_points, max_candidates, reference_idx, reference_dist,
-      n_reference_nbrs, n_threads, grain_size);
+      reference_graph, max_candidates, n_threads, grain_size);
 
   NullProgress null_progress;
   auto query_non_search_worker = [&](std::size_t begin, std::size_t end) {

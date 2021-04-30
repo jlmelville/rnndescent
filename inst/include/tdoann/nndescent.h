@@ -218,34 +218,34 @@ auto local_join(
 }
 
 // Create the neighbor list for each reference item, i.e. the
-// neighbor-of-neighbors that are used when doing NND queries
+// neighbor-of-neighbors
 template <typename DistOut, typename Idx>
-void build_query_candidates(const std::vector<Idx> &reference_idx,
-                            const std::vector<DistOut> &reference_dist,
-                            std::size_t n_nbrs,
+void build_query_candidates(const SparseNNGraph<DistOut, Idx> &reference_graph,
                             NNHeap<DistOut, Idx> &query_candidates,
                             std::size_t begin, std::size_t end) {
   for (std::size_t i = begin; i < end; i++) {
-    std::size_t innbrs = i * n_nbrs;
-    for (std::size_t j = 0; j < n_nbrs; j++) {
-      auto nbr = reference_idx[innbrs + j];
+    for (std::size_t j = reference_graph.row_ptr[i];
+         j < reference_graph.row_ptr[i + 1]; j++) {
+      auto nbr = reference_graph.col_idx[j];
       // for querying, a reference that is a neighbor of itself is not
       // interesting
       if (nbr == query_candidates.npos() || i == nbr) {
         continue;
       }
-      query_candidates.checked_push(i, reference_dist[innbrs + j], nbr);
+      query_candidates.checked_push(i, reference_graph.dist[j], nbr);
     }
   }
 }
 
 template <typename DistOut, typename Idx>
-void build_query_candidates(const std::vector<Idx> &reference_idx,
-                            const std::vector<DistOut> &reference_dist,
-                            std::size_t n_nbrs,
-                            NNHeap<DistOut, Idx> &query_candidates) {
-  build_query_candidates(reference_idx, reference_dist, n_nbrs,
-                         query_candidates, 0, query_candidates.n_points);
+auto build_query_candidates(const SparseNNGraph<DistOut, Idx> &reference_graph,
+                            std::size_t max_candidates)
+    -> NNHeap<DistOut, Idx> {
+  NNHeap<DistOut, Idx> query_candidates(reference_graph.n_points,
+                                        max_candidates);
+  build_query_candidates(reference_graph, query_candidates, 0,
+                         query_candidates.n_points);
+  return query_candidates;
 }
 
 // No local join available when querying because there's no symmetry in the
@@ -273,18 +273,13 @@ void build_query_candidates(const std::vector<Idx> &reference_idx,
 //    already tried those candidates.
 template <typename Distance, typename Progress>
 void nnd_query(
-    const std::vector<typename Distance::Index> &reference_idx,
-    std::size_t n_reference_nbrs,
-    const std::vector<typename Distance::Output> &reference_dist,
+    const SparseNNGraph<typename Distance::Output, typename Distance::Index>
+        &reference_graph,
     NNHeap<typename Distance::Output, typename Distance::Index> &nn_heap,
     const Distance &distance, std::size_t max_candidates, double epsilon,
     std::size_t n_iters, Progress &progress) {
-  using DistOut = typename Distance::Output;
-  using Idx = typename Distance::Index;
-  const std::size_t n_reference_points = distance.nx;
-  NNHeap<DistOut, Idx> query_candidates(n_reference_points, max_candidates);
-  build_query_candidates(reference_idx, reference_dist, n_reference_nbrs,
-                         query_candidates);
+  auto query_candidates =
+      build_query_candidates(reference_graph, max_candidates);
   non_search_query(nn_heap, distance, query_candidates, epsilon, progress,
                    n_iters);
 }

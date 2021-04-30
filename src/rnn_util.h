@@ -82,4 +82,23 @@ auto r_to_graph(Rcpp::IntegerMatrix idx, Rcpp::NumericMatrix dist)
   return tdoann::NNGraph<Out, Idx>(idx_vec, dist_vec, idx.nrow());
 }
 
+template <typename Distance>
+auto r_to_sparse_graph(Rcpp::IntegerMatrix idx, Rcpp::NumericMatrix dist)
+    -> tdoann::SparseNNGraph<typename Distance::Output,
+                             typename Distance::Index> {
+  using Out = typename Distance::Output;
+  using Idx = typename Distance::Index;
+
+  auto idx_vec = r_to_idxt<Idx>(idx);
+  auto dist_vec = r_to_vect<Out>(dist);
+
+  const std::size_t nr = idx.nrow();
+  std::vector<Idx> ptr(nr + 1);
+  const std::size_t nc = idx.ncol();
+  for (std::size_t i = 0; i < nr + 1; i++) {
+    ptr[i] = static_cast<Idx>(i * nc);
+  }
+
+  return tdoann::SparseNNGraph<Out, Idx>(ptr, idx_vec, dist_vec);
+}
 #endif // RNN_UTIL_H

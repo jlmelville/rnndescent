@@ -185,12 +185,11 @@ struct NNDQuerySerial {
         r_to_heap_missing_ok<tdoann::HeapAddQuery, tdoann::NNHeap<Out, Index>>(
             nn_idx, nn_dist);
     auto distance = r_to_dist<Distance>(reference, query);
-    auto ref_idx_vec = r_to_idx<Index>(ref_idx);
-    auto ref_dist_vec = r_to_vec<Out>(ref_dist);
     Progress progress(nn_heap.n_points, verbose);
 
-    tdoann::nnd_query(ref_idx_vec, ref_idx.ncol(), ref_dist_vec, nn_heap,
-                      distance, max_candidates, epsilon, n_iters, progress);
+    auto reference_graph = r_to_sparse_graph<Distance>(ref_idx, ref_dist);
+    tdoann::nnd_query(reference_graph, nn_heap, distance, max_candidates,
+                      epsilon, n_iters, progress);
 
     return heap_to_r(nn_heap);
   }
@@ -223,13 +222,11 @@ struct NNDQueryParallel {
         r_to_heap_missing_ok<tdoann::HeapAddQuery, tdoann::NNHeap<Out, Index>>(
             nn_idx, nn_dist);
     auto distance = r_to_dist<Distance>(reference, query);
-    auto ref_idx_vec = r_to_idx<Index>(ref_idx);
-    auto ref_dist_vec = r_to_vec<Out>(ref_dist);
+    auto reference_graph = r_to_sparse_graph<Distance>(ref_idx, ref_dist);
     Progress progress(1, verbose);
-
-    tdoann::nnd_query<RParallel>(ref_idx_vec, ref_idx.ncol(), ref_dist_vec,
-                                 nn_heap, distance, max_candidates, epsilon,
-                                 n_iters, progress, n_threads, grain_size);
+    tdoann::nnd_query<RParallel>(reference_graph, nn_heap, distance,
+                                 max_candidates, epsilon, n_iters, progress,
+                                 n_threads, grain_size);
 
     return heap_to_r(nn_heap, 1024, n_threads, grain_size);
   }

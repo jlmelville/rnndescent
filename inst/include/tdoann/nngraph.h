@@ -35,6 +35,23 @@
 
 namespace tdoann {
 
+template <typename DistOut = float, typename Idx = uint32_t>
+struct SparseNNGraph {
+  std::vector<Idx> row_ptr;
+  std::vector<Idx> col_idx;
+  std::vector<DistOut> dist;
+  std::size_t n_points;
+
+  SparseNNGraph(const std::vector<Idx> &row_ptr,
+                const std::vector<Idx> &col_idx,
+                const std::vector<DistOut> &dist)
+      : row_ptr(row_ptr), col_idx(col_idx), dist(dist),
+        n_points(row_ptr.size() - 1) {}
+
+  using DistanceOut = DistOut;
+  using Index = Idx;
+};
+
 template <typename DistOut = float, typename Idx = uint32_t> struct NNGraph {
   std::vector<Idx> idx;
   std::vector<DistOut> dist;
