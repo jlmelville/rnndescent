@@ -93,12 +93,32 @@ auto r_to_sparse_graph(Rcpp::IntegerMatrix idx, Rcpp::NumericMatrix dist)
   auto dist_vec = r_to_vect<Out>(dist);
 
   const std::size_t nr = idx.nrow();
-  std::vector<Idx> ptr(nr + 1);
+  std::vector<std::size_t> ptr(nr + 1);
   const std::size_t nc = idx.ncol();
   for (std::size_t i = 0; i < nr + 1; i++) {
-    ptr[i] = static_cast<Idx>(i * nc);
+    ptr[i] = i * nc;
   }
 
   return tdoann::SparseNNGraph<Out, Idx>(ptr, idx_vec, dist_vec);
 }
+
+template <typename Distance>
+auto r_to_sparse_graph(Rcpp::List reference_graph)
+    -> tdoann::SparseNNGraph<typename Distance::Output,
+                             typename Distance::Index> {
+  using Out = typename Distance::Output;
+  using Idx = typename Distance::Index;
+
+  return tdoann::SparseNNGraph<Out, Idx>(reference_graph["row_ptr"],
+                                         reference_graph["col_idx"],
+                                         reference_graph["dist"]);
+}
+
+template <typename SparseNNGraph>
+auto sparse_graph_to_r(const SparseNNGraph &sparse_graph) -> Rcpp::List {
+  return Rcpp::List::create(Rcpp::_("row_ptr") = sparse_graph.row_ptr,
+                            Rcpp::_("col_idx") = sparse_graph.col_idx,
+                            Rcpp::_("dist") = sparse_graph.dist);
+}
+
 #endif // RNN_UTIL_H

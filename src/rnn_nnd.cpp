@@ -84,12 +84,12 @@ using namespace Rcpp;
 #define NND_QUERY_UPDATER()                                                    \
   if (n_threads > 0) {                                                         \
     using NNDImpl = NNDQueryParallel;                                          \
-    NNDImpl nnd_impl(reference, query, reference_idx, reference_dist,          \
-                     n_threads, grain_size);                                   \
+    NNDImpl nnd_impl(reference, query, reference_graph_list, n_threads,        \
+                     grain_size);                                              \
     NND_QUERY_PROGRESS()                                                       \
   } else {                                                                     \
     using NNDImpl = NNDQuerySerial;                                            \
-    NNDImpl nnd_impl(reference, query, reference_idx, reference_dist);         \
+    NNDImpl nnd_impl(reference, query, reference_graph_list);                  \
     NND_QUERY_PROGRESS()                                                       \
   }
 
@@ -165,13 +165,12 @@ struct NNDQuerySerial {
   NumericMatrix reference;
   NumericMatrix query;
 
-  IntegerMatrix ref_idx;
-  NumericMatrix ref_dist;
+  List reference_graph_list;
 
   NNDQuerySerial(NumericMatrix reference, NumericMatrix query,
-                 IntegerMatrix ref_idx, NumericMatrix ref_dist)
-      : reference(reference), query(query), ref_idx(ref_idx),
-        ref_dist(ref_dist) {}
+                 List reference_graph_list)
+      : reference(reference), query(query),
+        reference_graph_list(reference_graph_list) {}
 
   template <typename Distance, typename Progress>
   auto get_nn(IntegerMatrix nn_idx, NumericMatrix nn_dist,
@@ -187,7 +186,7 @@ struct NNDQuerySerial {
     auto distance = r_to_dist<Distance>(reference, query);
     Progress progress(nn_heap.n_points, verbose);
 
-    auto reference_graph = r_to_sparse_graph<Distance>(ref_idx, ref_dist);
+    auto reference_graph = r_to_sparse_graph<Distance>(reference_graph_list);
     tdoann::nnd_query(reference_graph, nn_heap, distance, max_candidates,
                       epsilon, n_iters, progress);
 
@@ -199,17 +198,17 @@ struct NNDQueryParallel {
   NumericMatrix reference;
   NumericMatrix query;
 
-  IntegerMatrix ref_idx;
-  NumericMatrix ref_dist;
+  List reference_graph_list;
 
   std::size_t n_threads;
   std::size_t grain_size;
 
   NNDQueryParallel(NumericMatrix reference, NumericMatrix query,
-                   IntegerMatrix ref_idx, NumericMatrix ref_dist,
-                   std::size_t n_threads, std::size_t grain_size)
-      : reference(reference), query(query), ref_idx(ref_idx),
-        ref_dist(ref_dist), n_threads(n_threads), grain_size(grain_size) {}
+                   List reference_graph_list, std::size_t n_threads,
+                   std::size_t grain_size)
+      : reference(reference), query(query),
+        reference_graph_list(reference_graph_list), n_threads(n_threads),
+        grain_size(grain_size) {}
 
   template <typename Distance, typename Progress>
   auto get_nn(IntegerMatrix nn_idx, NumericMatrix nn_dist,
@@ -222,7 +221,7 @@ struct NNDQueryParallel {
         r_to_heap_missing_ok<tdoann::HeapAddQuery, tdoann::NNHeap<Out, Index>>(
             nn_idx, nn_dist);
     auto distance = r_to_dist<Distance>(reference, query);
-    auto reference_graph = r_to_sparse_graph<Distance>(ref_idx, ref_dist);
+    auto reference_graph = r_to_sparse_graph<Distance>(reference_graph_list);
     Progress progress(1, verbose);
     tdoann::nnd_query<RParallel>(reference_graph, nn_heap, distance,
                                  max_candidates, epsilon, n_iters, progress,
@@ -244,9 +243,9 @@ List nn_descent(NumericMatrix data, IntegerMatrix nn_idx, NumericMatrix nn_dist,
 }
 
 // [[Rcpp::export]]
-List nn_descent_query(NumericMatrix reference, IntegerMatrix reference_idx,
-                      NumericMatrix reference_dist, NumericMatrix query,
-                      IntegerMatrix nn_idx, NumericMatrix nn_dist,
+List nn_descent_query(NumericMatrix reference, List reference_graph_list,
+                      NumericMatrix query, IntegerMatrix nn_idx,
+                      NumericMatrix nn_dist,
                       const std::string &metric = "euclidean",
                       std::size_t max_candidates = 50, double epsilon = 0.1,
                       std::size_t n_iters = 10, std::size_t n_threads = 0,

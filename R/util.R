@@ -37,3 +37,10 @@ x2m <- function(X) {
 set_thread_options <- function(n_threads) {
   Sys.setenv(RCPP_PERPENDICULAR_NUM_THREADS = n_threads)
 }
+
+thread_msg <- function(msg, n_threads) {
+  if (n_threads > 0) {
+    msg <- paste0(msg, " with ", n_threads, " threads")
+  }
+  msg
+}

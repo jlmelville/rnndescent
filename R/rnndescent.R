@@ -731,12 +731,14 @@ random_knn_query <-
 #'   k = 4, metric = "euclidean", verbose = TRUE
 #' )
 #' @references
-#' Dong, W., Moses, C., & Li, K. (2011, March).
-#' Efficient k-nearest neighbor graph construction for generic similarity measures.
-#' In \emph{Proceedings of the 20th international conference on World Wide Web}
-#' (pp. 577-586).
-#' ACM.
-#' \url{https://doi.org/10.1145/1963405.1963487}.
+#' Hajebi, K., Abbasi-Yadkori, Y., Shahbazi, H., & Zhang, H. (2011, June).
+#' Fast approximate nearest-neighbor search with k-nearest neighbor graph.
+#' In \empph{Twenty-Second International Joint Conference on Artificial Intelligence}.
+#'
+#' Harwood, B., & Drummond, T. (2016).
+#' Fanng: Fast approximate nearest neighbour graphs.
+#' In \emph{Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition}
+#' (pp. 5713-5722).
 #'
 #' Iwasaki, M., & Miyazaki, D. (2018).
 #' Optimization of indexing based on k-nearest neighbor graph for proximity
@@ -777,8 +779,13 @@ nnd_knn_query <- function(query,
 
   if (is.null(init)) {
     if (is.null(k)) {
-      k <- get_reference_graph_k(reference_graph)
-      tsmessage("Using k = ", k, " from nnd model")
+      if (is.list(reference_graph)) {
+        k <- get_reference_graph_k(reference_graph)
+        tsmessage("Using k = ", k, " from nnd model")
+      }
+      else {
+        stop("Must provide k")
+      }
     }
     tsmessage("Initializing from random neighbors")
     init <- random_knn_query(
@@ -811,28 +818,12 @@ nnd_knn_query <- function(query,
   if (is.null(max_candidates)) {
     max_candidates <- min(k, 60)
   }
-  reference_graph <- prepare_reference_graph(reference_graph, max_candidates,
-    verbose = verbose
-  )
   # We need to convert from Inf to an actual integer value. This is sufficiently
   # big for our purposes
   if (is.infinite(n_iters)) {
     n_iters <- .Machine$integer.max
   }
 
-  reference_dist <- reference_graph$dist
-  reference_idx <- reference_graph$idx
-  stopifnot(!is.null(reference), methods::is(reference, "matrix"))
-  stopifnot(
-    !is.null(reference_idx),
-    methods::is(reference_idx, "matrix"),
-    nrow(reference_idx) == nrow(reference)
-  )
-  stopifnot(
-    !is.null(reference_dist),
-    methods::is(reference_dist, "matrix"),
-    nrow(reference_dist) == nrow(reference)
-  )
   stopifnot(!is.null(query), methods::is(query, "matrix"))
   stopifnot(
     !is.null(init$idx),
@@ -847,15 +838,38 @@ nnd_knn_query <- function(query,
     nrow(init$dist) == nrow(query)
   )
 
-  tsmessage("Searching nearest neighbor graph")
+  if (is.list(reference_graph)) {
+    reference_graph <- prepare_reference_graph(reference_graph, max_candidates,
+      verbose = verbose
+    )
+    reference_dist <- reference_graph$dist
+    reference_idx <- reference_graph$idx
+    stopifnot(!is.null(reference), methods::is(reference, "matrix"))
+    stopifnot(
+      !is.null(reference_idx),
+      methods::is(reference_idx, "matrix"),
+      nrow(reference_idx) == nrow(reference)
+    )
+    stopifnot(
+      !is.null(reference_dist),
+      methods::is(reference_dist, "matrix"),
+      nrow(reference_dist) == nrow(reference)
+    )
+    reference_graph_list <- graph_to_list(reference_graph)
+  }
+  else {
+    stopifnot(methods::is(reference_graph, "sparseMatrix"))
+    reference_graph_list <- sparse_to_list(reference_graph)
+  }
+
+  tsmessage(thread_msg("Searching nearest neighbor graph", n_threads))
   res <-
     nn_descent_query(
-      reference,
-      reference_idx,
-      reference_dist,
-      query,
-      init$idx,
-      init$dist,
+      reference = reference,
+      reference_graph_list = reference_graph_list,
+      query = query,
+      nn_idx = init$idx,
+      nn_dist = init$dist,
       metric = actual_metric,
       max_candidates = max_candidates,
       epsilon = epsilon,
@@ -871,7 +885,104 @@ nnd_knn_query <- function(query,
   res
 }
 
+# Search Graph Preparation ------------------------------------------------
 
+diversify <- function(data,
+                      graph,
+                      metric = "euclidean",
+                      prune_probability = 1.0,
+                      verbose = FALSE) {
+  idx <- graph$idx
+  dist <- graph$dist
+
+  stopifnot(
+    methods::is(idx, "matrix"),
+    nrow(data) == nrow(idx),
+    nrow(data) >= ncol(idx),
+    max(idx) <= nrow(data)
+  )
+  nnz_before <- sum(idx != 0)
+  res <- diversify_cpp(x2m(data), idx, dist, prune_probability = prune_probability)
+  nnz_after <- sum(res$idx != 0)
+  tsmessage("Diversifying reduced # edges from ", nnz_before,
+            " to ", nnz_after,
+            " (", formatC(100 * nn_sparsity(res)), "% sparse)")
+  res
+}
+
+# Harwood, B., & Drummond, T. (2016).
+# Fanng: Fast approximate nearest neighbour graphs.
+# In \emph{Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition}
+# (pp. 5713-5722).
+# "Occlusion pruning"
+diversify_sp <- function(data,
+                         graph,
+                         metric = "euclidean",
+                         prune_probability = 1.0,
+                         verbose = FALSE) {
+  nnz_before <- Matrix::nnzero(graph)
+  sp_before <- nn_sparsity_sp(graph)
+  stopifnot(
+    methods::is(graph, "sparseMatrix")
+  )
+  gl <- sparse_to_list(graph)
+
+  if (prune_probability < 1) {
+    gl_div <- diversify_sp_cpp(data = x2m(data), graph_list = gl, metric = metric,
+                               prune_probability = prune_probability)
+  }
+  else {
+    gl_div <- diversify_always_sp_cpp(data = x2m(data), graph_list = gl, metric = metric)
+  }
+  res <- list_to_sparse(gl_div)
+  nnz_after <- Matrix::nnzero(res)
+  tsmessage("Diversifying reduced # edges from ", nnz_before,
+            " to ", nnz_after,
+            " (",  formatC(100 * sp_before), "% to ",
+            formatC(100 * nn_sparsity_sp(res)),   "% sparse)")
+  res
+}
+
+# FANNG: Fast Approximate Nearest Neighbour Graphs
+# "truncating"
+# Harwood, B., & Drummond, T. (2016).
+# Fanng: Fast approximate nearest neighbour graphs.
+# In \emph{Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition}
+# (pp. 5713-5722).
+degree_prune <- function(graph, max_degree = 20, verbose = FALSE) {
+  nnz_before <- Matrix::nnzero(graph)
+  sp_before <- nn_sparsity_sp(graph)
+  stopifnot(
+    methods::is(graph, "sparseMatrix")
+  )
+  gl <- sparse_to_list(graph)
+
+  gl_div <- degree_prune_cpp(gl, max_degree)
+  res <- list_to_sparse(gl_div)
+  nnz_after <- Matrix::nnzero(res)
+  tsmessage("Degree pruning to max ", max_degree, " reduced # edges from ", nnz_before,
+            " to ", nnz_after,
+            " (",  formatC(100 * sp_before), "% to ",
+            formatC(100 * nn_sparsity_sp(res)),   "% sparse)")
+  res
+}
+
+
+merge_graphs_sp <- function(g1, g2) {
+  gl1 <- sparse_to_list(g1)
+  gl2 <- sparse_to_list(g2)
+
+  gl_merge <- merge_graph_lists_cpp(gl1, gl2)
+  list_to_sparse(gl_merge)
+}
+
+nn_sparsity <- function(graph) {
+  sum(graph$idx == 0) / prod(dim(graph$idx))
+}
+
+nn_sparsity_sp <- function(graph) {
+  Matrix::nnzero(graph) / prod(graph@Dim)
+}
 
 # Merge -------------------------------------------------------------------
 
@@ -1142,21 +1253,25 @@ check_graph <- function(idx, dist = NULL, k = NULL) {
 
 reverse_knn <- function(idx, dist = NULL, k = NULL) {
   cg_res <- check_graph(idx = idx, dist = dist, k = k)
+  Matrix::t(Matrix::drop0(graph_to_sparse_r(cg_res)))
+}
 
-  reverse_knn_impl(idx = cg_res$idx, dist = cg_res$dist, n_neighbors = cg_res$k)
+reverse_knn_sp <- function(graph) {
+  stopifnot(methods::is(graph, "sparseMatrix"))
+  Matrix::t(Matrix::drop0(graph))
 }
 
 mutualize_knn <- function(idx, dist = NULL, k = NULL) {
   cg_res <- check_graph(idx = idx, dist = dist, k = k)
-  mutualize_graph_impl(idx = cg_res$idx, dist = cg_res$dist, n_nbrs = cg_res$k)
+  spg <- graph_to_cs(cg_res)
+  rspg <-reverse_knn(cg_res)
+  Matrix::drop0(spg + rspg) / 2
 }
 
 partial_mutualize_knn <- function(idx, dist = NULL, k = NULL) {
   cg_res <- check_graph(idx = idx, dist = dist, k = k)
   partial_mutualize_graph_impl(idx = cg_res$idx, dist = cg_res$dist, n_nbrs = cg_res$k)
 }
-
-
 
 ko_adj_graph <- function(idx, dist = NULL, rev_k = NULL, fwd_k = NULL) {
   if (is.null(dist) && is.list(idx)) {
@@ -1221,40 +1336,7 @@ reachable <- function(idx, k = NULL) {
 }
 
 graph_components <- function(graph, n_nbrs = NULL, n_ref = NULL) {
-  connected_components(graph_to_csr(graph, n_nbrs = n_nbrs))$n_components
-}
-
-graph_to_csr <- function(graph, n_nbrs = NULL, n_ref = NULL) {
-  if (is.list(graph)) {
-    idx <- graph$idx
-    dist <- graph$dist
-  }
-  else {
-    idx <- graph
-    dist <- 1
-  }
-  if (is.null(n_nbrs)) {
-    n_nbrs <- ncol(idx)
-  }
-  else {
-    idx <- idx[, 1:n_nbrs]
-    if (methods::is(dist, "matrix")) {
-      dist <- dist[, 1:n_nbrs]
-    }
-  }
-  n_row <- nrow(idx)
-  # If this is query data, you need to provide the number of reference items
-  # yourself: we can't guarantee that all indices are included in idx
-  if (is.null(n_ref)) {
-    n_ref <- nrow(idx)
-  }
-  Matrix::sparseMatrix(
-    i = rep(1:n_row, times = n_nbrs),
-    j = as.vector(idx),
-    x = as.vector(dist),
-    dims = c(n_row, n_ref),
-    repr = "R"
-  )
+  connected_components(graph_to_sparse_r(graph, n_nbrs = n_nbrs))$n_components
 }
 
 connected_components <- function(X_csr) {
@@ -1262,30 +1344,48 @@ connected_components <- function(X_csr) {
   connected_components_undirected(nrow(X_csr), X_csr@j, X_csr@p, X_t_csr@j, X_t_csr@p)
 }
 
-diversify <- function(data,
-                      graph,
-                      metric = "euclidean",
-                      verbose = FALSE) {
-  idx <- graph$idx
-  dist <- graph$dist
+create_pruned_search_graph <- function(data, graph, metric = "euclidean",
+                                       prune_probability = 1.0,
+                                       pruning_degree_multiplier = 1.5,
+                                       verbose = FALSE) {
+  tsmessage("Converting graph to sparse format")
+  sp <- graph_to_cs(graph)
+  if (!is.null(prune_probability) && prune_probability > 0) {
+    tsmessage("Diversifying forward graph")
+    fdiv <- diversify_sp(data, sp, metric = metric, prune_probability = prune_probability,
+                         verbose = verbose)
+  }
+  else {
+    fdiv <- sp
+    tsmessage("Forward graph has # edges = ", Matrix::nnzero(fdiv), " (",
+              formatC(100 * nn_sparsity_sp(fdiv)), "% sparse)")
+  }
+  rsp <-  reverse_knn_sp(fdiv)
 
-  stopifnot(
-    methods::is(idx, "matrix"),
-    nrow(data) == nrow(idx),
-    nrow(data) >= ncol(idx),
-    max(idx) <= nrow(data)
-  )
-  nnz_before <- sum(idx != 0)
-  res <- diversify_cpp(x2m(data), idx, dist)
-  nnz_after <- sum(res$idx != 0)
-  tsmessage("Diversifying reduced # edges from ", nnz_before,
-            " to ", nnz_after,
-            " (", formatC(100 * nn_sparsity(res)), "% sparse)")
+  if (!is.null(prune_probability) && prune_probability > 0) {
+    tsmessage("Diversifying reverse graph")
+    rdiv <- diversify_sp(data, rsp, metric = metric, prune_probability = prune_probability,
+                         verbose = verbose)
+  }
+  else {
+    rdiv <- rsp
+    tsmessage("Reverse graph has # edges = ", Matrix::nnzero(rdiv), " (",
+              formatC(100 * nn_sparsity_sp(rdiv)), "% sparse)")
+  }
+  tsmessage("Merging diversified forward and reverse graph")
+  merged <- merge_graphs_sp(fdiv, rdiv)
+  if (!is.null(pruning_degree_multiplier) && !is.infinite(pruning_degree_multiplier)) {
+    max_degree <- round(ncol(graph$idx) * pruning_degree_multiplier)
+    tsmessage("Degree pruning merged graph to max degree: ", max_degree)
+    res <- degree_prune(merged, max_degree = max_degree, verbose = verbose)
+  }
+  else {
+    res <- merged
+    tsmessage("Merged graph has # edges = ", Matrix::nnzero(res), " (",
+              formatC(100 * nn_sparsity_sp(res)), "% sparse)")
+  }
+  tsmessage("Finished")
   res
-}
-
-nn_sparsity <- function(graph) {
-  sum(graph$idx == 0) / prod(dim(graph$idx))
 }
 
 
@@ -1518,4 +1618,119 @@ validate_nn_graph_matrix <- function(nn, nr, nc, msg = "matrix") {
 
 row_center <- function(data) {
   sweep(data, 1, rowMeans(data))
+}
+
+
+# Sparse ------------------------------------------------------------------
+
+graph_to_sparse_r <- function(graph, n_nbrs = NULL, n_ref = NULL) {
+  if (is.list(graph)) {
+    idx <- graph$idx
+    dist <- graph$dist
+  }
+  else {
+    idx <- graph
+    dist <- 1
+  }
+  if (is.null(n_nbrs)) {
+    n_nbrs <- ncol(idx)
+  }
+  else {
+    idx <- idx[, 1:n_nbrs]
+    if (methods::is(dist, "matrix")) {
+      dist <- dist[, 1:n_nbrs]
+    }
+  }
+  n_row <- nrow(idx)
+  # If this is query data, you need to provide the number of reference items
+  # yourself: we can't guarantee that all indices are included in idx
+  if (is.null(n_ref)) {
+    n_ref <- nrow(idx)
+  }
+  Matrix::sparseMatrix(
+    i = rep(1:n_row, times = n_nbrs),
+    j = as.vector(idx),
+    x = as.vector(dist),
+    dims = c(n_row, n_ref),
+    repr = "R"
+  )
+}
+
+graph_to_cs <- function(graph, n_nbrs = NULL, n_ref = NULL) {
+  if (is.list(graph)) {
+    idx <- graph$idx
+    dist <- graph$dist
+  }
+  else {
+    idx <- graph
+    dist <- 1
+  }
+  if (is.null(n_nbrs)) {
+    n_nbrs <- ncol(idx)
+  }
+  else {
+    idx <- idx[, 1:n_nbrs]
+    if (methods::is(dist, "matrix")) {
+      dist <- dist[, 1:n_nbrs]
+    }
+  }
+  n_row <- nrow(idx)
+  # If this is query data, you need to provide the number of reference items
+  # yourself: we can't guarantee that all indices are included in idx
+  if (is.null(n_ref)) {
+    n_ref <- nrow(idx)
+  }
+  Matrix::drop0(Matrix::sparseMatrix(
+    i = rep(1:n_row, times = n_nbrs),
+    j = as.vector(idx),
+    x = as.vector(dist),
+    dims = c(n_row, n_ref),
+    repr = "C"
+  ))
+}
+
+sparse_to_list_r <- function(spr) {
+  list(row_ptr = spr@p, col_idx = spr@j, dist = spr@x)
+}
+
+sparse_to_list_c <- function(spc) {
+  spct <- Matrix::t(spc)
+  list(row_ptr = spct@p, col_idx = spct@i, dist = spct@x)
+}
+
+sparse_to_list <- function(sp) {
+  if (methods::is(sp, "RsparseMatrix")) {
+    sparse_to_list_r(sp)
+  }
+  else if (methods::is(sp, "CsparseMatrix")) {
+    sparse_to_list_c(sp)
+  }
+  else {
+    sparse_to_list_c(sparse_to_c(sp))
+  }
+}
+
+list_to_sparse <- function(l) {
+  Matrix::drop0(Matrix::sparseMatrix(
+    p = l$row_ptr,
+    j = l$col_idx,
+    x = l$dist,
+    dims = c(length(l$row_ptr) - 1, length(l$row_ptr) - 1),
+    repr = "C",
+    index1 = FALSE
+  ))
+}
+
+
+graph_to_list <- function(graph) {
+  sr <- graph_to_sparse_r(graph)
+  sparse_to_list_r(sr)
+}
+
+sparse_to_r <- function(sp) {
+  as(sp, "RsparseMatrix")
+}
+
+sparse_to_c <- function(sp) {
+  as(sp, "CsparseMatrix")
 }
