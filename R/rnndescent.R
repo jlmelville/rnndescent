@@ -888,9 +888,9 @@ graph_knn_query <- function(query,
 # Search Graph Preparation ------------------------------------------------
 
 prepare_search_graph <- function(data, graph, metric = "euclidean",
-                                prune_probability = 1.0,
-                                pruning_degree_multiplier = 1.5,
-                                verbose = FALSE) {
+                                 prune_probability = 1.0,
+                                 pruning_degree_multiplier = 1.5,
+                                 verbose = FALSE) {
   tsmessage("Converting graph to sparse format")
   sp <- graph_to_cs(graph)
   if (!is.null(prune_probability) && prune_probability > 0) {
