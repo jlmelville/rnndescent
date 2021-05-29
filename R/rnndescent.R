@@ -887,6 +887,61 @@ graph_knn_query <- function(query,
 
 # Search Graph Preparation ------------------------------------------------
 
+create_search_graph <- function(data, graph, metric = "euclidean",
+                                prune_probability = 1.0,
+                                pruning_degree_multiplier = 1.5,
+                                verbose = FALSE) {
+  tsmessage("Converting graph to sparse format")
+  sp <- graph_to_cs(graph)
+  if (!is.null(prune_probability) && prune_probability > 0) {
+    tsmessage("Diversifying forward graph")
+    fdiv <- diversify_sp(data, sp,
+      metric = metric, prune_probability = prune_probability,
+      verbose = verbose
+    )
+  }
+  else {
+    fdiv <- sp
+    tsmessage(
+      "Forward graph has # edges = ", Matrix::nnzero(fdiv), " (",
+      formatC(100 * nn_sparsity_sp(fdiv)), "% sparse)"
+    )
+  }
+  rsp <- reverse_knn_sp(fdiv)
+
+  if (!is.null(prune_probability) && prune_probability > 0) {
+    tsmessage("Diversifying reverse graph")
+    rdiv <- diversify_sp(data, rsp,
+      metric = metric, prune_probability = prune_probability,
+      verbose = verbose
+    )
+  }
+  else {
+    rdiv <- rsp
+    tsmessage(
+      "Reverse graph has # edges = ", Matrix::nnzero(rdiv), " (",
+      formatC(100 * nn_sparsity_sp(rdiv)), "% sparse)"
+    )
+  }
+  tsmessage("Merging diversified forward and reverse graph")
+  merged <- merge_graphs_sp(fdiv, rdiv)
+  if (!is.null(pruning_degree_multiplier) && !is.infinite(pruning_degree_multiplier)) {
+    max_degree <- round(ncol(graph$idx) * pruning_degree_multiplier)
+    tsmessage("Degree pruning merged graph to max degree: ", max_degree)
+    res <- degree_prune(merged, max_degree = max_degree, verbose = verbose)
+  }
+  else {
+    res <- merged
+    tsmessage(
+      "Merged graph has # edges = ", Matrix::nnzero(res), " (",
+      formatC(100 * nn_sparsity_sp(res)), "% sparse)"
+    )
+  }
+  tsmessage("Finished")
+  res
+}
+
+
 diversify <- function(data,
                       graph,
                       metric = "euclidean",
@@ -1351,61 +1406,6 @@ connected_components <- function(X_csr) {
   X_t_csr <- Matrix::t(X_csr)
   connected_components_undirected(nrow(X_csr), X_csr@j, X_csr@p, X_t_csr@j, X_t_csr@p)
 }
-
-create_pruned_search_graph <- function(data, graph, metric = "euclidean",
-                                       prune_probability = 1.0,
-                                       pruning_degree_multiplier = 1.5,
-                                       verbose = FALSE) {
-  tsmessage("Converting graph to sparse format")
-  sp <- graph_to_cs(graph)
-  if (!is.null(prune_probability) && prune_probability > 0) {
-    tsmessage("Diversifying forward graph")
-    fdiv <- diversify_sp(data, sp,
-      metric = metric, prune_probability = prune_probability,
-      verbose = verbose
-    )
-  }
-  else {
-    fdiv <- sp
-    tsmessage(
-      "Forward graph has # edges = ", Matrix::nnzero(fdiv), " (",
-      formatC(100 * nn_sparsity_sp(fdiv)), "% sparse)"
-    )
-  }
-  rsp <- reverse_knn_sp(fdiv)
-
-  if (!is.null(prune_probability) && prune_probability > 0) {
-    tsmessage("Diversifying reverse graph")
-    rdiv <- diversify_sp(data, rsp,
-      metric = metric, prune_probability = prune_probability,
-      verbose = verbose
-    )
-  }
-  else {
-    rdiv <- rsp
-    tsmessage(
-      "Reverse graph has # edges = ", Matrix::nnzero(rdiv), " (",
-      formatC(100 * nn_sparsity_sp(rdiv)), "% sparse)"
-    )
-  }
-  tsmessage("Merging diversified forward and reverse graph")
-  merged <- merge_graphs_sp(fdiv, rdiv)
-  if (!is.null(pruning_degree_multiplier) && !is.infinite(pruning_degree_multiplier)) {
-    max_degree <- round(ncol(graph$idx) * pruning_degree_multiplier)
-    tsmessage("Degree pruning merged graph to max degree: ", max_degree)
-    res <- degree_prune(merged, max_degree = max_degree, verbose = verbose)
-  }
-  else {
-    res <- merged
-    tsmessage(
-      "Merged graph has # edges = ", Matrix::nnzero(res), " (",
-      formatC(100 * nn_sparsity_sp(res)), "% sparse)"
-    )
-  }
-  tsmessage("Finished")
-  res
-}
-
 
 # Idx to Graph ------------------------------------------------------------
 
