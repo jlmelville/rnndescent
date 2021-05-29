@@ -68,19 +68,43 @@ library(rnndescent)
 # for you, but to avoid confusion, these examples will use a matrix
 irism <- as.matrix(iris[, -5])
 # Use settings that don't get perfect results straight away
-iris_hnsw_nn <- RcppHNSW::hnsw_knn(irism, k = 15, M = 2, distance = "euclidean")
+iris_hnsw_nn <-
+  RcppHNSW::hnsw_knn(irism,
+    k = 15,
+    M = 2,
+    distance = "euclidean"
+  )
 
 # nn descent improves results: set verbose = TRUE to track distance sum progress
 # over iterations
-res <- nnd_knn(irism, metric = "euclidean", init = iris_hnsw_nn, verbose = TRUE)
+res <-
+  nnd_knn(irism,
+    metric = "euclidean",
+    init = iris_hnsw_nn,
+    verbose = TRUE
+  )
 
 # search can be multi-threaded
-res <- nnd_knn(irism, metric = "euclidean", init = iris_hnsw_nn, verbose = TRUE, n_threads = 4)
+res <-
+  nnd_knn(
+    irism,
+    metric = "euclidean",
+    init = iris_hnsw_nn,
+    verbose = TRUE,
+    n_threads = 4
+  )
 
 # a faster version of the algorithm is available that avoids some repeated distance
 # calculations at the cost of using more memory. Currently off by default.
-res <- nnd_knn(irism, metric = "euclidean", init = iris_hnsw_nn, verbose = TRUE, n_threads = 4,
-               low_memory = FALSE)
+res <-
+  nnd_knn(
+    irism,
+    metric = "euclidean",
+    init = iris_hnsw_nn,
+    verbose = TRUE,
+    n_threads = 4,
+    low_memory = FALSE
+  )
 ```
 
 You can also query a "reference" set of data with query data, so that the
@@ -99,10 +123,15 @@ iris_ref_knn <- nnd_knn(iris_ref, k = 10)
 # For each item in iris_query find the 10 nearest neighbors in iris_ref
 # You need to pass both the reference data and the knn graph indices (the
 # 'idx' matrix in the return value of nnd_knn).
-iris_query_nn <- graph_knn_query(iris_ref, iris_ref_knn$idx, iris_query,
-  k = 4, metric = "euclidean",
-  verbose = TRUE
-)
+iris_query_nn <-
+  graph_knn_query(
+    query = iris_query,
+    reference = iris_ref,
+    reference_graph = iris_ref_knn,
+    k = 4,
+    metric = "euclidean",
+    verbose = TRUE
+  )
 ```
 
 ## Initialization
@@ -118,10 +147,19 @@ library(rnndescent)
 irism <- as.matrix(iris[, -5])
 
 # picks indices at random and then carries out nearest neighbor descent
-res <- nnd_knn(irism, k = 15, metric = "euclidean", n_threads = 4)
+res <- nnd_knn(irism,
+  k = 15,
+  metric = "euclidean",
+  n_threads = 4
+)
 
 # if you want the random indices and their distances:
-iris_rand_nn <- random_knn(irism, k = 15, metric = "euclidean", n_threads = 4)
+iris_rand_nn <-
+  random_knn(irism,
+    k = 15,
+    metric = "euclidean",
+    n_threads = 4
+  )
 ```
 
 Although the initialization can also be multi-threaded (and at least has speed
@@ -139,7 +177,12 @@ size, even with multithreading (although the `iris` dataset in the example below
 doesn't present any issues).
 
 ```R
-iris_exact_nn <- brute_force_knn(irism, k = 15, metric = "euclidean", n_threads = 4)
+iris_exact_nn <-
+  brute_force_knn(irism,
+    k = 15,
+    metric = "euclidean",
+    n_threads = 4
+  )
 ```
 
 ## Merging
