@@ -353,7 +353,7 @@ void non_search_query(
 
         Seed vertex = pop(seed_set);
         DistOut d_vertex = vertex.first;
-        if (d_vertex >= distance_bound) {
+        if (static_cast<double>(d_vertex) >= distance_bound) {
           stop_early = true;
           break;
         }
