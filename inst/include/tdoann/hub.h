@@ -307,38 +307,36 @@ auto order(It first, It last) -> std::vector<std::size_t> {
 
 template <typename SparseNNGraph>
 auto degree_prune(const SparseNNGraph &graph, std::size_t max_degree)
-  -> SparseNNGraph {
-    using DistOut = typename SparseNNGraph::DistanceOut;
-    using Idx = typename SparseNNGraph::Index;
+    -> SparseNNGraph {
+  using DistOut = typename SparseNNGraph::DistanceOut;
+  using Idx = typename SparseNNGraph::Index;
 
-    const std::size_t n_points = graph.n_points;
+  const std::size_t n_points = graph.n_points;
 
-    std::vector<std::size_t> new_row_ptr(n_points + 1);
-    std::vector<Idx> new_col_idx;
-    std::vector<DistOut> new_dist;
+  std::vector<std::size_t> new_row_ptr(n_points + 1);
+  std::vector<Idx> new_col_idx;
+  std::vector<DistOut> new_dist;
 
-    for (std::size_t i = 0; i < n_points; i++) {
-      const std::size_t i1 = i + 1;
-      new_row_ptr[i1] = new_row_ptr[i];
+  for (std::size_t i = 0; i < n_points; i++) {
+    const std::size_t i1 = i + 1;
+    new_row_ptr[i1] = new_row_ptr[i];
 
-      const auto begin = graph.row_ptr[i];
-      const auto end = graph.row_ptr[i1];
+    const auto begin = graph.row_ptr[i];
+    const auto end = graph.row_ptr[i1];
 
-      auto ordered = order(graph.dist.begin() + begin,
-                           graph.dist.begin() + end);
+    auto ordered = order(graph.dist.begin() + begin, graph.dist.begin() + end);
 
-      const auto unpruned_n_nbrs = end - begin;
-      const auto n_nbrs = std::min(unpruned_n_nbrs, max_degree);
+    const auto unpruned_n_nbrs = end - begin;
+    const auto n_nbrs = std::min(unpruned_n_nbrs, max_degree);
 
-      for (std::size_t j = 0; j < n_nbrs; j++) {
-        new_col_idx.push_back(graph.col_idx[begin + ordered[j]]);
-        new_dist.push_back(graph.dist[begin + ordered[j]]);
-      }
-      new_row_ptr[i1] += n_nbrs;
+    for (std::size_t j = 0; j < n_nbrs; j++) {
+      new_col_idx.push_back(graph.col_idx[begin + ordered[j]]);
+      new_dist.push_back(graph.dist[begin + ordered[j]]);
     }
-    return SparseNNGraph(new_row_ptr, new_col_idx, new_dist);
+    new_row_ptr[i1] += n_nbrs;
   }
-
+  return SparseNNGraph(new_row_ptr, new_col_idx, new_dist);
+}
 
 template <typename SparseNNGraph, typename Distance, typename Rand>
 auto remove_long_edges_sp(const SparseNNGraph &graph, const Distance &distance,
@@ -398,59 +396,58 @@ auto remove_long_edges_sp(const SparseNNGraph &graph, const Distance &distance,
 
 template <typename SparseNNGraph, typename Distance>
 auto remove_long_edges_sp(const SparseNNGraph &graph, const Distance &distance)
-  -> SparseNNGraph {
-    using DistOut = typename SparseNNGraph::DistanceOut;
-    using Idx = typename SparseNNGraph::Index;
+    -> SparseNNGraph {
+  using DistOut = typename SparseNNGraph::DistanceOut;
+  using Idx = typename SparseNNGraph::Index;
 
-    const std::size_t n_points = graph.n_points;
+  const std::size_t n_points = graph.n_points;
 
-    std::vector<std::size_t> new_row_ptr(n_points + 1);
-    std::vector<Idx> new_col_idx;
-    std::vector<DistOut> new_dist;
+  std::vector<std::size_t> new_row_ptr(n_points + 1);
+  std::vector<Idx> new_col_idx;
+  std::vector<DistOut> new_dist;
 
-    for (std::size_t i = 0; i < n_points; i++) {
-      const std::size_t i1 = i + 1;
-      new_row_ptr[i1] = new_row_ptr[i];
+  for (std::size_t i = 0; i < n_points; i++) {
+    const std::size_t i1 = i + 1;
+    new_row_ptr[i1] = new_row_ptr[i];
 
-      const std::size_t n_nbrs = graph.row_ptr[i1] - graph.row_ptr[i];
-      if (n_nbrs == 0) {
-        continue;
+    const std::size_t n_nbrs = graph.row_ptr[i1] - graph.row_ptr[i];
+    if (n_nbrs == 0) {
+      continue;
+    }
+
+    auto ordered = order(graph.dist.begin() + graph.row_ptr[i],
+                         graph.dist.begin() + graph.row_ptr[i1]);
+
+    // initialize new graph with closest neighbor
+    new_col_idx.push_back(graph.col_idx[graph.row_ptr[i] + ordered[0]]);
+    new_dist.push_back(graph.dist[graph.row_ptr[i] + ordered[0]]);
+    ++new_row_ptr[i1];
+
+    // search all other neighbors (NB: start at 1)
+    for (std::size_t j = 1; j < n_nbrs; j++) {
+      Idx nbr = graph.col_idx[graph.row_ptr[i] + ordered[j]];
+      DistOut nbr_dist = graph.dist[graph.row_ptr[i] + ordered[j]];
+
+      // Compare this neighbor with those that previously passed the filter
+      bool add_nbr = true;
+      for (std::size_t k = new_row_ptr[i]; k < new_row_ptr[i1]; k++) {
+        Idx ng_nbr = new_col_idx[k];
+        DistOut d = distance(nbr, ng_nbr);
+        if (d < nbr_dist) {
+          add_nbr = false;
+          break;
+        }
       }
 
-      auto ordered = order(graph.dist.begin() + graph.row_ptr[i],
-                           graph.dist.begin() + graph.row_ptr[i1]);
-
-      // initialize new graph with closest neighbor
-      new_col_idx.push_back(graph.col_idx[graph.row_ptr[i] + ordered[0]]);
-      new_dist.push_back(graph.dist[graph.row_ptr[i] + ordered[0]]);
-      ++new_row_ptr[i1];
-
-      // search all other neighbors (NB: start at 1)
-      for (std::size_t j = 1; j < n_nbrs; j++) {
-        Idx nbr = graph.col_idx[graph.row_ptr[i] + ordered[j]];
-        DistOut nbr_dist = graph.dist[graph.row_ptr[i] + ordered[j]];
-
-        // Compare this neighbor with those that previously passed the filter
-        bool add_nbr = true;
-        for (std::size_t k = new_row_ptr[i]; k < new_row_ptr[i1]; k++) {
-          Idx ng_nbr = new_col_idx[k];
-          DistOut d = distance(nbr, ng_nbr);
-          if (d < nbr_dist) {
-            add_nbr = false;
-            break;
-          }
-        }
-
-        if (add_nbr) {
-          new_col_idx.push_back(nbr);
-          new_dist.push_back(nbr_dist);
-          ++new_row_ptr[i1];
-        }
+      if (add_nbr) {
+        new_col_idx.push_back(nbr);
+        new_dist.push_back(nbr_dist);
+        ++new_row_ptr[i1];
       }
     }
-    return SparseNNGraph(new_row_ptr, new_col_idx, new_dist);
   }
-
+  return SparseNNGraph(new_row_ptr, new_col_idx, new_dist);
+}
 
 template <typename SparseNNGraph>
 auto merge_graphs(const SparseNNGraph &g1, const SparseNNGraph &g2)
@@ -491,7 +488,6 @@ auto merge_graphs(const SparseNNGraph &g1, const SparseNNGraph &g2)
   }
   return SparseNNGraph(merged_row_ptr, merged_col_idx, merged_dist);
 }
-
 
 // remove neighbors which are "occlusions"
 // for point i with neighbors p and q, if d(p, q) < d(i, p), then p occludes q

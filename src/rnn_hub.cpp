@@ -173,9 +173,9 @@ List diversify_sp_cpp(NumericMatrix data, List graph_list,
 
 // [[Rcpp::export]]
 List diversify_always_sp_cpp(NumericMatrix data, List graph_list,
-                             const std::string &metric = "euclidean"){
-    DISPATCH_ON_DISTANCES(DIVERSIFY_ALWAYS_SP_IMPL)}
-
+                             const std::string &metric = "euclidean") {
+  DISPATCH_ON_DISTANCES(DIVERSIFY_ALWAYS_SP_IMPL)
+}
 
 struct Dummy {
   using Output = double;
