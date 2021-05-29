@@ -207,70 +207,70 @@ context("NN descent Euclidean queries")
 set.seed(1337)
 ui6_nnd <- nnd_knn(ui6, k = 4)
 ui6_nnd_idx_copy <- copy(ui6_nnd$idx)
-qnbrs4 <- nnd_knn_query(reference = ui6, reference_graph = ui6_nnd, query = ui4, k = 4)
+qnbrs4 <- graph_knn_query(reference = ui6, reference_graph = ui6_nnd, query = ui4, k = 4)
 check_query_nbrs(nn = qnbrs4, query = ui4, ref_range = 1:6, query_range = 7:10, k = 4, expected_dist = ui10_eucd, tol = 1e-6)
 expect_equal(sum(qnbrs4$dist), ui4q_edsum)
 expect_equal(ui6_nnd$idx, ui6_nnd_idx_copy)
 
 set.seed(1337)
 ui4_nnd <- nnd_knn(ui4, k = 4)
-qnbrs6 <- nnd_knn_query(reference = ui4, reference_graph = ui4_nnd, query = ui6, k = 4)
+qnbrs6 <- graph_knn_query(reference = ui4, reference_graph = ui4_nnd, query = ui6, k = 4)
 check_query_nbrs(nn = qnbrs6, query = ui6, ref_range = 7:10, query_range = 1:6, k = 4, expected_dist = ui10_eucd, tol = 1e-6)
 expect_equal(sum(qnbrs6$dist), ui6q_edsum, tol = 1e-6)
 
 # max candidates
 set.seed(1337)
-qnbrs6 <- nnd_knn_query(reference = ui4, reference_graph = ui4_nnd, query = ui6, k = 4, max_candidates = 3)
+qnbrs6 <- graph_knn_query(reference = ui4, reference_graph = ui4_nnd, query = ui6, k = 4, max_candidates = 3)
 check_query_nbrs(nn = qnbrs6, query = ui6, ref_range = 7:10, query_range = 1:6, k = 4, expected_dist = ui10_eucd, tol = 1e-6)
 expect_equal(sum(qnbrs6$dist), ui6q_edsum, tol = 1e-6)
 
 # turn off alt metric
 set.seed(1337)
-qnbrs6 <- nnd_knn_query(reference = ui4, reference_graph = ui4_nnd, query = ui6, k = 4, use_alt_metric = FALSE)
+qnbrs6 <- graph_knn_query(reference = ui4, reference_graph = ui4_nnd, query = ui6, k = 4, use_alt_metric = FALSE)
 check_query_nbrs(nn = qnbrs6, query = ui6, ref_range = 7:10, query_range = 1:6, k = 4, expected_dist = ui10_eucd, tol = 1e-6)
 expect_equal(sum(qnbrs6$dist), ui6q_edsum, tol = 1e-6)
 
 # initialize separately
 rnbrs4 <- random_knn_query(reference = ui6, query = ui4, k = 4)
 rnbrs4_idx_copy <- copy(rnbrs4$idx)
-qnbrs4 <- nnd_knn_query(reference = ui6, reference_graph = ui6_nnd, query = ui4, init = rnbrs4)
+qnbrs4 <- graph_knn_query(reference = ui6, reference_graph = ui6_nnd, query = ui4, init = rnbrs4)
 check_query_nbrs(nn = qnbrs4, query = ui4, ref_range = 1:6, query_range = 7:10, k = 4, expected_dist = ui10_eucd, tol = 1e-6)
 expect_equal(sum(qnbrs4$dist), ui4q_edsum)
 expect_equal(rnbrs4$idx, rnbrs4_idx_copy)
 
 # initialize separately and reduce graph
 rnbrs5 <- random_knn_query(reference = ui6, query = ui4, k = 5)
-qnbrs4 <- nnd_knn_query(reference = ui6, reference_graph = ui6_nnd, query = ui4, init = rnbrs5, k = 4)
+qnbrs4 <- graph_knn_query(reference = ui6, reference_graph = ui6_nnd, query = ui4, init = rnbrs5, k = 4)
 check_query_nbrs(nn = qnbrs4, query = ui4, ref_range = 1:6, query_range = 7:10, k = 4, expected_dist = ui10_eucd, tol = 1e-6)
 expect_equal(sum(qnbrs4$dist), ui4q_edsum)
 
 # chop down reference index if needed
-qnbrs4 <- nnd_knn_query(reference = ui6, reference_graph = ui6_nnd, query = ui4, init = rnbrs5, k = 3)
+qnbrs4 <- graph_knn_query(reference = ui6, reference_graph = ui6_nnd, query = ui4, init = rnbrs5, k = 3)
 check_query_nbrs(nn = qnbrs4, query = ui4, ref_range = 1:6, query_range = 7:10, k = 3, expected_dist = ui10_eucd, tol = 1e-6)
 
 # use k from reference indices
-qnbrs6 <- nnd_knn_query(reference = ui4, reference_graph = ui4_nnd, query = ui6)
+qnbrs6 <- graph_knn_query(reference = ui4, reference_graph = ui4_nnd, query = ui6)
 check_query_nbrs(nn = qnbrs6, query = ui6, ref_range = 7:10, query_range = 1:6, k = 4, expected_dist = ui10_eucd, tol = 1e-6)
 expect_equal(sum(qnbrs6$dist), ui6q_edsum, tol = 1e-6)
 
 # initialize from existing knn indices
-qnbrs4 <- nnd_knn_query(reference = ui6, reference_graph = ui6_nnd, query = ui4, init = list(idx = rnbrs4$idx))
+qnbrs4 <- graph_knn_query(reference = ui6, reference_graph = ui6_nnd, query = ui4, init = list(idx = rnbrs4$idx))
 check_query_nbrs(nn = qnbrs4, query = ui4, ref_range = 1:6, query_range = 7:10, k = 4, expected_dist = ui10_eucd, tol = 1e-6)
 expect_equal(sum(qnbrs4$dist), ui4q_edsum)
 expect_equal(rnbrs4$idx, rnbrs4_idx_copy)
 
 # multi-threading
 set.seed(1337)
-qnbrs6 <- nnd_knn_query(reference = ui4, reference_graph = ui4_nnd, query = ui6, k = 4, n_threads = 1)
+qnbrs6 <- graph_knn_query(reference = ui4, reference_graph = ui4_nnd, query = ui6, k = 4, n_threads = 1)
 check_query_nbrs(nn = qnbrs6, query = ui6, ref_range = 7:10, query_range = 1:6, k = 4, expected_dist = ui10_eucd, tol = 1e-6)
 expect_equal(sum(qnbrs6$dist), ui6q_edsum, tol = 1e-6)
 
-qnbrs4 <- nnd_knn_query(reference = ui6, reference_graph = ui6_nnd, query = ui4, k = 4, n_threads = 1)
+qnbrs4 <- graph_knn_query(reference = ui6, reference_graph = ui6_nnd, query = ui4, k = 4, n_threads = 1)
 check_query_nbrs(nn = qnbrs4, query = ui4, ref_range = 1:6, query_range = 7:10, k = 4, expected_dist = ui10_eucd, tol = 1e-6)
 expect_equal(sum(qnbrs4$dist), ui4q_edsum)
 
 # initialize from existing knn indices
-qnbrs4 <- nnd_knn_query(reference = ui6, reference_graph = ui6_nnd, query = ui4, init = list(idx = rnbrs4$idx), n_threads = 1)
+qnbrs4 <- graph_knn_query(reference = ui6, reference_graph = ui6_nnd, query = ui4, init = list(idx = rnbrs4$idx), n_threads = 1)
 check_query_nbrs(nn = qnbrs4, query = ui4, ref_range = 1:6, query_range = 7:10, k = 4, expected_dist = ui10_eucd, tol = 1e-6)
 expect_equal(sum(qnbrs4$dist), ui4q_edsum)
 expect_equal(rnbrs4$idx, rnbrs4_idx_copy)
@@ -279,24 +279,24 @@ expect_equal(rnbrs4$idx, rnbrs4_idx_copy)
 
 # max candidates
 set.seed(1337)
-qnbrs6 <- nnd_knn_query(reference = ui4, reference_graph = ui4_nnd, query = ui6, k = 4, n_threads = 1, max_candidates = 3)
+qnbrs6 <- graph_knn_query(reference = ui4, reference_graph = ui4_nnd, query = ui6, k = 4, n_threads = 1, max_candidates = 3)
 check_query_nbrs(nn = qnbrs6, query = ui6, ref_range = 7:10, query_range = 1:6, k = 4, expected_dist = ui10_eucd, tol = 1e-6)
 expect_equal(sum(qnbrs6$dist), ui6q_edsum, tol = 1e-6)
 
 # errors
-expect_error(nnd_knn_query(
+expect_error(graph_knn_query(
   reference = ui4, reference_graph = ui4_nnd,
   query = ui6, k = 5
 ), "items in the reference data")
-expect_error(nnd_knn_query(
+expect_error(graph_knn_query(
   reference = ui6, reference_graph = ui6_nnd,
   query = ui4, init = rnbrs5, k = 6
 ), "Not enough initial")
-expect_error(nnd_knn_query(
+expect_error(graph_knn_query(
   reference = ui4, reference_graph = ui4_nnd,
   query = ui6, k = 4, metric = "not-a-real metric"
 ), "metric")
-expect_error(nnd_knn_query(
+expect_error(graph_knn_query(
   reference = ui6, reference_graph = ui6_nnd,
   query = ui4, init = rnbrs4, metric = "not-a-real metric"
 ), "metric")

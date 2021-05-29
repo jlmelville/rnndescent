@@ -11,7 +11,7 @@ k_occur(idx, k = NULL, include_self = TRUE)
 labeled starting at 1. Note that the integer labels do \emph{not} have to
 refer to the rows of \code{idx}, for example if the nearest neighbor result
 is from querying one set of objects with respect to another (for instance
-from running \code{\link{nnd_knn_query}}). You may also pass a nearest
+from running \code{\link{graph_knn_query}}). You may also pass a nearest
 neighbor graph object (e.g. the output of running \code{\link{nnd_knn}}),
 and the indices will be extracted from it.}
 

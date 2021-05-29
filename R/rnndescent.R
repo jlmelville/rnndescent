@@ -541,7 +541,7 @@ brute_force_knn_query <- function(query,
 #' @param order_by_distance If \code{TRUE} (the default), then results for each
 #'   item are returned by increasing distance. If you don't need the results
 #'   sorted, e.g. you are going to pass the results as initialization to another
-#'   routine like \code{\link{nnd_knn_query}}, set this to \code{FALSE} to save a
+#'   routine like \code{\link{graph_knn_query}}, set this to \code{FALSE} to save a
 #'   small amount of computational time.
 #' @param n_threads Number of threads to use.
 #' @param block_size Number of items to generate neighbors for in each
@@ -727,7 +727,7 @@ random_knn_query <-
 #' # You need to pass both the reference data and the reference graph.
 #' # If you pass a data frame, non-numeric columns are removed.
 #' # set verbose = TRUE to get details on the progress being made
-#' iris_query_nn <- nnd_knn_query(iris_query, iris_ref, iris_ref_graph,
+#' iris_query_nn <- graph_knn_query(iris_query, iris_ref, iris_ref_graph,
 #'   k = 4, metric = "euclidean", verbose = TRUE
 #' )
 #' @references
@@ -746,19 +746,19 @@ random_knn_query <-
 #' \emph{arXiv preprint arXiv:1810.07355.}
 #'
 #' @export
-nnd_knn_query <- function(query,
-                          reference,
-                          reference_graph,
-                          k = NULL,
-                          metric = "euclidean",
-                          init = NULL,
-                          n_iters = Inf,
-                          epsilon = 0.1,
-                          max_candidates = NULL,
-                          use_alt_metric = TRUE,
-                          n_threads = 0,
-                          grain_size = 1,
-                          verbose = FALSE) {
+graph_knn_query <- function(query,
+                            reference,
+                            reference_graph,
+                            k = NULL,
+                            metric = "euclidean",
+                            init = NULL,
+                            n_iters = Inf,
+                            epsilon = 0.1,
+                            max_candidates = NULL,
+                            use_alt_metric = TRUE,
+                            n_threads = 0,
+                            grain_size = 1,
+                            verbose = FALSE) {
   reference <- x2m(reference)
   query <- x2m(query)
 
@@ -904,9 +904,11 @@ diversify <- function(data,
   nnz_before <- sum(idx != 0)
   res <- diversify_cpp(x2m(data), idx, dist, prune_probability = prune_probability)
   nnz_after <- sum(res$idx != 0)
-  tsmessage("Diversifying reduced # edges from ", nnz_before,
-            " to ", nnz_after,
-            " (", formatC(100 * nn_sparsity(res)), "% sparse)")
+  tsmessage(
+    "Diversifying reduced # edges from ", nnz_before,
+    " to ", nnz_after,
+    " (", formatC(100 * nn_sparsity(res)), "% sparse)"
+  )
   res
 }
 
@@ -928,18 +930,22 @@ diversify_sp <- function(data,
   gl <- sparse_to_list(graph)
 
   if (prune_probability < 1) {
-    gl_div <- diversify_sp_cpp(data = x2m(data), graph_list = gl, metric = metric,
-                               prune_probability = prune_probability)
+    gl_div <- diversify_sp_cpp(
+      data = x2m(data), graph_list = gl, metric = metric,
+      prune_probability = prune_probability
+    )
   }
   else {
     gl_div <- diversify_always_sp_cpp(data = x2m(data), graph_list = gl, metric = metric)
   }
   res <- list_to_sparse(gl_div)
   nnz_after <- Matrix::nnzero(res)
-  tsmessage("Diversifying reduced # edges from ", nnz_before,
-            " to ", nnz_after,
-            " (",  formatC(100 * sp_before), "% to ",
-            formatC(100 * nn_sparsity_sp(res)),   "% sparse)")
+  tsmessage(
+    "Diversifying reduced # edges from ", nnz_before,
+    " to ", nnz_after,
+    " (", formatC(100 * sp_before), "% to ",
+    formatC(100 * nn_sparsity_sp(res)), "% sparse)"
+  )
   res
 }
 
@@ -960,10 +966,12 @@ degree_prune <- function(graph, max_degree = 20, verbose = FALSE) {
   gl_div <- degree_prune_cpp(gl, max_degree)
   res <- list_to_sparse(gl_div)
   nnz_after <- Matrix::nnzero(res)
-  tsmessage("Degree pruning to max ", max_degree, " reduced # edges from ", nnz_before,
-            " to ", nnz_after,
-            " (",  formatC(100 * sp_before), "% to ",
-            formatC(100 * nn_sparsity_sp(res)),   "% sparse)")
+  tsmessage(
+    "Degree pruning to max ", max_degree, " reduced # edges from ", nnz_before,
+    " to ", nnz_after,
+    " (", formatC(100 * sp_before), "% to ",
+    formatC(100 * nn_sparsity_sp(res)), "% sparse)"
+  )
   res
 }
 
@@ -1003,7 +1011,7 @@ nn_sparsity_sp <- function(graph) {
 #' @param is_query If \code{TRUE} then the graphs are treated as the result of
 #'   a knn query, not a knn building process. This should be set to
 #'   \code{TRUE} if \code{nn_graph1} and \code{nn_graph2} are the results of
-#'   using e.g. \code{\link{nnd_knn_query}} or \code{\link{random_knn_query}},
+#'   using e.g. \code{\link{graph_knn_query}} or \code{\link{random_knn_query}},
 #'   and set to \code{FALSE} if these are the results of
 #'   \code{\link{nnd_knn}} or \code{\link{random_knn}}. The difference is that
 #'   if \code{is_query = FALSE}, if an index \code{p} is found in
@@ -1084,7 +1092,7 @@ merge_knn <- function(nn_graph1,
 #' @param is_query If \code{TRUE} then the graphs are treated as the result of
 #'   a knn query, not a knn building process. This should be set to
 #'   \code{TRUE} if \code{nn_graphs} are the results of
-#'   using e.g. \code{\link{nnd_knn_query}} or \code{\link{random_knn_query}},
+#'   using e.g. \code{\link{graph_knn_query}} or \code{\link{random_knn_query}},
 #'   and set to \code{FALSE} if these are the results of \code{\link{nnd_knn}}
 #'   or \code{\link{random_knn}}. The difference is that if \code{is_query =
 #'   FALSE}, if an index \code{p} is found in \code{nn_graph1[i, ]}, i.e.
@@ -1178,7 +1186,7 @@ merge_knnl <- function(nn_graphs,
 #'   labeled starting at 1. Note that the integer labels do \emph{not} have to
 #'   refer to the rows of \code{idx}, for example if the nearest neighbor result
 #'   is from querying one set of objects with respect to another (for instance
-#'   from running \code{\link{nnd_knn_query}}). You may also pass a nearest
+#'   from running \code{\link{graph_knn_query}}). You may also pass a nearest
 #'   neighbor graph object (e.g. the output of running \code{\link{nnd_knn}}),
 #'   and the indices will be extracted from it.
 #' @param k The number of closest neighbors to use. Must be between 1 and the
@@ -1264,7 +1272,7 @@ reverse_knn_sp <- function(graph) {
 mutualize_knn <- function(idx, dist = NULL, k = NULL) {
   cg_res <- check_graph(idx = idx, dist = dist, k = k)
   spg <- graph_to_cs(cg_res)
-  rspg <-reverse_knn(cg_res)
+  rspg <- reverse_knn(cg_res)
   Matrix::drop0(spg + rspg) / 2
 }
 
@@ -1352,25 +1360,33 @@ create_pruned_search_graph <- function(data, graph, metric = "euclidean",
   sp <- graph_to_cs(graph)
   if (!is.null(prune_probability) && prune_probability > 0) {
     tsmessage("Diversifying forward graph")
-    fdiv <- diversify_sp(data, sp, metric = metric, prune_probability = prune_probability,
-                         verbose = verbose)
+    fdiv <- diversify_sp(data, sp,
+      metric = metric, prune_probability = prune_probability,
+      verbose = verbose
+    )
   }
   else {
     fdiv <- sp
-    tsmessage("Forward graph has # edges = ", Matrix::nnzero(fdiv), " (",
-              formatC(100 * nn_sparsity_sp(fdiv)), "% sparse)")
+    tsmessage(
+      "Forward graph has # edges = ", Matrix::nnzero(fdiv), " (",
+      formatC(100 * nn_sparsity_sp(fdiv)), "% sparse)"
+    )
   }
-  rsp <-  reverse_knn_sp(fdiv)
+  rsp <- reverse_knn_sp(fdiv)
 
   if (!is.null(prune_probability) && prune_probability > 0) {
     tsmessage("Diversifying reverse graph")
-    rdiv <- diversify_sp(data, rsp, metric = metric, prune_probability = prune_probability,
-                         verbose = verbose)
+    rdiv <- diversify_sp(data, rsp,
+      metric = metric, prune_probability = prune_probability,
+      verbose = verbose
+    )
   }
   else {
     rdiv <- rsp
-    tsmessage("Reverse graph has # edges = ", Matrix::nnzero(rdiv), " (",
-              formatC(100 * nn_sparsity_sp(rdiv)), "% sparse)")
+    tsmessage(
+      "Reverse graph has # edges = ", Matrix::nnzero(rdiv), " (",
+      formatC(100 * nn_sparsity_sp(rdiv)), "% sparse)"
+    )
   }
   tsmessage("Merging diversified forward and reverse graph")
   merged <- merge_graphs_sp(fdiv, rdiv)
@@ -1381,8 +1397,10 @@ create_pruned_search_graph <- function(data, graph, metric = "euclidean",
   }
   else {
     res <- merged
-    tsmessage("Merged graph has # edges = ", Matrix::nnzero(res), " (",
-              formatC(100 * nn_sparsity_sp(res)), "% sparse)")
+    tsmessage(
+      "Merged graph has # edges = ", Matrix::nnzero(res), " (",
+      formatC(100 * nn_sparsity_sp(res)), "% sparse)"
+    )
   }
   tsmessage("Finished")
   res

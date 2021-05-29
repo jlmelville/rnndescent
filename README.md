@@ -99,7 +99,7 @@ iris_ref_knn <- nnd_knn(iris_ref, k = 10)
 # For each item in iris_query find the 10 nearest neighbors in iris_ref
 # You need to pass both the reference data and the knn graph indices (the
 # 'idx' matrix in the return value of nnd_knn).
-iris_query_nn <- nnd_knn_query(iris_ref, iris_ref_knn$idx, iris_query,
+iris_query_nn <- graph_knn_query(iris_ref, iris_ref_knn$idx, iris_query,
   k = 4, metric = "euclidean",
   verbose = TRUE
 )

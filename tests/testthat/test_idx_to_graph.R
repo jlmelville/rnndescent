@@ -29,7 +29,7 @@ testthat::test_that("convert reference graph", {
 testthat::test_that("convert reference + query graph", {
   set.seed(1337)
   ui6_nnd <- nnd_knn(ui6, k = 4)
-  qnbrs4 <- nnd_knn_query(reference = ui6, reference_graph = ui6_nnd, query = ui4, k = 4)
+  qnbrs4 <- graph_knn_query(reference = ui6, reference_graph = ui6_nnd, query = ui4, k = 4)
 
   i2g <- idx_to_graph_query(query = ui4, reference = ui6, idx = qnbrs4)
   expect_equal(i2g$dist, qnbrs4$dist, tol = 1e-7)
@@ -42,7 +42,7 @@ testthat::test_that("convert reference + query graph", {
   # non-default metric
   set.seed(1337)
   ui6_nnd <- nnd_knn(ui6, k = 4, metric = "cosine")
-  qnbrs4 <- nnd_knn_query(reference = ui6, reference_graph = ui6_nnd, query = ui4, k = 4, metric = "cosine")
+  qnbrs4 <- graph_knn_query(reference = ui6, reference_graph = ui6_nnd, query = ui4, k = 4, metric = "cosine")
   i2g <- idx_to_graph_query(query = ui4, reference = ui6, idx = qnbrs4, metric = "cosine")
   expect_equal(i2g$dist, qnbrs4$dist, tol = 1e-7)
   expect_equal(i2g$idx, qnbrs4$idx)

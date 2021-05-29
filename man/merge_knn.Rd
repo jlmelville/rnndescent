@@ -32,7 +32,7 @@ specified in \code{nn_graph1}.}
 \item{is_query}{If \code{TRUE} then the graphs are treated as the result of
 a knn query, not a knn building process. This should be set to
 \code{TRUE} if \code{nn_graph1} and \code{nn_graph2} are the results of
-using e.g. \code{\link{nnd_knn_query}} or \code{\link{random_knn_query}},
+using e.g. \code{\link{graph_knn_query}} or \code{\link{random_knn_query}},
 and set to \code{FALSE} if these are the results of
 \code{\link{nnd_knn}} or \code{\link{random_knn}}. The difference is that
 if \code{is_query = FALSE}, if an index \code{p} is found in
