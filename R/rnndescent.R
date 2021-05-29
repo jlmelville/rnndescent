@@ -887,7 +887,7 @@ graph_knn_query <- function(query,
 
 # Search Graph Preparation ------------------------------------------------
 
-create_search_graph <- function(data, graph, metric = "euclidean",
+prepare_search_graph <- function(data, graph, metric = "euclidean",
                                 prune_probability = 1.0,
                                 pruning_degree_multiplier = 1.5,
                                 verbose = FALSE) {
@@ -1011,11 +1011,11 @@ diversify_sp <- function(data,
 # In \emph{Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition}
 # (pp. 5713-5722).
 degree_prune <- function(graph, max_degree = 20, verbose = FALSE) {
-  nnz_before <- Matrix::nnzero(graph)
-  sp_before <- nn_sparsity_sp(graph)
   stopifnot(
     methods::is(graph, "sparseMatrix")
   )
+  nnz_before <- Matrix::nnzero(graph)
+  sp_before <- nn_sparsity_sp(graph)
   gl <- sparse_to_list(graph)
 
   gl_div <- degree_prune_cpp(gl, max_degree)
