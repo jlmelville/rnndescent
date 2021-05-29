@@ -733,7 +733,7 @@ random_knn_query <-
 #' @references
 #' Hajebi, K., Abbasi-Yadkori, Y., Shahbazi, H., & Zhang, H. (2011, June).
 #' Fast approximate nearest-neighbor search with k-nearest neighbor graph.
-#' In \empph{Twenty-Second International Joint Conference on Artificial Intelligence}.
+#' In \emph{Twenty-Second International Joint Conference on Artificial Intelligence}.
 #'
 #' Harwood, B., & Drummond, T. (2016).
 #' Fanng: Fast approximate nearest neighbour graphs.

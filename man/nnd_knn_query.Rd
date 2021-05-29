@@ -127,12 +127,14 @@ iris_query_nn <- nnd_knn_query(iris_query, iris_ref, iris_ref_graph,
 )
 }
 \references{
-Dong, W., Moses, C., & Li, K. (2011, March).
-Efficient k-nearest neighbor graph construction for generic similarity measures.
-In \emph{Proceedings of the 20th international conference on World Wide Web}
-(pp. 577-586).
-ACM.
-\url{https://doi.org/10.1145/1963405.1963487}.
+Hajebi, K., Abbasi-Yadkori, Y., Shahbazi, H., & Zhang, H. (2011, June).
+Fast approximate nearest-neighbor search with k-nearest neighbor graph.
+In \emph{Twenty-Second International Joint Conference on Artificial Intelligence}.
+
+Harwood, B., & Drummond, T. (2016).
+Fanng: Fast approximate nearest neighbour graphs.
+In \emph{Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition}
+(pp. 5713-5722).
 
 Iwasaki, M., & Miyazaki, D. (2018).
 Optimization of indexing based on k-nearest neighbor graph for proximity
