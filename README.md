@@ -288,12 +288,22 @@ In *Proceedings of the 20th international conference on World wide web* (pp. 577
 
 ## License
 
-The R and Rcpp interface code as a whole is
-[GPLv3 or later](https://www.gnu.org/licenses/gpl-3.0.txt). One of those files is a modification of 
-some sampling code from [dqrng](https://github.com/daqana/dqrng), and is 
-[AGPLv3](https://www.gnu.org/licenses/agpl-3.0.en.html). The underlying nearest neighbor descent C++
-library, which can be found under `inst/include/tdoann`, is 
+The R package as a whole is licensed under
+[GPLv3 or later](https://www.gnu.org/licenses/gpl-3.0.txt). The following
+files are licensed differently:
+
+* `inst/include/dqsample.h` is a modification of some sampling code
+from [dqrng](https://github.com/daqana/dqrng) and is
+[AGPLv3 or later](https://www.gnu.org/licenses/agpl-3.0.en.html).
+* `inst/include/RcppPerpendicular.h` is a modification of some code from
+from [RcppParallel](https://github.com/RcppCore/RcppParallel) and is
+[GPLv2 or later](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
+* The underlying nearest neighbor descent C++ library, which can be found under
+`inst/include/tdoann`, is licensed under the 
 [BSD 2-Clause](https://opensource.org/licenses/BSD-2-Clause).
+
+As far as I know, these licenses are all compatible with re-licensing under
+GPLv3 or later.
 
 ## See Also
 
