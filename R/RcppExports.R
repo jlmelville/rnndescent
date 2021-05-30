@@ -13,54 +13,6 @@ reverse_nbr_size_impl <- function(nn_idx, k, len, include_self = FALSE) {
     .Call(`_rnndescent_reverse_nbr_size_impl`, nn_idx, k, len, include_self)
 }
 
-reverse_knn_impl <- function(idx, dist, n_neighbors) {
-    .Call(`_rnndescent_reverse_knn_impl`, idx, dist, n_neighbors)
-}
-
-deg_adj_graph_impl <- function(idx, dist, n_rev_nbrs, n_adj_nbrs) {
-    .Call(`_rnndescent_deg_adj_graph_impl`, idx, dist, n_rev_nbrs, n_adj_nbrs)
-}
-
-ko_adj_graph_impl <- function(idx, dist, n_rev_nbrs, n_adj_nbrs) {
-    .Call(`_rnndescent_ko_adj_graph_impl`, idx, dist, n_rev_nbrs, n_adj_nbrs)
-}
-
-mutualize_graph_impl <- function(idx, dist, n_nbrs) {
-    .Call(`_rnndescent_mutualize_graph_impl`, idx, dist, n_nbrs)
-}
-
-partial_mutualize_graph_impl <- function(idx, dist, n_nbrs) {
-    .Call(`_rnndescent_partial_mutualize_graph_impl`, idx, dist, n_nbrs)
-}
-
-connected_components_undirected <- function(N, indices1, indptr1, indices2, indptr2) {
-    .Call(`_rnndescent_connected_components_undirected`, N, indices1, indptr1, indices2, indptr2)
-}
-
-diversify_cpp <- function(data, idx, dist, metric = "euclidean", prune_probability = 1.0) {
-    .Call(`_rnndescent_diversify_cpp`, data, idx, dist, metric, prune_probability)
-}
-
-diversify_sp_cpp <- function(data, graph_list, metric = "euclidean", prune_probability = 1.0) {
-    .Call(`_rnndescent_diversify_sp_cpp`, data, graph_list, metric, prune_probability)
-}
-
-diversify_always_sp_cpp <- function(data, graph_list, metric = "euclidean") {
-    .Call(`_rnndescent_diversify_always_sp_cpp`, data, graph_list, metric)
-}
-
-r2spg <- function(idx, dist) {
-    .Call(`_rnndescent_r2spg`, idx, dist)
-}
-
-merge_graph_lists_cpp <- function(gl1, gl2) {
-    .Call(`_rnndescent_merge_graph_lists_cpp`, gl1, gl2)
-}
-
-degree_prune_cpp <- function(graph_list, max_degree) {
-    .Call(`_rnndescent_degree_prune_cpp`, graph_list, max_degree)
-}
-
 rnn_idx_to_graph_self <- function(data, idx, metric = "euclidean", n_threads = 0L, grain_size = 1L, verbose = FALSE) {
     .Call(`_rnndescent_rnn_idx_to_graph_self`, data, idx, metric, n_threads, grain_size, verbose)
 }
@@ -91,5 +43,25 @@ random_knn_cpp <- function(data, k, metric = "euclidean", order_by_distance = TR
 
 random_knn_query_cpp <- function(reference, query, k, metric = "euclidean", order_by_distance = TRUE, block_size = 4096L, n_threads = 0L, grain_size = 1L, verbose = FALSE) {
     .Call(`_rnndescent_random_knn_query_cpp`, reference, query, k, metric, order_by_distance, block_size, n_threads, grain_size, verbose)
+}
+
+diversify_cpp <- function(data, idx, dist, metric = "euclidean", prune_probability = 1.0) {
+    .Call(`_rnndescent_diversify_cpp`, data, idx, dist, metric, prune_probability)
+}
+
+diversify_sp_cpp <- function(data, graph_list, metric = "euclidean", prune_probability = 1.0) {
+    .Call(`_rnndescent_diversify_sp_cpp`, data, graph_list, metric, prune_probability)
+}
+
+diversify_always_sp_cpp <- function(data, graph_list, metric = "euclidean") {
+    .Call(`_rnndescent_diversify_always_sp_cpp`, data, graph_list, metric)
+}
+
+merge_graph_lists_cpp <- function(gl1, gl2) {
+    .Call(`_rnndescent_merge_graph_lists_cpp`, gl1, gl2)
+}
+
+degree_prune_cpp <- function(graph_list, max_degree) {
+    .Call(`_rnndescent_degree_prune_cpp`, graph_list, max_degree)
 }
 

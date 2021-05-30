@@ -54,166 +54,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// reverse_knn_impl
-List reverse_knn_impl(IntegerMatrix idx, NumericMatrix dist, std::size_t n_neighbors);
-RcppExport SEXP _rnndescent_reverse_knn_impl(SEXP idxSEXP, SEXP distSEXP, SEXP n_neighborsSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< IntegerMatrix >::type idx(idxSEXP);
-    Rcpp::traits::input_parameter< NumericMatrix >::type dist(distSEXP);
-    Rcpp::traits::input_parameter< std::size_t >::type n_neighbors(n_neighborsSEXP);
-    rcpp_result_gen = Rcpp::wrap(reverse_knn_impl(idx, dist, n_neighbors));
-    return rcpp_result_gen;
-END_RCPP
-}
-// deg_adj_graph_impl
-List deg_adj_graph_impl(IntegerMatrix idx, NumericMatrix dist, std::size_t n_rev_nbrs, std::size_t n_adj_nbrs);
-RcppExport SEXP _rnndescent_deg_adj_graph_impl(SEXP idxSEXP, SEXP distSEXP, SEXP n_rev_nbrsSEXP, SEXP n_adj_nbrsSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< IntegerMatrix >::type idx(idxSEXP);
-    Rcpp::traits::input_parameter< NumericMatrix >::type dist(distSEXP);
-    Rcpp::traits::input_parameter< std::size_t >::type n_rev_nbrs(n_rev_nbrsSEXP);
-    Rcpp::traits::input_parameter< std::size_t >::type n_adj_nbrs(n_adj_nbrsSEXP);
-    rcpp_result_gen = Rcpp::wrap(deg_adj_graph_impl(idx, dist, n_rev_nbrs, n_adj_nbrs));
-    return rcpp_result_gen;
-END_RCPP
-}
-// ko_adj_graph_impl
-List ko_adj_graph_impl(IntegerMatrix idx, NumericMatrix dist, std::size_t n_rev_nbrs, std::size_t n_adj_nbrs);
-RcppExport SEXP _rnndescent_ko_adj_graph_impl(SEXP idxSEXP, SEXP distSEXP, SEXP n_rev_nbrsSEXP, SEXP n_adj_nbrsSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< IntegerMatrix >::type idx(idxSEXP);
-    Rcpp::traits::input_parameter< NumericMatrix >::type dist(distSEXP);
-    Rcpp::traits::input_parameter< std::size_t >::type n_rev_nbrs(n_rev_nbrsSEXP);
-    Rcpp::traits::input_parameter< std::size_t >::type n_adj_nbrs(n_adj_nbrsSEXP);
-    rcpp_result_gen = Rcpp::wrap(ko_adj_graph_impl(idx, dist, n_rev_nbrs, n_adj_nbrs));
-    return rcpp_result_gen;
-END_RCPP
-}
-// mutualize_graph_impl
-List mutualize_graph_impl(IntegerMatrix idx, NumericMatrix dist, std::size_t n_nbrs);
-RcppExport SEXP _rnndescent_mutualize_graph_impl(SEXP idxSEXP, SEXP distSEXP, SEXP n_nbrsSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< IntegerMatrix >::type idx(idxSEXP);
-    Rcpp::traits::input_parameter< NumericMatrix >::type dist(distSEXP);
-    Rcpp::traits::input_parameter< std::size_t >::type n_nbrs(n_nbrsSEXP);
-    rcpp_result_gen = Rcpp::wrap(mutualize_graph_impl(idx, dist, n_nbrs));
-    return rcpp_result_gen;
-END_RCPP
-}
-// partial_mutualize_graph_impl
-List partial_mutualize_graph_impl(IntegerMatrix idx, NumericMatrix dist, std::size_t n_nbrs);
-RcppExport SEXP _rnndescent_partial_mutualize_graph_impl(SEXP idxSEXP, SEXP distSEXP, SEXP n_nbrsSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< IntegerMatrix >::type idx(idxSEXP);
-    Rcpp::traits::input_parameter< NumericMatrix >::type dist(distSEXP);
-    Rcpp::traits::input_parameter< std::size_t >::type n_nbrs(n_nbrsSEXP);
-    rcpp_result_gen = Rcpp::wrap(partial_mutualize_graph_impl(idx, dist, n_nbrs));
-    return rcpp_result_gen;
-END_RCPP
-}
-// connected_components_undirected
-List connected_components_undirected(std::size_t N, const std::vector<int>& indices1, const std::vector<int>& indptr1, const std::vector<int>& indices2, const std::vector<int>& indptr2);
-RcppExport SEXP _rnndescent_connected_components_undirected(SEXP NSEXP, SEXP indices1SEXP, SEXP indptr1SEXP, SEXP indices2SEXP, SEXP indptr2SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< std::size_t >::type N(NSEXP);
-    Rcpp::traits::input_parameter< const std::vector<int>& >::type indices1(indices1SEXP);
-    Rcpp::traits::input_parameter< const std::vector<int>& >::type indptr1(indptr1SEXP);
-    Rcpp::traits::input_parameter< const std::vector<int>& >::type indices2(indices2SEXP);
-    Rcpp::traits::input_parameter< const std::vector<int>& >::type indptr2(indptr2SEXP);
-    rcpp_result_gen = Rcpp::wrap(connected_components_undirected(N, indices1, indptr1, indices2, indptr2));
-    return rcpp_result_gen;
-END_RCPP
-}
-// diversify_cpp
-List diversify_cpp(NumericMatrix data, IntegerMatrix idx, NumericMatrix dist, const std::string& metric, double prune_probability);
-RcppExport SEXP _rnndescent_diversify_cpp(SEXP dataSEXP, SEXP idxSEXP, SEXP distSEXP, SEXP metricSEXP, SEXP prune_probabilitySEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericMatrix >::type data(dataSEXP);
-    Rcpp::traits::input_parameter< IntegerMatrix >::type idx(idxSEXP);
-    Rcpp::traits::input_parameter< NumericMatrix >::type dist(distSEXP);
-    Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
-    Rcpp::traits::input_parameter< double >::type prune_probability(prune_probabilitySEXP);
-    rcpp_result_gen = Rcpp::wrap(diversify_cpp(data, idx, dist, metric, prune_probability));
-    return rcpp_result_gen;
-END_RCPP
-}
-// diversify_sp_cpp
-List diversify_sp_cpp(NumericMatrix data, List graph_list, const std::string& metric, double prune_probability);
-RcppExport SEXP _rnndescent_diversify_sp_cpp(SEXP dataSEXP, SEXP graph_listSEXP, SEXP metricSEXP, SEXP prune_probabilitySEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericMatrix >::type data(dataSEXP);
-    Rcpp::traits::input_parameter< List >::type graph_list(graph_listSEXP);
-    Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
-    Rcpp::traits::input_parameter< double >::type prune_probability(prune_probabilitySEXP);
-    rcpp_result_gen = Rcpp::wrap(diversify_sp_cpp(data, graph_list, metric, prune_probability));
-    return rcpp_result_gen;
-END_RCPP
-}
-// diversify_always_sp_cpp
-List diversify_always_sp_cpp(NumericMatrix data, List graph_list, const std::string& metric);
-RcppExport SEXP _rnndescent_diversify_always_sp_cpp(SEXP dataSEXP, SEXP graph_listSEXP, SEXP metricSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericMatrix >::type data(dataSEXP);
-    Rcpp::traits::input_parameter< List >::type graph_list(graph_listSEXP);
-    Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
-    rcpp_result_gen = Rcpp::wrap(diversify_always_sp_cpp(data, graph_list, metric));
-    return rcpp_result_gen;
-END_RCPP
-}
-// r2spg
-List r2spg(Rcpp::IntegerMatrix idx, Rcpp::NumericMatrix dist);
-RcppExport SEXP _rnndescent_r2spg(SEXP idxSEXP, SEXP distSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::IntegerMatrix >::type idx(idxSEXP);
-    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type dist(distSEXP);
-    rcpp_result_gen = Rcpp::wrap(r2spg(idx, dist));
-    return rcpp_result_gen;
-END_RCPP
-}
-// merge_graph_lists_cpp
-List merge_graph_lists_cpp(Rcpp::List gl1, Rcpp::List gl2);
-RcppExport SEXP _rnndescent_merge_graph_lists_cpp(SEXP gl1SEXP, SEXP gl2SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::List >::type gl1(gl1SEXP);
-    Rcpp::traits::input_parameter< Rcpp::List >::type gl2(gl2SEXP);
-    rcpp_result_gen = Rcpp::wrap(merge_graph_lists_cpp(gl1, gl2));
-    return rcpp_result_gen;
-END_RCPP
-}
-// degree_prune_cpp
-List degree_prune_cpp(Rcpp::List graph_list, std::size_t max_degree);
-RcppExport SEXP _rnndescent_degree_prune_cpp(SEXP graph_listSEXP, SEXP max_degreeSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::List >::type graph_list(graph_listSEXP);
-    Rcpp::traits::input_parameter< std::size_t >::type max_degree(max_degreeSEXP);
-    rcpp_result_gen = Rcpp::wrap(degree_prune_cpp(graph_list, max_degree));
-    return rcpp_result_gen;
-END_RCPP
-}
 // rnn_idx_to_graph_self
 List rnn_idx_to_graph_self(NumericMatrix data, IntegerMatrix idx, const std::string& metric, std::size_t n_threads, std::size_t grain_size, bool verbose);
 RcppExport SEXP _rnndescent_rnn_idx_to_graph_self(SEXP dataSEXP, SEXP idxSEXP, SEXP metricSEXP, SEXP n_threadsSEXP, SEXP grain_sizeSEXP, SEXP verboseSEXP) {
@@ -365,23 +205,77 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// diversify_cpp
+List diversify_cpp(NumericMatrix data, IntegerMatrix idx, NumericMatrix dist, const std::string& metric, double prune_probability);
+RcppExport SEXP _rnndescent_diversify_cpp(SEXP dataSEXP, SEXP idxSEXP, SEXP distSEXP, SEXP metricSEXP, SEXP prune_probabilitySEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< IntegerMatrix >::type idx(idxSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type dist(distSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
+    Rcpp::traits::input_parameter< double >::type prune_probability(prune_probabilitySEXP);
+    rcpp_result_gen = Rcpp::wrap(diversify_cpp(data, idx, dist, metric, prune_probability));
+    return rcpp_result_gen;
+END_RCPP
+}
+// diversify_sp_cpp
+List diversify_sp_cpp(NumericMatrix data, List graph_list, const std::string& metric, double prune_probability);
+RcppExport SEXP _rnndescent_diversify_sp_cpp(SEXP dataSEXP, SEXP graph_listSEXP, SEXP metricSEXP, SEXP prune_probabilitySEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< List >::type graph_list(graph_listSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
+    Rcpp::traits::input_parameter< double >::type prune_probability(prune_probabilitySEXP);
+    rcpp_result_gen = Rcpp::wrap(diversify_sp_cpp(data, graph_list, metric, prune_probability));
+    return rcpp_result_gen;
+END_RCPP
+}
+// diversify_always_sp_cpp
+List diversify_always_sp_cpp(NumericMatrix data, List graph_list, const std::string& metric);
+RcppExport SEXP _rnndescent_diversify_always_sp_cpp(SEXP dataSEXP, SEXP graph_listSEXP, SEXP metricSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< List >::type graph_list(graph_listSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
+    rcpp_result_gen = Rcpp::wrap(diversify_always_sp_cpp(data, graph_list, metric));
+    return rcpp_result_gen;
+END_RCPP
+}
+// merge_graph_lists_cpp
+List merge_graph_lists_cpp(Rcpp::List gl1, Rcpp::List gl2);
+RcppExport SEXP _rnndescent_merge_graph_lists_cpp(SEXP gl1SEXP, SEXP gl2SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::List >::type gl1(gl1SEXP);
+    Rcpp::traits::input_parameter< Rcpp::List >::type gl2(gl2SEXP);
+    rcpp_result_gen = Rcpp::wrap(merge_graph_lists_cpp(gl1, gl2));
+    return rcpp_result_gen;
+END_RCPP
+}
+// degree_prune_cpp
+List degree_prune_cpp(Rcpp::List graph_list, std::size_t max_degree);
+RcppExport SEXP _rnndescent_degree_prune_cpp(SEXP graph_listSEXP, SEXP max_degreeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::List >::type graph_list(graph_listSEXP);
+    Rcpp::traits::input_parameter< std::size_t >::type max_degree(max_degreeSEXP);
+    rcpp_result_gen = Rcpp::wrap(degree_prune_cpp(graph_list, max_degree));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_rnndescent_rnn_brute_force", (DL_FUNC) &_rnndescent_rnn_brute_force, 7},
     {"_rnndescent_rnn_brute_force_query", (DL_FUNC) &_rnndescent_rnn_brute_force_query, 8},
     {"_rnndescent_reverse_nbr_size_impl", (DL_FUNC) &_rnndescent_reverse_nbr_size_impl, 4},
-    {"_rnndescent_reverse_knn_impl", (DL_FUNC) &_rnndescent_reverse_knn_impl, 3},
-    {"_rnndescent_deg_adj_graph_impl", (DL_FUNC) &_rnndescent_deg_adj_graph_impl, 4},
-    {"_rnndescent_ko_adj_graph_impl", (DL_FUNC) &_rnndescent_ko_adj_graph_impl, 4},
-    {"_rnndescent_mutualize_graph_impl", (DL_FUNC) &_rnndescent_mutualize_graph_impl, 3},
-    {"_rnndescent_partial_mutualize_graph_impl", (DL_FUNC) &_rnndescent_partial_mutualize_graph_impl, 3},
-    {"_rnndescent_connected_components_undirected", (DL_FUNC) &_rnndescent_connected_components_undirected, 5},
-    {"_rnndescent_diversify_cpp", (DL_FUNC) &_rnndescent_diversify_cpp, 5},
-    {"_rnndescent_diversify_sp_cpp", (DL_FUNC) &_rnndescent_diversify_sp_cpp, 4},
-    {"_rnndescent_diversify_always_sp_cpp", (DL_FUNC) &_rnndescent_diversify_always_sp_cpp, 3},
-    {"_rnndescent_r2spg", (DL_FUNC) &_rnndescent_r2spg, 2},
-    {"_rnndescent_merge_graph_lists_cpp", (DL_FUNC) &_rnndescent_merge_graph_lists_cpp, 2},
-    {"_rnndescent_degree_prune_cpp", (DL_FUNC) &_rnndescent_degree_prune_cpp, 2},
     {"_rnndescent_rnn_idx_to_graph_self", (DL_FUNC) &_rnndescent_rnn_idx_to_graph_self, 6},
     {"_rnndescent_rnn_idx_to_graph_query", (DL_FUNC) &_rnndescent_rnn_idx_to_graph_query, 7},
     {"_rnndescent_merge_nn", (DL_FUNC) &_rnndescent_merge_nn, 9},
@@ -390,6 +284,11 @@ static const R_CallMethodDef CallEntries[] = {
     {"_rnndescent_nn_descent_query", (DL_FUNC) &_rnndescent_nn_descent_query, 12},
     {"_rnndescent_random_knn_cpp", (DL_FUNC) &_rnndescent_random_knn_cpp, 8},
     {"_rnndescent_random_knn_query_cpp", (DL_FUNC) &_rnndescent_random_knn_query_cpp, 9},
+    {"_rnndescent_diversify_cpp", (DL_FUNC) &_rnndescent_diversify_cpp, 5},
+    {"_rnndescent_diversify_sp_cpp", (DL_FUNC) &_rnndescent_diversify_sp_cpp, 4},
+    {"_rnndescent_diversify_always_sp_cpp", (DL_FUNC) &_rnndescent_diversify_always_sp_cpp, 3},
+    {"_rnndescent_merge_graph_lists_cpp", (DL_FUNC) &_rnndescent_merge_graph_lists_cpp, 2},
+    {"_rnndescent_degree_prune_cpp", (DL_FUNC) &_rnndescent_degree_prune_cpp, 2},
     {NULL, NULL, 0}
 };
 

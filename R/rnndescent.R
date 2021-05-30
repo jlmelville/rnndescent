@@ -1156,6 +1156,11 @@ nn_sparsity_sp <- function(graph) {
   Matrix::nnzero(graph) / prod(graph@Dim)
 }
 
+reverse_knn_sp <- function(graph) {
+  stopifnot(methods::is(graph, "sparseMatrix"))
+  Matrix::t(Matrix::drop0(graph))
+}
+
 # Merge -------------------------------------------------------------------
 
 #' Merge two approximate nearest neighbors graphs
