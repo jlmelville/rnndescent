@@ -15,16 +15,16 @@ merge_knnl(
 }
 \arguments{
 \item{nn_graphs}{A list of nearest neighbor graph to merge. Each item in the
-  list should consist of a sub-list
-  containing:
+list should consist of a sub-list
+containing:
 \itemize{
-  \item \code{idx} an n by k matrix containing the k nearest neighbor
-  indices.
-  \item \code{dist} an n by k matrix containing k nearest neighbor
-   distances.
+\item \code{idx} an n by k matrix containing the k nearest neighbor
+indices.
+\item \code{dist} an n by k matrix containing k nearest neighbor
+distances.
 }
-  The number of neighbors can differ between graphs, but the merged result
-  will have the same number of neighbors as the first graph in the list.}
+The number of neighbors can differ between graphs, but the merged result
+will have the same number of neighbors as the first graph in the list.}
 
 \item{is_query}{If \code{TRUE} then the graphs are treated as the result of
 a knn query, not a knn building process. This should be set to
@@ -32,7 +32,7 @@ a knn query, not a knn building process. This should be set to
 using e.g. \code{\link{graph_knn_query}} or \code{\link{random_knn_query}},
 and set to \code{FALSE} if these are the results of \code{\link{nnd_knn}}
 or \code{\link{random_knn}}. The difference is that if \code{is_query =
-FALSE}, if an index \code{p} is found in \code{nn_graph1[i, ]}, i.e.
+  FALSE}, if an index \code{p} is found in \code{nn_graph1[i, ]}, i.e.
 \code{p} is a neighbor of \code{i} with distance \code{d}, then it is
 assumed that \code{i} is a neighbor of \code{p} with the same distance. If
 \code{is_query = TRUE}, then \code{i} and \code{p} are indexes into two
@@ -59,13 +59,13 @@ be used. Ignored if \code{n_threads < 1}.}
 \value{
 a list containing:
 \itemize{
-  \item \code{idx} an n by k matrix containing the merged nearest neighbor
-  indices.
-  \item \code{dist} an n by k matrix containing the merged nearest neighbor
-   distances.
+\item \code{idx} an n by k matrix containing the merged nearest neighbor
+indices.
+\item \code{dist} an n by k matrix containing the merged nearest neighbor
+distances.
 }
-  The size of \code{k} in the output graph is the same as that of the first
-  item in \code{nn_graphs}.
+The size of \code{k} in the output graph is the same as that of the first
+item in \code{nn_graphs}.
 }
 \description{
 Merge a list of approximate nearest neighbors graphs

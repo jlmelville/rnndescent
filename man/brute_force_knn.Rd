@@ -50,12 +50,12 @@ be used. Ignored if \code{n_threads < 1}.}
 \item{verbose}{If \code{TRUE}, log information to the console.}
 }
 \value{
-a list containing:
+the nearest neighbor graph as a list containing:
 \itemize{
-  \item \code{idx} an n by k matrix containing the nearest neighbor
-  indices.
-  \item \code{dist} an n by k matrix containing the nearest neighbor
-   distances.
+\item \code{idx} an n by k matrix containing the nearest neighbor
+indices.
+\item \code{dist} an n by k matrix containing the nearest neighbor
+distances.
 }
 }
 \description{

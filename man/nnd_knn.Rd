@@ -34,12 +34,12 @@ specified.}
 \code{"hamming"}.}
 
 \item{init}{Initial data to optimize. If not provided, \code{k} random
-  neighbors are created. The input format should be the same as the return
-  value: a list containing:
+neighbors are created. The input format should be the same as the return
+value: a list containing:
 \itemize{
-  \item \code{idx} an \code{n} by \code{k} matrix containing the nearest neighbor indices.
-  \item \code{dist} (optional) an \code{n} by \code{k} matrix containing the nearest neighbor
-  distances.
+\item \code{idx} an \code{n} by \code{k} matrix containing the nearest neighbor indices.
+\item \code{dist} (optional) an \code{n} by \code{k} matrix containing the nearest neighbor
+distances.
 }
 If \code{k} and \code{init} are provided then \code{k} must be equal to or
 smaller than the number of neighbors provided in \code{init}. If smaller,
@@ -56,7 +56,7 @@ is set to \code{k} or \code{60}, whichever is smaller.}
 \item{delta}{The minimum relative change in the neighbor graph allowed before
 early stopping. Should be a value between 0 and 1. The smaller the value,
 the smaller the amount of progress between iterations is allowed. Default
-value of \code{0.001} means that at least 0.1% of the neighbor graph must
+value of \code{0.001} means that at least 0.1\% of the neighbor graph must
 be updated at each iteration.}
 
 \item{low_memory}{If \code{TRUE}, use a lower memory, but more
@@ -96,17 +96,17 @@ be used. Ignored if \code{n_threads < 1}.}
 \item{progress}{Determines the type of progress information logged if
 \code{verbose = TRUE}. Options are:
 \itemize{
-  \item \code{"bar"}: a simple text progress bar.
-  \item \code{"dist"}: the sum of the distances in the approximate knn
-  graph at the end of each iteration.
+\item \code{"bar"}: a simple text progress bar.
+\item \code{"dist"}: the sum of the distances in the approximate knn
+graph at the end of each iteration.
 }}
 }
 \value{
-a list containing:
+the approximate nearest neighbor graph as a list containing:
 \itemize{
-  \item \code{idx} an n by k matrix containing the nearest neighbor indices.
-  \item \code{dist} an n by k matrix containing the nearest neighbor
-   distances.
+\item \code{idx} an n by k matrix containing the nearest neighbor indices.
+\item \code{dist} an n by k matrix containing the nearest neighbor
+distances.
 }
 }
 \description{

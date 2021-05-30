@@ -27,7 +27,7 @@
 #'   items to process in a thread falls below this number, then no threads will
 #'   be used. Ignored if \code{n_threads < 1}.
 #' @param verbose If \code{TRUE}, log information to the console.
-#' @return a list containing:
+#' @return the nearest neighbor graph as a list containing:
 #' \itemize{
 #'   \item \code{idx} an n by k matrix containing the nearest neighbor
 #'   indices.
@@ -123,7 +123,7 @@ brute_force_knn <- function(data,
 #'   items to process in a thread falls below this number, then no threads will
 #'   be used. Ignored if \code{n_threads < 1}.
 #' @param verbose If \code{TRUE}, log information to the console.
-#' @return a list containing:
+#' @return a random neighbor graph as a list containing:
 #' \itemize{
 #'   \item \code{idx} an n by k matrix containing the nearest neighbor
 #'   indices.
@@ -259,7 +259,7 @@ random_knn <-
 #'     \item \code{"dist"}: the sum of the distances in the approximate knn
 #'     graph at the end of each iteration.
 #'   }
-#' @return a list containing:
+#' @return the approximate nearest neighbor graph as a list containing:
 #' \itemize{
 #'   \item \code{idx} an n by k matrix containing the nearest neighbor indices.
 #'   \item \code{dist} an n by k matrix containing the nearest neighbor
@@ -441,7 +441,7 @@ nnd_knn <- function(data,
 #'   items to process in a thread falls below this number, then no threads will
 #'   be used. Ignored if \code{n_threads < 1}.
 #' @param verbose If \code{TRUE}, log information to the console.
-#' @return a list containing:
+#' @return the nearest neighbor graph as a list containing:
 #' \itemize{
 #'   \item \code{idx} an n by k matrix containing the nearest neighbor
 #'   indices in \code{reference}.
@@ -556,7 +556,7 @@ brute_force_knn_query <- function(query,
 #'   items to process in a thread falls below this number, then no threads will
 #'   be used. Ignored if \code{n_threads < 1}.
 #' @param verbose If \code{TRUE}, log information to the console.
-#' @return a list containing:
+#' @return an approximate nearest neighbor graph as a list containing:
 #' \itemize{
 #'   \item \code{idx} an n by k matrix containing the nearest neighbor
 #'   indices.
@@ -647,14 +647,10 @@ random_knn_query <-
 #' @param query Matrix of \code{n} query items.
 #' @param reference Matrix of \code{m} reference items. The nearest neighbors to the
 #'   items in \code{query} are calculated from this data.
-#' @param reference_graph Nearest neighbor graph of the \code{reference} data,
-#'   the output of running \code{nnd_knn}. The format is a list containing:
-#' \itemize{
-#'   \item \code{idx} an \code{m} by \code{k} matrix containing the nearest
-#'   neighbor indices of the data in \code{reference}.
-#'   \item \code{dist} an \code{m} by \code{k} matrix containing the nearest
-#'   neighbor distances.
-#' }
+#' @param reference_graph Search graph of the \code{reference} data. A neighbor
+#'   graph, such as that output from \code{\link{nnd_knn}} can be used, but
+#'   preferably a suitably prepared sparse search graph should be used, such as
+#'   that output by \code{\link{prepare_search_graph}}.
 #' @param k Number of nearest neighbors to return. Optional if \code{init} is
 #'   specified.
 #' @param metric Type of distance calculation to use. One of \code{"euclidean"},
@@ -706,7 +702,7 @@ random_knn_query <-
 #'   items to process in a thread falls below this number, then no threads will
 #'   be used. Ignored if \code{n_threads < 1}.
 #' @param verbose If \code{TRUE}, log information to the console.
-#' @return the optimized query neighbor graph, a list containing:
+#' @return the approximate nearest neighbor graph as a list containing:
 #' \itemize{
 #'   \item \code{idx} a \code{n} by \code{k} matrix containing the nearest neighbor
 #'   indices specifying the row of the neighbor in \code{reference}.
@@ -781,7 +777,7 @@ graph_knn_query <- function(query,
     if (is.null(k)) {
       if (is.list(reference_graph)) {
         k <- get_reference_graph_k(reference_graph)
-        tsmessage("Using k = ", k, " from nnd model")
+        tsmessage("Using k = ", k, " from graph")
       }
       else {
         stop("Must provide k")

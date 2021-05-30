@@ -16,12 +16,12 @@ merge_knn(
 }
 \arguments{
 \item{nn_graph1}{A nearest neighbor graph to merge. Should consist of a list
-  containing:
+containing:
 \itemize{
-  \item \code{idx} an n by k matrix containing the k nearest neighbor
-  indices.
-  \item \code{dist} an n by k matrix containing k nearest neighbor
-   distances.
+\item \code{idx} an n by k matrix containing the k nearest neighbor
+indices.
+\item \code{dist} an n by k matrix containing k nearest neighbor
+distances.
 }}
 
 \item{nn_graph2}{Another nearest neighbor graph to merge with the same
@@ -62,13 +62,13 @@ be used. Ignored if \code{n_threads < 1}.}
 \value{
 a list containing:
 \itemize{
-  \item \code{idx} an n by k matrix containing the merged nearest neighbor
-  indices.
-  \item \code{dist} an n by k matrix containing the merged nearest neighbor
-   distances.
+\item \code{idx} an n by k matrix containing the merged nearest neighbor
+indices.
+\item \code{dist} an n by k matrix containing the merged nearest neighbor
+distances.
 }
-  The size of \code{k} in the output graph is the same as that of
-  \code{nn_graph1}.
+The size of \code{k} in the output graph is the same as that of
+\code{nn_graph1}.
 }
 \description{
 Merge two approximate nearest neighbors graphs
