@@ -1,3 +1,14 @@
+# rnndescent 0.0.9
+
+# New features
+
+* `nnd_knn_query` has been renamed to `graph_knn_query` and now more closely
+follows the current pynndescent graph search method.
+* New function: `prepare_search_graph` for preparing a search graph from a
+neighbor graph for use in `graph_knn_query`, by using reverse nearest neighbors,
+occlusion pruning and truncation.
+* Sparse graphs are supported as input to `graph_knn_query`.
+
 # rnndescent 0.0.8 (10 October 2020)
 
 There was a major rewrite of the internal organization of the C++ to be less

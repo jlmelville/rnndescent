@@ -107,8 +107,7 @@ res <-
   )
 ```
 
-You can also query a "reference" set of data with query data, so that the
-returned knn indices refer only to the reference data:
+You can also search the neighbor graph with new query items:
 
 ```R
 # 100 reference iris items
@@ -121,8 +120,7 @@ iris_query <- iris[iris$Species == "versicolor", ]
 iris_ref_knn <- nnd_knn(iris_ref, k = 10)
 
 # For each item in iris_query find the 10 nearest neighbors in iris_ref
-# You need to pass both the reference data and the knn graph indices (the
-# 'idx' matrix in the return value of nnd_knn).
+# You need to pass both the reference data and the knn graph.
 iris_query_nn <-
   graph_knn_query(
     query = iris_query,
@@ -133,6 +131,28 @@ iris_query_nn <-
     verbose = TRUE
   )
 ```
+
+Although the above example shows the basic procedure of building the graph and
+then querying new data with it, the raw nearest neighbor graph isn't very
+efficient in general. It's highly advisable to use a refined search graph based
+on the original data and neighbor graph:
+
+```R
+iris_search_graph <-
+  prepare_search_graph(iris_ref, iris_ref_knn, verbose = TRUE)
+iris_query_nn <-
+  graph_knn_query(
+    query = iris_query,
+    reference = iris_ref,
+    reference_graph = iris_search_graph,
+    k = 4,
+    metric = "euclidean",
+    verbose = TRUE
+  )
+```
+
+See the help text to `prepare_search_graph` for various parameters you can 
+change to control the trade off between speed and search accuracy.
 
 ## Initialization
 
