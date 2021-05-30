@@ -883,57 +883,170 @@ graph_knn_query <- function(query,
 
 # Search Graph Preparation ------------------------------------------------
 
-prepare_search_graph <- function(data, graph, metric = "euclidean",
+#' Nearest Neighbor Graph Refinement
+#'
+#' Create a graph using existing nearest neighbor data to balance search
+#' speed and accuracy using the occlusion pruning and truncation strategies
+#' of Harwood and Drummond (2016).
+#'
+#' An approximate nearest neighbor graph is not very useful for querying via
+#' [graph_knn_query()], especially if the query data is initialized randomly:
+#' some items in the data set may not be in the nearest neighbor list of any
+#' other item and can therefore never be returned as a neighbor, no matter how
+#' close they are to the query. Even those which do appear in at least one
+#' neighbor list may not be reachable by expanding an arbitrary starting list if
+#' the neighbor graph contains disconnected components.
+#'
+#' Converting the directed graph represented by the neighbor graph to an
+#' undirected graph by adding an edge from item `j` to `i` if
+#' an edge exists from `i` to `j` (i.e. creating the mutual neighbor
+#' graph) solves the problems above, but can result in inefficient searches.
+#' Although the out-degree of each item is restricted to the number of neighbors
+#' the in-degree has no such restrictions: a given item could be very "popular"
+#' and in a large number of neighbors lists. Therefore mutualizing the neighbor
+#' graph can result in some items with a large number of neighbors to search.
+#' These usually have very similar neighborhoods so there is nothing to be
+#' gained from searching all of them.
+#'
+#' To balance accuracy and search time, the following procedure is carried out:
+#'
+#' 1. The graph is "diversified" by occlusion pruning.
+#' 1. The reverse graph is formed by reversing the direction of all edges in
+#' the pruned graph.
+#' 1. The reverse graph is diversified by occlusion pruning.
+#' 1. The pruned forward and pruned reverse graph are merged.
+#' 1. The outdegree of each node in the merged graph is truncated.
+#' 1. The truncated merged graph is returned as the prepared search graph.
+#'
+#' @param data Matrix of `n` items.
+#' @param graph neighbor graph for `data`, a list containing:
+#'   * `idx` an `n` by `k` matrix containing the nearest neighbor indices of
+#'   the data in `data`.
+#'   * `dist` an `n` by `k` matrix containing the nearest neighbor distances.
+#' @param metric Type of distance calculation to use. One of `"euclidean"`,
+#'   `"l2sqr"` (squared Euclidean), `"cosine"`, `"manhattan"`, `"correlation"`
+#'   (1 minus the Pearson correlation), or `"hamming"`.
+#' @param prune_probability Probability of a neighbor being removed if it is
+#'   found to be an "occlusion". A neighbor `p` of item `i` is an "occlusion" if
+#'   the distance between `p` and one of the other neighbors `q` is smaller than
+#'   the distance between `i` and `q`, i.e. it is likely that `q` will be in the
+#'   neighbor list of `p` so there is no need to retain it in the neighbor list
+#'   of `i`. Set to `NULL` to skip any occlusion pruning. Note that occlusion
+#'   pruning is carried out twice, one to the forward neighbors, and once to the
+#'   reverse neighbors.
+#' @param pruning_degree_multiplier How strongly to truncate the final neighbor
+#'   list for each item. The neighbor list of each item will be truncated to
+#'   retain only the closest `d` neighbors, where
+#'   `d = k * pruning_degree_multiplier`, and `k` is the
+#'   original number of neighbors per item in `graph`. Roughly, values
+#'   larger than `1` will keep all the nearest neighbors of an item, plus
+#'   the given fraction of reverse neighbors (if they exist). For example,
+#'   setting this to `1.5` will keep all the forward neighbors and then
+#'   half as many of the reverse neighbors, although exactly which neighbors are
+#'   retained is also dependent on any occlusion pruning that occurs. Set this
+#'   to `NULL` to skip this step.
+#' @param verbose If `TRUE`, log information to the console.
+#' @return a search graph for `data` based on `graph`, represented as a sparse
+#'   matrix, suitable for use with [graph_knn_query()].
+#' @examples
+#' # 100 reference iris items
+#' iris_ref <- iris[iris$Species %in% c("setosa", "versicolor"), ]
+#'
+#' # 50 query items
+#' iris_query <- iris[iris$Species == "versicolor", ]
+#'
+#' # First, find the approximate 4-nearest neighbor graph for the references:
+#' ref_ann_graph <- nnd_knn(iris_ref, k = 4)
+#'
+#' # Create a graph for querying with
+#' ref_search_graph <- prepare_search_graph(iris_ref, ref_ann_graph)
+#'
+#' # Using the search graph rather than the ref_ann_graph directly may give
+#' # more accurate or faster results
+#' iris_query_nn <- graph_knn_query(
+#'   query = iris_query, reference = iris_ref,
+#'   reference_graph = ref_search_graph, k = 4, metric = "euclidean",
+#'   verbose = TRUE
+#' )
+#' @references
+#' Harwood, B., & Drummond, T. (2016).
+#' Fanng: Fast approximate nearest neighbour graphs.
+#' In *Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition*
+#' (pp. 5713-5722).
+#' @export
+prepare_search_graph <- function(data,
+                                 graph,
+                                 metric = "euclidean",
                                  prune_probability = 1.0,
                                  pruning_degree_multiplier = 1.5,
                                  verbose = FALSE) {
+  n_nbrs <- check_graph(graph)$k
   tsmessage("Converting graph to sparse format")
   sp <- graph_to_cs(graph)
+
   if (!is.null(prune_probability) && prune_probability > 0) {
     tsmessage("Diversifying forward graph")
-    fdiv <- diversify_sp(data, sp,
-      metric = metric, prune_probability = prune_probability,
+    fdiv <- diversify_sp(
+      data,
+      sp,
+      metric = metric,
+      prune_probability = prune_probability,
       verbose = verbose
     )
   }
   else {
     fdiv <- sp
     tsmessage(
-      "Forward graph has # edges = ", Matrix::nnzero(fdiv), " (",
-      formatC(100 * nn_sparsity_sp(fdiv)), "% sparse)"
+      "Forward graph has # edges = ",
+      Matrix::nnzero(fdiv),
+      " (",
+      formatC(100 * nn_sparsity_sp(fdiv)),
+      "% sparse)"
     )
   }
   rsp <- reverse_knn_sp(fdiv)
 
   if (!is.null(prune_probability) && prune_probability > 0) {
     tsmessage("Diversifying reverse graph")
-    rdiv <- diversify_sp(data, rsp,
-      metric = metric, prune_probability = prune_probability,
+    rdiv <- diversify_sp(
+      data,
+      rsp,
+      metric = metric,
+      prune_probability = prune_probability,
       verbose = verbose
     )
   }
   else {
     rdiv <- rsp
     tsmessage(
-      "Reverse graph has # edges = ", Matrix::nnzero(rdiv), " (",
-      formatC(100 * nn_sparsity_sp(rdiv)), "% sparse)"
+      "Reverse graph has # edges = ",
+      Matrix::nnzero(rdiv),
+      " (",
+      formatC(100 * nn_sparsity_sp(rdiv)),
+      "% sparse)"
     )
   }
   tsmessage("Merging diversified forward and reverse graph")
   merged <- merge_graphs_sp(fdiv, rdiv)
-  if (!is.null(pruning_degree_multiplier) && !is.infinite(pruning_degree_multiplier)) {
-    max_degree <- round(ncol(graph$idx) * pruning_degree_multiplier)
+
+  if (!is.null(pruning_degree_multiplier) &&
+    !is.infinite(pruning_degree_multiplier)) {
+    max_degree <- round(n_nbrs * pruning_degree_multiplier)
     tsmessage("Degree pruning merged graph to max degree: ", max_degree)
-    res <- degree_prune(merged, max_degree = max_degree, verbose = verbose)
+    res <-
+      degree_prune(merged, max_degree = max_degree, verbose = verbose)
   }
   else {
     res <- merged
     tsmessage(
-      "Merged graph has # edges = ", Matrix::nnzero(res), " (",
-      formatC(100 * nn_sparsity_sp(res)), "% sparse)"
+      "Merged graph has # edges = ",
+      Matrix::nnzero(res),
+      " (",
+      formatC(100 * nn_sparsity_sp(res)),
+      "% sparse)"
     )
   }
-  tsmessage("Finished")
+  tsmessage("Finished preparing search graph")
   res
 }
 
