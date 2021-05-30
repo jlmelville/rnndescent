@@ -104,10 +104,6 @@ graph_to_list <- function(graph) {
   sparse_to_list_r(sr)
 }
 
-sparse_to_r <- function(sp) {
-  as(sp, "RsparseMatrix")
-}
-
 sparse_to_c <- function(sp) {
-  as(sp, "CsparseMatrix")
+  methods::as(sp, "CsparseMatrix")
 }
