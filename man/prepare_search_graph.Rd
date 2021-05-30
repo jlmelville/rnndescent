@@ -28,13 +28,13 @@ the data in \code{data}.
 (1 minus the Pearson correlation), or \code{"hamming"}.}
 
 \item{prune_probability}{Probability of a neighbor being removed if it is
-found to be an "occlusion". A neighbor \code{p} of item \code{i} is an "occlusion" if
-the distance between \code{p} and one of the other neighbors \code{q} is smaller than
-the distance between \code{i} and \code{q}, i.e. it is likely that \code{q} will be in the
-neighbor list of \code{p} so there is no need to retain it in the neighbor list
-of \code{i}. Set to \code{NULL} to skip any occlusion pruning. Note that occlusion
-pruning is carried out twice, one to the forward neighbors, and once to the
-reverse neighbors.}
+found to be an "occlusion". If item \code{p} and \code{q}, two members of the
+neighbor list of item \code{i}, are closer to each other than they are to \code{i},
+then the nearer neighbor \code{p} is said to "occlude" \code{q}. It is likely that
+\code{q} will be in the neighbor list of \code{p} so there is no need to retain it in
+the neighbor list of \code{i}. Set to \code{NULL} to skip any occlusion pruning. Note
+that occlusion pruning is carried out twice, one to the forward neighbors,
+and once to the reverse neighbors.}
 
 \item{pruning_degree_multiplier}{How strongly to truncate the final neighbor
 list for each item. The neighbor list of each item will be truncated to

@@ -927,13 +927,13 @@ graph_knn_query <- function(query,
 #'   `"l2sqr"` (squared Euclidean), `"cosine"`, `"manhattan"`, `"correlation"`
 #'   (1 minus the Pearson correlation), or `"hamming"`.
 #' @param prune_probability Probability of a neighbor being removed if it is
-#'   found to be an "occlusion". A neighbor `p` of item `i` is an "occlusion" if
-#'   the distance between `p` and one of the other neighbors `q` is smaller than
-#'   the distance between `i` and `q`, i.e. it is likely that `q` will be in the
-#'   neighbor list of `p` so there is no need to retain it in the neighbor list
-#'   of `i`. Set to `NULL` to skip any occlusion pruning. Note that occlusion
-#'   pruning is carried out twice, one to the forward neighbors, and once to the
-#'   reverse neighbors.
+#'   found to be an "occlusion". If item `p` and `q`, two members of the
+#'   neighbor list of item `i`, are closer to each other than they are to `i`,
+#'   then the nearer neighbor `p` is said to "occlude" `q`. It is likely that
+#'   `q` will be in the neighbor list of `p` so there is no need to retain it in
+#'   the neighbor list of `i`. Set to `NULL` to skip any occlusion pruning. Note
+#'   that occlusion pruning is carried out twice, one to the forward neighbors,
+#'   and once to the reverse neighbors.
 #' @param pruning_degree_multiplier How strongly to truncate the final neighbor
 #'   list for each item. The neighbor list of each item will be truncated to
 #'   retain only the closest `d` neighbors, where
