@@ -11,8 +11,8 @@ k_occur(idx, k = NULL, include_self = TRUE)
 labeled starting at 1. Note that the integer labels do \emph{not} have to
 refer to the rows of \code{idx}, for example if the nearest neighbor result
 is from querying one set of objects with respect to another (for instance
-from running \code{\link{graph_knn_query}}). You may also pass a nearest
-neighbor graph object (e.g. the output of running \code{\link{nnd_knn}}),
+from running \code{\link[=graph_knn_query]{graph_knn_query()}}). You may also pass a nearest
+neighbor graph object (e.g. the output of running \code{\link[=nnd_knn]{nnd_knn()}}),
 and the indices will be extracted from it.}
 
 \item{k}{The number of closest neighbors to use. Must be between 1 and the
@@ -23,7 +23,7 @@ used.}
 \code{idx} is considered to be a valid neighbor when found in row \code{i}.
 By default this is \code{TRUE}. This can be set to \code{FALSE} when the
 the labels in \code{idx} refer to the row indices of \code{idx}, as in the
-case of results from \code{\link{nnd_knn}}. In this case you may not want
+case of results from \code{\link[=nnd_knn]{nnd_knn()}}. In this case you may not want
 to consider the trivial case of an object being a neighbor of itself. In
 all other cases leave this set to \code{TRUE}.}
 }

@@ -41,10 +41,11 @@ value: a list containing:
 \item \code{dist} (optional) an \code{n} by \code{k} matrix containing the nearest neighbor
 distances.
 }
-If \code{k} and \code{init} are provided then \code{k} must be equal to or
-smaller than the number of neighbors provided in \code{init}. If smaller,
-only the \code{k} closest value in \code{init} are retained. If the input
-distances are omitted, they will be calculated for you.}
+
+If \code{k} and \code{init} are provided then \code{k} must be equal to or smaller than
+the number of neighbors provided in \code{init}. If smaller, only the \code{k}
+closest value in \code{init} are retained. If the input distances are omitted,
+they will be calculated for you.}
 
 \item{n_iters}{Number of iterations of nearest neighbor descent to carry out.}
 
@@ -97,16 +98,15 @@ be used. Ignored if \code{n_threads < 1}.}
 \code{verbose = TRUE}. Options are:
 \itemize{
 \item \code{"bar"}: a simple text progress bar.
-\item \code{"dist"}: the sum of the distances in the approximate knn
-graph at the end of each iteration.
+\item \code{"dist"}: the sum of the distances in the approximate knn graph at the
+end of each iteration.
 }}
 }
 \value{
 the approximate nearest neighbor graph as a list containing:
 \itemize{
 \item \code{idx} an n by k matrix containing the nearest neighbor indices.
-\item \code{dist} an n by k matrix containing the nearest neighbor
-distances.
+\item \code{dist} an n by k matrix containing the nearest neighbor distances.
 }
 }
 \description{

@@ -56,10 +56,10 @@ be used. Ignored if \code{n_threads < 1}.}
 \value{
 the nearest neighbor graph as a list containing:
 \itemize{
-\item \code{idx} an n by k matrix containing the nearest neighbor
-indices in \code{reference}.
-\item \code{dist} an n by k matrix containing the nearest neighbor
-distances to the items in \code{reference}.
+\item \code{idx} an n by k matrix containing the nearest neighbor indices in
+\code{reference}.
+\item \code{dist} an n by k matrix containing the nearest neighbor distances to the
+items in \code{reference}.
 }
 }
 \description{

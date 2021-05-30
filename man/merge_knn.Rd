@@ -18,10 +18,8 @@ merge_knn(
 \item{nn_graph1}{A nearest neighbor graph to merge. Should consist of a list
 containing:
 \itemize{
-\item \code{idx} an n by k matrix containing the k nearest neighbor
-indices.
-\item \code{dist} an n by k matrix containing k nearest neighbor
-distances.
+\item \code{idx} an n by k matrix containing the k nearest neighbor indices.
+\item \code{dist} an n by k matrix containing k nearest neighbor distances.
 }}
 
 \item{nn_graph2}{Another nearest neighbor graph to merge with the same
@@ -32,9 +30,9 @@ specified in \code{nn_graph1}.}
 \item{is_query}{If \code{TRUE} then the graphs are treated as the result of
 a knn query, not a knn building process. This should be set to
 \code{TRUE} if \code{nn_graph1} and \code{nn_graph2} are the results of
-using e.g. \code{\link{graph_knn_query}} or \code{\link{random_knn_query}},
+using e.g. \code{\link[=graph_knn_query]{graph_knn_query()}} or \code{\link[=random_knn_query]{random_knn_query()}},
 and set to \code{FALSE} if these are the results of
-\code{\link{nnd_knn}} or \code{\link{random_knn}}. The difference is that
+\code{\link[=nnd_knn]{nnd_knn()}} or \code{\link[=random_knn]{random_knn()}}. The difference is that
 if \code{is_query = FALSE}, if an index \code{p} is found in
 \code{nn_graph1[i, ]}, i.e. \code{p} is a neighbor of \code{i} with
 distance \code{d}, then it is assumed that \code{i} is a neighbor of
@@ -67,6 +65,7 @@ indices.
 \item \code{dist} an n by k matrix containing the merged nearest neighbor
 distances.
 }
+
 The size of \code{k} in the output graph is the same as that of
 \code{nn_graph1}.
 }

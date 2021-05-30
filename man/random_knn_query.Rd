@@ -40,7 +40,7 @@ path.}
 \item{order_by_distance}{If \code{TRUE} (the default), then results for each
 item are returned by increasing distance. If you don't need the results
 sorted, e.g. you are going to pass the results as initialization to another
-routine like \code{\link{graph_knn_query}}, set this to \code{FALSE} to save a
+routine like \code{\link[=graph_knn_query]{graph_knn_query()}}, set this to \code{FALSE} to save a
 small amount of computational time.}
 
 \item{n_threads}{Number of threads to use.}
@@ -63,10 +63,8 @@ be used. Ignored if \code{n_threads < 1}.}
 \value{
 an approximate nearest neighbor graph as a list containing:
 \itemize{
-\item \code{idx} an n by k matrix containing the nearest neighbor
-indices.
-\item \code{dist} an n by k matrix containing the nearest neighbor
-distances.
+\item \code{idx} an n by k matrix containing the nearest neighbor indices.
+\item \code{dist} an n by k matrix containing the nearest neighbor distances.
 }
 }
 \description{

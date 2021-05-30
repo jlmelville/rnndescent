@@ -2,38 +2,34 @@
 
 #' Calculate Exact Nearest Neighbors by Brute Force
 #'
-#' @param data Matrix of \code{n} items to generate random neighbors for.
+#' @param data Matrix of `n` items to generate random neighbors for.
 #' @param k Number of nearest neighbors to return.
-#' @param metric Type of distance calculation to use. One of \code{"euclidean"},
-#'   \code{"l2sqr"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"},
-#'   \code{"correlation"} (1 minus the Pearson correlation), or
-#'   \code{"hamming"}.
-#' @param use_alt_metric If \code{TRUE}, use faster metrics that maintain the
+#' @param metric Type of distance calculation to use. One of `"euclidean"`,
+#'   `"l2sqr"` (squared Euclidean), `"cosine"`, `"manhattan"`,
+#'   `"correlation"` (1 minus the Pearson correlation), or
+#'   `"hamming"`.
+#' @param use_alt_metric If `TRUE`, use faster metrics that maintain the
 #'   ordering of distances internally (e.g. squared Euclidean distances if using
-#'   \code{metric = "euclidean"}), then apply a correction at the end. Probably
-#'   the only reason to set this to \code{FALSE} is if you suspect that some
+#'   `metric = "euclidean"`), then apply a correction at the end. Probably
+#'   the only reason to set this to `FALSE` is if you suspect that some
 #'   sort of numeric issue is occurring with your data in the alternative code
 #'   path.
 #' @param n_threads Number of threads to use.
 #' @param block_size Number of items to generate neighbors for in each
 #'   multi-threaded batch. Reducing this number will increase the frequency
-#'   with which R will check for cancellation, and if \code{verbose = TRUE},
+#'   with which R will check for cancellation, and if `verbose = TRUE`,
 #'   the frequency with which progress will be logged to the console. This value
-#'   should not be set too low (and not lower than \code{grain_size}), or the
+#'   should not be set too low (and not lower than `grain_size`), or the
 #'   overhead of cancellation checking and other multi-threaded house keeping
 #'   will reduce the efficiency of the parallel computation. Ignored if
-#'   \code{n_threads < 1}.
+#'   `n_threads < 1`.
 #' @param grain_size Minimum batch size for multithreading. If the number of
 #'   items to process in a thread falls below this number, then no threads will
-#'   be used. Ignored if \code{n_threads < 1}.
-#' @param verbose If \code{TRUE}, log information to the console.
+#'   be used. Ignored if `n_threads < 1`.
+#' @param verbose If `TRUE`, log information to the console.
 #' @return the nearest neighbor graph as a list containing:
-#' \itemize{
-#'   \item \code{idx} an n by k matrix containing the nearest neighbor
-#'   indices.
-#'   \item \code{dist} an n by k matrix containing the nearest neighbor
-#'    distances.
-#' }
+#'   * `idx` an n by k matrix containing the nearest neighbor indices.
+#'   * `dist` an n by k matrix containing the nearest neighbor distances.
 #' @examples
 #' # Find the 4 nearest neighbors using Euclidean distance
 #' # If you pass a data frame, non-numeric columns are removed
@@ -93,43 +89,39 @@ brute_force_knn <- function(data,
 
 #' Randomly select nearest neighbors.
 #'
-#' @param data Matrix of \code{n} items to generate random neighbors for.
+#' @param data Matrix of `n` items to generate random neighbors for.
 #' @param k Number of nearest neighbors to return.
-#' @param metric Type of distance calculation to use. One of \code{"euclidean"},
-#'   \code{"l2sqr"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"},
-#'   \code{"correlation"} (1 minus the Pearson correlation), or
-#'   \code{"hamming"}.
-#' @param use_alt_metric If \code{TRUE}, use faster metrics that maintain the
+#' @param metric Type of distance calculation to use. One of `"euclidean"`,
+#'   `"l2sqr"` (squared Euclidean), `"cosine"`, `"manhattan"`,
+#'   `"correlation"` (1 minus the Pearson correlation), or
+#'   `"hamming"`.
+#' @param use_alt_metric If `TRUE`, use faster metrics that maintain the
 #'   ordering of distances internally (e.g. squared Euclidean distances if using
-#'   \code{metric = "euclidean"}), then apply a correction at the end. Probably
-#'   the only reason to set this to \code{FALSE} is if you suspect that some
+#'   `metric = "euclidean"`), then apply a correction at the end. Probably
+#'   the only reason to set this to `FALSE` is if you suspect that some
 #'   sort of numeric issue is occurring with your data in the alternative code
 #'   path.
-#' @param order_by_distance If \code{TRUE} (the default), then results for each
+#' @param order_by_distance If `TRUE` (the default), then results for each
 #'   item are returned by increasing distance. If you don't need the results
 #'   sorted, e.g. you are going to pass the results as initialization to another
-#'   routine like \code{\link{nnd_knn}}, set this to \code{FALSE} to save a
-#'   small amount of computational time.
+#'   routine like [nnd_knn()], set this to `FALSE` to save a small amount of
+#'   computational time.
 #' @param n_threads Number of threads to use.
 #' @param block_size Number of items to generate neighbors for in each
 #'   multi-threaded batch. Reducing this number will increase the frequency
-#'   with which R will check for cancellation, and if \code{verbose = TRUE},
+#'   with which R will check for cancellation, and if `verbose = TRUE`,
 #'   the frequency with which progress will be logged to the console. This value
-#'   should not be set too low (and not lower than \code{grain_size}), or the
+#'   should not be set too low (and not lower than `grain_size`), or the
 #'   overhead of cancellation checking and other multi-threaded house keeping
 #'   will reduce the efficiency of the parallel computation. Ignored if
-#'   \code{n_threads < 1}.
+#'   `n_threads < 1`.
 #' @param grain_size Minimum batch size for multithreading. If the number of
 #'   items to process in a thread falls below this number, then no threads will
-#'   be used. Ignored if \code{n_threads < 1}.
-#' @param verbose If \code{TRUE}, log information to the console.
+#'   be used. Ignored if `n_threads < 1`.
+#' @param verbose If `TRUE`, log information to the console.
 #' @return a random neighbor graph as a list containing:
-#' \itemize{
-#'   \item \code{idx} an n by k matrix containing the nearest neighbor
-#'   indices.
-#'   \item \code{dist} an n by k matrix containing the nearest neighbor
-#'    distances.
-#' }
+#'   * `idx` an n by k matrix containing the nearest neighbor indices.
+#'   * `dist` an n by k matrix containing the nearest neighbor distances.
 #' @examples
 #' # Find 4 random neighbors and calculate their Euclidean distance
 #' # If you pass a data frame, non-numeric columns are removed
@@ -196,47 +188,46 @@ random_knn <-
 
 #' Find Nearest Neighbors and Distances
 #'
-#' @param data Matrix of \code{n} items to search.
-#' @param k Number of nearest neighbors to return. Optional if \code{init} is
+#' @param data Matrix of `n` items to search.
+#' @param k Number of nearest neighbors to return. Optional if `init` is
 #'   specified.
-#' @param metric Type of distance calculation to use. One of \code{"euclidean"},
-#'   \code{"l2sqr"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"},
-#'   \code{"correlation"} (1 minus the Pearson correlation), or
-#'   \code{"hamming"}.
-#' @param init Initial data to optimize. If not provided, \code{k} random
+#' @param metric Type of distance calculation to use. One of `"euclidean"`,
+#'   `"l2sqr"` (squared Euclidean), `"cosine"`, `"manhattan"`,
+#'   `"correlation"` (1 minus the Pearson correlation), or
+#'   `"hamming"`.
+#' @param init Initial data to optimize. If not provided, `k` random
 #'   neighbors are created. The input format should be the same as the return
 #'   value: a list containing:
-#' \itemize{
-#'   \item \code{idx} an \code{n} by \code{k} matrix containing the nearest neighbor indices.
-#'   \item \code{dist} (optional) an \code{n} by \code{k} matrix containing the nearest neighbor
+#'   * `idx` an `n` by `k` matrix containing the nearest neighbor indices.
+#'   * `dist` (optional) an `n` by `k` matrix containing the nearest neighbor
 #'   distances.
-#' }
-#' If \code{k} and \code{init} are provided then \code{k} must be equal to or
-#' smaller than the number of neighbors provided in \code{init}. If smaller,
-#' only the \code{k} closest value in \code{init} are retained. If the input
-#' distances are omitted, they will be calculated for you.
+#'
+#'   If `k` and `init` are provided then `k` must be equal to or smaller than
+#'   the number of neighbors provided in `init`. If smaller, only the `k`
+#'   closest value in `init` are retained. If the input distances are omitted,
+#'   they will be calculated for you.
 #' @param n_iters Number of iterations of nearest neighbor descent to carry out.
 #' @param max_candidates Maximum number of candidate neighbors to try for each
-#'   item in each iteration. Use relative to \code{k} to emulate the "rho"
+#'   item in each iteration. Use relative to `k` to emulate the "rho"
 #'   sampling parameter in the nearest neighbor descent paper. By default, this
-#'   is set to \code{k} or \code{60}, whichever is smaller.
+#'   is set to `k` or `60`, whichever is smaller.
 #' @param delta The minimum relative change in the neighbor graph allowed before
 #'   early stopping. Should be a value between 0 and 1. The smaller the value,
 #'   the smaller the amount of progress between iterations is allowed. Default
-#'   value of \code{0.001} means that at least 0.1% of the neighbor graph must
+#'   value of `0.001` means that at least 0.1% of the neighbor graph must
 #'   be updated at each iteration.
-#' @param low_memory If \code{TRUE}, use a lower memory, but more
+#' @param low_memory If `TRUE`, use a lower memory, but more
 #'   computationally expensive approach to index construction. If set to
-#'   \code{FALSE}, you should see a noticeable speed improvement, especially
+#'   `FALSE`, you should see a noticeable speed improvement, especially
 #'   when using a smaller number of threads, so this is worth trying if you have
 #'   the memory to spare.
-#' @param use_alt_metric If \code{TRUE}, use faster metrics that maintain the
+#' @param use_alt_metric If `TRUE`, use faster metrics that maintain the
 #'   ordering of distances internally (e.g. squared Euclidean distances if using
-#'   \code{metric = "euclidean"}), then apply a correction at the end. Probably
-#'   the only reason to set this to \code{FALSE} is if you suspect that some
+#'   `metric = "euclidean"`), then apply a correction at the end. Probably
+#'   the only reason to set this to `FALSE` is if you suspect that some
 #'   sort of numeric issue is occurring with your data in the alternative code
 #'   path.
-#' @param weighted If \code{TRUE} then instead of ordering general neighbor
+#' @param weighted If `TRUE` then instead of ordering general neighbor
 #'   candidates randomly, they are ordered by increasing in-degree. This gives
 #'   priority to nodes which don't appear in many other neighbor lists, and
 #'   which might get crowded out of the few candidate lists they appear in by
@@ -247,24 +238,19 @@ random_knn <-
 #' @param block_size Batch size for creating/applying local join updates. A
 #'  smaller value will apply the update more often, which may help reduce the
 #'  number of unnecessary distance calculations, at the cost of more overhead
-#'  associated with multi-threading code. Ignored if \code{n_threads < 1}.
+#'  associated with multi-threading code. Ignored if `n_threads < 1`.
 #' @param grain_size Minimum batch size for multithreading. If the number of
 #'   items to process in a thread falls below this number, then no threads will
-#'   be used. Ignored if \code{n_threads < 1}.
-#' @param verbose If \code{TRUE}, log information to the console.
+#'   be used. Ignored if `n_threads < 1`.
+#' @param verbose If `TRUE`, log information to the console.
 #' @param progress Determines the type of progress information logged if
-#'   \code{verbose = TRUE}. Options are:
-#'   \itemize{
-#'     \item \code{"bar"}: a simple text progress bar.
-#'     \item \code{"dist"}: the sum of the distances in the approximate knn
-#'     graph at the end of each iteration.
-#'   }
+#'   `verbose = TRUE`. Options are:
+#'   * `"bar"`: a simple text progress bar.
+#'   * `"dist"`: the sum of the distances in the approximate knn graph at the
+#'     end of each iteration.
 #' @return the approximate nearest neighbor graph as a list containing:
-#' \itemize{
-#'   \item \code{idx} an n by k matrix containing the nearest neighbor indices.
-#'   \item \code{dist} an n by k matrix containing the nearest neighbor
-#'    distances.
-#' }
+#'   * `idx` an n by k matrix containing the nearest neighbor indices.
+#'   * `dist` an n by k matrix containing the nearest neighbor distances.
 #' @examples
 #' # Find 4 (approximate) nearest neighbors using Euclidean distance
 #' # If you pass a data frame, non-numeric columns are removed
@@ -314,10 +300,10 @@ random_knn <-
 #' @references
 #' Dong, W., Moses, C., & Li, K. (2011, March).
 #' Efficient k-nearest neighbor graph construction for generic similarity measures.
-#' In \emph{Proceedings of the 20th international conference on World Wide Web}
+#' In *Proceedings of the 20th international conference on World Wide Web*
 #' (pp. 577-586).
 #' ACM.
-#' \url{https://doi.org/10.1145/1963405.1963487}.
+#' <https://doi.org/10.1145/1963405.1963487>.
 #' @export
 nnd_knn <- function(data,
                     k = NULL,
@@ -414,40 +400,38 @@ nnd_knn <- function(data,
 
 #' Query Exact Nearest Neighbors by Brute Force
 #'
-#' @param query Matrix of \code{n} query items.
+#' @param query Matrix of `n` query items.
 #' @param k Number of nearest neighbors to return.
-#' @param reference Matrix of \code{m} reference items. The nearest neighbors to the
+#' @param reference Matrix of `m` reference items. The nearest neighbors to the
 #'   queries are calculated from this data.
-#' @param metric Type of distance calculation to use. One of \code{"euclidean"},
-#'   \code{"l2sqr"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"},
-#'   \code{"correlation"} (1 minus the Pearson correlation), or
-#'   \code{"hamming"}.
-#' @param use_alt_metric If \code{TRUE}, use faster metrics that maintain the
+#' @param metric Type of distance calculation to use. One of `"euclidean"`,
+#'   `"l2sqr"` (squared Euclidean), `"cosine"`, `"manhattan"`,
+#'   `"correlation"` (1 minus the Pearson correlation), or
+#'   `"hamming"`.
+#' @param use_alt_metric If `TRUE`, use faster metrics that maintain the
 #'   ordering of distances internally (e.g. squared Euclidean distances if using
-#'   \code{metric = "euclidean"}), then apply a correction at the end. Probably
-#'   the only reason to set this to \code{FALSE} is if you suspect that some
+#'   `metric = "euclidean"`), then apply a correction at the end. Probably
+#'   the only reason to set this to `FALSE` is if you suspect that some
 #'   sort of numeric issue is occurring with your data in the alternative code
 #'   path.
 #' @param n_threads Number of threads to use.
 #' @param block_size Number of items to generate neighbors for in each
 #'   multi-threaded batch. Reducing this number will increase the frequency
-#'   with which R will check for cancellation, and if \code{verbose = TRUE},
+#'   with which R will check for cancellation, and if `verbose = TRUE`,
 #'   the frequency with which progress will be logged to the console. This value
-#'   should not be set too low (and not lower than \code{grain_size}), or the
+#'   should not be set too low (and not lower than `grain_size`), or the
 #'   overhead of cancellation checking and other multi-threaded house keeping
 #'   will reduce the efficiency of the parallel computation. Ignored if
-#'   \code{n_threads < 1}.
+#'   `n_threads < 1`.
 #' @param grain_size Minimum batch size for multithreading. If the number of
 #'   items to process in a thread falls below this number, then no threads will
-#'   be used. Ignored if \code{n_threads < 1}.
-#' @param verbose If \code{TRUE}, log information to the console.
+#'   be used. Ignored if `n_threads < 1`.
+#' @param verbose If `TRUE`, log information to the console.
 #' @return the nearest neighbor graph as a list containing:
-#' \itemize{
-#'   \item \code{idx} an n by k matrix containing the nearest neighbor
-#'   indices in \code{reference}.
-#'   \item \code{dist} an n by k matrix containing the nearest neighbor
-#'    distances to the items in \code{reference}.
-#' }
+#'   * `idx` an n by k matrix containing the nearest neighbor indices in
+#'   `reference`.
+#'   * `dist` an n by k matrix containing the nearest neighbor distances to the
+#'   items in `reference`.
 #' @examples
 #' # 100 reference iris items
 #' iris_ref <- iris[iris$Species %in% c("setosa", "versicolor"), ]
@@ -524,45 +508,41 @@ brute_force_knn_query <- function(query,
 
 #' Nearest Neighbors Query by Random Selection
 #'
-#' @param query Matrix of \code{n} query items.
-#' @param reference Matrix of \code{m} reference items. The nearest neighbors to the
+#' @param query Matrix of `n` query items.
+#' @param reference Matrix of `m` reference items. The nearest neighbors to the
 #'   queries are randomly selected from this data.
 #' @param k Number of nearest neighbors to return.
-#' @param metric Type of distance calculation to use. One of \code{"euclidean"},
-#'   \code{"l2sqr"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"},
-#'   \code{"correlation"} (1 minus the Pearson correlation), or
-#'   \code{"hamming"}.
-#' @param use_alt_metric If \code{TRUE}, use faster metrics that maintain the
+#' @param metric Type of distance calculation to use. One of `"euclidean"`,
+#'   `"l2sqr"` (squared Euclidean), `"cosine"`, `"manhattan"`,
+#'   `"correlation"` (1 minus the Pearson correlation), or
+#'   `"hamming"`.
+#' @param use_alt_metric If `TRUE`, use faster metrics that maintain the
 #'   ordering of distances internally (e.g. squared Euclidean distances if using
-#'   \code{metric = "euclidean"}), then apply a correction at the end. Probably
-#'   the only reason to set this to \code{FALSE} is if you suspect that some
+#'   `metric = "euclidean"`), then apply a correction at the end. Probably
+#'   the only reason to set this to `FALSE` is if you suspect that some
 #'   sort of numeric issue is occurring with your data in the alternative code
 #'   path.
-#' @param order_by_distance If \code{TRUE} (the default), then results for each
+#' @param order_by_distance If `TRUE` (the default), then results for each
 #'   item are returned by increasing distance. If you don't need the results
 #'   sorted, e.g. you are going to pass the results as initialization to another
-#'   routine like \code{\link{graph_knn_query}}, set this to \code{FALSE} to save a
+#'   routine like [graph_knn_query()], set this to `FALSE` to save a
 #'   small amount of computational time.
 #' @param n_threads Number of threads to use.
 #' @param block_size Number of items to generate neighbors for in each
 #'   multi-threaded batch. Reducing this number will increase the frequency
-#'   with which R will check for cancellation, and if \code{verbose = TRUE},
+#'   with which R will check for cancellation, and if `verbose = TRUE`,
 #'   the frequency with which progress will be logged to the console. This value
-#'   should not be set too low (and not lower than \code{grain_size}), or the
+#'   should not be set too low (and not lower than `grain_size`), or the
 #'   overhead of cancellation checking and other multi-threaded house keeping
 #'   will reduce the efficiency of the parallel computation. Ignored if
-#'   \code{n_threads < 1}.
+#'   `n_threads < 1`.
 #' @param grain_size Minimum batch size for multithreading. If the number of
 #'   items to process in a thread falls below this number, then no threads will
-#'   be used. Ignored if \code{n_threads < 1}.
-#' @param verbose If \code{TRUE}, log information to the console.
+#'   be used. Ignored if `n_threads < 1`.
+#' @param verbose If `TRUE`, log information to the console.
 #' @return an approximate nearest neighbor graph as a list containing:
-#' \itemize{
-#'   \item \code{idx} an n by k matrix containing the nearest neighbor
-#'   indices.
-#'   \item \code{dist} an n by k matrix containing the nearest neighbor
-#'    distances.
-#' }
+#'   * `idx` an n by k matrix containing the nearest neighbor indices.
+#'   * `dist` an n by k matrix containing the nearest neighbor distances.
 #' @examples
 #' # 100 reference iris items
 #' iris_ref <- iris[iris$Species %in% c("setosa", "versicolor"), ]
@@ -644,42 +624,41 @@ random_knn_query <-
 
 #' Find Nearest Neighbors and Distances
 #'
-#' @param query Matrix of \code{n} query items.
-#' @param reference Matrix of \code{m} reference items. The nearest neighbors to the
-#'   items in \code{query} are calculated from this data.
-#' @param reference_graph Search graph of the \code{reference} data. A neighbor
-#'   graph, such as that output from \code{\link{nnd_knn}} can be used, but
+#' @param query Matrix of `n` query items.
+#' @param reference Matrix of `m` reference items. The nearest neighbors to the
+#'   items in `query` are calculated from this data.
+#' @param reference_graph Search graph of the `reference` data. A neighbor
+#'   graph, such as that output from [nnd_knn()] can be used, but
 #'   preferably a suitably prepared sparse search graph should be used, such as
-#'   that output by \code{\link{prepare_search_graph}}.
-#' @param k Number of nearest neighbors to return. Optional if \code{init} is
+#'   that output by [prepare_search_graph()].
+#' @param k Number of nearest neighbors to return. Optional if `init` is
 #'   specified.
-#' @param metric Type of distance calculation to use. One of \code{"euclidean"},
-#'   \code{"l2sqr"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"},
-#'   \code{"correlation"} (1 minus the Pearson correlation), or
-#'   \code{"hamming"}.
-#' @param use_alt_metric If \code{TRUE}, use faster metrics that maintain the
+#' @param metric Type of distance calculation to use. One of `"euclidean"`,
+#'   `"l2sqr"` (squared Euclidean), `"cosine"`, `"manhattan"`,
+#'   `"correlation"` (1 minus the Pearson correlation), or
+#'   `"hamming"`.
+#' @param use_alt_metric If `TRUE`, use faster metrics that maintain the
 #'   ordering of distances internally (e.g. squared Euclidean distances if using
-#'   \code{metric = "euclidean"}), then apply a correction at the end. Probably
-#'   the only reason to set this to \code{FALSE} is if you suspect that some
+#'   `metric = "euclidean"`), then apply a correction at the end. Probably
+#'   the only reason to set this to `FALSE` is if you suspect that some
 #'   sort of numeric issue is occurring with your data in the alternative code
 #'   path.
-#' @param init Initial \code{query} neighbor graph to optimize. If not
-#'   provided, \code{k} random neighbors from \code{reference} are used. The
+#' @param init Initial `query` neighbor graph to optimize. If not
+#'   provided, `k` random neighbors from `reference` are used. The
 #'   format should be the same as the return value of this function, a list
 #'   containing:
-#' \itemize{
-#'   \item \code{idx} a \code{n} by \code{k} matrix containing the nearest neighbor
-#'   indices specifying the row of the neighbor in \code{reference}.
-#'   \item \code{dist} (optional) a \code{n} by \code{k} matrix containing the
-#'   nearest neighbor distances.
-#' }
-#'   If \code{k} and \code{init} are provided then \code{k} must be equal to or
-#'   smaller than the number of neighbors provided in \code{init}. If smaller,
-#'   only the \code{k} closest value in \code{init} are retained. If the input
-#' distances are omitted, they will be calculated for you.
+#'   * `idx` a `n` by `k` matrix containing the nearest neighbor indices
+#'     specifying the row of the neighbor in `reference`.
+#'   * `dist` (optional) a `n` by `k` matrix containing the nearest neighbor
+#'     distances.
+#'
+#'   If `k` and `init` are provided then `k` must be equal to or smaller than
+#'   the number of neighbors provided in `init`. If smaller, only the `k`
+#'   closest value in `init` are retained. If the input distances are omitted,
+#'   they will be calculated for you.
 #' @param n_iters Number of iterations of nearest neighbor descent to carry out.
-#'   This is set to \code{Inf} by default. For controlling the time cost of
-#'   querying, it is recommended to modify \code{epsilon} initially. However,
+#'   This is set to `Inf` by default. For controlling the time cost of
+#'   querying, it is recommended to modify `epsilon` initially. However,
 #'   setting this parameter can also provide a safe-guard against excessive
 #'   search time.
 #' @param epsilon Controls trade-off between accuracy and search cost, by
@@ -690,25 +669,22 @@ random_knn_query <-
 #'   and so on. Suggested values are between 0-0.5, although this value is
 #'   highly dependent on the distribution of distances in the dataset (higher
 #'   dimensional data should choose a smaller cutoff). Too large a value of
-#'   \code{epsilon} will result in the query search approaching brute force
-#'   comparison. Use this parameter in conjunction with \code{n_iters} and
-#'   \code{max_candidates} to prevent excessive run time. Default is 0.1.
+#'   `epsilon` will result in the query search approaching brute force
+#'   comparison. Use this parameter in conjunction with `n_iters` and
+#'   `max_candidates` to prevent excessive run time. Default is 0.1.
 #' @param max_candidates Maximum number of candidate neighbors to try for each
-#'   item in each iteration. Use relative to \code{k} to emulate the "rho"
+#'   item in each iteration. Use relative to `k` to emulate the "rho"
 #'   sampling parameter in the nearest neighbor descent paper. By default, this
-#'   is set to \code{k} or \code{60}, whichever is smaller.
+#'   is set to `k` or `60`, whichever is smaller.
 #' @param n_threads Number of threads to use.
 #' @param grain_size Minimum batch size for multithreading. If the number of
 #'   items to process in a thread falls below this number, then no threads will
-#'   be used. Ignored if \code{n_threads < 1}.
-#' @param verbose If \code{TRUE}, log information to the console.
+#'   be used. Ignored if `n_threads < 1`.
+#' @param verbose If `TRUE`, log information to the console.
 #' @return the approximate nearest neighbor graph as a list containing:
-#' \itemize{
-#'   \item \code{idx} a \code{n} by \code{k} matrix containing the nearest neighbor
-#'   indices specifying the row of the neighbor in \code{reference}.
-#'   \item \code{dist} a \code{n} by \code{k} matrix containing the nearest neighbor
-#'    distances.
-#' }
+#'   * `idx` a `n` by `k` matrix containing the nearest neighbor indices
+#'     specifying the row of the neighbor in `reference`.
+#'   * `dist` a `n` by `k` matrix containing the nearest neighbor distances.
 #' @examples
 #' # 100 reference iris items
 #' iris_ref <- iris[iris$Species %in% c("setosa", "versicolor"), ]
@@ -729,17 +705,17 @@ random_knn_query <-
 #' @references
 #' Hajebi, K., Abbasi-Yadkori, Y., Shahbazi, H., & Zhang, H. (2011, June).
 #' Fast approximate nearest-neighbor search with k-nearest neighbor graph.
-#' In \emph{Twenty-Second International Joint Conference on Artificial Intelligence}.
+#' In *Twenty-Second International Joint Conference on Artificial Intelligence*.
 #'
 #' Harwood, B., & Drummond, T. (2016).
 #' Fanng: Fast approximate nearest neighbour graphs.
-#' In \emph{Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition}
+#' In *Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition*
 #' (pp. 5713-5722).
 #'
 #' Iwasaki, M., & Miyazaki, D. (2018).
 #' Optimization of indexing based on k-nearest neighbor graph for proximity
 #' search in high-dimensional data.
-#' \emph{arXiv preprint arXiv:1810.07355.}
+#' *arXiv preprint arXiv:1810.07355*.
 #'
 #' @export
 graph_knn_query <- function(query,
@@ -1078,7 +1054,7 @@ diversify <- function(data,
 
 # Harwood, B., & Drummond, T. (2016).
 # Fanng: Fast approximate nearest neighbour graphs.
-# In \emph{Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition}
+# In *Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition*
 # (pp. 5713-5722).
 # "Occlusion pruning"
 diversify_sp <- function(data,
@@ -1117,7 +1093,7 @@ diversify_sp <- function(data,
 # "truncating"
 # Harwood, B., & Drummond, T. (2016).
 # Fanng: Fast approximate nearest neighbour graphs.
-# In \emph{Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition}
+# In *Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition*
 # (pp. 5713-5722).
 degree_prune <- function(graph, max_degree = 20, verbose = FALSE) {
   stopifnot(
@@ -1167,50 +1143,45 @@ reverse_knn_sp <- function(graph) {
 #'
 #' @param nn_graph1 A nearest neighbor graph to merge. Should consist of a list
 #'   containing:
-#' \itemize{
-#'   \item \code{idx} an n by k matrix containing the k nearest neighbor
-#'   indices.
-#'   \item \code{dist} an n by k matrix containing k nearest neighbor
-#'    distances.
-#' }
+#'   * `idx` an n by k matrix containing the k nearest neighbor indices.
+#'   * `dist` an n by k matrix containing k nearest neighbor distances.
 #' @param nn_graph2 Another nearest neighbor graph to merge with the same
-#'   format as \code{nn_graph1}. The number of neighbors can differ between
+#'   format as `nn_graph1`. The number of neighbors can differ between
 #'   graphs, but the merged result will have the same number of neighbors as
-#'   specified in \code{nn_graph1}.
-#' @param is_query If \code{TRUE} then the graphs are treated as the result of
+#'   specified in `nn_graph1`.
+#' @param is_query If `TRUE` then the graphs are treated as the result of
 #'   a knn query, not a knn building process. This should be set to
-#'   \code{TRUE} if \code{nn_graph1} and \code{nn_graph2} are the results of
-#'   using e.g. \code{\link{graph_knn_query}} or \code{\link{random_knn_query}},
-#'   and set to \code{FALSE} if these are the results of
-#'   \code{\link{nnd_knn}} or \code{\link{random_knn}}. The difference is that
-#'   if \code{is_query = FALSE}, if an index \code{p} is found in
-#'   \code{nn_graph1[i, ]}, i.e. \code{p} is a neighbor of \code{i} with
-#'   distance \code{d}, then it is assumed that \code{i} is a neighbor of
-#'   \code{p} with the same distance. If \code{is_query = TRUE}, then \code{i}
-#'   and \code{p} are indexes into two different datasets and the symmetry does
+#'   `TRUE` if `nn_graph1` and `nn_graph2` are the results of
+#'   using e.g. [graph_knn_query()] or [random_knn_query()],
+#'   and set to `FALSE` if these are the results of
+#'   [nnd_knn()] or [random_knn()]. The difference is that
+#'   if `is_query = FALSE`, if an index `p` is found in
+#'   `nn_graph1[i, ]`, i.e. `p` is a neighbor of `i` with
+#'   distance `d`, then it is assumed that `i` is a neighbor of
+#'   `p` with the same distance. If `is_query = TRUE`, then `i`
+#'   and `p` are indexes into two different datasets and the symmetry does
 #'   not hold. If you aren't sure what case applies to you, it's safe (but
-#'   potentially inefficient) to set \code{is_query = TRUE}.
+#'   potentially inefficient) to set `is_query = TRUE`.
 #' @param n_threads Number of threads to use.
 #' @param block_size Number of items to process in each multi-threaded batch.
 #'   Reducing this number will increase the frequency with which R will check
-#'   for cancellation, and if \code{verbose = TRUE}, the frequency with which
+#'   for cancellation, and if `verbose = TRUE`, the frequency with which
 #'   progress will be logged to the console. This value should not be set too
-#'   low (and not lower than \code{grain_size}), or the overhead of cancellation
+#'   low (and not lower than `grain_size`), or the overhead of cancellation
 #'   checking and other multi-threaded house keeping will reduce the efficiency
-#'   of the parallel computation. Ignored if \code{n_threads < 1}.
+#'   of the parallel computation. Ignored if `n_threads < 1`.
 #' @param grain_size Minimum batch size for multithreading. If the number of
 #'   items to process in a thread falls below this number, then no threads will
-#'   be used. Ignored if \code{n_threads < 1}.
-#' @param verbose If \code{TRUE}, log information to the console.
+#'   be used. Ignored if `n_threads < 1`.
+#' @param verbose If `TRUE`, log information to the console.
 #' @return a list containing:
-#' \itemize{
-#'   \item \code{idx} an n by k matrix containing the merged nearest neighbor
+#'   * `idx` an n by k matrix containing the merged nearest neighbor
 #'   indices.
-#'   \item \code{dist} an n by k matrix containing the merged nearest neighbor
+#'   * `dist` an n by k matrix containing the merged nearest neighbor
 #'    distances.
-#' }
-#'   The size of \code{k} in the output graph is the same as that of
-#'   \code{nn_graph1}.
+#'
+#'   The size of `k` in the output graph is the same as that of
+#'   `nn_graph1`.
 #' @examples
 #' set.seed(1337)
 #' # Nearest neighbor descent with 15 neighbors for iris three times,
@@ -1250,48 +1221,42 @@ merge_knn <- function(nn_graph1,
 #' @param nn_graphs A list of nearest neighbor graph to merge. Each item in the
 #'   list should consist of a sub-list
 #'   containing:
-#' \itemize{
-#'   \item \code{idx} an n by k matrix containing the k nearest neighbor
-#'   indices.
-#'   \item \code{dist} an n by k matrix containing k nearest neighbor
-#'    distances.
-#' }
+#'   * `idx` an n by k matrix containing the k nearest neighbor indices.
+#'   * `dist` an n by k matrix containing k nearest neighbor distances.
+#'
 #'   The number of neighbors can differ between graphs, but the merged result
 #'   will have the same number of neighbors as the first graph in the list.
-#' @param is_query If \code{TRUE} then the graphs are treated as the result of
+#' @param is_query If `TRUE` then the graphs are treated as the result of
 #'   a knn query, not a knn building process. This should be set to
-#'   \code{TRUE} if \code{nn_graphs} are the results of
-#'   using e.g. \code{\link{graph_knn_query}} or \code{\link{random_knn_query}},
-#'   and set to \code{FALSE} if these are the results of \code{\link{nnd_knn}}
-#'   or \code{\link{random_knn}}. The difference is that if \code{is_query =
-#'   FALSE}, if an index \code{p} is found in \code{nn_graph1[i, ]}, i.e.
-#'   \code{p} is a neighbor of \code{i} with distance \code{d}, then it is
-#'   assumed that \code{i} is a neighbor of \code{p} with the same distance. If
-#'   \code{is_query = TRUE}, then \code{i} and \code{p} are indexes into two
+#'   `TRUE` if `nn_graphs` are the results of
+#'   using e.g. [graph_knn_query()] or [random_knn_query()],
+#'   and set to `FALSE` if these are the results of [nnd_knn()]
+#'   or [random_knn()]. The difference is that if `is_query = FALSE`,
+#'   if an index `p` is found in `nn_graph1[i, ]`, i.e.
+#'   `p` is a neighbor of `i` with distance `d`, then it is
+#'   assumed that `i` is a neighbor of `p` with the same distance. If
+#'   `is_query = TRUE`, then `i` and `p` are indexes into two
 #'   different datasets and the symmetry does not hold. If you aren't sure what
 #'   case applies to you, it's safe (but potentially inefficient) to set
-#'   \code{is_query = TRUE}.
+#'   `is_query = TRUE`.
 #' @param n_threads Number of threads to use.
 #' @param block_size Number of items to process in each multi-threaded batch.
 #'   Reducing this number will increase the frequency with which R will check
-#'   for cancellation, and if \code{verbose = TRUE}, the frequency with which
+#'   for cancellation, and if `verbose = TRUE`, the frequency with which
 #'   progress will be logged to the console. This value should not be set too
-#'   low (and not lower than \code{grain_size}), or the overhead of cancellation
+#'   low (and not lower than `grain_size`), or the overhead of cancellation
 #'   checking and other multi-threaded house keeping will reduce the efficiency
-#'   of the parallel computation. Ignored if \code{n_threads < 1}.
+#'   of the parallel computation. Ignored if `n_threads < 1`.
 #' @param grain_size Minimum batch size for multithreading. If the number of
 #'   items to process in a thread falls below this number, then no threads will
-#'   be used. Ignored if \code{n_threads < 1}.
-#' @param verbose If \code{TRUE}, log information to the console.
+#'   be used. Ignored if `n_threads < 1`.
+#' @param verbose If `TRUE`, log information to the console.
 #' @return a list containing:
-#' \itemize{
-#'   \item \code{idx} an n by k matrix containing the merged nearest neighbor
-#'   indices.
-#'   \item \code{dist} an n by k matrix containing the merged nearest neighbor
-#'    distances.
-#' }
-#'   The size of \code{k} in the output graph is the same as that of the first
-#'   item in \code{nn_graphs}.
+#'   * `idx` an n by k matrix containing the merged nearest neighbor indices.
+#'   * `dist` an n by k matrix containing the merged nearest neighbor distances.
+#'
+#'   The size of `k` in the output graph is the same as that of the first
+#'   item in `nn_graphs`.
 #' @examples
 #' set.seed(1337)
 #' # Nearest neighbor descent with 15 neighbors for iris three times,

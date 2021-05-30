@@ -27,9 +27,9 @@ graph_knn_query(
 items in \code{query} are calculated from this data.}
 
 \item{reference_graph}{Search graph of the \code{reference} data. A neighbor
-graph, such as that output from \code{\link{nnd_knn}} can be used, but
+graph, such as that output from \code{\link[=nnd_knn]{nnd_knn()}} can be used, but
 preferably a suitably prepared sparse search graph should be used, such as
-that output by \code{\link{prepare_search_graph}}.}
+that output by \code{\link[=prepare_search_graph]{prepare_search_graph()}}.}
 
 \item{k}{Number of nearest neighbors to return. Optional if \code{init} is
 specified.}
@@ -44,15 +44,16 @@ provided, \code{k} random neighbors from \code{reference} are used. The
 format should be the same as the return value of this function, a list
 containing:
 \itemize{
-\item \code{idx} a \code{n} by \code{k} matrix containing the nearest neighbor
-indices specifying the row of the neighbor in \code{reference}.
-\item \code{dist} (optional) a \code{n} by \code{k} matrix containing the
-nearest neighbor distances.
+\item \code{idx} a \code{n} by \code{k} matrix containing the nearest neighbor indices
+specifying the row of the neighbor in \code{reference}.
+\item \code{dist} (optional) a \code{n} by \code{k} matrix containing the nearest neighbor
+distances.
 }
-If \code{k} and \code{init} are provided then \code{k} must be equal to or
-smaller than the number of neighbors provided in \code{init}. If smaller,
-only the \code{k} closest value in \code{init} are retained. If the input
-distances are omitted, they will be calculated for you.}
+
+If \code{k} and \code{init} are provided then \code{k} must be equal to or smaller than
+the number of neighbors provided in \code{init}. If smaller, only the \code{k}
+closest value in \code{init} are retained. If the input distances are omitted,
+they will be calculated for you.}
 
 \item{n_iters}{Number of iterations of nearest neighbor descent to carry out.
 This is set to \code{Inf} by default. For controlling the time cost of
@@ -95,10 +96,9 @@ be used. Ignored if \code{n_threads < 1}.}
 \value{
 the approximate nearest neighbor graph as a list containing:
 \itemize{
-\item \code{idx} a \code{n} by \code{k} matrix containing the nearest neighbor
-indices specifying the row of the neighbor in \code{reference}.
-\item \code{dist} a \code{n} by \code{k} matrix containing the nearest neighbor
-distances.
+\item \code{idx} a \code{n} by \code{k} matrix containing the nearest neighbor indices
+specifying the row of the neighbor in \code{reference}.
+\item \code{dist} a \code{n} by \code{k} matrix containing the nearest neighbor distances.
 }
 }
 \description{
@@ -135,5 +135,5 @@ In \emph{Proceedings of the IEEE Conference on Computer Vision and Pattern Recog
 Iwasaki, M., & Miyazaki, D. (2018).
 Optimization of indexing based on k-nearest neighbor graph for proximity
 search in high-dimensional data.
-\emph{arXiv preprint arXiv:1810.07355.}
+\emph{arXiv preprint arXiv:1810.07355}.
 }

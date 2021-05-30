@@ -36,8 +36,8 @@ path.}
 \item{order_by_distance}{If \code{TRUE} (the default), then results for each
 item are returned by increasing distance. If you don't need the results
 sorted, e.g. you are going to pass the results as initialization to another
-routine like \code{\link{nnd_knn}}, set this to \code{FALSE} to save a
-small amount of computational time.}
+routine like \code{\link[=nnd_knn]{nnd_knn()}}, set this to \code{FALSE} to save a small amount of
+computational time.}
 
 \item{n_threads}{Number of threads to use.}
 
@@ -59,10 +59,8 @@ be used. Ignored if \code{n_threads < 1}.}
 \value{
 a random neighbor graph as a list containing:
 \itemize{
-\item \code{idx} an n by k matrix containing the nearest neighbor
-indices.
-\item \code{dist} an n by k matrix containing the nearest neighbor
-distances.
+\item \code{idx} an n by k matrix containing the nearest neighbor indices.
+\item \code{dist} an n by k matrix containing the nearest neighbor distances.
 }
 }
 \description{
