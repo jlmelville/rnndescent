@@ -78,23 +78,6 @@ k_occur <- function(idx,
   reverse_nbr_size_impl(idx, k, len, include_self)
 }
 
-check_graph <- function(idx, dist = NULL, k = NULL) {
-  if (is.null(dist) && is.list(idx)) {
-    dist <- idx$dist
-  }
-  if (is.list(idx)) {
-    idx <- idx$idx
-  }
-  stopifnot(methods::is(idx, "matrix"))
-  stopifnot(methods::is(dist, "matrix"))
-  stopifnot(dim(idx) == dim(dist))
-  if (is.null(k)) {
-    k <- ncol(idx)
-  }
-  stopifnot(k > 0)
-  list(idx = idx, dist = dist, k = k)
-}
-
 reverse_knn <- function(idx, dist = NULL, k = NULL) {
   cg_res <- check_graph(idx = idx, dist = dist, k = k)
   Matrix::t(Matrix::drop0(graph_to_sparse_r(cg_res)))

@@ -14,6 +14,23 @@ check_k <- function(k, max_k) {
   }
 }
 
+check_graph <- function(idx, dist = NULL, k = NULL) {
+  if (is.null(dist) && is.list(idx)) {
+    dist <- idx$dist
+  }
+  if (is.list(idx)) {
+    idx <- idx$idx
+  }
+  stopifnot(methods::is(idx, "matrix"))
+  stopifnot(methods::is(dist, "matrix"))
+  stopifnot(dim(idx) == dim(dist))
+  if (is.null(k)) {
+    k <- ncol(idx)
+  }
+  stopifnot(k > 0)
+  list(idx = idx, dist = dist, k = k)
+}
+
 prepare_init_graph <-
   function(nn,
            k,
