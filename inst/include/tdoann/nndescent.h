@@ -33,7 +33,6 @@
 #include "bitvec.h"
 #include "graphupdate.h"
 #include "heap.h"
-#include "hub.h"
 #include "nngraph.h"
 #include "progress.h"
 
@@ -65,46 +64,6 @@ void flag_retained_new_candidates(
     const NNHeap<DistOut, Idx> &new_candidate_neighbors) {
   flag_retained_new_candidates(current_graph, new_candidate_neighbors, 0,
                                current_graph.n_points);
-}
-
-template <typename NbrHeap>
-auto koccur_weights(const NbrHeap &current_graph) -> std::vector<double> {
-  auto koccurs =
-      reverse_nbr_counts(current_graph.idx, current_graph.n_points, false);
-  auto norm = 1.0 / static_cast<double>(current_graph.n_nbrs - 1);
-  std::vector<double> weights(koccurs.size());
-  std::transform(koccurs.begin(), koccurs.end(), weights.begin(),
-                 [&norm](typename NbrHeap::Index ko) { return ko * norm; });
-  return weights;
-}
-
-template <typename DistOut, typename Idx>
-void build_candidates_full_weighted(NNDHeap<DistOut, Idx> &current_graph,
-                                    NNHeap<DistOut, Idx> &new_nbrs,
-                                    decltype(new_nbrs) &old_nbrs) {
-  const std::size_t n_points = current_graph.n_points;
-  const std::size_t n_nbrs = current_graph.n_nbrs;
-  std::size_t innbrs = 0;
-  std::size_t ij = 0;
-
-  std::vector<double> weights = koccur_weights(current_graph);
-
-  for (std::size_t i = 0; i < n_points; i++) {
-    innbrs = i * n_nbrs;
-    for (std::size_t j = 0; j < n_nbrs; j++) {
-      ij = innbrs + j;
-      auto &nbrs = current_graph.flags[ij] == 1 ? new_nbrs : old_nbrs;
-      if (current_graph.idx[ij] == nbrs.npos()) {
-        continue;
-      }
-      auto nbr = current_graph.idx[ij];
-      nbrs.checked_push(i, weights[nbr], nbr);
-      if (nbr != i) {
-        nbrs.checked_push(nbr, weights[i], i);
-      }
-    }
-  }
-  flag_retained_new_candidates(current_graph, new_nbrs);
 }
 
 // This corresponds to the construction of new, old, new' and old' in
@@ -151,7 +110,7 @@ template <template <typename> class GraphUpdater, typename Distance,
           typename Progress, typename Rand>
 void nnd_build(GraphUpdater<Distance> &graph_updater,
                std::size_t max_candidates, std::size_t n_iters, double delta,
-               Rand &rand, Progress &progress, bool weighted = false) {
+               Rand &rand, Progress &progress) {
   using DistOut = typename Distance::Output;
   using Idx = typename Distance::Index;
   auto &nn_heap = graph_updater.current_graph;
@@ -162,11 +121,7 @@ void nnd_build(GraphUpdater<Distance> &graph_updater,
     NNHeap<DistOut, Idx> new_nbrs(n_points, max_candidates);
     decltype(new_nbrs) old_nbrs(n_points, max_candidates);
 
-    if (weighted) {
-      build_candidates_full_weighted(nn_heap, new_nbrs, old_nbrs);
-    } else {
-      build_candidates_full(nn_heap, new_nbrs, old_nbrs, rand);
-    }
+    build_candidates_full(nn_heap, new_nbrs, old_nbrs, rand);
     std::size_t c = local_join(graph_updater, new_nbrs, old_nbrs, progress);
 
     TDOANN_ITERFINISHED();

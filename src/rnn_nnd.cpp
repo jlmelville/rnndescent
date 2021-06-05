@@ -37,7 +37,7 @@ using namespace Rcpp;
 
 #define NND_IMPL()                                                             \
   return nnd_impl.get_nn<GraphUpdate, Distance, Progress, NNDProgress>(        \
-      nn_idx, nn_dist, max_candidates, n_iters, delta, verbose, weighted);
+      nn_idx, nn_dist, max_candidates, n_iters, delta, verbose);
 
 #define NND_QUERY_IMPL()                                                       \
   return nnd_impl.get_nn<Distance, Progress>(nn_idx, nn_dist, max_candidates,  \
@@ -102,8 +102,7 @@ struct NNDBuildSerial {
             typename NNDProgress>
   auto get_nn(IntegerMatrix nn_idx, NumericMatrix nn_dist,
               std::size_t max_candidates = 50, std::size_t n_iters = 10,
-              double delta = 0.001, bool verbose = false, bool weighted = false)
-      -> List {
+              double delta = 0.001, bool verbose = false) -> List {
     using Out = typename Distance::Output;
     using Index = typename Distance::Index;
 
@@ -117,7 +116,7 @@ struct NNDBuildSerial {
     RRand rand;
 
     tdoann::nnd_build(graph_updater, max_candidates, n_iters, delta, rand,
-                      nnd_progress, weighted);
+                      nnd_progress);
 
     return heap_to_r(nnd_heap);
   }
@@ -139,8 +138,7 @@ struct NNDBuildParallel {
             typename NNDProgress>
   auto get_nn(IntegerMatrix nn_idx, NumericMatrix nn_dist,
               std::size_t max_candidates = 50, std::size_t n_iters = 10,
-              double delta = 0.001, bool verbose = false, bool weighted = false)
-      -> List {
+              double delta = 0.001, bool verbose = false) -> List {
     using Out = typename Distance::Output;
     using Index = typename Distance::Index;
 
@@ -155,7 +153,7 @@ struct NNDBuildParallel {
 
     tdoann::nnd_build<RParallel>(graph_updater, max_candidates, n_iters, delta,
                                  nnd_progress, parallel_rand, block_size,
-                                 n_threads, grain_size, weighted);
+                                 n_threads, grain_size);
 
     return heap_to_r(nnd_heap, block_size, n_threads, grain_size);
   }
@@ -175,8 +173,7 @@ struct NNDQuerySerial {
   template <typename Distance, typename Progress>
   auto get_nn(IntegerMatrix nn_idx, NumericMatrix nn_dist,
               std::size_t max_candidates = 50, double epsilon = 0.1,
-              std::size_t n_iters = 10, bool verbose = false,
-              bool weighted = false) -> List {
+              std::size_t n_iters = 10, bool verbose = false) -> List {
     using Out = typename Distance::Output;
     using Index = typename Distance::Index;
 
@@ -238,7 +235,7 @@ List nn_descent(NumericMatrix data, IntegerMatrix nn_idx, NumericMatrix nn_dist,
                 double delta = 0.001, bool low_memory = true,
                 std::size_t block_size = 16384, std::size_t n_threads = 0,
                 std::size_t grain_size = 1, bool verbose = false,
-                const std::string &progress = "bar", bool weighted = false) {
+                const std::string &progress = "bar") {
   DISPATCH_ON_DISTANCES(NND_BUILD_UPDATER);
 }
 

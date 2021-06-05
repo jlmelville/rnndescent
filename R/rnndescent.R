@@ -227,13 +227,6 @@ random_knn <-
 #'   the only reason to set this to `FALSE` is if you suspect that some
 #'   sort of numeric issue is occurring with your data in the alternative code
 #'   path.
-#' @param weighted If `TRUE` then instead of ordering general neighbor
-#'   candidates randomly, they are ordered by increasing in-degree. This gives
-#'   priority to nodes which don't appear in many other neighbor lists, and
-#'   which might get crowded out of the few candidate lists they appear in by
-#'   more "popular" nodes. For high dimensional datasets, this can slightly
-#'   ameliorate the effect of hubs and modestly improve query times (for a given
-#'   accuracy).
 #' @param n_threads Number of threads to use.
 #' @param block_size Batch size for creating/applying local join updates. A
 #'  smaller value will apply the update more often, which may help reduce the
@@ -314,7 +307,6 @@ nnd_knn <- function(data,
                     delta = 0.001,
                     low_memory = TRUE,
                     use_alt_metric = TRUE,
-                    weighted = FALSE,
                     n_threads = 0,
                     block_size = 16384,
                     grain_size = 1,
@@ -385,8 +377,7 @@ nnd_knn <- function(data,
     n_threads = n_threads,
     grain_size = grain_size,
     verbose = verbose,
-    progress = progress,
-    weighted = weighted
+    progress = progress
   )
   if (use_alt_metric) {
     res$dist <- apply_alt_metric_correction(metric, res$dist)

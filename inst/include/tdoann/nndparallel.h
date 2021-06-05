@@ -71,47 +71,6 @@ template <typename Distance> struct LockingHeapAdder {
   }
 };
 
-template <typename Distance>
-void build_candidates_weighted(
-    const NNDHeap<typename Distance::Output, typename Distance::Index>
-        &current_graph,
-    NNHeap<typename Distance::Output, typename Distance::Index> &new_nbrs,
-    NNHeap<typename Distance::Output, typename Distance::Index> &old_nbrs,
-    LockingHeapAdder<Distance> &heap_adder, const std::vector<double> &weights,
-    std::size_t begin, std::size_t end) {
-
-  const std::size_t n_nbrs = current_graph.n_nbrs;
-
-  for (auto i = begin; i < end; i++) {
-    std::size_t innbrs = i * n_nbrs;
-    for (std::size_t j = 0; j < n_nbrs; j++) {
-      std::size_t ij = innbrs + j;
-      auto nbr = current_graph.idx[ij];
-      char isn = current_graph.flags[ij];
-      auto &nbrs = isn == 1 ? new_nbrs : old_nbrs;
-      if (nbr == nbrs.npos()) {
-        continue;
-      }
-      heap_adder.add(nbrs, i, nbr, weights[nbr], weights[i]);
-    }
-  }
-}
-
-template <typename Parallel, typename Distance>
-void build_candidates_weighted(
-    const NNDHeap<typename Distance::Output, typename Distance::Index> &nn_heap,
-    NNHeap<typename Distance::Output, typename Distance::Index> &new_nbrs,
-    NNHeap<typename Distance::Output, typename Distance::Index> &old_nbrs,
-    LockingHeapAdder<Distance> &heap_adder, std::size_t n_threads,
-    std::size_t grain_size) {
-  std::vector<double> weights = koccur_weights(nn_heap);
-  auto worker = [&](std::size_t begin, std::size_t end) {
-    build_candidates_weighted(nn_heap, new_nbrs, old_nbrs, heap_adder, weights,
-                              begin, end);
-  };
-  Parallel::parallel_for(0, nn_heap.n_points, worker, n_threads, grain_size);
-}
-
 template <typename ParallelRand, typename Distance>
 void build_candidates(
     const NNDHeap<typename Distance::Output, typename Distance::Index>
@@ -227,7 +186,7 @@ void nnd_build(GraphUpdater<Distance> &graph_updater,
                std::size_t max_candidates, std::size_t n_iters, double delta,
                Progress &progress, ParallelRand &parallel_rand,
                std::size_t block_size = 16384, std::size_t n_threads = 0,
-               std::size_t grain_size = 1, bool weighted = false) {
+               std::size_t grain_size = 1) {
 
   using DistOut = typename Distance::Output;
   using Idx = typename Distance::Index;
@@ -241,14 +200,9 @@ void nnd_build(GraphUpdater<Distance> &graph_updater,
     NNHeap<DistOut, Idx> new_nbrs(n_points, max_candidates);
     decltype(new_nbrs) old_nbrs(n_points, max_candidates);
 
-    if (weighted) {
-      build_candidates_weighted<Parallel, Distance>(
-          nn_heap, new_nbrs, old_nbrs, heap_adder, n_threads, grain_size);
-    } else {
-      build_candidates<Parallel, Distance>(nn_heap, new_nbrs, old_nbrs,
-                                           parallel_rand, heap_adder, n_threads,
-                                           grain_size);
-    }
+    build_candidates<Parallel, Distance>(nn_heap, new_nbrs, old_nbrs,
+                                         parallel_rand, heap_adder, n_threads,
+                                         grain_size);
 
     // mark any neighbor in the current graph that was retained in the new
     // candidates as true
