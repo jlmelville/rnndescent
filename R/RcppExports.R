@@ -37,14 +37,6 @@ nn_descent_query <- function(reference, reference_graph_list, query, nn_idx, nn_
     .Call(`_rnndescent_nn_descent_query`, reference, reference_graph_list, query, nn_idx, nn_dist, metric, max_candidates, epsilon, n_iters, n_threads, grain_size, verbose)
 }
 
-random_knn_cpp <- function(data, k, metric = "euclidean", order_by_distance = TRUE, block_size = 4096L, n_threads = 0L, grain_size = 1L, verbose = FALSE) {
-    .Call(`_rnndescent_random_knn_cpp`, data, k, metric, order_by_distance, block_size, n_threads, grain_size, verbose)
-}
-
-random_knn_query_cpp <- function(reference, query, k, metric = "euclidean", order_by_distance = TRUE, block_size = 4096L, n_threads = 0L, grain_size = 1L, verbose = FALSE) {
-    .Call(`_rnndescent_random_knn_query_cpp`, reference, query, k, metric, order_by_distance, block_size, n_threads, grain_size, verbose)
-}
-
 diversify_cpp <- function(data, idx, dist, metric = "euclidean", prune_probability = 1.0) {
     .Call(`_rnndescent_diversify_cpp`, data, idx, dist, metric, prune_probability)
 }
@@ -63,5 +55,13 @@ merge_graph_lists_cpp <- function(gl1, gl2) {
 
 degree_prune_cpp <- function(graph_list, max_degree) {
     .Call(`_rnndescent_degree_prune_cpp`, graph_list, max_degree)
+}
+
+random_knn_cpp <- function(data, k, metric = "euclidean", order_by_distance = TRUE, block_size = 4096L, n_threads = 0L, grain_size = 1L, verbose = FALSE) {
+    .Call(`_rnndescent_random_knn_cpp`, data, k, metric, order_by_distance, block_size, n_threads, grain_size, verbose)
+}
+
+random_knn_query_cpp <- function(reference, query, k, metric = "euclidean", order_by_distance = TRUE, block_size = 4096L, n_threads = 0L, grain_size = 1L, verbose = FALSE) {
+    .Call(`_rnndescent_random_knn_query_cpp`, reference, query, k, metric, order_by_distance, block_size, n_threads, grain_size, verbose)
 }
 
