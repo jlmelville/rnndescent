@@ -27,14 +27,8 @@
 #ifndef TDOANN_NNDPARALLEL_H
 #define TDOANN_NNDPARALLEL_H
 
-#include <mutex>
-#include <vector>
-
-#include "graphupdate.h"
 #include "heap.h"
-#include "nndescent.h"
-#include "parallel.h"
-#include "progress.h"
+#include <mutex>
 
 namespace tdoann {
 
@@ -219,39 +213,5 @@ void nnd_build(GraphUpdater<Distance> &graph_updater,
   }
 }
 
-template <typename Parallel, typename DistOut, typename Idx>
-auto build_query_candidates(const SparseNNGraph<DistOut, Idx> &reference_graph,
-                            std::size_t max_candidates, std::size_t n_threads,
-                            std::size_t grain_size) -> NNHeap<DistOut, Idx> {
-  NNHeap<DistOut, Idx> query_candidates(reference_graph.n_points,
-                                        max_candidates);
-  auto worker = [&](std::size_t begin, std::size_t end) {
-    build_query_candidates(reference_graph, query_candidates, begin, end);
-  };
-  Parallel::parallel_for(0, query_candidates.n_points, worker, n_threads,
-                         grain_size);
-  return query_candidates;
-}
-
-template <typename Parallel, typename Distance, typename Progress>
-void nnd_query(
-    const SparseNNGraph<typename Distance::Output, typename Distance::Index>
-        &reference_graph,
-    NNHeap<typename Distance::Output, typename Distance::Index> &nn_heap,
-    const Distance &distance, std::size_t max_candidates, double epsilon,
-    std::size_t n_iters, Progress &progress, std::size_t n_threads = 0,
-    std::size_t grain_size = 1) {
-  const std::size_t n_points = nn_heap.n_points;
-  auto query_candidates = build_query_candidates<Parallel>(
-      reference_graph, max_candidates, n_threads, grain_size);
-
-  NullProgress null_progress;
-  auto query_non_search_worker = [&](std::size_t begin, std::size_t end) {
-    non_search_query(nn_heap, distance, query_candidates, epsilon,
-                     null_progress, n_iters, begin, end);
-  };
-  batch_parallel_for<Parallel>(query_non_search_worker, progress, n_points,
-                               n_threads, grain_size);
-}
 } // namespace tdoann
 #endif // TDOANN_NNDPARALLEL_H

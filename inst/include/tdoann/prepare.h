@@ -24,8 +24,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // OF SUCH DAMAGE.
 
-#ifndef TDOANN_SEARCH_H
-#define TDOANN_SEARCH_H
+#ifndef TDOANN_PREPARE_H
+#define TDOANN_PREPARE_H
 
 #include <algorithm>
 #include <numeric>
@@ -286,4 +286,4 @@ auto remove_long_edges(const NNGraph &graph, const Distance &distance,
 }
 
 } // namespace tdoann
-#endif // TDOANN_SEARCH_H
+#endif // TDOANN_PREPARE_H
