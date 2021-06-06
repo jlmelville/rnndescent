@@ -29,7 +29,7 @@
 
 #include <queue>
 
-#include "bitvec.h"
+#include "bvset.h"
 #include "nngraph.h"
 
 namespace tdoann {
@@ -120,20 +120,6 @@ auto pop(std::priority_queue<T, Container, Compare> &pq) -> T {
   return result;
 }
 
-template <typename T> void mark_visited(BitVec &table, T candidate) {
-  auto res = std::ldiv(candidate, BITVEC_BIT_WIDTH);
-  table[res.quot].set(res.rem);
-}
-
-template <typename T>
-auto has_been_and_mark_visited(BitVec &table, T candidate) -> bool {
-  auto res = std::ldiv(candidate, BITVEC_BIT_WIDTH);
-  auto &chunk = table[res.quot];
-  auto is_visited = chunk.test(res.rem);
-  chunk.set(res.rem);
-  return is_visited;
-}
-
 template <typename Distance, typename Progress>
 void non_search_query(
     NNHeap<typename Distance::Output, typename Distance::Index> &current_graph,
@@ -145,19 +131,18 @@ void non_search_query(
 
   using DistOut = typename Distance::Output;
   using Idx = typename Distance::Index;
-  using Seed = std::pair<DistOut, Idx>;
 
   const std::size_t n_nbrs = current_graph.n_nbrs;
   const std::size_t max_candidates = query_candidates.n_nbrs;
+  const double distance_scale = 1.0 + epsilon;
 
+  using Seed = std::pair<DistOut, Idx>;
   // std::priority_queue is a max heap, so we need to implement the comparison
   // as "greater than" to get the smallest distance first
   auto cmp = [](Seed left, Seed right) { return left.first > right.first; };
-  const double distance_scale = 1.0 + epsilon;
-  const std::size_t n_bitsets = bitvec_size(query_candidates.n_points);
 
   for (std::size_t query_idx = begin; query_idx < end; query_idx++) {
-    BitVec visited(n_bitsets);
+    auto visited = create_set(query_candidates.n_points);
     std::priority_queue<Seed, std::vector<Seed>, decltype(cmp)> seed_set(cmp);
     for (std::size_t j = 0; j < n_nbrs; j++) {
       Idx candidate_idx = current_graph.index(query_idx, j);
@@ -203,14 +188,13 @@ void non_search_query(
               distance_scale *
               static_cast<double>(current_graph.max_distance(query_idx));
         }
-      };
+      } // n2 next candidate
       if (stop_early) {
         break;
       }
-    }
+    } // n next iteration
 
     TDOANN_ITERFINISHED();
-    visited.clear();
   }
 }
 
