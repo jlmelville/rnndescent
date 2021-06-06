@@ -67,7 +67,13 @@ brute_force_knn <- function(data,
     actual_metric <- metric
   }
 
-  tsmessage("Calculating brute force k-nearest neighbors with k = ", k)
+  tsmessage(
+    thread_msg(
+      "Calculating brute force k-nearest neighbors with k = ",
+      k,
+      n_threads = n_threads
+    )
+  )
   res <-
     rnn_brute_force(
       data,
@@ -164,7 +170,13 @@ random_knn <-
       actual_metric <- metric
     }
 
-    tsmessage("Generating random k-nearest neighbor graph with k = ", k)
+    tsmessage(
+      thread_msg(
+        "Generating random k-nearest neighbor graph with k = ",
+        k,
+        n_threads = n_threads
+      )
+    )
     res <-
       random_knn_cpp(
         data,
@@ -363,7 +375,14 @@ nnd_knn <- function(data,
   if (is.null(max_candidates)) {
     max_candidates <- min(k, 60)
   }
-  tsmessage("Running nearest neighbor descent for ", n_iters, " iterations")
+  tsmessage(
+    thread_msg(
+      "Running nearest neighbor descent for ",
+      n_iters,
+      " iterations",
+      n_threads = n_threads
+    )
+  )
   res <- nn_descent(
     data,
     init$idx,
@@ -476,7 +495,13 @@ brute_force_knn_query <- function(query,
     actual_metric <- metric
   }
 
-  tsmessage("Calculating brute force k-nearest neighbors from reference with k = ", k)
+  tsmessage(
+    thread_msg(
+      "Calculating brute force k-nearest neighbors from reference with k = ",
+      k,
+      n_threads = n_threads
+    )
+  )
   res <- rnn_brute_force_query(
     reference,
     query,
@@ -591,7 +616,13 @@ random_knn_query <-
       actual_metric <- metric
     }
 
-    tsmessage("Generating random k-nearest neighbor graph from reference with k = ", k)
+    tsmessage(
+      thread_msg(
+        "Generating random k-nearest neighbor graph from reference with k = ",
+        k,
+        n_threads = n_threads
+      )
+    )
     res <- random_knn_query_cpp(
       reference,
       query,
@@ -825,7 +856,7 @@ graph_knn_query <- function(query,
     reference_graph_list <- sparse_to_list(reference_graph)
   }
 
-  tsmessage(thread_msg("Searching nearest neighbor graph", n_threads))
+  tsmessage(thread_msg("Searching nearest neighbor graph", n_threads = n_threads))
   res <-
     nn_query(
       reference = reference,
