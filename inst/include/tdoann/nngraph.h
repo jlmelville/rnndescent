@@ -50,6 +50,20 @@ struct SparseNNGraph {
 
   using DistanceOut = DistOut;
   using Index = Idx;
+
+  static constexpr auto npos() -> Idx { return static_cast<Idx>(-1); }
+
+  auto n_nbrs(Idx i) const -> std::size_t {
+    return row_ptr[i + 1] - row_ptr[i];
+  }
+
+  auto index(Idx i, Idx j) const -> Idx {
+    return col_idx[row_ptr[i] + static_cast<std::size_t>(j)];
+  }
+
+  auto distance(Idx i, Idx j) const -> DistOut {
+    return dist[row_ptr[i] + static_cast<std::size_t>(j)];
+  }
 };
 
 template <typename DistOut = float, typename Idx = uint32_t> struct NNGraph {
