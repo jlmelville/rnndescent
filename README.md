@@ -312,3 +312,6 @@ GPLv3 or later.
 * [NearestNeighborDescent.jl](https://github.com/dillondaudert/NearestNeighborDescent.jl),
 a Julia implementation.
 * [nn_descent](https://github.com/eskomski/nn_descent), a C implementation.
+* [NNDescent.cpp](https://github.com/AnabelSMRuggiero/NNDescent.cpp), another
+C++ implementation
+
