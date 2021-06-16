@@ -218,12 +218,6 @@ qnbrs6 <- graph_knn_query(reference = ui4, reference_graph = ui4_nnd, query = ui
 check_query_nbrs(nn = qnbrs6, query = ui6, ref_range = 7:10, query_range = 1:6, k = 4, expected_dist = ui10_eucd, tol = 1e-6)
 expect_equal(sum(qnbrs6$dist), ui6q_edsum, tol = 1e-6)
 
-# max candidates
-set.seed(1337)
-qnbrs6 <- graph_knn_query(reference = ui4, reference_graph = ui4_nnd, query = ui6, k = 4, max_candidates = 3)
-check_query_nbrs(nn = qnbrs6, query = ui6, ref_range = 7:10, query_range = 1:6, k = 4, expected_dist = ui10_eucd, tol = 1e-6)
-expect_equal(sum(qnbrs6$dist), ui6q_edsum, tol = 1e-6)
-
 # turn off alt metric
 set.seed(1337)
 qnbrs6 <- graph_knn_query(reference = ui4, reference_graph = ui4_nnd, query = ui6, k = 4, use_alt_metric = FALSE)
@@ -275,13 +269,6 @@ check_query_nbrs(nn = qnbrs4, query = ui4, ref_range = 1:6, query_range = 7:10, 
 expect_equal(sum(qnbrs4$dist), ui4q_edsum)
 expect_equal(rnbrs4$idx, rnbrs4_idx_copy)
 
-
-
-# max candidates
-set.seed(1337)
-qnbrs6 <- graph_knn_query(reference = ui4, reference_graph = ui4_nnd, query = ui6, k = 4, n_threads = 1, max_candidates = 3)
-check_query_nbrs(nn = qnbrs6, query = ui6, ref_range = 7:10, query_range = 1:6, k = 4, expected_dist = ui10_eucd, tol = 1e-6)
-expect_equal(sum(qnbrs6$dist), ui6q_edsum, tol = 1e-6)
 
 # errors
 expect_error(graph_knn_query(

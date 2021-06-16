@@ -39,8 +39,8 @@ void nn_query(
     const SparseNNGraph<typename Distance::Output, typename Distance::Index>
         &reference_graph,
     NNHeap<typename Distance::Output, typename Distance::Index> &nn_heap,
-    const Distance &distance, std::size_t max_candidates, double epsilon,
-    std::size_t n_iters, Progress &progress) {
+    const Distance &distance, double epsilon, std::size_t n_iters,
+    Progress &progress) {
 
   non_search_query(nn_heap, distance, reference_graph, epsilon, progress,
                    n_iters);
@@ -51,9 +51,8 @@ void nn_query(
     const SparseNNGraph<typename Distance::Output, typename Distance::Index>
         &reference_graph,
     NNHeap<typename Distance::Output, typename Distance::Index> &nn_heap,
-    const Distance &distance, std::size_t max_candidates, double epsilon,
-    std::size_t n_iters, Progress &progress, std::size_t n_threads = 0,
-    std::size_t grain_size = 1) {
+    const Distance &distance, double epsilon, std::size_t n_iters,
+    Progress &progress, std::size_t n_threads = 0, std::size_t grain_size = 1) {
   const std::size_t n_points = nn_heap.n_points;
 
   NullProgress null_progress;

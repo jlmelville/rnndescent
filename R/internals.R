@@ -82,38 +82,6 @@ prepare_init_graph <-
     nn
   }
 
-prepare_reference_graph <- function(reference_graph, max_candidates, verbose = FALSE) {
-  for (name in c("idx", "dist")) {
-    m <- reference_graph[[name]]
-    stopifnot(
-      !is.null(m),
-      methods::is(m, "matrix")
-    )
-    reference_graph[[name]] <- m
-  }
-  stopifnot(dim(reference_graph$idx) == dim(reference_graph$dist))
-  if (ncol(reference_graph$idx) < max_candidates) {
-    tsmessage(
-      "Note: reference graph columns = ", ncol(reference_graph$idx),
-      " < requested max_candidates = ", max_candidates
-    )
-    max_candidates <- ncol(reference_graph$idx)
-  }
-  else if (ncol(reference_graph$idx) > max_candidates) {
-    tsmessage("Reducing reference graph columns to ", max_candidates)
-  }
-
-  for (name in c("idx", "dist")) {
-    m <- reference_graph[[name]]
-    if (max_candidates != ncol(m)) {
-      m <- m[, 1:max_candidates, drop = FALSE]
-    }
-    reference_graph[[name]] <- m
-  }
-
-  reference_graph
-}
-
 get_reference_graph_k <- function(reference_graph) {
   ncol(reference_graph$idx)
 }

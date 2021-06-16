@@ -30,8 +30,8 @@
 using namespace Rcpp;
 
 #define NN_QUERY_IMPL()                                                        \
-  return nn_impl.get_nn<Distance, Progress>(nn_idx, nn_dist, max_candidates,   \
-                                            epsilon, n_iters, verbose);
+  return nn_impl.get_nn<Distance, Progress>(nn_idx, nn_dist, epsilon, n_iters, \
+                                            verbose);
 
 #define NN_QUERY_PROGRESS()                                                    \
   using Progress = RPProgress;                                                 \
@@ -61,8 +61,7 @@ struct NNQuerySerial {
         reference_graph_list(reference_graph_list) {}
 
   template <typename Distance, typename Progress>
-  auto get_nn(IntegerMatrix nn_idx, NumericMatrix nn_dist,
-              std::size_t max_candidates = 50, double epsilon = 0.1,
+  auto get_nn(IntegerMatrix nn_idx, NumericMatrix nn_dist, double epsilon = 0.1,
               std::size_t n_iters = 10, bool verbose = false) -> List {
     using Out = typename Distance::Output;
     using Index = typename Distance::Index;
@@ -74,8 +73,8 @@ struct NNQuerySerial {
     Progress progress(nn_heap.n_points, verbose);
 
     auto reference_graph = r_to_sparse_graph<Distance>(reference_graph_list);
-    tdoann::nn_query(reference_graph, nn_heap, distance, max_candidates,
-                     epsilon, n_iters, progress);
+    tdoann::nn_query(reference_graph, nn_heap, distance, epsilon, n_iters,
+                     progress);
 
     return heap_to_r(nn_heap);
   }
@@ -98,8 +97,7 @@ struct NNQueryParallel {
         grain_size(grain_size) {}
 
   template <typename Distance, typename Progress>
-  auto get_nn(IntegerMatrix nn_idx, NumericMatrix nn_dist,
-              std::size_t max_candidates = 50, double epsilon = 0.1,
+  auto get_nn(IntegerMatrix nn_idx, NumericMatrix nn_dist, double epsilon = 0.1,
               std::size_t n_iters = 10, bool verbose = false) -> List {
     using Out = typename Distance::Output;
     using Index = typename Distance::Index;
@@ -110,9 +108,8 @@ struct NNQueryParallel {
     auto distance = r_to_dist<Distance>(reference, query);
     auto reference_graph = r_to_sparse_graph<Distance>(reference_graph_list);
     Progress progress(1, verbose);
-    tdoann::nn_query<RParallel>(reference_graph, nn_heap, distance,
-                                max_candidates, epsilon, n_iters, progress,
-                                n_threads, grain_size);
+    tdoann::nn_query<RParallel>(reference_graph, nn_heap, distance, epsilon,
+                                n_iters, progress, n_threads, grain_size);
 
     return heap_to_r(nn_heap, 1024, n_threads, grain_size);
   }
@@ -121,8 +118,7 @@ struct NNQueryParallel {
 // [[Rcpp::export]]
 List nn_query(NumericMatrix reference, List reference_graph_list,
               NumericMatrix query, IntegerMatrix nn_idx, NumericMatrix nn_dist,
-              const std::string &metric = "euclidean",
-              std::size_t max_candidates = 50, double epsilon = 0.1,
+              const std::string &metric = "euclidean", double epsilon = 0.1,
               std::size_t n_iters = 10, std::size_t n_threads = 0,
               std::size_t grain_size = 1, bool verbose = false) {
   DISPATCH_ON_QUERY_DISTANCES(NN_QUERY_UPDATER)

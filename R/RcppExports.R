@@ -61,7 +61,7 @@ random_knn_query_cpp <- function(reference, query, k, metric = "euclidean", orde
     .Call(`_rnndescent_random_knn_query_cpp`, reference, query, k, metric, order_by_distance, block_size, n_threads, grain_size, verbose)
 }
 
-nn_query <- function(reference, reference_graph_list, query, nn_idx, nn_dist, metric = "euclidean", max_candidates = 50L, epsilon = 0.1, n_iters = 10L, n_threads = 0L, grain_size = 1L, verbose = FALSE) {
-    .Call(`_rnndescent_nn_query`, reference, reference_graph_list, query, nn_idx, nn_dist, metric, max_candidates, epsilon, n_iters, n_threads, grain_size, verbose)
+nn_query <- function(reference, reference_graph_list, query, nn_idx, nn_dist, metric = "euclidean", epsilon = 0.1, n_iters = 10L, n_threads = 0L, grain_size = 1L, verbose = FALSE) {
+    .Call(`_rnndescent_nn_query`, reference, reference_graph_list, query, nn_idx, nn_dist, metric, epsilon, n_iters, n_threads, grain_size, verbose)
 }
 

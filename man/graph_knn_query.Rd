@@ -13,7 +13,6 @@ graph_knn_query(
   init = NULL,
   n_iters = Inf,
   epsilon = 0.1,
-  max_candidates = NULL,
   use_alt_metric = TRUE,
   n_threads = 0,
   grain_size = 1,
@@ -71,12 +70,7 @@ highly dependent on the distribution of distances in the dataset (higher
 dimensional data should choose a smaller cutoff). Too large a value of
 \code{epsilon} will result in the query search approaching brute force
 comparison. Use this parameter in conjunction with \code{n_iters} and
-\code{max_candidates} to prevent excessive run time. Default is 0.1.}
-
-\item{max_candidates}{Maximum number of candidate neighbors to try for each
-item in each iteration. Use relative to \code{k} to emulate the "rho"
-sampling parameter in the nearest neighbor descent paper. By default, this
-is set to \code{k} or \code{60}, whichever is smaller.}
+\code{\link[=prepare_search_graph]{prepare_search_graph()}} to prevent excessive run time. Default is 0.1.}
 
 \item{use_alt_metric}{If \code{TRUE}, use faster metrics that maintain the
 ordering of distances internally (e.g. squared Euclidean distances if using

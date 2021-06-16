@@ -693,11 +693,7 @@ random_knn_query <-
 #'   dimensional data should choose a smaller cutoff). Too large a value of
 #'   `epsilon` will result in the query search approaching brute force
 #'   comparison. Use this parameter in conjunction with `n_iters` and
-#'   `max_candidates` to prevent excessive run time. Default is 0.1.
-#' @param max_candidates Maximum number of candidate neighbors to try for each
-#'   item in each iteration. Use relative to `k` to emulate the "rho"
-#'   sampling parameter in the nearest neighbor descent paper. By default, this
-#'   is set to `k` or `60`, whichever is smaller.
+#'   [prepare_search_graph()] to prevent excessive run time. Default is 0.1.
 #' @param n_threads Number of threads to use.
 #' @param grain_size Minimum batch size for multithreading. If the number of
 #'   items to process in a thread falls below this number, then no threads will
@@ -748,7 +744,6 @@ graph_knn_query <- function(query,
                             init = NULL,
                             n_iters = Inf,
                             epsilon = 0.1,
-                            max_candidates = NULL,
                             use_alt_metric = TRUE,
                             n_threads = 0,
                             grain_size = 1,
@@ -809,9 +804,7 @@ graph_knn_query <- function(query,
       grain_size = grain_size,
       verbose = verbose
     )
-  if (is.null(max_candidates)) {
-    max_candidates <- min(k, 60)
-  }
+
   # We need to convert from Inf to an actual integer value. This is sufficiently
   # big for our purposes
   if (is.infinite(n_iters)) {
@@ -833,9 +826,6 @@ graph_knn_query <- function(query,
   )
 
   if (is.list(reference_graph)) {
-    reference_graph <- prepare_reference_graph(reference_graph, max_candidates,
-      verbose = verbose
-    )
     reference_dist <- reference_graph$dist
     reference_idx <- reference_graph$idx
     stopifnot(!is.null(reference), methods::is(reference, "matrix"))
@@ -865,7 +855,6 @@ graph_knn_query <- function(query,
       nn_idx = init$idx,
       nn_dist = init$dist,
       metric = actual_metric,
-      max_candidates = max_candidates,
       epsilon = epsilon,
       n_iters = n_iters,
       n_threads = n_threads,
