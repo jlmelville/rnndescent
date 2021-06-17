@@ -266,7 +266,28 @@ neighbor descent is worth doing: if the maximum k-occurrence is a lot larger
 than `k` (I suggest `10 * k` as a danger sign), then the accuracy of the
 approximate nearest neighbors may be compromised. Items with low k-occurrences
 are most likely to be affected in this way. Increasing `k` or the
-`max_candidates` parameter can help in these situations.
+`max_candidates` parameter can help in these situations. Alternatively, querying
+the data against itself with `graph_knn_query` can help:
+
+```R
+# Purposely don't do a very good job with NND so we have something to improve
+iris_nnd <- nnd_knn(iris, k = 15, n_iters = 1)
+iris_search_graph <-
+  prepare_search_graph(iris, iris_nnd)
+
+# query and reference are the same
+iris_query_nn <-
+  graph_knn_query(
+    query = iris,
+    reference = iris,
+    reference_graph = iris_search_graph,
+    init = iris_nnd,
+    k = 15
+  )
+# Compare 
+sum(iris_nnd$dist)
+sum(iris_query_nn$dist)
+```
 
 For more on hubness and nearest neighbors, see for example 
 [Radovanović and co-workers, 2010](https://www.jmlr.org/papers/v11/radovanovic10a.html)
