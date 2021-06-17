@@ -71,8 +71,8 @@ auto degree_prune(const SparseNNGraph &graph, std::size_t max_degree)
     const auto n_nbrs = std::min(unpruned_n_nbrs, max_degree);
 
     for (std::size_t j = 0; j < n_nbrs; j++) {
-      new_col_idx.push_back(graph.col_idx[begin + ordered[j]]);
-      new_dist.push_back(graph.dist[begin + ordered[j]]);
+      new_col_idx.push_back(graph.index(i, ordered[j]));
+      new_dist.push_back(graph.distance(i, ordered[j]));
     }
     new_row_ptr[i1] += n_nbrs;
   }
@@ -96,7 +96,7 @@ auto remove_long_edges_sp(const SparseNNGraph &graph, const Distance &distance,
     const std::size_t i1 = i + 1;
     new_row_ptr[i1] = new_row_ptr[i];
 
-    const std::size_t n_nbrs = graph.row_ptr[i1] - graph.row_ptr[i];
+    const std::size_t n_nbrs = graph.n_nbrs(i);
     if (n_nbrs == 0) {
       continue;
     }
@@ -105,14 +105,14 @@ auto remove_long_edges_sp(const SparseNNGraph &graph, const Distance &distance,
                          graph.dist.begin() + graph.row_ptr[i1]);
 
     // initialize new graph with closest neighbor
-    new_col_idx.push_back(graph.col_idx[graph.row_ptr[i] + ordered[0]]);
-    new_dist.push_back(graph.dist[graph.row_ptr[i] + ordered[0]]);
+    new_col_idx.push_back(graph.index(i, ordered[0]));
+    new_dist.push_back(graph.distance(i, ordered[0]));
     ++new_row_ptr[i1];
 
     // search all other neighbors (NB: start at 1)
     for (std::size_t j = 1; j < n_nbrs; j++) {
-      Idx nbr = graph.col_idx[graph.row_ptr[i] + ordered[j]];
-      DistOut nbr_dist = graph.dist[graph.row_ptr[i] + ordered[j]];
+      Idx nbr = graph.index(i, ordered[j]);
+      DistOut nbr_dist = graph.distance(i, ordered[j]);
 
       // Compare this neighbor with those that previously passed the filter
       bool add_nbr = true;
@@ -135,6 +135,8 @@ auto remove_long_edges_sp(const SparseNNGraph &graph, const Distance &distance,
   return SparseNNGraph(new_row_ptr, new_col_idx, new_dist);
 }
 
+// remove neighbors which are "occlusions"
+// for point i with neighbors p and q, if d(p, q) < d(i, p), then p occludes q
 template <typename SparseNNGraph, typename Distance>
 auto remove_long_edges_sp(const SparseNNGraph &graph, const Distance &distance)
     -> SparseNNGraph {
@@ -151,7 +153,7 @@ auto remove_long_edges_sp(const SparseNNGraph &graph, const Distance &distance)
     const std::size_t i1 = i + 1;
     new_row_ptr[i1] = new_row_ptr[i];
 
-    const std::size_t n_nbrs = graph.row_ptr[i1] - graph.row_ptr[i];
+    const std::size_t n_nbrs = graph.n_nbrs(i);
     if (n_nbrs == 0) {
       continue;
     }
@@ -160,14 +162,14 @@ auto remove_long_edges_sp(const SparseNNGraph &graph, const Distance &distance)
                          graph.dist.begin() + graph.row_ptr[i1]);
 
     // initialize new graph with closest neighbor
-    new_col_idx.push_back(graph.col_idx[graph.row_ptr[i] + ordered[0]]);
-    new_dist.push_back(graph.dist[graph.row_ptr[i] + ordered[0]]);
+    new_col_idx.push_back(graph.index(i, ordered[0]));
+    new_dist.push_back(graph.distance(i, ordered[0]));
     ++new_row_ptr[i1];
 
     // search all other neighbors (NB: start at 1)
     for (std::size_t j = 1; j < n_nbrs; j++) {
-      Idx nbr = graph.col_idx[graph.row_ptr[i] + ordered[j]];
-      DistOut nbr_dist = graph.dist[graph.row_ptr[i] + ordered[j]];
+      Idx nbr = graph.index(i, ordered[j]);
+      DistOut nbr_dist = graph.distance(i, ordered[j]);
 
       // Compare this neighbor with those that previously passed the filter
       bool add_nbr = true;
