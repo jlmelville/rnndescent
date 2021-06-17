@@ -678,11 +678,6 @@ random_knn_query <-
 #'   the number of neighbors provided in `init`. If smaller, only the `k`
 #'   closest value in `init` are retained. If the input distances are omitted,
 #'   they will be calculated for you.
-#' @param n_iters Number of iterations of nearest neighbor descent to carry out.
-#'   This is set to `Inf` by default. For controlling the time cost of
-#'   querying, it is recommended to modify `epsilon` initially. However,
-#'   setting this parameter can also provide a safe-guard against excessive
-#'   search time.
 #' @param epsilon Controls trade-off between accuracy and search cost, by
 #'   specifying a distance tolerance on whether to explore the neighbors of
 #'   candidate points. The larger the value, the more neighbors will be
@@ -692,7 +687,7 @@ random_knn_query <-
 #'   highly dependent on the distribution of distances in the dataset (higher
 #'   dimensional data should choose a smaller cutoff). Too large a value of
 #'   `epsilon` will result in the query search approaching brute force
-#'   comparison. Use this parameter in conjunction with `n_iters` and
+#'   comparison. Use this parameter in conjunction with
 #'   [prepare_search_graph()] to prevent excessive run time. Default is 0.1.
 #' @param n_threads Number of threads to use.
 #' @param grain_size Minimum batch size for multithreading. If the number of
@@ -742,7 +737,6 @@ graph_knn_query <- function(query,
                             k = NULL,
                             metric = "euclidean",
                             init = NULL,
-                            n_iters = Inf,
                             epsilon = 0.1,
                             use_alt_metric = TRUE,
                             n_threads = 0,
@@ -805,12 +799,6 @@ graph_knn_query <- function(query,
       verbose = verbose
     )
 
-  # We need to convert from Inf to an actual integer value. This is sufficiently
-  # big for our purposes
-  if (is.infinite(n_iters)) {
-    n_iters <- .Machine$integer.max
-  }
-
   stopifnot(!is.null(query), methods::is(query, "matrix"))
   stopifnot(
     !is.null(init$idx),
@@ -856,7 +844,6 @@ graph_knn_query <- function(query,
       nn_dist = init$dist,
       metric = actual_metric,
       epsilon = epsilon,
-      n_iters = n_iters,
       n_threads = n_threads,
       grain_size = grain_size,
       verbose = verbose

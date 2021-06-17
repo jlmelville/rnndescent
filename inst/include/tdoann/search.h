@@ -39,11 +39,9 @@ void nn_query(
     const SparseNNGraph<typename Distance::Output, typename Distance::Index>
         &reference_graph,
     NNHeap<typename Distance::Output, typename Distance::Index> &nn_heap,
-    const Distance &distance, double epsilon, std::size_t n_iters,
-    Progress &progress) {
+    const Distance &distance, double epsilon, Progress &progress) {
 
-  non_search_query(nn_heap, distance, reference_graph, epsilon, progress,
-                   n_iters);
+  non_search_query(nn_heap, distance, reference_graph, epsilon, progress);
 }
 
 template <typename Parallel, typename Distance, typename Progress>
@@ -51,14 +49,14 @@ void nn_query(
     const SparseNNGraph<typename Distance::Output, typename Distance::Index>
         &reference_graph,
     NNHeap<typename Distance::Output, typename Distance::Index> &nn_heap,
-    const Distance &distance, double epsilon, std::size_t n_iters,
-    Progress &progress, std::size_t n_threads = 0, std::size_t grain_size = 1) {
+    const Distance &distance, double epsilon, Progress &progress,
+    std::size_t n_threads = 0, std::size_t grain_size = 1) {
   const std::size_t n_points = nn_heap.n_points;
 
   NullProgress null_progress;
   auto query_non_search_worker = [&](std::size_t begin, std::size_t end) {
     non_search_query(nn_heap, distance, reference_graph, epsilon, null_progress,
-                     n_iters, begin, end);
+                     begin, end);
   };
   batch_parallel_for<Parallel>(query_non_search_worker, progress, n_points,
                                n_threads, grain_size);
@@ -77,8 +75,7 @@ void non_search_query(
     const Distance &distance,
     const SparseNNGraph<typename Distance::Output, typename Distance::Index>
         &search_graph,
-    double epsilon, Progress &progress, std::size_t n_iters, std::size_t begin,
-    std::size_t end) {
+    double epsilon, Progress &progress, std::size_t begin, std::size_t end) {
 
   using DistOut = typename Distance::Output;
   using Idx = typename Distance::Index;
@@ -144,10 +141,10 @@ void non_search_query(
     const Distance &distance,
     const SparseNNGraph<typename Distance::Output, typename Distance::Index>
         &search_graph,
-    double epsilon, Progress &progress, std::size_t n_iters) {
+    double epsilon, Progress &progress) {
 
-  non_search_query(current_graph, distance, search_graph, epsilon, progress,
-                   n_iters, 0, current_graph.n_points);
+  non_search_query(current_graph, distance, search_graph, epsilon, progress, 0,
+                   current_graph.n_points);
 }
 
 } // namespace tdoann

@@ -249,8 +249,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // nn_query
-List nn_query(NumericMatrix reference, List reference_graph_list, NumericMatrix query, IntegerMatrix nn_idx, NumericMatrix nn_dist, const std::string& metric, double epsilon, std::size_t n_iters, std::size_t n_threads, std::size_t grain_size, bool verbose);
-RcppExport SEXP _rnndescent_nn_query(SEXP referenceSEXP, SEXP reference_graph_listSEXP, SEXP querySEXP, SEXP nn_idxSEXP, SEXP nn_distSEXP, SEXP metricSEXP, SEXP epsilonSEXP, SEXP n_itersSEXP, SEXP n_threadsSEXP, SEXP grain_sizeSEXP, SEXP verboseSEXP) {
+List nn_query(NumericMatrix reference, List reference_graph_list, NumericMatrix query, IntegerMatrix nn_idx, NumericMatrix nn_dist, const std::string& metric, double epsilon, std::size_t n_threads, std::size_t grain_size, bool verbose);
+RcppExport SEXP _rnndescent_nn_query(SEXP referenceSEXP, SEXP reference_graph_listSEXP, SEXP querySEXP, SEXP nn_idxSEXP, SEXP nn_distSEXP, SEXP metricSEXP, SEXP epsilonSEXP, SEXP n_threadsSEXP, SEXP grain_sizeSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -261,11 +261,10 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< NumericMatrix >::type nn_dist(nn_distSEXP);
     Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
     Rcpp::traits::input_parameter< double >::type epsilon(epsilonSEXP);
-    Rcpp::traits::input_parameter< std::size_t >::type n_iters(n_itersSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type n_threads(n_threadsSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type grain_size(grain_sizeSEXP);
     Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
-    rcpp_result_gen = Rcpp::wrap(nn_query(reference, reference_graph_list, query, nn_idx, nn_dist, metric, epsilon, n_iters, n_threads, grain_size, verbose));
+    rcpp_result_gen = Rcpp::wrap(nn_query(reference, reference_graph_list, query, nn_idx, nn_dist, metric, epsilon, n_threads, grain_size, verbose));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -286,7 +285,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_rnndescent_degree_prune_cpp", (DL_FUNC) &_rnndescent_degree_prune_cpp, 2},
     {"_rnndescent_random_knn_cpp", (DL_FUNC) &_rnndescent_random_knn_cpp, 8},
     {"_rnndescent_random_knn_query_cpp", (DL_FUNC) &_rnndescent_random_knn_query_cpp, 9},
-    {"_rnndescent_nn_query", (DL_FUNC) &_rnndescent_nn_query, 11},
+    {"_rnndescent_nn_query", (DL_FUNC) &_rnndescent_nn_query, 10},
     {NULL, NULL, 0}
 };
 

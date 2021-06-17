@@ -11,7 +11,6 @@ graph_knn_query(
   k = NULL,
   metric = "euclidean",
   init = NULL,
-  n_iters = Inf,
   epsilon = 0.1,
   use_alt_metric = TRUE,
   n_threads = 0,
@@ -54,12 +53,6 @@ the number of neighbors provided in \code{init}. If smaller, only the \code{k}
 closest value in \code{init} are retained. If the input distances are omitted,
 they will be calculated for you.}
 
-\item{n_iters}{Number of iterations of nearest neighbor descent to carry out.
-This is set to \code{Inf} by default. For controlling the time cost of
-querying, it is recommended to modify \code{epsilon} initially. However,
-setting this parameter can also provide a safe-guard against excessive
-search time.}
-
 \item{epsilon}{Controls trade-off between accuracy and search cost, by
 specifying a distance tolerance on whether to explore the neighbors of
 candidate points. The larger the value, the more neighbors will be
@@ -69,7 +62,7 @@ and so on. Suggested values are between 0-0.5, although this value is
 highly dependent on the distribution of distances in the dataset (higher
 dimensional data should choose a smaller cutoff). Too large a value of
 \code{epsilon} will result in the query search approaching brute force
-comparison. Use this parameter in conjunction with \code{n_iters} and
+comparison. Use this parameter in conjunction with
 \code{\link[=prepare_search_graph]{prepare_search_graph()}} to prevent excessive run time. Default is 0.1.}
 
 \item{use_alt_metric}{If \code{TRUE}, use faster metrics that maintain the
