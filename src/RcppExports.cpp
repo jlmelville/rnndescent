@@ -145,21 +145,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// diversify_cpp
-List diversify_cpp(NumericMatrix data, IntegerMatrix idx, NumericMatrix dist, const std::string& metric, double prune_probability);
-RcppExport SEXP _rnndescent_diversify_cpp(SEXP dataSEXP, SEXP idxSEXP, SEXP distSEXP, SEXP metricSEXP, SEXP prune_probabilitySEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericMatrix >::type data(dataSEXP);
-    Rcpp::traits::input_parameter< IntegerMatrix >::type idx(idxSEXP);
-    Rcpp::traits::input_parameter< NumericMatrix >::type dist(distSEXP);
-    Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
-    Rcpp::traits::input_parameter< double >::type prune_probability(prune_probabilitySEXP);
-    rcpp_result_gen = Rcpp::wrap(diversify_cpp(data, idx, dist, metric, prune_probability));
-    return rcpp_result_gen;
-END_RCPP
-}
 // diversify_sp_cpp
 List diversify_sp_cpp(NumericMatrix data, List graph_list, const std::string& metric, double prune_probability);
 RcppExport SEXP _rnndescent_diversify_sp_cpp(SEXP dataSEXP, SEXP graph_listSEXP, SEXP metricSEXP, SEXP prune_probabilitySEXP) {
@@ -278,7 +263,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_rnndescent_merge_nn", (DL_FUNC) &_rnndescent_merge_nn, 9},
     {"_rnndescent_merge_nn_all", (DL_FUNC) &_rnndescent_merge_nn_all, 6},
     {"_rnndescent_nn_descent", (DL_FUNC) &_rnndescent_nn_descent, 13},
-    {"_rnndescent_diversify_cpp", (DL_FUNC) &_rnndescent_diversify_cpp, 5},
     {"_rnndescent_diversify_sp_cpp", (DL_FUNC) &_rnndescent_diversify_sp_cpp, 4},
     {"_rnndescent_diversify_always_sp_cpp", (DL_FUNC) &_rnndescent_diversify_always_sp_cpp, 3},
     {"_rnndescent_merge_graph_lists_cpp", (DL_FUNC) &_rnndescent_merge_graph_lists_cpp, 2},

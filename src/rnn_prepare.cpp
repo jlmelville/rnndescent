@@ -27,27 +27,11 @@
 
 using namespace Rcpp;
 
-#define DIVERSIFY_IMPL()                                                       \
-  return diversify_impl<Distance>(data, idx, dist, prune_probability);
-
 #define DIVERSIFY_SP_IMPL()                                                    \
   return diversify_sp_impl<Distance>(data, graph_list, prune_probability);
 
 #define DIVERSIFY_ALWAYS_SP_IMPL()                                             \
   return diversify_sp_impl<Distance>(data, graph_list);
-
-template <typename Distance>
-List diversify_impl(NumericMatrix data, IntegerMatrix idx, NumericMatrix dist,
-                    double prune_probability) {
-  auto distance = r_to_dist<Distance>(data);
-  auto graph = r_to_graph<Distance>(idx, dist);
-
-  RRand rand;
-  auto diversified =
-      tdoann::remove_long_edges(graph, distance, rand, prune_probability);
-
-  return graph_to_r(diversified, true);
-}
 
 template <typename Distance>
 List diversify_sp_impl(NumericMatrix data, List graph_list,
@@ -71,12 +55,6 @@ List diversify_sp_impl(NumericMatrix data, List graph_list) {
 
   return sparse_graph_to_r(diversified);
 }
-
-// [[Rcpp::export]]
-List diversify_cpp(NumericMatrix data, IntegerMatrix idx, NumericMatrix dist,
-                   const std::string &metric = "euclidean",
-                   double prune_probability = 1.0){
-    DISPATCH_ON_DISTANCES(DIVERSIFY_IMPL)}
 
 // [[Rcpp::export]]
 List diversify_sp_cpp(NumericMatrix data, List graph_list,

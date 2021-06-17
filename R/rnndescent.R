@@ -1024,32 +1024,6 @@ prepare_search_graph <- function(data,
   res
 }
 
-
-diversify <- function(data,
-                      graph,
-                      metric = "euclidean",
-                      prune_probability = 1.0,
-                      verbose = FALSE) {
-  idx <- graph$idx
-  dist <- graph$dist
-
-  stopifnot(
-    methods::is(idx, "matrix"),
-    nrow(data) == nrow(idx),
-    nrow(data) >= ncol(idx),
-    max(idx) <= nrow(data)
-  )
-  nnz_before <- sum(idx != 0)
-  res <- diversify_cpp(x2m(data), idx, dist, prune_probability = prune_probability)
-  nnz_after <- sum(res$idx != 0)
-  tsmessage(
-    "Diversifying reduced # edges from ", nnz_before,
-    " to ", nnz_after,
-    " (", formatC(100 * nn_sparsity(res)), "% sparse)"
-  )
-  res
-}
-
 # Harwood, B., & Drummond, T. (2016).
 # Fanng: Fast approximate nearest neighbour graphs.
 # In *Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition*
