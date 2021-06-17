@@ -900,14 +900,17 @@ graph_knn_query <- function(query,
 #' @param metric Type of distance calculation to use. One of `"euclidean"`,
 #'   `"l2sqr"` (squared Euclidean), `"cosine"`, `"manhattan"`, `"correlation"`
 #'   (1 minus the Pearson correlation), or `"hamming"`.
-#' @param prune_probability Probability of a neighbor being removed if it is
-#'   found to be an "occlusion". If item `p` and `q`, two members of the
+#' @param diversify_prob the degree of diversification of the search graph
+#'   by removing unnecessary edges through occlusion pruning. This should take a
+#'   value between `0` (no diversification) and `1` (remove as many edges as
+#'   possible) and is treated as the probability of a neighbor being removed if
+#'   it is found to be an "occlusion". If item `p` and `q`, two members of the
 #'   neighbor list of item `i`, are closer to each other than they are to `i`,
 #'   then the nearer neighbor `p` is said to "occlude" `q`. It is likely that
 #'   `q` will be in the neighbor list of `p` so there is no need to retain it in
-#'   the neighbor list of `i`. Set to `NULL` to skip any occlusion pruning. Note
-#'   that occlusion pruning is carried out twice, one to the forward neighbors,
-#'   and once to the reverse neighbors.
+#'   the neighbor list of `i`. You may also set this to `NULL` to skip any
+#'   occlusion pruning. Note that occlusion pruning is carried out twice, once
+#'   to the forward neighbors, and once to the reverse neighbors.
 #' @param pruning_degree_multiplier How strongly to truncate the final neighbor
 #'   list for each item. The neighbor list of each item will be truncated to
 #'   retain only the closest `d` neighbors, where
@@ -951,20 +954,20 @@ graph_knn_query <- function(query,
 prepare_search_graph <- function(data,
                                  graph,
                                  metric = "euclidean",
-                                 prune_probability = 1.0,
+                                 diversify_prob = 1.0,
                                  pruning_degree_multiplier = 1.5,
                                  verbose = FALSE) {
   n_nbrs <- check_graph(graph)$k
   tsmessage("Converting graph to sparse format")
   sp <- graph_to_cs(graph)
 
-  if (!is.null(prune_probability) && prune_probability > 0) {
+  if (!is.null(diversify_prob) && diversify_prob > 0) {
     tsmessage("Diversifying forward graph")
     fdiv <- diversify_sp(
       data,
       sp,
       metric = metric,
-      prune_probability = prune_probability,
+      prune_probability = diversify_prob,
       verbose = verbose
     )
   }
@@ -980,13 +983,13 @@ prepare_search_graph <- function(data,
   }
   rsp <- reverse_knn_sp(fdiv)
 
-  if (!is.null(prune_probability) && prune_probability > 0) {
+  if (!is.null(diversify_prob) && diversify_prob > 0) {
     tsmessage("Diversifying reverse graph")
     rdiv <- diversify_sp(
       data,
       rsp,
       metric = metric,
-      prune_probability = prune_probability,
+      prune_probability = diversify_prob,
       verbose = verbose
     )
   }

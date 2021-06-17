@@ -7,7 +7,7 @@ sg_full <-
   prepare_search_graph(
     data = ui10,
     graph = ui10_bf,
-    prune_probability = NULL,
+    diversify_prob = NULL,
     pruning_degree_multiplier = NULL
   )
 
@@ -35,7 +35,7 @@ sg_occ <-
   prepare_search_graph(
     data = ui10,
     graph = ui10_bf,
-    prune_probability = 1,
+    diversify_prob = 1,
     pruning_degree_multiplier = NULL
   )
 expect_equal(
@@ -54,7 +54,7 @@ sg_occp <-
   prepare_search_graph(
     data = ui10,
     graph = ui10_bf,
-    prune_probability = 0.5,
+    diversify_prob = 0.5,
     pruning_degree_multiplier = NULL
   )
 expect_equal(
@@ -77,7 +77,7 @@ sg_trunc <-
   prepare_search_graph(
     data = ui10,
     graph = ui10_bf,
-    prune_probability = NULL,
+    diversify_prob = NULL,
     pruning_degree_multiplier = 1.5
   )
 expect_equal(
@@ -103,7 +103,7 @@ sg_occ_trunc <-
   prepare_search_graph(
     data = ui10,
     graph = ui10_bf,
-    prune_probability = 1,
+    diversify_prob = 1,
     pruning_degree_multiplier = 0.5
   )
 expect_equal(

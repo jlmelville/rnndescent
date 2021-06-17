@@ -8,7 +8,7 @@ prepare_search_graph(
   data,
   graph,
   metric = "euclidean",
-  prune_probability = 1,
+  diversify_prob = 1,
   pruning_degree_multiplier = 1.5,
   verbose = FALSE
 )
@@ -27,14 +27,17 @@ the data in \code{data}.
 \code{"l2sqr"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"}, \code{"correlation"}
 (1 minus the Pearson correlation), or \code{"hamming"}.}
 
-\item{prune_probability}{Probability of a neighbor being removed if it is
-found to be an "occlusion". If item \code{p} and \code{q}, two members of the
+\item{diversify_prob}{the degree of diversification of the search graph
+by removing unnecessary edges through occlusion pruning. This should take a
+value between \code{0} (no diversification) and \code{1} (remove as many edges as
+possible) and is treated as the probability of a neighbor being removed if
+it is found to be an "occlusion". If item \code{p} and \code{q}, two members of the
 neighbor list of item \code{i}, are closer to each other than they are to \code{i},
 then the nearer neighbor \code{p} is said to "occlude" \code{q}. It is likely that
 \code{q} will be in the neighbor list of \code{p} so there is no need to retain it in
-the neighbor list of \code{i}. Set to \code{NULL} to skip any occlusion pruning. Note
-that occlusion pruning is carried out twice, one to the forward neighbors,
-and once to the reverse neighbors.}
+the neighbor list of \code{i}. You may also set this to \code{NULL} to skip any
+occlusion pruning. Note that occlusion pruning is carried out twice, once
+to the forward neighbors, and once to the reverse neighbors.}
 
 \item{pruning_degree_multiplier}{How strongly to truncate the final neighbor
 list for each item. The neighbor list of each item will be truncated to
