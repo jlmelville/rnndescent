@@ -1,90 +1,36 @@
 # Sparse ------------------------------------------------------------------
 
-graph_to_sparse_r <- function(graph, n_nbrs = NULL, n_ref = NULL) {
-  if (is.list(graph)) {
-    idx <- graph$idx
-    dist <- graph$dist
-  }
-  else {
-    idx <- graph
-    dist <- 1
-  }
-  if (is.null(n_nbrs)) {
-    n_nbrs <- ncol(idx)
-  }
-  else {
-    idx <- idx[, 1:n_nbrs]
-    if (methods::is(dist, "matrix")) {
-      dist <- dist[, 1:n_nbrs]
-    }
-  }
+graph_to_sparse <- function(graph, repr) {
+  idx <- graph$idx
+  dist <- graph$dist
+  n_nbrs <- ncol(idx)
   n_row <- nrow(idx)
-  # If this is query data, you need to provide the number of reference items
-  # yourself: we can't guarantee that all indices are included in idx
-  if (is.null(n_ref)) {
-    n_ref <- nrow(idx)
-  }
+  n_ref <- nrow(idx)
+
   Matrix::sparseMatrix(
     i = rep(1:n_row, times = n_nbrs),
     j = as.vector(idx),
     x = as.vector(dist),
     dims = c(n_row, n_ref),
-    repr = "R"
+    repr = repr
   )
 }
 
-graph_to_cs <- function(graph, n_nbrs = NULL, n_ref = NULL) {
-  if (is.list(graph)) {
-    idx <- graph$idx
-    dist <- graph$dist
-  }
-  else {
-    idx <- graph
-    dist <- 1
-  }
-  if (is.null(n_nbrs)) {
-    n_nbrs <- ncol(idx)
-  }
-  else {
-    idx <- idx[, 1:n_nbrs]
-    if (methods::is(dist, "matrix")) {
-      dist <- dist[, 1:n_nbrs]
-    }
-  }
-  n_row <- nrow(idx)
-  # If this is query data, you need to provide the number of reference items
-  # yourself: we can't guarantee that all indices are included in idx
-  if (is.null(n_ref)) {
-    n_ref <- nrow(idx)
-  }
-  Matrix::drop0(Matrix::sparseMatrix(
-    i = rep(1:n_row, times = n_nbrs),
-    j = as.vector(idx),
-    x = as.vector(dist),
-    dims = c(n_row, n_ref),
-    repr = "C"
-  ))
+graph_to_rsparse <- function(graph) {
+  graph_to_sparse(graph, "R")
 }
 
-sparse_to_list_r <- function(spr) {
+graph_to_csparse <- function(graph) {
+  graph_to_sparse(graph, "C")
+}
+
+rsparse_to_list <- function(spr) {
   list(row_ptr = spr@p, col_idx = spr@j, dist = spr@x)
 }
 
-sparse_to_list_c <- function(spc) {
+csparse_to_list <- function(spc) {
   spct <- Matrix::t(spc)
   list(row_ptr = spct@p, col_idx = spct@i, dist = spct@x)
-}
-
-sparse_to_list <- function(sp) {
-  if (methods::is(sp, "RsparseMatrix")) {
-    sparse_to_list_r(sp)
-  }
-  else if (methods::is(sp, "CsparseMatrix")) {
-    sparse_to_list_c(sp)
-  }
-  else {
-    sparse_to_list_c(sparse_to_c(sp))
-  }
 }
 
 list_to_sparse <- function(l) {
@@ -98,12 +44,7 @@ list_to_sparse <- function(l) {
   ))
 }
 
-
 graph_to_list <- function(graph) {
-  sr <- graph_to_sparse_r(graph)
-  sparse_to_list_r(sr)
-}
-
-sparse_to_c <- function(sp) {
-  methods::as(sp, "CsparseMatrix")
+  sr <- graph_to_rsparse(graph)
+  rsparse_to_list(sr)
 }

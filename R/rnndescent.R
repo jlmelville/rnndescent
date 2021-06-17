@@ -831,7 +831,7 @@ graph_knn_query <- function(query,
   }
   else {
     stopifnot(methods::is(reference_graph, "sparseMatrix"))
-    reference_graph_list <- sparse_to_list(reference_graph)
+    reference_graph_list <- csparse_to_list(reference_graph)
   }
 
   tsmessage(thread_msg("Searching nearest neighbor graph", n_threads = n_threads))
@@ -959,7 +959,7 @@ prepare_search_graph <- function(data,
                                  verbose = FALSE) {
   n_nbrs <- check_graph(graph)$k
   tsmessage("Converting graph to sparse format")
-  sp <- graph_to_cs(graph)
+  sp <- graph_to_csparse(graph)
 
   if (!is.null(diversify_prob) && diversify_prob > 0) {
     tsmessage("Diversifying forward graph")
@@ -1042,7 +1042,7 @@ diversify_sp <- function(data,
   stopifnot(
     methods::is(graph, "sparseMatrix")
   )
-  gl <- sparse_to_list(graph)
+  gl <- csparse_to_list(graph)
 
   if (prune_probability < 1) {
     gl_div <- diversify_sp_cpp(
@@ -1076,7 +1076,7 @@ degree_prune <- function(graph, max_degree = 20, verbose = FALSE) {
   )
   nnz_before <- Matrix::nnzero(graph)
   sp_before <- nn_sparsity_sp(graph)
-  gl <- sparse_to_list(graph)
+  gl <- csparse_to_list(graph)
 
   gl_div <- degree_prune_cpp(gl, max_degree)
   res <- list_to_sparse(gl_div)
@@ -1092,8 +1092,8 @@ degree_prune <- function(graph, max_degree = 20, verbose = FALSE) {
 
 
 merge_graphs_sp <- function(g1, g2) {
-  gl1 <- sparse_to_list(g1)
-  gl2 <- sparse_to_list(g2)
+  gl1 <- csparse_to_list(g1)
+  gl2 <- csparse_to_list(g2)
 
   gl_merge <- merge_graph_lists_cpp(gl1, gl2)
   list_to_sparse(gl_merge)
