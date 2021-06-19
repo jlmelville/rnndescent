@@ -67,16 +67,14 @@ struct SparseNNGraph {
     return dist[row_ptr[i] + static_cast<std::size_t>(j)];
   }
 
-  void mark_for_deletion(Idx i, Idx j) {
-    dist[row_ptr[i] + static_cast<std::size_t>(j)] = zero;
-  }
-
-  auto is_marked_for_deletion(Idx i, Idx j) -> bool {
-    return dist[row_ptr[i] + static_cast<std::size_t>(j)] == zero;
-  }
-
   auto distance(Idx i, Idx j) -> DistOut & {
     return dist[row_ptr[i] + static_cast<std::size_t>(j)];
+  }
+
+  void mark_for_deletion(Idx i, Idx j) { distance(i, j) = zero; }
+
+  auto is_marked_for_deletion(Idx i, Idx j) -> bool {
+    return distance(i, j) == zero;
   }
 };
 
