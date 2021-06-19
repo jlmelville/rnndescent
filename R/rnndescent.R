@@ -966,8 +966,8 @@ prepare_search_graph <- function(data,
   if (!is.null(pruning_degree_multiplier)) {
     stopifnot(pruning_degree_multiplier > 0)
   }
-    if (!is.null(diversify_prob)) {
-     stopifnot(
+  if (!is.null(diversify_prob)) {
+    stopifnot(
       diversify_prob <= 1,
       diversify_prob >= 0
     )
@@ -1061,15 +1061,10 @@ diversify_sp <- function(data,
   )
   gl <- csparse_to_list(graph)
 
-  if (prune_probability < 1) {
-    gl_div <- diversify_sp_cpp(
-      data = x2m(data), graph_list = gl, metric = metric,
-      prune_probability = prune_probability
-    )
-  }
-  else {
-    gl_div <- diversify_always_sp_cpp(data = x2m(data), graph_list = gl, metric = metric)
-  }
+  gl_div <- diversify_sp_cpp(
+    data = x2m(data), graph_list = gl, metric = metric,
+    prune_probability = prune_probability
+  )
   res <- list_to_sparse(gl_div)
   nnz_after <- Matrix::nnzero(res)
   tsmessage(

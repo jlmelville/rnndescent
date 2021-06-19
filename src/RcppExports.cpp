@@ -159,19 +159,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// diversify_always_sp_cpp
-List diversify_always_sp_cpp(NumericMatrix data, List graph_list, const std::string& metric);
-RcppExport SEXP _rnndescent_diversify_always_sp_cpp(SEXP dataSEXP, SEXP graph_listSEXP, SEXP metricSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericMatrix >::type data(dataSEXP);
-    Rcpp::traits::input_parameter< List >::type graph_list(graph_listSEXP);
-    Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
-    rcpp_result_gen = Rcpp::wrap(diversify_always_sp_cpp(data, graph_list, metric));
-    return rcpp_result_gen;
-END_RCPP
-}
 // merge_graph_lists_cpp
 List merge_graph_lists_cpp(Rcpp::List gl1, Rcpp::List gl2);
 RcppExport SEXP _rnndescent_merge_graph_lists_cpp(SEXP gl1SEXP, SEXP gl2SEXP) {
@@ -266,7 +253,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_rnndescent_merge_nn_all", (DL_FUNC) &_rnndescent_merge_nn_all, 6},
     {"_rnndescent_nn_descent", (DL_FUNC) &_rnndescent_nn_descent, 13},
     {"_rnndescent_diversify_sp_cpp", (DL_FUNC) &_rnndescent_diversify_sp_cpp, 4},
-    {"_rnndescent_diversify_always_sp_cpp", (DL_FUNC) &_rnndescent_diversify_always_sp_cpp, 3},
     {"_rnndescent_merge_graph_lists_cpp", (DL_FUNC) &_rnndescent_merge_graph_lists_cpp, 2},
     {"_rnndescent_degree_prune_cpp", (DL_FUNC) &_rnndescent_degree_prune_cpp, 4},
     {"_rnndescent_random_knn_cpp", (DL_FUNC) &_rnndescent_random_knn_cpp, 8},

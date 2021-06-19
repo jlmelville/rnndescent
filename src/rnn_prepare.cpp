@@ -32,9 +32,6 @@ using namespace Rcpp;
 #define DIVERSIFY_SP_IMPL()                                                    \
   return diversify_sp_impl<Distance>(data, graph_list, prune_probability);
 
-#define DIVERSIFY_ALWAYS_SP_IMPL()                                             \
-  return diversify_sp_impl<Distance>(data, graph_list);
-
 template <typename Distance>
 List diversify_sp_impl(NumericMatrix data, List graph_list,
                        double prune_probability) {
@@ -48,27 +45,12 @@ List diversify_sp_impl(NumericMatrix data, List graph_list,
   return sparse_graph_to_r(diversified);
 }
 
-template <typename Distance>
-List diversify_sp_impl(NumericMatrix data, List graph_list) {
-  auto distance = r_to_dist<Distance>(data);
-  auto graph = r_to_sparse_graph<Distance>(graph_list);
-
-  auto diversified = tdoann::remove_long_edges_sp(graph, distance);
-
-  return sparse_graph_to_r(diversified);
-}
-
 // [[Rcpp::export]]
 List diversify_sp_cpp(NumericMatrix data, List graph_list,
                       const std::string &metric = "euclidean",
                       double prune_probability = 1.0){
     DISPATCH_ON_DISTANCES(DIVERSIFY_SP_IMPL)}
 
-// [[Rcpp::export]]
-List diversify_always_sp_cpp(NumericMatrix data, List graph_list,
-                             const std::string &metric = "euclidean") {
-  DISPATCH_ON_DISTANCES(DIVERSIFY_ALWAYS_SP_IMPL)
-}
 
 struct Dummy {
   using Output = double;
