@@ -48,9 +48,9 @@ List diversify_sp_impl(NumericMatrix data, List graph_list,
 // [[Rcpp::export]]
 List diversify_sp_cpp(NumericMatrix data, List graph_list,
                       const std::string &metric = "euclidean",
-                      double prune_probability = 1.0){
-    DISPATCH_ON_DISTANCES(DIVERSIFY_SP_IMPL)}
-
+                      double prune_probability = 1.0) {
+  DISPATCH_ON_DISTANCES(DIVERSIFY_SP_IMPL)
+}
 
 struct Dummy {
   using Output = double;

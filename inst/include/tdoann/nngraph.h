@@ -64,6 +64,10 @@ struct SparseNNGraph {
   auto distance(Idx i, Idx j) const -> DistOut {
     return dist[row_ptr[i] + static_cast<std::size_t>(j)];
   }
+
+  auto distance(Idx i, Idx j) -> DistOut & {
+    return dist[row_ptr[i] + static_cast<std::size_t>(j)];
+  }
 };
 
 template <typename DistOut = float, typename Idx = uint32_t> struct NNGraph {
