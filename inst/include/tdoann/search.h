@@ -27,9 +27,8 @@
 #ifndef TDOANN_SEARCH_H
 #define TDOANN_SEARCH_H
 
-#include <queue>
-
 #include "bvset.h"
+#include "nbrqueue.h"
 #include "nngraph.h"
 
 namespace tdoann {
@@ -84,14 +83,9 @@ void non_search_query(
 
   const double distance_scale = 1.0 + epsilon;
 
-  using Seed = std::pair<DistOut, Idx>;
-  // std::priority_queue is a max heap, so we need to implement the comparison
-  // as "greater than" to get the smallest distance first
-  auto cmp = [](Seed left, Seed right) { return left.first > right.first; };
-
   for (std::size_t query_idx = begin; query_idx < end; query_idx++) {
     auto visited = create_set(search_graph.n_points);
-    std::priority_queue<Seed, std::vector<Seed>, decltype(cmp)> seed_set(cmp);
+    NbrQueue<DistOut, Idx> seed_set;
     for (std::size_t j = 0; j < n_nbrs; j++) {
       Idx candidate_idx = current_graph.index(query_idx, j);
       if (candidate_idx == current_graph.npos()) {
@@ -106,7 +100,7 @@ void non_search_query(
         static_cast<double>(current_graph.max_distance(query_idx));
 
     while (!seed_set.empty()) {
-      Seed vertex = pop(seed_set);
+      auto vertex = seed_set.pop();
       DistOut d_vertex = vertex.first;
       if (static_cast<double>(d_vertex) >= distance_bound) {
         break;
