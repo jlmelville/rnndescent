@@ -37,10 +37,6 @@ diversify_sp_cpp <- function(data, graph_list, metric = "euclidean", prune_proba
     .Call(`_rnndescent_diversify_sp_cpp`, data, graph_list, metric, prune_probability)
 }
 
-diversify_always_sp_cpp <- function(data, graph_list, metric = "euclidean") {
-    .Call(`_rnndescent_diversify_always_sp_cpp`, data, graph_list, metric)
-}
-
 merge_graph_lists_cpp <- function(gl1, gl2) {
     .Call(`_rnndescent_merge_graph_lists_cpp`, gl1, gl2)
 }
