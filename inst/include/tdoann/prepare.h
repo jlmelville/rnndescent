@@ -31,6 +31,9 @@
 #include <numeric>
 #include <vector>
 
+#include "nbrqueue.h"
+#include "parallel.h"
+
 namespace tdoann {
 
 template <typename It>
@@ -46,6 +49,7 @@ auto order(It first, It last) -> std::vector<std::size_t> {
   return idx;
 }
 
+// single thread implementation
 template <typename SparseNNGraph>
 auto degree_prune(const SparseNNGraph &graph, std::size_t max_degree)
     -> SparseNNGraph {
@@ -77,6 +81,59 @@ auto degree_prune(const SparseNNGraph &graph, std::size_t max_degree)
     new_row_ptr[i1] += n_nbrs;
   }
   return SparseNNGraph(new_row_ptr, new_col_idx, new_dist);
+}
+
+template <typename SparseNNGraph>
+auto kth_smallest_distance(const SparseNNGraph &graph, std::size_t i,
+                           std::size_t k) ->
+    typename SparseNNGraph::DistanceOut {
+  using DistOut = typename SparseNNGraph::DistanceOut;
+  using Idx = typename SparseNNGraph::Index;
+  const std::size_t n_nbrs = graph.n_nbrs(i);
+  NbrQueue<DistOut, Idx> nq;
+  for (std::size_t j = 0; j < n_nbrs; j++) {
+    nq.emplace(graph.distance(i, j), graph.index(i, j));
+  }
+  DistOut kth_small = nq.pop().first;
+  for (std::size_t j = 1; j < k; j++) {
+    kth_small = nq.pop().first;
+  }
+  return kth_small;
+}
+
+template <typename SparseNNGraph>
+void degree_prune_impl(const SparseNNGraph &graph, SparseNNGraph &result,
+                       std::size_t max_degree, std::size_t begin,
+                       std::size_t end) {
+  using DistOut = typename SparseNNGraph::DistanceOut;
+
+  for (std::size_t i = begin; i < end; i++) {
+    const auto unpruned_n_nbrs = graph.n_nbrs(i);
+    if (unpruned_n_nbrs <= max_degree) {
+      continue;
+    }
+
+    DistOut max_degree_dist = kth_smallest_distance(graph, i, max_degree);
+
+    for (std::size_t j = 0; j < unpruned_n_nbrs; j++) {
+      if (graph.distance(i, j) > max_degree_dist) {
+        result.dist[graph.row_ptr[i] + j] = static_cast<DistOut>(0);
+      }
+    }
+  }
+}
+
+template <typename Parallel, typename SparseNNGraph, typename Progress>
+auto degree_prune(const SparseNNGraph &graph, std::size_t max_degree,
+                  Progress &progress, std::size_t n_threads = 0,
+                  std::size_t grain_size = 1) -> SparseNNGraph {
+  SparseNNGraph result(graph.row_ptr, graph.col_idx, graph.dist);
+  auto worker = [&](std::size_t begin, std::size_t end) {
+    degree_prune_impl(graph, result, max_degree, begin, end);
+  };
+  batch_parallel_for<Parallel>(worker, progress, graph.n_points, n_threads,
+                               grain_size);
+  return result;
 }
 
 template <typename SparseNNGraph, typename Distance, typename Rand>

@@ -45,8 +45,8 @@ merge_graph_lists_cpp <- function(gl1, gl2) {
     .Call(`_rnndescent_merge_graph_lists_cpp`, gl1, gl2)
 }
 
-degree_prune_cpp <- function(graph_list, max_degree) {
-    .Call(`_rnndescent_degree_prune_cpp`, graph_list, max_degree)
+degree_prune_cpp <- function(graph_list, max_degree, n_threads = 0L, grain_size = 1L) {
+    .Call(`_rnndescent_degree_prune_cpp`, graph_list, max_degree, n_threads, grain_size)
 }
 
 random_knn_cpp <- function(data, k, metric = "euclidean", order_by_distance = TRUE, block_size = 4096L, n_threads = 0L, grain_size = 1L, verbose = FALSE) {

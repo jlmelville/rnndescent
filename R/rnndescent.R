@@ -922,6 +922,10 @@ graph_knn_query <- function(query,
 #'   half as many of the reverse neighbors, although exactly which neighbors are
 #'   retained is also dependent on any occlusion pruning that occurs. Set this
 #'   to `NULL` to skip this step.
+#' @param n_threads Number of threads to use.
+#' @param grain_size Minimum batch size for multithreading. If the number of
+#'   items to process in a thread falls below this number, then no threads will
+#'   be used. Ignored if `n_threads < 1`.
 #' @param verbose If `TRUE`, log information to the console.
 #' @return a search graph for `data` based on `graph`, represented as a sparse
 #'   matrix, suitable for use with [graph_knn_query()].
@@ -956,6 +960,8 @@ prepare_search_graph <- function(data,
                                  metric = "euclidean",
                                  diversify_prob = 1.0,
                                  pruning_degree_multiplier = 1.5,
+                                 n_threads = 0,
+                                 grain_size = 1,
                                  verbose = FALSE) {
   n_nbrs <- check_graph(graph)$k
   tsmessage("Converting graph to sparse format")
@@ -1070,25 +1076,36 @@ diversify_sp <- function(data,
 # Fanng: Fast approximate nearest neighbour graphs.
 # In *Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition*
 # (pp. 5713-5722).
-degree_prune <- function(graph, max_degree = 20, verbose = FALSE) {
-  stopifnot(
-    methods::is(graph, "sparseMatrix")
-  )
-  nnz_before <- Matrix::nnzero(graph)
-  sp_before <- nn_sparsity_sp(graph)
-  gl <- csparse_to_list(graph)
+degree_prune <-
+  function(graph,
+           max_degree = 20,
+           n_threads = 0,
+           grain_size = 1,
+           verbose = FALSE) {
+    stopifnot(methods::is(graph, "sparseMatrix"))
+    nnz_before <- Matrix::nnzero(graph)
+    sp_before <- nn_sparsity_sp(graph)
+    gl <- csparse_to_list(graph)
 
-  gl_div <- degree_prune_cpp(gl, max_degree)
-  res <- list_to_sparse(gl_div)
-  nnz_after <- Matrix::nnzero(res)
-  tsmessage(
-    "Degree pruning to max ", max_degree, " reduced # edges from ", nnz_before,
-    " to ", nnz_after,
-    " (", formatC(100 * sp_before), "% to ",
-    formatC(100 * nn_sparsity_sp(res)), "% sparse)"
-  )
-  res
-}
+    gl_div <-
+      degree_prune_cpp(gl, max_degree, n_threads, grain_size)
+    res <- list_to_sparse(gl_div)
+    nnz_after <- Matrix::nnzero(res)
+    tsmessage(
+      "Degree pruning to max ",
+      max_degree,
+      " reduced # edges from ",
+      nnz_before,
+      " to ",
+      nnz_after,
+      " (",
+      formatC(100 * sp_before),
+      "% to ",
+      formatC(100 * nn_sparsity_sp(res)),
+      "% sparse)"
+    )
+    res
+  }
 
 
 merge_graphs_sp <- function(g1, g2) {

@@ -23,6 +23,8 @@
 
 #include "rnn_distance.h"
 #include "rnn_macros.h"
+#include "rnn_parallel.h"
+#include "rnn_progress.h"
 #include "rnn_rng.h"
 
 using namespace Rcpp;
@@ -83,9 +85,23 @@ List merge_graph_lists_cpp(Rcpp::List gl1, Rcpp::List gl2) {
   return sparse_graph_to_r(g_merge);
 }
 
+template <typename SparseNNGraph>
+auto degree_prune_impl(const SparseNNGraph &graph, std::size_t max_degree,
+                       std::size_t n_threads = 0, std::size_t grain_size = 1)
+    -> SparseNNGraph {
+  if (n_threads > 0) {
+    return tdoann::degree_prune(graph, max_degree);
+  } else {
+    RPProgress progress(1, false);
+    return tdoann::degree_prune<RParallel>(graph, max_degree, progress,
+                                           n_threads, grain_size);
+  }
+}
+
 // [[Rcpp::export]]
-List degree_prune_cpp(Rcpp::List graph_list, std::size_t max_degree) {
+List degree_prune_cpp(Rcpp::List graph_list, std::size_t max_degree,
+                      std::size_t n_threads = 0, std::size_t grain_size = 1) {
   auto graph = r_to_sparse_graph<Dummy>(graph_list);
-  auto pruned = tdoann::degree_prune(graph, max_degree);
+  auto pruned = degree_prune_impl(graph, max_degree, n_threads, grain_size);
   return sparse_graph_to_r(pruned);
 }
