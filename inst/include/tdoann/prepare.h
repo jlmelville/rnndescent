@@ -117,7 +117,7 @@ void degree_prune_impl(const SparseNNGraph &graph, SparseNNGraph &result,
 
     for (std::size_t j = 0; j < unpruned_n_nbrs; j++) {
       if (graph.distance(i, j) > max_degree_dist) {
-        result.dist[graph.row_ptr[i] + j] = static_cast<DistOut>(0);
+        result.mark_for_deletion(i, j);
       }
     }
   }
@@ -139,25 +139,20 @@ auto degree_prune(const SparseNNGraph &graph, std::size_t max_degree,
 // remove neighbors which are "occlusions"
 // for point i with neighbors p and q, if d(p, q) < d(i, p), then p occludes q
 template <typename SparseNNGraph, typename Distance, typename Rand>
-auto remove_long_edges_sp(const SparseNNGraph &graph, const Distance &distance,
-                          Rand &rand, double prune_probability)
-    -> SparseNNGraph {
+auto remove_long_edges(const SparseNNGraph &graph, const Distance &distance,
+                       Rand &rand, double prune_probability) -> SparseNNGraph {
   using DistOut = typename SparseNNGraph::DistanceOut;
   using Idx = typename SparseNNGraph::Index;
   SparseNNGraph result(graph.row_ptr, graph.col_idx, graph.dist);
 
   const std::size_t n_points = graph.n_points;
-  const auto zero = static_cast<DistOut>(0);
-
   for (std::size_t i = 0; i < n_points; i++) {
     const std::size_t n_nbrs = graph.n_nbrs(i);
     if (n_nbrs == 0) {
       continue;
     }
-
     auto ordered = order(graph.dist.begin() + graph.row_ptr[i],
                          graph.dist.begin() + graph.row_ptr[i + 1]);
-
     // loop starts at 1: we always keep the nearest neighbor so we start with
     // the next nearest neighbor
     for (std::size_t j = 1; j < n_nbrs; j++) {
@@ -168,16 +163,15 @@ auto remove_long_edges_sp(const SparseNNGraph &graph, const Distance &distance,
       // check the distance between p and all retained neighbors (q) so far
       for (std::size_t k = 0; k < j; k++) {
         const auto q = ordered[k];
-        DistOut diq = result.distance(i, q);
-        // q was already considered an occlusion, no need to test
-        if (diq == zero) {
+        if (result.is_marked_for_deletion(i, q)) {
+          // q was already considered an occlusion, no need to test
           continue;
         }
         Idx nbrq = graph.index(i, q);
         DistOut dpq = distance(nbrp, nbrq);
         if (dpq < dip && rand.unif() < prune_probability) {
           // p occludes q, mark p for deletion
-          result.distance(i, p) = zero;
+          result.mark_for_deletion(i, p);
           break;
         }
       }

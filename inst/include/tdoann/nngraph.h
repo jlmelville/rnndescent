@@ -53,6 +53,8 @@ struct SparseNNGraph {
 
   static constexpr auto npos() -> Idx { return static_cast<Idx>(-1); }
 
+  static constexpr auto zero = static_cast<DistOut>(0);
+
   auto n_nbrs(Idx i) const -> std::size_t {
     return row_ptr[i + 1] - row_ptr[i];
   }
@@ -63,6 +65,14 @@ struct SparseNNGraph {
 
   auto distance(Idx i, Idx j) const -> DistOut {
     return dist[row_ptr[i] + static_cast<std::size_t>(j)];
+  }
+
+  void mark_for_deletion(Idx i, Idx j) {
+    dist[row_ptr[i] + static_cast<std::size_t>(j)] = zero;
+  }
+
+  auto is_marked_for_deletion(Idx i, Idx j) -> bool {
+    return dist[row_ptr[i] + static_cast<std::size_t>(j)] == zero;
   }
 
   auto distance(Idx i, Idx j) -> DistOut & {

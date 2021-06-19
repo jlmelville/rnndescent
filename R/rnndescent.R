@@ -980,7 +980,7 @@ prepare_search_graph <- function(data,
 
   if (!is.null(diversify_prob) && diversify_prob > 0) {
     tsmessage("Diversifying forward graph")
-    fdiv <- diversify_sp(
+    fdiv <- diversify(
       data,
       sp,
       metric = metric,
@@ -1002,7 +1002,7 @@ prepare_search_graph <- function(data,
 
   if (!is.null(diversify_prob) && diversify_prob > 0) {
     tsmessage("Diversifying reverse graph")
-    rdiv <- diversify_sp(
+    rdiv <- diversify(
       data,
       rsp,
       metric = metric,
@@ -1049,11 +1049,11 @@ prepare_search_graph <- function(data,
 # In *Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition*
 # (pp. 5713-5722).
 # "Occlusion pruning"
-diversify_sp <- function(data,
-                         graph,
-                         metric = "euclidean",
-                         prune_probability = 1.0,
-                         verbose = FALSE) {
+diversify <- function(data,
+                      graph,
+                      metric = "euclidean",
+                      prune_probability = 1.0,
+                      verbose = FALSE) {
   nnz_before <- Matrix::nnzero(graph)
   sp_before <- nn_sparsity_sp(graph)
   stopifnot(
@@ -1061,7 +1061,7 @@ diversify_sp <- function(data,
   )
   gl <- csparse_to_list(graph)
 
-  gl_div <- diversify_sp_cpp(
+  gl_div <- diversify_cpp(
     data = x2m(data), graph_list = gl, metric = metric,
     prune_probability = prune_probability
   )

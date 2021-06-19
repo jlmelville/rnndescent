@@ -33,8 +33,8 @@ nn_descent <- function(data, nn_idx, nn_dist, metric = "euclidean", max_candidat
     .Call(`_rnndescent_nn_descent`, data, nn_idx, nn_dist, metric, max_candidates, n_iters, delta, low_memory, block_size, n_threads, grain_size, verbose, progress)
 }
 
-diversify_sp_cpp <- function(data, graph_list, metric = "euclidean", prune_probability = 1.0) {
-    .Call(`_rnndescent_diversify_sp_cpp`, data, graph_list, metric, prune_probability)
+diversify_cpp <- function(data, graph_list, metric = "euclidean", prune_probability = 1.0) {
+    .Call(`_rnndescent_diversify_cpp`, data, graph_list, metric, prune_probability)
 }
 
 merge_graph_lists_cpp <- function(gl1, gl2) {
