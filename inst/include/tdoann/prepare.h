@@ -139,14 +139,13 @@ auto degree_prune(const SparseNNGraph &graph, std::size_t max_degree,
 // remove neighbors which are "occlusions"
 // for point i with neighbors p and q, if d(p, q) < d(i, p), then p occludes q
 template <typename SparseNNGraph, typename Distance, typename Rand>
-auto remove_long_edges(const SparseNNGraph &graph, const Distance &distance,
-                       Rand &rand, double prune_probability) -> SparseNNGraph {
+void remove_long_edges_impl(const SparseNNGraph &graph,
+                            const Distance &distance, Rand &rand,
+                            double prune_probability, SparseNNGraph &result,
+                            std::size_t begin, std::size_t end) {
   using DistOut = typename SparseNNGraph::DistanceOut;
   using Idx = typename SparseNNGraph::Index;
-  SparseNNGraph result(graph.row_ptr, graph.col_idx, graph.dist);
-
-  const std::size_t n_points = graph.n_points;
-  for (std::size_t i = 0; i < n_points; i++) {
+  for (std::size_t i = begin; i < end; i++) {
     const std::size_t n_nbrs = graph.n_nbrs(i);
     if (n_nbrs == 0) {
       continue;
@@ -177,6 +176,14 @@ auto remove_long_edges(const SparseNNGraph &graph, const Distance &distance,
       }
     }
   }
+}
+
+template <typename SparseNNGraph, typename Distance, typename Rand>
+auto remove_long_edges(const SparseNNGraph &graph, const Distance &distance,
+                       Rand &rand, double prune_probability) -> SparseNNGraph {
+  SparseNNGraph result(graph.row_ptr, graph.col_idx, graph.dist);
+  remove_long_edges_impl(graph, distance, rand, prune_probability, result, 0,
+                         graph.n_points);
   return result;
 }
 
