@@ -963,7 +963,18 @@ prepare_search_graph <- function(data,
                                  n_threads = 0,
                                  grain_size = 1,
                                  verbose = FALSE) {
+  if (!is.null(pruning_degree_multiplier)) {
+    stopifnot(pruning_degree_multiplier > 0)
+  }
+    if (!is.null(diversify_prob)) {
+     stopifnot(
+      diversify_prob <= 1,
+      diversify_prob >= 0
+    )
+  }
   n_nbrs <- check_graph(graph)$k
+  max_degree <- max(round(n_nbrs * pruning_degree_multiplier), 1)
+
   tsmessage("Converting graph to sparse format")
   sp <- graph_to_csparse(graph)
 
