@@ -40,11 +40,6 @@ auto parallel_rng() -> dqrng::rng64_t {
   return std::make_shared<dqrng::random_64bit_wrapper<pcg64>>();
 }
 
-// based on code in the dqsample package
-auto random64() -> uint64_t {
-  return R::runif(0, 1) * (std::numeric_limits<uint64_t>::max)();
-}
-
 auto combine_seeds(uint32_t msw, uint32_t lsw) -> uint64_t {
   return (static_cast<uint64_t>(msw) << 32) | static_cast<uint64_t>(lsw);
 }
