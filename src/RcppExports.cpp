@@ -146,8 +146,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // diversify_cpp
-List diversify_cpp(NumericMatrix data, List graph_list, const std::string& metric, double prune_probability);
-RcppExport SEXP _rnndescent_diversify_cpp(SEXP dataSEXP, SEXP graph_listSEXP, SEXP metricSEXP, SEXP prune_probabilitySEXP) {
+List diversify_cpp(NumericMatrix data, List graph_list, const std::string& metric, double prune_probability, std::size_t n_threads, std::size_t grain_size);
+RcppExport SEXP _rnndescent_diversify_cpp(SEXP dataSEXP, SEXP graph_listSEXP, SEXP metricSEXP, SEXP prune_probabilitySEXP, SEXP n_threadsSEXP, SEXP grain_sizeSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -155,7 +155,9 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< List >::type graph_list(graph_listSEXP);
     Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
     Rcpp::traits::input_parameter< double >::type prune_probability(prune_probabilitySEXP);
-    rcpp_result_gen = Rcpp::wrap(diversify_cpp(data, graph_list, metric, prune_probability));
+    Rcpp::traits::input_parameter< std::size_t >::type n_threads(n_threadsSEXP);
+    Rcpp::traits::input_parameter< std::size_t >::type grain_size(grain_sizeSEXP);
+    rcpp_result_gen = Rcpp::wrap(diversify_cpp(data, graph_list, metric, prune_probability, n_threads, grain_size));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -252,7 +254,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_rnndescent_merge_nn", (DL_FUNC) &_rnndescent_merge_nn, 9},
     {"_rnndescent_merge_nn_all", (DL_FUNC) &_rnndescent_merge_nn_all, 6},
     {"_rnndescent_nn_descent", (DL_FUNC) &_rnndescent_nn_descent, 13},
-    {"_rnndescent_diversify_cpp", (DL_FUNC) &_rnndescent_diversify_cpp, 4},
+    {"_rnndescent_diversify_cpp", (DL_FUNC) &_rnndescent_diversify_cpp, 6},
     {"_rnndescent_merge_graph_lists_cpp", (DL_FUNC) &_rnndescent_merge_graph_lists_cpp, 2},
     {"_rnndescent_degree_prune_cpp", (DL_FUNC) &_rnndescent_degree_prune_cpp, 4},
     {"_rnndescent_random_knn_cpp", (DL_FUNC) &_rnndescent_random_knn_cpp, 8},

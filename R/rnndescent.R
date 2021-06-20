@@ -985,7 +985,8 @@ prepare_search_graph <- function(data,
       sp,
       metric = metric,
       prune_probability = diversify_prob,
-      verbose = verbose
+      verbose = verbose,
+      n_threads = n_threads, grain_size = grain_size
     )
   }
   else {
@@ -1007,7 +1008,8 @@ prepare_search_graph <- function(data,
       rsp,
       metric = metric,
       prune_probability = diversify_prob,
-      verbose = verbose
+      verbose = verbose,
+      n_threads = n_threads, grain_size = grain_size
     )
   }
   else {
@@ -1028,7 +1030,10 @@ prepare_search_graph <- function(data,
     max_degree <- round(n_nbrs * pruning_degree_multiplier)
     tsmessage("Degree pruning merged graph to max degree: ", max_degree)
     res <-
-      degree_prune(merged, max_degree = max_degree, verbose = verbose)
+      degree_prune(merged,
+        max_degree = max_degree, verbose = verbose,
+        n_threads = n_threads, grain_size = grain_size
+      )
   }
   else {
     res <- merged
@@ -1053,6 +1058,8 @@ diversify <- function(data,
                       graph,
                       metric = "euclidean",
                       prune_probability = 1.0,
+                      n_threads = 0,
+                      grain_size = 1,
                       verbose = FALSE) {
   nnz_before <- Matrix::nnzero(graph)
   sp_before <- nn_sparsity_sp(graph)
@@ -1063,7 +1070,9 @@ diversify <- function(data,
 
   gl_div <- diversify_cpp(
     data = x2m(data), graph_list = gl, metric = metric,
-    prune_probability = prune_probability
+    prune_probability = prune_probability,
+    n_threads = n_threads,
+    grain_size = grain_size
   )
   res <- list_to_sparse(gl_div)
   nnz_after <- Matrix::nnzero(res)
@@ -1094,7 +1103,7 @@ degree_prune <-
     gl <- csparse_to_list(graph)
 
     gl_div <-
-      degree_prune_cpp(gl, max_degree, n_threads, grain_size)
+      degree_prune_cpp(gl, max_degree, n_threads = n_threads, grain_size = grain_size)
     res <- list_to_sparse(gl_div)
     nnz_after <- Matrix::nnzero(res)
     tsmessage(

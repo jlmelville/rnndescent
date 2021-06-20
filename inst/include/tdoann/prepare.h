@@ -158,7 +158,6 @@ void remove_long_edges_impl(const SparseNNGraph &graph,
       const auto p = ordered[j];
       Idx nbrp = graph.index(i, p);
       DistOut dip = graph.distance(i, p);
-
       // check the distance between p and all retained neighbors (q) so far
       for (std::size_t k = 0; k < j; k++) {
         const auto q = ordered[k];
@@ -168,7 +167,8 @@ void remove_long_edges_impl(const SparseNNGraph &graph,
         }
         Idx nbrq = graph.index(i, q);
         DistOut dpq = distance(nbrp, nbrq);
-        if (dpq < dip && rand.unif() < prune_probability) {
+        auto r = rand.unif();
+        if (dpq < dip && r < prune_probability) {
           // p occludes q, mark p for deletion
           result.mark_for_deletion(i, p);
           break;
@@ -184,6 +184,24 @@ auto remove_long_edges(const SparseNNGraph &graph, const Distance &distance,
   SparseNNGraph result(graph.row_ptr, graph.col_idx, graph.dist);
   remove_long_edges_impl(graph, distance, rand, prune_probability, result, 0,
                          graph.n_points);
+  return result;
+}
+
+template <typename Parallel, typename SparseNNGraph, typename Distance,
+          typename Rand, typename Progress>
+auto remove_long_edges(const SparseNNGraph &graph, const Distance &distance,
+                       Rand &parallel_rand, double prune_probability,
+                       Progress &progress, std::size_t n_threads = 0,
+                       std::size_t grain_size = 1) -> SparseNNGraph {
+  SparseNNGraph result(graph.row_ptr, graph.col_idx, graph.dist);
+  parallel_rand.reseed();
+  auto worker = [&](std::size_t begin, std::size_t end) {
+    auto rand = parallel_rand.get_rand(end);
+    remove_long_edges_impl(graph, distance, rand, prune_probability, result,
+                           begin, end);
+  };
+  batch_parallel_for<Parallel>(worker, progress, graph.n_points, n_threads,
+                               grain_size);
   return result;
 }
 

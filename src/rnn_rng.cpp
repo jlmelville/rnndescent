@@ -50,9 +50,16 @@ auto RRand::unif() -> double { return R::runif(0, 1); }
 TauRand::TauRand(uint64_t seed, uint64_t seed2) : prng(nullptr) {
   dqrng::rng64_t rng = parallel_rng();
   rng->seed(seed, seed2);
-  std::vector<uint64_t> tau_seeds;
-  dqsample::sample<uint64_t>(tau_seeds, rng,
-                             (std::numeric_limits<uint64_t>::max)(), 3, true);
+  std::vector<uint32_t> tau_seeds32;
+
+  // Stitch together 3 64-bit ints from 6 32-bit ones
+  dqsample::sample<uint32_t>(tau_seeds32, rng,
+                             (std::numeric_limits<uint32_t>::max)(), 6, true);
+
+  std::vector<uint64_t> tau_seeds{
+      (((uint64_t)tau_seeds32[0]) << 32) | ((uint64_t)tau_seeds32[1]),
+      (((uint64_t)tau_seeds32[2]) << 32) | ((uint64_t)tau_seeds32[3]),
+      (((uint64_t)tau_seeds32[4]) << 32) | ((uint64_t)tau_seeds32[5])};
 
   prng.reset(new tdoann::tau_prng(tau_seeds[0], tau_seeds[1], tau_seeds[2]));
 }
