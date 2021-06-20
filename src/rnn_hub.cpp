@@ -26,7 +26,6 @@ IntegerVector reverse_nbr_size_impl(IntegerMatrix nn_idx, std::size_t k,
                                     std::size_t len,
                                     bool include_self = false) {
   const std::size_t nr = nn_idx.nrow();
-  const std::size_t nc = nn_idx.ncol();
 
   auto data = as<std::vector<std::size_t>>(nn_idx);
 
