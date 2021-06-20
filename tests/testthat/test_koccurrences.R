@@ -13,6 +13,14 @@ expect_equal(
   c(2, 1, 2, 2, 2, 3, 3, 2, 2, 1)
 )
 
+test_that("ignore missing results", {
+  rnbrs$idx[10, 4] <- -1
+  expect_equal(
+    k_occur(rnbrs$idx),
+    c(3, 5, 6, 3, 5, 3, 5, 4, 2, 3)
+  )
+})
+
 qnbrs4 <- brute_force_knn_query(reference = ui6, query = ui4, k = 4)
 expect_equal(k_occur(qnbrs4$idx), c(1, 3, 4, 3, 4, 1))
 
