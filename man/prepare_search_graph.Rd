@@ -100,6 +100,12 @@ the pruned graph.
 \item The outdegree of each node in the merged graph is truncated.
 \item The truncated merged graph is returned as the prepared search graph.
 }
+
+Explicit zero distances in the \code{graph} will be converted to a small positive
+number to avoid being dropped in the sparse representation. The one exception
+is the "self" distance, i.e. any edge in the \code{graph} which links a node to
+itself (the diagonal of the sparse distance matrix). These trivial edges
+aren't useful for search purposes and are always dropped.
 }
 \examples{
 # 100 reference iris items

@@ -83,3 +83,23 @@ bit4_nnd <- nnd_knn(bit4, k = 4, metric = "manhattan")
 qnbrs6 <- graph_knn_query(reference = bit4, reference_graph = bit4_nnd, query = bit6, k = 4, metric = "hamming")
 check_query_nbrs_idx(qnbrs6$idx, nref = nrow(ui4))
 expect_equal(sum(qnbrs6$dist), bit6q_hdsum, tol = 1e-6)
+
+
+test_that("prepare search graph with hamming and explicit zero", {
+  set.seed(1337)
+  bit6_nnd <- nnd_knn(bit6, k = 4, metric = "hamming")
+  bit6_nnd$dist[6, 4] <- 0
+  bit6_sgraph <-
+    prepare_search_graph(bit6, bit6_nnd, metric = "hamming", n_threads = 1)
+  qnbrs4 <-
+    graph_knn_query(
+      reference = bit6,
+      reference_graph = bit6_sgraph,
+      query = bit4,
+      k = 4,
+      metric = "hamming",
+      n_threads = 1
+    )
+  check_query_nbrs_idx(qnbrs4$idx, nref = nrow(bit6))
+  expect_equal(sum(qnbrs4$dist), bit4q_hdsum, tol = 1e-6)
+})

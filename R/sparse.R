@@ -48,3 +48,11 @@ graph_to_list <- function(graph) {
   sr <- graph_to_rsparse(graph)
   rsparse_to_list(sr)
 }
+
+# Set explicit zero to a very small number so they aren't dropped.
+# Diagonal distance is still dropped
+preserve_zeros <- function(sp) {
+  sp@x[sp@x == 0] <- .Machine$double.eps
+  Matrix::diag(sp) <- 0
+  Matrix::drop0(sp)
+}

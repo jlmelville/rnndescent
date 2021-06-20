@@ -248,3 +248,14 @@ test_that("parallel prepare", {
   )
   expect_equal(sg_occ_trunc@p, c(0, 1, 2, 5, 7, 9, 11, 13, 15, 16, 16))
 })
+
+test_that("explicit zeros are preserved", {
+  ui10_bf0 <- list(idx = ui10_bf$idx, dist = ui10_bf$dist)
+  ui10_bf0$dist[10, 4] <- 0
+  sg_0 <-
+    prepare_search_graph(
+      data = ui10,
+      graph = ui10_bf0
+    )
+  expect_true(sg_0[10, 3] > 0)
+})

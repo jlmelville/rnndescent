@@ -892,6 +892,12 @@ graph_knn_query <- function(query,
 #' 1. The outdegree of each node in the merged graph is truncated.
 #' 1. The truncated merged graph is returned as the prepared search graph.
 #'
+#' Explicit zero distances in the `graph` will be converted to a small positive
+#' number to avoid being dropped in the sparse representation. The one exception
+#' is the "self" distance, i.e. any edge in the `graph` which links a node to
+#' itself (the diagonal of the sparse distance matrix). These trivial edges
+#' aren't useful for search purposes and are always dropped.
+#'
 #' @param data Matrix of `n` items.
 #' @param graph neighbor graph for `data`, a list containing:
 #'   * `idx` an `n` by `k` matrix containing the nearest neighbor indices of
@@ -978,6 +984,8 @@ prepare_search_graph <- function(data,
   tsmessage("Converting graph to sparse format")
   sp <- graph_to_csparse(graph)
 
+  sp <- preserve_zeros(sp)
+
   if (!is.null(diversify_prob) && diversify_prob > 0) {
     tsmessage("Diversifying forward graph")
     fdiv <- diversify(
@@ -1000,7 +1008,6 @@ prepare_search_graph <- function(data,
     )
   }
   rsp <- reverse_knn_sp(fdiv)
-
   if (!is.null(diversify_prob) && diversify_prob > 0) {
     tsmessage("Diversifying reverse graph")
     rdiv <- diversify(
