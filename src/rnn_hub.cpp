@@ -29,14 +29,18 @@ IntegerVector reverse_nbr_size_impl(IntegerMatrix nn_idx, std::size_t k,
 
   auto data = as<std::vector<std::size_t>>(nn_idx);
 
+  const constexpr std::size_t missing = static_cast<std::size_t>(-1);
+
   std::vector<std::size_t> n_reverse(len);
 
   for (std::size_t i = 0; i < nr; i++) {
     for (std::size_t j = 0; j < k; j++) {
-      std::size_t inbr = data[nr * j + i] - 1;
-      if (inbr == static_cast<std::size_t>(-1)) {
+      std::size_t inbr = data[nr * j + i];
+      if (inbr == missing) {
         continue;
       }
+      // zero index
+      --inbr;
       if (inbr == i && !include_self) {
         continue;
       }
