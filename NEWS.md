@@ -1,6 +1,10 @@
+# rnndescent 0.0.10
+
+
+
 # rnndescent 0.0.9 (20 June 2021)
 
-# New features
+## New features
 
 * `nnd_knn_query` has been renamed to `graph_knn_query` and now more closely
 follows the current pynndescent graph search method
