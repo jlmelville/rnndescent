@@ -30,6 +30,7 @@
 auto pseed() -> uint64_t;
 auto parallel_rng() -> dqrng::rng64_t;
 auto random64() -> uint64_t;
+auto combine_seeds(uint32_t, uint32_t) -> uint64_t;
 
 // Use R API for RNG
 struct RRand {
