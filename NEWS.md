@@ -1,4 +1,4 @@
-# rnndescent 0.0.9
+# rnndescent 0.0.9 (20 June 2021)
 
 # New features
 
