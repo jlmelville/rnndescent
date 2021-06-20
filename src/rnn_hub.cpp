@@ -28,10 +28,6 @@ IntegerVector reverse_nbr_size_impl(IntegerMatrix nn_idx, std::size_t k,
   const std::size_t nr = nn_idx.nrow();
   const std::size_t nc = nn_idx.ncol();
 
-  if (nc < k) {
-    stop("Not enough columns in index matrix");
-  }
-
   auto data = as<std::vector<std::size_t>>(nn_idx);
 
   std::vector<std::size_t> n_reverse(len);
