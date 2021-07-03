@@ -22,7 +22,7 @@ even on its own initialized from a random starting point.
 
 *20 June 2021* A big step forward in usefulness with the addition of the
 `prepare_search_graph` function which creates and prunes an undirected search
-graph from the neighbor graph for use with the (now re-named) `nn_knn_query`
+graph from the neighbor graph for use with the (now re-named) `graph_knn_query`
 function. The latter is now also capable of backtracking search and performs
 fairly well.
 
