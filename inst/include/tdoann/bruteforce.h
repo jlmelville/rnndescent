@@ -93,32 +93,36 @@ auto nnbf(Distance &distance, typename Distance::Index n_nbrs,
       distance, n_nbrs, block_size, n_threads, grain_size, verbose);
 }
 
-template <typename Distance, typename Progress>
-auto nnbf(Distance &distance, typename Distance::Index n_nbrs, bool verbose)
-    -> NNGraph<typename Distance::Output, typename Distance::Index> {
-  // distance.nx == distance.ny but this pattern is consistent with the
-  // query usage
-  NNHeap<typename Distance::Output, typename Distance::Index> neighbor_heap(
-      distance.ny, n_nbrs);
-  Progress progress(distance.nx, verbose);
+template <typename Distance>
+void nnbf_impl(
+    Distance &distance, typename Distance::Index n_nbrs, bool verbose,
+    NNHeap<typename Distance::Output, typename Distance::Index> &neighbor_heap,
+    std::size_t begin, std::size_t end) {
+  const std::size_t n = neighbor_heap.n_points;
 
-  std::size_t n_points = neighbor_heap.n_points;
-  for (std::size_t i = 0; i < n_points; i++) {
-    for (std::size_t j = i; j < n_points; j++) {
-      typename Distance::Output d = distance(i, j);
-      if (neighbor_heap.accepts(i, d)) {
-        neighbor_heap.unchecked_push(i, d, j);
-      }
-      if (i != j && neighbor_heap.accepts(j, d)) {
-        neighbor_heap.unchecked_push(j, d, i);
-      }
+  // Convert from the upper triangular index k back to i, j (including diagonal)
+  // e.g. for N = 5:
+  // k = 0  -> i = 0, j = 0
+  // k = 1  -> i = 0, j = 1
+  // k = 4  -> i = 0, j = 4
+  // k = 5  -> i = 1, j = 1
+  // k = 14 -> i = 4, j = 4
+  std::size_t i = n - 1 - int(sqrt(-8 * begin + 4 * n * (n + 1) - 7) / 2 - 0.5);
+  std::size_t j = begin - n * (n - 1) / 2 + (n - i) * ((n - i) - 1) / 2;
+  for (std::size_t k = begin; k < end; k++) {
+    typename Distance::Output d = distance(i, j);
+    if (neighbor_heap.accepts(i, d)) {
+      neighbor_heap.unchecked_push(i, d, j);
     }
-    TDOANN_ITERFINISHED();
+    if (i != j && neighbor_heap.accepts(j, d)) {
+      neighbor_heap.unchecked_push(j, d, i);
+    }
+    ++j;
+    if (j == n) {
+      ++i;
+      j = i;
+    }
   }
-
-  sort_heap(neighbor_heap);
-
-  return heap_to_graph(neighbor_heap);
 }
 
 template <typename Distance, typename Progress, typename Parallel>
@@ -133,7 +137,20 @@ auto brute_force_build(const std::vector<typename Distance::Input> &data,
     return nnbf<Distance, Progress, Parallel>(distance, n_nbrs, block_size,
                                               n_threads, grain_size, verbose);
   } else {
-    return nnbf<Distance, Progress>(distance, n_nbrs, verbose);
+    NNHeap<typename Distance::Output, typename Distance::Index> neighbor_heap(
+        distance.ny, n_nbrs);
+    auto worker = [&](std::size_t begin, std::size_t end) {
+      nnbf_impl(distance, n_nbrs, verbose, neighbor_heap, begin, end);
+    };
+    Progress progress(distance.nx, verbose);
+    const std::size_t n = neighbor_heap.n_points;
+    // in single-threaded case work is divided up across all unique pairs
+    // (including the self-distance)
+    const std::size_t n_pairs = (n * (n + 1)) / 2;
+    batch_serial_for(worker, progress, n_pairs, block_size);
+
+    sort_heap(neighbor_heap);
+    return heap_to_graph(neighbor_heap);
   }
 }
 
