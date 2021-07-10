@@ -36,11 +36,10 @@
 
 namespace tdoann {
 
-template <typename Distance, typename Progress>
+template <typename Distance>
 void nnbf_query(
     NNHeap<typename Distance::Output, typename Distance::Index> &neighbor_heap,
-    Distance &distance, Progress &progress, std::size_t begin,
-    std::size_t end) {
+    Distance &distance, std::size_t begin, std::size_t end) {
 
   std::size_t n_ref_points = distance.nx;
   for (std::size_t ref = 0; ref < n_ref_points; ref++) {
@@ -50,7 +49,6 @@ void nnbf_query(
         neighbor_heap.unchecked_push(query, d, ref);
       }
     }
-    TDOANN_ITERFINISHED();
   }
 }
 
@@ -62,9 +60,8 @@ auto nnbf_query(Distance &distance, typename Distance::Index n_nbrs,
   NNHeap<typename Distance::Output, typename Distance::Index> neighbor_heap(
       distance.ny, n_nbrs);
   Progress progress(1, verbose);
-  NullProgress null_progress;
   auto worker = [&](std::size_t begin, std::size_t end) {
-    nnbf_query(neighbor_heap, distance, null_progress, begin, end);
+    nnbf_query(neighbor_heap, distance, begin, end);
   };
   batch_parallel_for<Parallel>(worker, progress, neighbor_heap.n_points,
                                block_size, n_threads, grain_size);
@@ -74,23 +71,17 @@ auto nnbf_query(Distance &distance, typename Distance::Index n_nbrs,
 
 template <typename Distance, typename Progress>
 auto nnbf_query(Distance &distance, typename Distance::Index n_nbrs,
-                bool verbose)
+                std::size_t block_size, bool verbose)
     -> NNGraph<typename Distance::Output, typename Distance::Index> {
   NNHeap<typename Distance::Output, typename Distance::Index> neighbor_heap(
       distance.ny, n_nbrs);
-  Progress progress(distance.nx, verbose);
-  nnbf_query(neighbor_heap, distance, progress, 0, neighbor_heap.n_points);
+  Progress progress(1, verbose);
+  auto worker = [&](std::size_t begin, std::size_t end) {
+    nnbf_query(neighbor_heap, distance, begin, end);
+  };
+  batch_serial_for(worker, progress, neighbor_heap.n_points, block_size);
   sort_heap(neighbor_heap);
   return heap_to_graph(neighbor_heap);
-}
-
-template <typename Distance, typename Progress, typename Parallel>
-auto nnbf(Distance &distance, typename Distance::Index n_nbrs,
-          std::size_t block_size = 64, std::size_t n_threads = 0,
-          std::size_t grain_size = 1, bool verbose = false)
-    -> NNGraph<typename Distance::Output, typename Distance::Index> {
-  return nnbf_query<Distance, Progress, Parallel>(
-      distance, n_nbrs, block_size, n_threads, grain_size, verbose);
 }
 
 template <typename Distance>
@@ -134,8 +125,8 @@ auto brute_force_build(const std::vector<typename Distance::Input> &data,
   Distance distance(data, ndim);
 
   if (n_threads > 0) {
-    return nnbf<Distance, Progress, Parallel>(distance, n_nbrs, block_size,
-                                              n_threads, grain_size, verbose);
+    return nnbf_query<Distance, Progress, Parallel>(
+        distance, n_nbrs, block_size, n_threads, grain_size, verbose);
   } else {
     NNHeap<typename Distance::Output, typename Distance::Index> neighbor_heap(
         distance.ny, n_nbrs);
@@ -168,7 +159,8 @@ auto brute_force_query(const std::vector<typename Distance::Input> &reference,
     return nnbf_query<Distance, Progress, Parallel>(
         distance, n_nbrs, block_size, n_threads, grain_size, verbose);
   } else {
-    return nnbf_query<Distance, Progress>(distance, n_nbrs, verbose);
+    return nnbf_query<Distance, Progress>(distance, n_nbrs, block_size,
+                                          verbose);
   }
 }
 
