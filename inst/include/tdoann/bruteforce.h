@@ -142,7 +142,7 @@ auto brute_force_build(const std::vector<typename Distance::Input> &data,
     auto worker = [&](std::size_t begin, std::size_t end) {
       nnbf_impl(distance, n_nbrs, verbose, neighbor_heap, begin, end);
     };
-    Progress progress(distance.nx, verbose);
+    Progress progress(1, verbose);
     const std::size_t n = neighbor_heap.n_points;
     // in single-threaded case work is divided up across all unique pairs
     // (including the self-distance)
