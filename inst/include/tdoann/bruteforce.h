@@ -54,15 +54,16 @@ void nnbf_query(
 
 template <typename Distance, typename Progress, typename Parallel>
 auto nnbf_query(Distance &distance, typename Distance::Index n_nbrs,
-                std::size_t block_size = 64, std::size_t n_threads = 0,
-                std::size_t grain_size = 1, bool verbose = false)
+                std::size_t n_threads = 0, bool verbose = false)
     -> NNGraph<typename Distance::Output, typename Distance::Index> {
   NNHeap<typename Distance::Output, typename Distance::Index> neighbor_heap(
       distance.ny, n_nbrs);
-  Progress progress(1, verbose);
   auto worker = [&](std::size_t begin, std::size_t end) {
     nnbf_query(neighbor_heap, distance, begin, end);
   };
+  Progress progress(1, verbose);
+  const std::size_t block_size = 64;
+  const std::size_t grain_size = 1;
   batch_parallel_for<Parallel>(worker, progress, neighbor_heap.n_points,
                                block_size, n_threads, grain_size);
   sort_heap(neighbor_heap, block_size, n_threads, grain_size);
@@ -71,14 +72,15 @@ auto nnbf_query(Distance &distance, typename Distance::Index n_nbrs,
 
 template <typename Distance, typename Progress>
 auto nnbf_query(Distance &distance, typename Distance::Index n_nbrs,
-                std::size_t block_size, bool verbose)
+                bool verbose)
     -> NNGraph<typename Distance::Output, typename Distance::Index> {
   NNHeap<typename Distance::Output, typename Distance::Index> neighbor_heap(
       distance.ny, n_nbrs);
-  Progress progress(1, verbose);
   auto worker = [&](std::size_t begin, std::size_t end) {
     nnbf_query(neighbor_heap, distance, begin, end);
   };
+  Progress progress(1, verbose);
+  const std::size_t block_size = 64;
   batch_serial_for(worker, progress, neighbor_heap.n_points, block_size);
   sort_heap(neighbor_heap);
   return heap_to_graph(neighbor_heap);
@@ -119,14 +121,13 @@ void nnbf_impl(
 template <typename Distance, typename Progress, typename Parallel>
 auto brute_force_build(const std::vector<typename Distance::Input> &data,
                        std::size_t ndim, typename Distance::Index n_nbrs,
-                       std::size_t block_size = 64, std::size_t n_threads = 0,
-                       std::size_t grain_size = 1, bool verbose = false)
+                       std::size_t n_threads = 0, bool verbose = false)
     -> NNGraph<typename Distance::Output, typename Distance::Index> {
   Distance distance(data, ndim);
 
   if (n_threads > 0) {
-    return nnbf_query<Distance, Progress, Parallel>(
-        distance, n_nbrs, block_size, n_threads, grain_size, verbose);
+    return nnbf_query<Distance, Progress, Parallel>(distance, n_nbrs, n_threads,
+                                                    verbose);
   } else {
     NNHeap<typename Distance::Output, typename Distance::Index> neighbor_heap(
         distance.ny, n_nbrs);
@@ -138,6 +139,7 @@ auto brute_force_build(const std::vector<typename Distance::Input> &data,
     // in single-threaded case work is divided up across all unique pairs
     // (including the self-distance)
     const std::size_t n_pairs = (n * (n + 1)) / 2;
+    const std::size_t block_size = 2048;
     batch_serial_for(worker, progress, n_pairs, block_size);
 
     sort_heap(neighbor_heap);
@@ -150,17 +152,15 @@ auto brute_force_query(const std::vector<typename Distance::Input> &reference,
                        std::size_t ndim,
                        const std::vector<typename Distance::Input> &query,
                        typename Distance::Index n_nbrs,
-                       std::size_t block_size = 64, std::size_t n_threads = 0,
-                       std::size_t grain_size = 1, bool verbose = false)
+                       std::size_t n_threads = 0, bool verbose = false)
     -> NNGraph<typename Distance::Output, typename Distance::Index> {
   Distance distance(reference, query, ndim);
 
   if (n_threads > 0) {
-    return nnbf_query<Distance, Progress, Parallel>(
-        distance, n_nbrs, block_size, n_threads, grain_size, verbose);
+    return nnbf_query<Distance, Progress, Parallel>(distance, n_nbrs, n_threads,
+                                                    verbose);
   } else {
-    return nnbf_query<Distance, Progress>(distance, n_nbrs, block_size,
-                                          verbose);
+    return nnbf_query<Distance, Progress>(distance, n_nbrs, verbose);
   }
 }
 

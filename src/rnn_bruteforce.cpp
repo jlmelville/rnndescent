@@ -30,36 +30,31 @@
 using namespace Rcpp;
 
 #define BRUTE_FORCE_BUILD()                                                    \
-  return bf_build_impl<Distance>(data, k, block_size, n_threads, grain_size,   \
-                                 verbose);
+  return bf_build_impl<Distance>(data, k, n_threads, verbose);
 
 #define BRUTE_FORCE_QUERY()                                                    \
-  return bf_query_impl<Distance>(reference, query, k, block_size, n_threads,   \
-                                 grain_size, verbose);
+  return bf_query_impl<Distance>(reference, query, k, n_threads, verbose);
 
 template <typename Distance>
 auto bf_query_impl(NumericMatrix reference, NumericMatrix query,
-                   typename Distance::Index k, std::size_t block_size = 64,
-                   std::size_t n_threads = 0, std::size_t grain_size = 1,
+                   typename Distance::Index k, std::size_t n_threads = 0,
                    bool verbose = false) -> List {
   auto ref_vec = r_to_dist_vect<Distance>(reference);
   auto query_vec = r_to_dist_vect<Distance>(query);
 
   auto nn_graph = tdoann::brute_force_query<Distance, RPProgress, RParallel>(
-      ref_vec, reference.ncol(), query_vec, k, block_size, n_threads,
-      grain_size, verbose);
+      ref_vec, reference.ncol(), query_vec, k, n_threads, verbose);
 
   return graph_to_r(nn_graph);
 }
 
 template <typename Distance>
 auto bf_build_impl(NumericMatrix data, typename Distance::Index k,
-                   std::size_t block_size = 64, std::size_t n_threads = 0,
-                   std::size_t grain_size = 1, bool verbose = false) -> List {
+                   std::size_t n_threads = 0, bool verbose = false) -> List {
   auto data_vec = r_to_dist_vect<Distance>(data);
 
   auto nn_graph = tdoann::brute_force_build<Distance, RPProgress, RParallel>(
-      data_vec, data.ncol(), k, block_size, n_threads, grain_size, verbose);
+      data_vec, data.ncol(), k, n_threads, verbose);
 
   return graph_to_r(nn_graph);
 }
@@ -67,15 +62,12 @@ auto bf_build_impl(NumericMatrix data, typename Distance::Index k,
 // [[Rcpp::export]]
 List rnn_brute_force(NumericMatrix data, uint32_t k,
                      const std::string &metric = "euclidean",
-                     std::size_t n_threads = 0, std::size_t block_size = 64,
-                     std::size_t grain_size = 1, bool verbose = false){
+                     std::size_t n_threads = 0, bool verbose = false){
     DISPATCH_ON_DISTANCES(BRUTE_FORCE_BUILD)}
 
 // [[Rcpp::export]]
 List rnn_brute_force_query(NumericMatrix reference, NumericMatrix query,
                            uint32_t k, const std::string &metric = "euclidean",
-                           std::size_t block_size = 64,
-                           std::size_t n_threads = 0,
-                           std::size_t grain_size = 1, bool verbose = false) {
+                           std::size_t n_threads = 0, bool verbose = false) {
   DISPATCH_ON_QUERY_DISTANCES(BRUTE_FORCE_QUERY)
 }
