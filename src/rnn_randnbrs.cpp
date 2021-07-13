@@ -33,28 +33,25 @@ using namespace Rcpp;
 /* Macros */
 
 #define RANDOM_NBRS_BUILD()                                                    \
-  return random_build_impl<Distance>(data, k, order_by_distance, block_size,   \
-                                     verbose, n_threads, grain_size);
+  return random_build_impl<Distance>(data, k, order_by_distance, n_threads,    \
+                                     verbose);
 
 #define RANDOM_NBRS_QUERY()                                                    \
   return random_query_impl<Distance>(reference, query, k, order_by_distance,   \
-                                     block_size, verbose, n_threads,           \
-                                     grain_size);
+                                     n_threads, verbose);
 
 /* Functions */
 
 template <typename Distance>
 auto random_build_impl(NumericMatrix data, typename Distance::Index k,
-                       bool order_by_distance, std::size_t block_size,
-                       bool verbose, std::size_t n_threads,
-                       std::size_t grain_size) -> List {
+                       bool order_by_distance, std::size_t n_threads,
+                       bool verbose) -> List {
 
   auto data_vec = r_to_dist_vect<Distance>(data);
 
   auto nn_graph =
       tdoann::random_build<Distance, DQIntSampler, RPProgress, RParallel>(
-          data_vec, data.ncol(), k, order_by_distance, block_size, verbose,
-          n_threads, grain_size);
+          data_vec, data.ncol(), k, order_by_distance, n_threads, verbose);
 
   return graph_to_r(nn_graph);
 }
@@ -62,16 +59,15 @@ auto random_build_impl(NumericMatrix data, typename Distance::Index k,
 template <typename Distance>
 auto random_query_impl(NumericMatrix reference, NumericMatrix query,
                        typename Distance::Index k, bool order_by_distance,
-                       std::size_t block_size, bool verbose,
-                       std::size_t n_threads, std::size_t grain_size) -> List {
+                       std::size_t n_threads, bool verbose) -> List {
 
   auto ref_vec = r_to_dist_vect<Distance>(reference);
   auto query_vec = r_to_dist_vect<Distance>(query);
 
   auto nn_graph =
       tdoann::random_query<Distance, DQIntSampler, RPProgress, RParallel>(
-          ref_vec, reference.ncol(), query_vec, k, order_by_distance,
-          block_size, verbose, n_threads, grain_size);
+          ref_vec, reference.ncol(), query_vec, k, order_by_distance, n_threads,
+          verbose);
 
   return graph_to_r(nn_graph);
 }
@@ -81,17 +77,14 @@ auto random_query_impl(NumericMatrix reference, NumericMatrix query,
 // [[Rcpp::export]]
 List random_knn_cpp(Rcpp::NumericMatrix data, uint32_t k,
                     const std::string &metric = "euclidean",
-                    bool order_by_distance = true,
-                    std::size_t block_size = 4096, std::size_t n_threads = 0,
-                    std::size_t grain_size = 1, bool verbose = false){
+                    bool order_by_distance = true, std::size_t n_threads = 0,
+                    bool verbose = false){
     DISPATCH_ON_DISTANCES(RANDOM_NBRS_BUILD)}
 
 // [[Rcpp::export]]
 List random_knn_query_cpp(NumericMatrix reference, NumericMatrix query,
                           uint32_t k, const std::string &metric = "euclidean",
                           bool order_by_distance = true,
-                          std::size_t block_size = 4096,
-                          std::size_t n_threads = 0, std::size_t grain_size = 1,
-                          bool verbose = false) {
+                          std::size_t n_threads = 0, bool verbose = false) {
   DISPATCH_ON_QUERY_DISTANCES(RANDOM_NBRS_QUERY)
 }

@@ -45,12 +45,12 @@ degree_prune_cpp <- function(graph_list, max_degree, n_threads = 0L, grain_size 
     .Call(`_rnndescent_degree_prune_cpp`, graph_list, max_degree, n_threads, grain_size)
 }
 
-random_knn_cpp <- function(data, k, metric = "euclidean", order_by_distance = TRUE, block_size = 4096L, n_threads = 0L, grain_size = 1L, verbose = FALSE) {
-    .Call(`_rnndescent_random_knn_cpp`, data, k, metric, order_by_distance, block_size, n_threads, grain_size, verbose)
+random_knn_cpp <- function(data, k, metric = "euclidean", order_by_distance = TRUE, n_threads = 0L, verbose = FALSE) {
+    .Call(`_rnndescent_random_knn_cpp`, data, k, metric, order_by_distance, n_threads, verbose)
 }
 
-random_knn_query_cpp <- function(reference, query, k, metric = "euclidean", order_by_distance = TRUE, block_size = 4096L, n_threads = 0L, grain_size = 1L, verbose = FALSE) {
-    .Call(`_rnndescent_random_knn_query_cpp`, reference, query, k, metric, order_by_distance, block_size, n_threads, grain_size, verbose)
+random_knn_query_cpp <- function(reference, query, k, metric = "euclidean", order_by_distance = TRUE, n_threads = 0L, verbose = FALSE) {
+    .Call(`_rnndescent_random_knn_query_cpp`, reference, query, k, metric, order_by_distance, n_threads, verbose)
 }
 
 nn_query <- function(reference, reference_graph_list, query, nn_idx, nn_dist, metric = "euclidean", epsilon = 0.1, n_threads = 0L, grain_size = 1L, verbose = FALSE) {

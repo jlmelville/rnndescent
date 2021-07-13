@@ -98,17 +98,6 @@ brute_force_knn <- function(data,
 #'   routine like [nnd_knn()], set this to `FALSE` to save a small amount of
 #'   computational time.
 #' @param n_threads Number of threads to use.
-#' @param block_size Number of items to generate neighbors for in each
-#'   multi-threaded batch. Reducing this number will increase the frequency
-#'   with which R will check for cancellation, and if `verbose = TRUE`,
-#'   the frequency with which progress will be logged to the console. This value
-#'   should not be set too low (and not lower than `grain_size`), or the
-#'   overhead of cancellation checking and other multi-threaded house keeping
-#'   will reduce the efficiency of the parallel computation. Ignored if
-#'   `n_threads < 1`.
-#' @param grain_size Minimum batch size for multithreading. If the number of
-#'   items to process in a thread falls below this number, then no threads will
-#'   be used. Ignored if `n_threads < 1`.
 #' @param verbose If `TRUE`, log information to the console.
 #' @return a random neighbor graph as a list containing:
 #'   * `idx` an n by k matrix containing the nearest neighbor indices.
@@ -139,8 +128,6 @@ random_knn <-
            use_alt_metric = TRUE,
            order_by_distance = TRUE,
            n_threads = 0,
-           block_size = 4096,
-           grain_size = 1,
            verbose = FALSE) {
     data <- x2m(data)
     check_k(k, nrow(data))
@@ -168,9 +155,7 @@ random_knn <-
         k,
         actual_metric,
         order_by_distance,
-        block_size = block_size,
         n_threads = n_threads,
-        grain_size = grain_size,
         verbose = verbose
       )
     res$idx <- res$idx + 1
@@ -335,9 +320,7 @@ nnd_knn <- function(data,
       k,
       metric = actual_metric,
       order_by_distance = FALSE,
-      block_size = block_size,
       n_threads = n_threads,
-      grain_size = grain_size,
       verbose = verbose
     )
   }
@@ -514,17 +497,6 @@ brute_force_knn_query <- function(query,
 #'   routine like [graph_knn_query()], set this to `FALSE` to save a
 #'   small amount of computational time.
 #' @param n_threads Number of threads to use.
-#' @param block_size Number of items to generate neighbors for in each
-#'   multi-threaded batch. Reducing this number will increase the frequency
-#'   with which R will check for cancellation, and if `verbose = TRUE`,
-#'   the frequency with which progress will be logged to the console. This value
-#'   should not be set too low (and not lower than `grain_size`), or the
-#'   overhead of cancellation checking and other multi-threaded house keeping
-#'   will reduce the efficiency of the parallel computation. Ignored if
-#'   `n_threads < 1`.
-#' @param grain_size Minimum batch size for multithreading. If the number of
-#'   items to process in a thread falls below this number, then no threads will
-#'   be used. Ignored if `n_threads < 1`.
 #' @param verbose If `TRUE`, log information to the console.
 #' @return an approximate nearest neighbor graph as a list containing:
 #'   * `idx` an n by k matrix containing the nearest neighbor indices.
@@ -558,8 +530,6 @@ random_knn_query <-
            use_alt_metric = TRUE,
            order_by_distance = TRUE,
            n_threads = 0,
-           block_size = 4096,
-           grain_size = 1,
            verbose = FALSE) {
     reference <- x2m(reference)
     query <- x2m(query)
@@ -599,9 +569,7 @@ random_knn_query <-
       k,
       actual_metric,
       order_by_distance,
-      block_size = block_size,
       n_threads = n_threads,
-      grain_size = grain_size,
       verbose = verbose
     )
     res$idx <- res$idx + 1

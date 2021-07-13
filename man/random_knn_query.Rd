@@ -12,8 +12,6 @@ random_knn_query(
   use_alt_metric = TRUE,
   order_by_distance = TRUE,
   n_threads = 0,
-  block_size = 4096,
-  grain_size = 1,
   verbose = FALSE
 )
 }
@@ -44,19 +42,6 @@ routine like \code{\link[=graph_knn_query]{graph_knn_query()}}, set this to \cod
 small amount of computational time.}
 
 \item{n_threads}{Number of threads to use.}
-
-\item{block_size}{Number of items to generate neighbors for in each
-multi-threaded batch. Reducing this number will increase the frequency
-with which R will check for cancellation, and if \code{verbose = TRUE},
-the frequency with which progress will be logged to the console. This value
-should not be set too low (and not lower than \code{grain_size}), or the
-overhead of cancellation checking and other multi-threaded house keeping
-will reduce the efficiency of the parallel computation. Ignored if
-\code{n_threads < 1}.}
-
-\item{grain_size}{Minimum batch size for multithreading. If the number of
-items to process in a thread falls below this number, then no threads will
-be used. Ignored if \code{n_threads < 1}.}
 
 \item{verbose}{If \code{TRUE}, log information to the console.}
 }

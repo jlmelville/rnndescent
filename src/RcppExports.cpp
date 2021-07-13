@@ -189,8 +189,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // random_knn_cpp
-List random_knn_cpp(Rcpp::NumericMatrix data, uint32_t k, const std::string& metric, bool order_by_distance, std::size_t block_size, std::size_t n_threads, std::size_t grain_size, bool verbose);
-RcppExport SEXP _rnndescent_random_knn_cpp(SEXP dataSEXP, SEXP kSEXP, SEXP metricSEXP, SEXP order_by_distanceSEXP, SEXP block_sizeSEXP, SEXP n_threadsSEXP, SEXP grain_sizeSEXP, SEXP verboseSEXP) {
+List random_knn_cpp(Rcpp::NumericMatrix data, uint32_t k, const std::string& metric, bool order_by_distance, std::size_t n_threads, bool verbose);
+RcppExport SEXP _rnndescent_random_knn_cpp(SEXP dataSEXP, SEXP kSEXP, SEXP metricSEXP, SEXP order_by_distanceSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -198,17 +198,15 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< uint32_t >::type k(kSEXP);
     Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
     Rcpp::traits::input_parameter< bool >::type order_by_distance(order_by_distanceSEXP);
-    Rcpp::traits::input_parameter< std::size_t >::type block_size(block_sizeSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type n_threads(n_threadsSEXP);
-    Rcpp::traits::input_parameter< std::size_t >::type grain_size(grain_sizeSEXP);
     Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
-    rcpp_result_gen = Rcpp::wrap(random_knn_cpp(data, k, metric, order_by_distance, block_size, n_threads, grain_size, verbose));
+    rcpp_result_gen = Rcpp::wrap(random_knn_cpp(data, k, metric, order_by_distance, n_threads, verbose));
     return rcpp_result_gen;
 END_RCPP
 }
 // random_knn_query_cpp
-List random_knn_query_cpp(NumericMatrix reference, NumericMatrix query, uint32_t k, const std::string& metric, bool order_by_distance, std::size_t block_size, std::size_t n_threads, std::size_t grain_size, bool verbose);
-RcppExport SEXP _rnndescent_random_knn_query_cpp(SEXP referenceSEXP, SEXP querySEXP, SEXP kSEXP, SEXP metricSEXP, SEXP order_by_distanceSEXP, SEXP block_sizeSEXP, SEXP n_threadsSEXP, SEXP grain_sizeSEXP, SEXP verboseSEXP) {
+List random_knn_query_cpp(NumericMatrix reference, NumericMatrix query, uint32_t k, const std::string& metric, bool order_by_distance, std::size_t n_threads, bool verbose);
+RcppExport SEXP _rnndescent_random_knn_query_cpp(SEXP referenceSEXP, SEXP querySEXP, SEXP kSEXP, SEXP metricSEXP, SEXP order_by_distanceSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -217,11 +215,9 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< uint32_t >::type k(kSEXP);
     Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
     Rcpp::traits::input_parameter< bool >::type order_by_distance(order_by_distanceSEXP);
-    Rcpp::traits::input_parameter< std::size_t >::type block_size(block_sizeSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type n_threads(n_threadsSEXP);
-    Rcpp::traits::input_parameter< std::size_t >::type grain_size(grain_sizeSEXP);
     Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
-    rcpp_result_gen = Rcpp::wrap(random_knn_query_cpp(reference, query, k, metric, order_by_distance, block_size, n_threads, grain_size, verbose));
+    rcpp_result_gen = Rcpp::wrap(random_knn_query_cpp(reference, query, k, metric, order_by_distance, n_threads, verbose));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -258,8 +254,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_rnndescent_diversify_cpp", (DL_FUNC) &_rnndescent_diversify_cpp, 6},
     {"_rnndescent_merge_graph_lists_cpp", (DL_FUNC) &_rnndescent_merge_graph_lists_cpp, 2},
     {"_rnndescent_degree_prune_cpp", (DL_FUNC) &_rnndescent_degree_prune_cpp, 4},
-    {"_rnndescent_random_knn_cpp", (DL_FUNC) &_rnndescent_random_knn_cpp, 8},
-    {"_rnndescent_random_knn_query_cpp", (DL_FUNC) &_rnndescent_random_knn_query_cpp, 9},
+    {"_rnndescent_random_knn_cpp", (DL_FUNC) &_rnndescent_random_knn_cpp, 6},
+    {"_rnndescent_random_knn_query_cpp", (DL_FUNC) &_rnndescent_random_knn_query_cpp, 7},
     {"_rnndescent_nn_query", (DL_FUNC) &_rnndescent_nn_query, 10},
     {NULL, NULL, 0}
 };
