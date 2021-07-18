@@ -30,21 +30,20 @@ using namespace Rcpp;
 
 #define IDX_TO_GRAPH_SELF()                                                    \
   auto distance = r_to_dist<Distance>(data);                                   \
-  return idx_to_graph_impl(distance, idx, n_threads, grain_size, verbose);
+  return idx_to_graph_impl(distance, idx, n_threads, verbose);
 
 #define IDX_TO_GRAPH_QUERY()                                                   \
   auto distance = r_to_dist<Distance>(reference, query);                       \
-  return idx_to_graph_impl<Distance>(distance, idx, n_threads, grain_size,     \
-                                     verbose);
+  return idx_to_graph_impl<Distance>(distance, idx, n_threads, verbose);
 
 template <typename Distance>
 auto idx_to_graph_impl(const Distance &distance, IntegerMatrix idx,
-                       std::size_t n_threads = 0, std::size_t grain_size = 1,
-                       bool verbose = false) -> List {
+                       std::size_t n_threads = 0, bool verbose = false)
+    -> List {
   auto idx_vec = r_to_idxt<typename Distance::Index>(idx);
   if (n_threads > 0) {
     auto nn_graph = tdoann::idx_to_graph<Distance, RPProgress, RParallel>(
-        distance, idx_vec, n_threads, grain_size, verbose);
+        distance, idx_vec, n_threads, verbose);
     return graph_to_r(nn_graph, true);
   } else {
     auto nn_graph =
@@ -56,15 +55,13 @@ auto idx_to_graph_impl(const Distance &distance, IntegerMatrix idx,
 // [[Rcpp::export]]
 List rnn_idx_to_graph_self(NumericMatrix data, IntegerMatrix idx,
                            const std::string &metric = "euclidean",
-                           std::size_t n_threads = 0,
-                           std::size_t grain_size = 1, bool verbose = false){
+                           std::size_t n_threads = 0, bool verbose = false){
     DISPATCH_ON_DISTANCES(IDX_TO_GRAPH_SELF)}
 
 // [[Rcpp::export]]
 List rnn_idx_to_graph_query(NumericMatrix reference, NumericMatrix query,
                             IntegerMatrix idx,
                             const std::string &metric = "euclidean",
-                            std::size_t n_threads = 0,
-                            std::size_t grain_size = 1, bool verbose = false) {
+                            std::size_t n_threads = 0, bool verbose = false) {
   DISPATCH_ON_QUERY_DISTANCES(IDX_TO_GRAPH_QUERY)
 }

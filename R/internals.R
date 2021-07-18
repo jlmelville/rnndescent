@@ -38,7 +38,6 @@ prepare_init_graph <-
            query = NULL,
            metric = "euclidean",
            n_threads = 0,
-           grain_size = 1,
            verbose = FALSE) {
     if (k != ncol(nn$idx)) {
       if (k > ncol(nn$idx)) {
@@ -61,7 +60,6 @@ prepare_init_graph <-
             idx = nn$idx,
             metric = metric,
             n_threads = n_threads,
-            grain_size = grain_size,
             verbose = verbose
           )
       } else {
@@ -71,7 +69,6 @@ prepare_init_graph <-
             idx = nn$idx,
             metric = metric,
             n_threads = n_threads,
-            grain_size = grain_size,
             verbose = verbose
           )
       }

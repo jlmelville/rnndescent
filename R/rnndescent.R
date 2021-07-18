@@ -1189,7 +1189,6 @@ idx_to_graph <-
            idx,
            metric = "euclidean",
            n_threads = 0,
-           grain_size = 1,
            verbose = FALSE) {
     if (is.list(idx)) {
       if (is.null(idx$idx)) {
@@ -1214,7 +1213,6 @@ idx_to_graph_query <-
            idx,
            metric = "euclidean",
            n_threads = 0,
-           grain_size = 1,
            verbose = FALSE) {
     if (is.list(idx)) {
       if (is.null(idx$idx)) {

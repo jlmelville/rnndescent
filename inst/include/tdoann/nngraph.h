@@ -244,12 +244,11 @@ void sort_knn_graph(NbrGraph &nn_graph, std::size_t block_size = 1000) {
   heap_to_graph(heap, nn_graph);
 }
 
-template <typename Distance, typename Progress>
+template <typename Distance>
 void idx_to_graph(const Distance &distance,
                   const std::vector<typename Distance::Index> &idx,
                   std::vector<typename Distance::Output> &dist,
-                  Progress &progress, std::size_t n_nbrs, std::size_t begin,
-                  std::size_t end) {
+                  std::size_t n_nbrs, std::size_t begin, std::size_t end) {
   std::size_t innbrs = 0;
   std::size_t ij = 0;
   for (std::size_t i = begin; i < end; i++) {
@@ -258,7 +257,6 @@ void idx_to_graph(const Distance &distance,
       ij = innbrs + j;
       dist[ij] = distance(idx[ij], i);
     }
-    TDOANN_ITERFINISHED();
   }
 }
 
@@ -270,12 +268,15 @@ auto idx_to_graph(const Distance &distance,
   using Out = typename Distance::Output;
   using Index = typename Distance::Index;
 
-  Progress progress(distance.nx, verbose);
+  Progress progress(1, verbose);
   const std::size_t n_points = distance.ny;
   const std::size_t n_nbrs = idx.size() / n_points;
   std::vector<Out> dist(idx.size());
 
-  idx_to_graph(distance, idx, dist, progress, n_nbrs, 0, n_points);
+  auto worker = [&](std::size_t begin, std::size_t end) {
+    idx_to_graph(distance, idx, dist, n_nbrs, begin, end);
+  };
+  batch_serial_for(worker, progress, n_points, 1024);
 
   return NNGraph<Out, Index>(idx, dist, n_points);
 }
@@ -283,20 +284,20 @@ auto idx_to_graph(const Distance &distance,
 template <typename Distance, typename Progress, typename Parallel>
 auto idx_to_graph(const Distance &distance,
                   const std::vector<typename Distance::Index> &idx,
-                  std::size_t n_threads, std::size_t grain_size, bool verbose)
+                  std::size_t n_threads, bool verbose)
     -> NNGraph<typename Distance::Output, typename Distance::Index> {
   using Out = typename Distance::Output;
   using Index = typename Distance::Index;
 
-  Progress progress(distance.nx, verbose);
+  Progress progress(1, verbose);
   const std::size_t n_points = distance.ny;
   const std::size_t n_nbrs = idx.size() / n_points;
   std::vector<Out> dist(idx.size());
 
-  NullProgress null_progress;
   auto worker = [&](std::size_t begin, std::size_t end) {
-    idx_to_graph(distance, idx, dist, null_progress, n_nbrs, begin, end);
+    idx_to_graph(distance, idx, dist, n_nbrs, begin, end);
   };
+  const std::size_t grain_size = 1;
   batch_parallel_for<Parallel>(worker, progress, n_points, 1024, n_threads,
                                grain_size);
 
