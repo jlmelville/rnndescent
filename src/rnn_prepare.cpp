@@ -31,18 +31,17 @@ using namespace Rcpp;
 
 #define DIVERSIFY_IMPL()                                                       \
   return diversify_impl<Distance>(data, graph_list, prune_probability,         \
-                                  n_threads, grain_size);
+                                  n_threads);
 
 template <typename SparseNNGraph, typename Distance>
 auto diversify_impl(const SparseNNGraph &graph, const Distance &distance,
-                    double prune_probability, std::size_t n_threads = 0,
-                    std::size_t grain_size = 1) -> SparseNNGraph {
+                    double prune_probability, std::size_t n_threads = 0)
+    -> SparseNNGraph {
   if (n_threads > 0) {
     RPProgress progress(1, false);
     ParallelRand rand;
-    return tdoann::remove_long_edges<RParallel>(graph, distance, rand,
-                                                prune_probability, progress,
-                                                n_threads, grain_size);
+    return tdoann::remove_long_edges<RParallel>(
+        graph, distance, rand, prune_probability, progress, n_threads);
   } else {
     RRand rand;
     return tdoann::remove_long_edges(graph, distance, rand, prune_probability);
@@ -51,13 +50,12 @@ auto diversify_impl(const SparseNNGraph &graph, const Distance &distance,
 
 template <typename Distance>
 List diversify_impl(NumericMatrix data, List graph_list,
-                    double prune_probability, std::size_t n_threads = 0,
-                    std::size_t grain_size = 1) {
+                    double prune_probability, std::size_t n_threads = 0) {
   auto distance = r_to_dist<Distance>(data);
   auto graph = r_to_sparse_graph<Distance>(graph_list);
 
   auto diversified =
-      diversify_impl(graph, distance, prune_probability, n_threads, grain_size);
+      diversify_impl(graph, distance, prune_probability, n_threads);
 
   return sparse_graph_to_r(diversified);
 }
@@ -65,8 +63,7 @@ List diversify_impl(NumericMatrix data, List graph_list,
 // [[Rcpp::export]]
 List diversify_cpp(NumericMatrix data, List graph_list,
                    const std::string &metric = "euclidean",
-                   double prune_probability = 1.0, std::size_t n_threads = 0,
-                   std::size_t grain_size = 1) {
+                   double prune_probability = 1.0, std::size_t n_threads = 0) {
   DISPATCH_ON_DISTANCES(DIVERSIFY_IMPL)
 }
 
@@ -87,21 +84,20 @@ List merge_graph_lists_cpp(Rcpp::List gl1, Rcpp::List gl2) {
 
 template <typename SparseNNGraph>
 auto degree_prune_impl(const SparseNNGraph &graph, std::size_t max_degree,
-                       std::size_t n_threads = 0, std::size_t grain_size = 1)
-    -> SparseNNGraph {
+                       std::size_t n_threads = 0) -> SparseNNGraph {
+  RPProgress progress(1, false);
   if (n_threads > 0) {
-    RPProgress progress(1, false);
     return tdoann::degree_prune<RParallel>(graph, max_degree, progress,
-                                           n_threads, grain_size);
+                                           n_threads);
   } else {
-    return tdoann::degree_prune(graph, max_degree);
+    return tdoann::degree_prune(graph, max_degree, progress);
   }
 }
 
 // [[Rcpp::export]]
 List degree_prune_cpp(Rcpp::List graph_list, std::size_t max_degree,
-                      std::size_t n_threads = 0, std::size_t grain_size = 1) {
+                      std::size_t n_threads = 0) {
   auto graph = r_to_sparse_graph<Dummy>(graph_list);
-  auto pruned = degree_prune_impl(graph, max_degree, n_threads, grain_size);
+  auto pruned = degree_prune_impl(graph, max_degree, n_threads);
   return sparse_graph_to_r(pruned);
 }

@@ -11,7 +11,6 @@ prepare_search_graph(
   diversify_prob = 1,
   pruning_degree_multiplier = 1.5,
   n_threads = 0,
-  grain_size = 1,
   verbose = FALSE
 )
 }
@@ -54,10 +53,6 @@ retained is also dependent on any occlusion pruning that occurs. Set this
 to \code{NULL} to skip this step.}
 
 \item{n_threads}{Number of threads to use.}
-
-\item{grain_size}{Minimum batch size for multithreading. If the number of
-items to process in a thread falls below this number, then no threads will
-be used. Ignored if \code{n_threads < 1}.}
 
 \item{verbose}{If \code{TRUE}, log information to the console.}
 }

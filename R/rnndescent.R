@@ -839,9 +839,6 @@ graph_knn_query <- function(query,
 #'   retained is also dependent on any occlusion pruning that occurs. Set this
 #'   to `NULL` to skip this step.
 #' @param n_threads Number of threads to use.
-#' @param grain_size Minimum batch size for multithreading. If the number of
-#'   items to process in a thread falls below this number, then no threads will
-#'   be used. Ignored if `n_threads < 1`.
 #' @param verbose If `TRUE`, log information to the console.
 #' @return a search graph for `data` based on `graph`, represented as a sparse
 #'   matrix, suitable for use with [graph_knn_query()].
@@ -877,7 +874,6 @@ prepare_search_graph <- function(data,
                                  diversify_prob = 1.0,
                                  pruning_degree_multiplier = 1.5,
                                  n_threads = 0,
-                                 grain_size = 1,
                                  verbose = FALSE) {
   if (!is.null(pruning_degree_multiplier)) {
     stopifnot(pruning_degree_multiplier > 0)
@@ -904,7 +900,7 @@ prepare_search_graph <- function(data,
       metric = metric,
       prune_probability = diversify_prob,
       verbose = verbose,
-      n_threads = n_threads, grain_size = grain_size
+      n_threads = n_threads
     )
   } else {
     fdiv <- sp
@@ -925,7 +921,7 @@ prepare_search_graph <- function(data,
       metric = metric,
       prune_probability = diversify_prob,
       verbose = verbose,
-      n_threads = n_threads, grain_size = grain_size
+      n_threads = n_threads
     )
   } else {
     rdiv <- rsp
@@ -947,7 +943,7 @@ prepare_search_graph <- function(data,
     res <-
       degree_prune(merged,
         max_degree = max_degree, verbose = verbose,
-        n_threads = n_threads, grain_size = grain_size
+        n_threads = n_threads
       )
   } else {
     res <- merged
@@ -973,7 +969,6 @@ diversify <- function(data,
                       metric = "euclidean",
                       prune_probability = 1.0,
                       n_threads = 0,
-                      grain_size = 1,
                       verbose = FALSE) {
   nnz_before <- Matrix::nnzero(graph)
   sp_before <- nn_sparsity_sp(graph)
@@ -985,8 +980,7 @@ diversify <- function(data,
   gl_div <- diversify_cpp(
     data = x2m(data), graph_list = gl, metric = metric,
     prune_probability = prune_probability,
-    n_threads = n_threads,
-    grain_size = grain_size
+    n_threads = n_threads
   )
   res <- list_to_sparse(gl_div)
   nnz_after <- Matrix::nnzero(res)
@@ -1009,7 +1003,6 @@ degree_prune <-
   function(graph,
            max_degree = 20,
            n_threads = 0,
-           grain_size = 1,
            verbose = FALSE) {
     stopifnot(methods::is(graph, "sparseMatrix"))
     nnz_before <- Matrix::nnzero(graph)
@@ -1017,7 +1010,7 @@ degree_prune <-
     gl <- csparse_to_list(graph)
 
     gl_div <-
-      degree_prune_cpp(gl, max_degree, n_threads = n_threads, grain_size = grain_size)
+      degree_prune_cpp(gl, max_degree, n_threads = n_threads)
     res <- list_to_sparse(gl_div)
     nnz_after <- Matrix::nnzero(res)
     tsmessage(

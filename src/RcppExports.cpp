@@ -145,8 +145,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // diversify_cpp
-List diversify_cpp(NumericMatrix data, List graph_list, const std::string& metric, double prune_probability, std::size_t n_threads, std::size_t grain_size);
-RcppExport SEXP _rnndescent_diversify_cpp(SEXP dataSEXP, SEXP graph_listSEXP, SEXP metricSEXP, SEXP prune_probabilitySEXP, SEXP n_threadsSEXP, SEXP grain_sizeSEXP) {
+List diversify_cpp(NumericMatrix data, List graph_list, const std::string& metric, double prune_probability, std::size_t n_threads);
+RcppExport SEXP _rnndescent_diversify_cpp(SEXP dataSEXP, SEXP graph_listSEXP, SEXP metricSEXP, SEXP prune_probabilitySEXP, SEXP n_threadsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -155,8 +155,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
     Rcpp::traits::input_parameter< double >::type prune_probability(prune_probabilitySEXP);
     Rcpp::traits::input_parameter< std::size_t >::type n_threads(n_threadsSEXP);
-    Rcpp::traits::input_parameter< std::size_t >::type grain_size(grain_sizeSEXP);
-    rcpp_result_gen = Rcpp::wrap(diversify_cpp(data, graph_list, metric, prune_probability, n_threads, grain_size));
+    rcpp_result_gen = Rcpp::wrap(diversify_cpp(data, graph_list, metric, prune_probability, n_threads));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -173,16 +172,15 @@ BEGIN_RCPP
 END_RCPP
 }
 // degree_prune_cpp
-List degree_prune_cpp(Rcpp::List graph_list, std::size_t max_degree, std::size_t n_threads, std::size_t grain_size);
-RcppExport SEXP _rnndescent_degree_prune_cpp(SEXP graph_listSEXP, SEXP max_degreeSEXP, SEXP n_threadsSEXP, SEXP grain_sizeSEXP) {
+List degree_prune_cpp(Rcpp::List graph_list, std::size_t max_degree, std::size_t n_threads);
+RcppExport SEXP _rnndescent_degree_prune_cpp(SEXP graph_listSEXP, SEXP max_degreeSEXP, SEXP n_threadsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::List >::type graph_list(graph_listSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type max_degree(max_degreeSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type n_threads(n_threadsSEXP);
-    Rcpp::traits::input_parameter< std::size_t >::type grain_size(grain_sizeSEXP);
-    rcpp_result_gen = Rcpp::wrap(degree_prune_cpp(graph_list, max_degree, n_threads, grain_size));
+    rcpp_result_gen = Rcpp::wrap(degree_prune_cpp(graph_list, max_degree, n_threads));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -248,9 +246,9 @@ static const R_CallMethodDef CallEntries[] = {
     {"_rnndescent_merge_nn", (DL_FUNC) &_rnndescent_merge_nn, 9},
     {"_rnndescent_merge_nn_all", (DL_FUNC) &_rnndescent_merge_nn_all, 6},
     {"_rnndescent_nn_descent", (DL_FUNC) &_rnndescent_nn_descent, 11},
-    {"_rnndescent_diversify_cpp", (DL_FUNC) &_rnndescent_diversify_cpp, 6},
+    {"_rnndescent_diversify_cpp", (DL_FUNC) &_rnndescent_diversify_cpp, 5},
     {"_rnndescent_merge_graph_lists_cpp", (DL_FUNC) &_rnndescent_merge_graph_lists_cpp, 2},
-    {"_rnndescent_degree_prune_cpp", (DL_FUNC) &_rnndescent_degree_prune_cpp, 4},
+    {"_rnndescent_degree_prune_cpp", (DL_FUNC) &_rnndescent_degree_prune_cpp, 3},
     {"_rnndescent_random_knn_cpp", (DL_FUNC) &_rnndescent_random_knn_cpp, 6},
     {"_rnndescent_random_knn_query_cpp", (DL_FUNC) &_rnndescent_random_knn_query_cpp, 7},
     {"_rnndescent_nn_query", (DL_FUNC) &_rnndescent_nn_query, 9},
