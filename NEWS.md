@@ -1,6 +1,12 @@
 # rnndescent 0.0.10
 
+## Bug fixes and minor improvements
 
+* Removed the `block_size` and `grain_size` parameters from functions. These
+were related to the amount of work done per thread, but it's not obvious to
+an outside user how to set these.
+* Most long-running computations should update any progress indicators more
+frequently (if `verbose = TRUE`) and respond to user-requested cancellation.
 
 # rnndescent 0.0.9 (20 June 2021)
 
