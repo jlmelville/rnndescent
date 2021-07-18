@@ -9,8 +9,6 @@ merge_knn(
   nn_graph2,
   is_query = FALSE,
   n_threads = 0,
-  block_size = 4096,
-  grain_size = 1,
   verbose = FALSE
 )
 }
@@ -42,18 +40,6 @@ not hold. If you aren't sure what case applies to you, it's safe (but
 potentially inefficient) to set \code{is_query = TRUE}.}
 
 \item{n_threads}{Number of threads to use.}
-
-\item{block_size}{Number of items to process in each multi-threaded batch.
-Reducing this number will increase the frequency with which R will check
-for cancellation, and if \code{verbose = TRUE}, the frequency with which
-progress will be logged to the console. This value should not be set too
-low (and not lower than \code{grain_size}), or the overhead of cancellation
-checking and other multi-threaded house keeping will reduce the efficiency
-of the parallel computation. Ignored if \code{n_threads < 1}.}
-
-\item{grain_size}{Minimum batch size for multithreading. If the number of
-items to process in a thread falls below this number, then no threads will
-be used. Ignored if \code{n_threads < 1}.}
 
 \item{verbose}{If \code{TRUE}, log information to the console.}
 }

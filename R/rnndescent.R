@@ -1077,16 +1077,6 @@ reverse_knn_sp <- function(graph) {
 #'   not hold. If you aren't sure what case applies to you, it's safe (but
 #'   potentially inefficient) to set `is_query = TRUE`.
 #' @param n_threads Number of threads to use.
-#' @param block_size Number of items to process in each multi-threaded batch.
-#'   Reducing this number will increase the frequency with which R will check
-#'   for cancellation, and if `verbose = TRUE`, the frequency with which
-#'   progress will be logged to the console. This value should not be set too
-#'   low (and not lower than `grain_size`), or the overhead of cancellation
-#'   checking and other multi-threaded house keeping will reduce the efficiency
-#'   of the parallel computation. Ignored if `n_threads < 1`.
-#' @param grain_size Minimum batch size for multithreading. If the number of
-#'   items to process in a thread falls below this number, then no threads will
-#'   be used. Ignored if `n_threads < 1`.
 #' @param verbose If `TRUE`, log information to the console.
 #' @return a list containing:
 #'   * `idx` an n by k matrix containing the merged nearest neighbor
@@ -1112,8 +1102,6 @@ merge_knn <- function(nn_graph1,
                       nn_graph2,
                       is_query = FALSE,
                       n_threads = 0,
-                      block_size = 4096,
-                      grain_size = 1,
                       verbose = FALSE) {
   validate_are_mergeable(nn_graph1, nn_graph2)
 
@@ -1123,9 +1111,7 @@ merge_knn <- function(nn_graph1,
     nn_graph2$idx,
     nn_graph2$dist,
     is_query,
-    block_size = block_size,
     n_threads = n_threads,
-    grain_size = grain_size,
     verbose = verbose
   )
 }
@@ -1154,16 +1140,6 @@ merge_knn <- function(nn_graph1,
 #'   case applies to you, it's safe (but potentially inefficient) to set
 #'   `is_query = TRUE`.
 #' @param n_threads Number of threads to use.
-#' @param block_size Number of items to process in each multi-threaded batch.
-#'   Reducing this number will increase the frequency with which R will check
-#'   for cancellation, and if `verbose = TRUE`, the frequency with which
-#'   progress will be logged to the console. This value should not be set too
-#'   low (and not lower than `grain_size`), or the overhead of cancellation
-#'   checking and other multi-threaded house keeping will reduce the efficiency
-#'   of the parallel computation. Ignored if `n_threads < 1`.
-#' @param grain_size Minimum batch size for multithreading. If the number of
-#'   items to process in a thread falls below this number, then no threads will
-#'   be used. Ignored if `n_threads < 1`.
 #' @param verbose If `TRUE`, log information to the console.
 #' @return a list containing:
 #'   * `idx` an n by k matrix containing the merged nearest neighbor indices.
@@ -1192,8 +1168,6 @@ merge_knn <- function(nn_graph1,
 merge_knnl <- function(nn_graphs,
                        is_query = FALSE,
                        n_threads = 0,
-                       block_size = 4096,
-                       grain_size = 1,
                        verbose = FALSE) {
   if (length(nn_graphs) == 0) {
     return(list())
@@ -1203,9 +1177,7 @@ merge_knnl <- function(nn_graphs,
   merge_nn_all(
     nn_graphs,
     is_query,
-    block_size = block_size,
     n_threads = n_threads,
-    grain_size = grain_size,
     verbose = verbose
   )
 }
