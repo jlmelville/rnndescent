@@ -190,11 +190,6 @@ set.seed(1337)
 uiris_rnn <- nnd_knn(uirism, 15, n_threads = 1, low_memory = FALSE)
 expect_equal(sum(uiris_rnn$dist), ui_edsum, tol = 1e-3)
 
-# block_size
-set.seed(1337)
-uiris_rnn <- nnd_knn(uirism, 15, n_threads = 1, block_size = 3)
-expect_equal(sum(uiris_rnn$dist), ui_edsum, tol = 1e-3)
-
 # initialize from existing knn indices
 set.seed(1337)
 iris_nnd <- nnd_knn(uirism, init = list(idx = iris_nbrs$idx), n_threads = 1)

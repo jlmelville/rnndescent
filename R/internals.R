@@ -51,8 +51,7 @@ prepare_init_graph <-
         stop("Not enough initial distances provided for k = ", k)
       }
       nn$dist <- nn$dist[, 1:k, drop = FALSE]
-    }
-    else {
+    } else {
       tsmessage("Generating distances for initial indices")
       if (!is.null(query)) {
         nn <-
@@ -65,8 +64,7 @@ prepare_init_graph <-
             grain_size = grain_size,
             verbose = verbose
           )
-      }
-      else {
+      } else {
         nn <-
           rnn_idx_to_graph_self(
             data = data,

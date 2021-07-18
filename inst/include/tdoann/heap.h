@@ -390,6 +390,19 @@ void sort_heap(NbrHeap &heap, std::size_t block_size, std::size_t n_threads,
                                n_threads, grain_size);
 }
 
+template <typename NbrHeap, typename Parallel = NoParallel>
+void sort_heap(NbrHeap &heap, std::size_t n_threads) {
+  NullProgress progress;
+  auto sort_worker = [&](std::size_t begin, std::size_t end) {
+    for (auto i = begin; i < end; i++) {
+      heap.deheap_sort(i);
+    }
+  };
+  const std::size_t grain_size = 1;
+  batch_parallel_for<Parallel>(sort_worker, progress, heap.n_points, n_threads,
+                               grain_size);
+}
+
 template <typename NbrHeap> void sort_heap(NbrHeap &neighbor_heap) {
   neighbor_heap.deheap_sort();
 }

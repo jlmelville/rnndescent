@@ -15,8 +15,6 @@ nnd_knn(
   low_memory = TRUE,
   use_alt_metric = TRUE,
   n_threads = 0,
-  block_size = 16384,
-  grain_size = 1,
   verbose = FALSE,
   progress = "bar"
 )
@@ -73,15 +71,6 @@ sort of numeric issue is occurring with your data in the alternative code
 path.}
 
 \item{n_threads}{Number of threads to use.}
-
-\item{block_size}{Batch size for creating/applying local join updates. A
-smaller value will apply the update more often, which may help reduce the
-number of unnecessary distance calculations, at the cost of more overhead
-associated with multi-threading code. Ignored if \code{n_threads < 1}.}
-
-\item{grain_size}{Minimum batch size for multithreading. If the number of
-items to process in a thread falls below this number, then no threads will
-be used. Ignored if \code{n_threads < 1}.}
 
 \item{verbose}{If \code{TRUE}, log information to the console.}
 

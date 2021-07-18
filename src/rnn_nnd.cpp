@@ -50,7 +50,7 @@ using namespace Rcpp;
 #define NND_BUILD_UPDATER()                                                    \
   if (n_threads > 0) {                                                         \
     using NNDImpl = NNDBuildParallel;                                          \
-    NNDImpl nnd_impl(data, block_size, n_threads, grain_size);                 \
+    NNDImpl nnd_impl(data, n_threads);                                         \
     if (low_memory) {                                                          \
       using GraphUpdate = tdoann::upd::Factory<tdoann::upd::Batch>;            \
       NND_PROGRESS()                                                           \
@@ -102,14 +102,10 @@ struct NNDBuildSerial {
 struct NNDBuildParallel {
   NumericMatrix data;
 
-  std::size_t block_size;
   std::size_t n_threads;
-  std::size_t grain_size;
 
-  NNDBuildParallel(NumericMatrix data, std::size_t block_size,
-                   std::size_t n_threads, std::size_t grain_size)
-      : data(data), block_size(block_size), n_threads(n_threads),
-        grain_size(grain_size) {}
+  NNDBuildParallel(NumericMatrix data, std::size_t n_threads)
+      : data(data), n_threads(n_threads) {}
 
   template <typename GraphUpdate, typename Distance, typename Progress,
             typename NNDProgress>
@@ -119,6 +115,7 @@ struct NNDBuildParallel {
     using Out = typename Distance::Output;
     using Index = typename Distance::Index;
 
+    const std::size_t grain_size = 1;
     auto nnd_heap =
         r_to_heap<tdoann::LockingHeapAddSymmetric, tdoann::NNDHeap<Out, Index>>(
             nn_idx, nn_dist, n_threads, grain_size);
@@ -129,10 +126,9 @@ struct NNDBuildParallel {
     ParallelRand parallel_rand;
 
     tdoann::nnd_build<RParallel>(graph_updater, max_candidates, n_iters, delta,
-                                 nnd_progress, parallel_rand, block_size,
-                                 n_threads, grain_size);
+                                 nnd_progress, parallel_rand, n_threads);
 
-    return heap_to_r(nnd_heap, block_size, n_threads, grain_size);
+    return heap_to_r(nnd_heap, n_threads);
   }
 };
 
@@ -141,8 +137,7 @@ List nn_descent(NumericMatrix data, IntegerMatrix nn_idx, NumericMatrix nn_dist,
                 const std::string &metric = "euclidean",
                 std::size_t max_candidates = 50, std::size_t n_iters = 10,
                 double delta = 0.001, bool low_memory = true,
-                std::size_t block_size = 16384, std::size_t n_threads = 0,
-                std::size_t grain_size = 1, bool verbose = false,
+                std::size_t n_threads = 0, bool verbose = false,
                 const std::string &progress = "bar") {
   DISPATCH_ON_DISTANCES(NND_BUILD_UPDATER);
 }

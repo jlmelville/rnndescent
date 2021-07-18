@@ -29,8 +29,8 @@ merge_nn_all <- function(nn_graphs, is_query, block_size, n_threads, grain_size 
     .Call(`_rnndescent_merge_nn_all`, nn_graphs, is_query, block_size, n_threads, grain_size, verbose)
 }
 
-nn_descent <- function(data, nn_idx, nn_dist, metric = "euclidean", max_candidates = 50L, n_iters = 10L, delta = 0.001, low_memory = TRUE, block_size = 16384L, n_threads = 0L, grain_size = 1L, verbose = FALSE, progress = "bar") {
-    .Call(`_rnndescent_nn_descent`, data, nn_idx, nn_dist, metric, max_candidates, n_iters, delta, low_memory, block_size, n_threads, grain_size, verbose, progress)
+nn_descent <- function(data, nn_idx, nn_dist, metric = "euclidean", max_candidates = 50L, n_iters = 10L, delta = 0.001, low_memory = TRUE, n_threads = 0L, verbose = FALSE, progress = "bar") {
+    .Call(`_rnndescent_nn_descent`, data, nn_idx, nn_dist, metric, max_candidates, n_iters, delta, low_memory, n_threads, verbose, progress)
 }
 
 diversify_cpp <- function(data, graph_list, metric = "euclidean", prune_probability = 1.0, n_threads = 0L, grain_size = 1L) {

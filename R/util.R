@@ -27,8 +27,7 @@ tsmessage <-
 x2m <- function(X) {
   if (!methods::is(X, "matrix")) {
     m <- as.matrix(X[, which(vapply(X, is.numeric, logical(1)))])
-  }
-  else {
+  } else {
     m <- X
   }
   m

@@ -49,8 +49,7 @@ brute_force_knn <- function(data,
   }
   if (use_alt_metric) {
     actual_metric <- find_alt_metric(metric)
-  }
-  else {
+  } else {
     actual_metric <- metric
   }
 
@@ -137,8 +136,7 @@ random_knn <-
     }
     if (use_alt_metric) {
       actual_metric <- find_alt_metric(metric)
-    }
-    else {
+    } else {
       actual_metric <- metric
     }
 
@@ -210,13 +208,6 @@ random_knn <-
 #'   sort of numeric issue is occurring with your data in the alternative code
 #'   path.
 #' @param n_threads Number of threads to use.
-#' @param block_size Batch size for creating/applying local join updates. A
-#'  smaller value will apply the update more often, which may help reduce the
-#'  number of unnecessary distance calculations, at the cost of more overhead
-#'  associated with multi-threading code. Ignored if `n_threads < 1`.
-#' @param grain_size Minimum batch size for multithreading. If the number of
-#'   items to process in a thread falls below this number, then no threads will
-#'   be used. Ignored if `n_threads < 1`.
 #' @param verbose If `TRUE`, log information to the console.
 #' @param progress Determines the type of progress information logged if
 #'   `verbose = TRUE`. Options are:
@@ -290,8 +281,6 @@ nnd_knn <- function(data,
                     low_memory = TRUE,
                     use_alt_metric = TRUE,
                     n_threads = 0,
-                    block_size = 16384,
-                    grain_size = 1,
                     verbose = FALSE,
                     progress = "bar") {
   stopifnot(tolower(progress) %in% c("bar", "dist"))
@@ -305,8 +294,7 @@ nnd_knn <- function(data,
     if (!is.null(init) && !is.null(init$dist)) {
       init$dist <- apply_alt_metric_uncorrection(metric, init$dist)
     }
-  }
-  else {
+  } else {
     actual_metric <- metric
   }
 
@@ -323,8 +311,7 @@ nnd_knn <- function(data,
       n_threads = n_threads,
       verbose = verbose
     )
-  }
-  else {
+  } else {
     if (is.null(k)) {
       k <- ncol(init$idx)
     }
@@ -336,7 +323,6 @@ nnd_knn <- function(data,
       data = data,
       metric = actual_metric,
       n_threads = n_threads,
-      grain_size = grain_size,
       verbose = verbose
     )
 
@@ -360,9 +346,7 @@ nnd_knn <- function(data,
     max_candidates = max_candidates,
     delta = delta,
     low_memory = low_memory,
-    block_size = block_size,
     n_threads = n_threads,
-    grain_size = grain_size,
     verbose = verbose,
     progress = progress
   )
@@ -445,8 +429,7 @@ brute_force_knn_query <- function(query,
   }
   if (use_alt_metric) {
     actual_metric <- find_alt_metric(metric)
-  }
-  else {
+  } else {
     actual_metric <- metric
   }
 
@@ -551,8 +534,7 @@ random_knn_query <-
     }
     if (use_alt_metric) {
       actual_metric <- find_alt_metric(metric)
-    }
-    else {
+    } else {
       actual_metric <- metric
     }
 
@@ -693,8 +675,7 @@ graph_knn_query <- function(query,
     if (!is.null(init) && !is.null(init$dist)) {
       init$dist <- apply_alt_metric_uncorrection(metric, init$dist)
     }
-  }
-  else {
+  } else {
     actual_metric <- metric
   }
 
@@ -703,8 +684,7 @@ graph_knn_query <- function(query,
       if (is.list(reference_graph)) {
         k <- get_reference_graph_k(reference_graph)
         tsmessage("Using k = ", k, " from graph")
-      }
-      else {
+      } else {
         stop("Must provide k")
       }
     }
@@ -718,8 +698,7 @@ graph_knn_query <- function(query,
       n_threads = n_threads,
       verbose = verbose
     )
-  }
-  else {
+  } else {
     if (is.null(k)) {
       k <- ncol(init$idx)
       tsmessage("Using k = ", k, " from initial graph")
@@ -766,8 +745,7 @@ graph_knn_query <- function(query,
       nrow(reference_dist) == nrow(reference)
     )
     reference_graph_list <- graph_to_list(reference_graph)
-  }
-  else {
+  } else {
     stopifnot(methods::is(reference_graph, "sparseMatrix"))
     reference_graph_list <- csparse_to_list(reference_graph)
   }
@@ -934,8 +912,7 @@ prepare_search_graph <- function(data,
       verbose = verbose,
       n_threads = n_threads, grain_size = grain_size
     )
-  }
-  else {
+  } else {
     fdiv <- sp
     tsmessage(
       "Forward graph has # edges = ",
@@ -956,8 +933,7 @@ prepare_search_graph <- function(data,
       verbose = verbose,
       n_threads = n_threads, grain_size = grain_size
     )
-  }
-  else {
+  } else {
     rdiv <- rsp
     tsmessage(
       "Reverse graph has # edges = ",
@@ -979,8 +955,7 @@ prepare_search_graph <- function(data,
         max_degree = max_degree, verbose = verbose,
         n_threads = n_threads, grain_size = grain_size
       )
-  }
-  else {
+  } else {
     res <- merged
     tsmessage(
       "Merged graph has # edges = ",
