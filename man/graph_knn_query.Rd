@@ -14,7 +14,6 @@ graph_knn_query(
   epsilon = 0.1,
   use_alt_metric = TRUE,
   n_threads = 0,
-  grain_size = 1,
   verbose = FALSE
 )
 }
@@ -73,10 +72,6 @@ sort of numeric issue is occurring with your data in the alternative code
 path.}
 
 \item{n_threads}{Number of threads to use.}
-
-\item{grain_size}{Minimum batch size for multithreading. If the number of
-items to process in a thread falls below this number, then no threads will
-be used. Ignored if \code{n_threads < 1}.}
 
 \item{verbose}{If \code{TRUE}, log information to the console.}
 }

@@ -610,9 +610,6 @@ random_knn_query <-
 #'   comparison. Use this parameter in conjunction with
 #'   [prepare_search_graph()] to prevent excessive run time. Default is 0.1.
 #' @param n_threads Number of threads to use.
-#' @param grain_size Minimum batch size for multithreading. If the number of
-#'   items to process in a thread falls below this number, then no threads will
-#'   be used. Ignored if `n_threads < 1`.
 #' @param verbose If `TRUE`, log information to the console.
 #' @return the approximate nearest neighbor graph as a list containing:
 #'   * `idx` a `n` by `k` matrix containing the nearest neighbor indices
@@ -660,7 +657,6 @@ graph_knn_query <- function(query,
                             epsilon = 0.1,
                             use_alt_metric = TRUE,
                             n_threads = 0,
-                            grain_size = 1,
                             verbose = FALSE) {
   reference <- x2m(reference)
   query <- x2m(query)
@@ -712,7 +708,6 @@ graph_knn_query <- function(query,
       data = reference,
       metric = actual_metric,
       n_threads = n_threads,
-      grain_size = grain_size,
       verbose = verbose
     )
 
@@ -761,7 +756,6 @@ graph_knn_query <- function(query,
       metric = actual_metric,
       epsilon = epsilon,
       n_threads = n_threads,
-      grain_size = grain_size,
       verbose = verbose
     )
   if (use_alt_metric) {

@@ -33,30 +33,33 @@
 
 namespace tdoann {
 
-template <typename Distance, typename Progress>
+template <typename Progress, typename Distance>
 void nn_query(
     const SparseNNGraph<typename Distance::Output, typename Distance::Index>
         &reference_graph,
     NNHeap<typename Distance::Output, typename Distance::Index> &nn_heap,
-    const Distance &distance, double epsilon, Progress &progress) {
-
-  non_search_query(nn_heap, distance, reference_graph, epsilon, progress);
+    const Distance &distance, double epsilon, bool verbose) {
+  auto query_non_search_worker = [&](std::size_t begin, std::size_t end) {
+    non_search_query(nn_heap, distance, reference_graph, epsilon, begin, end);
+  };
+  Progress progress(1, verbose);
+  const std::size_t n_points = nn_heap.n_points;
+  batch_serial_for(query_non_search_worker, progress, n_points);
 }
 
-template <typename Parallel, typename Distance, typename Progress>
+template <typename Parallel, typename Progress, typename Distance>
 void nn_query(
     const SparseNNGraph<typename Distance::Output, typename Distance::Index>
         &reference_graph,
     NNHeap<typename Distance::Output, typename Distance::Index> &nn_heap,
-    const Distance &distance, double epsilon, Progress &progress,
-    std::size_t n_threads = 0, std::size_t grain_size = 1) {
-  const std::size_t n_points = nn_heap.n_points;
-
-  NullProgress null_progress;
+    const Distance &distance, double epsilon, std::size_t n_threads,
+    bool verbose) {
   auto query_non_search_worker = [&](std::size_t begin, std::size_t end) {
-    non_search_query(nn_heap, distance, reference_graph, epsilon, null_progress,
-                     begin, end);
+    non_search_query(nn_heap, distance, reference_graph, epsilon, begin, end);
   };
+  Progress progress(1, verbose);
+  const std::size_t n_points = nn_heap.n_points;
+  const std::size_t grain_size = 1;
   batch_parallel_for<Parallel>(query_non_search_worker, progress, n_points,
                                n_threads, grain_size);
 }
@@ -68,13 +71,13 @@ auto pop(std::priority_queue<T, Container, Compare> &pq) -> T {
   return result;
 }
 
-template <typename Distance, typename Progress>
+template <typename Distance>
 void non_search_query(
     NNHeap<typename Distance::Output, typename Distance::Index> &current_graph,
     const Distance &distance,
     const SparseNNGraph<typename Distance::Output, typename Distance::Index>
         &search_graph,
-    double epsilon, Progress &progress, std::size_t begin, std::size_t end) {
+    double epsilon, std::size_t begin, std::size_t end) {
 
   using DistOut = typename Distance::Output;
   using Idx = typename Distance::Index;
@@ -124,21 +127,7 @@ void non_search_query(
             static_cast<double>(current_graph.max_distance(query_idx));
       }
     } // next candidate
-
-    TDOANN_ITERFINISHED();
   }
-}
-
-template <typename Distance, typename Progress>
-void non_search_query(
-    NNHeap<typename Distance::Output, typename Distance::Index> &current_graph,
-    const Distance &distance,
-    const SparseNNGraph<typename Distance::Output, typename Distance::Index>
-        &search_graph,
-    double epsilon, Progress &progress) {
-
-  non_search_query(current_graph, distance, search_graph, epsilon, progress, 0,
-                   current_graph.n_points);
 }
 
 } // namespace tdoann

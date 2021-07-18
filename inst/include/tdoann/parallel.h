@@ -93,7 +93,7 @@ void batch_serial_for(Worker &worker, Progress &progress, std::size_t n,
   }
 }
 
-template <typename Parallel, typename Progress, typename Worker>
+template <typename Progress, typename Worker>
 void batch_serial_for(Worker &worker, Progress &progress, std::size_t n) {
   const std::size_t block_size = std::max(std::size_t{1}, n / std::size_t{10});
   batch_serial_for(worker, progress, n, block_size);
