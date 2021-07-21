@@ -22,7 +22,7 @@ random_knn(
 \item{metric}{Type of distance calculation to use. One of \code{"euclidean"},
 \code{"l2sqr"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"},
 \code{"correlation"} (1 minus the Pearson correlation), or
-\code{"hamming"}.}
+\code{"hamming"} (bitwise version), or \code{"overlap"} (general \code{"hamming"}).}
 
 \item{use_alt_metric}{If \code{TRUE}, use faster metrics that maintain the
 ordering of distances internally (e.g. squared Euclidean distances if using

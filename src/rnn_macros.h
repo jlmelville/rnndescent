@@ -40,6 +40,9 @@
   } else if (metric == "hamming") {                                            \
     using Distance = tdoann::HammingSelf<uint8_t, std::size_t>;                \
     NEXT_MACRO()                                                               \
+  } else if (metric == "overlap") {                                            \
+    using Distance = tdoann::Overlap<float, std::size_t>;                      \
+    NEXT_MACRO()                                                               \
   } else {                                                                     \
     Rcpp::stop("Bad metric");                                                  \
   }
@@ -59,6 +62,9 @@
     NEXT_MACRO()                                                               \
   } else if (metric == "hamming") {                                            \
     using Distance = tdoann::HammingQuery<uint8_t, std::size_t>;               \
+    NEXT_MACRO()                                                               \
+  } else if (metric == "overlap") {                                            \
+    using Distance = tdoann::Overlap<float, std::size_t>;                      \
     NEXT_MACRO()                                                               \
   } else {                                                                     \
     Rcpp::stop("Bad metric");                                                  \

@@ -262,5 +262,38 @@ struct HammingQuery {
   using Index = Idx;
 };
 
+template <typename In, typename Out, typename Idx = uint32_t>
+struct Overlap {
+
+  Overlap(const std::vector<In> &data, std::size_t ndim)
+	: x(data), y(data), ndim(ndim), nx(data.size() / ndim),
+	  ny(data.size() / ndim) {}
+
+  Overlap(const std::vector<In> &x, const std::vector<In> &y, std::size_t ndim)
+	: x(x), y(y), ndim(ndim), nx(x.size() / ndim), ny(y.size() / ndim) {}
+
+  auto operator()(Idx i, Idx j) const -> Out {
+    Out sum = 0.0;
+    std::size_t di = ndim * i;
+    std::size_t dj = ndim * j;
+
+    for (std::size_t d = 0; d < ndim; d++) {
+      sum += (x[di + d] != y[dj + d]);
+    }
+
+    return sum;
+  }
+
+  const std::vector<In> x;
+  const std::vector<In> y;
+  std::size_t ndim;
+  Idx nx;
+  Idx ny;
+
+  using Input = In;
+  using Output = Out;
+  using Index = Idx;
+};
+
 } // namespace tdoann
 #endif // TDOANN_DISTANCE_H

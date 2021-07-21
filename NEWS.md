@@ -1,6 +1,9 @@
 # rnndescent 0.0.10
 
+## New features
 
+* Add new `overlap` distance (generic `hamming` distance) and document that
+  `hamming` is a bitwise metric.
 
 # rnndescent 0.0.9 (20 June 2021)
 
