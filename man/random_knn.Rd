@@ -15,9 +15,10 @@ random_knn(
 )
 }
 \arguments{
-\item{data}{Matrix of \code{n} items to generate random neighbors for.}
+\item{data}{Matrix of \code{n} items to search.}
 
-\item{k}{Number of nearest neighbors to return.}
+\item{k}{Number of nearest neighbors to return. Optional if \code{init} is
+specified.}
 
 \item{metric}{Type of distance calculation to use. One of \code{"euclidean"},
 \code{"l2sqr"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"},

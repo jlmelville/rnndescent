@@ -19,9 +19,10 @@ random_knn_query(
 \item{query}{Matrix of \code{n} query items.}
 
 \item{reference}{Matrix of \code{m} reference items. The nearest neighbors to the
-queries are randomly selected from this data.}
+items in \code{query} are calculated from this data.}
 
-\item{k}{Number of nearest neighbors to return.}
+\item{k}{Number of nearest neighbors to return. Optional if \code{init} is
+specified.}
 
 \item{metric}{Type of distance calculation to use. One of \code{"euclidean"},
 \code{"l2sqr"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"},

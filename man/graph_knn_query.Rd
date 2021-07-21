@@ -36,14 +36,12 @@ specified.}
 \code{"correlation"} (1 minus the Pearson correlation), or
 \code{"hamming"} (bitwise version), or \code{"overlap"} (general \code{"hamming"}).}
 
-\item{init}{Initial \code{query} neighbor graph to optimize. If not
-provided, \code{k} random neighbors from \code{reference} are used. The
-format should be the same as the return value of this function, a list
-containing:
+\item{init}{Initial data to optimize. If not provided, \code{k} random
+neighbors are created. The input format should be the same as the return
+value: a list containing:
 \itemize{
-\item \code{idx} a \code{n} by \code{k} matrix containing the nearest neighbor indices
-specifying the row of the neighbor in \code{reference}.
-\item \code{dist} (optional) a \code{n} by \code{k} matrix containing the nearest neighbor
+\item \code{idx} an \code{n} by \code{k} matrix containing the nearest neighbor indices.
+\item \code{dist} (optional) an \code{n} by \code{k} matrix containing the nearest neighbor
 distances.
 }
 

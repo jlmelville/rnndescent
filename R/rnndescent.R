@@ -2,20 +2,7 @@
 
 #' Calculate Exact Nearest Neighbors by Brute Force
 #'
-#' @param data Matrix of `n` items to generate random neighbors for.
-#' @param k Number of nearest neighbors to return.
-#' @param metric Type of distance calculation to use. One of `"euclidean"`,
-#'   `"l2sqr"` (squared Euclidean), `"cosine"`, `"manhattan"`,
-#'   `"correlation"` (1 minus the Pearson correlation), or
-#'   `"hamming"` (bitwise version), or `"overlap"` (general `"hamming"`).
-#' @param use_alt_metric If `TRUE`, use faster metrics that maintain the
-#'   ordering of distances internally (e.g. squared Euclidean distances if using
-#'   `metric = "euclidean"`), then apply a correction at the end. Probably
-#'   the only reason to set this to `FALSE` is if you suspect that some
-#'   sort of numeric issue is occurring with your data in the alternative code
-#'   path.
-#' @param n_threads Number of threads to use.
-#' @param verbose If `TRUE`, log information to the console.
+#' @inheritParams nnd_knn
 #' @return the nearest neighbor graph as a list containing:
 #'   * `idx` an n by k matrix containing the nearest neighbor indices.
 #'   * `dist` an n by k matrix containing the nearest neighbor distances.
@@ -79,25 +66,12 @@ brute_force_knn <- function(data,
 
 #' Randomly select nearest neighbors.
 #'
-#' @param data Matrix of `n` items to generate random neighbors for.
-#' @param k Number of nearest neighbors to return.
-#' @param metric Type of distance calculation to use. One of `"euclidean"`,
-#'   `"l2sqr"` (squared Euclidean), `"cosine"`, `"manhattan"`,
-#'   `"correlation"` (1 minus the Pearson correlation), or
-#'   `"hamming"` (bitwise version), or `"overlap"` (general `"hamming"`).
-#' @param use_alt_metric If `TRUE`, use faster metrics that maintain the
-#'   ordering of distances internally (e.g. squared Euclidean distances if using
-#'   `metric = "euclidean"`), then apply a correction at the end. Probably
-#'   the only reason to set this to `FALSE` is if you suspect that some
-#'   sort of numeric issue is occurring with your data in the alternative code
-#'   path.
 #' @param order_by_distance If `TRUE` (the default), then results for each
 #'   item are returned by increasing distance. If you don't need the results
 #'   sorted, e.g. you are going to pass the results as initialization to another
 #'   routine like [nnd_knn()], set this to `FALSE` to save a small amount of
 #'   computational time.
-#' @param n_threads Number of threads to use.
-#' @param verbose If `TRUE`, log information to the console.
+#' @inheritParams nnd_knn
 #' @return a random neighbor graph as a list containing:
 #'   * `idx` an n by k matrix containing the nearest neighbor indices.
 #'   * `dist` an n by k matrix containing the nearest neighbor distances.
@@ -362,22 +336,7 @@ nnd_knn <- function(data,
 
 #' Query Exact Nearest Neighbors by Brute Force
 #'
-#' @param query Matrix of `n` query items.
-#' @param k Number of nearest neighbors to return.
-#' @param reference Matrix of `m` reference items. The nearest neighbors to the
-#'   queries are calculated from this data.
-#' @param metric Type of distance calculation to use. One of `"euclidean"`,
-#'   `"l2sqr"` (squared Euclidean), `"cosine"`, `"manhattan"`,
-#'   `"correlation"` (1 minus the Pearson correlation), or
-#'   `"hamming"` (bitwise version), or `"overlap"` (general `"hamming"`).
-#' @param use_alt_metric If `TRUE`, use faster metrics that maintain the
-#'   ordering of distances internally (e.g. squared Euclidean distances if using
-#'   `metric = "euclidean"`), then apply a correction at the end. Probably
-#'   the only reason to set this to `FALSE` is if you suspect that some
-#'   sort of numeric issue is occurring with your data in the alternative code
-#'   path.
-#' @param n_threads Number of threads to use.
-#' @param verbose If `TRUE`, log information to the console.
+#' @inheritParams graph_knn_query
 #' @return the nearest neighbor graph as a list containing:
 #'   * `idx` an n by k matrix containing the nearest neighbor indices in
 #'   `reference`.
@@ -460,27 +419,12 @@ brute_force_knn_query <- function(query,
 
 #' Nearest Neighbors Query by Random Selection
 #'
-#' @param query Matrix of `n` query items.
-#' @param reference Matrix of `m` reference items. The nearest neighbors to the
-#'   queries are randomly selected from this data.
-#' @param k Number of nearest neighbors to return.
-#' @param metric Type of distance calculation to use. One of `"euclidean"`,
-#'   `"l2sqr"` (squared Euclidean), `"cosine"`, `"manhattan"`,
-#'   `"correlation"` (1 minus the Pearson correlation), or
-#'   `"hamming"` (bitwise version), or `"overlap"` (general `"hamming"`).
-#' @param use_alt_metric If `TRUE`, use faster metrics that maintain the
-#'   ordering of distances internally (e.g. squared Euclidean distances if using
-#'   `metric = "euclidean"`), then apply a correction at the end. Probably
-#'   the only reason to set this to `FALSE` is if you suspect that some
-#'   sort of numeric issue is occurring with your data in the alternative code
-#'   path.
+#' @inheritParams graph_knn_query
 #' @param order_by_distance If `TRUE` (the default), then results for each
 #'   item are returned by increasing distance. If you don't need the results
 #'   sorted, e.g. you are going to pass the results as initialization to another
 #'   routine like [graph_knn_query()], set this to `FALSE` to save a
 #'   small amount of computational time.
-#' @param n_threads Number of threads to use.
-#' @param verbose If `TRUE`, log information to the console.
 #' @return an approximate nearest neighbor graph as a list containing:
 #'   * `idx` an n by k matrix containing the nearest neighbor indices.
 #'   * `dist` an n by k matrix containing the nearest neighbor distances.
@@ -566,6 +510,7 @@ random_knn_query <-
 
 #' Find Nearest Neighbors and Distances
 #'
+#' @inheritParams nnd_knn
 #' @param query Matrix of `n` query items.
 #' @param reference Matrix of `m` reference items. The nearest neighbors to the
 #'   items in `query` are calculated from this data.
@@ -573,31 +518,6 @@ random_knn_query <-
 #'   graph, such as that output from [nnd_knn()] can be used, but
 #'   preferably a suitably prepared sparse search graph should be used, such as
 #'   that output by [prepare_search_graph()].
-#' @param k Number of nearest neighbors to return. Optional if `init` is
-#'   specified.
-#' @param metric Type of distance calculation to use. One of `"euclidean"`,
-#'   `"l2sqr"` (squared Euclidean), `"cosine"`, `"manhattan"`,
-#'   `"correlation"` (1 minus the Pearson correlation), or
-#'   `"hamming"` (bitwise version), or `"overlap"` (general `"hamming"`).
-#' @param use_alt_metric If `TRUE`, use faster metrics that maintain the
-#'   ordering of distances internally (e.g. squared Euclidean distances if using
-#'   `metric = "euclidean"`), then apply a correction at the end. Probably
-#'   the only reason to set this to `FALSE` is if you suspect that some
-#'   sort of numeric issue is occurring with your data in the alternative code
-#'   path.
-#' @param init Initial `query` neighbor graph to optimize. If not
-#'   provided, `k` random neighbors from `reference` are used. The
-#'   format should be the same as the return value of this function, a list
-#'   containing:
-#'   * `idx` a `n` by `k` matrix containing the nearest neighbor indices
-#'     specifying the row of the neighbor in `reference`.
-#'   * `dist` (optional) a `n` by `k` matrix containing the nearest neighbor
-#'     distances.
-#'
-#'   If `k` and `init` are provided then `k` must be equal to or smaller than
-#'   the number of neighbors provided in `init`. If smaller, only the `k`
-#'   closest value in `init` are retained. If the input distances are omitted,
-#'   they will be calculated for you.
 #' @param epsilon Controls trade-off between accuracy and search cost, by
 #'   specifying a distance tolerance on whether to explore the neighbors of
 #'   candidate points. The larger the value, the more neighbors will be
@@ -609,8 +529,6 @@ random_knn_query <-
 #'   `epsilon` will result in the query search approaching brute force
 #'   comparison. Use this parameter in conjunction with
 #'   [prepare_search_graph()] to prevent excessive run time. Default is 0.1.
-#' @param n_threads Number of threads to use.
-#' @param verbose If `TRUE`, log information to the console.
 #' @return the approximate nearest neighbor graph as a list containing:
 #'   * `idx` a `n` by `k` matrix containing the nearest neighbor indices
 #'     specifying the row of the neighbor in `reference`.
