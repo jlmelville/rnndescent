@@ -146,15 +146,14 @@ random_knn <-
 #' @param k Number of nearest neighbors to return. Optional if `init` is
 #'   specified.
 #' @param metric Type of distance calculation to use. One of `"euclidean"`,
-#'   `"l2sqr"` (squared Euclidean), `"cosine"`, `"manhattan"`,
-#'   `"correlation"` (1 minus the Pearson correlation), or
-#'   `"hamming"` (bitwise version), or `"overlap"` (general `"hamming"`).
-#' @param init Initial data to optimize. If not provided, `k` random
-#'   neighbors are created. The input format should be the same as the return
-#'   value: a list containing:
-#'   * `idx` an `n` by `k` matrix containing the nearest neighbor indices.
-#'   * `dist` (optional) an `n` by `k` matrix containing the nearest neighbor
-#'   distances.
+#'   `"l2sqr"` (squared Euclidean), `"cosine"`, `"manhattan"`, `"correlation"`
+#'   (1 minus the Pearson correlation), `"hamming"` or `"bhamming"` (hamming
+#'   on binary data with bitset internal memory optimization).
+#' @param init Initial data to optimize. If not provided, `k` random neighbors
+#'   are created. The input format should be the same as the return value: a
+#'   list containing: * `idx` an `n` by `k` matrix containing the nearest
+#'   neighbor indices. * `dist` (optional) an `n` by `k` matrix containing the
+#'   nearest neighbor distances.
 #'
 #'   If `k` and `init` are provided then `k` must be equal to or smaller than
 #'   the number of neighbors provided in `init`. If smaller, only the `k`
@@ -726,14 +725,11 @@ graph_knn_query <- function(query,
 #' itself (the diagonal of the sparse distance matrix). These trivial edges
 #' aren't useful for search purposes and are always dropped.
 #'
-#' @param data Matrix of `n` items.
+#' @inheritParams nnd_knn
 #' @param graph neighbor graph for `data`, a list containing:
 #'   * `idx` an `n` by `k` matrix containing the nearest neighbor indices of
 #'   the data in `data`.
 #'   * `dist` an `n` by `k` matrix containing the nearest neighbor distances.
-#' @param metric Type of distance calculation to use. One of `"euclidean"`,
-#'   `"l2sqr"` (squared Euclidean), `"cosine"`, `"manhattan"`, `"correlation"`
-#'   (1 minus the Pearson correlation), or `"hamming"` (bitwise version), or `"overlap"` (general `"hamming"`).
 #' @param diversify_prob the degree of diversification of the search graph
 #'   by removing unnecessary edges through occlusion pruning. This should take a
 #'   value between `0` (no diversification) and `1` (remove as many edges as

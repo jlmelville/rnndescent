@@ -35,9 +35,13 @@ bitm <- function(nrow, ncol, prob = 0.5) {
 
 set.seed(1337)
 bitdata <- bitm(nrow = 10, ncol = 160)
+intdata <- matrix(sample.int(5, 40, replace = TRUE), 10)
 
 bit6 <- bitdata[1:6, ]
 bit4 <- bitdata[7:10, ]
+
+int6 <- intdata[1:6, ]
+int4 <- intdata[7:10, ]
 
 # Taken from RcppAnnoy
 bit4q_hdsum <- 1275

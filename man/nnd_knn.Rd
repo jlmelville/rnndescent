@@ -26,18 +26,15 @@ nnd_knn(
 specified.}
 
 \item{metric}{Type of distance calculation to use. One of \code{"euclidean"},
-\code{"l2sqr"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"},
-\code{"correlation"} (1 minus the Pearson correlation), or
-\code{"hamming"} (bitwise version), or \code{"overlap"} (general \code{"hamming"}).}
+\code{"l2sqr"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"}, \code{"correlation"}
+(1 minus the Pearson correlation), \code{"hamming"} or \code{"bhamming"} (hamming
+on binary data with bitset internal memory optimization).}
 
-\item{init}{Initial data to optimize. If not provided, \code{k} random
-neighbors are created. The input format should be the same as the return
-value: a list containing:
-\itemize{
-\item \code{idx} an \code{n} by \code{k} matrix containing the nearest neighbor indices.
-\item \code{dist} (optional) an \code{n} by \code{k} matrix containing the nearest neighbor
-distances.
-}
+\item{init}{Initial data to optimize. If not provided, \code{k} random neighbors
+are created. The input format should be the same as the return value: a
+list containing: * \code{idx} an \code{n} by \code{k} matrix containing the nearest
+neighbor indices. * \code{dist} (optional) an \code{n} by \code{k} matrix containing the
+nearest neighbor distances.
 
 If \code{k} and \code{init} are provided then \code{k} must be equal to or smaller than
 the number of neighbors provided in \code{init}. If smaller, only the \code{k}

@@ -2,8 +2,9 @@
 
 ## New features
 
-* Add new `overlap` distance (generic `hamming` distance) and document that
-  `hamming` is a bitwise metric.
+* Generalize `hamming` metric to a standard definition. The old implementation
+  of `hamming` metric which worked on binary data only was renamed into
+  `bhamming`.
 
 ## Bug fixes and minor improvements
 

@@ -204,8 +204,8 @@ template <typename In, typename Out, typename Idx = uint32_t> struct Manhattan {
 };
 
 template <typename Out, typename Idx = uint32_t>
-auto hamming_impl(const BitVec &x, Idx i, const BitVec &y, Idx j,
-                  std::size_t len) -> Out {
+auto bhamming_impl(const BitVec &x, Idx i, const BitVec &y, Idx j,
+				   std::size_t len) -> Out {
   Out sum = 0;
   std::size_t di = len * i;
   std::size_t dj = len * j;
@@ -218,19 +218,19 @@ auto hamming_impl(const BitVec &x, Idx i, const BitVec &y, Idx j,
 }
 
 template <typename In, typename Out, typename Idx = uint32_t>
-struct HammingSelf {
+struct BHammingSelf {
   const BitVec bitvec;
   std::size_t vec_len; // size of the bitvec
   std::size_t ndim;
   Idx nx;
   Idx ny;
 
-  HammingSelf(const std::vector<In> &data, std::size_t ndim)
+  BHammingSelf(const std::vector<In> &data, std::size_t ndim)
       : bitvec(to_bitvec(data, ndim)), vec_len(bitvec_size(ndim)), ndim(ndim),
         nx(data.size() / ndim), ny(nx) {}
 
   auto operator()(Idx i, Idx j) const -> Out {
-    return hamming_impl<Out>(bitvec, i, bitvec, j, vec_len);
+    return bhamming_impl<Out>(bitvec, i, bitvec, j, vec_len);
   }
 
   using Input = In;
@@ -239,7 +239,7 @@ struct HammingSelf {
 };
 
 template <typename In, typename Out, typename Idx = uint32_t>
-struct HammingQuery {
+struct BHammingQuery {
   const BitVec bx;
   const BitVec by;
   std::size_t vec_len;
@@ -247,14 +247,13 @@ struct HammingQuery {
   Idx nx;
   Idx ny;
 
-  HammingQuery(const std::vector<In> &x, const std::vector<In> &y,
-               std::size_t ndim)
+  BHammingQuery(const std::vector<In> &x, const std::vector<In> &y, std::size_t ndim)
       : bx(to_bitvec(x, ndim)), by(to_bitvec(y, ndim)),
         vec_len(bitvec_size(ndim)), ndim(ndim), nx(x.size() / ndim),
         ny(y.size() / ndim) {}
 
   auto operator()(Idx i, Idx j) const -> Out {
-    return hamming_impl<Out>(bx, i, by, j, vec_len);
+    return bhamming_impl<Out>(bx, i, by, j, vec_len);
   }
 
   using Input = In;
@@ -263,13 +262,13 @@ struct HammingQuery {
 };
 
 template <typename In, typename Out, typename Idx = uint32_t>
-struct Overlap {
+struct Hamming {
 
-  Overlap(const std::vector<In> &data, std::size_t ndim)
+  Hamming(const std::vector<In> &data, std::size_t ndim)
 	: x(data), y(data), ndim(ndim), nx(data.size() / ndim),
 	  ny(data.size() / ndim) {}
 
-  Overlap(const std::vector<In> &x, const std::vector<In> &y, std::size_t ndim)
+  Hamming(const std::vector<In> &x, const std::vector<In> &y, std::size_t ndim)
 	: x(x), y(y), ndim(ndim), nx(x.size() / ndim), ny(y.size() / ndim) {}
 
   auto operator()(Idx i, Idx j) const -> Out {
