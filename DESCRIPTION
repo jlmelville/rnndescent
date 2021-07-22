@@ -17,4 +17,4 @@ Roxygen: list(markdown = TRUE)
 LinkingTo: 
     Rcpp, dqrng, RcppProgress, sitmo, BH
 Imports: 
-    Matrix, Rcpp, methods, dqrng
+    Matrix (>= 1.3-0), Rcpp, methods, dqrng
