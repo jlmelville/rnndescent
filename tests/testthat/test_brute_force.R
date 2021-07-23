@@ -69,17 +69,25 @@ qnbrs6 <- brute_force_knn_query(reference = ui4, query = ui6, k = 4, metric = "m
 check_query_nbrs_idx(qnbrs6$idx, nref = nrow(ui4))
 expect_equal(sum(qnbrs6$dist), ui6q_mdsum, tol = 1e-5)
 
-for (metric in c("hamming", "bhamming")) {
-  ui6_nnd <- brute_force_knn(bit6, k = 4, metric = metric)
-  qnbrs4 <- brute_force_knn_query(reference = bit6, query = bit4, k = 4, metric = metric)
-  check_query_nbrs_idx(qnbrs4$idx, nref = nrow(bit6))
-  expect_equal(sum(qnbrs4$dist), bit4q_hdsum)
+ui6_nnd <- brute_force_knn(bit6, k = 4, metric = "hamming")
+qnbrs4 <- brute_force_knn_query(reference = bit6, query = bit4, k = 4, metric = "hamming")
+check_query_nbrs_idx(qnbrs4$idx, nref = nrow(bit6))
+expect_equal(sum(qnbrs4$dist), bit4q_hdsum)
 
-  ui4_nnd <- brute_force_knn(bit4, k = 4, metric = metric)
-  qnbrs6 <- brute_force_knn_query(reference = bit4, query = bit6, k = 4, metric = metric)
-  check_query_nbrs_idx(qnbrs6$idx, nref = nrow(bit4))
-  expect_equal(sum(qnbrs6$dist), bit6q_hdsum)
-}
+ui4_nnd <- brute_force_knn(bit4, k = 4, metric = "hamming")
+qnbrs6 <- brute_force_knn_query(reference = bit4, query = bit6, k = 4, metric = "hamming")
+check_query_nbrs_idx(qnbrs6$idx, nref = nrow(bit4))
+expect_equal(sum(qnbrs6$dist), bit6q_hdsum)
+
+ui6_nnd <- brute_force_knn(bit6, k = 4, metric = "bhamming")
+qnbrs4 <- brute_force_knn_query(reference = bit6, query = bit4, k = 4, metric = "bhamming")
+check_query_nbrs_idx(qnbrs4$idx, nref = nrow(bit6))
+expect_equal(sum(qnbrs4$dist), bit4q_hdsum)
+
+ui4_nnd <- brute_force_knn(bit4, k = 4, metric = "bhamming")
+qnbrs6 <- brute_force_knn_query(reference = bit4, query = bit6, k = 4, metric = "bhamming")
+check_query_nbrs_idx(qnbrs6$idx, nref = nrow(bit4))
+expect_equal(sum(qnbrs6$dist), bit6q_hdsum)
 
 ui6_nnd <- brute_force_knn(int6, k = 6, metric = "hamming")
 expect_equal(ui6_nnd$dist, R_knn_hamming(int6)$dist)
