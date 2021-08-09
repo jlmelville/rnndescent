@@ -699,18 +699,17 @@ edges is a bit more equitable.
 Here is a summary and histogram of the k-occurrences of the search graph:
 
 ```{r histogram of k-occurrences of search graph}
-g1000d_sgko <- as.vector(table(Matrix::t(g1000d_search_graph)@i + 1))
+g1000d_sgko <- k_occur(g1000d_search_graph)
 hist(g1000d_sgko, main = "search graph k-occurrences", xlab = "k-occurrences")
 summary(g1000d_sgko)
 sum(g1000d_sgko == 1)
 ```
 
-By design, the pruned search graph is unable to exhibit the extreme hub behavior
-that the neighbor graph displayed. There are still some anti-hubs, but around an
-order of magnitude fewer.
+This is not *quite* as skewed as the neighbor graph, but there is still a lot of
+room for improvement.
 
-With the search graph in hand, we can now search it using our original data
-as a query:
+At any rate, with the search graph in hand, we can now search it using our
+original data as a query:
 
 ```{r search with prepared graph}
 g1000d_search <-

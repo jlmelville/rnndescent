@@ -24,10 +24,11 @@
 #'   is from querying one set of objects with respect to another (for instance
 #'   from running [graph_knn_query()]). You may also pass a nearest
 #'   neighbor graph object (e.g. the output of running [nnd_knn()]),
-#'   and the indices will be extracted from it.
+#'   and the indices will be extracted from it, or a sparse matrix in the same
+#'   format as that returned by [prepare_search_graph()].
 #' @param k The number of closest neighbors to use. Must be between 1 and the
 #'   number of columns in `idx`. By default, all columns of `idx` are
-#'   used.
+#'   used. Ignored if `idx` is sparse.
 #' @param include_self logical indicating whether the label `i` in
 #'   `idx` is considered to be a valid neighbor when found in row `i`.
 #'   By default this is `TRUE`. This can be set to `FALSE` when the
@@ -64,6 +65,9 @@
 k_occur <- function(idx,
                     k = NULL,
                     include_self = TRUE) {
+  if (methods::is(idx, "sparseMatrix")) {
+    return(as.vector(table(Matrix::t(idx)@i)) - ifelse(include_self, 0, 1))
+  }
   if (is.list(idx)) {
     idx <- idx$idx
   }

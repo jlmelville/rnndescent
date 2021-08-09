@@ -13,11 +13,12 @@ refer to the rows of \code{idx}, for example if the nearest neighbor result
 is from querying one set of objects with respect to another (for instance
 from running \code{\link[=graph_knn_query]{graph_knn_query()}}). You may also pass a nearest
 neighbor graph object (e.g. the output of running \code{\link[=nnd_knn]{nnd_knn()}}),
-and the indices will be extracted from it.}
+and the indices will be extracted from it, or a sparse matrix in the same
+format as that returned by \code{\link[=prepare_search_graph]{prepare_search_graph()}}.}
 
 \item{k}{The number of closest neighbors to use. Must be between 1 and the
 number of columns in \code{idx}. By default, all columns of \code{idx} are
-used.}
+used. Ignored if \code{idx} is sparse.}
 
 \item{include_self}{logical indicating whether the label \code{i} in
 \code{idx} is considered to be a valid neighbor when found in row \code{i}.
