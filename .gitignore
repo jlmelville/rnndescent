@@ -3,3 +3,4 @@
 .RData
 .Ruserdata
 **/*DONTCHECKMEIN*
+inst/doc
