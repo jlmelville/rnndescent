@@ -23,10 +23,16 @@ library(rnndescent)
 ```
 
 Nearest Neighbor Descent (NND) [@dong2011efficient] is affected by hubness 
-[@bratic2019influence]. In this vignette we will use synthetic data to explore
-the problem, and demonstrate how k-occurrence can diagnose the existence of
-a potential problem. We will also look at one straightforward (if expensive)
-way to ameliorate the effects.
+[@bratic2019influence]: this is when some items in a dataset appear as a near 
+neighbor of other points very frequently. This can result in reduced accuracy
+of the approximate nearest neighbor graph produced by NND and may be an
+intrinsic problem in high dimensional datasets (although see [@low2013hubness]
+for a dissenting view).
+
+In this vignette we will use synthetic data to explore the issue, and use the
+k-occurrences of a neighbor graph to identify when NND is at risk of producing
+less accurate results. We will also look at some ways to ameliorate the effects
+of hubness.
 
 First, to control the pseudo-random number generation:
 
