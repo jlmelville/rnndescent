@@ -32,9 +32,9 @@ that output by \code{\link[=prepare_search_graph]{prepare_search_graph()}}.}
 specified.}
 
 \item{metric}{Type of distance calculation to use. One of \code{"euclidean"},
-\code{"l2sqr"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"},
-\code{"correlation"} (1 minus the Pearson correlation), or
-\code{"hamming"}.}
+\code{"l2sqr"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"}, \code{"correlation"}
+(1 minus the Pearson correlation), \code{"hamming"} or \code{"bhamming"} (hamming
+on binary data with bitset internal memory optimization).}
 
 \item{init}{Initial \code{query} neighbor graph to optimize. If not
 provided, \code{k} random neighbors from \code{reference} are used. The

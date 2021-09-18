@@ -93,3 +93,12 @@ check_query_nbrs(nn = qnbrs4, query = bit4, ref_range = 1:6, query_range = 7:10,
 set.seed(1337)
 qnbrs6 <- random_knn_query(reference = bit4, query = bit6, k = 4, metric = "hamming")
 check_query_nbrs(nn = qnbrs6, query = bit6, ref_range = 7:10, query_range = 1:6, k = 4, expected_dist = bit10_hamd, tol = 1e-6)
+
+
+set.seed(1337)
+qnbrs4 <- random_knn_query(reference = bit6, query = bit4, k = 4, metric = "bhamming")
+check_query_nbrs(nn = qnbrs4, query = bit4, ref_range = 1:6, query_range = 7:10, k = 4, expected_dist = bit10_hamd, tol = 1e-6)
+
+set.seed(1337)
+qnbrs6 <- random_knn_query(reference = bit4, query = bit6, k = 4, metric = "bhamming")
+check_query_nbrs(nn = qnbrs6, query = bit6, ref_range = 7:10, query_range = 1:6, k = 4, expected_dist = bit10_hamd, tol = 1e-6)

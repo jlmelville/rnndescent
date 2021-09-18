@@ -1,5 +1,11 @@
 # rnndescent 0.0.10
 
+## New features
+
+* Generalize `hamming` metric to a standard definition. The old implementation
+of `hamming` metric which worked on binary data only was renamed into 
+`bhamming`. (contributed by [Vitalie Spinu](https://github.com/vspinu))
+
 ## Bug fixes and minor improvements
 
 * Removed the `block_size` and `grain_size` parameters from functions. These

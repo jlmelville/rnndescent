@@ -20,6 +20,11 @@ even on its own initialized from a random starting point.
 
 ## Current Status
 
+*18 September 2021* The `"hamming"` metric now supports integer-valued (not just
+binary) inputs, thanks to a contribution from
+[Vitalie Spinu](https://github.com/vspinu). The older metric code path for
+binary data only is supported via `metric = "bhamming"`.
+
 *20 June 2021* A big step forward in usefulness with the addition of the
 `prepare_search_graph` function which creates and prunes an undirected search
 graph from the neighbor graph for use with the (now re-named) `graph_knn_query`
@@ -341,5 +346,4 @@ GPLv3 or later.
 a Julia implementation.
 * [nn_descent](https://github.com/eskomski/nn_descent), a C implementation.
 * [NNDescent.cpp](https://github.com/AnabelSMRuggiero/NNDescent.cpp), another
-C++ implementation
-
+C++ implementation.

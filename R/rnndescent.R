@@ -5,9 +5,9 @@
 #' @param data Matrix of `n` items to generate random neighbors for.
 #' @param k Number of nearest neighbors to return.
 #' @param metric Type of distance calculation to use. One of `"euclidean"`,
-#'   `"l2sqr"` (squared Euclidean), `"cosine"`, `"manhattan"`,
-#'   `"correlation"` (1 minus the Pearson correlation), or
-#'   `"hamming"`.
+#'   `"l2sqr"` (squared Euclidean), `"cosine"`, `"manhattan"`, `"correlation"`
+#'   (1 minus the Pearson correlation), `"hamming"` or `"bhamming"` (hamming
+#'   on binary data with bitset internal memory optimization).
 #' @param use_alt_metric If `TRUE`, use faster metrics that maintain the
 #'   ordering of distances internally (e.g. squared Euclidean distances if using
 #'   `metric = "euclidean"`), then apply a correction at the end. Probably
@@ -82,9 +82,9 @@ brute_force_knn <- function(data,
 #' @param data Matrix of `n` items to generate random neighbors for.
 #' @param k Number of nearest neighbors to return.
 #' @param metric Type of distance calculation to use. One of `"euclidean"`,
-#'   `"l2sqr"` (squared Euclidean), `"cosine"`, `"manhattan"`,
-#'   `"correlation"` (1 minus the Pearson correlation), or
-#'   `"hamming"`.
+#'   `"l2sqr"` (squared Euclidean), `"cosine"`, `"manhattan"`, `"correlation"`
+#'   (1 minus the Pearson correlation), `"hamming"` or `"bhamming"` (hamming
+#'   on binary data with bitset internal memory optimization).
 #' @param use_alt_metric If `TRUE`, use faster metrics that maintain the
 #'   ordering of distances internally (e.g. squared Euclidean distances if using
 #'   `metric = "euclidean"`), then apply a correction at the end. Probably
@@ -172,9 +172,9 @@ random_knn <-
 #' @param k Number of nearest neighbors to return. Optional if `init` is
 #'   specified.
 #' @param metric Type of distance calculation to use. One of `"euclidean"`,
-#'   `"l2sqr"` (squared Euclidean), `"cosine"`, `"manhattan"`,
-#'   `"correlation"` (1 minus the Pearson correlation), or
-#'   `"hamming"`.
+#'   `"l2sqr"` (squared Euclidean), `"cosine"`, `"manhattan"`, `"correlation"`
+#'   (1 minus the Pearson correlation), `"hamming"` or `"bhamming"` (hamming
+#'   on binary data with bitset internal memory optimization).
 #' @param init Initial data to optimize. If not provided, `k` random
 #'   neighbors are created. The input format should be the same as the return
 #'   value: a list containing:
@@ -367,9 +367,9 @@ nnd_knn <- function(data,
 #' @param reference Matrix of `m` reference items. The nearest neighbors to the
 #'   queries are calculated from this data.
 #' @param metric Type of distance calculation to use. One of `"euclidean"`,
-#'   `"l2sqr"` (squared Euclidean), `"cosine"`, `"manhattan"`,
-#'   `"correlation"` (1 minus the Pearson correlation), or
-#'   `"hamming"`.
+#'   `"l2sqr"` (squared Euclidean), `"cosine"`, `"manhattan"`, `"correlation"`
+#'   (1 minus the Pearson correlation), `"hamming"` or `"bhamming"` (hamming
+#'   on binary data with bitset internal memory optimization).
 #' @param use_alt_metric If `TRUE`, use faster metrics that maintain the
 #'   ordering of distances internally (e.g. squared Euclidean distances if using
 #'   `metric = "euclidean"`), then apply a correction at the end. Probably
@@ -465,9 +465,9 @@ brute_force_knn_query <- function(query,
 #'   queries are randomly selected from this data.
 #' @param k Number of nearest neighbors to return.
 #' @param metric Type of distance calculation to use. One of `"euclidean"`,
-#'   `"l2sqr"` (squared Euclidean), `"cosine"`, `"manhattan"`,
-#'   `"correlation"` (1 minus the Pearson correlation), or
-#'   `"hamming"`.
+#'   `"l2sqr"` (squared Euclidean), `"cosine"`, `"manhattan"`, `"correlation"`
+#'   (1 minus the Pearson correlation), `"hamming"` or `"bhamming"` (hamming
+#'   on binary data with bitset internal memory optimization).
 #' @param use_alt_metric If `TRUE`, use faster metrics that maintain the
 #'   ordering of distances internally (e.g. squared Euclidean distances if using
 #'   `metric = "euclidean"`), then apply a correction at the end. Probably
@@ -576,9 +576,9 @@ random_knn_query <-
 #' @param k Number of nearest neighbors to return. Optional if `init` is
 #'   specified.
 #' @param metric Type of distance calculation to use. One of `"euclidean"`,
-#'   `"l2sqr"` (squared Euclidean), `"cosine"`, `"manhattan"`,
-#'   `"correlation"` (1 minus the Pearson correlation), or
-#'   `"hamming"`.
+#'   `"l2sqr"` (squared Euclidean), `"cosine"`, `"manhattan"`, `"correlation"`
+#'   (1 minus the Pearson correlation), `"hamming"` or `"bhamming"` (hamming
+#'   on binary data with bitset internal memory optimization).
 #' @param use_alt_metric If `TRUE`, use faster metrics that maintain the
 #'   ordering of distances internally (e.g. squared Euclidean distances if using
 #'   `metric = "euclidean"`), then apply a correction at the end. Probably
@@ -815,7 +815,8 @@ graph_knn_query <- function(query,
 #'   * `dist` an `n` by `k` matrix containing the nearest neighbor distances.
 #' @param metric Type of distance calculation to use. One of `"euclidean"`,
 #'   `"l2sqr"` (squared Euclidean), `"cosine"`, `"manhattan"`, `"correlation"`
-#'   (1 minus the Pearson correlation), or `"hamming"`.
+#'   (1 minus the Pearson correlation), `"hamming"` or `"bhamming"` (hamming
+#'   on binary data with bitset internal memory optimization).
 #' @param diversify_prob the degree of diversification of the search graph
 #'   by removing unnecessary edges through occlusion pruning. This should take a
 #'   value between `0` (no diversification) and `1` (remove as many edges as
