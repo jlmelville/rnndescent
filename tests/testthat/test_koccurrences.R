@@ -31,6 +31,8 @@ expect_equal(k_occur(qnbrs6$idx), c(6, 6, 6, 6))
 test_that("k-occurrence of sparse graph", {
   rnbrs_sparse <- graph_to_csparse(rnbrs)
   expect_equal(k_occur(rnbrs_sparse), hub10)
-  expect_equal(k_occur(rnbrs_sparse, include_self = FALSE),
-               c(2, 4, 6, 2, 4, 2, 4, 3, 1, 2))
+  expect_equal(
+    k_occur(rnbrs_sparse, include_self = FALSE),
+    c(2, 4, 6, 2, 4, 2, 4, 3, 1, 2)
+  )
 })
