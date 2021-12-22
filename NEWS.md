@@ -3,11 +3,15 @@
 ## New features
 
 * Generalize `hamming` metric to a standard definition. The old implementation
-of `hamming` metric which worked on binary data only was renamed into 
+of `hamming` metric which worked on binary data only was renamed into
 `bhamming`. (contributed by [Vitalie Spinu](https://github.com/vspinu))
 
 ## Bug fixes and minor improvements
 
+* The `random_knn` function used to always return each item as its own neighbor,
+so that only `n_nbrs - 1` of the returned neighbors were actually selected at
+random. Even I forgot it did that and it doesn't make a lot of sense, so now you
+really do just get back `n_nbrs` random selections.
 * Removed the `block_size` and `grain_size` parameters from functions. These
 were related to the amount of work done per thread, but it's not obvious to
 an outside user how to set these.
@@ -19,8 +23,8 @@ frequently (if `verbose = TRUE`) and respond to user-requested cancellation.
 ## New features
 
 * `nnd_knn_query` has been renamed to `graph_knn_query` and now more closely
-follows the current pynndescent graph search method
-(including backtracking search).
+follows the current pynndescent graph search method (including backtracking
+search).
 * New function: `prepare_search_graph` for preparing a search graph from a
 neighbor graph for use in `graph_knn_query`, by using reverse nearest neighbors,
 occlusion pruning and truncation.

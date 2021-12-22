@@ -56,54 +56,13 @@ template <typename Distance, typename Sampler> struct RandomNbrQueryWorker {
   void operator()(std::size_t begin, std::size_t end) {
     Sampler int_sampler(seed, end);
 
-    for (int qi = static_cast<int>(begin); qi < static_cast<int>(end); qi++) {
+    for (auto qi = static_cast<int>(begin); qi < static_cast<int>(end); qi++) {
       auto idxi = int_sampler.template sample<Idx>(nrefs, n_nbrs);
       std::size_t kqi = n_nbrs * qi;
       for (std::size_t j = 0; j < n_nbrs; j++) {
         auto &ri = idxi[j];
         nn_idx[j + kqi] = ri;
         nn_dist[j + kqi] = distance(ri, qi); // distance calcs are 0-indexed
-      }
-    }
-  }
-};
-
-template <typename Distance, typename Sampler> struct RandomNbrBuildWorker {
-  using Idx = typename Distance::Index;
-  using Out = typename Distance::Output;
-  Distance &distance;
-
-  std::size_t n_points;
-  Idx n_nbrs;
-  std::vector<Idx> nn_idx;
-  std::vector<Out> nn_dist;
-
-  int n_points_minus_1;
-  int k_minus_1;
-  uint64_t seed;
-
-  RandomNbrBuildWorker(Distance &distance, Idx n_nbrs)
-      : distance(distance), n_points(distance.ny), n_nbrs(n_nbrs),
-        nn_idx(n_points * n_nbrs), nn_dist(n_points * n_nbrs),
-        n_points_minus_1(n_points - 1), k_minus_1(n_nbrs - 1),
-        seed(Sampler::get_seed()) {}
-
-  void operator()(std::size_t begin, std::size_t end) {
-    Sampler int_sampler(seed, end);
-
-    for (auto qi = static_cast<int>(begin); qi < static_cast<int>(end); qi++) {
-      std::size_t kqi = n_nbrs * qi;
-      std::size_t kqi1 = kqi + 1;
-      nn_idx[0 + kqi] = qi;
-      auto ris = int_sampler.template sample<Idx>(n_points_minus_1, k_minus_1);
-
-      for (auto j = 0; j < k_minus_1; j++) {
-        int ri = ris[j];
-        if (ri >= qi) {
-          ri += 1;
-        }
-        nn_idx[j + kqi1] = ri;
-        nn_dist[j + kqi1] = distance(ri, qi); // distance calcs are 0-indexed
       }
     }
   }
@@ -150,7 +109,7 @@ auto random_build(const std::vector<typename Distance::Input> &data,
     -> NNGraph<typename Distance::Output, typename Distance::Index> {
   Distance distance(data, ndim);
 
-  using Worker = tdoann::RandomNbrBuildWorker<Distance, Sampler>;
+  using Worker = tdoann::RandomNbrQueryWorker<Distance, Sampler>;
   if (n_threads > 0) {
     using HeapAdd = tdoann::LockingHeapAddSymmetric;
     return get_nn<Distance, Progress, Parallel, Worker, HeapAdd>(

@@ -11,13 +11,26 @@ check_nbri <- function(nnidx, i) {
   expect_true(all(true_nbrs > 0), label = i)
   expect_true(all(true_nbrs <= nr), label = i)
   expect_true(length(unique(true_nbrs)) == nc - 1)
-  all(i != true_nbrs & true_nbrs > 0 & true_nbrs <= nr) && length(unique(true_nbrs)) == nc - 1
 }
 
-check_nbrs_idx <- function(nnidx) {
+check_nbri_unordered <- function(nnidx, i) {
+  nr <- nrow(nnidx)
+  nc <- ncol(nnidx)
+  nbrs <- nnidx[i, , drop = FALSE]
+  expect_true(all(nbrs > 0), label = i)
+  expect_true(all(nbrs <= nr), label = i)
+  expect_true(length(unique(nbrs)) == nc)
+}
+
+check_nbrs_idx <- function(nnidx, check_order = TRUE) {
   nr <- nrow(nnidx)
   for (i in 1:nr) {
-    check_nbri(nnidx, i)
+    if (check_order) {
+      check_nbri(nnidx, i)
+    }
+    else {
+      check_nbri_unordered(nnidx, i)
+    }
   }
 }
 
@@ -41,7 +54,7 @@ check_nbrs_order <- function(nn) {
 }
 
 check_nbrs <- function(nn, expected_dist, tol = .Machine$double.eps, check_order = TRUE) {
-  check_nbrs_idx(nn$idx)
+  check_nbrs_idx(nn$idx, check_order = check_order)
   check_nbrs_dist(nn, expected_dist, tol = tol)
   if (check_order) {
     # this checks that distances are in increasing order for each row
