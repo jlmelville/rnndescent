@@ -90,12 +90,26 @@ check_query_nbrs_idx(qnbrs6$idx, nref = nrow(bit4))
 expect_equal(sum(qnbrs6$dist), bit6q_hdsum)
 
 ui6_nnd <- brute_force_knn(int6, k = 6, metric = "hamming")
-expect_equal(ui6_nnd$dist, R_knn_hamming(int6)$dist)
+check_nbrs(ui6_nnd, int6hd, tol = 1e-6, check_idx_order = FALSE, check_dist_order = TRUE)
 
+h46d <- matrix(c(
+  1, 2, 2, 3,
+  3, 3, 3, 3,
+  3, 3, 4, 4,
+  2, 2, 3, 3),
+  byrow = TRUE, nrow = 4)
 qnbrs4 <- brute_force_knn_query(int4, int6, k = 4, metric = "hamming")
 check_query_nbrs_idx(qnbrs4$idx, nref = nrow(int6))
-expect_equal(qnbrs4$dist, R_knn_hamming(int4, int6, 4)$dist)
+expect_equal(qnbrs4$dist, h46d)
 
+h64d <- matrix(c(
+  2, 3, 3, 4,
+  1, 2, 3, 4,
+  3, 3, 3, 4,
+  2, 2, 3, 4,
+  3, 3, 4, 4,
+  3, 4, 4, 4),
+  byrow = TRUE, nrow = 6)
 qnbrs6 <- brute_force_knn_query(int6, int4, k = 4, metric = "hamming")
 check_query_nbrs_idx(qnbrs6$idx, nref = nrow(int6))
-expect_equal(qnbrs6$dist, R_knn_hamming(int6, int4, 4)$dist)
+expect_equal(qnbrs6$dist, h64d)

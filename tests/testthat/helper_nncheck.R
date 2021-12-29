@@ -53,11 +53,14 @@ check_nbrs_order <- function(nn) {
     )))
 }
 
-check_nbrs <- function(nn, expected_dist, tol = .Machine$double.eps, check_order = TRUE) {
-  check_nbrs_idx(nn$idx, check_order = check_order)
+# check_idx_order = FALSE if you don't care about the order of the indices
+# check_dist_order checks that distances are in increasing order for each row
+# only reason for check_idx_order = FALSE, check_dist_order = TRUE is when
+# there are ties in the returned distances (e.g. hamming)
+check_nbrs <- function(nn, expected_dist, tol = .Machine$double.eps, check_idx_order = TRUE, check_dist_order = check_idx_order) {
+  check_nbrs_idx(nn$idx, check_order = check_idx_order)
   check_nbrs_dist(nn, expected_dist, tol = tol)
-  if (check_order) {
-    # this checks that distances are in increasing order for each row
+  if (check_dist_order) {
     check_nbrs_order(nn)
   }
 }

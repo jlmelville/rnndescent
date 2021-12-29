@@ -43,6 +43,15 @@ bit4 <- bitdata[7:10, ]
 int6 <- intdata[1:6, ]
 int4 <- intdata[7:10, ]
 
+int6hd <- matrix(c(
+  0,   2,   3,   3,   3,   2,
+  2,   0,   2,   2,   4,   4,
+  3,   2,   0,   4,   4,   4,
+  3,   2,   4,   0,   3,   3,
+  3,   4,   4,   3,   0,   2,
+  2,   4,   4,   3,   2,   0
+), nrow = 6)
+
 # Taken from RcppAnnoy
 bit4q_hdsum <- 1275
 bit6q_hdsum <- 1986

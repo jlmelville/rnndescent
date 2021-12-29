@@ -16,9 +16,9 @@ check_nbrs(rnbrs, ui10_eucd, tol = 1e-6)
 
 # turn off ordering
 rnbrs <- random_knn(ui10, k = 4, order_by_distance = FALSE)
-check_nbrs(rnbrs, ui10_eucd, tol = 1e-6, check_order = FALSE)
+check_nbrs(rnbrs, ui10_eucd, tol = 1e-6, check_idx_order = FALSE)
 rnbrs <- random_knn(ui10, k = 4, order_by_distance = FALSE, n_threads = 1)
-check_nbrs(rnbrs, ui10_eucd, tol = 1e-6, check_order = FALSE)
+check_nbrs(rnbrs, ui10_eucd, tol = 1e-6, check_idx_order = FALSE)
 
 # large sample code path
 res <- random_knn(matrix(rnorm(6000), nrow = 3000), k = 3)
