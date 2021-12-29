@@ -32,6 +32,24 @@
 #include "bitvec.h"
 
 namespace tdoann {
+
+template <typename Out, typename It>
+inline auto l2sqr(const It xbegin, const It xend, const It ybegin) -> Out {
+  Out sum{0};
+
+  for (It xit = xbegin, yit = ybegin; xit != xend; ++xit, ++yit) {
+    const Out diff = *xit - *yit;
+    sum += diff * diff;
+  }
+
+  return sum;
+}
+
+template <typename Out, typename It>
+inline auto euclidean(const It xbegin, const It xend, const It ybegin) -> Out {
+  return std::sqrt(l2sqr<Out>(xbegin, xend, ybegin));
+}
+
 template <typename In, typename Out, typename Idx = uint32_t> struct Euclidean {
   Euclidean(const std::vector<In> &data, std::size_t ndim)
       : x(data), y(data), ndim(ndim), nx(data.size() / ndim),
@@ -41,17 +59,10 @@ template <typename In, typename Out, typename Idx = uint32_t> struct Euclidean {
             std::size_t ndim)
       : x(x), y(y), ndim(ndim), nx(x.size() / ndim), ny(y.size() / ndim) {}
 
-  auto operator()(Idx i, Idx j) const -> Out {
-    Out sum = 0.0;
-    std::size_t di = ndim * i;
-    std::size_t dj = ndim * j;
-
-    for (std::size_t d = 0; d < ndim; d++) {
-      Out diff = x[di + d] - y[dj + d];
-      sum += diff * diff;
-    }
-
-    return std::sqrt(sum);
+  inline auto operator()(Idx i, Idx j) const -> Out {
+    const std::size_t di = ndim * i;
+    return euclidean<Out>(x.begin() + di, x.begin() + di + ndim,
+                          y.begin() + ndim * j);
   }
 
   const std::vector<In> x;
@@ -72,17 +83,10 @@ template <typename In, typename Out, typename Idx = uint32_t> struct L2Sqr {
   L2Sqr(const std::vector<In> &x, const std::vector<In> &y, std::size_t ndim)
       : x(x), y(y), ndim(ndim), nx(x.size() / ndim), ny(y.size() / ndim) {}
 
-  auto operator()(Idx i, Idx j) const -> Out {
-    Out sum = 0.0;
-    std::size_t di = ndim * i;
-    std::size_t dj = ndim * j;
-
-    for (std::size_t d = 0; d < ndim; d++) {
-      Out diff = x[di + d] - y[dj + d];
-      sum += diff * diff;
-    }
-
-    return sum;
+  inline auto operator()(Idx i, Idx j) const -> Out {
+    const std::size_t di = ndim * i;
+    return l2sqr<Out>(x.begin() + di, x.begin() + di + ndim,
+                      y.begin() + ndim * j);
   }
 
   const std::vector<In> x;
@@ -131,6 +135,38 @@ auto cosine_impl(const std::vector<In> &x, Idx i, const std::vector<In> &y,
   return 1.0 - sum;
 }
 
+// used by cosine and correlation to avoid division by zero
+template <typename Out>
+inline auto angular_dist(const Out &normx, const Out &normy, const Out &res)
+    -> Out {
+  Out zero{0};
+  if (normx == zero && normy == zero) {
+    return zero;
+  }
+  Out one{1};
+  if (normx == zero || normy == zero) {
+    return one;
+  }
+  return one - (res / std::sqrt(normx * normy));
+}
+
+template <typename Out, typename It>
+inline auto cosine(const It xbegin, const It xend, const It ybegin) -> Out {
+  Out res{0};
+  Out normx{0};
+  Out normy{0};
+
+  for (It xit = xbegin, yit = ybegin; xit != xend; ++xit, ++yit) {
+    Out x = *xit;
+    Out y = *yit;
+    res += x * y;
+    normx += x * x;
+    normy += y * y;
+  }
+
+  return angular_dist(normx, normy, res);
+}
+
 template <typename In, typename Out, typename Idx = uint32_t>
 struct CosineSelf {
   const std::vector<In> x;
@@ -172,6 +208,46 @@ struct CosineQuery {
   using Index = Idx;
 };
 
+template <typename Out, typename It>
+inline auto correlation(const It xbegin, const It xend, const It ybegin)
+    -> Out {
+  // calculate mean
+  Out xmu{0};
+  Out ymu{0};
+  for (It xit = xbegin, yit = ybegin; xit != xend; ++xit, ++yit) {
+    xmu += *xit;
+    ymu += *yit;
+  }
+  const auto n = static_cast<Out>(xend - xbegin);
+  xmu /= n;
+  ymu /= n;
+
+  // cosine on mean centered data
+  Out res{0};
+  Out normx{0};
+  Out normy{0};
+  for (It xit = xbegin, yit = ybegin; xit != xend; ++xit, ++yit) {
+    Out x = *xit - xmu;
+    Out y = *yit - ymu;
+    res += x * y;
+    normx += x * x;
+    normy += y * y;
+  }
+
+  return angular_dist(normx, normy, res);
+}
+
+template <typename Out, typename It>
+inline auto manhattan(const It xbegin, const It xend, const It ybegin) -> Out {
+  Out sum{0};
+
+  for (It xit = xbegin, yit = ybegin; xit != xend; ++xit, ++yit) {
+    sum += std::abs(*xit - *yit);
+  }
+
+  return sum;
+}
+
 template <typename In, typename Out, typename Idx = uint32_t> struct Manhattan {
   Manhattan(const std::vector<In> &data, std::size_t ndim)
       : x(data), y(data), ndim(ndim), nx(data.size() / ndim),
@@ -181,15 +257,9 @@ template <typename In, typename Out, typename Idx = uint32_t> struct Manhattan {
       : x(x), y(y), ndim(ndim), nx(x.size() / ndim), ny(y.size() / ndim) {}
 
   auto operator()(Idx i, Idx j) const -> Out {
-    Out sum = 0.0;
-    std::size_t di = ndim * i;
-    std::size_t dj = ndim * j;
-
-    for (std::size_t d = 0; d < ndim; d++) {
-      sum += std::abs(x[di + d] - y[dj + d]);
-    }
-
-    return sum;
+    const std::size_t di = ndim * i;
+    return manhattan<Out>(x.begin() + di, x.begin() + di + ndim,
+                          y.begin() + ndim * j);
   }
 
   const std::vector<In> x;
@@ -204,11 +274,11 @@ template <typename In, typename Out, typename Idx = uint32_t> struct Manhattan {
 };
 
 template <typename Out, typename Idx = uint32_t>
-auto bhamming_impl(const BitVec &x, Idx i, const BitVec &y, Idx j,
+auto bhamming_impl(const BitVec &x, const Idx i, const BitVec &y, Idx j,
                    std::size_t len) -> Out {
   Out sum = 0;
-  std::size_t di = len * i;
-  std::size_t dj = len * j;
+  const std::size_t di = len * i;
+  const std::size_t dj = len * j;
 
   for (std::size_t d = 0; d < len; d++) {
     sum += (x[di + d] ^ y[dj + d]).count();
@@ -262,8 +332,18 @@ struct BHammingQuery {
   using Index = Idx;
 };
 
-template <typename In, typename Out, typename Idx = uint32_t> struct Hamming {
+template <typename Out, typename It>
+inline auto hamming(const It xbegin, const It xend, const It ybegin) -> Out {
+  Out sum{0};
 
+  for (It xit = xbegin, yit = ybegin; xit != xend; ++xit, ++yit) {
+    sum += *xit != *yit;
+  }
+
+  return sum;
+}
+
+template <typename In, typename Out, typename Idx = uint32_t> struct Hamming {
   Hamming(const std::vector<In> &data, std::size_t ndim)
       : x(data), y(data), ndim(ndim), nx(data.size() / ndim),
         ny(data.size() / ndim) {}
@@ -272,15 +352,9 @@ template <typename In, typename Out, typename Idx = uint32_t> struct Hamming {
       : x(x), y(y), ndim(ndim), nx(x.size() / ndim), ny(y.size() / ndim) {}
 
   auto operator()(Idx i, Idx j) const -> Out {
-    Out sum = 0.0;
-    std::size_t di = ndim * i;
-    std::size_t dj = ndim * j;
-
-    for (std::size_t d = 0; d < ndim; d++) {
-      sum += (x[di + d] != y[dj + d]);
-    }
-
-    return sum;
+    const std::size_t di = ndim * i;
+    return hamming<Out>(x.begin() + di, x.begin() + di + ndim,
+                        y.begin() + ndim * j);
   }
 
   const std::vector<In> x;

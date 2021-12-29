@@ -1,7 +1,6 @@
 library(rnndescent)
 context("Correlation distance")
 
-
 cor_index <- matrix(
   c(
     1, 3, 6, 8, 5, 7, 4, 9, 10, 2,

@@ -9,6 +9,60 @@ rnn_brute_force_query <- function(reference, query, k, metric = "euclidean", n_t
     .Call(`_rnndescent_rnn_brute_force_query`, reference, query, k, metric, n_threads, verbose)
 }
 
+#' Find the Euclidean (L2) distance between two vectors
+#'
+#' @param x A numeric vector.
+#' @param y A numeric vector of the same length as \code{x}.
+#' @export
+euclidean_distance <- function(x, y) {
+    .Call(`_rnndescent_euclidean_distance`, x, y)
+}
+
+#' Find the squared Euclidean (squared L2) distance between two vectors
+#'
+#' @param x A numeric vector.
+#' @param y A numeric vector of the same length as \code{x}.
+#' @export
+l2sqr_distance <- function(x, y) {
+    .Call(`_rnndescent_l2sqr_distance`, x, y)
+}
+
+#' Find the cosine distance between two vectors
+#'
+#' @param x A numeric vector.
+#' @param y A numeric vector of the same length as \code{x}.
+#' @export
+cosine_distance <- function(x, y) {
+    .Call(`_rnndescent_cosine_distance`, x, y)
+}
+
+#' Find the Manhattan (L1) distance between two vectors
+#'
+#' @param x A numeric vector.
+#' @param y A numeric vector of the same length as \code{x}.
+#' @export
+manhattan_distance <- function(x, y) {
+    .Call(`_rnndescent_manhattan_distance`, x, y)
+}
+
+#' Find the Hamming distance between two vectors
+#'
+#' @param x An integer vector.
+#' @param y An integer vector of the same length as \code{x}.
+#' @export
+hamming_distance <- function(x, y) {
+    .Call(`_rnndescent_hamming_distance`, x, y)
+}
+
+#' Find the correlation distance between two vectors
+#'
+#' @param x A numeric vector.
+#' @param y A numeric vector of the same length as \code{x}.
+#' @export
+correlation_distance <- function(x, y) {
+    .Call(`_rnndescent_correlation_distance`, x, y)
+}
+
 reverse_nbr_size_impl <- function(nn_idx, k, len, include_self = FALSE) {
     .Call(`_rnndescent_reverse_nbr_size_impl`, nn_idx, k, len, include_self)
 }

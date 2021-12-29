@@ -2,6 +2,9 @@
 
 ## New features
 
+* New functions: `correlation_distance`, `cosine_distance`,
+`euclidean_distance`, `hamming_distance`, `l2sqr_distance`, `manhattan_distance`
+for calculating the distance between two vectors.
 * Generalize `hamming` metric to a standard definition. The old implementation
 of `hamming` metric which worked on binary data only was renamed into
 `bhamming`. (contributed by [Vitalie Spinu](https://github.com/vspinu))
