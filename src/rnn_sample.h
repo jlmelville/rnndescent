@@ -24,7 +24,7 @@
 
 #include "rnn_rng.h"
 
-struct DQIntSampler {
+template <typename Int> struct DQIntSampler {
 
   static auto get_seed() -> uint64_t { return pseed(); }
 
@@ -36,7 +36,6 @@ struct DQIntSampler {
     rng->seed(seed, seed2);
   }
 
-  template <typename Int>
   auto sample(int n, int size, bool replace = false) -> std::vector<Int> {
     std::vector<Int> result;
     dqsample::sample<Int>(result, rng, n, size, replace);

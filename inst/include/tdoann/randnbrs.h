@@ -56,8 +56,8 @@ template <typename Distance, typename Sampler> struct RandomNbrQueryWorker {
   void operator()(std::size_t begin, std::size_t end) {
     Sampler int_sampler(seed, end);
 
-    for (auto qi = static_cast<int>(begin); qi < static_cast<int>(end); qi++) {
-      auto idxi = int_sampler.template sample<Idx>(nrefs, n_nbrs);
+    for (std::size_t qi = begin; qi < end; qi++) {
+      auto idxi = int_sampler.sample(nrefs, n_nbrs);
       std::size_t kqi = n_nbrs * qi;
       for (std::size_t j = 0; j < n_nbrs; j++) {
         auto &ri = idxi[j];

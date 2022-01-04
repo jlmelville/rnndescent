@@ -50,7 +50,8 @@ auto random_build_impl(NumericMatrix data, typename Distance::Index k,
   auto data_vec = r_to_dist_vect<Distance>(data);
 
   auto nn_graph =
-      tdoann::random_build<Distance, DQIntSampler, RPProgress, RParallel>(
+      tdoann::random_build<Distance, DQIntSampler<typename Distance::Index>,
+                           RPProgress, RParallel>(
           data_vec, data.ncol(), k, order_by_distance, n_threads, verbose);
 
   return graph_to_r(nn_graph);
@@ -65,7 +66,8 @@ auto random_query_impl(NumericMatrix reference, NumericMatrix query,
   auto query_vec = r_to_dist_vect<Distance>(query);
 
   auto nn_graph =
-      tdoann::random_query<Distance, DQIntSampler, RPProgress, RParallel>(
+      tdoann::random_query<Distance, DQIntSampler<typename Distance::Index>,
+                           RPProgress, RParallel>(
           ref_vec, reference.ncol(), query_vec, k, order_by_distance, n_threads,
           verbose);
 
