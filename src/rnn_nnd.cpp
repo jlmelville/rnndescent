@@ -19,6 +19,7 @@
 
 #include <Rcpp.h>
 
+#include "rnnr/rnnr.h"
 #include "tdoann/graphupdate.h"
 #include "tdoann/nndescent.h"
 #include "tdoann/nndparallel.h"
@@ -27,7 +28,6 @@
 #include "rnn_heaptor.h"
 #include "rnn_macros.h"
 #include "rnn_progress.h"
-#include "rnn_rng.h"
 #include "rnn_rtoheap.h"
 
 using namespace Rcpp;

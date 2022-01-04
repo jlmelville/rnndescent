@@ -17,6 +17,7 @@
 //  You should have received a copy of the GNU General Public License
 //  along with rnndescent.  If not, see <http://www.gnu.org/licenses/>.
 
+#include "rnnr/rnnr.h"
 #include "tdoann/prepare.h"
 
 #include <Rcpp.h>
@@ -25,7 +26,6 @@
 #include "rnn_macros.h"
 #include "rnn_parallel.h"
 #include "rnn_progress.h"
-#include "rnn_rng.h"
 
 using namespace Rcpp;
 

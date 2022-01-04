@@ -19,13 +19,13 @@
 
 #include <Rcpp.h>
 
+#include "rnnr/rnnr.h"
 #include "tdoann/randnbrs.h"
 
 #include "rnn_distance.h"
 #include "rnn_macros.h"
 #include "rnn_parallel.h"
 #include "rnn_progress.h"
-#include "rnn_sample.h"
 #include "rnn_util.h"
 
 using namespace Rcpp;
