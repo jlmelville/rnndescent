@@ -17,8 +17,8 @@
 //  You should have received a copy of the GNU General Public License
 //  along with rnndescent.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef RNNR_SAMPLE_H
-#define RNNR_SAMPLE_H
+#ifndef RNNDESCENT_RANDOM_H
+#define RNNDESCENT_RANDOM_H
 
 #include <limits>
 #include <memory>
@@ -111,4 +111,4 @@ template <typename Int> struct DQIntSampler {
 
 } // namespace rnndescent
 
-#endif // RNNR_SAMPLE_H
+#endif // RNNDESCENT_RANDOM_H

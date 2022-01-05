@@ -17,7 +17,7 @@
 //  You should have received a copy of the GNU General Public License
 //  along with rnndescent.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "rnndescent/rnnr.h"
+#include "rnndescent/random.h"
 #include "tdoann/prepare.h"
 
 #include <Rcpp.h>
