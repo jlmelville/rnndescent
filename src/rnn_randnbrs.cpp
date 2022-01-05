@@ -19,7 +19,7 @@
 
 #include <Rcpp.h>
 
-#include "rnnr/rnnr.h"
+#include "rnndescent/rnnr.h"
 #include "tdoann/randnbrs.h"
 
 #include "rnn_distance.h"

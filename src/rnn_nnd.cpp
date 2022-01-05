@@ -19,7 +19,7 @@
 
 #include <Rcpp.h>
 
-#include "rnnr/rnnr.h"
+#include "rnndescent/rnnr.h"
 #include "tdoann/graphupdate.h"
 #include "tdoann/nndescent.h"
 #include "tdoann/nndparallel.h"
