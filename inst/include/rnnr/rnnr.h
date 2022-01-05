@@ -32,6 +32,8 @@
 #include "dqsample.h"
 #include "tdoann/tauprng.h"
 
+namespace rnndescent {
+
 // Uses R API: Not thread safe
 inline auto pseed() -> uint64_t {
   Rcpp::IntegerVector seed(2, dqrng::R_random_int);
@@ -104,5 +106,7 @@ template <typename Int> struct DQIntSampler {
     return result;
   }
 };
+
+} // namespace rnndescent
 
 #endif // RNNR_SAMPLE_H

@@ -90,7 +90,7 @@ struct NNDBuildSerial {
     auto graph_updater = GraphUpdate::create(nnd_heap, distance);
     Progress progress(n_iters, verbose);
     NNDProgress nnd_progress(progress);
-    RRand rand;
+    rnndescent::RRand rand;
 
     tdoann::nnd_build(graph_updater, max_candidates, n_iters, delta, rand,
                       nnd_progress);
@@ -123,7 +123,7 @@ struct NNDBuildParallel {
     auto graph_updater = GraphUpdate::create(nnd_heap, distance);
     Progress progress(n_iters, verbose);
     NNDProgress nnd_progress(progress);
-    ParallelRand parallel_rand;
+    rnndescent::ParallelRand parallel_rand;
 
     tdoann::nnd_build<RParallel>(graph_updater, max_candidates, n_iters, delta,
                                  nnd_progress, parallel_rand, n_threads);
