@@ -27,8 +27,9 @@
 #ifndef TDOANN_NNDPARALLEL_H
 #define TDOANN_NNDPARALLEL_H
 
-#include "heap.h"
 #include <mutex>
+
+#include "heap.h"
 
 namespace tdoann {
 

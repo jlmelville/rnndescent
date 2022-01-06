@@ -30,6 +30,8 @@
 #include "convert_seed.h"
 #include "dqrng_generator.h"
 #include <dqrng.h>
+#include <dqrng_distribution.h>
+#include <pcg_random.hpp>
 
 #include "dqsample.h"
 #include "tdoann/tauprng.h"
@@ -80,12 +82,21 @@ struct TauRand {
   auto unif() -> double { return prng->rand(); }
 };
 
-struct ParallelRand {
+struct PcgRand {
+  dqrng::uniform_distribution dist;
+  pcg64 prng;
+
+  PcgRand(uint64_t seed, uint64_t seed2) : dist(0.0, 1.0), prng(seed, seed2) {}
+
+  auto unif() -> double { return dist(prng); }
+};
+
+template <typename R = TauRand> struct ParallelRand {
   uint64_t seed;
 
   ParallelRand() : seed(0) {}
   void reseed() { seed = pseed(); };
-  auto get_rand(uint64_t seed2) -> TauRand { return TauRand(seed, seed2); };
+  auto get_rand(uint64_t seed2) -> R { return R(seed, seed2); };
 };
 
 // Integer Sampler

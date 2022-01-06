@@ -182,19 +182,12 @@ test_that("parallel prepare", {
       pruning_degree_multiplier = NULL,
       n_threads = 1
     )
-  expect_equal(
-    sg_occp@x,
-    c(
-      0.3464, 0.4243, 0.5477, 0.3, 0.7, 0.4243, 0.3317, 0.5, 0.2236, 0.5477,
-      0.4243, 0.3464, 0.3317, 0.1732, 0.3464, 0.5, 0.5831, 0.3, 0.2236, 0.3464,
-      0.4243, 0.1732, 0.3464, 0.5831
-    ),
-    tolerance = 1e-4
-  )
-  expect_equal(sg_occp@i, c(
-    5, 2, 3, 6, 0, 1, 4, 5, 6, 1, 7, 8, 2, 7, 0, 2, 9, 1, 2, 4, 3, 4, 3, 5
-  ))
-  expect_equal(sg_occp@p, c(0, 1, 4, 9, 12, 14, 17, 20, 22, 23, 24))
+  # check we have more edges kept than when diversify_prob = 1
+  expect_gt(length(sg_occp@x), length(sg_occ@x))
+  # and that the returned edges are a subset of the undiversified graph
+  # floating point values so convert to strings
+  expect_true(all(formatC(sg_occ@x) %in% formatC(sg_occp@x)))
+  expect_true(all(formatC(sg_occp@x) %in% formatC(sg_full@x)))
 
 
   sg_trunc <-
