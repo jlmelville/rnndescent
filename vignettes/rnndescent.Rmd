@@ -108,8 +108,7 @@ nn_accuracyv <-
       ref_start <- ref_start + 1
       if (nbr_end < ncol(ref_idx)) {
         ref_end <- ref_end + 1
-      }
-      else {
+      } else {
         nbr_end <- nbr_end - 1
       }
     }
@@ -138,7 +137,7 @@ nn_accuracy <-
            verbose = TRUE) {
     vec <- nn_accuracyv(idx, ref_idx, k, include_self, verbose)
     sum(vec) / length(vec)
-   }
+  }
 ```
 
 With low-dimensional data, nearest neighbor descent does very well:
@@ -181,8 +180,8 @@ dimensions (for easier, comparison, I have normalized them with respect to the
 largest distance)
 
 ```{r NN distances distribution}
-hist(g2d_nnbf$dist[, -1]/max(g2d_nnbf$dist[, -1]), xlab = "distances", main = "2D 15-NN")
-hist(g1000d_nnbf$dist[, -1]/max(g1000d_nnbf$dist[, -1]), xlab = "distances", main = "1000D 15-NN")
+hist(g2d_nnbf$dist[, -1] / max(g2d_nnbf$dist[, -1]), xlab = "distances", main = "2D 15-NN")
+hist(g1000d_nnbf$dist[, -1] / max(g1000d_nnbf$dist[, -1]), xlab = "distances", main = "1000D 15-NN")
 ```
 
 Compared to low dimensional data, we can see that the high dimensional distances
@@ -342,8 +341,10 @@ the 2D case, the maximum k-occurrence was ~20. For the 1000D we are looking at
 2D case by clipping any k-occurrence larger than the largest 2D k-occurrence:
 
 ```{r zoomed k-occurrences}
-hist(pmin(g1000d_bfko, max(g2d_bfko)), main = "1000D 15-NN zoomed", 
-     xlab = "k-occurrences")
+hist(pmin(g1000d_bfko, max(g2d_bfko)),
+  main = "1000D 15-NN zoomed",
+  xlab = "k-occurrences"
+)
 ```
 
 It's a very different distribution to the 2D case: we have a large number of
@@ -397,8 +398,10 @@ That seems similar to the true results, and zooming in like we did with the
 exact results:
 
 ```{r zoomed NND k-occurrences}
-hist(pmin(g1000d_nndko, max(g2d_bfko)), main = "1000D 15-NND zoomed", 
-     xlab = "k-occurrences")
+hist(pmin(g1000d_nndko, max(g2d_bfko)),
+  main = "1000D 15-NND zoomed",
+  xlab = "k-occurrences"
+)
 ```
 
 Visually this looks a lot like the distribution of the exact results. Next, the 
@@ -428,10 +431,12 @@ in the approximate results are not uniformly distributed across the data. So
 let's see how well the NND k-occurrences "predict" the exact results:
 
 ```{r approximate vs true 1000D k-occurrence}
-plot(g1000d_nndko, g1000d_bfko, xlab = "approximate", ylab = "exact", 
-     xlim = c(0, max(g1000d_nndko, g1000d_bfko)),
-     ylim = c(0, max(g1000d_nndko, g1000d_bfko)), 
-     main = "1000D k-occ")
+plot(g1000d_nndko, g1000d_bfko,
+  xlab = "approximate", ylab = "exact",
+  xlim = c(0, max(g1000d_nndko, g1000d_bfko)),
+  ylim = c(0, max(g1000d_nndko, g1000d_bfko)),
+  main = "1000D k-occ"
+)
 abline(a = 0, b = 1)
 cor(g1000d_nndko, g1000d_bfko, method = "pearson")
 ```
@@ -444,10 +449,12 @@ matters, and there is no ambiguity over which nodes are most hub-like.
 Zooming in to lower values of the k-occurrence:
 
 ```{r zoomed approximate vs true 1000D k-occurrence}
-plot(g1000d_nndko, g1000d_bfko, xlab = "approximate", ylab = "exact", 
-     xlim = c(0, max(g2d_bfko)),
-     ylim = c(0, max(g2d_bfko)), 
-     main = "1000D low k-occ")
+plot(g1000d_nndko, g1000d_bfko,
+  xlab = "approximate", ylab = "exact",
+  xlim = c(0, max(g2d_bfko)),
+  ylim = c(0, max(g2d_bfko)),
+  main = "1000D low k-occ"
+)
 abline(a = 0, b = 1)
 ```
 
@@ -469,9 +476,10 @@ Here's a plot of the accuracy against the k-occurrences of the NND neighbors:
 
 ```{r predicting accuracy with NND k-occurrence}
 plot(g1000d_nndko, g1000d_nnd_acc,
-     xlab = "NND k-occ", ylab = "accuracy", 
-     xlim = c(0, max(g1000d_nndko, g1000d_bfko)),
-     main = "1000D acc vs NND k-occ")
+  xlab = "NND k-occ", ylab = "accuracy",
+  xlim = c(0, max(g1000d_nndko, g1000d_bfko)),
+  main = "1000D acc vs NND k-occ"
+)
 ```
 
 So the answer to the question is "not really", but there *is* a trend. The empty
@@ -557,8 +565,10 @@ hist(g1000d_nndkoi1, main = "1000D 15-NND (1 iter)", xlab = "k-occurrences")
 Looking familiar. Zooming in...
 
 ```{r unconverged ko distribution zoomed}
-hist(pmin(g1000d_nndkoi1, max(g2d_bfko)), main = "1000D 15-NND (1 iter, zoomed)", 
-     xlab = "k-occurrences")
+hist(pmin(g1000d_nndkoi1, max(g2d_bfko)),
+  main = "1000D 15-NND (1 iter, zoomed)",
+  xlab = "k-occurrences"
+)
 ```
 
 The distribution is at least similar to the converged version. Taking a look
