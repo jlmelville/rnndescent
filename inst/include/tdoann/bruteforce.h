@@ -119,12 +119,9 @@ void nnbf_impl(
 }
 
 template <typename Distance, typename Progress, typename Parallel>
-auto brute_force_build(const std::vector<typename Distance::Input> &data,
-                       std::size_t ndim, typename Distance::Index n_nbrs,
+auto brute_force_build(Distance &distance, typename Distance::Index n_nbrs,
                        std::size_t n_threads = 0, bool verbose = false)
     -> NNGraph<typename Distance::Output, typename Distance::Index> {
-  Distance distance(data, ndim);
-
   if (n_threads > 0) {
     return nnbf_query<Distance, Progress, Parallel>(distance, n_nbrs, n_threads,
                                                     verbose);
@@ -148,14 +145,9 @@ auto brute_force_build(const std::vector<typename Distance::Input> &data,
 }
 
 template <typename Distance, typename Progress, typename Parallel>
-auto brute_force_query(const std::vector<typename Distance::Input> &reference,
-                       std::size_t ndim,
-                       const std::vector<typename Distance::Input> &query,
-                       typename Distance::Index n_nbrs,
+auto brute_force_query(Distance &distance, typename Distance::Index n_nbrs,
                        std::size_t n_threads = 0, bool verbose = false)
     -> NNGraph<typename Distance::Output, typename Distance::Index> {
-  Distance distance(reference, query, ndim);
-
   if (n_threads > 0) {
     return nnbf_query<Distance, Progress, Parallel>(distance, n_nbrs, n_threads,
                                                     verbose);
