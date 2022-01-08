@@ -33,20 +33,6 @@
 
 namespace tdoann {
 
-template <typename Progress, typename Distance>
-void nn_query(
-    const SparseNNGraph<typename Distance::Output, typename Distance::Index>
-        &reference_graph,
-    NNHeap<typename Distance::Output, typename Distance::Index> &nn_heap,
-    const Distance &distance, double epsilon, bool verbose) {
-  auto query_non_search_worker = [&](std::size_t begin, std::size_t end) {
-    non_search_query(nn_heap, distance, reference_graph, epsilon, begin, end);
-  };
-  Progress progress(1, verbose);
-  const std::size_t n_points = nn_heap.n_points;
-  batch_serial_for(query_non_search_worker, progress, n_points);
-}
-
 template <typename Parallel, typename Progress, typename Distance>
 void nn_query(
     const SparseNNGraph<typename Distance::Output, typename Distance::Index>

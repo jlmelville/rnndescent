@@ -776,6 +776,9 @@ graph_knn_query <- function(query,
     reference_graph_list <- csparse_to_list(reference_graph)
   }
 
+  reference <- t(reference)
+  query <- t(query)
+
   tsmessage(thread_msg("Searching nearest neighbor graph", n_threads = n_threads))
   res <-
     nn_query(
