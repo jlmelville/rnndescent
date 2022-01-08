@@ -103,11 +103,9 @@ auto get_nn(Distance &distance, typename Distance::Index n_nbrs, bool sort,
 
 template <typename Distance, typename Sampler, typename Progress,
           typename Parallel>
-auto random_build(const std::vector<typename Distance::Input> &data,
-                  std::size_t ndim, typename Distance::Index n_nbrs, bool sort,
-                  std::size_t n_threads = 0, bool verbose = false)
+auto random_build(Distance &distance, typename Distance::Index n_nbrs,
+                  bool sort, std::size_t n_threads = 0, bool verbose = false)
     -> NNGraph<typename Distance::Output, typename Distance::Index> {
-  Distance distance(data, ndim);
 
   using Worker = tdoann::RandomNbrQueryWorker<Distance, Sampler>;
   if (n_threads > 0) {
@@ -124,13 +122,9 @@ auto random_build(const std::vector<typename Distance::Input> &data,
 
 template <typename Distance, typename Sampler, typename Progress,
           typename Parallel>
-auto random_query(const std::vector<typename Distance::Input> &reference,
-                  std::size_t ndim,
-                  const std::vector<typename Distance::Input> &query,
-                  typename Distance::Index n_nbrs, bool sort,
-                  std::size_t n_threads = 0, bool verbose = false)
+auto random_query(Distance &distance, typename Distance::Index n_nbrs,
+                  bool sort, std::size_t n_threads = 0, bool verbose = false)
     -> NNGraph<typename Distance::Output, typename Distance::Index> {
-  Distance distance(reference, query, ndim);
 
   using Worker = tdoann::RandomNbrQueryWorker<Distance, Sampler>;
   using HeapAdd = tdoann::HeapAddQuery;
