@@ -63,8 +63,7 @@ brute_force_knn <- function(data,
 
   data <- t(data)
   res <-
-    rnn_brute_force(
-      data,
+    rnn_brute_force(data,
       k,
       actual_metric,
       n_threads = n_threads,
@@ -445,8 +444,7 @@ brute_force_knn_query <- function(query,
 
   reference <- t(reference)
   query <- t(query)
-  res <- rnn_brute_force_query(
-    reference,
+  res <- rnn_brute_force_query(reference,
     query,
     k,
     actual_metric,
@@ -947,8 +945,10 @@ prepare_search_graph <- function(data,
     max_degree <- round(n_nbrs * pruning_degree_multiplier)
     tsmessage("Degree pruning merged graph to max degree: ", max_degree)
     res <-
-      degree_prune(merged,
-        max_degree = max_degree, verbose = verbose,
+      degree_prune(
+        merged,
+        max_degree = max_degree,
+        verbose = verbose,
         n_threads = n_threads
       )
   } else {
@@ -978,23 +978,28 @@ diversify <- function(data,
                       verbose = FALSE) {
   nnz_before <- Matrix::nnzero(graph)
   sp_before <- nn_sparsity_sp(graph)
-  stopifnot(
-    methods::is(graph, "sparseMatrix")
-  )
+  stopifnot(methods::is(graph, "sparseMatrix"))
   gl <- csparse_to_list(graph)
 
   gl_div <- diversify_cpp(
-    data = x2m(data), graph_list = gl, metric = metric,
+    data = x2m(data),
+    graph_list = gl,
+    metric = metric,
     prune_probability = prune_probability,
     n_threads = n_threads
   )
   res <- list_to_sparse(gl_div)
   nnz_after <- Matrix::nnzero(res)
   tsmessage(
-    "Diversifying reduced # edges from ", nnz_before,
-    " to ", nnz_after,
-    " (", formatC(100 * sp_before), "% to ",
-    formatC(100 * nn_sparsity_sp(res)), "% sparse)"
+    "Diversifying reduced # edges from ",
+    nnz_before,
+    " to ",
+    nnz_after,
+    " (",
+    formatC(100 * sp_before),
+    "% to ",
+    formatC(100 * nn_sparsity_sp(res)),
+    "% sparse)"
   )
   res
 }
@@ -1180,8 +1185,7 @@ merge_knnl <- function(nn_graphs,
   }
   validate_are_mergeablel(nn_graphs)
 
-  merge_nn_all(
-    nn_graphs,
+  merge_nn_all(nn_graphs,
     is_query,
     n_threads = n_threads,
     verbose = verbose
@@ -1237,6 +1241,8 @@ idx_to_graph_query <-
     rnn_idx_to_graph_query(
       reference = x2m(reference),
       query = x2m(query),
-      idx = idx, metric = metric, n_threads = n_threads
+      idx = idx,
+      metric = metric,
+      n_threads = n_threads
     )
   }
