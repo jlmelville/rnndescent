@@ -39,7 +39,7 @@ template <typename Distance>
 auto bf_query_impl(NumericMatrix reference, NumericMatrix query,
                    typename Distance::Index k, std::size_t n_threads = 0,
                    bool verbose = false) -> List {
-  auto distance = r_to_dist<Distance>(reference, query);
+  auto distance = tr_to_dist<Distance>(reference, query);
   auto nn_graph = tdoann::brute_force_query<Distance, RPProgress, RParallel>(
       distance, k, n_threads, verbose);
 
@@ -49,7 +49,7 @@ auto bf_query_impl(NumericMatrix reference, NumericMatrix query,
 template <typename Distance>
 auto bf_build_impl(NumericMatrix data, typename Distance::Index k,
                    std::size_t n_threads = 0, bool verbose = false) -> List {
-  auto distance = r_to_dist<Distance>(data);
+  auto distance = tr_to_dist<Distance>(data);
   auto nn_graph = tdoann::brute_force_build<Distance, RPProgress, RParallel>(
       distance, k, n_threads, verbose);
 

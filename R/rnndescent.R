@@ -60,6 +60,8 @@ brute_force_knn <- function(data,
       n_threads = n_threads
     )
   )
+
+  data <- t(data)
   res <-
     rnn_brute_force(
       data,
@@ -440,6 +442,9 @@ brute_force_knn_query <- function(query,
       n_threads = n_threads
     )
   )
+
+  reference <- t(reference)
+  query <- t(query)
   res <- rnn_brute_force_query(
     reference,
     query,
