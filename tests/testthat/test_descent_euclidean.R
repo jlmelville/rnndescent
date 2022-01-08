@@ -269,7 +269,7 @@ expect_equal(rnbrs4$idx, rnbrs4_idx_copy)
 expect_error(graph_knn_query(
   reference = ui4, reference_graph = ui4_nnd,
   query = ui6, k = 5
-), "items in the reference data")
+), "must be <=")
 expect_error(graph_knn_query(
   reference = ui6, reference_graph = ui6_nnd,
   query = ui4, init = rnbrs5, k = 6

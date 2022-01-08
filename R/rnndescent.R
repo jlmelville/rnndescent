@@ -141,28 +141,62 @@ random_knn <-
       actual_metric <- metric
     }
 
-    tsmessage(
-      thread_msg(
-        "Generating random k-nearest neighbor graph with k = ",
-        k,
-        n_threads = n_threads
-      )
+    random_knn_impl(
+      reference = data,
+      k = k,
+      metric = metric,
+      use_alt_metric = use_alt_metric,
+      actual_metric = actual_metric,
+      order_by_distance = order_by_distance,
+      n_threads = n_threads,
+      verbose = verbose
     )
-    res <-
-      random_knn_cpp(
-        data,
-        k,
-        actual_metric,
-        order_by_distance,
+  }
+
+random_knn_impl <-
+  function(reference,
+           k,
+           metric,
+           use_alt_metric,
+           actual_metric,
+           order_by_distance,
+           n_threads,
+           verbose,
+           query = NULL,
+           zero_index = FALSE) {
+    if (is.null(query)) {
+      msg <- "Generating random k-nearest neighbor graph with k = "
+      fun <- random_knn_cpp
+      args <- list(data = reference)
+    } else {
+      msg <-
+        "Generating random k-nearest neighbor graph from reference with k = "
+      fun <- random_knn_query_cpp
+      args <- list(reference = reference, query = query)
+    }
+
+    args <- lmerge(
+      args,
+      list(
+        k = k,
+        metric = actual_metric,
+        order_by_distance = order_by_distance,
         n_threads = n_threads,
         verbose = verbose
       )
-    res$idx <- res$idx + 1
+    )
+    tsmessage(thread_msg(msg,
+      k,
+      n_threads = n_threads
+    ))
+    res <- do.call(fun, args)
 
+    if (!zero_index) {
+      res$idx <- res$idx + 1
+    }
     if (use_alt_metric) {
       res$dist <- apply_alt_metric_correction(metric, res$dist)
     }
-
     tsmessage("Finished")
     res
   }
@@ -303,11 +337,14 @@ nnd_knn <- function(data,
     if (is.null(k)) {
       stop("Must provide k")
     }
+    check_k(k, nrow(data))
     tsmessage("Initializing from random neighbors")
-    init <- random_knn(
-      data,
-      k,
+    init <- random_knn_impl(
+      reference = data,
+      k = k,
       metric = actual_metric,
+      use_alt_metric = FALSE,
+      actual_metric = actual_metric,
       order_by_distance = FALSE,
       n_threads = n_threads,
       verbose = verbose
@@ -541,29 +578,17 @@ random_knn_query <-
       actual_metric <- metric
     }
 
-    tsmessage(
-      thread_msg(
-        "Generating random k-nearest neighbor graph from reference with k = ",
-        k,
-        n_threads = n_threads
-      )
-    )
-    res <- random_knn_query_cpp(
-      reference,
-      query,
-      k,
-      actual_metric,
-      order_by_distance,
+    random_knn_impl(
+      reference = reference,
+      query = query,
+      k = k,
+      metric = metric,
+      use_alt_metric = use_alt_metric,
+      actual_metric = actual_metric,
+      order_by_distance = order_by_distance,
       n_threads = n_threads,
       verbose = verbose
     )
-    res$idx <- res$idx + 1
-    if (use_alt_metric) {
-      res$dist <- apply_alt_metric_correction(metric, res$dist)
-    }
-    tsmessage("Finished")
-
-    res
   }
 
 
@@ -687,13 +712,16 @@ graph_knn_query <- function(query,
         stop("Must provide k")
       }
     }
+    check_k(k, nrow(reference))
     tsmessage("Initializing from random neighbors")
-    init <- random_knn_query(
+    init <- random_knn_impl(
       query = query,
       reference = reference,
       k = k,
-      order_by_distance = FALSE,
       metric = actual_metric,
+      use_alt_metric = FALSE,
+      actual_metric = actual_metric,
+      order_by_distance = FALSE,
       n_threads = n_threads,
       verbose = verbose
     )
