@@ -2,10 +2,10 @@
 
 #' Calculate Exact Nearest Neighbors by Brute Force
 #'
-#' @param data Matrix of `n` items to generate random neighbors for, with one
-#'   observations in each rows. Optionally, input can be passed with
-#'   observations in the columns, by setting `obs = "C"`, which should be
-#'   more efficient.
+#' @param data Matrix of `n` items to generate random neighbors for, with
+#'   observations in the rows and features in the columns. Optionally, input can
+#'   be passed with observations in the columns, by setting `obs = "C"`, which
+#'   should be more efficient.
 #' @param k Number of nearest neighbors to return.
 #' @param metric Type of distance calculation to use. One of `"euclidean"`,
 #'   `"l2sqr"` (squared Euclidean), `"cosine"`, `"manhattan"`, `"correlation"`
@@ -49,11 +49,11 @@ brute_force_knn <- function(data,
                             use_alt_metric = TRUE,
                             n_threads = 0,
                             verbose = FALSE,
-                            obs = "r") {
-  obs <- match.arg(tolower(obs), c("c", "r"))
+                            obs = "R") {
+  obs <- match.arg(toupper(obs), c("C", "R"))
   n_obs <- switch(obs,
-    r = nrow,
-    c = ncol,
+    R = nrow,
+    C = ncol,
     stop("Unknown obs type")
   )
 
@@ -74,7 +74,7 @@ brute_force_knn <- function(data,
     )
   )
 
-  if (obs == "r") {
+  if (obs == "R") {
     data <- t(data)
   }
   res <-
@@ -368,6 +368,7 @@ nnd_knn <- function(data,
     }
   }
 
+  # data must be column-oriented at this point
   init <-
     prepare_init_graph(
       init,
@@ -755,6 +756,7 @@ graph_knn_query <- function(query,
     }
   }
 
+  # reference and query must be column-oriented at this point
   init <-
     prepare_init_graph(
       nn = init,
@@ -863,7 +865,9 @@ graph_knn_query <- function(query,
 #' itself (the diagonal of the sparse distance matrix). These trivial edges
 #' aren't useful for search purposes and are always dropped.
 #'
-#' @param data Matrix of `n` items.
+#' @param data Matrix of `n` items, with observations in the rows and features
+#'   in the columns. Optionally, input can be passed with observations in the
+#'   columns, by setting `obs = "C"`, which should be more efficient.
 #' @param graph neighbor graph for `data`, a list containing:
 #'   * `idx` an `n` by `k` matrix containing the nearest neighbor indices of
 #'   the data in `data`.
@@ -896,6 +900,12 @@ graph_knn_query <- function(query,
 #'   to `NULL` to skip this step.
 #' @param n_threads Number of threads to use.
 #' @param verbose If `TRUE`, log information to the console.
+#' @param obs set to `"C"` to indicate that the input `data` orientation stores
+#'   each observation as a column. The default `"R"` means that observations are
+#'   stored in each row. Storing the data by row is usually more convenient, but
+#'   internally your data will be converted to column storage. Passing it
+#'   already column-oriented will save some memory and (a small amount of) CPU
+#'   usage.
 #' @return a search graph for `data` based on `graph`, represented as a sparse
 #'   matrix, suitable for use with [graph_knn_query()].
 #' @examples
@@ -930,7 +940,10 @@ prepare_search_graph <- function(data,
                                  diversify_prob = 1.0,
                                  pruning_degree_multiplier = 1.5,
                                  n_threads = 0,
-                                 verbose = FALSE) {
+                                 verbose = FALSE,
+                                 obs = "R") {
+  obs <- match.arg(toupper(obs), c("C", "R"))
+
   if (!is.null(pruning_degree_multiplier)) {
     stopifnot(pruning_degree_multiplier > 0)
   }
@@ -949,7 +962,10 @@ prepare_search_graph <- function(data,
   sp <- preserve_zeros(sp)
 
   data <- x2m(data)
-  data <- t(data)
+
+  if (obs == "R") {
+    data <- t(data)
+  }
 
   if (!is.null(diversify_prob) && diversify_prob > 0) {
     tsmessage("Diversifying forward graph")

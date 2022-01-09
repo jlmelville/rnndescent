@@ -31,6 +31,7 @@ check_graph <- function(idx, dist = NULL, k = NULL) {
   list(idx = idx, dist = dist, k = k)
 }
 
+# data and query must be column-oriented
 # recalculate_distances if TRUE even if a distance matrix is present,
 # recalculate distances from data/query and the indices
 prepare_init_graph <-

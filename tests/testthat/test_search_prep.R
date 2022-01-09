@@ -252,3 +252,30 @@ test_that("explicit zeros are preserved", {
     )
   expect_true(sg_0[10, 3] > 0)
 })
+
+test_that("column orientation", {
+  sg_occ_trunc <-
+    prepare_search_graph(
+      data = t(ui10),
+      graph = ui10_bf,
+      diversify_prob = 1,
+      pruning_degree_multiplier = 0.5,
+      n_threads = 2,
+      obs = "C"
+    )
+  expect_equal(
+    sg_occ_trunc@x,
+    c(
+      0.3464, 0.3, 0.3317, 0.5, 0.2236, 0.4243, 0.3464, 0.3317, 0.1732, 0.3464,
+      0.5831, 0.3, 0.2236, 0.4243, 0.1732, 0.3464
+    ),
+    tolerance = 1e-4
+  )
+  expect_equal(
+    sg_occ_trunc@i,
+    c(
+      5, 6, 4, 5, 6, 7, 8, 2, 7, 0, 9, 1, 2, 3, 4, 3
+    )
+  )
+  expect_equal(sg_occ_trunc@p, c(0, 1, 2, 5, 7, 9, 11, 13, 15, 16, 16))
+})

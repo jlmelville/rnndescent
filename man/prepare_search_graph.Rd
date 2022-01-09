@@ -11,11 +11,14 @@ prepare_search_graph(
   diversify_prob = 1,
   pruning_degree_multiplier = 1.5,
   n_threads = 0,
-  verbose = FALSE
+  verbose = FALSE,
+  obs = "R"
 )
 }
 \arguments{
-\item{data}{Matrix of \code{n} items.}
+\item{data}{Matrix of \code{n} items, with observations in the rows and features
+in the columns. Optionally, input can be passed with observations in the
+columns, by setting \code{obs = "C"}, which should be more efficient.}
 
 \item{graph}{neighbor graph for \code{data}, a list containing:
 \itemize{
@@ -56,6 +59,13 @@ to \code{NULL} to skip this step.}
 \item{n_threads}{Number of threads to use.}
 
 \item{verbose}{If \code{TRUE}, log information to the console.}
+
+\item{obs}{set to \code{"C"} to indicate that the input \code{data} orientation stores
+each observation as a column. The default \code{"R"} means that observations are
+stored in each row. Storing the data by row is usually more convenient, but
+internally your data will be converted to column storage. Passing it
+already column-oriented will save some memory and (a small amount of) CPU
+usage.}
 }
 \value{
 a search graph for \code{data} based on \code{graph}, represented as a sparse
