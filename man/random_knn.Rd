@@ -11,11 +11,15 @@ random_knn(
   use_alt_metric = TRUE,
   order_by_distance = TRUE,
   n_threads = 0,
-  verbose = FALSE
+  verbose = FALSE,
+  obs = "R"
 )
 }
 \arguments{
-\item{data}{Matrix of \code{n} items to generate random neighbors for.}
+\item{data}{Matrix of \code{n} items to generate random neighbors for, with
+observations in the rows and features in the columns. Optionally, input can
+be passed with observations in the columns, by setting \code{obs = "C"}, which
+should be more efficient.}
 
 \item{k}{Number of nearest neighbors to return.}
 
@@ -40,6 +44,13 @@ computational time.}
 \item{n_threads}{Number of threads to use.}
 
 \item{verbose}{If \code{TRUE}, log information to the console.}
+
+\item{obs}{set to \code{"C"} to indicate that the input \code{data} orientation stores
+each observation as a column. The default \code{"R"} means that observations are
+stored in each row. Storing the data by row is usually more convenient, but
+internally your data will be converted to column storage. Passing it
+already column-oriented will save some memory and (a small amount of) CPU
+usage.}
 }
 \value{
 a random neighbor graph as a list containing:

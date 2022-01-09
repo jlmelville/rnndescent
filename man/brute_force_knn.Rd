@@ -15,10 +15,10 @@ brute_force_knn(
 )
 }
 \arguments{
-\item{data}{Matrix of \code{n} items to generate random neighbors for, with
-observations in the rows and features in the columns. Optionally, input can
-be passed with observations in the columns, by setting \code{obs = "C"}, which
-should be more efficient.}
+\item{data}{Matrix of \code{n} items to generate neighbors for, with observations
+in the rows and features in the columns. Optionally, input can be passed
+with observations in the columns, by setting \code{obs = "C"}, which should be
+more efficient.}
 
 \item{k}{Number of nearest neighbors to return.}
 

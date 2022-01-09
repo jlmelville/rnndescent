@@ -2,10 +2,10 @@
 
 #' Calculate Exact Nearest Neighbors by Brute Force
 #'
-#' @param data Matrix of `n` items to generate random neighbors for, with
-#'   observations in the rows and features in the columns. Optionally, input can
-#'   be passed with observations in the columns, by setting `obs = "C"`, which
-#'   should be more efficient.
+#' @param data Matrix of `n` items to generate neighbors for, with observations
+#'   in the rows and features in the columns. Optionally, input can be passed
+#'   with observations in the columns, by setting `obs = "C"`, which should be
+#'   more efficient.
 #' @param k Number of nearest neighbors to return.
 #' @param metric Type of distance calculation to use. One of `"euclidean"`,
 #'   `"l2sqr"` (squared Euclidean), `"cosine"`, `"manhattan"`, `"correlation"`
@@ -95,7 +95,10 @@ brute_force_knn <- function(data,
 
 #' Randomly select nearest neighbors.
 #'
-#' @param data Matrix of `n` items to generate random neighbors for.
+#' @param data Matrix of `n` items to generate random neighbors for, with
+#'   observations in the rows and features in the columns. Optionally, input can
+#'   be passed with observations in the columns, by setting `obs = "C"`, which
+#'   should be more efficient.
 #' @param k Number of nearest neighbors to return.
 #' @param metric Type of distance calculation to use. One of `"euclidean"`,
 #'   `"l2sqr"` (squared Euclidean), `"cosine"`, `"manhattan"`, `"correlation"`
@@ -114,6 +117,12 @@ brute_force_knn <- function(data,
 #'   computational time.
 #' @param n_threads Number of threads to use.
 #' @param verbose If `TRUE`, log information to the console.
+#' @param obs set to `"C"` to indicate that the input `data` orientation stores
+#'   each observation as a column. The default `"R"` means that observations are
+#'   stored in each row. Storing the data by row is usually more convenient, but
+#'   internally your data will be converted to column storage. Passing it
+#'   already column-oriented will save some memory and (a small amount of) CPU
+#'   usage.
 #' @return a random neighbor graph as a list containing:
 #'   * `idx` an n by k matrix containing the nearest neighbor indices.
 #'   * `dist` an n by k matrix containing the nearest neighbor distances.
@@ -143,9 +152,16 @@ random_knn <-
            use_alt_metric = TRUE,
            order_by_distance = TRUE,
            n_threads = 0,
-           verbose = FALSE) {
+           verbose = FALSE,
+           obs = "R") {
+    obs <- match.arg(toupper(obs), c("C", "R"))
+    n_obs <- switch(obs,
+      R = nrow,
+      C = ncol,
+      stop("Unknown obs type")
+    )
     data <- x2m(data)
-    check_k(k, nrow(data))
+    check_k(k, n_obs(data))
 
     if (use_alt_metric) {
       actual_metric <- find_alt_metric(metric)
@@ -153,7 +169,9 @@ random_knn <-
       actual_metric <- metric
     }
 
-    data <- t(data)
+    if (obs == "R") {
+      data <- t(data)
+    }
     random_knn_impl(
       reference = data,
       k = k,
@@ -166,6 +184,7 @@ random_knn <-
     )
   }
 
+# reference and query are column-oriented
 random_knn_impl <-
   function(reference,
            k,
@@ -420,13 +439,13 @@ nnd_knn <- function(data,
 #'   observations in the columns, by setting `obs = "C"`, which should be more
 #'   efficient. The `reference` data must be passed in the same orientation as
 #'   `query`.
-#' @param k Number of nearest neighbors to return.
 #' @param reference Matrix of `m` reference items, with observations in the rows
 #'   and features in the columns. The nearest neighbors to the queries are
 #'   calculated from this data. Optionally, the data may be passed with the
 #'   observations in the columns, by setting `obs = "C"`, which should be more
 #'   efficient. The `query` data must be passed in the same orientation as
 #'   `reference`.
+#' @param k Number of nearest neighbors to return.
 #' @param metric Type of distance calculation to use. One of `"euclidean"`,
 #'   `"l2sqr"` (squared Euclidean), `"cosine"`, `"manhattan"`, `"correlation"`
 #'   (1 minus the Pearson correlation), `"hamming"` or `"bhamming"` (hamming
@@ -527,9 +546,17 @@ brute_force_knn_query <- function(query,
 
 #' Nearest Neighbors Query by Random Selection
 #'
-#' @param query Matrix of `n` query items.
-#' @param reference Matrix of `m` reference items. The nearest neighbors to the
-#'   queries are randomly selected from this data.
+#' @param query Matrix of `n` query items, with observations in the rows and
+#'   features in the columns. Optionally, the data may be passed with the
+#'   observations in the columns, by setting `obs = "C"`, which should be more
+#'   efficient. The `reference` data must be passed in the same orientation as
+#'   `query`.
+#' @param reference Matrix of `m` reference items, with observations in the rows
+#'   and features in the columns. The nearest neighbors to the queries are
+#'   randomly selected from this data. Optionally, the data may be passed with
+#'   the observations in the columns, by setting `obs = "C"`, which should be
+#'   more efficient. The `query` data must be passed in the same orientation as
+#'   `reference`.
 #' @param k Number of nearest neighbors to return.
 #' @param metric Type of distance calculation to use. One of `"euclidean"`,
 #'   `"l2sqr"` (squared Euclidean), `"cosine"`, `"manhattan"`, `"correlation"`
@@ -548,6 +575,12 @@ brute_force_knn_query <- function(query,
 #'   small amount of computational time.
 #' @param n_threads Number of threads to use.
 #' @param verbose If `TRUE`, log information to the console.
+#' @param obs set to `"C"` to indicate that the input `query` and `reference`
+#'   orientation stores each observation as a column (the orientation must be
+#'   consistent). The default `"R"` means that observations are stored in each
+#'   row. Storing the data by row is usually more convenient, but internally
+#'   your data will be converted to column storage. Passing it already
+#'   column-oriented will save some memory and (a small amount of) CPU usage.
 #' @return an approximate nearest neighbor graph as a list containing:
 #'   * `idx` an n by k matrix containing the nearest neighbor indices.
 #'   * `dist` an n by k matrix containing the nearest neighbor distances.
@@ -580,19 +613,17 @@ random_knn_query <-
            use_alt_metric = TRUE,
            order_by_distance = TRUE,
            n_threads = 0,
-           verbose = FALSE) {
+           verbose = FALSE,
+           obs = "R") {
+    obs <- match.arg(toupper(obs), c("C", "R"))
+    n_obs <- switch(obs,
+      R = nrow,
+      C = ncol,
+      stop("Unknown obs type")
+    )
     reference <- x2m(reference)
     query <- x2m(query)
-    nr <- nrow(reference)
-
-    if (k > nr) {
-      stop(
-        k,
-        " neighbors asked for, but only ",
-        nrow(reference),
-        " items in the reference data"
-      )
-    }
+    check_k(k, n_obs(reference))
 
     if (use_alt_metric) {
       actual_metric <- find_alt_metric(metric)
@@ -600,8 +631,10 @@ random_knn_query <-
       actual_metric <- metric
     }
 
-    reference <- t(reference)
-    query <- t(query)
+    if (obs == "R") {
+      reference <- t(reference)
+      query <- t(query)
+    }
 
     random_knn_impl(
       reference = reference,
@@ -615,7 +648,6 @@ random_knn_query <-
       verbose = verbose
     )
   }
-
 
 #' Find Nearest Neighbors and Distances
 #'
