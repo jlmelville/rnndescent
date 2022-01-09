@@ -11,14 +11,23 @@ brute_force_knn_query(
   metric = "euclidean",
   use_alt_metric = TRUE,
   n_threads = 0,
-  verbose = FALSE
+  verbose = FALSE,
+  obs = "r"
 )
 }
 \arguments{
-\item{query}{Matrix of \code{n} query items.}
+\item{query}{Matrix of \code{n} query items, with observations in the rows and
+features in the columns. Optionally, the data may be passed with the
+observations in the columns, by setting \code{obs = "C"}, which should be more
+efficient. The \code{reference} data must be passed in the same orientation as
+\code{query}.}
 
-\item{reference}{Matrix of \code{m} reference items. The nearest neighbors to the
-queries are calculated from this data.}
+\item{reference}{Matrix of \code{m} reference items, with observations in the rows
+and features in the columns. The nearest neighbors to the queries are
+calculated from this data. Optionally, the data may be passed with the
+observations in the columns, by setting \code{obs = "C"}, which should be more
+efficient. The \code{query} data must be passed in the same orientation as
+\code{reference}.}
 
 \item{k}{Number of nearest neighbors to return.}
 
@@ -37,6 +46,13 @@ path.}
 \item{n_threads}{Number of threads to use.}
 
 \item{verbose}{If \code{TRUE}, log information to the console.}
+
+\item{obs}{set to \code{"C"} to indicate that the input \code{query} and \code{reference}
+orientation stores each observation as a column (the orientation must be
+consistent). The default \code{"R"} means that observations are stored in each
+row. Storing the data by row is usually more convenient, but internally
+your data will be converted to column storage. Passing it already
+column-oriented will save some memory and (a small amount of) CPU usage.}
 }
 \value{
 the nearest neighbor graph as a list containing:

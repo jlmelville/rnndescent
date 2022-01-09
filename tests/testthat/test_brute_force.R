@@ -34,7 +34,7 @@ expect_equal(sum(qnbrs6$dist), ui6q_edsum, tol = 1e-5)
 
 # Errors
 
-expect_error(brute_force_knn_query(reference = ui4, query = ui6, k = 7), "items in the reference data")
+expect_error(brute_force_knn_query(reference = ui4, query = ui6, k = 7), "k must be")
 expect_error(brute_force_knn_query(reference = ui4, query = ui6, k = 4, metric = "not-a-real metric"), "metric")
 
 # threads
@@ -111,5 +111,14 @@ h64d <- matrix(c(
   3, 4, 4, 4),
   byrow = TRUE, nrow = 6)
 qnbrs6 <- brute_force_knn_query(int6, int4, k = 4, metric = "hamming")
+check_query_nbrs_idx(qnbrs6$idx, nref = nrow(int6))
+expect_equal(qnbrs6$dist, h64d)
+
+# orientation
+
+rnbrs <- brute_force_knn(t(ui10), k = 4, n_threads = 2, obs = "C")
+check_nbrs(rnbrs, ui10_eucd, tol = 1e-6)
+
+qnbrs6 <- brute_force_knn_query(t(int6), t(int4), k = 4, metric = "hamming", n_threads = 2, obs = "C")
 check_query_nbrs_idx(qnbrs6$idx, nref = nrow(int6))
 expect_equal(qnbrs6$dist, h64d)
