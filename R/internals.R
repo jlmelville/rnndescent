@@ -155,11 +155,3 @@ validate_nn_graph_matrix <- function(nn, nr, nc, msg = "matrix") {
     stop(msg, " has ", nnc, " cols, should have ", nc)
   }
 }
-
-row_center <- function(data) {
-  data - rowMeans(data)
-}
-
-col_center <- function(data) {
-  sweep(data, 2, colMeans(data))
-}

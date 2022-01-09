@@ -43,10 +43,6 @@ brute_force_knn <- function(data,
   data <- x2m(data)
   check_k(k, nrow(data))
 
-  if (metric == "correlation") {
-    data <- row_center(data)
-    metric <- "cosine"
-  }
   if (use_alt_metric) {
     actual_metric <- find_alt_metric(metric)
   } else {
@@ -131,10 +127,7 @@ random_knn <-
            verbose = FALSE) {
     data <- x2m(data)
     check_k(k, nrow(data))
-    if (metric == "correlation") {
-      data <- row_center(data)
-      metric <- "cosine"
-    }
+
     if (use_alt_metric) {
       actual_metric <- find_alt_metric(metric)
     } else {
@@ -321,10 +314,7 @@ nnd_knn <- function(data,
                     progress = "bar") {
   stopifnot(tolower(progress) %in% c("bar", "dist"))
   data <- x2m(data)
-  if (metric == "correlation") {
-    data <- row_center(data)
-    metric <- "cosine"
-  }
+
   if (use_alt_metric) {
     actual_metric <- find_alt_metric(metric)
     if (!is.null(init) && !is.null(init$dist)) {
@@ -465,11 +455,7 @@ brute_force_knn_query <- function(query,
       " items in the reference data"
     )
   }
-  if (metric == "correlation") {
-    reference <- row_center(reference)
-    query <- row_center(query)
-    metric <- "cosine"
-  }
+
   if (use_alt_metric) {
     actual_metric <- find_alt_metric(metric)
   } else {
@@ -572,11 +558,6 @@ random_knn_query <-
       )
     }
 
-    if (metric == "correlation") {
-      reference <- row_center(reference)
-      query <- row_center(query)
-      metric <- "cosine"
-    }
     if (use_alt_metric) {
       actual_metric <- find_alt_metric(metric)
     } else {
@@ -697,11 +678,6 @@ graph_knn_query <- function(query,
   reference <- x2m(reference)
   query <- x2m(query)
 
-  if (metric == "correlation") {
-    reference <- row_center(reference)
-    query <- row_center(query)
-    metric <- "cosine"
-  }
   if (use_alt_metric) {
     actual_metric <- find_alt_metric(metric)
     if (!is.null(init) && !is.null(init$dist)) {
