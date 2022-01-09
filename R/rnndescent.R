@@ -354,6 +354,9 @@ nnd_knn <- function(data,
       k <- ncol(init$idx)
     }
   }
+
+  data <- t(data)
+
   init <-
     prepare_init_graph(
       init,
@@ -731,6 +734,11 @@ graph_knn_query <- function(query,
       tsmessage("Using k = ", k, " from initial graph")
     }
   }
+
+  reference <- t(reference)
+  query <- t(query)
+  ofun <- ncol
+
   init <-
     prepare_init_graph(
       nn = init,
@@ -747,13 +755,13 @@ graph_knn_query <- function(query,
     !is.null(init$idx),
     methods::is(init$idx, "matrix"),
     ncol(init$idx) == k,
-    nrow(init$idx) == nrow(query)
+    nrow(init$idx) == ofun(query)
   )
   stopifnot(
     !is.null(init$dist),
     methods::is(init$dist, "matrix"),
     ncol(init$dist) == k,
-    nrow(init$dist) == nrow(query)
+    nrow(init$dist) == ofun(query)
   )
 
   if (is.list(reference_graph)) {
@@ -763,12 +771,12 @@ graph_knn_query <- function(query,
     stopifnot(
       !is.null(reference_idx),
       methods::is(reference_idx, "matrix"),
-      nrow(reference_idx) == nrow(reference)
+      nrow(reference_idx) == ofun(reference)
     )
     stopifnot(
       !is.null(reference_dist),
       methods::is(reference_dist, "matrix"),
-      nrow(reference_dist) == nrow(reference)
+      nrow(reference_dist) == ofun(reference)
     )
     reference_graph_list <- graph_to_list(reference_graph)
   } else {
@@ -776,8 +784,7 @@ graph_knn_query <- function(query,
     reference_graph_list <- csparse_to_list(reference_graph)
   }
 
-  reference <- t(reference)
-  query <- t(query)
+
 
   tsmessage(thread_msg("Searching nearest neighbor graph", n_threads = n_threads))
   res <-
@@ -1244,8 +1251,10 @@ idx_to_graph <-
       max(idx) <= nrow(data)
     )
 
+    x <- x2m(data)
+    x <- t(x)
     tsmessage("Calculating distances for neighbor indexes")
-    rnn_idx_to_graph_self(x2m(data), idx, metric = metric, n_threads = n_threads)
+    rnn_idx_to_graph_self(x, idx, metric = metric, n_threads = n_threads)
   }
 
 idx_to_graph_query <-
@@ -1268,10 +1277,14 @@ idx_to_graph_query <-
       max(idx) <= nrow(reference)
     )
 
+    query <- x2m(query)
+    query <- t(query)
+    reference <- x2m(reference)
+    reference <- t(reference)
     tsmessage("Calculating distances for neighbor indexes")
     rnn_idx_to_graph_query(
-      reference = x2m(reference),
-      query = x2m(query),
+      reference = reference,
+      query = query,
       idx = idx,
       metric = metric,
       n_threads = n_threads

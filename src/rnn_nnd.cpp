@@ -86,7 +86,7 @@ struct NNDBuildSerial {
     auto nnd_heap =
         r_to_heap<tdoann::HeapAddSymmetric, tdoann::NNDHeap<Out, Index>>(
             nn_idx, nn_dist);
-    auto distance = r_to_dist<Distance>(data);
+    auto distance = tr_to_dist<Distance>(data);
     auto graph_updater = GraphUpdate::create(nnd_heap, distance);
     Progress progress(n_iters, verbose);
     NNDProgress nnd_progress(progress);
@@ -119,7 +119,7 @@ struct NNDBuildParallel {
     auto nnd_heap =
         r_to_heap<tdoann::LockingHeapAddSymmetric, tdoann::NNDHeap<Out, Index>>(
             nn_idx, nn_dist, n_threads, grain_size);
-    auto distance = r_to_dist<Distance>(data);
+    auto distance = tr_to_dist<Distance>(data);
     auto graph_updater = GraphUpdate::create(nnd_heap, distance);
     Progress progress(n_iters, verbose);
     NNDProgress nnd_progress(progress);
