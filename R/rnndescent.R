@@ -141,6 +141,7 @@ random_knn <-
       actual_metric <- metric
     }
 
+    data <- t(data)
     random_knn_impl(
       reference = data,
       k = k,
@@ -333,11 +334,14 @@ nnd_knn <- function(data,
     actual_metric <- metric
   }
 
+  data <- t(data)
+  ofun <- ncol
+
   if (is.null(init)) {
     if (is.null(k)) {
       stop("Must provide k")
     }
-    check_k(k, nrow(data))
+    check_k(k, ofun(data))
     tsmessage("Initializing from random neighbors")
     init <- random_knn_impl(
       reference = data,
@@ -354,8 +358,6 @@ nnd_knn <- function(data,
       k <- ncol(init$idx)
     }
   }
-
-  data <- t(data)
 
   init <-
     prepare_init_graph(
@@ -581,6 +583,9 @@ random_knn_query <-
       actual_metric <- metric
     }
 
+    reference <- t(reference)
+    query <- t(query)
+
     random_knn_impl(
       reference = reference,
       query = query,
@@ -706,6 +711,10 @@ graph_knn_query <- function(query,
     actual_metric <- metric
   }
 
+  reference <- t(reference)
+  query <- t(query)
+  ofun <- ncol
+
   if (is.null(init)) {
     if (is.null(k)) {
       if (is.list(reference_graph)) {
@@ -715,7 +724,7 @@ graph_knn_query <- function(query,
         stop("Must provide k")
       }
     }
-    check_k(k, nrow(reference))
+    check_k(k, ofun(reference))
     tsmessage("Initializing from random neighbors")
     init <- random_knn_impl(
       query = query,
@@ -734,10 +743,6 @@ graph_knn_query <- function(query,
       tsmessage("Using k = ", k, " from initial graph")
     }
   }
-
-  reference <- t(reference)
-  query <- t(query)
-  ofun <- ncol
 
   init <-
     prepare_init_graph(
@@ -783,8 +788,6 @@ graph_knn_query <- function(query,
     stopifnot(methods::is(reference_graph, "sparseMatrix"))
     reference_graph_list <- csparse_to_list(reference_graph)
   }
-
-
 
   tsmessage(thread_msg("Searching nearest neighbor graph", n_threads = n_threads))
   res <-

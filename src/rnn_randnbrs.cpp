@@ -47,7 +47,7 @@ auto random_build_impl(NumericMatrix data, typename Distance::Index k,
                        bool order_by_distance, std::size_t n_threads,
                        bool verbose) -> List {
 
-  auto distance = r_to_dist<Distance>(data);
+  auto distance = tr_to_dist<Distance>(data);
 
   auto nn_graph =
       tdoann::random_build<Distance,
@@ -63,7 +63,7 @@ auto random_query_impl(NumericMatrix reference, NumericMatrix query,
                        typename Distance::Index k, bool order_by_distance,
                        std::size_t n_threads, bool verbose) -> List {
 
-  auto distance = r_to_dist<Distance>(reference, query);
+  auto distance = tr_to_dist<Distance>(reference, query);
 
   auto nn_graph =
       tdoann::random_query<Distance,

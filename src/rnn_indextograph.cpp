@@ -29,11 +29,11 @@
 using namespace Rcpp;
 
 #define IDX_TO_GRAPH_SELF()                                                    \
-  auto distance = tr_to_dist<Distance>(data);                                   \
+  auto distance = tr_to_dist<Distance>(data);                                  \
   return idx_to_graph_impl(distance, idx, n_threads, verbose);
 
 #define IDX_TO_GRAPH_QUERY()                                                   \
-  auto distance = tr_to_dist<Distance>(reference, query);                       \
+  auto distance = tr_to_dist<Distance>(reference, query);                      \
   return idx_to_graph_impl<Distance>(distance, idx, n_threads, verbose);
 
 template <typename Distance>
