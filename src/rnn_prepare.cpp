@@ -51,7 +51,7 @@ auto diversify_impl(const SparseNNGraph &graph, const Distance &distance,
 template <typename Distance>
 List diversify_impl(NumericMatrix data, List graph_list,
                     double prune_probability, std::size_t n_threads = 0) {
-  auto distance = r_to_dist<Distance>(data);
+  auto distance = tr_to_dist<Distance>(data);
   auto graph = r_to_sparse_graph<Distance>(graph_list);
 
   auto diversified =

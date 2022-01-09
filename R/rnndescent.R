@@ -934,6 +934,9 @@ prepare_search_graph <- function(data,
 
   sp <- preserve_zeros(sp)
 
+  data <- x2m(data)
+  data <- t(data)
+
   if (!is.null(diversify_prob) && diversify_prob > 0) {
     tsmessage("Diversifying forward graph")
     fdiv <- diversify(
