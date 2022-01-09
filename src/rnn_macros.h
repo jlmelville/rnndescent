@@ -43,6 +43,9 @@
   } else if (metric == "hamming") {                                            \
     using Distance = tdoann::Hamming<float, std::size_t>;                      \
     NEXT_MACRO()                                                               \
+  } else if (metric == "correlation") {                                        \
+    using Distance = tdoann::CorrelationSelf<float, float>;                    \
+    NEXT_MACRO()                                                               \
   } else {                                                                     \
     Rcpp::stop("Bad metric");                                                  \
   }
@@ -65,6 +68,9 @@
     NEXT_MACRO()                                                               \
   } else if (metric == "hamming") {                                            \
     using Distance = tdoann::Hamming<float, std::size_t>;                      \
+    NEXT_MACRO()                                                               \
+  } else if (metric == "correlation") {                                        \
+    using Distance = tdoann::CorrelationQuery<float, float>;                   \
     NEXT_MACRO()                                                               \
   } else {                                                                     \
     Rcpp::stop("Bad metric");                                                  \

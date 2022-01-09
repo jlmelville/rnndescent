@@ -157,5 +157,9 @@ validate_nn_graph_matrix <- function(nn, nr, nc, msg = "matrix") {
 }
 
 row_center <- function(data) {
-  sweep(data, 1, rowMeans(data))
+  data - rowMeans(data)
+}
+
+col_center <- function(data) {
+  sweep(data, 2, colMeans(data))
 }

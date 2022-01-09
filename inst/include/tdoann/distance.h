@@ -208,6 +208,26 @@ struct CosineQuery {
   using Index = Idx;
 };
 
+template <typename T>
+auto mean_center(const std::vector<T> &vec, std::size_t ndim)
+    -> std::vector<T> {
+  std::vector<T> centered(vec.size());
+  std::size_t npoints = vec.size() / ndim;
+
+  for (std::size_t i = 0; i < npoints; i++) {
+    T mu{0};
+    const std::size_t di = ndim * i;
+    for (std::size_t d = 0; d < ndim; d++) {
+      mu += vec[di + d];
+    }
+    mu /= static_cast<T>(ndim);
+    for (std::size_t d = 0; d < ndim; d++) {
+      centered[di + d] = vec[di + d] - mu;
+    }
+  }
+  return centered;
+}
+
 template <typename Out, typename It>
 inline auto correlation(const It xbegin, const It xend, const It ybegin)
     -> Out {
@@ -236,6 +256,49 @@ inline auto correlation(const It xbegin, const It xend, const It ybegin)
 
   return angular_dist(normx, normy, res);
 }
+
+template <typename In, typename Out, typename Idx = uint32_t>
+struct CorrelationSelf {
+  const std::vector<In> x;
+  std::size_t ndim;
+  Idx nx;
+  Idx ny;
+
+  CorrelationSelf(const std::vector<In> &data, std::size_t ndim)
+      : x(normalize(mean_center(data, ndim), ndim)), ndim(ndim),
+        nx(data.size() / ndim), ny(nx) {}
+
+  auto operator()(Idx i, Idx j) const -> Out {
+    return cosine_impl<In, Out, Idx>(x, i, x, j, ndim);
+  }
+
+  using Input = In;
+  using Output = Out;
+  using Index = Idx;
+};
+
+template <typename In, typename Out, typename Idx = uint32_t>
+struct CorrelationQuery {
+  const std::vector<In> x_;
+  const std::vector<In> y_;
+  std::size_t ndim;
+  Idx nx;
+  Idx ny;
+
+  CorrelationQuery(const std::vector<In> &x, const std::vector<In> &y,
+                   std::size_t ndim)
+      : x_(normalize(mean_center(x, ndim), ndim)),
+        y_(normalize(mean_center(y, ndim), ndim)), ndim(ndim),
+        nx(x.size() / ndim), ny(y.size() / ndim) {}
+
+  auto operator()(Idx i, Idx j) const -> Out {
+    return cosine_impl<In, Out, Idx>(x_, i, y_, j, ndim);
+  }
+
+  using Input = In;
+  using Output = Out;
+  using Index = Idx;
+};
 
 template <typename Out, typename It>
 inline auto manhattan(const It xbegin, const It xend, const It ybegin) -> Out {
