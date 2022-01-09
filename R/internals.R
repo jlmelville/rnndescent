@@ -31,21 +31,27 @@ check_graph <- function(idx, dist = NULL, k = NULL) {
   list(idx = idx, dist = dist, k = k)
 }
 
+# recalculate_distances if TRUE even if a distance matrix is present,
+# recalculate distances from data/query and the indices
 prepare_init_graph <-
   function(nn,
            k,
            data,
            query = NULL,
            metric = "euclidean",
+           recalculate_distances = FALSE,
            n_threads = 0,
            verbose = FALSE) {
+    if (is.matrix(nn)) {
+      nn <- list(idx = nn)
+    }
     if (k != ncol(nn$idx)) {
       if (k > ncol(nn$idx)) {
         stop("Not enough initial neighbors provided for k = ", k)
       }
       nn$idx <- nn$idx[, 1:k, drop = FALSE]
     }
-    if (!is.null(nn$dist)) {
+    if (!is.null(nn$dist) && !recalculate_distances) {
       if (k > ncol(nn$dist)) {
         stop("Not enough initial distances provided for k = ", k)
       }
