@@ -12,7 +12,7 @@ brute_force_knn_query(
   use_alt_metric = TRUE,
   n_threads = 0,
   verbose = FALSE,
-  obs = "r"
+  obs = "R"
 )
 }
 \arguments{

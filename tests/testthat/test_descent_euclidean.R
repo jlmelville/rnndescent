@@ -282,3 +282,15 @@ expect_error(graph_knn_query(
   reference = ui6, reference_graph = ui6_nnd,
   query = ui4, init = rnbrs4, metric = "not-a-real metric"
 ), "metric")
+
+test_that("column oriented", {
+  set.seed(1337)
+  uiris_rnn <- nnd_knn(t(uirism), 15, obs = "C", n_threads = 2)
+  expect_equal(sum(uiris_rnn$dist), ui_edsum, tol = 1e-3)
+
+  set.seed(1337)
+  ui4_nnd <- nnd_knn(ui4, k = 4)
+  qnbrs6 <- graph_knn_query(reference = t(ui4), reference_graph = ui4_nnd, query = t(ui6), k = 4, obs = "C", n_threads = 2)
+  check_query_nbrs(nn = qnbrs6, query = ui6, ref_range = 7:10, query_range = 1:6, k = 4, expected_dist = ui10_eucd, tol = 1e-6)
+  expect_equal(sum(qnbrs6$dist), ui6q_edsum, tol = 1e-6)
+})

@@ -235,7 +235,10 @@ random_knn_impl <-
 
 #' Find Nearest Neighbors and Distances
 #'
-#' @param data Matrix of `n` items to search.
+#' @param data Matrix of `n` items to generate neighbors for, with observations
+#'   in the rows and features in the columns. Optionally, input can be passed
+#'   with observations in the columns, by setting `obs = "C"`, which should be
+#'   more efficient.
 #' @param k Number of nearest neighbors to return. Optional if `init` is
 #'   specified.
 #' @param metric Type of distance calculation to use. One of `"euclidean"`,
@@ -281,6 +284,12 @@ random_knn_impl <-
 #'   * `"bar"`: a simple text progress bar.
 #'   * `"dist"`: the sum of the distances in the approximate knn graph at the
 #'     end of each iteration.
+#' @param obs set to `"C"` to indicate that the input `data` orientation stores
+#'   each observation as a column. The default `"R"` means that observations are
+#'   stored in each row. Storing the data by row is usually more convenient, but
+#'   internally your data will be converted to column storage. Passing it
+#'   already column-oriented will save some memory and (a small amount of) CPU
+#'   usage.
 #' @return the approximate nearest neighbor graph as a list containing:
 #'   * `idx` an n by k matrix containing the nearest neighbor indices.
 #'   * `dist` an n by k matrix containing the nearest neighbor distances.
@@ -349,9 +358,10 @@ nnd_knn <- function(data,
                     use_alt_metric = TRUE,
                     n_threads = 0,
                     verbose = FALSE,
-                    progress = "bar") {
+                    progress = "bar",
+                    obs = "R") {
   stopifnot(tolower(progress) %in% c("bar", "dist"))
-  data <- x2m(data)
+  obs <- match.arg(toupper(obs), c("C", "R"))
 
   if (use_alt_metric) {
     actual_metric <- find_alt_metric(metric)
@@ -362,14 +372,17 @@ nnd_knn <- function(data,
     actual_metric <- metric
   }
 
-  data <- t(data)
-  ofun <- ncol
+  data <- x2m(data)
+  if (obs == "R") {
+    data <- t(data)
+  }
 
+  # data must be column-oriented at this point
   if (is.null(init)) {
     if (is.null(k)) {
       stop("Must provide k")
     }
-    check_k(k, ofun(data))
+    check_k(k, ncol(data))
     tsmessage("Initializing from random neighbors")
     init <- random_knn_impl(
       reference = data,
@@ -387,7 +400,6 @@ nnd_knn <- function(data,
     }
   }
 
-  # data must be column-oriented at this point
   init <-
     prepare_init_graph(
       init,
@@ -497,23 +509,22 @@ brute_force_knn_query <- function(query,
                                   use_alt_metric = TRUE,
                                   n_threads = 0,
                                   verbose = FALSE,
-                                  obs = "r") {
-  obs <- match.arg(tolower(obs), c("c", "r"))
-
-  reference <- x2m(reference)
-  query <- x2m(query)
-  n_obs <- switch(obs,
-    r = nrow,
-    c = ncol,
-    stop("Unknown obs type")
-  )
-  check_k(k, n_obs(reference))
+                                  obs = "R") {
+  obs <- match.arg(toupper(obs), c("C", "R"))
 
   if (use_alt_metric) {
     actual_metric <- find_alt_metric(metric)
   } else {
     actual_metric <- metric
   }
+
+  reference <- x2m(reference)
+  query <- x2m(query)
+  if (obs == "R") {
+    reference <- t(reference)
+    query <- t(query)
+  }
+  check_k(k, ncol(reference))
 
   tsmessage(
     thread_msg(
@@ -522,11 +533,6 @@ brute_force_knn_query <- function(query,
       n_threads = n_threads
     )
   )
-
-  if (obs == "r") {
-    reference <- t(reference)
-    query <- t(query)
-  }
   res <- rnn_brute_force_query(reference,
     query,
     k,
@@ -651,9 +657,17 @@ random_knn_query <-
 
 #' Find Nearest Neighbors and Distances
 #'
-#' @param query Matrix of `n` query items.
-#' @param reference Matrix of `m` reference items. The nearest neighbors to the
-#'   items in `query` are calculated from this data.
+#' @param query Matrix of `n` query items, with observations in the rows and
+#'   features in the columns. Optionally, the data may be passed with the
+#'   observations in the columns, by setting `obs = "C"`, which should be more
+#'   efficient. The `reference` data must be passed in the same orientation as
+#'   `query`.
+#' @param reference Matrix of `m` reference items, with observations in the rows
+#'   and features in the columns. The nearest neighbors to the queries are
+#'   calculated from this data. Optionally, the data may be passed with the
+#'   observations in the columns, by setting `obs = "C"`, which should be more
+#'   efficient. The `query` data must be passed in the same orientation as
+#'   `reference`.
 #' @param reference_graph Search graph of the `reference` data. A neighbor
 #'   graph, such as that output from [nnd_knn()] can be used, but
 #'   preferably a suitably prepared sparse search graph should be used, such as
@@ -696,6 +710,12 @@ random_knn_query <-
 #'   [prepare_search_graph()] to prevent excessive run time. Default is 0.1.
 #' @param n_threads Number of threads to use.
 #' @param verbose If `TRUE`, log information to the console.
+#' @param obs set to `"C"` to indicate that the input `query` and `reference`
+#'   orientation stores each observation as a column (the orientation must be
+#'   consistent). The default `"R"` means that observations are stored in each
+#'   row. Storing the data by row is usually more convenient, but internally
+#'   your data will be converted to column storage. Passing it already
+#'   column-oriented will save some memory and (a small amount of) CPU usage.
 #' @return the approximate nearest neighbor graph as a list containing:
 #'   * `idx` a `n` by `k` matrix containing the nearest neighbor indices
 #'     specifying the row of the neighbor in `reference`.
@@ -742,9 +762,9 @@ graph_knn_query <- function(query,
                             epsilon = 0.1,
                             use_alt_metric = TRUE,
                             n_threads = 0,
-                            verbose = FALSE) {
-  reference <- x2m(reference)
-  query <- x2m(query)
+                            verbose = FALSE,
+                            obs = "R") {
+  obs <- match.arg(toupper(obs), c("C", "R"))
 
   if (use_alt_metric) {
     actual_metric <- find_alt_metric(metric)
@@ -755,10 +775,14 @@ graph_knn_query <- function(query,
     actual_metric <- metric
   }
 
-  reference <- t(reference)
-  query <- t(query)
-  ofun <- ncol
+  reference <- x2m(reference)
+  query <- x2m(query)
+  if (obs == "R") {
+    reference <- t(reference)
+    query <- t(query)
+  }
 
+  # reference and query must be column-oriented at this point
   if (is.null(init)) {
     if (is.null(k)) {
       if (is.list(reference_graph)) {
@@ -768,7 +792,7 @@ graph_knn_query <- function(query,
         stop("Must provide k")
       }
     }
-    check_k(k, ofun(reference))
+    check_k(k, ncol(reference))
     tsmessage("Initializing from random neighbors")
     init <- random_knn_impl(
       query = query,
@@ -788,7 +812,6 @@ graph_knn_query <- function(query,
     }
   }
 
-  # reference and query must be column-oriented at this point
   init <-
     prepare_init_graph(
       nn = init,
@@ -805,13 +828,13 @@ graph_knn_query <- function(query,
     !is.null(init$idx),
     methods::is(init$idx, "matrix"),
     ncol(init$idx) == k,
-    nrow(init$idx) == ofun(query)
+    nrow(init$idx) == ncol(query)
   )
   stopifnot(
     !is.null(init$dist),
     methods::is(init$dist, "matrix"),
     ncol(init$dist) == k,
-    nrow(init$dist) == ofun(query)
+    nrow(init$dist) == ncol(query)
   )
 
   if (is.list(reference_graph)) {
@@ -821,12 +844,12 @@ graph_knn_query <- function(query,
     stopifnot(
       !is.null(reference_idx),
       methods::is(reference_idx, "matrix"),
-      nrow(reference_idx) == ofun(reference)
+      nrow(reference_idx) == ncol(reference)
     )
     stopifnot(
       !is.null(reference_dist),
       methods::is(reference_dist, "matrix"),
-      nrow(reference_dist) == ofun(reference)
+      nrow(reference_dist) == ncol(reference)
     )
     reference_graph_list <- graph_to_list(reference_graph)
   } else {
