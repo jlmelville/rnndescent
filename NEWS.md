@@ -8,6 +8,8 @@ for calculating the distance between two vectors.
 * Generalize `hamming` metric to a standard definition. The old implementation
 of `hamming` metric which worked on binary data only was renamed into
 `bhamming`. (contributed by [Vitalie Spinu](https://github.com/vspinu))
+* New parameter `obs` has been added to most functions: set `obs = "C"` and you
+can pass the input data in column-oriented format.
 
 ## Bug fixes and minor improvements
 
