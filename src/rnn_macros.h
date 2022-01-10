@@ -25,23 +25,26 @@
 #include "tdoann/distance.h"
 
 #define DISPATCH_ON_DISTANCES(NEXT_MACRO)                                      \
+  using It = std::vector<float>::const_iterator;                               \
   if (metric == "euclidean") {                                                 \
-    using Distance = tdoann::EuclideanSelf<float, float>;                      \
+    using Distance =                                                           \
+        tdoann::SelfDistance<float, float, It, tdoann::euclidean>;             \
     NEXT_MACRO()                                                               \
   } else if (metric == "l2sqr") {                                              \
-    using Distance = tdoann::L2SqrSelf<float, float>;                          \
+    using Distance = tdoann::SelfDistance<float, float, It, tdoann::l2sqr>;    \
     NEXT_MACRO()                                                               \
   } else if (metric == "cosine") {                                             \
     using Distance = tdoann::CosineSelf<float, float>;                         \
     NEXT_MACRO()                                                               \
   } else if (metric == "manhattan") {                                          \
-    using Distance = tdoann::ManhattanSelf<float, float>;                      \
+    using Distance =                                                           \
+        tdoann::SelfDistance<float, float, It, tdoann::manhattan>;             \
     NEXT_MACRO()                                                               \
   } else if (metric == "bhamming") {                                           \
     using Distance = tdoann::BHammingSelf<uint8_t, std::size_t>;               \
     NEXT_MACRO()                                                               \
   } else if (metric == "hamming") {                                            \
-    using Distance = tdoann::HammingSelf<float, std::size_t>;                  \
+    using Distance = tdoann::SelfDistance<float, float, It, tdoann::hamming>;  \
     NEXT_MACRO()                                                               \
   } else if (metric == "correlation") {                                        \
     using Distance = tdoann::CorrelationSelf<float, float>;                    \
@@ -51,23 +54,26 @@
   }
 
 #define DISPATCH_ON_QUERY_DISTANCES(NEXT_MACRO)                                \
+  using It = std::vector<float>::const_iterator;                               \
   if (metric == "euclidean") {                                                 \
-    using Distance = tdoann::EuclideanQuery<float, float>;                     \
+    using Distance =                                                           \
+        tdoann::QueryDistance<float, float, It, tdoann::euclidean>;            \
     NEXT_MACRO()                                                               \
   } else if (metric == "l2sqr") {                                              \
-    using Distance = tdoann::L2SqrQuery<float, float>;                         \
+    using Distance = tdoann::QueryDistance<float, float, It, tdoann::l2sqr>;   \
     NEXT_MACRO()                                                               \
   } else if (metric == "cosine") {                                             \
     using Distance = tdoann::CosineQuery<float, float>;                        \
     NEXT_MACRO()                                                               \
   } else if (metric == "manhattan") {                                          \
-    using Distance = tdoann::ManhattanQuery<float, float>;                     \
+    using Distance =                                                           \
+        tdoann::QueryDistance<float, float, It, tdoann::manhattan>;            \
     NEXT_MACRO()                                                               \
   } else if (metric == "bhamming") {                                           \
     using Distance = tdoann::BHammingQuery<uint8_t, std::size_t>;              \
     NEXT_MACRO()                                                               \
   } else if (metric == "hamming") {                                            \
-    using Distance = tdoann::HammingQuery<float, std::size_t>;                 \
+    using Distance = tdoann::QueryDistance<float, float, It, tdoann::hamming>; \
     NEXT_MACRO()                                                               \
   } else if (metric == "correlation") {                                        \
     using Distance = tdoann::CorrelationQuery<float, float>;                   \
