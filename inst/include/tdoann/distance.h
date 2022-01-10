@@ -33,59 +33,15 @@
 
 namespace tdoann {
 
-template <typename In, typename Out, typename It, Out (*dfun)(It, It, It),
-          typename Idx = uint32_t>
-struct SelfDistance {
-  SelfDistance(const std::vector<In> &data, std::size_t ndim)
-      : x(data), ndim(ndim), nx(data.size() / ndim), ny(nx) {}
-
-  inline auto operator()(Idx i, Idx j) const -> Out {
-    const std::size_t di = ndim * i;
-    return dfun(x.begin() + di, x.begin() + di + ndim, x.begin() + ndim * j);
-  }
-
-  const std::vector<In> x;
-  std::size_t ndim;
-  Idx nx;
-  Idx ny;
-
-  using Input = In;
-  using Output = Out;
-  using Index = Idx;
-};
-
-template <typename In, typename Out, typename It, Out (*dfun)(It, It, It),
-          typename Idx = uint32_t>
-struct QueryDistance {
-  QueryDistance(const std::vector<In> &x, const std::vector<In> &y,
-                std::size_t ndim)
-      : x(x), y(y), ndim(ndim), nx(x.size() / ndim), ny(y.size() / ndim) {}
-
-  inline auto operator()(Idx i, Idx j) const -> Out {
-    const std::size_t di = ndim * i;
-    return dfun(x.begin() + di, x.begin() + di + ndim, y.begin() + ndim * j);
-  }
-
-  const std::vector<In> x;
-  const std::vector<In> y;
-  std::size_t ndim;
-  Idx nx;
-  Idx ny;
-
-  using Input = In;
-  using Output = Out;
-  using Index = Idx;
-};
+// distance functions
 
 template <typename Out, typename It>
 inline auto l2sqr(const It xbegin, const It xend, const It ybegin) -> Out {
   Out sum{0};
-
   for (It xit = xbegin, yit = ybegin; xit != xend; ++xit, ++yit) {
     const Out diff = *xit - *yit;
     sum += diff * diff;
   }
-
   return sum;
 }
 
@@ -94,39 +50,13 @@ inline auto euclidean(const It xbegin, const It xend, const It ybegin) -> Out {
   return std::sqrt(l2sqr<Out>(xbegin, xend, ybegin));
 }
 
-// relies on NRVO to avoid a copy
-template <typename T>
-auto normalize(const std::vector<T> &vec, std::size_t ndim) -> std::vector<T> {
-  std::vector<T> normalized(vec.size());
-  std::size_t npoints = vec.size() / ndim;
-  for (std::size_t i = 0; i < npoints; i++) {
-    std::size_t di = ndim * i;
-    T norm = 0.0;
-
-    for (std::size_t d = 0; d < ndim; d++) {
-      auto val = vec[di + d];
-      norm += val * val;
-    }
-    norm = std::sqrt(norm) + 1e-30;
-    for (std::size_t d = 0; d < ndim; d++) {
-      normalized[di + d] = vec[di + d] / norm;
-    }
+template <typename Out, typename It>
+auto inner_product(const It xbegin, const It xend, const It ybegin) -> Out {
+  Out sum{0};
+  for (It xit = xbegin, yit = ybegin; xit != xend; ++xit, ++yit) {
+    sum += *xit * *yit;
   }
-  return normalized;
-}
-
-template <typename In, typename Out, typename Idx = uint32_t>
-auto cosine_impl(const std::vector<In> &x, Idx i, const std::vector<In> &y,
-                 Idx j, std::size_t ndim) -> Out {
-  std::size_t di = ndim * i;
-  std::size_t dj = ndim * j;
-
-  Out sum = 0.0;
-  for (std::size_t d = 0; d < ndim; d++) {
-    sum += x[di + d] * y[dj + d];
-  }
-
-  return 1.0 - sum;
+  return 1 - sum;
 }
 
 // used by cosine and correlation to avoid division by zero
@@ -149,7 +79,6 @@ inline auto cosine(const It xbegin, const It xend, const It ybegin) -> Out {
   Out res{0};
   Out normx{0};
   Out normy{0};
-
   for (It xit = xbegin, yit = ybegin; xit != xend; ++xit, ++yit) {
     Out x = *xit;
     Out y = *yit;
@@ -157,69 +86,7 @@ inline auto cosine(const It xbegin, const It xend, const It ybegin) -> Out {
     normx += x * x;
     normy += y * y;
   }
-
   return angular_dist(normx, normy, res);
-}
-
-template <typename In, typename Out, typename Idx = uint32_t>
-struct CosineSelf {
-  const std::vector<In> x;
-  std::size_t ndim;
-  Idx nx;
-  Idx ny;
-
-  CosineSelf(const std::vector<In> &data, std::size_t ndim)
-      : x(normalize(data, ndim)), ndim(ndim), nx(data.size() / ndim), ny(nx) {}
-
-  auto operator()(Idx i, Idx j) const -> Out {
-    return cosine_impl<In, Out, Idx>(x, i, x, j, ndim);
-  }
-
-  using Input = In;
-  using Output = Out;
-  using Index = Idx;
-};
-
-template <typename In, typename Out, typename Idx = uint32_t>
-struct CosineQuery {
-  const std::vector<In> x_;
-  const std::vector<In> y_;
-  std::size_t ndim;
-  Idx nx;
-  Idx ny;
-
-  CosineQuery(const std::vector<In> &x, const std::vector<In> &y,
-              std::size_t ndim)
-      : x_(normalize(x, ndim)), y_(normalize(y, ndim)), ndim(ndim),
-        nx(x.size() / ndim), ny(y.size() / ndim) {}
-
-  auto operator()(Idx i, Idx j) const -> Out {
-    return cosine_impl<In, Out, Idx>(x_, i, y_, j, ndim);
-  }
-
-  using Input = In;
-  using Output = Out;
-  using Index = Idx;
-};
-
-template <typename T>
-auto mean_center(const std::vector<T> &vec, std::size_t ndim)
-    -> std::vector<T> {
-  std::vector<T> centered(vec.size());
-  std::size_t npoints = vec.size() / ndim;
-
-  for (std::size_t i = 0; i < npoints; i++) {
-    T mu{0};
-    const std::size_t di = ndim * i;
-    for (std::size_t d = 0; d < ndim; d++) {
-      mu += vec[di + d];
-    }
-    mu /= static_cast<T>(ndim);
-    for (std::size_t d = 0; d < ndim; d++) {
-      centered[di + d] = vec[di + d] - mu;
-    }
-  }
-  return centered;
 }
 
 template <typename Out, typename It>
@@ -251,59 +118,130 @@ inline auto correlation(const It xbegin, const It xend, const It ybegin)
   return angular_dist(normx, normy, res);
 }
 
-template <typename In, typename Out, typename Idx = uint32_t>
-struct CorrelationSelf {
+template <typename Out, typename It>
+inline auto manhattan(const It xbegin, const It xend, const It ybegin) -> Out {
+  Out sum{0};
+  for (It xit = xbegin, yit = ybegin; xit != xend; ++xit, ++yit) {
+    sum += std::abs(*xit - *yit);
+  }
+  return sum;
+}
+
+template <typename Out, typename It>
+inline auto hamming(const It xbegin, const It xend, const It ybegin) -> Out {
+  Out sum{0};
+  for (It xit = xbegin, yit = ybegin; xit != xend; ++xit, ++yit) {
+    sum += *xit != *yit;
+  }
+  return sum;
+}
+
+// Functions for initializing input vectors in functor structs
+
+template <typename T>
+auto do_nothing(const std::vector<T> &vec, std::size_t ndim) -> std::vector<T> {
+  return vec;
+}
+
+// relies on NRVO to avoid a copy
+template <typename T>
+auto normalize(const std::vector<T> &vec, std::size_t ndim) -> std::vector<T> {
+  std::vector<T> normalized(vec.size());
+  std::size_t npoints = vec.size() / ndim;
+  for (std::size_t i = 0; i < npoints; i++) {
+    std::size_t di = ndim * i;
+    T norm = 0.0;
+
+    for (std::size_t d = 0; d < ndim; d++) {
+      auto val = vec[di + d];
+      norm += val * val;
+    }
+    norm = std::sqrt(norm) + 1e-30;
+    for (std::size_t d = 0; d < ndim; d++) {
+      normalized[di + d] = vec[di + d] / norm;
+    }
+  }
+  return normalized;
+}
+
+template <typename T>
+auto mean_center(const std::vector<T> &vec, std::size_t ndim)
+    -> std::vector<T> {
+  std::vector<T> centered(vec.size());
+  std::size_t npoints = vec.size() / ndim;
+
+  for (std::size_t i = 0; i < npoints; i++) {
+    T mu{0};
+    const std::size_t di = ndim * i;
+    for (std::size_t d = 0; d < ndim; d++) {
+      mu += vec[di + d];
+    }
+    mu /= static_cast<T>(ndim);
+    for (std::size_t d = 0; d < ndim; d++) {
+      centered[di + d] = vec[di + d] - mu;
+    }
+  }
+  return centered;
+}
+
+template <typename T>
+auto normalize_center(const std::vector<T> &vec, std::size_t ndim)
+    -> std::vector<T> {
+  return normalize(mean_center(vec, ndim), ndim);
+}
+
+// template for distance functors
+
+template <typename In, typename Out, typename It, Out (*dfun)(It, It, It),
+          std::vector<In> (*initfun)(const std::vector<In> &vec,
+                                     std::size_t ndim) = do_nothing,
+          typename Idx = uint32_t>
+struct SelfDistance {
+  SelfDistance(const std::vector<In> &data, std::size_t ndim)
+      : x(initfun(data, ndim)), ndim(ndim), nx(data.size() / ndim), ny(nx) {}
+
+  inline auto operator()(Idx i, Idx j) const -> Out {
+    const std::size_t di = ndim * i;
+    return dfun(x.begin() + di, x.begin() + di + ndim, x.begin() + ndim * j);
+  }
+
   const std::vector<In> x;
   std::size_t ndim;
   Idx nx;
   Idx ny;
 
-  CorrelationSelf(const std::vector<In> &data, std::size_t ndim)
-      : x(normalize(mean_center(data, ndim), ndim)), ndim(ndim),
-        nx(data.size() / ndim), ny(nx) {}
-
-  auto operator()(Idx i, Idx j) const -> Out {
-    return cosine_impl<In, Out, Idx>(x, i, x, j, ndim);
-  }
-
   using Input = In;
   using Output = Out;
   using Index = Idx;
 };
 
-template <typename In, typename Out, typename Idx = uint32_t>
-struct CorrelationQuery {
-  const std::vector<In> x_;
-  const std::vector<In> y_;
+template <typename In, typename Out, typename It, Out (*dfun)(It, It, It),
+          std::vector<In> (*initfun)(const std::vector<In> &vec,
+                                     std::size_t ndim) = do_nothing,
+          typename Idx = uint32_t>
+struct QueryDistance {
+  QueryDistance(const std::vector<In> &x, const std::vector<In> &y,
+                std::size_t ndim)
+      : x(initfun(x, ndim)), y(initfun(y, ndim)), ndim(ndim),
+        nx(x.size() / ndim), ny(y.size() / ndim) {}
+
+  inline auto operator()(Idx i, Idx j) const -> Out {
+    const std::size_t di = ndim * i;
+    return dfun(x.begin() + di, x.begin() + di + ndim, y.begin() + ndim * j);
+  }
+
+  const std::vector<In> x;
+  const std::vector<In> y;
   std::size_t ndim;
   Idx nx;
   Idx ny;
 
-  CorrelationQuery(const std::vector<In> &x, const std::vector<In> &y,
-                   std::size_t ndim)
-      : x_(normalize(mean_center(x, ndim), ndim)),
-        y_(normalize(mean_center(y, ndim), ndim)), ndim(ndim),
-        nx(x.size() / ndim), ny(y.size() / ndim) {}
-
-  auto operator()(Idx i, Idx j) const -> Out {
-    return cosine_impl<In, Out, Idx>(x_, i, y_, j, ndim);
-  }
-
   using Input = In;
   using Output = Out;
   using Index = Idx;
 };
 
-template <typename Out, typename It>
-inline auto manhattan(const It xbegin, const It xend, const It ybegin) -> Out {
-  Out sum{0};
-
-  for (It xit = xbegin, yit = ybegin; xit != xend; ++xit, ++yit) {
-    sum += std::abs(*xit - *yit);
-  }
-
-  return sum;
-}
+// Specialized binary Hamming functor
 
 template <typename Out, typename Idx = uint32_t>
 auto bhamming_impl(const BitVec &x, const Idx i, const BitVec &y, Idx j,
@@ -363,17 +301,6 @@ struct BHammingQuery {
   using Output = Out;
   using Index = Idx;
 };
-
-template <typename Out, typename It>
-inline auto hamming(const It xbegin, const It xend, const It ybegin) -> Out {
-  Out sum{0};
-
-  for (It xit = xbegin, yit = ybegin; xit != xend; ++xit, ++yit) {
-    sum += *xit != *yit;
-  }
-
-  return sum;
-}
 
 } // namespace tdoann
 #endif // TDOANN_DISTANCE_H

@@ -25,58 +25,62 @@
 #include "tdoann/distance.h"
 
 #define DISPATCH_ON_DISTANCES(NEXT_MACRO)                                      \
-  using It = std::vector<float>::const_iterator;                               \
+  using In = float;                                                            \
+  using Out = float;                                                           \
+  using It = std::vector<In>::const_iterator;                                  \
   if (metric == "euclidean") {                                                 \
-    using Distance =                                                           \
-        tdoann::SelfDistance<float, float, It, tdoann::euclidean>;             \
+    using Distance = tdoann::SelfDistance<In, Out, It, tdoann::euclidean>;     \
     NEXT_MACRO()                                                               \
   } else if (metric == "l2sqr") {                                              \
-    using Distance = tdoann::SelfDistance<float, float, It, tdoann::l2sqr>;    \
+    using Distance = tdoann::SelfDistance<In, Out, It, tdoann::l2sqr>;         \
     NEXT_MACRO()                                                               \
   } else if (metric == "cosine") {                                             \
-    using Distance = tdoann::CosineSelf<float, float>;                         \
+    using Distance = tdoann::SelfDistance<In, Out, It, tdoann::inner_product,  \
+                                          tdoann::normalize>;                  \
     NEXT_MACRO()                                                               \
   } else if (metric == "manhattan") {                                          \
-    using Distance =                                                           \
-        tdoann::SelfDistance<float, float, It, tdoann::manhattan>;             \
+    using Distance = tdoann::SelfDistance<In, Out, It, tdoann::manhattan>;     \
     NEXT_MACRO()                                                               \
   } else if (metric == "bhamming") {                                           \
     using Distance = tdoann::BHammingSelf<uint8_t, std::size_t>;               \
     NEXT_MACRO()                                                               \
   } else if (metric == "hamming") {                                            \
-    using Distance = tdoann::SelfDistance<float, float, It, tdoann::hamming>;  \
+    using Distance = tdoann::SelfDistance<In, Out, It, tdoann::hamming>;       \
     NEXT_MACRO()                                                               \
   } else if (metric == "correlation") {                                        \
-    using Distance = tdoann::CorrelationSelf<float, float>;                    \
+    using Distance = tdoann::SelfDistance<In, Out, It, tdoann::inner_product,  \
+                                          tdoann::normalize_center>;           \
     NEXT_MACRO()                                                               \
   } else {                                                                     \
     Rcpp::stop("Bad metric");                                                  \
   }
 
 #define DISPATCH_ON_QUERY_DISTANCES(NEXT_MACRO)                                \
-  using It = std::vector<float>::const_iterator;                               \
+  using In = float;                                                            \
+  using Out = float;                                                           \
+  using It = std::vector<In>::const_iterator;                                  \
   if (metric == "euclidean") {                                                 \
-    using Distance =                                                           \
-        tdoann::QueryDistance<float, float, It, tdoann::euclidean>;            \
+    using Distance = tdoann::QueryDistance<In, Out, It, tdoann::euclidean>;    \
     NEXT_MACRO()                                                               \
   } else if (metric == "l2sqr") {                                              \
-    using Distance = tdoann::QueryDistance<float, float, It, tdoann::l2sqr>;   \
+    using Distance = tdoann::QueryDistance<In, Out, It, tdoann::l2sqr>;        \
     NEXT_MACRO()                                                               \
   } else if (metric == "cosine") {                                             \
-    using Distance = tdoann::CosineQuery<float, float>;                        \
+    using Distance = tdoann::QueryDistance<In, Out, It, tdoann::inner_product, \
+                                           tdoann::normalize>;                 \
     NEXT_MACRO()                                                               \
   } else if (metric == "manhattan") {                                          \
-    using Distance =                                                           \
-        tdoann::QueryDistance<float, float, It, tdoann::manhattan>;            \
+    using Distance = tdoann::QueryDistance<In, Out, It, tdoann::manhattan>;    \
     NEXT_MACRO()                                                               \
   } else if (metric == "bhamming") {                                           \
     using Distance = tdoann::BHammingQuery<uint8_t, std::size_t>;              \
     NEXT_MACRO()                                                               \
   } else if (metric == "hamming") {                                            \
-    using Distance = tdoann::QueryDistance<float, float, It, tdoann::hamming>; \
+    using Distance = tdoann::QueryDistance<In, Out, It, tdoann::hamming>;      \
     NEXT_MACRO()                                                               \
   } else if (metric == "correlation") {                                        \
-    using Distance = tdoann::CorrelationQuery<float, float>;                   \
+    using Distance = tdoann::QueryDistance<In, Out, It, tdoann::inner_product, \
+                                           tdoann::normalize_center>;          \
     NEXT_MACRO()                                                               \
   } else {                                                                     \
     Rcpp::stop("Bad metric");                                                  \
