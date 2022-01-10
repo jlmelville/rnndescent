@@ -26,22 +26,22 @@
 
 #define DISPATCH_ON_DISTANCES(NEXT_MACRO)                                      \
   if (metric == "euclidean") {                                                 \
-    using Distance = tdoann::Euclidean<float, float>;                          \
+    using Distance = tdoann::EuclideanSelf<float, float>;                      \
     NEXT_MACRO()                                                               \
   } else if (metric == "l2sqr") {                                              \
-    using Distance = tdoann::L2Sqr<float, float>;                              \
+    using Distance = tdoann::L2SqrSelf<float, float>;                          \
     NEXT_MACRO()                                                               \
   } else if (metric == "cosine") {                                             \
     using Distance = tdoann::CosineSelf<float, float>;                         \
     NEXT_MACRO()                                                               \
   } else if (metric == "manhattan") {                                          \
-    using Distance = tdoann::Manhattan<float, float>;                          \
+    using Distance = tdoann::ManhattanSelf<float, float>;                      \
     NEXT_MACRO()                                                               \
   } else if (metric == "bhamming") {                                           \
     using Distance = tdoann::BHammingSelf<uint8_t, std::size_t>;               \
     NEXT_MACRO()                                                               \
   } else if (metric == "hamming") {                                            \
-    using Distance = tdoann::Hamming<float, std::size_t>;                      \
+    using Distance = tdoann::HammingSelf<float, std::size_t>;                  \
     NEXT_MACRO()                                                               \
   } else if (metric == "correlation") {                                        \
     using Distance = tdoann::CorrelationSelf<float, float>;                    \
@@ -52,22 +52,22 @@
 
 #define DISPATCH_ON_QUERY_DISTANCES(NEXT_MACRO)                                \
   if (metric == "euclidean") {                                                 \
-    using Distance = tdoann::Euclidean<float, float>;                          \
+    using Distance = tdoann::EuclideanQuery<float, float>;                     \
     NEXT_MACRO()                                                               \
   } else if (metric == "l2sqr") {                                              \
-    using Distance = tdoann::L2Sqr<float, float>;                              \
+    using Distance = tdoann::L2SqrQuery<float, float>;                         \
     NEXT_MACRO()                                                               \
   } else if (metric == "cosine") {                                             \
     using Distance = tdoann::CosineQuery<float, float>;                        \
     NEXT_MACRO()                                                               \
   } else if (metric == "manhattan") {                                          \
-    using Distance = tdoann::Manhattan<float, float>;                          \
+    using Distance = tdoann::ManhattanQuery<float, float>;                     \
     NEXT_MACRO()                                                               \
   } else if (metric == "bhamming") {                                           \
     using Distance = tdoann::BHammingQuery<uint8_t, std::size_t>;              \
     NEXT_MACRO()                                                               \
   } else if (metric == "hamming") {                                            \
-    using Distance = tdoann::Hamming<float, std::size_t>;                      \
+    using Distance = tdoann::HammingQuery<float, std::size_t>;                 \
     NEXT_MACRO()                                                               \
   } else if (metric == "correlation") {                                        \
     using Distance = tdoann::CorrelationQuery<float, float>;                   \

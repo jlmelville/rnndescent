@@ -45,24 +45,36 @@ inline auto l2sqr(const It xbegin, const It xend, const It ybegin) -> Out {
   return sum;
 }
 
-template <typename Out, typename It>
-inline auto euclidean(const It xbegin, const It xend, const It ybegin) -> Out {
-  return std::sqrt(l2sqr<Out>(xbegin, xend, ybegin));
-}
+template <typename In, typename Out, typename Idx = uint32_t> struct L2SqrSelf {
+  L2SqrSelf(const std::vector<In> &data, std::size_t ndim)
+      : x(data), ndim(ndim), nx(data.size() / ndim), ny(nx) {}
 
-template <typename In, typename Out, typename Idx = uint32_t> struct Euclidean {
-  Euclidean(const std::vector<In> &data, std::size_t ndim)
-      : x(data), y(data), ndim(ndim), nx(data.size() / ndim),
-        ny(data.size() / ndim) {}
+  inline auto operator()(Idx i, Idx j) const -> Out {
+    const std::size_t di = ndim * i;
+    return l2sqr<Out>(x.begin() + di, x.begin() + di + ndim,
+                      x.begin() + ndim * j);
+  }
 
-  Euclidean(const std::vector<In> &x, const std::vector<In> &y,
-            std::size_t ndim)
+  const std::vector<In> x;
+  std::size_t ndim;
+  Idx nx;
+  Idx ny;
+
+  using Input = In;
+  using Output = Out;
+  using Index = Idx;
+};
+
+template <typename In, typename Out, typename Idx = uint32_t>
+struct L2SqrQuery {
+  L2SqrQuery(const std::vector<In> &x, const std::vector<In> &y,
+             std::size_t ndim)
       : x(x), y(y), ndim(ndim), nx(x.size() / ndim), ny(y.size() / ndim) {}
 
   inline auto operator()(Idx i, Idx j) const -> Out {
     const std::size_t di = ndim * i;
-    return euclidean<Out>(x.begin() + di, x.begin() + di + ndim,
-                          y.begin() + ndim * j);
+    return l2sqr<Out>(x.begin() + di, x.begin() + di + ndim,
+                      y.begin() + ndim * j);
   }
 
   const std::vector<In> x;
@@ -76,17 +88,42 @@ template <typename In, typename Out, typename Idx = uint32_t> struct Euclidean {
   using Index = Idx;
 };
 
-template <typename In, typename Out, typename Idx = uint32_t> struct L2Sqr {
-  L2Sqr(const std::vector<In> &data, std::size_t ndim)
-      : x(data), y(data), ndim(ndim), nx(data.size() / ndim),
-        ny(data.size() / ndim) {}
-  L2Sqr(const std::vector<In> &x, const std::vector<In> &y, std::size_t ndim)
+template <typename Out, typename It>
+inline auto euclidean(const It xbegin, const It xend, const It ybegin) -> Out {
+  return std::sqrt(l2sqr<Out>(xbegin, xend, ybegin));
+}
+
+template <typename In, typename Out, typename Idx = uint32_t>
+struct EuclideanSelf {
+  EuclideanSelf(const std::vector<In> &data, std::size_t ndim)
+      : x(data), ndim(ndim), nx(data.size() / ndim), ny(nx) {}
+
+  inline auto operator()(Idx i, Idx j) const -> Out {
+    const std::size_t di = ndim * i;
+    return euclidean<Out>(x.begin() + di, x.begin() + di + ndim,
+                          x.begin() + ndim * j);
+  }
+
+  const std::vector<In> x;
+  std::size_t ndim;
+  Idx nx;
+  Idx ny;
+
+  using Input = In;
+  using Output = Out;
+  using Index = Idx;
+};
+
+template <typename In, typename Out, typename Idx = uint32_t>
+struct EuclideanQuery {
+  EuclideanQuery(const std::vector<In> &x, const std::vector<In> &y,
+                 std::size_t ndim)
       : x(x), y(y), ndim(ndim), nx(x.size() / ndim), ny(y.size() / ndim) {}
 
   inline auto operator()(Idx i, Idx j) const -> Out {
     const std::size_t di = ndim * i;
-    return l2sqr<Out>(x.begin() + di, x.begin() + di + ndim,
-                      y.begin() + ndim * j);
+    return euclidean<Out>(x.begin() + di, x.begin() + di + ndim,
+                          y.begin() + ndim * j);
   }
 
   const std::vector<In> x;
@@ -311,12 +348,31 @@ inline auto manhattan(const It xbegin, const It xend, const It ybegin) -> Out {
   return sum;
 }
 
-template <typename In, typename Out, typename Idx = uint32_t> struct Manhattan {
-  Manhattan(const std::vector<In> &data, std::size_t ndim)
-      : x(data), y(data), ndim(ndim), nx(data.size() / ndim),
-        ny(data.size() / ndim) {}
-  Manhattan(const std::vector<In> &x, const std::vector<In> &y,
-            std::size_t ndim)
+template <typename In, typename Out, typename Idx = uint32_t>
+struct ManhattanSelf {
+  ManhattanSelf(const std::vector<In> &data, std::size_t ndim)
+      : x(data), ndim(ndim), nx(data.size() / ndim), ny(nx) {}
+
+  auto operator()(Idx i, Idx j) const -> Out {
+    const std::size_t di = ndim * i;
+    return manhattan<Out>(x.begin() + di, x.begin() + di + ndim,
+                          x.begin() + ndim * j);
+  }
+
+  const std::vector<In> x;
+  std::size_t ndim;
+  Idx nx;
+  Idx ny;
+
+  using Input = In;
+  using Output = Out;
+  using Index = Idx;
+};
+
+template <typename In, typename Out, typename Idx = uint32_t>
+struct ManhattanQuery {
+  ManhattanQuery(const std::vector<In> &x, const std::vector<In> &y,
+                 std::size_t ndim)
       : x(x), y(y), ndim(ndim), nx(x.size() / ndim), ny(y.size() / ndim) {}
 
   auto operator()(Idx i, Idx j) const -> Out {
@@ -406,12 +462,31 @@ inline auto hamming(const It xbegin, const It xend, const It ybegin) -> Out {
   return sum;
 }
 
-template <typename In, typename Out, typename Idx = uint32_t> struct Hamming {
-  Hamming(const std::vector<In> &data, std::size_t ndim)
-      : x(data), y(data), ndim(ndim), nx(data.size() / ndim),
-        ny(data.size() / ndim) {}
+template <typename In, typename Out, typename Idx = uint32_t>
+struct HammingSelf {
+  HammingSelf(const std::vector<In> &data, std::size_t ndim)
+      : x(data), ndim(ndim), nx(data.size() / ndim), ny(nx) {}
 
-  Hamming(const std::vector<In> &x, const std::vector<In> &y, std::size_t ndim)
+  auto operator()(Idx i, Idx j) const -> Out {
+    const std::size_t di = ndim * i;
+    return hamming<Out>(x.begin() + di, x.begin() + di + ndim,
+                        x.begin() + ndim * j);
+  }
+
+  const std::vector<In> x;
+  std::size_t ndim;
+  Idx nx;
+  Idx ny;
+
+  using Input = In;
+  using Output = Out;
+  using Index = Idx;
+};
+
+template <typename In, typename Out, typename Idx = uint32_t>
+struct HammingQuery {
+  HammingQuery(const std::vector<In> &x, const std::vector<In> &y,
+               std::size_t ndim)
       : x(x), y(y), ndim(ndim), nx(x.size() / ndim), ny(y.size() / ndim) {}
 
   auto operator()(Idx i, Idx j) const -> Out {
