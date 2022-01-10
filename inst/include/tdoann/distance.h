@@ -56,7 +56,7 @@ auto inner_product(const It xbegin, const It xend, const It ybegin) -> Out {
   for (It xit = xbegin, yit = ybegin; xit != xend; ++xit, ++yit) {
     sum += *xit * *yit;
   }
-  return 1 - sum;
+  return std::max(1 - sum, Out{0});
 }
 
 // used by cosine and correlation to avoid division by zero
