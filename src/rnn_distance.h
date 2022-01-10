@@ -27,26 +27,6 @@
 #include "rnn_util.h"
 
 template <typename Distance>
-auto r_to_dist_vect(Rcpp::NumericMatrix data)
-    -> std::vector<typename Distance::Input> {
-  return r_to_vect<typename Distance::Input>(data);
-}
-
-template <typename Distance>
-auto r_to_dist(Rcpp::NumericMatrix reference, Rcpp::NumericMatrix query)
-    -> Distance {
-  auto ref_vec = r_to_dist_vect<Distance>(reference);
-  auto query_vec = r_to_dist_vect<Distance>(query);
-  return Distance(ref_vec, query_vec, reference.ncol());
-}
-
-template <typename Distance>
-auto r_to_dist(Rcpp::NumericMatrix data) -> Distance {
-  auto data_vec = r_to_dist_vect<Distance>(data);
-  return Distance(data_vec, data.ncol());
-}
-
-template <typename Distance>
 auto tr_to_dist_vect(Rcpp::NumericMatrix data)
     -> std::vector<typename Distance::Input> {
   return r_to_vec<typename Distance::Input>(data);
