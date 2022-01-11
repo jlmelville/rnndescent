@@ -34,6 +34,8 @@ check_graph <- function(idx, dist = NULL, k = NULL) {
 # data and query must be column-oriented
 # recalculate_distances if TRUE even if a distance matrix is present,
 # recalculate distances from data/query and the indices
+# If augment_low_k = TRUE then if the desired k is > the size of the input nn
+# then add random neighbors to make up the difference
 prepare_init_graph <-
   function(nn,
            k,
@@ -41,23 +43,42 @@ prepare_init_graph <-
            query = NULL,
            metric = "euclidean",
            recalculate_distances = FALSE,
+           augment_low_k = TRUE,
            n_threads = 0,
            verbose = FALSE) {
     if (is.matrix(nn)) {
       nn <- list(idx = nn)
     }
+    ## nn is a list dist may be NULL
+
+    # idx has too few or too many columns
     if (k != ncol(nn$idx)) {
       if (k > ncol(nn$idx)) {
-        stop("Not enough initial neighbors provided for k = ", k)
+        if (!augment_low_k) {
+          stop("Not enough initial neighbors provided for k = ", k)
+        }
       }
-      nn$idx <- nn$idx[, 1:k, drop = FALSE]
+      else if (k < ncol(nn$dist)) {
+        nn$idx <- nn$idx[, 1:k, drop = FALSE]
+      }
+      # else k == ncol and we need do nothing
     }
+
     if (!is.null(nn$dist) && !recalculate_distances) {
+      # dist exists and we intend to use the existing values
       if (k > ncol(nn$dist)) {
-        stop("Not enough initial distances provided for k = ", k)
+        if (!augment_low_k) {
+          stop("Not enough initial distances provided for k = ", k)
+        }
       }
-      nn$dist <- nn$dist[, 1:k, drop = FALSE]
-    } else {
+      else if (k < ncol(nn$dist)) {
+        nn$dist <- nn$dist[, 1:k, drop = FALSE]
+      }
+      # otherwise k == ncol and we need do nothing
+    }
+
+    # ensure nn$dist is not NULL and has correct distances at this point
+    if (is.null(nn$dist) || recalculate_distances) {
       tsmessage("Generating distances for initial indices")
       if (!is.null(query)) {
         nn <-
@@ -81,7 +102,31 @@ prepare_init_graph <-
       }
     }
 
-    nn
+    # nn$idx and nn$dist exist and are either the right size or too big
+    if (ncol(nn$idx) == k && ncol(nn$dist) == k) {
+      return(nn)
+    }
+
+    n_aug_nbrs <- k - ncol(nn$idx)
+    tsmessage("Augmenting input graph with ", n_aug_nbrs, " random neighbors")
+    nn_aug <- random_knn_impl(
+        query = query,
+        reference = data,
+        k = n_aug_nbrs,
+        metric = metric,
+        use_alt_metric = FALSE,
+        actual_metric = metric,
+        order_by_distance = FALSE,
+        n_threads = n_threads,
+        verbose = verbose
+      )
+    nn$idx <- cbind(nn$idx, nn_aug$idx)
+    nn$dist <- cbind(nn$dist, nn_aug$dist)
+
+    if (ncol(nn$idx) == k && ncol(nn$dist) == k) {
+      return(nn)
+    }
+    stop("Still not right!")
   }
 
 get_reference_graph_k <- function(reference_graph) {

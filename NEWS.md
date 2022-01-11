@@ -17,6 +17,15 @@ can pass the input data in column-oriented format.
 so that only `n_nbrs - 1` of the returned neighbors were actually selected at
 random. Even I forgot it did that and it doesn't make a lot of sense, so now you
 really do just get back `n_nbrs` random selections.
+* If providing pre-calculated neighbors as the `init` parameter to `nnd_knn` or
+`graph_knn_query`: previously, if `k` was specified and larger than the number
+of neighbors included in `init`, this gave an error. Now, `init` will be
+augmented with random neighbors to reach the desired `k`. This could be useful
+as a way to "restart" a neighbor search from a better-than-random location if
+`k` has been found to have been too small initially. Note that the random
+selection does not take into account the identities of the already chosen
+neighbors, so duplicates may be included in the augmented result, which will
+reduce the effective size of the initialized number of neighbors.
 * Removed the `block_size` and `grain_size` parameters from functions. These
 were related to the amount of work done per thread, but it's not obvious to
 an outside user how to set these.

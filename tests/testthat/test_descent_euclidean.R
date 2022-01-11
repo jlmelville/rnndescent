@@ -162,10 +162,15 @@ set.seed(1337)
 ui10_rnn <- nnd_knn(ui10, 4, use_alt_metric = FALSE)
 expect_equal(sum(ui10_rnn$dist), ui10_edsum, tol = 1e-3)
 
+# augment with random
+set.seed(1337)
+ui10_rnnk2 <- nnd_knn(ui10, 2, use_alt_metric = FALSE)
+ui10_rnn <- nnd_knn(ui10, 4, init = ui10_rnnk2)
+expect_equal(sum(ui10_rnn$dist), ui10_edsum, tol = 1e-3)
+
 # errors
 expect_error(nnd_knn(ui10), "provide k")
 expect_error(nnd_knn(ui10, k = 11), "k must be")
-expect_error(nnd_knn(uirism, init = iris_nbrs, k = 20), "Not enough")
 expect_error(nnd_knn(uirism, k = 15, init = iris_nbrs, metric = "not-a-real metric"), "metric")
 expect_error(nnd_knn(uirism, init = list(dist = iris_nbrs$dist, idx = iris_nbrs$idx - 2)), "Bad indexes")
 
@@ -264,16 +269,18 @@ check_query_nbrs(nn = qnbrs4, query = ui4, ref_range = 1:6, query_range = 7:10, 
 expect_equal(sum(qnbrs4$dist), ui4q_edsum)
 expect_equal(rnbrs4$idx, rnbrs4_idx_copy)
 
+# augment with random
+set.seed(1337)
+rnbrs2 <- random_knn_query(reference = ui6, query = ui4, k = 2)
+qnbrs4 <- graph_knn_query(reference = ui6, reference_graph = ui6_nnd, query = ui4, init = rnbrs2, k = 4)
+check_query_nbrs(nn = qnbrs4, query = ui4, ref_range = 1:6, query_range = 7:10, k = 4, expected_dist = ui10_eucd, tol = 1e-6)
+expect_equal(sum(qnbrs4$dist), ui4q_edsum)
 
 # errors
 expect_error(graph_knn_query(
   reference = ui4, reference_graph = ui4_nnd,
   query = ui6, k = 5
 ), "must be <=")
-expect_error(graph_knn_query(
-  reference = ui6, reference_graph = ui6_nnd,
-  query = ui4, init = rnbrs5, k = 6
-), "Not enough initial")
 expect_error(graph_knn_query(
   reference = ui4, reference_graph = ui4_nnd,
   query = ui6, k = 4, metric = "not-a-real metric"

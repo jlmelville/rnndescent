@@ -45,21 +45,27 @@ specified.}
 (1 minus the Pearson correlation), \code{"hamming"} or \code{"bhamming"} (hamming
 on binary data with bitset internal memory optimization).}
 
-\item{init}{Initial \code{query} neighbor graph to optimize. If not
-provided, \code{k} random neighbors from \code{reference} are used. The
-format should be the same as the return value of this function, a list
-containing:
+\item{init}{Initial \code{query} neighbor graph to optimize. If not provided, \code{k}
+random neighbors are created. If provided, the input format should be a
+list containing:
 \itemize{
-\item \code{idx} a \code{n} by \code{k} matrix containing the nearest neighbor indices
-specifying the row of the neighbor in \code{reference}.
-\item \code{dist} (optional) a \code{n} by \code{k} matrix containing the nearest neighbor
+\item \code{idx} an \code{n} by \code{k} matrix containing the nearest neighbor indices.
+\item \code{dist} (optional) an \code{n} by \code{k} matrix containing the nearest neighbor
 distances.
 }
 
-If \code{k} and \code{init} are provided then \code{k} must be equal to or smaller than
-the number of neighbors provided in \code{init}. If smaller, only the \code{k}
-closest value in \code{init} are retained. If the input distances are omitted,
-they will be calculated for you.}
+If \code{k} and \code{init} are specified as arguments to this function, and the
+number of neighbors provided in \code{init} is not equal to \code{k} then:
+\itemize{
+\item if \code{k} is smaller, only the \code{k} closest values in \code{init} are retained.
+\item if \code{k} is larger, then random neighbors will be chosen to fill \code{init} to
+the size of \code{k}. Note that there is no checking if any of the random
+neighbors are duplicates of what is already in \code{init} so effectively fewer
+than \code{k} neighbors may be chosen for some observations under these
+circumstances.
+}
+
+If the input distances are omitted, they will be calculated for you.}
 
 \item{epsilon}{Controls trade-off between accuracy and search cost, by
 specifying a distance tolerance on whether to explore the neighbors of

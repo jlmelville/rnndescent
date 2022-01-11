@@ -245,17 +245,25 @@ random_knn_impl <-
 #'   `"l2sqr"` (squared Euclidean), `"cosine"`, `"manhattan"`, `"correlation"`
 #'   (1 minus the Pearson correlation), `"hamming"` or `"bhamming"` (hamming
 #'   on binary data with bitset internal memory optimization).
-#' @param init Initial data to optimize. If not provided, `k` random
-#'   neighbors are created. The input format should be the same as the return
-#'   value: a list containing:
+#' @param init Initial `data` neighbor graph to optimize. If not provided, `k`
+#'   random neighbors are created. If provided, the input format should be a
+#'   list containing:
+#'
 #'   * `idx` an `n` by `k` matrix containing the nearest neighbor indices.
 #'   * `dist` (optional) an `n` by `k` matrix containing the nearest neighbor
 #'   distances.
 #'
-#'   If `k` and `init` are provided then `k` must be equal to or smaller than
-#'   the number of neighbors provided in `init`. If smaller, only the `k`
-#'   closest value in `init` are retained. If the input distances are omitted,
-#'   they will be calculated for you.
+#'   If `k` and `init` are specified as arguments to this function, and the
+#'   number of neighbors provided in `init` is not equal to `k` then:
+#'
+#'   * if `k` is smaller, only the `k` closest values in `init` are retained.
+#'   * if `k` is larger, then random neighbors will be chosen to fill `init` to
+#'   the size of `k`. Note that there is no checking if any of the random
+#'   neighbors are duplicates of what is already in `init` so effectively fewer
+#'   than `k` neighbors may be chosen for some observations under these
+#'   circumstances.
+#'
+#'   If the input distances are omitted, they will be calculated for you.
 #' @param n_iters Number of iterations of nearest neighbor descent to carry out.
 #' @param max_candidates Maximum number of candidate neighbors to try for each
 #'   item in each iteration. Use relative to `k` to emulate the "rho"
@@ -684,19 +692,25 @@ random_knn_query <-
 #'   the only reason to set this to `FALSE` is if you suspect that some
 #'   sort of numeric issue is occurring with your data in the alternative code
 #'   path.
-#' @param init Initial `query` neighbor graph to optimize. If not
-#'   provided, `k` random neighbors from `reference` are used. The
-#'   format should be the same as the return value of this function, a list
-#'   containing:
-#'   * `idx` a `n` by `k` matrix containing the nearest neighbor indices
-#'     specifying the row of the neighbor in `reference`.
-#'   * `dist` (optional) a `n` by `k` matrix containing the nearest neighbor
-#'     distances.
+#' @param init Initial `query` neighbor graph to optimize. If not provided, `k`
+#'   random neighbors are created. If provided, the input format should be a
+#'   list containing:
 #'
-#'   If `k` and `init` are provided then `k` must be equal to or smaller than
-#'   the number of neighbors provided in `init`. If smaller, only the `k`
-#'   closest value in `init` are retained. If the input distances are omitted,
-#'   they will be calculated for you.
+#'   * `idx` an `n` by `k` matrix containing the nearest neighbor indices.
+#'   * `dist` (optional) an `n` by `k` matrix containing the nearest neighbor
+#'   distances.
+#'
+#'   If `k` and `init` are specified as arguments to this function, and the
+#'   number of neighbors provided in `init` is not equal to `k` then:
+#'
+#'   * if `k` is smaller, only the `k` closest values in `init` are retained.
+#'   * if `k` is larger, then random neighbors will be chosen to fill `init` to
+#'   the size of `k`. Note that there is no checking if any of the random
+#'   neighbors are duplicates of what is already in `init` so effectively fewer
+#'   than `k` neighbors may be chosen for some observations under these
+#'   circumstances.
+#'
+#'   If the input distances are omitted, they will be calculated for you.
 #' @param epsilon Controls trade-off between accuracy and search cost, by
 #'   specifying a distance tolerance on whether to explore the neighbors of
 #'   candidate points. The larger the value, the more neighbors will be
