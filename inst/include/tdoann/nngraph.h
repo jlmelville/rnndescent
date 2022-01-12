@@ -223,24 +223,15 @@ void graph_to_heap(NbrHeap &heap,
                                  nn_graph.dist, block_size, transpose);
 }
 
-template <typename HeapAdd, typename Progress, typename Parallel,
-          typename NbrGraph>
+template <typename HeapAdd, typename Parallel = NoParallel,
+          typename Progress = NullProgress, typename NbrGraph>
 void sort_knn_graph(NbrGraph &nn_graph, std::size_t block_size,
-                    std::size_t n_threads, std::size_t grain_size) {
+                    std::size_t n_threads = 0, std::size_t grain_size = 1) {
   NNHeap<typename NbrGraph::DistanceOut, typename NbrGraph::Index> heap(
       nn_graph.n_points, nn_graph.n_nbrs);
   graph_to_heap<HeapAdd, Progress, Parallel>(heap, nn_graph, block_size,
                                              n_threads, grain_size);
   sort_heap(heap, block_size, n_threads, grain_size);
-  heap_to_graph(heap, nn_graph);
-}
-
-template <typename HeapAdd, typename Progress, typename NbrGraph>
-void sort_knn_graph(NbrGraph &nn_graph, std::size_t block_size = 1000) {
-  NNHeap<typename NbrGraph::DistanceOut, typename NbrGraph::Index> heap(
-      nn_graph.n_points, nn_graph.n_nbrs);
-  graph_to_heap<HeapAdd, Progress>(heap, nn_graph, block_size);
-  sort_heap(heap);
   heap_to_graph(heap, nn_graph);
 }
 

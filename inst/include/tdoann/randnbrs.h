@@ -65,7 +65,6 @@ auto get_nn(Distance &distance, typename Distance::Index n_nbrs, bool sort,
       }
     }
   };
-
   Progress progress(1, verbose);
   const std::size_t block_size = 128;
   const std::size_t grain_size = 1;
@@ -73,16 +72,10 @@ auto get_nn(Distance &distance, typename Distance::Index n_nbrs, bool sort,
                                n_threads, grain_size);
 
   NNGraph<Out, Idx> nn_graph(nn_idx, nn_dist, n_points);
-
   if (sort) {
-    if (n_threads > 0) {
-      sort_knn_graph<HeapAdd, NullProgress, Parallel>(nn_graph, block_size,
-                                                      n_threads, grain_size);
-    } else {
-      sort_knn_graph<HeapAdd, NullProgress>(nn_graph);
-    }
+    sort_knn_graph<HeapAdd, Parallel>(nn_graph, block_size, n_threads,
+                                      grain_size);
   }
-
   return nn_graph;
 }
 
@@ -95,7 +88,6 @@ auto random_build(Distance &distance, typename Distance::Index n_nbrs,
     return get_nn<Distance, Progress, Parallel, Sampler,
                   tdoann::LockingHeapAddSymmetric>(distance, n_nbrs, sort,
                                                    n_threads, verbose);
-
   } else {
     return get_nn<Distance, Progress, Parallel, Sampler,
                   tdoann::HeapAddSymmetric>(distance, n_nbrs, sort, n_threads,
