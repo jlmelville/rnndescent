@@ -122,14 +122,16 @@ auto heap_to_graph(const NbrHeap &heap)
 
 struct HeapAddSymmetric {
   template <typename NbrHeap>
-  void push(NbrHeap &heap, std::size_t ref, std::size_t query, double d) {
+  void push(NbrHeap &heap, std::size_t ref, std::size_t query,
+            typename NbrHeap::DistanceOut d) {
     heap.checked_push_pair(ref, d, query);
   }
 };
 
 struct HeapAddQuery {
   template <typename NbrHeap>
-  void push(NbrHeap &heap, std::size_t ref, std::size_t query, double d) {
+  void push(NbrHeap &heap, std::size_t ref, std::size_t query,
+            typename NbrHeap::DistanceOut d) {
     heap.checked_push(ref, d, query);
   }
 };
@@ -139,7 +141,8 @@ struct LockingHeapAddSymmetric {
   std::mutex mutexes[n_mutexes];
 
   template <typename NbrHeap>
-  void push(NbrHeap &heap, std::size_t ref, std::size_t query, double d) {
+  void push(NbrHeap &heap, std::size_t ref, std::size_t query,
+            typename NbrHeap::DistanceOut d) {
     {
       std::lock_guard<std::mutex> guard(mutexes[ref % n_mutexes]);
       heap.checked_push(ref, d, query);
