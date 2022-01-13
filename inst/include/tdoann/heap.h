@@ -377,7 +377,7 @@ template <typename DistOut = float, typename Idx = uint32_t> struct NNHeap {
   auto is_full(Idx i) const -> bool { return idx[i * n_nbrs] != npos(); }
 };
 
-template <typename NbrHeap, typename Parallel = NoParallel>
+template <typename Parallel = NoParallel, typename NbrHeap>
 void sort_heap(NbrHeap &heap, std::size_t block_size, std::size_t n_threads,
                std::size_t grain_size) {
   NullProgress progress;
@@ -390,7 +390,7 @@ void sort_heap(NbrHeap &heap, std::size_t block_size, std::size_t n_threads,
                                n_threads, grain_size);
 }
 
-template <typename NbrHeap, typename Parallel = NoParallel>
+template <typename Parallel = NoParallel, typename NbrHeap>
 void sort_heap(NbrHeap &heap, std::size_t n_threads) {
   NullProgress progress;
   auto sort_worker = [&](std::size_t begin, std::size_t end) {
@@ -409,7 +409,7 @@ template <typename NbrHeap> void sort_heap(NbrHeap &neighbor_heap) {
 
 // Construct a heap containing the reverse neighbors of the input neighbor heap.
 // n_reverse_nbrs is the number of neighbors to retain in the returned heap
-// (note that the full  reverse neighbor list for a vertex could be as large as
+// (note that the full reverse neighbor list for a vertex could be as large as
 // N).
 // n_forward_nbrs restricts the search to the specified number of nearest
 // neighbors (i.e. effectively passes heap[, 1:n_forward_nbrs]).
