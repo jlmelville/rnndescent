@@ -212,8 +212,12 @@ template <typename DistOut = float, typename Idx = uint32_t> struct NNDHeap {
   auto is_full(Idx i) const -> bool { return idx[i * n_nbrs] != npos(); }
 };
 
+template <typename T> T limit_max() { return (std::numeric_limits<T>::max)(); }
+
 // Like NNDHeap, but no flag vector
-template <typename DistOut = float, typename Idx = uint32_t> struct NNHeap {
+template <typename DistOut = float, typename Idx = uint32_t,
+          DistOut (*max_dist)() = limit_max>
+struct NNHeap {
   using DistanceOut = DistOut;
   using Index = Idx;
 
@@ -227,8 +231,7 @@ template <typename DistOut = float, typename Idx = uint32_t> struct NNHeap {
 
   NNHeap(Idx n_points, Idx n_nbrs)
       : n_points(n_points), n_nbrs(n_nbrs), idx(n_points * n_nbrs, npos()),
-        dist(n_points * n_nbrs, (std::numeric_limits<DistOut>::max)()),
-        n_nbrs1(n_nbrs - 1) {}
+        dist(n_points * n_nbrs, max_dist()), n_nbrs1(n_nbrs - 1) {}
 
   NNHeap(const NNHeap &) = default;
   ~NNHeap() = default;

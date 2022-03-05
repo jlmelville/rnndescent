@@ -81,3 +81,132 @@ k_occur <- function(idx,
   len <- max(idx)
   reverse_nbr_size_impl(idx, k, len, include_self)
 }
+
+
+# Local Scaling -----------------------------------------------------------
+
+#' Locally Scaled Nearest Neighbors
+#'
+#' Find a subset of nearest neighbors with the smallest generalized scaled
+#' distance (Zelnik-Manor and Perona, 2004) as a selection criterion. This a
+#' means to reduce the influence of hub points, as suggested by Schnitzer and
+#' co-workers (2012).
+#'
+#' Local scaling is carried out by dividing by the distance to the k-th nearest
+#' neighbor, to take into account the difference in local distance statistics of
+#' each neighborhood. This function supports choosing the average distance over
+#' a range of k, as used by Jegou and co-workers (2007). Note that the scaled
+#' distances are used to select k neighbors from a larger list of candidate
+#' neighbors, but the returned neighbor data uses the original unscaled
+#' distances.
+#'
+#' @param nn Nearest neighbor data in the dense list format. The `k` scaled
+#' neighbors are chosen from the candidates provided here, so the size of the
+#' neighborhoods in `nn` should be at least `k`.
+#' @param k size of the desired scaled neighborhood.
+#' @param k_scale neighbor in `nn` to use to scale the distances. May be a
+#' single value (between 1 and the size of the neighborhood) or a vector of
+#' two values indicating the inclusive range of neighbors to use. In the latter
+#' case, the average distance to the neighbors in the range will be used to
+#' scale distances.
+#' @param n_threads number of threads to use for parallel processing. Currently
+#' ignored.
+#' @return the scaled `k` nearest neighbors in dense list format. The distances
+#' returned are the unscaled distances.
+#' @examples
+#' set.seed(42)
+#' # 100 x 10 Gaussian data: exhibits mild hubness
+#' m <- matrix(rnorm(1000), nrow = 100, ncol = 10)
+#'
+#' # Find 50 nearest neighbors to give a reasonable set of candidates
+#' nn50 <- brute_force_knn(m, k = 50)
+#'
+#' # Using the 15-nearest neighbors, maximum k-occurrence > 15 indicates any
+#' # observations showing up more than expected
+#' nn15_hubness <- max(k_occur(nn50, k = 15))
+#'
+#' # Find 15 locally scaled nearest neighbors from the 50 NN
+#' # use average distance to neighbors 5-7 to represent the local distance
+#' # statistics
+#' lnn15 <- local_scale_nn(nn50, k = 15, k_scale = c(5, 7))
+#'
+#' lnn15_hubness <- max(k_occur(lnn15))
+#'
+#' # hubness has been reduced
+#' lnn15_hubness < nn15_hubness # TRUE
+#'
+#' @references
+#' Jegou, H., Harzallah, H., & Schmid, C. (2007, June).
+#' A contextual dissimilarity measure for accurate and efficient image search.
+#' In *2007 IEEE Conference on Computer Vision and Pattern Recognition* (pp. 1-8).
+#' IEEE.
+#'
+#' Schnitzer, D., Flexer, A., Schedl, M., & Widmer, G. (2012).
+#' Local and global scaling reduce hubs in space.
+#' *Journal of Machine Learning Research*, *13*(10).
+#'
+#' Zelnik-Manor, L., & Perona, P. (2004).
+#' Self-tuning spectral clustering.
+#' In *Advances in neural information processing systems*, *17*.
+#' @export
+local_scale_nn <- function(nn, k = 15, k_scale = 2, n_threads = 0) {
+  if (!is_dense_nn(nn)) {
+    stop("Bad neighbor format for nn")
+  }
+  if (length(k_scale) < 1 || length(k_scale) > 2) {
+    stop("k_scale must be a single value or vector of (begin, end)")
+  }
+  k_begin <- k_scale[1]
+  if (k_begin < 1) {
+    stop("k_scale must be >= 1")
+  }
+  max_k <- ncol(nn$idx)
+  if (k_begin > max_k) {
+    stop("k_scale must be <= neighborhood size of nn")
+  }
+
+  if (length(k_scale) == 2) {
+    k_end <- k_scale[2]
+  }
+  else {
+    k_end <- k_begin
+  }
+  if (k_end < k_begin) {
+    stop("k_scale end point of must be <= start")
+  }
+  if (k_end > max_k) {
+    stop("k_scale end point must be <= neighborhood size of nn")
+  }
+
+  if (k < 1) {
+    stop("k must be >= 1")
+  }
+  if (k > max_k) {
+    stop("k must be <= neighborhood size of nn")
+  }
+
+  scaled_dist <- local_scale_distances(nn, k_begin = k_begin, k_end = k_end)
+  local_scaled_nbrs(nn$idx, nn$dist, scaled_dist, n_nbrs = k, n_threads = n_threads)
+}
+
+# Local neighbor distance scale for each row of nn_dist: mean of the neighbors
+# between k_begin-k_end inclusive
+# PaCMAP/TriMap use 4th to 6th "true" neighbors (i.e. skip the first nearest
+# neighbor if that is the observation itself)
+get_local_scales <- function(nn_dist, k_begin = 2, k_end = NULL) {
+  if (is.null(k_end)) {
+    k_end <- ncol(nn_dist)
+  }
+  stopifnot(k_end > 0 && k_begin <= k_end)
+
+  apply(nn_dist[, k_begin:k_end, drop = FALSE], 1, mean)
+}
+
+# locally scaled nearest neighbor distances: returned distances will no longer
+# be guaranteed to be in non-decreasing order
+local_scale_distances <- function(nn, k_begin = 2, k_end = NULL) {
+  sigma <- get_local_scales(nn$dist, k_begin = k_begin, k_end = k_end)
+  sigma <- pmax(sigma, 1e-10)
+
+  (nn$dist * nn$dist) / (sigma * matrix(sigma[nn$idx], nrow = nrow(nn$idx)))
+}

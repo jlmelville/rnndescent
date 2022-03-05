@@ -158,6 +158,21 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// local_scaled_nbrs
+List local_scaled_nbrs(IntegerMatrix idx, NumericMatrix dist, NumericMatrix sdist, std::size_t n_nbrs, std::size_t n_threads);
+RcppExport SEXP _rnndescent_local_scaled_nbrs(SEXP idxSEXP, SEXP distSEXP, SEXP sdistSEXP, SEXP n_nbrsSEXP, SEXP n_threadsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< IntegerMatrix >::type idx(idxSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type dist(distSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type sdist(sdistSEXP);
+    Rcpp::traits::input_parameter< std::size_t >::type n_nbrs(n_nbrsSEXP);
+    Rcpp::traits::input_parameter< std::size_t >::type n_threads(n_threadsSEXP);
+    rcpp_result_gen = Rcpp::wrap(local_scaled_nbrs(idx, dist, sdist, n_nbrs, n_threads));
+    return rcpp_result_gen;
+END_RCPP
+}
 // merge_nn
 List merge_nn(IntegerMatrix nn_idx1, NumericMatrix nn_dist1, IntegerMatrix nn_idx2, NumericMatrix nn_dist2, bool is_query, std::size_t n_threads, bool verbose);
 RcppExport SEXP _rnndescent_merge_nn(SEXP nn_idx1SEXP, SEXP nn_dist1SEXP, SEXP nn_idx2SEXP, SEXP nn_dist2SEXP, SEXP is_querySEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
@@ -302,6 +317,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// sort_graph
+List sort_graph(List graph_list, std::size_t n_threads);
+RcppExport SEXP _rnndescent_sort_graph(SEXP graph_listSEXP, SEXP n_threadsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< List >::type graph_list(graph_listSEXP);
+    Rcpp::traits::input_parameter< std::size_t >::type n_threads(n_threadsSEXP);
+    rcpp_result_gen = Rcpp::wrap(sort_graph(graph_list, n_threads));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_rnndescent_rnn_brute_force", (DL_FUNC) &_rnndescent_rnn_brute_force, 5},
@@ -315,6 +342,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_rnndescent_reverse_nbr_size_impl", (DL_FUNC) &_rnndescent_reverse_nbr_size_impl, 4},
     {"_rnndescent_rnn_idx_to_graph_self", (DL_FUNC) &_rnndescent_rnn_idx_to_graph_self, 5},
     {"_rnndescent_rnn_idx_to_graph_query", (DL_FUNC) &_rnndescent_rnn_idx_to_graph_query, 6},
+    {"_rnndescent_local_scaled_nbrs", (DL_FUNC) &_rnndescent_local_scaled_nbrs, 5},
     {"_rnndescent_merge_nn", (DL_FUNC) &_rnndescent_merge_nn, 7},
     {"_rnndescent_merge_nn_all", (DL_FUNC) &_rnndescent_merge_nn_all, 4},
     {"_rnndescent_nn_descent", (DL_FUNC) &_rnndescent_nn_descent, 11},
@@ -324,6 +352,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_rnndescent_random_knn_cpp", (DL_FUNC) &_rnndescent_random_knn_cpp, 6},
     {"_rnndescent_random_knn_query_cpp", (DL_FUNC) &_rnndescent_random_knn_query_cpp, 7},
     {"_rnndescent_nn_query", (DL_FUNC) &_rnndescent_nn_query, 9},
+    {"_rnndescent_sort_graph", (DL_FUNC) &_rnndescent_sort_graph, 2},
     {NULL, NULL, 0}
 };
 

@@ -83,6 +83,12 @@ auto r_to_graph(Rcpp::IntegerMatrix idx, Rcpp::NumericMatrix dist)
 }
 
 template <typename Distance>
+auto r_to_graph(Rcpp::List nn_graph)
+    -> tdoann::NNGraph<typename Distance::Output, typename Distance::Index> {
+  return r_to_graph<Distance>(nn_graph["idx"], nn_graph["dist"]);
+}
+
+template <typename Distance>
 auto r_to_sparse_graph(Rcpp::IntegerMatrix idx, Rcpp::NumericMatrix dist)
     -> tdoann::SparseNNGraph<typename Distance::Output,
                              typename Distance::Index> {

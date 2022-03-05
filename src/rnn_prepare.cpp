@@ -63,19 +63,13 @@ List diversify_impl(NumericMatrix data, List graph_list,
 // [[Rcpp::export]]
 List diversify_cpp(NumericMatrix data, List graph_list,
                    const std::string &metric = "euclidean",
-                   double prune_probability = 1.0, std::size_t n_threads = 0) {
-  DISPATCH_ON_DISTANCES(DIVERSIFY_IMPL)
-}
-
-struct Dummy {
-  using Output = double;
-  using Index = std::size_t;
-};
+                   double prune_probability = 1.0, std::size_t n_threads = 0){
+    DISPATCH_ON_DISTANCES(DIVERSIFY_IMPL)}
 
 // [[Rcpp::export]]
 List merge_graph_lists_cpp(Rcpp::List gl1, Rcpp::List gl2) {
-  auto g1 = r_to_sparse_graph<Dummy>(gl1);
-  auto g2 = r_to_sparse_graph<Dummy>(gl2);
+  auto g1 = r_to_sparse_graph<DummyDistance>(gl1);
+  auto g2 = r_to_sparse_graph<DummyDistance>(gl2);
 
   auto g_merge = tdoann::merge_graphs(g1, g2);
 
@@ -97,7 +91,7 @@ auto degree_prune_impl(const SparseNNGraph &graph, std::size_t max_degree,
 // [[Rcpp::export]]
 List degree_prune_cpp(Rcpp::List graph_list, std::size_t max_degree,
                       std::size_t n_threads = 0) {
-  auto graph = r_to_sparse_graph<Dummy>(graph_list);
+  auto graph = r_to_sparse_graph<DummyDistance>(graph_list);
   auto pruned = degree_prune_impl(graph, max_degree, n_threads);
   return sparse_graph_to_r(pruned);
 }

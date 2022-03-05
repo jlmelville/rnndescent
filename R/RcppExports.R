@@ -75,6 +75,10 @@ rnn_idx_to_graph_query <- function(reference, query, idx, metric = "euclidean", 
     .Call(`_rnndescent_rnn_idx_to_graph_query`, reference, query, idx, metric, n_threads, verbose)
 }
 
+local_scaled_nbrs <- function(idx, dist, sdist, n_nbrs, n_threads = 0L) {
+    .Call(`_rnndescent_local_scaled_nbrs`, idx, dist, sdist, n_nbrs, n_threads)
+}
+
 merge_nn <- function(nn_idx1, nn_dist1, nn_idx2, nn_dist2, is_query, n_threads, verbose = FALSE) {
     .Call(`_rnndescent_merge_nn`, nn_idx1, nn_dist1, nn_idx2, nn_dist2, is_query, n_threads, verbose)
 }
@@ -109,5 +113,9 @@ random_knn_query_cpp <- function(reference, query, k, metric = "euclidean", orde
 
 nn_query <- function(reference, reference_graph_list, query, nn_idx, nn_dist, metric = "euclidean", epsilon = 0.1, n_threads = 0L, verbose = FALSE) {
     .Call(`_rnndescent_nn_query`, reference, reference_graph_list, query, nn_idx, nn_dist, metric, epsilon, n_threads, verbose)
+}
+
+sort_graph <- function(graph_list, n_threads = 0L) {
+    .Call(`_rnndescent_sort_graph`, graph_list, n_threads)
 }
 

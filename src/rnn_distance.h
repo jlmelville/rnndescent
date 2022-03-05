@@ -26,6 +26,14 @@
 
 #include "rnn_util.h"
 
+template <typename Out = double, typename Idx = uint32_t>
+struct GenericDummyDistance {
+  using Output = Out;
+  using Index = Idx;
+};
+
+using DummyDistance = GenericDummyDistance<>;
+
 template <typename Distance>
 auto tr_to_dist_vect(Rcpp::NumericMatrix data)
     -> std::vector<typename Distance::Input> {
