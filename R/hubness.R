@@ -109,6 +109,8 @@ k_occur <- function(idx,
 #' two values indicating the inclusive range of neighbors to use. In the latter
 #' case, the average distance to the neighbors in the range will be used to
 #' scale distances.
+#' @param ret_scales If `TRUE` then return a vector of the local scales (the
+#' average distance based on `k_scale` for each observation in `nn`).
 #' @param n_threads number of threads to use for parallel processing. Currently
 #' ignored.
 #' @return the scaled `k` nearest neighbors in dense list format. The distances
@@ -151,6 +153,7 @@ k_occur <- function(idx,
 local_scale_nn <- function(nn,
                            k = 15,
                            k_scale = 2,
+                           ret_scales = FALSE,
                            n_threads = 0) {
   if (!is_dense_nn(nn)) {
     stop("Bad neighbor format for nn")
@@ -167,6 +170,8 @@ local_scale_nn <- function(nn,
     stop("k_scale must be <= neighborhood size of nn")
   }
 
+  # PaCMAP/TriMap use 4th to 6th "true" neighbors (i.e. skip the first nearest
+  # neighbor if that is the observation itself)
   if (length(k_scale) == 2) {
     k_end <- k_scale[2]
   } else {
@@ -191,29 +196,7 @@ local_scale_nn <- function(nn,
     nn$dist,
     n_scaled_nbrs = k,
     k_begin = k_begin,
-    k_end = k_end
+    k_end = k_end,
+    ret_scales = ret_scales
   )
-}
-
-# Local neighbor distance scale for each row of nn_dist: mean of the neighbors
-# between k_begin-k_end inclusive
-# PaCMAP/TriMap use 4th to 6th "true" neighbors (i.e. skip the first nearest
-# neighbor if that is the observation itself)
-get_local_scales <- function(nn_dist,
-                             k_begin = 2,
-                             k_end = NULL) {
-  if (is.null(k_end)) {
-    k_end <- ncol(nn_dist)
-  }
-  stopifnot(k_end > 0 && k_begin <= k_end)
-  get_local_scales_cpp(nn_dist, k_begin, k_end)
-}
-
-# locally scaled nearest neighbor distances: returned distances will no longer
-# be guaranteed to be in non-decreasing order
-local_scale_distances <- function(nn, k_begin = 2, k_end = NULL) {
-  sigma <- get_local_scales(nn$dist, k_begin = k_begin, k_end = k_end)
-  sigma <- pmax(sigma, 1e-10)
-
-  local_scale_distances_cpp(nn$idx, nn$dist, sigma)
 }

@@ -75,16 +75,8 @@ rnn_idx_to_graph_query <- function(reference, query, idx, metric = "euclidean", 
     .Call(`_rnndescent_rnn_idx_to_graph_query`, reference, query, idx, metric, n_threads, verbose)
 }
 
-local_scaled_nbrs <- function(idx, dist, n_scaled_nbrs, k_begin, k_end, n_threads = 0L) {
-    .Call(`_rnndescent_local_scaled_nbrs`, idx, dist, n_scaled_nbrs, k_begin, k_end, n_threads)
-}
-
-get_local_scales_cpp <- function(dist, k_begin, k_end) {
-    .Call(`_rnndescent_get_local_scales_cpp`, dist, k_begin, k_end)
-}
-
-local_scale_distances_cpp <- function(idx, dist, local_scales) {
-    .Call(`_rnndescent_local_scale_distances_cpp`, idx, dist, local_scales)
+local_scaled_nbrs <- function(idx, dist, n_scaled_nbrs, k_begin, k_end, ret_scales = FALSE, n_threads = 0L) {
+    .Call(`_rnndescent_local_scaled_nbrs`, idx, dist, n_scaled_nbrs, k_begin, k_end, ret_scales, n_threads)
 }
 
 merge_nn <- function(nn_idx1, nn_dist1, nn_idx2, nn_dist2, is_query, n_threads, verbose = FALSE) {

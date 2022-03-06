@@ -159,8 +159,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // local_scaled_nbrs
-List local_scaled_nbrs(IntegerMatrix idx, NumericMatrix dist, std::size_t n_scaled_nbrs, std::size_t k_begin, std::size_t k_end, std::size_t n_threads);
-RcppExport SEXP _rnndescent_local_scaled_nbrs(SEXP idxSEXP, SEXP distSEXP, SEXP n_scaled_nbrsSEXP, SEXP k_beginSEXP, SEXP k_endSEXP, SEXP n_threadsSEXP) {
+List local_scaled_nbrs(IntegerMatrix idx, NumericMatrix dist, std::size_t n_scaled_nbrs, std::size_t k_begin, std::size_t k_end, bool ret_scales, std::size_t n_threads);
+RcppExport SEXP _rnndescent_local_scaled_nbrs(SEXP idxSEXP, SEXP distSEXP, SEXP n_scaled_nbrsSEXP, SEXP k_beginSEXP, SEXP k_endSEXP, SEXP ret_scalesSEXP, SEXP n_threadsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -169,34 +169,9 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< std::size_t >::type n_scaled_nbrs(n_scaled_nbrsSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type k_begin(k_beginSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type k_end(k_endSEXP);
+    Rcpp::traits::input_parameter< bool >::type ret_scales(ret_scalesSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type n_threads(n_threadsSEXP);
-    rcpp_result_gen = Rcpp::wrap(local_scaled_nbrs(idx, dist, n_scaled_nbrs, k_begin, k_end, n_threads));
-    return rcpp_result_gen;
-END_RCPP
-}
-// get_local_scales_cpp
-NumericVector get_local_scales_cpp(NumericMatrix dist, std::size_t k_begin, std::size_t k_end);
-RcppExport SEXP _rnndescent_get_local_scales_cpp(SEXP distSEXP, SEXP k_beginSEXP, SEXP k_endSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericMatrix >::type dist(distSEXP);
-    Rcpp::traits::input_parameter< std::size_t >::type k_begin(k_beginSEXP);
-    Rcpp::traits::input_parameter< std::size_t >::type k_end(k_endSEXP);
-    rcpp_result_gen = Rcpp::wrap(get_local_scales_cpp(dist, k_begin, k_end));
-    return rcpp_result_gen;
-END_RCPP
-}
-// local_scale_distances_cpp
-NumericVector local_scale_distances_cpp(IntegerMatrix idx, NumericMatrix dist, NumericVector local_scales);
-RcppExport SEXP _rnndescent_local_scale_distances_cpp(SEXP idxSEXP, SEXP distSEXP, SEXP local_scalesSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< IntegerMatrix >::type idx(idxSEXP);
-    Rcpp::traits::input_parameter< NumericMatrix >::type dist(distSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type local_scales(local_scalesSEXP);
-    rcpp_result_gen = Rcpp::wrap(local_scale_distances_cpp(idx, dist, local_scales));
+    rcpp_result_gen = Rcpp::wrap(local_scaled_nbrs(idx, dist, n_scaled_nbrs, k_begin, k_end, ret_scales, n_threads));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -369,9 +344,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_rnndescent_reverse_nbr_size_impl", (DL_FUNC) &_rnndescent_reverse_nbr_size_impl, 4},
     {"_rnndescent_rnn_idx_to_graph_self", (DL_FUNC) &_rnndescent_rnn_idx_to_graph_self, 5},
     {"_rnndescent_rnn_idx_to_graph_query", (DL_FUNC) &_rnndescent_rnn_idx_to_graph_query, 6},
-    {"_rnndescent_local_scaled_nbrs", (DL_FUNC) &_rnndescent_local_scaled_nbrs, 6},
-    {"_rnndescent_get_local_scales_cpp", (DL_FUNC) &_rnndescent_get_local_scales_cpp, 3},
-    {"_rnndescent_local_scale_distances_cpp", (DL_FUNC) &_rnndescent_local_scale_distances_cpp, 3},
+    {"_rnndescent_local_scaled_nbrs", (DL_FUNC) &_rnndescent_local_scaled_nbrs, 7},
     {"_rnndescent_merge_nn", (DL_FUNC) &_rnndescent_merge_nn, 7},
     {"_rnndescent_merge_nn_all", (DL_FUNC) &_rnndescent_merge_nn_all, 4},
     {"_rnndescent_nn_descent", (DL_FUNC) &_rnndescent_nn_descent, 11},

@@ -4,7 +4,7 @@
 \alias{local_scale_nn}
 \title{Locally Scaled Nearest Neighbors}
 \usage{
-local_scale_nn(nn, k = 15, k_scale = 2, n_threads = 0)
+local_scale_nn(nn, k = 15, k_scale = 2, ret_scales = FALSE, n_threads = 0)
 }
 \arguments{
 \item{nn}{Nearest neighbor data in the dense list format. The \code{k} scaled
@@ -18,6 +18,9 @@ single value (between 1 and the size of the neighborhood) or a vector of
 two values indicating the inclusive range of neighbors to use. In the latter
 case, the average distance to the neighbors in the range will be used to
 scale distances.}
+
+\item{ret_scales}{If \code{TRUE} then return a vector of the local scales (the
+average distance based on \code{k_scale} for each observation in \code{nn}).}
 
 \item{n_threads}{number of threads to use for parallel processing. Currently
 ignored.}
