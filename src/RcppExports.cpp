@@ -159,17 +159,18 @@ BEGIN_RCPP
 END_RCPP
 }
 // local_scaled_nbrs
-List local_scaled_nbrs(IntegerMatrix idx, NumericMatrix dist, NumericMatrix sdist, std::size_t n_nbrs, std::size_t n_threads);
-RcppExport SEXP _rnndescent_local_scaled_nbrs(SEXP idxSEXP, SEXP distSEXP, SEXP sdistSEXP, SEXP n_nbrsSEXP, SEXP n_threadsSEXP) {
+List local_scaled_nbrs(IntegerMatrix idx, NumericMatrix dist, std::size_t n_scaled_nbrs, std::size_t k_begin, std::size_t k_end, std::size_t n_threads);
+RcppExport SEXP _rnndescent_local_scaled_nbrs(SEXP idxSEXP, SEXP distSEXP, SEXP n_scaled_nbrsSEXP, SEXP k_beginSEXP, SEXP k_endSEXP, SEXP n_threadsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< IntegerMatrix >::type idx(idxSEXP);
     Rcpp::traits::input_parameter< NumericMatrix >::type dist(distSEXP);
-    Rcpp::traits::input_parameter< NumericMatrix >::type sdist(sdistSEXP);
-    Rcpp::traits::input_parameter< std::size_t >::type n_nbrs(n_nbrsSEXP);
+    Rcpp::traits::input_parameter< std::size_t >::type n_scaled_nbrs(n_scaled_nbrsSEXP);
+    Rcpp::traits::input_parameter< std::size_t >::type k_begin(k_beginSEXP);
+    Rcpp::traits::input_parameter< std::size_t >::type k_end(k_endSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type n_threads(n_threadsSEXP);
-    rcpp_result_gen = Rcpp::wrap(local_scaled_nbrs(idx, dist, sdist, n_nbrs, n_threads));
+    rcpp_result_gen = Rcpp::wrap(local_scaled_nbrs(idx, dist, n_scaled_nbrs, k_begin, k_end, n_threads));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -368,7 +369,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_rnndescent_reverse_nbr_size_impl", (DL_FUNC) &_rnndescent_reverse_nbr_size_impl, 4},
     {"_rnndescent_rnn_idx_to_graph_self", (DL_FUNC) &_rnndescent_rnn_idx_to_graph_self, 5},
     {"_rnndescent_rnn_idx_to_graph_query", (DL_FUNC) &_rnndescent_rnn_idx_to_graph_query, 6},
-    {"_rnndescent_local_scaled_nbrs", (DL_FUNC) &_rnndescent_local_scaled_nbrs, 5},
+    {"_rnndescent_local_scaled_nbrs", (DL_FUNC) &_rnndescent_local_scaled_nbrs, 6},
     {"_rnndescent_get_local_scales_cpp", (DL_FUNC) &_rnndescent_get_local_scales_cpp, 3},
     {"_rnndescent_local_scale_distances_cpp", (DL_FUNC) &_rnndescent_local_scale_distances_cpp, 3},
     {"_rnndescent_merge_nn", (DL_FUNC) &_rnndescent_merge_nn, 7},

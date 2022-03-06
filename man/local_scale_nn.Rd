@@ -62,7 +62,6 @@ lnn15_hubness <- max(k_occur(lnn15))
 
 # hubness has been reduced
 lnn15_hubness < nn15_hubness # TRUE
-
 }
 \references{
 Jegou, H., Harzallah, H., & Schmid, C. (2007, June).

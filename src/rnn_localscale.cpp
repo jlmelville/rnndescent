@@ -13,9 +13,10 @@ using namespace Rcpp;
 
 // [[Rcpp::export]]
 List local_scaled_nbrs(IntegerMatrix idx, NumericMatrix dist,
-                       NumericMatrix sdist, std::size_t n_nbrs,
-                       std::size_t n_threads = 0) {
-  if (n_nbrs > static_cast<std::size_t>(idx.ncol())) {
+                       std::size_t n_scaled_nbrs, std::size_t k_begin,
+                       std::size_t k_end, std::size_t n_threads = 0) {
+  std::size_t n_orig_nbrs = idx.ncol();
+  if (n_scaled_nbrs > n_orig_nbrs) {
     stop("Can't return more neighbors than is in the original graph");
   }
 
@@ -24,10 +25,23 @@ List local_scaled_nbrs(IntegerMatrix idx, NumericMatrix dist,
 
   auto idx_vec = r_to_idxt<Idx>(idx);
   auto dist_vec = r_to_vect<Out>(dist);
-  auto sdist_vec = r_to_vect<Out>(sdist);
-
   std::size_t n_points = idx.nrow();
-  tdoann::NNHeap<Out, Idx> nn_heap(n_points, n_nbrs);
+
+  // for C++ code k_begin/end should be converted to zero index (subtract 1)
+  // and end should be one past the final element (those last two cancel out)
+  auto k_begin0 = k_begin - 1;
+  auto k_end0 = k_end;
+
+  auto local_scales =
+      tdoann::get_local_scales(dist_vec, n_orig_nbrs, k_begin0, k_end0);
+  for (std::size_t i = 0; i < n_points; i++) {
+    local_scales[i] = std::max(1e-10, local_scales[i]);
+  }
+
+  auto sdist_vec = tdoann::local_scaled_distances(idx_vec, dist_vec,
+                                                  n_orig_nbrs, local_scales);
+
+  tdoann::NNHeap<Out, Idx> nn_heap(n_points, n_scaled_nbrs);
   tdoann::local_scale<RInterruptableProgress>(idx_vec, dist_vec, sdist_vec,
                                               nn_heap);
   return heap_to_r(nn_heap);

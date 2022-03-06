@@ -75,8 +75,8 @@ rnn_idx_to_graph_query <- function(reference, query, idx, metric = "euclidean", 
     .Call(`_rnndescent_rnn_idx_to_graph_query`, reference, query, idx, metric, n_threads, verbose)
 }
 
-local_scaled_nbrs <- function(idx, dist, sdist, n_nbrs, n_threads = 0L) {
-    .Call(`_rnndescent_local_scaled_nbrs`, idx, dist, sdist, n_nbrs, n_threads)
+local_scaled_nbrs <- function(idx, dist, n_scaled_nbrs, k_begin, k_end, n_threads = 0L) {
+    .Call(`_rnndescent_local_scaled_nbrs`, idx, dist, n_scaled_nbrs, k_begin, k_end, n_threads)
 }
 
 get_local_scales_cpp <- function(dist, k_begin, k_end) {

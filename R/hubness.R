@@ -134,7 +134,6 @@ k_occur <- function(idx,
 #'
 #' # hubness has been reduced
 #' lnn15_hubness < nn15_hubness # TRUE
-#'
 #' @references
 #' Jegou, H., Harzallah, H., & Schmid, C. (2007, June).
 #' A contextual dissimilarity measure for accurate and efficient image search.
@@ -149,7 +148,10 @@ k_occur <- function(idx,
 #' Self-tuning spectral clustering.
 #' In *Advances in neural information processing systems*, *17*.
 #' @export
-local_scale_nn <- function(nn, k = 15, k_scale = 2, n_threads = 0) {
+local_scale_nn <- function(nn,
+                           k = 15,
+                           k_scale = 2,
+                           n_threads = 0) {
   if (!is_dense_nn(nn)) {
     stop("Bad neighbor format for nn")
   }
@@ -167,8 +169,7 @@ local_scale_nn <- function(nn, k = 15, k_scale = 2, n_threads = 0) {
 
   if (length(k_scale) == 2) {
     k_end <- k_scale[2]
-  }
-  else {
+  } else {
     k_end <- k_begin
   }
   if (k_end < k_begin) {
@@ -185,15 +186,22 @@ local_scale_nn <- function(nn, k = 15, k_scale = 2, n_threads = 0) {
     stop("k must be <= neighborhood size of nn")
   }
 
-  scaled_dist <- local_scale_distances(nn, k_begin = k_begin, k_end = k_end)
-  local_scaled_nbrs(nn$idx, nn$dist, scaled_dist, n_nbrs = k, n_threads = n_threads)
+  local_scaled_nbrs(
+    nn$idx,
+    nn$dist,
+    n_scaled_nbrs = k,
+    k_begin = k_begin,
+    k_end = k_end
+  )
 }
 
 # Local neighbor distance scale for each row of nn_dist: mean of the neighbors
 # between k_begin-k_end inclusive
 # PaCMAP/TriMap use 4th to 6th "true" neighbors (i.e. skip the first nearest
 # neighbor if that is the observation itself)
-get_local_scales <- function(nn_dist, k_begin = 2, k_end = NULL) {
+get_local_scales <- function(nn_dist,
+                             k_begin = 2,
+                             k_end = NULL) {
   if (is.null(k_end)) {
     k_end <- ncol(nn_dist)
   }
