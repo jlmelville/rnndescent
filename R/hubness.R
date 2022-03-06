@@ -198,8 +198,7 @@ get_local_scales <- function(nn_dist, k_begin = 2, k_end = NULL) {
     k_end <- ncol(nn_dist)
   }
   stopifnot(k_end > 0 && k_begin <= k_end)
-
-  apply(nn_dist[, k_begin:k_end, drop = FALSE], 1, mean)
+  get_local_scales_cpp(nn_dist, k_begin, k_end)
 }
 
 # locally scaled nearest neighbor distances: returned distances will no longer

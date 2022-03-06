@@ -76,6 +76,33 @@ void local_scale(const std::vector<typename NbrHeap::Index> &idx_vec,
     }
   }
 }
+
+// Welford-style
+template <typename T>
+auto mean_average(const std::vector<T> &v, std::size_t begin, std::size_t end)
+    -> double {
+  long double mean = 0.0;
+  auto b1 = 1 - begin;
+  for (auto i = begin; i < end; ++i) {
+    mean += (v[i] - mean) / (i + b1);
+  }
+  return static_cast<T>(mean);
+}
+
+template <typename T>
+auto get_local_scales(const std::vector<T> &dist_vec, std::size_t n_nbrs,
+                      std::size_t k_begin, std::size_t k_end)
+    -> std::vector<T> {
+  std::size_t n_points = dist_vec.size() / n_nbrs;
+  std::vector<T> local_scales(n_points);
+  for (std::size_t i = 0; i < n_points; i++) {
+    std::size_t innbrs = i * n_nbrs;
+    local_scales[i] = mean_average(dist_vec, innbrs + k_begin, innbrs + k_end);
+  }
+
+  return local_scales;
+}
+
 } // namespace tdoann
 
 #endif // TDOANN_HUBNESS_H

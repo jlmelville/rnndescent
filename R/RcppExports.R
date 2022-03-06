@@ -79,6 +79,10 @@ local_scaled_nbrs <- function(idx, dist, sdist, n_nbrs, n_threads = 0L) {
     .Call(`_rnndescent_local_scaled_nbrs`, idx, dist, sdist, n_nbrs, n_threads)
 }
 
+get_local_scales_cpp <- function(dist, k_begin, k_end) {
+    .Call(`_rnndescent_get_local_scales_cpp`, dist, k_begin, k_end)
+}
+
 merge_nn <- function(nn_idx1, nn_dist1, nn_idx2, nn_dist2, is_query, n_threads, verbose = FALSE) {
     .Call(`_rnndescent_merge_nn`, nn_idx1, nn_dist1, nn_idx2, nn_dist2, is_query, n_threads, verbose)
 }

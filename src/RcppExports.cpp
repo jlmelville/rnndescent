@@ -173,6 +173,19 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// get_local_scales_cpp
+NumericVector get_local_scales_cpp(NumericMatrix dist, std::size_t k_begin, std::size_t k_end);
+RcppExport SEXP _rnndescent_get_local_scales_cpp(SEXP distSEXP, SEXP k_beginSEXP, SEXP k_endSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type dist(distSEXP);
+    Rcpp::traits::input_parameter< std::size_t >::type k_begin(k_beginSEXP);
+    Rcpp::traits::input_parameter< std::size_t >::type k_end(k_endSEXP);
+    rcpp_result_gen = Rcpp::wrap(get_local_scales_cpp(dist, k_begin, k_end));
+    return rcpp_result_gen;
+END_RCPP
+}
 // merge_nn
 List merge_nn(IntegerMatrix nn_idx1, NumericMatrix nn_dist1, IntegerMatrix nn_idx2, NumericMatrix nn_dist2, bool is_query, std::size_t n_threads, bool verbose);
 RcppExport SEXP _rnndescent_merge_nn(SEXP nn_idx1SEXP, SEXP nn_dist1SEXP, SEXP nn_idx2SEXP, SEXP nn_dist2SEXP, SEXP is_querySEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
@@ -343,6 +356,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_rnndescent_rnn_idx_to_graph_self", (DL_FUNC) &_rnndescent_rnn_idx_to_graph_self, 5},
     {"_rnndescent_rnn_idx_to_graph_query", (DL_FUNC) &_rnndescent_rnn_idx_to_graph_query, 6},
     {"_rnndescent_local_scaled_nbrs", (DL_FUNC) &_rnndescent_local_scaled_nbrs, 5},
+    {"_rnndescent_get_local_scales_cpp", (DL_FUNC) &_rnndescent_get_local_scales_cpp, 3},
     {"_rnndescent_merge_nn", (DL_FUNC) &_rnndescent_merge_nn, 7},
     {"_rnndescent_merge_nn_all", (DL_FUNC) &_rnndescent_merge_nn_all, 4},
     {"_rnndescent_nn_descent", (DL_FUNC) &_rnndescent_nn_descent, 11},
