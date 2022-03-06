@@ -31,12 +31,9 @@ List local_scaled_nbrs(IntegerMatrix idx, NumericMatrix dist,
   // and end should be one past the final element (those last two cancel out)
   auto k_begin0 = k_begin - 1;
   auto k_end0 = k_end;
-
-  auto local_scales =
-      tdoann::get_local_scales(dist_vec, n_orig_nbrs, k_begin0, k_end0);
-  for (std::size_t i = 0; i < n_points; i++) {
-    local_scales[i] = std::max(1e-10, local_scales[i]);
-  }
+  Out min_scale = 1e-10;
+  auto local_scales = tdoann::get_local_scales(dist_vec, n_orig_nbrs, k_begin0,
+                                               k_end0, min_scale);
 
   auto sdist_vec = tdoann::local_scaled_distances(idx_vec, dist_vec,
                                                   n_orig_nbrs, local_scales);
@@ -69,9 +66,10 @@ NumericVector get_local_scales_cpp(NumericMatrix dist, std::size_t k_begin,
   // and end should be one past the final element (those last two cancel out)
   auto k_begin0 = k_begin - 1;
   auto k_end0 = k_end;
+  auto min_scale = 1e-10;
 
   std::vector<double> local_scales =
-      tdoann::get_local_scales(dist_vec, n_nbrs, k_begin0, k_end0);
+      tdoann::get_local_scales(dist_vec, n_nbrs, k_begin0, k_end0, min_scale);
   NumericVector res(local_scales.begin(), local_scales.end());
   return res;
 }

@@ -1,6 +1,44 @@
 library(rnndescent)
 context("Local scaling")
 
+rnn6 <- brute_force_knn(ui10, k = 6, n_threads = 0)
+srnn4 <- local_scale_nn(rnn6, k = 4, k_scale = c(2, 4), n_threads = 0)
+
+scaled_idx <- matrix(c(1, 6, 10, 3,
+                       2, 7, 3, 8,
+                       3, 7, 5, 2,
+                       4, 9, 8, 2,
+                       5, 8, 3, 7,
+                       6, 1, 3, 10,
+                       7, 3, 2, 5,
+                       8, 5, 4, 2,
+                       9, 4, 8, 2,
+                       10, 6, 1, 3), byrow = TRUE, ncol = 4)
+
+scaled_dist <- matrix(
+  c(
+    0, 0.3464, 0.6782, 0.7,
+    0, 0.3, 0.4243, 0.4899,
+    0, 0.2236, 0.3317, 0.4243,
+    0, 0.3464, 0.4243, 0.5477,
+    0, 0.1732, 0.3317, 0.3464,
+    0, 0.3464, 0.5, 0.5831,
+    0, 0.2236, 0.3, 0.3464,
+    0, 0.1732, 0.4243, 0.4899,
+    0, 0.3464, 0.5831, 0.6164,
+    0, 0.5831, 0.6782, 1.044
+  ),
+  byrow = TRUE, ncol = 4)
+
+expect_equal(srnn4$idx, scaled_idx)
+expect_equal(srnn4$dist, scaled_dist, tol = 1e-4)
+
+srnn4 <- local_scale_nn(rnn6, k = 4, k_scale = c(2, 4), n_threads = 2)
+expect_equal(srnn4$idx, scaled_idx)
+expect_equal(srnn4$dist, scaled_dist, tol = 1e-4)
+
+
+
 rnn <- brute_force_knn(ui10, k = 4, n_threads = 0)
 expect_equal(get_local_scales(rnn$dist, k_begin = 2, k_end = 2), rnn$dist[, 2])
 expect_equal(
@@ -37,38 +75,4 @@ expect_equal(local_scale_distances(rnn, k_begin = 2, k_end = 3),
 )
 
 
-rnn6 <- brute_force_knn(ui10, k = 6, n_threads = 0)
-srnn4 <- local_scale_nn(rnn6, k = 4, k_scale = c(2, 4), n_threads = 0)
 
-scaled_idx <- matrix(c(1, 6, 10, 3,
-         2, 7, 3, 8,
-         3, 7, 5, 2,
-         4, 9, 8, 2,
-         5, 8, 3, 7,
-         6, 1, 3, 10,
-         7, 3, 2, 5,
-         8, 5, 4, 2,
-         9, 4, 8, 2,
-         10, 6, 1, 3), byrow = TRUE, ncol = 4)
-
-scaled_dist <- matrix(
-  c(
-    0, 0.3464, 0.6782, 0.7,
-    0, 0.3, 0.4243, 0.4899,
-    0, 0.2236, 0.3317, 0.4243,
-    0, 0.3464, 0.4243, 0.5477,
-    0, 0.1732, 0.3317, 0.3464,
-    0, 0.3464, 0.5, 0.5831,
-    0, 0.2236, 0.3, 0.3464,
-    0, 0.1732, 0.4243, 0.4899,
-    0, 0.3464, 0.5831, 0.6164,
-    0, 0.5831, 0.6782, 1.044
-  ),
-  byrow = TRUE, ncol = 4)
-
-expect_equal(srnn4$idx, scaled_idx)
-expect_equal(srnn4$dist, scaled_dist, tol = 1e-4)
-
-srnn4 <- local_scale_nn(rnn6, k = 4, k_scale = c(2, 4), n_threads = 2)
-expect_equal(srnn4$idx, scaled_idx)
-expect_equal(srnn4$dist, scaled_dist, tol = 1e-4)
