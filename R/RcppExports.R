@@ -83,6 +83,10 @@ get_local_scales_cpp <- function(dist, k_begin, k_end) {
     .Call(`_rnndescent_get_local_scales_cpp`, dist, k_begin, k_end)
 }
 
+local_scale_distances_cpp <- function(idx, dist, local_scales) {
+    .Call(`_rnndescent_local_scale_distances_cpp`, idx, dist, local_scales)
+}
+
 merge_nn <- function(nn_idx1, nn_dist1, nn_idx2, nn_dist2, is_query, n_threads, verbose = FALSE) {
     .Call(`_rnndescent_merge_nn`, nn_idx1, nn_dist1, nn_idx2, nn_dist2, is_query, n_threads, verbose)
 }

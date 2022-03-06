@@ -207,5 +207,5 @@ local_scale_distances <- function(nn, k_begin = 2, k_end = NULL) {
   sigma <- get_local_scales(nn$dist, k_begin = k_begin, k_end = k_end)
   sigma <- pmax(sigma, 1e-10)
 
-  (nn$dist * nn$dist) / (sigma * matrix(sigma[nn$idx], nrow = nrow(nn$idx)))
+  local_scale_distances_cpp(nn$idx, nn$dist, sigma)
 }

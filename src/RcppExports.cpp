@@ -186,6 +186,19 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// local_scale_distances_cpp
+NumericVector local_scale_distances_cpp(IntegerMatrix idx, NumericMatrix dist, NumericVector local_scales);
+RcppExport SEXP _rnndescent_local_scale_distances_cpp(SEXP idxSEXP, SEXP distSEXP, SEXP local_scalesSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< IntegerMatrix >::type idx(idxSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type dist(distSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type local_scales(local_scalesSEXP);
+    rcpp_result_gen = Rcpp::wrap(local_scale_distances_cpp(idx, dist, local_scales));
+    return rcpp_result_gen;
+END_RCPP
+}
 // merge_nn
 List merge_nn(IntegerMatrix nn_idx1, NumericMatrix nn_dist1, IntegerMatrix nn_idx2, NumericMatrix nn_dist2, bool is_query, std::size_t n_threads, bool verbose);
 RcppExport SEXP _rnndescent_merge_nn(SEXP nn_idx1SEXP, SEXP nn_dist1SEXP, SEXP nn_idx2SEXP, SEXP nn_dist2SEXP, SEXP is_querySEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
@@ -357,6 +370,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_rnndescent_rnn_idx_to_graph_query", (DL_FUNC) &_rnndescent_rnn_idx_to_graph_query, 6},
     {"_rnndescent_local_scaled_nbrs", (DL_FUNC) &_rnndescent_local_scaled_nbrs, 5},
     {"_rnndescent_get_local_scales_cpp", (DL_FUNC) &_rnndescent_get_local_scales_cpp, 3},
+    {"_rnndescent_local_scale_distances_cpp", (DL_FUNC) &_rnndescent_local_scale_distances_cpp, 3},
     {"_rnndescent_merge_nn", (DL_FUNC) &_rnndescent_merge_nn, 7},
     {"_rnndescent_merge_nn_all", (DL_FUNC) &_rnndescent_merge_nn_all, 4},
     {"_rnndescent_nn_descent", (DL_FUNC) &_rnndescent_nn_descent, 11},

@@ -61,3 +61,21 @@ NumericVector get_local_scales_cpp(NumericMatrix dist, std::size_t k_begin,
   NumericVector res(local_scales.begin(), local_scales.end());
   return res;
 }
+
+// [[Rcpp::export]]
+NumericVector local_scale_distances_cpp(IntegerMatrix idx, NumericMatrix dist,
+                                        NumericVector local_scales) {
+  using Idx = typename DummyDistance::Index;
+  using Out = typename DummyDistance::Output;
+
+  auto idx_vec = r_to_idxt<Idx>(idx);
+  auto dist_vec = r_to_vect<Out>(dist);
+  auto local_scales_vec = r_to_vec<Out>(local_scales);
+
+  std::size_t n_nbrs = idx.ncol();
+  auto sdist_vec = tdoann::local_scaled_distances(idx_vec, dist_vec, n_nbrs,
+                                                  local_scales_vec);
+
+  NumericMatrix res(n_nbrs, idx.nrow(), sdist_vec.begin());
+  return transpose(res);
+}

@@ -103,6 +103,28 @@ auto get_local_scales(const std::vector<T> &dist_vec, std::size_t n_nbrs,
   return local_scales;
 }
 
+template <typename Dist, typename Idx>
+auto local_scaled_distances(const std::vector<Idx> &idx,
+                            const std::vector<Dist> &dist, std::size_t n_nbrs,
+                            const std::vector<Dist> &local_scales)
+    -> std::vector<Dist> {
+
+  std::size_t n_points = local_scales.size();
+
+  std::vector<Dist> sdist(dist.size());
+  for (std::size_t i = 0; i < n_points; i++) {
+    std::size_t innbrs = i * n_nbrs;
+    auto scalei = local_scales[i];
+    for (std::size_t j = 0; j < n_nbrs; j++) {
+      auto ij = innbrs + j;
+      auto d = dist[ij];
+      sdist[ij] = (d * d) / (scalei * local_scales[idx[ij]]);
+    }
+  }
+
+  return sdist;
+}
+
 } // namespace tdoann
 
 #endif // TDOANN_HUBNESS_H
