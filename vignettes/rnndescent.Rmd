@@ -615,6 +615,8 @@ give highly accurate results in high dimensions. And with the help of
 k-occurrences, we can even detect that it might be happening. But what can we do
 about it?
 
+### Use More Neighbors
+
 One simple (slightly expensive) way is to keep more neighbors in the
 calculation. For example, double the number of neighbors to `30`, then get the
 top-15 accuracy:
@@ -625,10 +627,13 @@ nn_accuracy(g1000d_nnbf, g1000d_nnd_k30, k = 15)
 ```
 
 That's a big improvement, but increasing `k` in this way can be quite expensive
-in terms of run time. What about taking advantage of the stochastic nature of
-the algorithm? If the results are sufficiently diverse between runs of NND, then
-we could generate two graphs from two separate runs, and then merge the
-the results.
+in terms of run time.
+
+### Merging Multiple Independent Results
+
+What about taking advantage of the stochastic nature of the algorithm? If the
+results are sufficiently diverse between runs of NND, then we could generate two
+graphs from two separate runs, and then merge the the results.
 
 Let's repeat NND and see what the accuracy of this new result is like.
 
@@ -770,7 +775,7 @@ nn_accuracy(g1000d_nnbf, g1000d_nnd_search, k = 15)
 Accuracies are nearly as good. You can save even more time by turning off
 back-tracking (`epsilon = 0`):
 
-```{r search with search graph, no back-tracking}
+```{r search with neighbor graph, no back-tracking}
 g1000d_nnd_search0 <-
   graph_knn_query(
     query = g1000d,
@@ -784,7 +789,184 @@ g1000d_nnd_search0 <-
 nn_accuracy(g1000d_nnbf, g1000d_nnd_search0, k = 15)
 ```
 
-but accuracies are now noticeably less improved.
+but accuracies are now noticeably less improved. Using the search graph without
+back-tracking gives slightly better accuracies:
+
+```{r search with search graph, no back-tracking}
+g1000d_search0 <-
+  graph_knn_query(
+    query = g1000d,
+    reference = g1000d,
+    reference_graph = g1000d_search_graph,
+    k = 15,
+    metric = "euclidean",
+    init = g1000d_nnd,
+    epsilon = 0
+  )
+nn_accuracy(g1000d_nnbf, g1000d_search0, k = 15)
+```
+
+but it seems like some sort of back-tracking is to be recommended with this
+approach.
+
+### Local Scaling
+
+In the context of spectral clustering, [@NIPS2004_40173ea4] suggested scaling
+nearest neighbor distances to reflect the local statistics of the neighborhoods.
+This would allow the idea of what a large and a short distance was to vary
+depending on the local density around each point. The scaling suggested was:
+
+$$\hat{d}_{ij}^2 = \frac{d_{ij}^2}{\sigma_i\sigma_j}$$
+
+where $\hat{d}_{ij}$ is the scaled distance between points $i$ and $j$, 
+$d_{ij}$ is the original distance, and $\sigma_i$ is the local scale associated
+with point $i$. To define $\sigma_i$, Zelnik-Manor and Perona suggest using the
+distance to a nearest neighbor. In their paper they got good results by using
+the distance to the seventh-nearest neighbor.
+
+[@schnitzer2012local] suggested using $\hat{d}_{ij}$ instead of $d_{ij}$ in
+nearest neighbor calculations as a way to reduce the effect of hubs. Because
+hubs have more neighbors, the distance to a specific neighbor will be smaller
+relative to non-hubs. Hence $\sigma_i$ will be smaller for hubs, which will lead
+to larger $\hat{d}_{ij}$ compared to non-hubs. Therefore using $\hat{d}_{ij}$
+acts to "penalize" hubs when competing with non-hubs to appear in a nearest
+neighbor list.
+
+A further modification suggested by Schnitzer and co-workers was to use the
+average distance to multiple nearest neighbors to calculate $\sigma_i$, a
+technique used by [@jegou2007contextual].
+
+In the field of dimensionality reduction, generating a nearest neighbor graph
+is a step for many methods. [@JMLR:v22:20-1061] describe using local scaling
+as a post-processing step with the following recipe:
+
+* Find the $k+50$th nearest neighbors, where $k$ is the actual number of
+neighbors you want (e.g. if you want to 15 neighbors per point, find the 65
+nearest neighbors).
+* Use the mean distance to the 4-6th nearest neighbors as $\sigma_i$. Using
+this range was also advocated in another dimensionality reduction method [@DBLP:journals/corr/abs-1910-00204].
+* From the $k+50$ nearest neighbors, find the $k$ neighbors with the smallest
+locally scaled distances. These are the $k$ neighbors to use for downstream
+processing.
+
+To do with our 1000D example, we first need to generate the (approximate)
+65-nearest neighbors:
+
+```{r 65 nearest neighbors}
+g1000d_nnd65 <- nnd_knn(g1000d, k = 65, metric = "euclidean")
+```
+
+This is a noticeably slow step. Next, we use the `local_scale_nn` function
+to extract a 15-neighbor locally-scaled subset:
+
+```{r local scale}
+g1000d_nnd65ls15 <-
+  local_scale_nn(g1000d_nnd65, k = 15, k_scale = c(4, 6))
+```
+
+If you look at the distances in `g1000d_nnd65ls15` these are the original
+unscaled distances, as found in `g1000d_nnd65` ($d_{ij}$). The scaled distances
+$\hat{d}_{ij}$ are used internally to select the 15 neighbors, but are not
+returned from `local_scale_nn`.
+
+How does local scaling affect the hubness of the resulting neighbor graph?
+
+```{r hubness of locally scaled nearest neighbor graph}
+g1000d_lsko <- k_occur(g1000d_nnd65ls15)
+hist(g1000d_lsko, main = "locally scaled k-occ", xlab = "k-occurrences")
+summary(g1000d_lsko)
+sum(g1000d_lsko == 1)
+```
+
+This is a massive reduction in hubness over the 15NN graph, and nearly as good
+as the search graph generated from the 15NN graph. Can we see further
+improvements if we generate a search graph from the locally scaled neighbors?
+
+```{r prepare search graph from locally scaled neighbors}
+g1000dls_search_graph <-
+  prepare_search_graph(
+    data = g1000d,
+    graph = g1000d_nnd65ls15,
+    metric = "euclidean",
+    diversify_prob = 1,
+    pruning_degree_multiplier = 1.5
+  )
+```
+
+```{r hubness of locally scaled search graph}
+g1000d_lssgko <- k_occur(g1000dls_search_graph)
+hist(g1000d_lssgko, main = "locally scaled search k-occ", xlab = "k-occurrences")
+summary(g1000d_lssgko)
+sum(g1000d_lssgko == 1)
+```
+
+Here the hubness properties are further improved over using either local scaling
+or creating a search graph separately. While this is promising, does it
+translate into better search performance? Here are the accuracy results using
+the locally scaled search graph without any backtracking:
+
+```{r search with locally scaled search graph, no back-tracking}
+g1000dls_search0nnd <-
+    graph_knn_query(
+        query = g1000d,
+        reference = g1000d,
+        reference_graph = g1000dls_search_graph,
+        k = 15,
+        metric = "euclidean",
+        init = g1000d_nnd,
+        epsilon = 0
+    )
+nn_accuracy(g1000d_nnbf, g1000dls_search0nnd, k = 15)
+```
+
+Without having to do any back-tracking, we can get 94% accuracy, a nearly 10%
+improvement compared to the search graph generated from the 15NN graph 
+directly.
+
+It's worth noting here that we initialized the search using `g1000d_nnd`, the
+15NN results from running NND with `k = 15`. This makes comparing the
+performance with the other search graph fairer, but in reality we wouldn't
+have that data to hand, as we used `k = 65`. As noted in the 'Use More Neighbors'
+section above, we already know that using NND with an increased value of `k` is
+going to result in a big improvement without bothering with local scaling:
+
+```{r NND 1000D truncated 65}
+nn_accuracy(g1000d_nnbf, g1000d_nnd65, k = 15)
+```
+
+Almost perfect. We also have the locally-scaled 15 nearest neighbor graph we
+can use for initialization:
+
+```{r search with locally scaled search graph, no back-tracking, LS-initialized}
+g1000dls_search0 <-
+    graph_knn_query(
+        query = g1000d,
+        reference = g1000d,
+        reference_graph = g1000dls_search_graph,
+        k = 15,
+        metric = "euclidean",
+        init = g1000d_nnd65ls15,
+        epsilon = 0
+    )
+nn_accuracy(g1000d_nnbf, g1000dls_search0, k = 15)
+```
+
+This is noticeably less good than initializing using the 15 NND results, but
+it's still the best non-back-tracking result. If we do set `epsilon = 0.1`, then
+we get 100% accuracy using both the neighbor graph and the search graph, but
+then again the other non-locally scaled graphs are getting very close to that
+too.
+
+The value of local scaling is probably not if you want to find an accurate
+approximation to the nearest neighbors: using back-tracking search with a search
+graph derived from the unscaled neighbor graph directly is going to be less
+effort. However there may be cases where the increased cost of building the
+$k+50$ nearest neighbor graph is not a big problem, e.g. if you intend to build
+a graph once but search it many times, then the search graph built from the
+locally scaled neighbor graph is probably more efficient to traverse in cases
+where the unscaled data suffers from hubs. Or the properties of the
+locally-scaled graph may be more attractive for other uses e.g. dimensionality
+reduction methods like those described by Wang and co-workers.
 
 ## Conclusions
 
@@ -808,6 +990,8 @@ from different random starting points and merge the results.
 neighbor descent results into a search graph and then querying the graph with
 the original data, using the nearest neighbor results for initialization and
 a back-tracking search.
+* Local scaling can also reduce the effect of hubs and be combined with a search
+graph, at the cost of a larger computational effort.
 
 If you are concerned with potential hubs interfering with the accuracy of the
 neighbor graph, I suggest the following steps:
