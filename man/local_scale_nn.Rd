@@ -22,8 +22,7 @@ scale distances.}
 \item{ret_scales}{If \code{TRUE} then return a vector of the local scales (the
 average distance based on \code{k_scale} for each observation in \code{nn}).}
 
-\item{n_threads}{number of threads to use for parallel processing. Currently
-ignored.}
+\item{n_threads}{number of threads to use for parallel processing.}
 }
 \value{
 the scaled \code{k} nearest neighbors in dense list format. The distances

@@ -111,8 +111,7 @@ k_occur <- function(idx,
 #' scale distances.
 #' @param ret_scales If `TRUE` then return a vector of the local scales (the
 #' average distance based on `k_scale` for each observation in `nn`).
-#' @param n_threads number of threads to use for parallel processing. Currently
-#' ignored.
+#' @param n_threads number of threads to use for parallel processing.
 #' @return the scaled `k` nearest neighbors in dense list format. The distances
 #' returned are the unscaled distances.
 #' @examples

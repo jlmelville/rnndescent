@@ -75,7 +75,16 @@ void batch_parallel_for(Worker &worker, AfterWorker &after_worker,
 template <typename Parallel, typename Progress, typename Worker>
 void batch_parallel_for(Worker &worker, Progress &progress, std::size_t n,
                         std::size_t n_threads, std::size_t grain_size) {
-  const std::size_t block_size = std::max(grain_size, n / std::size_t{10});
+  std::size_t block_size = std::max(grain_size, n / std::size_t{10});
+  batch_parallel_for<Parallel>(worker, progress, n, block_size, n_threads,
+                               grain_size);
+}
+
+template <typename Parallel, typename Progress = NullProgress, typename Worker>
+void batch_parallel_for(Worker &worker, std::size_t n, std::size_t n_threads) {
+  Progress progress;
+  std::size_t grain_size = 1;
+  std::size_t block_size = std::max(grain_size, n / std::size_t{10});
   batch_parallel_for<Parallel>(worker, progress, n, block_size, n_threads,
                                grain_size);
 }
