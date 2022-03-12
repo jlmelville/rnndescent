@@ -1,19 +1,37 @@
 # Sparse ------------------------------------------------------------------
 
-graph_to_sparse <- function(graph, repr) {
+nn_to_sparse <- function(nn) {
+  graph_to_sparse(nn, repr = "C", drop0 = TRUE, transpose = TRUE)
+}
+
+graph_to_sparse <- function(graph, repr, drop0 = FALSE, transpose = FALSE) {
   idx <- graph$idx
   dist <- graph$dist
   n_nbrs <- ncol(idx)
   n_row <- nrow(idx)
   n_ref <- nrow(idx)
 
-  Matrix::sparseMatrix(
-    i = rep(1:n_row, times = n_nbrs),
-    j = as.vector(idx),
+  if (transpose) {
+    i <- as.vector(idx)
+    j <- rep(1:n_row, times = n_nbrs)
+  }
+  else {
+    i <- rep(1:n_row, times = n_nbrs)
+    j <- as.vector(idx)
+  }
+
+  res <- Matrix::sparseMatrix(
+    i = i,
+    j = j,
     x = as.vector(dist),
     dims = c(n_row, n_ref),
     repr = repr
   )
+
+  if (drop0) {
+    res <- Matrix::drop0(res)
+  }
+  res
 }
 
 graph_to_rsparse <- function(graph) {
