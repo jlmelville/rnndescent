@@ -15,7 +15,7 @@ Suggests:
     covr,
     knitr,
     rmarkdown
-RoxygenNote: 7.2.0
+RoxygenNote: 7.2.1
 Roxygen: list(markdown = TRUE)
 LinkingTo: 
     Rcpp, dqrng, RcppProgress, sitmo, BH
