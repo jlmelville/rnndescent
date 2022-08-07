@@ -22,7 +22,8 @@
 #include "rnn_progress.h"
 
 RInterruptableProgress::RInterruptableProgress() = default;
-RInterruptableProgress::RInterruptableProgress(std::size_t, bool) {}
+RInterruptableProgress::RInterruptableProgress(std::size_t /* niters */,
+                                               bool /* verbose */) {}
 auto RInterruptableProgress::check_interrupt() -> bool {
   if (is_aborted) {
     return true;

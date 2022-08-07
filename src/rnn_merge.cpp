@@ -17,6 +17,8 @@
 //  You should have received a copy of the GNU General Public License
 //  along with rnndescent.  If not, see <http://www.gnu.org/licenses/>.
 
+// NOLINTBEGIN(modernize-use-trailing-return-type)
+
 #include <Rcpp.h>
 
 #include "RcppPerpendicular.h"
@@ -24,7 +26,9 @@
 #include "rnn_rtoheap.h"
 #include "rnn_util.h"
 
-using namespace Rcpp;
+using Rcpp::IntegerMatrix;
+using Rcpp::List;
+using Rcpp::NumericMatrix;
 
 template <typename NeighborHeap> struct SerialHeapImpl {
   template <typename HeapAdd>
@@ -36,9 +40,8 @@ template <typename NeighborHeap> struct SerialHeapImpl {
 };
 
 template <typename NeighborHeap> struct ParallelHeapImpl {
-  std::size_t n_threads;
-
-  ParallelHeapImpl(std::size_t n_threads) : n_threads(n_threads) {}
+public:
+  explicit ParallelHeapImpl(std::size_t n_threads) : n_threads(n_threads) {}
 
   template <typename HeapAdd>
   void init(NeighborHeap &heap, IntegerMatrix nn_idx, NumericMatrix nn_dist) {
@@ -48,12 +51,15 @@ template <typename NeighborHeap> struct ParallelHeapImpl {
                        RNND_MAX_IDX, true);
   }
   auto to_r(NeighborHeap &heap) -> List { return heap_to_r(heap, n_threads); }
+
+private:
+  std::size_t n_threads;
 };
 
 template <typename NeighborHeap, typename MergeImpl, typename HeapAdd>
-auto merge_nn_impl(IntegerMatrix nn_idx1, NumericMatrix nn_dist1,
-                   IntegerMatrix nn_idx2, NumericMatrix nn_dist2,
-                   MergeImpl &merge_impl, bool verbose = false) -> List {
+auto merge_nn_impl(const IntegerMatrix &nn_idx1, const NumericMatrix &nn_dist1,
+                   const IntegerMatrix &nn_idx2, const NumericMatrix &nn_dist2,
+                   MergeImpl &merge_impl, bool verbose) -> List {
   NeighborHeap nn_merged(nn_idx1.nrow(), nn_idx1.ncol());
 
   auto nn_idx1c = clone(nn_idx1);
@@ -71,20 +77,20 @@ auto merge_nn_impl(IntegerMatrix nn_idx1, NumericMatrix nn_dist1,
 template <typename NeighborHeap, typename MergeImpl, typename HeapAdd>
 auto merge_nn_all_impl(List nn_graphs, MergeImpl &merge_impl,
                        bool verbose = false) -> List {
-  auto n_graphs = static_cast<std::size_t>(nn_graphs.size());
+  auto n_graphs = nn_graphs.size();
 
   List nn_graph = nn_graphs[0];
   NumericMatrix nn_dist = nn_graph["dist"];
   IntegerMatrix nn_idx = nn_graph["idx"];
   auto nn_idxc = clone(nn_idx);
 
-  RPProgress progress(n_graphs, verbose);
+  RPProgress progress(static_cast<std::size_t>(n_graphs), verbose);
   NeighborHeap nn_merged(nn_idxc.nrow(), nn_idxc.ncol());
   merge_impl.template init<HeapAdd>(nn_merged, nn_idxc, nn_dist);
   progress.iter_finished();
 
   // iterate over other graphs
-  for (std::size_t i = 1; i < n_graphs; i++) {
+  for (auto i = 1; i < n_graphs; i++) {
     List nn_graphi = nn_graphs[i];
     NumericMatrix nn_disti = nn_graphi["dist"];
     IntegerMatrix nn_idxi = nn_graphi["idx"];
@@ -103,21 +109,18 @@ auto merge_nn_all_impl(List nn_graphs, MergeImpl &merge_impl,
     if (is_query) {                                                            \
       using HeapAdd = tdoann::HeapAddQuery;                                    \
       NEXT_MACRO();                                                            \
-    } else {                                                                   \
-      using HeapAdd = tdoann::LockingHeapAddSymmetric;                         \
-      NEXT_MACRO();                                                            \
     }                                                                          \
-  } else {                                                                     \
-    using MergeImpl = SerialHeapImpl<tdoann::NNHeap<float>>;                   \
-    MergeImpl merge_impl;                                                      \
-    if (is_query) {                                                            \
-      using HeapAdd = tdoann::HeapAddQuery;                                    \
-      NEXT_MACRO();                                                            \
-    } else {                                                                   \
-      using HeapAdd = tdoann::HeapAddSymmetric;                                \
-      NEXT_MACRO();                                                            \
-    }                                                                          \
-  }
+    using HeapAdd = tdoann::LockingHeapAddSymmetric;                           \
+    NEXT_MACRO();                                                              \
+  }                                                                            \
+  using MergeImpl = SerialHeapImpl<tdoann::NNHeap<float>>;                     \
+  MergeImpl merge_impl;                                                        \
+  if (is_query) {                                                              \
+    using HeapAdd = tdoann::HeapAddQuery;                                      \
+    NEXT_MACRO();                                                              \
+  }                                                                            \
+  using HeapAdd = tdoann::HeapAddSymmetric;                                    \
+  NEXT_MACRO();
 
 #define MERGE_NN()                                                             \
   return merge_nn_impl<tdoann::NNHeap<float>, MergeImpl, HeapAdd>(             \
@@ -128,14 +131,16 @@ auto merge_nn_all_impl(List nn_graphs, MergeImpl &merge_impl,
       nn_graphs, merge_impl, verbose);
 
 // [[Rcpp::export]]
-List merge_nn(IntegerMatrix nn_idx1, NumericMatrix nn_dist1,
-              IntegerMatrix nn_idx2, NumericMatrix nn_dist2, bool is_query,
-              std::size_t n_threads, bool verbose = false) {
+List merge_nn(const IntegerMatrix &nn_idx1, const NumericMatrix &nn_dist1,
+              const IntegerMatrix &nn_idx2, const NumericMatrix &nn_dist2,
+              bool is_query, std::size_t n_threads, bool verbose) {
   CONFIGURE_MERGE(MERGE_NN);
 }
 
 // [[Rcpp::export]]
-List merge_nn_all(List nn_graphs, bool is_query, std::size_t n_threads,
-                  bool verbose = false) {
+List merge_nn_all(const List &nn_graphs, bool is_query, std::size_t n_threads,
+                  bool verbose) {
   CONFIGURE_MERGE(MERGE_NN_ALL);
 }
+
+// NOLINTEND(modernize-use-trailing-return-type)

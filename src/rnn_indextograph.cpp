@@ -17,6 +17,8 @@
 //  You should have received a copy of the GNU General Public License
 //  along with rnndescent.  If not, see <http://www.gnu.org/licenses/>.
 
+// NOLINTBEGIN(bugprone-easily-swappable-parameters,cppcoreguidelines-avoid-magic-numbers,modernize-use-trailing-return-type,readability-magic-numbers)
+
 #include <Rcpp.h>
 
 #include "tdoann/nngraph.h"
@@ -26,7 +28,9 @@
 #include "rnn_parallel.h"
 #include "rnn_rtoheap.h"
 
-using namespace Rcpp;
+using Rcpp::IntegerMatrix;
+using Rcpp::List;
+using Rcpp::NumericMatrix;
 
 #define IDX_TO_GRAPH_SELF()                                                    \
   auto distance = tr_to_dist<Distance>(data);                                  \
@@ -41,27 +45,29 @@ auto idx_to_graph_impl(const Distance &distance, IntegerMatrix idx,
                        std::size_t n_threads = 0, bool verbose = false)
     -> List {
   auto idx_vec = r_to_idxt<typename Distance::Index>(idx);
-  if (n_threads > 0) {
-    auto nn_graph = tdoann::idx_to_graph<Distance, RPProgress, RParallel>(
-        distance, idx_vec, n_threads, verbose);
-    return graph_to_r(nn_graph, true);
-  } else {
+  if (n_threads == 0) {
     auto nn_graph =
         tdoann::idx_to_graph<Distance, RPProgress>(distance, idx_vec, verbose);
     return graph_to_r(nn_graph, true);
   }
+  auto nn_graph = tdoann::idx_to_graph<Distance, RPProgress, RParallel>(
+      distance, idx_vec, n_threads, verbose);
+  return graph_to_r(nn_graph, true);
 }
 
 // [[Rcpp::export]]
-List rnn_idx_to_graph_self(NumericMatrix data, IntegerMatrix idx,
+List rnn_idx_to_graph_self(const NumericMatrix &data, const IntegerMatrix &idx,
                            const std::string &metric = "euclidean",
                            std::size_t n_threads = 0, bool verbose = false){
     DISPATCH_ON_DISTANCES(IDX_TO_GRAPH_SELF)}
 
 // [[Rcpp::export]]
-List rnn_idx_to_graph_query(NumericMatrix reference, NumericMatrix query,
-                            IntegerMatrix idx,
-                            const std::string &metric = "euclidean",
-                            std::size_t n_threads = 0, bool verbose = false) {
+List
+    rnn_idx_to_graph_query(const NumericMatrix &reference,
+                           const NumericMatrix &query, const IntegerMatrix &idx,
+                           const std::string &metric = "euclidean",
+                           std::size_t n_threads = 0, bool verbose = false) {
   DISPATCH_ON_QUERY_DISTANCES(IDX_TO_GRAPH_QUERY)
 }
+
+// NOLINTEND(bugprone-easily-swappable-parameters,cppcoreguidelines-avoid-magic-numbers,modernize-use-trailing-return-type,readability-magic-numbers)

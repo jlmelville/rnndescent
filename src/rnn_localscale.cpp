@@ -9,10 +9,16 @@
 #include "rnn_progress.h"
 #include "rnn_util.h"
 
-using namespace Rcpp;
+using Rcpp::IntegerMatrix;
+using Rcpp::List;
+using Rcpp::NumericMatrix;
+using Rcpp::NumericVector;
+using Rcpp::stop;
+
+// NOLINTBEGIN(bugprone-easily-swappable-parameters,modernize-use-trailing-return-type)
 
 // [[Rcpp::export]]
-List local_scaled_nbrs(IntegerMatrix idx, NumericMatrix dist,
+List local_scaled_nbrs(const IntegerMatrix &idx, const NumericMatrix &dist,
                        std::size_t n_scaled_nbrs, std::size_t k_begin,
                        std::size_t k_end, bool ret_scales = false,
                        std::size_t n_threads = 0) {
@@ -32,10 +38,10 @@ List local_scaled_nbrs(IntegerMatrix idx, NumericMatrix dist,
   // and end should be one past the final element (those last two cancel out)
   auto k_begin0 = k_begin - 1;
   auto k_end0 = k_end;
-  Out min_scale = 1e-10;
+  const constexpr Out MIN_SCALE = 1e-10;
   auto local_scales =
       tdoann::get_local_scales<RParallel, RInterruptableProgress>(
-          dist_vec, n_orig_nbrs, k_begin0, k_end0, min_scale, n_threads);
+          dist_vec, n_orig_nbrs, k_begin0, k_end0, MIN_SCALE, n_threads);
 
   auto sdist_vec =
       tdoann::local_scaled_distances<RParallel, RInterruptableProgress>(
@@ -51,3 +57,5 @@ List local_scaled_nbrs(IntegerMatrix idx, NumericMatrix dist,
   }
   return res;
 }
+
+// NOLINTEND(bugprone-easily-swappable-parameters,modernize-use-trailing-return-type)

@@ -17,35 +17,40 @@
 //  You should have received a copy of the GNU General Public License
 //  along with rnndescent.  If not, see <http://www.gnu.org/licenses/>.
 
+// NOLINTBEGIN(bugprone-easily-swappable-parameters,modernize-use-trailing-return-type)
+
 #include <Rcpp.h>
 
-using namespace Rcpp;
+using Rcpp::as;
+using Rcpp::IntegerMatrix;
+using Rcpp::IntegerVector;
 
 // [[Rcpp::export]]
-IntegerVector reverse_nbr_size_impl(IntegerMatrix nn_idx, std::size_t k,
-                                    std::size_t len,
+IntegerVector reverse_nbr_size_impl(const IntegerMatrix &nn_idx,
+                                    std::size_t nnbrs, std::size_t len,
                                     bool include_self = false) {
-  const std::size_t nr = nn_idx.nrow();
-
+  const std::size_t nobs = nn_idx.nrow();
   auto data = as<std::vector<std::size_t>>(nn_idx);
-
-  const constexpr std::size_t missing = static_cast<std::size_t>(-1);
-
+  const constexpr auto missing = static_cast<std::size_t>(-1);
   std::vector<std::size_t> n_reverse(len);
 
-  for (std::size_t i = 0; i < nr; i++) {
-    for (std::size_t j = 0; j < k; j++) {
-      std::size_t inbr = data[nr * j + i];
-      if (inbr == missing) {
+  for (std::size_t i = 0; i < nnbrs; i++) {
+    const auto inobs = nobs * i;
+    for (std::size_t j = 0; j < nobs; j++) {
+      auto jnbr = data[inobs + j];
+      if (jnbr == missing) {
         continue;
       }
       // zero index
-      --inbr;
-      if (inbr == i && !include_self) {
+      --jnbr;
+      if (jnbr == j && !include_self) {
         continue;
       }
-      ++n_reverse[inbr];
+      ++n_reverse[jnbr];
     }
   }
-  return IntegerVector(n_reverse.begin(), n_reverse.end());
+
+  return {n_reverse.begin(), n_reverse.end()};
 }
+
+// NOLINTEND(bugprone-easily-swappable-parameters,modernize-use-trailing-return-type)
