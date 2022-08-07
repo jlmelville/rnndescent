@@ -24,9 +24,9 @@
 #include <Rcpp.h>
 #include <progress.hpp>
 
-#include "rnn_distance.h"
-#include "rnn_parallel.h"
-#include "rnn_util.h"
+#include "rnn_distance.hpp"
+#include "rnn_parallel.hpp"
+#include "rnn_util.hpp"
 
 // NOLINTBEGIN(bugprone-easily-swappable-parameters,modernize-use-trailing-return-type)
 

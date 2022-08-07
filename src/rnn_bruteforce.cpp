@@ -23,11 +23,11 @@
 
 #include "tdoann/bruteforce.h"
 
-#include "rnn_distance.h"
-#include "rnn_macros.h"
-#include "rnn_parallel.h"
-#include "rnn_progress.h"
-#include "rnn_util.h"
+#include "rnn_distance.hpp"
+#include "rnn_macros.hpp"
+#include "rnn_parallel.hpp"
+#include "rnn_progress.hpp"
+#include "rnn_util.hpp"
 
 using Rcpp::List;
 using Rcpp::NumericMatrix;

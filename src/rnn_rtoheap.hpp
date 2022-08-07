@@ -26,9 +26,9 @@
 #include "tdoann/nngraph.h"
 #include "tdoann/progress.h"
 
-#include "rnn_parallel.h"
-#include "rnn_progress.h"
-#include "rnn_util.h"
+#include "rnn_parallel.hpp"
+#include "rnn_progress.hpp"
+#include "rnn_util.hpp"
 
 template <typename HeapAdd, typename NbrHeap>
 void r_to_heap(NbrHeap &heap, Rcpp::IntegerMatrix nn_idx,

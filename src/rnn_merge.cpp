@@ -22,9 +22,9 @@
 #include <Rcpp.h>
 
 #include "RcppPerpendicular.h"
-#include "rnn_heaptor.h"
-#include "rnn_rtoheap.h"
-#include "rnn_util.h"
+#include "rnn_heaptor.hpp"
+#include "rnn_rtoheap.hpp"
+#include "rnn_util.hpp"
 
 using Rcpp::IntegerMatrix;
 using Rcpp::List;

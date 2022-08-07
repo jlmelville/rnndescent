@@ -23,11 +23,11 @@
 
 #include "tdoann/search.h"
 
-#include "rnn_distance.h"
-#include "rnn_heaptor.h"
-#include "rnn_macros.h"
-#include "rnn_progress.h"
-#include "rnn_rtoheap.h"
+#include "rnn_distance.hpp"
+#include "rnn_heaptor.hpp"
+#include "rnn_macros.hpp"
+#include "rnn_progress.hpp"
+#include "rnn_rtoheap.hpp"
 
 using Rcpp::IntegerMatrix;
 using Rcpp::List;

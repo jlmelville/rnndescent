@@ -24,7 +24,7 @@
 
 #include "tdoann/distance.h"
 
-#include "rnn_util.h"
+#include "rnn_util.hpp"
 
 template <typename Out = double, typename Idx = uint32_t>
 struct GenericDummyDistance {

@@ -23,10 +23,10 @@
 
 #include "tdoann/nngraph.h"
 
-#include "rnn_distance.h"
-#include "rnn_macros.h"
-#include "rnn_parallel.h"
-#include "rnn_rtoheap.h"
+#include "rnn_distance.hpp"
+#include "rnn_macros.hpp"
+#include "rnn_parallel.hpp"
+#include "rnn_rtoheap.hpp"
 
 using Rcpp::IntegerMatrix;
 using Rcpp::List;

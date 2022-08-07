@@ -26,7 +26,7 @@
 #include "tdoann/heap.h"
 #include "tdoann/progress.h"
 
-#include "rnn_util.h"
+#include "rnn_util.hpp"
 
 struct RPProgress {
   std::size_t scale;

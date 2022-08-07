@@ -3,11 +3,11 @@
 #include "tdoann/heap.h"
 #include "tdoann/hubness.h"
 
-#include "rnn_distance.h"
-#include "rnn_heaptor.h"
-#include "rnn_parallel.h"
-#include "rnn_progress.h"
-#include "rnn_util.h"
+#include "rnn_distance.hpp"
+#include "rnn_heaptor.hpp"
+#include "rnn_parallel.hpp"
+#include "rnn_progress.hpp"
+#include "rnn_util.hpp"
 
 using Rcpp::IntegerMatrix;
 using Rcpp::List;
