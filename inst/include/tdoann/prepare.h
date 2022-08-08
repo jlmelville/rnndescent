@@ -41,8 +41,8 @@ auto order(It first, It last) -> std::vector<std::size_t> {
   std::vector<std::size_t> idx(last - first);
   std::iota(idx.begin(), idx.end(), static_cast<std::size_t>(0));
 
-  auto cmp = [&first](std::size_t a, std::size_t b) {
-    return *(first + a) < *(first + b);
+  auto cmp = [&first](std::size_t diff_a, std::size_t diff_b) -> bool {
+    return *(first + diff_a) < *(first + diff_b);
   };
   std::stable_sort(idx.begin(), idx.end(), cmp);
 
@@ -50,19 +50,19 @@ auto order(It first, It last) -> std::vector<std::size_t> {
 }
 
 template <typename SparseNNGraph>
-auto kth_smallest_distance(const SparseNNGraph &graph, std::size_t i,
-                           std::size_t k) ->
+auto kth_smallest_distance(const SparseNNGraph &graph, std::size_t item_i,
+                           std::size_t k_small) ->
     typename SparseNNGraph::DistanceOut {
   using DistOut = typename SparseNNGraph::DistanceOut;
   using Idx = typename SparseNNGraph::Index;
-  const std::size_t n_nbrs = graph.n_nbrs(i);
-  NbrQueue<DistOut, Idx> nq;
+  const std::size_t n_nbrs = graph.n_nbrs(item_i);
+  NbrQueue<DistOut, Idx> nbr_queue;
   for (std::size_t j = 0; j < n_nbrs; j++) {
-    nq.emplace(graph.distance(i, j), graph.index(i, j));
+    nbr_queue.emplace(graph.distance(item_i, j), graph.index(item_i, j));
   }
-  DistOut kth_small = nq.pop().first;
-  for (std::size_t j = 1; j < k; j++) {
-    kth_small = nq.pop().first;
+  DistOut kth_small = nbr_queue.pop().first;
+  for (std::size_t j = 1; j < k_small; j++) {
+    kth_small = nbr_queue.pop().first;
   }
   return kth_small;
 }
@@ -133,22 +133,22 @@ void remove_long_edges_impl(const SparseNNGraph &graph,
     // loop starts at 1: we always keep the nearest neighbor so we start with
     // the next nearest neighbor
     for (std::size_t j = 1; j < n_nbrs; j++) {
-      const auto p = ordered[j];
-      Idx nbrp = graph.index(i, p);
-      DistOut dip = graph.distance(i, p);
+      const auto idx_p = ordered[j];
+      Idx nbr_p = graph.index(i, idx_p);
+      DistOut dist_ip = graph.distance(i, idx_p);
       // check the distance between p and all retained neighbors (q) so far
       for (std::size_t k = 0; k < j; k++) {
-        const auto q = ordered[k];
-        if (result.is_marked_for_deletion(i, q)) {
+        const auto idx_q = ordered[k];
+        if (result.is_marked_for_deletion(i, idx_q)) {
           // q was already considered an occlusion, no need to test
           continue;
         }
-        Idx nbrq = graph.index(i, q);
-        DistOut dpq = distance(nbrp, nbrq);
-        auto r = rand.unif();
-        if (dpq < dip && r < prune_probability) {
+        Idx nbr_q = graph.index(i, idx_q);
+        DistOut dist_pq = distance(nbr_p, nbr_q);
+        auto rand_val = rand.unif();
+        if (dist_pq < dist_ip && rand_val < prune_probability) {
           // p occludes q, mark p for deletion
-          result.mark_for_deletion(i, p);
+          result.mark_for_deletion(i, idx_p);
           break;
         }
       }
@@ -185,35 +185,36 @@ auto remove_long_edges(const SparseNNGraph &graph, const Distance &distance,
 }
 
 template <typename SparseNNGraph>
-auto merge_graphs(const SparseNNGraph &g1, const SparseNNGraph &g2)
+auto merge_graphs(const SparseNNGraph &graph1, const SparseNNGraph &graph2)
     -> SparseNNGraph {
   using DistOut = typename SparseNNGraph::DistanceOut;
   using Idx = typename SparseNNGraph::Index;
 
-  const std::size_t n_points = g1.n_points;
+  const std::size_t n_points = graph1.n_points;
 
   std::vector<std::size_t> merged_row_ptr(n_points + 1);
   std::vector<Idx> merged_col_idx;
   std::vector<DistOut> merged_dist;
 
-  std::vector<Idx> search_idx = g1.col_idx;
+  std::vector<Idx> search_idx = graph1.col_idx;
   for (std::size_t i = 0; i < n_points; i++) {
-    const auto begin = g1.row_ptr[i];
-    const auto end = g1.row_ptr[i + 1];
+    const auto begin = graph1.row_ptr[i];
+    const auto end = graph1.row_ptr[i + 1];
 
     std::sort(search_idx.begin() + begin, search_idx.begin() + end);
 
-    std::vector<Idx> col_idx_i(g1.col_idx.begin() + begin,
-                               g1.col_idx.begin() + end);
-    std::vector<DistOut> dist_i(g1.dist.begin() + begin, g1.dist.begin() + end);
+    std::vector<Idx> col_idx_i(graph1.col_idx.begin() + begin,
+                               graph1.col_idx.begin() + end);
+    std::vector<DistOut> dist_i(graph1.dist.begin() + begin,
+                                graph1.dist.begin() + end);
 
     merged_row_ptr[i + 1] = merged_row_ptr[i] + col_idx_i.size();
 
-    for (std::size_t j = g2.row_ptr[i]; j < g2.row_ptr[i + 1]; j++) {
+    for (std::size_t j = graph2.row_ptr[i]; j < graph2.row_ptr[i + 1]; j++) {
       if (!std::binary_search(search_idx.begin() + begin,
-                              search_idx.begin() + end, g2.col_idx[j])) {
-        col_idx_i.push_back(g2.col_idx[j]);
-        dist_i.push_back(g2.dist[j]);
+                              search_idx.begin() + end, graph2.col_idx[j])) {
+        col_idx_i.push_back(graph2.col_idx[j]);
+        dist_i.push_back(graph2.dist[j]);
         ++merged_row_ptr[i + 1];
       }
     }

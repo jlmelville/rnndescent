@@ -3,11 +3,11 @@
 #include "tdoann/heap.h"
 #include "tdoann/hubness.h"
 
-#include "rnn_distance.hpp"
-#include "rnn_heaptor.hpp"
-#include "rnn_parallel.hpp"
-#include "rnn_progress.hpp"
-#include "rnn_util.hpp"
+#include "rnn_distance.h"
+#include "rnn_heaptor.h"
+#include "rnn_parallel.h"
+#include "rnn_progress.h"
+#include "rnn_util.h"
 
 using Rcpp::IntegerMatrix;
 using Rcpp::List;
@@ -15,7 +15,7 @@ using Rcpp::NumericMatrix;
 using Rcpp::NumericVector;
 using Rcpp::stop;
 
-// NOLINTBEGIN(bugprone-easily-swappable-parameters,modernize-use-trailing-return-type)
+// NOLINTBEGIN(modernize-use-trailing-return-type)
 
 // [[Rcpp::export]]
 List local_scaled_nbrs(const IntegerMatrix &idx, const NumericMatrix &dist,
@@ -58,4 +58,4 @@ List local_scaled_nbrs(const IntegerMatrix &idx, const NumericMatrix &dist,
   return res;
 }
 
-// NOLINTEND(bugprone-easily-swappable-parameters,modernize-use-trailing-return-type)
+// NOLINTEND(modernize-use-trailing-return-type)

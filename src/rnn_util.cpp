@@ -22,13 +22,12 @@
 #include <thread>
 
 #include <Rcpp.h>
-#include <progress.hpp>
 
-#include "rnn_distance.hpp"
-#include "rnn_parallel.hpp"
-#include "rnn_util.hpp"
+#include "rnn_distance.h"
+#include "rnn_parallel.h"
+#include "rnn_util.h"
 
-// NOLINTBEGIN(bugprone-easily-swappable-parameters,modernize-use-trailing-return-type)
+// NOLINTBEGIN(modernize-use-trailing-return-type)
 
 using Rcpp::Datetime;
 using Rcpp::IntegerMatrix;
@@ -82,4 +81,4 @@ List sort_graph(const List &graph_list, std::size_t n_threads = 0) {
   return graph_to_r(nn_graph, true);
 }
 
-// NOLINTEND(bugprone-easily-swappable-parameters,modernize-use-trailing-return-type)
+// NOLINTEND(modernize-use-trailing-return-type)

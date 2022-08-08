@@ -18,6 +18,7 @@
 
 #include <numeric>
 #include <utility>
+#include <vector>
 
 #include "dqrng_generator.h"
 #include "minimal_int_set.h"
@@ -38,10 +39,12 @@ auto no_replacement_shuffle(dqrng::rng64_t &rng, INT m, INT n, int offset = 0)
     -> std::vector<INT> {
   std::vector<INT> tmp(m);
   std::iota(tmp.begin(), tmp.end(), static_cast<INT>(offset));
-  for (INT i = 0; i < n; ++i)
+  for (INT i = 0; i < n; ++i) {
     std::swap(tmp[i], tmp[i + (*rng)(m - i)]);
-  if (m == n)
+  }
+  if (m == n) {
     return tmp;
+  }
   return std::vector<INT>(tmp.begin(), tmp.begin() + n);
 }
 
@@ -69,8 +72,9 @@ inline auto sample(std::vector<INT> &result, dqrng::rng64_t &rng, INT n,
   if (replace || size <= 1) {
     result = replacement<INT>(rng, n, size, offset);
   } else {
-    if (n < size)
+    if (n < size) {
       return false;
+    }
     if (n < 2 * size) {
       result = std::move(no_replacement_shuffle<INT>(rng, n, size, offset));
     } else if (n < 1000 * size) {

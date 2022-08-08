@@ -17,7 +17,7 @@
 //  You should have received a copy of the GNU General Public License
 //  along with rnndescent.  If not, see <http://www.gnu.org/licenses/>.
 
-// NOLINTBEGIN(bugprone-easily-swappable-parameters,modernize-use-trailing-return-type)
+// NOLINTBEGIN(modernize-use-trailing-return-type)
 
 #include <Rcpp.h>
 
@@ -53,4 +53,4 @@ IntegerVector reverse_nbr_size_impl(const IntegerMatrix &nn_idx,
   return {n_reverse.begin(), n_reverse.end()};
 }
 
-// NOLINTEND(bugprone-easily-swappable-parameters,modernize-use-trailing-return-type)
+// NOLINTEND(modernize-use-trailing-return-type)

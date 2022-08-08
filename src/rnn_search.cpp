@@ -17,17 +17,17 @@
 //  You should have received a copy of the GNU General Public License
 //  along with rnndescent.  If not, see <http://www.gnu.org/licenses/>.
 
-// NOLINTBEGIN(bugprone-easily-swappable-parameters,cppcoreguidelines-avoid-magic-numbers,modernize-use-trailing-return-type,readability-magic-numbers)
+// NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers,modernize-use-trailing-return-type,readability-magic-numbers)
 
 #include <Rcpp.h>
 
 #include "tdoann/search.h"
 
-#include "rnn_distance.hpp"
-#include "rnn_heaptor.hpp"
-#include "rnn_macros.hpp"
-#include "rnn_progress.hpp"
-#include "rnn_rtoheap.hpp"
+#include "rnn_distance.h"
+#include "rnn_heaptor.h"
+#include "rnn_macros.h"
+#include "rnn_progress.h"
+#include "rnn_rtoheap.h"
 
 using Rcpp::IntegerMatrix;
 using Rcpp::List;
@@ -66,4 +66,4 @@ List nn_query(const NumericMatrix &reference, const List &reference_graph_list,
   DISPATCH_ON_QUERY_DISTANCES(NN_QUERY_IMPL)
 }
 
-// NOLINTEND(bugprone-easily-swappable-parameters,cppcoreguidelines-avoid-magic-numbers,modernize-use-trailing-return-type,readability-magic-numbers)
+// NOLINTEND(cppcoreguidelines-avoid-magic-numbers,modernize-use-trailing-return-type,readability-magic-numbers)

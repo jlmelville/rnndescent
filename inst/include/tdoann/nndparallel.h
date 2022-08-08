@@ -27,41 +27,48 @@
 #ifndef TDOANN_NNDPARALLEL_H
 #define TDOANN_NNDPARALLEL_H
 
+#include <array>
 #include <mutex>
 
 #include "heap.h"
 
 namespace tdoann {
 
-template <typename Distance> struct LockingHeapAdder {
+template <typename Distance> class LockingHeapAdder {
+private:
   using Idx = typename Distance::Index;
   using Out = typename Distance::Output;
 
   static const constexpr std::size_t n_mutexes = 10;
-  std::mutex mutexes[n_mutexes];
+  std::array<std::mutex, n_mutexes> mutexes;
 
-  LockingHeapAdder() {}
+public:
+  LockingHeapAdder() = default;
   LockingHeapAdder(LockingHeapAdder const &) = delete;
-  LockingHeapAdder &operator=(LockingHeapAdder const &) = delete;
+  auto operator=(LockingHeapAdder const &) -> LockingHeapAdder & = delete;
+  LockingHeapAdder(LockingHeapAdder &&) = delete;
+  auto operator=(LockingHeapAdder &&) -> LockingHeapAdder & = delete;
+  ~LockingHeapAdder() = default;
 
-  void add(NNHeap<Out, Idx> &nbrs, Idx i, Idx idx, Out d) {
+  void add(NNHeap<Out, Idx> &nbrs, Idx item_i, Idx item_j, Out dist_ij) {
     {
-      std::lock_guard<std::mutex> guard(mutexes[i % n_mutexes]);
-      nbrs.checked_push(i, d, idx);
+      std::lock_guard<std::mutex> guard(mutexes[item_i % n_mutexes]);
+      nbrs.checked_push(item_i, dist_ij, item_j);
     }
-    if (i != idx) {
-      std::lock_guard<std::mutex> guard(mutexes[idx % n_mutexes]);
-      nbrs.checked_push(idx, d, i);
+    if (item_i != item_j) {
+      std::lock_guard<std::mutex> guard(mutexes[item_j % n_mutexes]);
+      nbrs.checked_push(item_j, dist_ij, item_i);
     }
   }
-  void add(NNHeap<Out, Idx> &nbrs, Idx i, Idx idx, Out d_i, Out d_idx) {
+  void add(NNHeap<Out, Idx> &nbrs, Idx item_i, Idx item_j, Out dist_ij,
+           Out dist_ji) {
     {
-      std::lock_guard<std::mutex> guard(mutexes[i % n_mutexes]);
-      nbrs.checked_push(i, d_i, idx);
+      std::lock_guard<std::mutex> guard(mutexes[item_i % n_mutexes]);
+      nbrs.checked_push(item_i, dist_ij, item_j);
     }
-    if (i != idx) {
-      std::lock_guard<std::mutex> guard(mutexes[idx % n_mutexes]);
-      nbrs.checked_push(idx, d_idx, i);
+    if (item_i != item_j) {
+      std::lock_guard<std::mutex> guard(mutexes[item_j % n_mutexes]);
+      nbrs.checked_push(item_j, dist_ji, item_i);
     }
   }
 };
@@ -81,15 +88,15 @@ void build_candidates(
   for (auto i = begin; i < end; i++) {
     std::size_t innbrs = i * n_nbrs;
     for (std::size_t j = 0; j < n_nbrs; j++) {
-      std::size_t ij = innbrs + j;
-      auto nbr = current_graph.idx[ij];
-      char isn = current_graph.flags[ij];
+      std::size_t inbrj = innbrs + j;
+      auto nbr = current_graph.idx[inbrj];
+      char isn = current_graph.flags[inbrj];
       auto &nbrs = isn == 1 ? new_nbrs : old_nbrs;
       if (nbr == nbrs.npos()) {
         continue;
       }
-      auto d = rand.unif();
-      heap_adder.add(nbrs, i, nbr, d);
+      auto rand_weight = rand.unif();
+      heap_adder.add(nbrs, i, nbr, rand_weight);
     }
   }
 }
@@ -131,24 +138,24 @@ void local_join(
   for (auto i = begin; i < end; i++) {
     std::size_t imaxc = i * max_candidates;
     for (std::size_t j = 0; j < max_candidates; j++) {
-      std::size_t p = new_nbrs.idx[imaxc + j];
-      if (p == new_nbrs.npos()) {
+      std::size_t item_p = new_nbrs.idx[imaxc + j];
+      if (item_p == new_nbrs.npos()) {
         continue;
       }
       for (std::size_t k = j; k < max_candidates; k++) {
-        std::size_t q = new_nbrs.idx[imaxc + k];
-        if (q == new_nbrs.npos()) {
+        std::size_t item_new = new_nbrs.idx[imaxc + k];
+        if (item_new == new_nbrs.npos()) {
           continue;
         }
-        graph_updater.generate(p, q, i);
+        graph_updater.generate(item_p, item_new, i);
       }
 
       for (std::size_t k = 0; k < max_candidates; k++) {
-        std::size_t q = old_nbrs.idx[imaxc + k];
-        if (q == old_nbrs.npos()) {
+        std::size_t item_old = old_nbrs.idx[imaxc + k];
+        if (item_old == old_nbrs.npos()) {
           continue;
         }
-        graph_updater.generate(p, q, i);
+        graph_updater.generate(item_p, item_old, i);
       }
     }
   }
@@ -161,20 +168,20 @@ auto local_join(
     const NNHeap<typename Distance::Output, typename Distance::Index> &new_nbrs,
     const NNHeap<typename Distance::Output, typename Distance::Index> &old_nbrs,
     Progress &progress, std::size_t n_threads) -> std::size_t {
-  std::size_t c = 0;
+  std::size_t num_updated = 0;
   auto local_join_worker = [&](std::size_t begin, std::size_t end) {
     local_join<Distance, decltype(graph_updater)>(
         graph_updater, new_nbrs, old_nbrs, new_nbrs.n_nbrs, begin, end);
   };
   auto after_local_join = [&](std::size_t, std::size_t) {
-    c += graph_updater.apply();
+    num_updated += graph_updater.apply();
   };
   const std::size_t block_size = 16384;
   const std::size_t grain_size = 1;
   batch_parallel_for<Parallel>(local_join_worker, after_local_join, progress,
                                graph_updater.current_graph.n_points, block_size,
                                n_threads, grain_size);
-  return c;
+  return num_updated;
 }
 
 template <typename Parallel, typename ParallelRand,
@@ -193,7 +200,7 @@ void nnd_build(GraphUpdater<Distance> &graph_updater,
 
   LockingHeapAdder<Distance> heap_adder;
 
-  for (std::size_t n = 0; n < n_iters; n++) {
+  for (std::size_t iter = 0; iter < n_iters; iter++) {
     NNHeap<DistOut, Idx> new_nbrs(n_points, max_candidates);
     decltype(new_nbrs) old_nbrs(n_points, max_candidates);
 
@@ -204,12 +211,15 @@ void nnd_build(GraphUpdater<Distance> &graph_updater,
     // candidates as true
     flag_new_candidates<Parallel, Distance>(nn_heap, new_nbrs, n_threads);
 
-    std::size_t c = local_join<Parallel, Distance>(
+    std::size_t num_updated = local_join<Parallel, Distance>(
         graph_updater, new_nbrs, old_nbrs, progress, n_threads);
 
     TDOANN_ITERFINISHED();
     progress.heap_report(nn_heap);
-    TDOANN_CHECKCONVERGENCE();
+    if (is_converged(num_updated, tol)) {
+      progress.converged(num_updated, tol);
+      break;
+    }
   }
 }
 

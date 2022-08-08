@@ -27,15 +27,18 @@
 #ifndef TDOANN_PROGRESS_H
 #define TDOANN_PROGRESS_H
 
+#include <sstream>
 #include <string>
 
 #include "progressbase.h"
 
 namespace tdoann {
-template <typename Progress> struct NNDProgress {
+template <typename Progress> class NNDProgress {
+private:
   Progress progress;
 
-  NNDProgress(Progress &progress) : progress(progress) {}
+public:
+  explicit NNDProgress(Progress &progress) : progress(progress) {}
   void set_n_blocks(std::size_t n) { progress.set_n_blocks(n); }
   void block_finished() { progress.block_finished(); }
   void iter_finished() { progress.iter_finished(); }
@@ -45,13 +48,16 @@ template <typename Progress> struct NNDProgress {
     progress.converged(n_updates, tol);
   }
   void log(const std::string &msg) { progress.log(msg); }
-  template <typename NeighborHeap> void heap_report(const NeighborHeap &) {}
+  template <typename NeighborHeap>
+  void heap_report(const NeighborHeap & /* neighbor_heap */) {}
 };
 
-template <typename Progress> struct HeapSumProgress {
+template <typename Progress> class HeapSumProgress {
+private:
   Progress progress;
 
-  HeapSumProgress(Progress &progress) : progress(progress) {}
+public:
+  explicit HeapSumProgress(Progress &progress) : progress(progress) {}
   void set_n_blocks(std::size_t n) { progress.set_n_blocks(n); }
   void block_finished() { progress.block_finished(); }
   void iter_finished() { progress.iter_finished(); }
@@ -72,9 +78,9 @@ template <typename Progress> struct HeapSumProgress {
         hsum += neighbor_heap.dist[innbrs + j];
       }
     }
-    std::ostringstream os;
-    os << "heap sum = " << hsum;
-    log(os.str());
+    std::ostringstream os_out;
+    os_out << "heap sum = " << hsum;
+    log(os_out.str());
   }
 };
 
@@ -89,34 +95,34 @@ void pr(Progress &progress, const NeighborHeap &neighbor_heap,
   typename NeighborHeap::Index n_points = neighbor_heap.n_points;
   std::size_t n_nbrs = neighbor_heap.n_nbrs;
 
-  std::ostringstream os;
-  os << header << std::endl;
+  std::ostringstream os_out;
+  os_out << header << std::endl;
   for (typename NeighborHeap::Index i = 0; i < n_points; i++) {
     std::size_t innbrs = i * n_nbrs;
-    os << i << ": ";
+    os_out << i << ": ";
     for (std::size_t j = 0; j < n_nbrs; j++) {
       auto idx = neighbor_heap.idx[innbrs + j];
       if (idx == neighbor_heap.npos()) {
-        os << "-1 ";
+        os_out << "-1 ";
       } else {
-        os << neighbor_heap.idx[innbrs + j] << " ";
+        os_out << neighbor_heap.idx[innbrs + j] << " ";
       }
     }
-    os << std::endl;
+    os_out << std::endl;
   }
   for (typename NeighborHeap::Index i = 0; i < n_points; i++) {
     std::size_t innbrs = i * n_nbrs;
-    os << i << ": ";
+    os_out << i << ": ";
     for (std::size_t j = 0; j < n_nbrs; j++) {
       if (neighbor_heap.idx[innbrs + j] == neighbor_heap.npos()) {
-        os << "NA ";
+        os_out << "NA ";
       } else {
-        os << neighbor_heap.dist[innbrs + j] << " ";
+        os_out << neighbor_heap.dist[innbrs + j] << " ";
       }
     }
-    os << std::endl;
+    os_out << std::endl;
   }
-  progress.log(os.str());
+  progress.log(os_out.str());
 }
 } // namespace tdoann
 

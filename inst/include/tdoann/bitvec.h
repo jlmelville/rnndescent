@@ -37,7 +37,8 @@ template <unsigned int n> using BitSet = std::bitset<n>;
 using BitVec = std::vector<BitSet<BITVEC_BIT_WIDTH>>;
 
 inline auto bitvec_size(std::size_t nbits) -> std::size_t {
-  return std::ceil(nbits / float{BITVEC_BIT_WIDTH});
+  return std::ceil(static_cast<float>(nbits) /
+                   static_cast<float>(BITVEC_BIT_WIDTH));
 }
 
 // Instead of storing each bit as an element, we will pack them

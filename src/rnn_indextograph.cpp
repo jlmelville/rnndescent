@@ -17,16 +17,16 @@
 //  You should have received a copy of the GNU General Public License
 //  along with rnndescent.  If not, see <http://www.gnu.org/licenses/>.
 
-// NOLINTBEGIN(bugprone-easily-swappable-parameters,cppcoreguidelines-avoid-magic-numbers,modernize-use-trailing-return-type,readability-magic-numbers)
+// NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers,modernize-use-trailing-return-type,readability-magic-numbers)
 
 #include <Rcpp.h>
 
 #include "tdoann/nngraph.h"
 
-#include "rnn_distance.hpp"
-#include "rnn_macros.hpp"
-#include "rnn_parallel.hpp"
-#include "rnn_rtoheap.hpp"
+#include "rnn_distance.h"
+#include "rnn_macros.h"
+#include "rnn_parallel.h"
+#include "rnn_rtoheap.h"
 
 using Rcpp::IntegerMatrix;
 using Rcpp::List;
@@ -70,4 +70,4 @@ List
   DISPATCH_ON_QUERY_DISTANCES(IDX_TO_GRAPH_QUERY)
 }
 
-// NOLINTEND(bugprone-easily-swappable-parameters,cppcoreguidelines-avoid-magic-numbers,modernize-use-trailing-return-type,readability-magic-numbers)
+// NOLINTEND(cppcoreguidelines-avoid-magic-numbers,modernize-use-trailing-return-type,readability-magic-numbers)

@@ -31,6 +31,8 @@
 
 #include "bitvec.h"
 
+// NOLINTBEGIN(readability-identifier-length)
+
 namespace tdoann {
 
 // distance functions
@@ -139,13 +141,16 @@ inline auto hamming(const It xbegin, const It xend, const It ybegin) -> Out {
 // Functions for initializing input vectors in functor structs
 
 template <typename T>
-auto do_nothing(const std::vector<T> &vec, std::size_t ndim) -> std::vector<T> {
+auto do_nothing(const std::vector<T> &vec, std::size_t /* ndim */)
+    -> std::vector<T> {
   return vec;
 }
 
 // relies on NRVO to avoid a copy
 template <typename T>
 auto normalize(const std::vector<T> &vec, std::size_t ndim) -> std::vector<T> {
+  const constexpr T MIN_NORM = 1e-30;
+
   std::vector<T> normalized(vec.size());
   std::size_t npoints = vec.size() / ndim;
   for (std::size_t i = 0; i < npoints; i++) {
@@ -156,7 +161,7 @@ auto normalize(const std::vector<T> &vec, std::size_t ndim) -> std::vector<T> {
       auto val = vec[di + d];
       norm += val * val;
     }
-    norm = std::sqrt(norm) + 1e-30;
+    norm = std::sqrt(norm) + MIN_NORM;
     for (std::size_t d = 0; d < ndim; d++) {
       normalized[di + d] = vec[di + d] / norm;
     }
@@ -304,3 +309,4 @@ struct BHammingQuery {
 
 } // namespace tdoann
 #endif // TDOANN_DISTANCE_H
+// NOLINTEND(readability-identifier-length)

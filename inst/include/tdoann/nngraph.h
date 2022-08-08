@@ -27,6 +27,7 @@
 #ifndef TDOANN_NNGRAPH_H
 #define TDOANN_NNGRAPH_H
 
+#include <array>
 #include <mutex>
 #include <vector>
 
@@ -55,26 +56,28 @@ struct SparseNNGraph {
 
   static constexpr auto zero = static_cast<DistOut>(0);
 
-  auto n_nbrs(Idx i) const -> std::size_t {
-    return row_ptr[i + 1] - row_ptr[i];
+  auto n_nbrs(Idx i_idx) const -> std::size_t {
+    return row_ptr[i_idx + 1] - row_ptr[i_idx];
   }
 
-  auto index(Idx i, Idx j) const -> Idx {
-    return col_idx[row_ptr[i] + static_cast<std::size_t>(j)];
+  auto index(Idx i_idx, Idx j_idx) const -> Idx {
+    return col_idx[row_ptr[i_idx] + static_cast<std::size_t>(j_idx)];
   }
 
-  auto distance(Idx i, Idx j) const -> DistOut {
-    return dist[row_ptr[i] + static_cast<std::size_t>(j)];
+  auto distance(Idx i_idx, Idx j_idx) const -> DistOut {
+    return dist[row_ptr[i_idx] + static_cast<std::size_t>(j_idx)];
   }
 
-  auto distance(Idx i, Idx j) -> DistOut & {
-    return dist[row_ptr[i] + static_cast<std::size_t>(j)];
+  auto distance(Idx i_idx, Idx j_idx) -> DistOut & {
+    return dist[row_ptr[i_idx] + static_cast<std::size_t>(j_idx)];
   }
 
-  void mark_for_deletion(Idx i, Idx j) { distance(i, j) = zero; }
+  void mark_for_deletion(Idx i_idx, Idx j_idx) {
+    distance(i_idx, j_idx) = zero;
+  }
 
-  auto is_marked_for_deletion(Idx i, Idx j) -> bool {
-    return distance(i, j) == zero;
+  auto is_marked_for_deletion(Idx i_idx, Idx j_idx) -> bool {
+    return distance(i_idx, j_idx) == zero;
   }
 };
 
@@ -123,33 +126,35 @@ auto heap_to_graph(const NbrHeap &heap)
 struct HeapAddSymmetric {
   template <typename NbrHeap>
   void push(NbrHeap &heap, std::size_t ref, std::size_t query,
-            typename NbrHeap::DistanceOut d) {
-    heap.checked_push_pair(ref, d, query);
+            typename NbrHeap::DistanceOut dist_rq) {
+    heap.checked_push_pair(ref, dist_rq, query);
   }
 };
 
 struct HeapAddQuery {
   template <typename NbrHeap>
   void push(NbrHeap &heap, std::size_t ref, std::size_t query,
-            typename NbrHeap::DistanceOut d) {
-    heap.checked_push(ref, d, query);
+            typename NbrHeap::DistanceOut dist_rq) {
+    heap.checked_push(ref, dist_rq, query);
   }
 };
 
 struct LockingHeapAddSymmetric {
   static const constexpr std::size_t n_mutexes = 10;
-  std::mutex mutexes[n_mutexes];
+  std::array<std::mutex, n_mutexes> mutexes;
 
   template <typename NbrHeap>
   void push(NbrHeap &heap, std::size_t ref, std::size_t query,
-            typename NbrHeap::DistanceOut d) {
+            typename NbrHeap::DistanceOut dist_rq) {
     {
+      // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
       std::lock_guard<std::mutex> guard(mutexes[ref % n_mutexes]);
-      heap.checked_push(ref, d, query);
+      heap.checked_push(ref, dist_rq, query);
     }
     {
+      // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
       std::lock_guard<std::mutex> guard(mutexes[query % n_mutexes]);
-      heap.checked_push(query, d, ref);
+      heap.checked_push(query, dist_rq, ref);
     }
   }
 };
@@ -166,8 +171,8 @@ void vec_to_heap(NbrHeap &current_graph,
   std::size_t n_nbrs = nn_idx.size() / nrow;
   for (auto i = begin; i < end; i++) {
     for (std::size_t j = 0; j < n_nbrs; j++) {
-      std::size_t ij = transpose ? i + j * nrow : j + i * n_nbrs;
-      heap_add.push(current_graph, i, nn_idx[ij], nn_dist[ij]);
+      std::size_t ij_1d = transpose ? i + j * nrow : j + i * n_nbrs;
+      heap_add.push(current_graph, i, nn_idx[ij_1d], nn_dist[ij_1d]);
     }
   }
 }
@@ -244,12 +249,12 @@ void idx_to_graph(const Distance &distance,
                   std::vector<typename Distance::Output> &dist,
                   std::size_t n_nbrs, std::size_t begin, std::size_t end) {
   std::size_t innbrs = 0;
-  std::size_t ij = 0;
+  std::size_t ij_1d = 0;
   for (std::size_t i = begin; i < end; i++) {
     innbrs = i * n_nbrs;
     for (std::size_t j = 0; j < n_nbrs; j++) {
-      ij = innbrs + j;
-      dist[ij] = distance(idx[ij], i);
+      ij_1d = innbrs + j;
+      dist[ij_1d] = distance(idx[ij_1d], i);
     }
   }
 }
@@ -270,7 +275,8 @@ auto idx_to_graph(const Distance &distance,
   auto worker = [&](std::size_t begin, std::size_t end) {
     idx_to_graph(distance, idx, dist, n_nbrs, begin, end);
   };
-  batch_serial_for(worker, progress, n_points, 1024);
+  const constexpr std::size_t batch_size = 1024;
+  batch_serial_for(worker, progress, n_points, batch_size);
 
   return NNGraph<Out, Index>(idx, dist, n_points);
 }
@@ -291,9 +297,10 @@ auto idx_to_graph(const Distance &distance,
   auto worker = [&](std::size_t begin, std::size_t end) {
     idx_to_graph(distance, idx, dist, n_nbrs, begin, end);
   };
-  const std::size_t grain_size = 1;
-  batch_parallel_for<Parallel>(worker, progress, n_points, 1024, n_threads,
-                               grain_size);
+  const constexpr std::size_t grain_size = 1;
+  const constexpr std::size_t batch_size = 1024;
+  batch_parallel_for<Parallel>(worker, progress, n_points, batch_size,
+                               n_threads, grain_size);
 
   return NNGraph<Out, Index>(idx, dist, n_points);
 }

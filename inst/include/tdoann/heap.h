@@ -35,8 +35,40 @@
 
 namespace tdoann {
 
+template <typename DistOut, typename Idx>
+void siftdown(std::size_t root, std::size_t len, std::vector<Idx> &idx,
+              std::vector<DistOut> &dist) {
+  std::size_t elt = 0;
+  std::size_t e21 = elt * 2 + 1;
+
+  while (e21 < len) {
+    std::size_t left_child = e21;
+    std::size_t right_child = left_child + 1;
+    std::size_t swap = elt;
+
+    if (dist[root + swap] < dist[root + left_child]) {
+      swap = left_child;
+    }
+
+    if (right_child < len && dist[root + swap] < dist[root + right_child]) {
+      swap = right_child;
+    }
+
+    if (swap == elt) {
+      break;
+    }
+
+    std::swap(dist[root + elt], dist[root + swap]);
+    std::swap(idx[root + elt], idx[root + swap]);
+    elt = swap;
+
+    e21 = elt * 2 + 1;
+  }
+}
+
 // Base class storing neighbor data as a series of heaps
-template <typename DistOut = float, typename Idx = uint32_t> struct NNDHeap {
+template <typename DistOut = float, typename Idx = uint32_t> class NNDHeap {
+public:
   using DistanceOut = DistOut;
   using Index = Idx;
 
@@ -55,8 +87,10 @@ template <typename DistOut = float, typename Idx = uint32_t> struct NNDHeap {
         n_nbrs1(n_nbrs - 1), flags(n_points * n_nbrs, 0) {}
 
   NNDHeap(const NNDHeap &) = default;
-  ~NNDHeap() = default;
   auto operator=(const NNDHeap &) -> NNDHeap & = default;
+  NNDHeap(NNDHeap &&) noexcept = default;
+  auto operator=(NNDHeap &&) noexcept -> NNDHeap & = default;
+  ~NNDHeap() = default;
 
   auto contains(Idx row, Idx index) const -> bool {
     std::size_t rnnbrs = row * n_nbrs;
@@ -68,24 +102,25 @@ template <typename DistOut = float, typename Idx = uint32_t> struct NNDHeap {
     return false;
   }
 
-  // returns true if either p or q would accept a neighbor with distance d
-  auto accepts_either(Idx p, Idx q, DistOut d) const -> bool {
-    return (p < n_points && d < dist[p * n_nbrs]) ||
-           (p != q && q < n_points && d < dist[q * n_nbrs]);
+  // returns true if either p or q would accept a neighbor with distance dist
+  auto accepts_either(Idx idx_p, Idx idx_q, DistOut d_pq) const -> bool {
+    return (idx_p < n_points && d_pq < dist[idx_p * n_nbrs]) ||
+           (idx_p != idx_q && idx_q < n_points && d_pq < dist[idx_q * n_nbrs]);
   }
 
   // returns true if p would accept a neighbor with distance d
-  auto accepts(Idx p, DistOut d) const -> bool {
-    return p < n_points && d < dist[p * n_nbrs];
+  auto accepts(Idx idx_p, DistOut d_pq) const -> bool {
+    return idx_p < n_points && d_pq < dist[idx_p * n_nbrs];
   }
 
   auto checked_push_pair(Idx row, DistOut weight, Idx idx, char flag = 1)
       -> std::size_t {
-    std::size_t c = checked_push(row, weight, idx, flag);
+    std::size_t num_updates = checked_push(row, weight, idx, flag);
     if (row != idx) {
-      c += checked_push(idx, weight, row, flag);
+      // NOLINTNEXTLINE(readability-suspicious-call-argument)
+      num_updates += checked_push(idx, weight, row, flag);
     }
-    return c;
+    return num_updates;
   }
 
   auto checked_push(Idx row, DistOut weight, Idx idx, char flag = 1)
@@ -100,52 +135,56 @@ template <typename DistOut = float, typename Idx = uint32_t> struct NNDHeap {
   // This differs from the pynndescent version as it is truly unchecked
   auto unchecked_push(Idx row, DistOut weight, Idx index, char flag = 1)
       -> std::size_t {
-    std::size_t r0 = row * n_nbrs;
+    std::size_t root = row * n_nbrs;
 
     // insert val at position zero
-    dist[r0] = weight;
-    idx[r0] = index;
-    flags[r0] = flag;
+    dist[root] = weight;
+    idx[root] = index;
+    flags[root] = flag;
 
     // descend the heap, swapping values until the max heap criterion is met
-    std::size_t i = 0;
+    std::size_t i_parent = 0;
     std::size_t i_swap = 0;
+    std::size_t ic1 = 0;
+    std::size_t ic2 = 0;
+
     while (true) {
-      std::size_t ic1 = 2 * i + 1;
-      std::size_t ic2 = ic1 + 1;
+      ic1 = 2 * i_parent + 1;
+      ic2 = ic1 + 1;
 
       if (ic1 >= n_nbrs) {
         break;
-      } else if (ic2 >= n_nbrs) {
-        if (dist[r0 + ic1] >= weight) {
+      }
+      if (ic2 >= n_nbrs) {
+        if (dist[root + ic1] >= weight) {
           i_swap = ic1;
         } else {
           break;
         }
-      } else if (dist[r0 + ic1] >= dist[r0 + ic2]) {
-        if (weight < dist[r0 + ic1]) {
+      } else if (dist[root + ic1] >= dist[root + ic2]) {
+        if (weight < dist[root + ic1]) {
           i_swap = ic1;
         } else {
           break;
         }
       } else {
-        if (weight < dist[r0 + ic2]) {
+        if (weight < dist[root + ic2]) {
           i_swap = ic2;
         } else {
           break;
         }
       }
 
-      std::size_t r0i = r0 + i;
-      std::size_t r0is = r0 + i_swap;
-      dist[r0i] = dist[r0is];
-      idx[r0i] = idx[r0is];
-      flags[r0i] = flags[r0is];
+      std::size_t r0i = root + i_parent;
+      std::size_t r0i_swap = root + i_swap;
+      dist[r0i] = dist[r0i_swap];
+      idx[r0i] = idx[r0i_swap];
+      flags[r0i] = flags[r0i_swap];
 
-      i = i_swap;
+      i_parent = i_swap;
     }
 
-    std::size_t r0i = r0 + i;
+    std::size_t r0i = root + i_parent;
     dist[r0i] = weight;
     idx[r0i] = index;
     flags[r0i] = flag;
@@ -158,7 +197,7 @@ template <typename DistOut = float, typename Idx = uint32_t> struct NNDHeap {
       deheap_sort(i);
     }
   }
-
+  // NOLINTBEGIN(readability-identifier-length)
   void deheap_sort(Idx i) {
     std::size_t r0 = i * n_nbrs;
     for (std::size_t j = 0; j < n_nbrs1; j++) {
@@ -166,35 +205,7 @@ template <typename DistOut = float, typename Idx = uint32_t> struct NNDHeap {
       std::size_t r0nn1 = r0 + n1j;
       std::swap(idx[r0], idx[r0nn1]);
       std::swap(dist[r0], dist[r0nn1]);
-      siftdown(r0, n1j);
-    }
-  }
-
-  void siftdown(std::size_t r0, std::size_t len) {
-    std::size_t elt = 0;
-    std::size_t e21 = elt * 2 + 1;
-
-    while (e21 < len) {
-      std::size_t left_child = e21;
-      std::size_t right_child = left_child + 1;
-      std::size_t swap = elt;
-
-      if (dist[r0 + swap] < dist[r0 + left_child]) {
-        swap = left_child;
-      }
-
-      if (right_child < len && dist[r0 + swap] < dist[r0 + right_child]) {
-        swap = right_child;
-      }
-
-      if (swap == elt) {
-        break;
-      } else {
-        std::swap(dist[r0 + elt], dist[r0 + swap]);
-        std::swap(idx[r0 + elt], idx[r0 + swap]);
-        elt = swap;
-      }
-      e21 = elt * 2 + 1;
+      siftdown(r0, n1j, idx, dist);
     }
   }
 
@@ -210,9 +221,12 @@ template <typename DistOut = float, typename Idx = uint32_t> struct NNDHeap {
   auto max_distance(Idx i) const -> DistOut { return dist[i * n_nbrs]; }
 
   auto is_full(Idx i) const -> bool { return idx[i * n_nbrs] != npos(); }
+  // NOLINTEND(readability-identifier-length)
 };
 
-template <typename T> T limit_max() { return (std::numeric_limits<T>::max)(); }
+template <typename T> auto limit_max() -> T {
+  return (std::numeric_limits<T>::max)();
+}
 
 // Like NNDHeap, but no flag vector
 template <typename DistOut = float, typename Idx = uint32_t,
@@ -234,8 +248,10 @@ struct NNHeap {
         dist(n_points * n_nbrs, max_dist()), n_nbrs1(n_nbrs - 1) {}
 
   NNHeap(const NNHeap &) = default;
-  ~NNHeap() = default;
   auto operator=(const NNHeap &) -> NNHeap & = default;
+  NNHeap(NNHeap &&) noexcept = default;
+  auto operator=(NNHeap &&) noexcept -> NNHeap & = default;
+  ~NNHeap() = default;
 
   auto contains(Idx row, Idx index) const -> bool {
     std::size_t rnnbrs = row * n_nbrs;
@@ -248,23 +264,23 @@ struct NNHeap {
   }
 
   // returns true if either p or q would accept a neighbor with distance d
-  auto accepts_either(Idx p, Idx q, DistOut d) const -> bool {
-    return (p < n_points && d < dist[p * n_nbrs]) ||
-           (p != q && q < n_points && d < dist[q * n_nbrs]);
+  auto accepts_either(Idx idx_p, Idx idx_q, DistOut d_pq) const -> bool {
+    return (idx_p < n_points && d_pq < dist[idx_p * n_nbrs]) ||
+           (idx_p != idx_q && idx_q < n_points && d_pq < dist[idx_q * n_nbrs]);
   }
 
   // returns true if p would accept a neighbor with distance d
-  auto accepts(Idx p, DistOut d) const -> bool {
-    return p < n_points && d < dist[p * n_nbrs];
+  auto accepts(Idx idx_p, DistOut d_pq) const -> bool {
+    return idx_p < n_points && d_pq < dist[idx_p * n_nbrs];
   }
 
   auto checked_push_pair(std::size_t row, DistOut weight, Idx idx)
       -> std::size_t {
-    std::size_t c = checked_push(row, weight, idx);
+    std::size_t n_updates = checked_push(row, weight, idx);
     if (row != idx) {
-      c += checked_push(idx, weight, row);
+      n_updates += checked_push(idx, weight, row);
     }
-    return c;
+    return n_updates;
   }
 
   auto checked_push(Idx row, DistOut weight, Idx idx) -> std::size_t {
@@ -276,52 +292,53 @@ struct NNHeap {
   }
 
   auto unchecked_push(Idx row, DistOut weight, Idx index) -> std::size_t {
-    std::size_t r0 = row * n_nbrs;
+    std::size_t root = row * n_nbrs;
 
     // insert val at position zero
-    dist[r0] = weight;
-    idx[r0] = index;
+    dist[root] = weight;
+    idx[root] = index;
 
     // descend the heap, swapping values until the max heap criterion is met
-    std::size_t i = 0;
-    std::size_t i_swap = 0;
+    std::size_t rel_parent = 0;
+    std::size_t rel_swap = 0;
     while (true) {
-      std::size_t ic1 = 2 * i + 1;
+      std::size_t ic1 = 2 * rel_parent + 1;
       std::size_t ic2 = ic1 + 1;
 
       if (ic1 >= n_nbrs) {
         break;
-      } else if (ic2 >= n_nbrs) {
-        if (dist[r0 + ic1] >= weight) {
-          i_swap = ic1;
+      }
+      if (ic2 >= n_nbrs) {
+        if (dist[root + ic1] >= weight) {
+          rel_swap = ic1;
         } else {
           break;
         }
-      } else if (dist[r0 + ic1] >= dist[r0 + ic2]) {
-        if (weight < dist[r0 + ic1]) {
-          i_swap = ic1;
+      } else if (dist[root + ic1] >= dist[root + ic2]) {
+        if (weight < dist[root + ic1]) {
+          rel_swap = ic1;
         } else {
           break;
         }
       } else {
-        if (weight < dist[r0 + ic2]) {
-          i_swap = ic2;
+        if (weight < dist[root + ic2]) {
+          rel_swap = ic2;
         } else {
           break;
         }
       }
 
-      std::size_t r0i = r0 + i;
-      std::size_t r0is = r0 + i_swap;
-      dist[r0i] = dist[r0is];
-      idx[r0i] = idx[r0is];
+      std::size_t parent = root + rel_parent;
+      std::size_t swap = root + rel_swap;
+      dist[parent] = dist[swap];
+      idx[parent] = idx[swap];
 
-      i = i_swap;
+      rel_parent = rel_swap;
     }
 
-    std::size_t r0i = r0 + i;
-    dist[r0i] = weight;
-    idx[r0i] = index;
+    std::size_t parent = root + rel_parent;
+    dist[parent] = weight;
+    idx[parent] = index;
 
     return 1;
   }
@@ -332,42 +349,15 @@ struct NNHeap {
     }
   }
 
+  // NOLINTBEGIN(readability-identifier-length)
   void deheap_sort(Idx i) {
-    std::size_t r0 = i * n_nbrs;
+    std::size_t root = i * n_nbrs;
     for (std::size_t j = 0; j < n_nbrs1; j++) {
       std::size_t n1j = n_nbrs1 - j;
-      std::size_t r0nn1 = r0 + n1j;
-      std::swap(idx[r0], idx[r0nn1]);
-      std::swap(dist[r0], dist[r0nn1]);
-      siftdown(r0, n1j);
-    }
-  }
-
-  void siftdown(std::size_t r0, std::size_t len) {
-    std::size_t elt = 0;
-    std::size_t e21 = elt * 2 + 1;
-
-    while (e21 < len) {
-      std::size_t left_child = e21;
-      std::size_t right_child = left_child + 1;
-      std::size_t swap = elt;
-
-      if (dist[r0 + swap] < dist[r0 + left_child]) {
-        swap = left_child;
-      }
-
-      if (right_child < len && dist[r0 + swap] < dist[r0 + right_child]) {
-        swap = right_child;
-      }
-
-      if (swap == elt) {
-        break;
-      } else {
-        std::swap(dist[r0 + elt], dist[r0 + swap]);
-        std::swap(idx[r0 + elt], idx[r0 + swap]);
-        elt = swap;
-      }
-      e21 = elt * 2 + 1;
+      std::size_t r0nn1 = root + n1j;
+      std::swap(idx[root], idx[r0nn1]);
+      std::swap(dist[root], dist[r0nn1]);
+      siftdown(root, n1j, idx, dist);
     }
   }
 
@@ -378,6 +368,7 @@ struct NNHeap {
   auto max_distance(Idx i) const -> DistOut { return dist[i * n_nbrs]; }
 
   auto is_full(Idx i) const -> bool { return idx[i * n_nbrs] != npos(); }
+  // NOLINTEND(readability-identifier-length)
 };
 
 template <typename Parallel = NoParallel, typename NbrHeap>

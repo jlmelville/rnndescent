@@ -19,7 +19,7 @@
 
 #include <Rcpp.h>
 
-#include "rnn_progress.hpp"
+#include "rnn_progress.h"
 
 RInterruptableProgress::RInterruptableProgress() = default;
 RInterruptableProgress::RInterruptableProgress(std::size_t /* niters */,

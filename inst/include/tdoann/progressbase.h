@@ -42,26 +42,26 @@
   TDOANN_BREAKIFINTERRUPTED()                                                  \
   progress.block_finished();
 
-#define TDOANN_CHECKCONVERGENCE()                                              \
-  if (is_converged(c, tol)) {                                                  \
-    progress.converged(c, tol);                                                \
-    break;                                                                     \
-  }
+inline auto is_converged(std::size_t n_updates, double tol) -> bool {
+  return static_cast<double>(n_updates) <= tol;
+}
 
 namespace tdoann {
 // Defines the methods required, but does nothing. Safe to use from
 // multi-threaded code if a dummy no-op version is needed.
 struct NullProgress {
   NullProgress() = default;
-  NullProgress(std::size_t, bool) {}
-  void set_n_blocks(std::size_t) {}
+  NullProgress(std::size_t /* niters */, bool /* verbose */) {}
+  void set_n_blocks(std::size_t /* n */) {}
   void block_finished() {}
   void iter_finished() {}
   void stopping_early() {}
+  // NOLINTNEXTLINE(readability-convert-member-functions-to-static)
   auto check_interrupt() -> bool { return false; }
-  void converged(std::size_t, double) {}
-  void log(const std::string &) {}
+  void converged(std::size_t /* n_updates */, double /* tol */) {}
+  void log(const std::string & /* msg */) {}
 };
+
 } // namespace tdoann
 
 #endif // TDOANN_PROGRESS_BASE_H

@@ -26,22 +26,25 @@
 #include "tdoann/heap.h"
 #include "tdoann/progress.h"
 
-#include "rnn_util.hpp"
+#include "rnn_util.h"
 
 struct RPProgress {
-  std::size_t scale;
+  static const constexpr std::size_t scale{100};
   Progress progress;
   std::size_t n_iters;
-  std::size_t n_blocks_;
+  std::size_t n_blocks_{0};
   bool verbose;
 
-  std::size_t iter;
-  std::size_t block;
-  bool is_aborted;
+  std::size_t iter{0};
+  std::size_t block{0};
+  bool is_aborted{false};
+
+  double scaled_niters;
 
   RPProgress(std::size_t n_iters, bool verbose)
-      : scale(100), progress(scale, verbose), n_iters(n_iters), n_blocks_(0),
-        verbose(verbose), iter(0), block(0), is_aborted(false) {}
+      : progress(scale, verbose), n_iters(n_iters), verbose(verbose),
+        scaled_niters(static_cast<double>(n_iters) /
+                      static_cast<double>(scale)) {}
 
   void set_n_blocks(std::size_t n_blocks) {
     n_blocks_ = n_blocks;
@@ -50,13 +53,15 @@ struct RPProgress {
   void block_finished() {
     ++block;
     if (verbose) {
-      progress.update(scaled(iter + (static_cast<double>(block) / n_blocks_)));
+      progress.update(scaled(
+          static_cast<double>(iter) +
+          (static_cast<double>(block) / static_cast<double>(n_blocks_))));
     }
   }
   void iter_finished() {
     if (verbose) {
       ++iter;
-      progress.update(scaled(iter));
+      progress.update(scaled(static_cast<double>(iter)));
     }
   }
   void stopping_early() {
@@ -77,18 +82,18 @@ struct RPProgress {
   void converged(std::size_t n_updates, double tol) {
     stopping_early();
     if (verbose) {
-      std::ostringstream os;
-      os << "Convergence at iteration " << iter << ": c = " << n_updates
-         << " tol = " << tol;
-      log(os.str());
+      std::ostringstream oss;
+      oss << "Convergence at iteration " << iter << ": c = " << n_updates
+          << " tol = " << tol;
+      log(oss.str());
     }
   }
-  auto scaled(double d) -> int {
-    int res = std::nearbyint(scale * (d / n_iters));
-    return res;
+  auto scaled(double val) const -> int {
+    auto res = std::nearbyint(val * scaled_niters);
+    return static_cast<int>(res);
   }
 
-  void log(const std::string &msg) {
+  void log(const std::string &msg) const {
     if (verbose) {
       Rcpp::Rcerr << msg << std::endl;
     }
@@ -99,13 +104,13 @@ struct RInterruptableProgress {
   bool is_aborted{false};
 
   RInterruptableProgress();
-  RInterruptableProgress(std::size_t, bool);
-  void set_n_blocks(std::size_t) {}
+  RInterruptableProgress(std::size_t /* n_iters */, bool /* verbose */);
+  void set_n_blocks(std::size_t /* n_blocks */) {}
   void block_finished() {}
   void iter_finished() {}
   void stopping_early() {}
-  void converged(std::size_t, double) {}
-  void log(const std::string &) {}
+  void converged(std::size_t /* n_updates */, double /* tol */) {}
+  void log(const std::string & /* msg */) {}
   auto check_interrupt() -> bool;
 };
 
@@ -113,22 +118,22 @@ struct RIterProgress {
   std::size_t n_iters;
   bool verbose;
 
-  std::size_t iter;
-  bool is_aborted;
+  std::size_t iter{0};
+  bool is_aborted{false};
 
   RIterProgress(std::size_t n_iters, bool verbose)
-      : n_iters(n_iters), verbose(verbose), iter(0), is_aborted(false) {
+      : n_iters(n_iters), verbose(verbose) {
     iter_msg(0);
   }
 
   void iter_msg(std::size_t iter) const {
     if (verbose) {
-      std::ostringstream os;
-      os << iter << " / " << n_iters;
-      log(os.str());
+      std::ostringstream oss;
+      oss << iter << " / " << n_iters;
+      log(oss.str());
     }
   }
-  void set_n_blocks(std::size_t) {}
+  void set_n_blocks(std::size_t /* n_blocks */) {}
   void block_finished() {}
   void iter_finished() {
     ++iter;
@@ -150,9 +155,9 @@ struct RIterProgress {
   }
   void converged(std::size_t n_updates, double tol) {
     if (verbose) {
-      std::ostringstream os;
-      os << "Convergence: c = " << n_updates << " tol = " << tol;
-      log(os.str());
+      std::ostringstream oss;
+      oss << "Convergence: c = " << n_updates << " tol = " << tol;
+      log(oss.str());
     }
     stopping_early();
   }

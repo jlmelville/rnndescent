@@ -31,10 +31,13 @@
 
 namespace tdoann {
 
+const constexpr std::size_t DEFAULT_NUM_BLOCKS{10};
+
 struct NoParallel {
   template <typename Worker>
   static void parallel_for(std::size_t begin, std::size_t end, Worker &worker,
-                           std::size_t, std::size_t) {
+                           std::size_t /* n_threads */,
+                           std::size_t /* grain_size */) {
     worker(begin, end);
   }
 };
@@ -75,7 +78,7 @@ void batch_parallel_for(Worker &worker, AfterWorker &after_worker,
 template <typename Parallel, typename Progress, typename Worker>
 void batch_parallel_for(Worker &worker, Progress &progress, std::size_t n,
                         std::size_t n_threads, std::size_t grain_size) {
-  std::size_t block_size = std::max(grain_size, n / std::size_t{10});
+  std::size_t block_size = std::max(grain_size, n / DEFAULT_NUM_BLOCKS);
   batch_parallel_for<Parallel>(worker, progress, n, block_size, n_threads,
                                grain_size);
 }
@@ -84,7 +87,7 @@ template <typename Parallel, typename Progress = NullProgress, typename Worker>
 void batch_parallel_for(Worker &worker, std::size_t n, std::size_t n_threads) {
   Progress progress;
   std::size_t grain_size = 1;
-  std::size_t block_size = std::max(grain_size, n / std::size_t{10});
+  std::size_t block_size = std::max(grain_size, n / DEFAULT_NUM_BLOCKS);
   batch_parallel_for<Parallel>(worker, progress, n, block_size, n_threads,
                                grain_size);
 }
