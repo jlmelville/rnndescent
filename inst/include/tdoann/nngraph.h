@@ -56,28 +56,29 @@ struct SparseNNGraph {
 
   static constexpr auto zero = static_cast<DistOut>(0);
 
-  auto n_nbrs(Idx i_idx) const -> std::size_t {
-    return row_ptr[i_idx + 1] - row_ptr[i_idx];
+  auto n_nbrs(Idx idx) const -> std::size_t {
+    return row_ptr[idx + 1] - row_ptr[idx];
   }
 
-  auto index(Idx i_idx, Idx j_idx) const -> Idx {
-    return col_idx[row_ptr[i_idx] + static_cast<std::size_t>(j_idx)];
+  // index of the ith non-zero nbr of idx
+  auto index(Idx idx, Idx i) const -> Idx {
+    return col_idx[row_ptr[idx] + static_cast<std::size_t>(i)];
   }
 
-  auto distance(Idx i_idx, Idx j_idx) const -> DistOut {
-    return dist[row_ptr[i_idx] + static_cast<std::size_t>(j_idx)];
+  // distance of the ith non-zero nbr of idx
+  auto distance(Idx idx, Idx i) const -> DistOut {
+    return dist[row_ptr[idx] + static_cast<std::size_t>(i)];
+  }
+  auto distance(Idx idx, Idx i) -> DistOut & {
+    return dist[row_ptr[idx] + static_cast<std::size_t>(i)];
   }
 
-  auto distance(Idx i_idx, Idx j_idx) -> DistOut & {
-    return dist[row_ptr[i_idx] + static_cast<std::size_t>(j_idx)];
+  void mark_for_deletion(Idx idx, Idx i) {
+    distance(idx, i) = zero;
   }
 
-  void mark_for_deletion(Idx i_idx, Idx j_idx) {
-    distance(i_idx, j_idx) = zero;
-  }
-
-  auto is_marked_for_deletion(Idx i_idx, Idx j_idx) -> bool {
-    return distance(i_idx, j_idx) == zero;
+  auto is_marked_for_deletion(Idx idx, Idx j_idx) -> bool {
+    return distance(idx, j_idx) == zero;
   }
 };
 

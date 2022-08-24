@@ -128,27 +128,28 @@ void remove_long_edges_impl(const SparseNNGraph &graph,
     if (n_nbrs == 0) {
       continue;
     }
+    // order neighbors by increasing distance
     auto ordered = order(graph.dist.begin() + graph.row_ptr[i],
                          graph.dist.begin() + graph.row_ptr[i + 1]);
     // loop starts at 1: we always keep the nearest neighbor so we start with
     // the next nearest neighbor
     for (std::size_t j = 1; j < n_nbrs; j++) {
-      const auto idx_p = ordered[j];
-      Idx nbr_p = graph.index(i, idx_p);
-      DistOut dist_ip = graph.distance(i, idx_p);
-      // check the distance between p and all retained neighbors (q) so far
+      const auto jth_nearest = ordered[j];
+      Idx nbr_j = graph.index(i, jth_nearest);
+      DistOut dist_ij = graph.distance(i, jth_nearest);
+      // check the distance between j and all retained neighbors (k) so far
       for (std::size_t k = 0; k < j; k++) {
-        const auto idx_q = ordered[k];
-        if (result.is_marked_for_deletion(i, idx_q)) {
-          // q was already considered an occlusion, no need to test
+        const auto kth_nearest = ordered[k];
+        if (result.is_marked_for_deletion(i, kth_nearest)) {
+          // k was already considered an occlusion, no need to test
           continue;
         }
-        Idx nbr_q = graph.index(i, idx_q);
-        DistOut dist_pq = distance(nbr_p, nbr_q);
+        Idx nbr_k = graph.index(i, kth_nearest);
+        DistOut dist_jk = distance(nbr_j, nbr_k);
         auto rand_val = rand.unif();
-        if (dist_pq < dist_ip && rand_val < prune_probability) {
-          // p occludes q, mark p for deletion
-          result.mark_for_deletion(i, idx_p);
+        if (dist_jk < dist_ij && rand_val < prune_probability) {
+          // j occludes k, mark j for deletion
+          result.mark_for_deletion(i, jth_nearest);
           break;
         }
       }
