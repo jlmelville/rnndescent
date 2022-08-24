@@ -35,34 +35,64 @@
 
 namespace tdoann {
 
+template <typename DistOut>
+auto update_max_heap_criterion(std::size_t root, std::size_t len,
+                               const std::vector<DistOut> &weights,
+                               const DistOut &weight, std::size_t rel_parent,
+                               std::size_t &rel_swap) -> bool {
+  std::size_t left_child = 2 * rel_parent + 1;
+  if (left_child >= len) {
+    return true;
+  }
+  std::size_t right_child = left_child + 1;
+  if (right_child >= len) {
+    if (weights[root + left_child] < weight) {
+      return true;
+    }
+    rel_swap = left_child;
+  } else if (weights[root + left_child] >= weights[root + right_child]) {
+    if (weight >= weights[root + left_child]) {
+      return true;
+    }
+    rel_swap = left_child;
+  } else {
+    if (weight >= weights[root + right_child]) {
+      return true;
+    }
+    rel_swap = right_child;
+  }
+  return false;
+}
+
 template <typename DistOut, typename Idx>
 void siftdown(std::size_t root, std::size_t len, std::vector<Idx> &idx,
-              std::vector<DistOut> &dist) {
-  std::size_t elt = 0;
-  std::size_t e21 = elt * 2 + 1;
+              std::vector<DistOut> &weights) {
+  std::size_t parent = 0;
+  std::size_t swap = parent;
+  std::size_t left_child = 1;
+  std::size_t right_child = 0;
 
-  while (e21 < len) {
-    std::size_t left_child = e21;
-    std::size_t right_child = left_child + 1;
-    std::size_t swap = elt;
+  while (left_child < len) {
+    right_child = left_child + 1;
 
-    if (dist[root + swap] < dist[root + left_child]) {
+    if (weights[root + swap] < weights[root + left_child]) {
       swap = left_child;
     }
 
-    if (right_child < len && dist[root + swap] < dist[root + right_child]) {
+    if (right_child < len &&
+        weights[root + swap] < weights[root + right_child]) {
       swap = right_child;
     }
 
-    if (swap == elt) {
+    if (swap == parent) {
       break;
     }
 
-    std::swap(dist[root + elt], dist[root + swap]);
-    std::swap(idx[root + elt], idx[root + swap]);
-    elt = swap;
+    std::swap(weights[root + parent], weights[root + swap]);
+    std::swap(idx[root + parent], idx[root + swap]);
+    parent = swap;
 
-    e21 = elt * 2 + 1;
+    left_child = parent * 2 + 1;
   }
 }
 
@@ -103,17 +133,17 @@ public:
   }
 
   // returns true if either p or q would accept a neighbor with distance dist
-  auto accepts_either(Idx idx_p, Idx idx_q, DistOut d_pq) const -> bool {
+  auto accepts_either(Idx idx_p, Idx idx_q, const DistOut &d_pq) const -> bool {
     return (idx_p < n_points && d_pq < dist[idx_p * n_nbrs]) ||
            (idx_p != idx_q && idx_q < n_points && d_pq < dist[idx_q * n_nbrs]);
   }
 
   // returns true if p would accept a neighbor with distance d
-  auto accepts(Idx idx_p, DistOut d_pq) const -> bool {
+  auto accepts(Idx idx_p, const DistOut &d_pq) const -> bool {
     return idx_p < n_points && d_pq < dist[idx_p * n_nbrs];
   }
 
-  auto checked_push_pair(Idx row, DistOut weight, Idx idx, char flag = 1)
+  auto checked_push_pair(Idx row, const DistOut &weight, Idx idx, char flag = 1)
       -> std::size_t {
     std::size_t num_updates = checked_push(row, weight, idx, flag);
     if (row != idx) {
@@ -123,7 +153,7 @@ public:
     return num_updates;
   }
 
-  auto checked_push(Idx row, DistOut weight, Idx idx, char flag = 1)
+  auto checked_push(Idx row, const DistOut &weight, Idx idx, char flag = 1)
       -> std::size_t {
     if (!accepts(row, weight) || contains(row, idx)) {
       return 0;
@@ -133,7 +163,7 @@ public:
   }
 
   // This differs from the pynndescent version as it is truly unchecked
-  auto unchecked_push(Idx row, DistOut weight, Idx index, char flag = 1)
+  auto unchecked_push(Idx row, const DistOut &weight, Idx index, char flag = 1)
       -> std::size_t {
     std::size_t root = row * n_nbrs;
 
@@ -143,51 +173,28 @@ public:
     flags[root] = flag;
 
     // descend the heap, swapping values until the max heap criterion is met
-    std::size_t i_parent = 0;
-    std::size_t i_swap = 0;
-    std::size_t ic1 = 0;
-    std::size_t ic2 = 0;
+    std::size_t rel_parent = 0;
+    std::size_t rel_swap = 0;
 
     while (true) {
-      ic1 = 2 * i_parent + 1;
-      ic2 = ic1 + 1;
-
-      if (ic1 >= n_nbrs) {
+      if (update_max_heap_criterion(root, n_nbrs, dist, weight, rel_parent,
+                                    rel_swap)) {
         break;
       }
-      if (ic2 >= n_nbrs) {
-        if (dist[root + ic1] >= weight) {
-          i_swap = ic1;
-        } else {
-          break;
-        }
-      } else if (dist[root + ic1] >= dist[root + ic2]) {
-        if (weight < dist[root + ic1]) {
-          i_swap = ic1;
-        } else {
-          break;
-        }
-      } else {
-        if (weight < dist[root + ic2]) {
-          i_swap = ic2;
-        } else {
-          break;
-        }
-      }
 
-      std::size_t r0i = root + i_parent;
-      std::size_t r0i_swap = root + i_swap;
-      dist[r0i] = dist[r0i_swap];
-      idx[r0i] = idx[r0i_swap];
-      flags[r0i] = flags[r0i_swap];
+      std::size_t parent = root + rel_parent;
+      std::size_t swap = root + rel_swap;
+      dist[parent] = dist[swap];
+      idx[parent] = idx[swap];
+      flags[parent] = flags[swap];
 
-      i_parent = i_swap;
+      rel_parent = rel_swap;
     }
 
-    std::size_t r0i = root + i_parent;
-    dist[r0i] = weight;
-    idx[r0i] = index;
-    flags[r0i] = flag;
+    std::size_t parent = root + rel_parent;
+    dist[parent] = weight;
+    idx[parent] = index;
+    flags[parent] = flag;
 
     return 1;
   }
@@ -264,17 +271,17 @@ struct NNHeap {
   }
 
   // returns true if either p or q would accept a neighbor with distance d
-  auto accepts_either(Idx idx_p, Idx idx_q, DistOut d_pq) const -> bool {
+  auto accepts_either(Idx idx_p, Idx idx_q, const DistOut &d_pq) const -> bool {
     return (idx_p < n_points && d_pq < dist[idx_p * n_nbrs]) ||
            (idx_p != idx_q && idx_q < n_points && d_pq < dist[idx_q * n_nbrs]);
   }
 
   // returns true if p would accept a neighbor with distance d
-  auto accepts(Idx idx_p, DistOut d_pq) const -> bool {
+  auto accepts(Idx idx_p, const DistOut &d_pq) const -> bool {
     return idx_p < n_points && d_pq < dist[idx_p * n_nbrs];
   }
 
-  auto checked_push_pair(std::size_t row, DistOut weight, Idx idx)
+  auto checked_push_pair(std::size_t row, const DistOut &weight, Idx idx)
       -> std::size_t {
     std::size_t n_updates = checked_push(row, weight, idx);
     if (row != idx) {
@@ -283,7 +290,7 @@ struct NNHeap {
     return n_updates;
   }
 
-  auto checked_push(Idx row, DistOut weight, Idx idx) -> std::size_t {
+  auto checked_push(Idx row, const DistOut &weight, Idx idx) -> std::size_t {
     if (!accepts(row, weight) || contains(row, idx)) {
       return 0;
     }
@@ -291,7 +298,8 @@ struct NNHeap {
     return unchecked_push(row, weight, idx);
   }
 
-  auto unchecked_push(Idx row, DistOut weight, Idx index) -> std::size_t {
+  auto unchecked_push(Idx row, const DistOut &weight, Idx index)
+      -> std::size_t {
     std::size_t root = row * n_nbrs;
 
     // insert val at position zero
@@ -301,31 +309,11 @@ struct NNHeap {
     // descend the heap, swapping values until the max heap criterion is met
     std::size_t rel_parent = 0;
     std::size_t rel_swap = 0;
-    while (true) {
-      std::size_t ic1 = 2 * rel_parent + 1;
-      std::size_t ic2 = ic1 + 1;
 
-      if (ic1 >= n_nbrs) {
+    while (true) {
+      if (update_max_heap_criterion(root, n_nbrs, dist, weight, rel_parent,
+                                    rel_swap)) {
         break;
-      }
-      if (ic2 >= n_nbrs) {
-        if (dist[root + ic1] >= weight) {
-          rel_swap = ic1;
-        } else {
-          break;
-        }
-      } else if (dist[root + ic1] >= dist[root + ic2]) {
-        if (weight < dist[root + ic1]) {
-          rel_swap = ic1;
-        } else {
-          break;
-        }
-      } else {
-        if (weight < dist[root + ic2]) {
-          rel_swap = ic2;
-        } else {
-          break;
-        }
       }
 
       std::size_t parent = root + rel_parent;
