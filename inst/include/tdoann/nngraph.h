@@ -126,7 +126,8 @@ auto heap_to_graph(const NbrHeap &heap)
 
 struct HeapAddSymmetric {
   template <typename NbrHeap>
-  void push(NbrHeap &heap, std::size_t ref, std::size_t query,
+  void push(NbrHeap &heap, typename NbrHeap::Index ref,
+            typename NbrHeap::Index query,
             typename NbrHeap::DistanceOut dist_rq) {
     heap.checked_push_pair(ref, dist_rq, query);
   }
@@ -134,7 +135,8 @@ struct HeapAddSymmetric {
 
 struct HeapAddQuery {
   template <typename NbrHeap>
-  void push(NbrHeap &heap, std::size_t ref, std::size_t query,
+  void push(NbrHeap &heap, typename NbrHeap::Index ref,
+            typename NbrHeap::Index query,
             typename NbrHeap::DistanceOut dist_rq) {
     heap.checked_push(ref, dist_rq, query);
   }
@@ -145,7 +147,8 @@ struct LockingHeapAddSymmetric {
   std::array<std::mutex, n_mutexes> mutexes;
 
   template <typename NbrHeap>
-  void push(NbrHeap &heap, std::size_t ref, std::size_t query,
+  void push(NbrHeap &heap, typename NbrHeap::Index ref,
+            typename NbrHeap::Index query,
             typename NbrHeap::DistanceOut dist_rq) {
     {
       // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
