@@ -34,9 +34,9 @@ void heap_to_r(const NbrHeap &heap, Rcpp::IntegerMatrix nn_idx,
   for (std::size_t i = 0; i < n_points; i++) {
     std::size_t innbrs = i * n_nbrs;
     for (std::size_t j = 0; j < n_nbrs; j++) {
-      std::size_t ij = innbrs + j;
-      nn_idx(i, j) = heap.idx[ij] + 1;
-      nn_dist(i, j) = heap.dist[ij];
+      std::size_t innbrsj = innbrs + j;
+      nn_idx(i, j) = heap.idx[innbrsj] + 1;
+      nn_dist(i, j) = heap.dist[innbrsj];
     }
   }
 }

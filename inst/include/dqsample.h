@@ -25,64 +25,67 @@
 
 namespace dqsample {
 
+// sample size items in the range [0 + offset, end + offset)
 template <typename INT>
-inline auto replacement(dqrng::rng64_t &rng, INT m, INT n, int offset)
+inline auto replacement(dqrng::rng64_t &rng, INT end, INT size, int offset)
     -> std::vector<INT> {
-  std::vector<INT> result(n);
-  std::generate(result.begin(), result.end(),
-                [=, &rng]() { return static_cast<INT>(offset + (*rng)(m)); });
+  std::vector<INT> result(size);
+  auto generator = [=, &rng]() -> INT {
+    return static_cast<INT>(offset + (*rng)(end));
+  };
+  std::generate(result.begin(), result.end(), generator);
   return result;
 }
 
 template <typename INT>
-auto no_replacement_shuffle(dqrng::rng64_t &rng, INT m, INT n, int offset = 0)
-    -> std::vector<INT> {
-  std::vector<INT> tmp(m);
+auto no_replacement_shuffle(dqrng::rng64_t &rng, INT end, INT size,
+                            int offset = 0) -> std::vector<INT> {
+  std::vector<INT> tmp(end);
   std::iota(tmp.begin(), tmp.end(), static_cast<INT>(offset));
-  for (INT i = 0; i < n; ++i) {
-    std::swap(tmp[i], tmp[i + (*rng)(m - i)]);
+  for (INT i = 0; i < size; ++i) {
+    std::swap(tmp[i], tmp[i + (*rng)(end - i)]);
   }
-  if (m == n) {
+  if (end == size) {
     return tmp;
   }
-  return std::vector<INT>(tmp.begin(), tmp.begin() + n);
+  return std::vector<INT>(tmp.begin(), tmp.begin() + size);
 }
 
 template <typename INT, typename SET>
-auto no_replacement_set(dqrng::rng64_t &rng, INT m, INT n, int offset)
+auto no_replacement_set(dqrng::rng64_t &rng, INT end, INT size, int offset)
     -> std::vector<INT> {
-  std::vector<INT> result(n);
+  std::vector<INT> result(size);
 
-  SET elems(m, n);
-  for (INT i = 0; i < n; ++i) {
-    INT v = (*rng)(m);
-    while (!elems.insert(v)) {
-      v = (*rng)(m);
+  SET elems(end, size);
+  for (INT i = 0; i < size; ++i) {
+    INT val = (*rng)(end);
+    while (!elems.insert(val)) {
+      val = (*rng)(end);
     }
-    result[i] = offset + v;
+    result[i] = offset + val;
   }
   return result;
 }
 
-// Sample size points from the range [0 + offset, n + offset) with or without
+// Sample size points from the range [0 + offset, end + offset) with or without
 // replacement
 template <typename INT>
-inline auto sample(std::vector<INT> &result, dqrng::rng64_t &rng, INT n,
+inline auto sample(std::vector<INT> &result, dqrng::rng64_t &rng, INT end,
                    INT size, bool replace = false, int offset = 0) -> bool {
   if (replace || size <= 1) {
-    result = replacement<INT>(rng, n, size, offset);
+    result = replacement<INT>(rng, end, size, offset);
   } else {
-    if (n < size) {
+    if (end < size) {
       return false;
     }
-    if (n < 2 * size) {
-      result = std::move(no_replacement_shuffle<INT>(rng, n, size, offset));
-    } else if (n < 1000 * size) {
+    if (end < 2 * size) {
+      result = std::move(no_replacement_shuffle<INT>(rng, end, size, offset));
+    } else if (end < 1000 * size) {
       result = std::move(no_replacement_set<INT, dqrng::minimal_bit_set>(
-          rng, n, size, offset));
+          rng, end, size, offset));
     } else {
       result = std::move(no_replacement_set<INT, dqrng::minimal_hash_set<INT>>(
-          rng, n, size, offset));
+          rng, end, size, offset));
     }
   }
   return true;

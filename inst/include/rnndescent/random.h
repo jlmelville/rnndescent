@@ -49,7 +49,7 @@ inline auto parallel_rng() -> dqrng::rng64_t {
 }
 
 inline auto combine_seeds(uint32_t msw, uint32_t lsw) -> uint64_t {
-  return (static_cast<uint64_t>(msw) << 32) | static_cast<uint64_t>(lsw);
+  return (static_cast<uint64_t>(msw) << 32U) | static_cast<uint64_t>(lsw);
 }
 
 // Uniform RNG
@@ -93,8 +93,7 @@ struct PcgRand {
 
 template <typename R = TauRand> struct ParallelRand {
   uint64_t seed{0};
-
-  ParallelRand() {}
+  ParallelRand() = default;
   void reseed() { seed = pseed(); };
   auto get_rand(uint64_t seed2) -> R { return R(seed, seed2); };
 };

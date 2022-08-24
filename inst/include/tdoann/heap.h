@@ -285,6 +285,7 @@ struct NNHeap {
       -> std::size_t {
     std::size_t n_updates = checked_push(row, weight, idx);
     if (row != idx) {
+      // NOLINTNEXTLINE(readability-suspicious-call-argument)
       n_updates += checked_push(idx, weight, row);
     }
     return n_updates;
