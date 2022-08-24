@@ -90,7 +90,7 @@ void build_candidates(
     for (std::size_t j = 0; j < n_nbrs; j++) {
       std::size_t inbrj = innbrs + j;
       auto nbr = current_graph.idx[inbrj];
-      char isn = current_graph.flags[inbrj];
+      uint8_t isn = current_graph.flags[inbrj];
       auto &nbrs = isn == 1 ? new_nbrs : old_nbrs;
       if (nbr == nbrs.npos()) {
         continue;

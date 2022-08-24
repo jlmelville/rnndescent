@@ -109,7 +109,7 @@ public:
   std::vector<Idx> idx;
   std::vector<DistOut> dist;
   Idx n_nbrs1;
-  std::vector<char> flags;
+  std::vector<uint8_t> flags;
 
   NNDHeap(std::size_t n_points, std::size_t n_nbrs)
       : n_points(n_points), n_nbrs(n_nbrs), idx(n_points * n_nbrs, npos()),
@@ -143,8 +143,8 @@ public:
     return idx_p < n_points && d_pq < dist[idx_p * n_nbrs];
   }
 
-  auto checked_push_pair(Idx row, const DistOut &weight, Idx idx, char flag = 1)
-      -> std::size_t {
+  auto checked_push_pair(Idx row, const DistOut &weight, Idx idx,
+                         uint8_t flag = 1) -> std::size_t {
     std::size_t num_updates = checked_push(row, weight, idx, flag);
     if (row != idx) {
       // NOLINTNEXTLINE(readability-suspicious-call-argument)
@@ -153,7 +153,7 @@ public:
     return num_updates;
   }
 
-  auto checked_push(Idx row, const DistOut &weight, Idx idx, char flag = 1)
+  auto checked_push(Idx row, const DistOut &weight, Idx idx, uint8_t flag = 1)
       -> std::size_t {
     if (!accepts(row, weight) || contains(row, idx)) {
       return 0;
@@ -163,8 +163,8 @@ public:
   }
 
   // This differs from the pynndescent version as it is truly unchecked
-  auto unchecked_push(Idx row, const DistOut &weight, Idx index, char flag = 1)
-      -> std::size_t {
+  auto unchecked_push(Idx row, const DistOut &weight, Idx index,
+                      uint8_t flag = 1) -> std::size_t {
     std::size_t root = row * n_nbrs;
 
     // insert val at position zero
@@ -222,8 +222,8 @@ public:
   auto distance(Idx i, Idx j) const -> DistOut { return dist[i * n_nbrs + j]; }
   auto distance(Idx i, Idx j) -> DistOut & { return dist[i * n_nbrs + j]; }
 
-  auto flag(Idx i, Idx j) const -> char { return flags[i * n_nbrs + j]; }
-  auto flag(Idx i, Idx j) -> char & { return flags[i * n_nbrs + j]; }
+  auto flag(Idx i, Idx j) const -> uint8_t { return flags[i * n_nbrs + j]; }
+  auto flag(Idx i, Idx j) -> uint8_t & { return flags[i * n_nbrs + j]; }
 
   auto max_distance(Idx i) const -> DistOut { return dist[i * n_nbrs]; }
 
