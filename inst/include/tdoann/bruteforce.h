@@ -96,22 +96,22 @@ void nnbf_impl(
     std::size_t begin, std::size_t end) {
   const std::size_t n_points = neighbor_heap.n_points;
 
-  std::size_t i_idx{0};
-  std::size_t j_idx{0};
-  upper_tri_2d(begin, n_points, i_idx, j_idx);
+  std::size_t idx_i{0};
+  std::size_t idx_j{0};
+  upper_tri_2d(begin, n_points, idx_i, idx_j);
 
   for (std::size_t k = begin; k < end; k++) {
-    typename Distance::Output dist_ij = distance(i_idx, j_idx);
-    if (neighbor_heap.accepts(i_idx, dist_ij)) {
-      neighbor_heap.unchecked_push(i_idx, dist_ij, j_idx);
+    typename Distance::Output dist_ij = distance(idx_i, idx_j);
+    if (neighbor_heap.accepts(idx_i, dist_ij)) {
+      neighbor_heap.unchecked_push(idx_i, dist_ij, idx_j);
     }
-    if (i_idx != j_idx && neighbor_heap.accepts(j_idx, dist_ij)) {
-      neighbor_heap.unchecked_push(j_idx, dist_ij, i_idx);
+    if (idx_i != idx_j && neighbor_heap.accepts(idx_j, dist_ij)) {
+      neighbor_heap.unchecked_push(idx_j, dist_ij, idx_i);
     }
-    ++j_idx;
-    if (j_idx == n_points) {
-      ++i_idx;
-      j_idx = i_idx;
+    ++idx_j;
+    if (idx_j == n_points) {
+      ++idx_i;
+      idx_j = idx_i;
     }
   }
 }

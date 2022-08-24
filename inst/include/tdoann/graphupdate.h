@@ -42,7 +42,7 @@ template <typename DistOut, typename Idx> struct Update {
   DistOut d{0};
 
   Update() = default;
-  Update(Idx p_idx, Idx q_idx, DistOut dist) : p(p_idx), q(q_idx), d(dist) {}
+  Update(Idx idx_p, Idx idx_q, DistOut dist) : p(idx_p), q(idx_q), d(dist) {}
   Update(const Update &) = default;
   auto operator=(const Update &) -> Update & = default;
   Update(Update &&) noexcept = default;
@@ -60,11 +60,11 @@ template <typename DistOut, typename Idx> struct GraphCacheConstructionInit {
     for (Idx i = 0; i < n_points; i++) {
       std::size_t innbrs = i * n_nbrs;
       for (std::size_t j = 0; j < n_nbrs; j++) {
-        auto p_idx = neighbor_heap.idx[innbrs + j];
-        if (i > p_idx) {
-          seen[p_idx].emplace(i);
+        auto idx_p = neighbor_heap.idx[innbrs + j];
+        if (i > idx_p) {
+          seen[idx_p].emplace(i);
         } else {
-          seen[i].emplace(p_idx);
+          seen[i].emplace(idx_p);
         }
       }
     }
@@ -78,11 +78,11 @@ template <typename DistOut, typename Idx> struct GraphCacheQueryInit {
                    std::vector<std::unordered_set<Idx>> &seen) {
     const auto n_points = neighbor_heap.n_points;
     const auto n_nbrs = neighbor_heap.n_nbrs;
-    for (std::size_t q_idx = 0; q_idx < n_points; q_idx++) {
-      std::size_t qnnbrs = q_idx * n_nbrs;
+    for (std::size_t idx_i = 0; idx_i < n_points; idx_i++) {
+      std::size_t innbrs = idx_i * n_nbrs;
       for (std::size_t k = 0; k < n_nbrs; k++) {
-        std::size_t r_idx = neighbor_heap.idx[qnnbrs + k];
-        seen[q_idx].emplace(r_idx);
+        std::size_t idx_j = neighbor_heap.idx[innbrs + k];
+        seen[idx_i].emplace(idx_j);
       }
     }
   }
@@ -101,12 +101,12 @@ public:
     GraphCacheInit<DistOut, Idx>::init(neighbor_heap, seen);
   }
 
-  auto contains(Idx &p_idx, Idx &q_idx) const -> bool {
-    return seen[p_idx].find(q_idx) != seen[p_idx].end();
+  auto contains(Idx &idx_p, Idx &idx_q) const -> bool {
+    return seen[idx_p].find(idx_q) != seen[idx_p].end();
   }
 
-  auto insert(Idx p_idx, Idx q_idx) -> bool {
-    return !seen[p_idx].emplace(q_idx).second;
+  auto insert(Idx idx_p, Idx idx_q) -> bool {
+    return !seen[idx_p].emplace(idx_q).second;
   }
 
   auto size() const -> std::size_t {
@@ -130,10 +130,10 @@ template <typename Distance> struct Batch {
       : current_graph(current_graph), distance(distance),
         updates(current_graph.n_points) {}
 
-  void generate(Idx p_idx, Idx q_idx, std::size_t key) {
-    auto dist_pq = distance(p_idx, q_idx);
-    if (current_graph.accepts_either(p_idx, q_idx, dist_pq)) {
-      updates[key].emplace_back(p_idx, q_idx, dist_pq);
+  void generate(Idx idx_p, Idx idx_q, std::size_t key) {
+    auto dist_pq = distance(idx_p, idx_q);
+    if (current_graph.accepts_either(idx_p, idx_q, dist_pq)) {
+      updates[key].emplace_back(idx_p, idx_q, dist_pq);
     }
   }
 
@@ -166,17 +166,17 @@ template <typename Distance> struct BatchHiMem {
       : current_graph(current_graph), distance(distance), seen(current_graph),
         updates(current_graph.n_points) {}
 
-  void generate(Idx p_idx, Idx q_idx, std::size_t key) {
+  void generate(Idx idx_p, Idx idx_q, std::size_t key) {
     // canonicalize the order of (p, q) so that qq >= pp
-    auto pp_idx = p_idx > q_idx ? q_idx : p_idx;
-    auto qq_idx = pp_idx == p_idx ? q_idx : p_idx;
+    auto idx_pp = idx_p > idx_q ? idx_q : idx_p;
+    auto idx_qq = idx_pp == idx_p ? idx_q : idx_p;
 
-    if (seen.contains(pp_idx, qq_idx)) {
+    if (seen.contains(idx_pp, idx_qq)) {
       return;
     }
-    auto dist_pq = distance(pp_idx, qq_idx);
-    if (current_graph.accepts_either(pp_idx, qq_idx, dist_pq)) {
-      updates[key].emplace_back(pp_idx, qq_idx, dist_pq);
+    auto dist_pq = distance(idx_pp, idx_qq);
+    if (current_graph.accepts_either(idx_pp, idx_qq, dist_pq)) {
+      updates[key].emplace_back(idx_pp, idx_qq, dist_pq);
     }
   }
 
@@ -187,29 +187,29 @@ template <typename Distance> struct BatchHiMem {
       const auto n_updates = updates[i].size();
       for (std::size_t j = 0; j < n_updates; j++) {
         auto &update = updates[i][j];
-        auto &p_idx = update.p;
-        auto &q_idx = update.q;
+        auto &idx_p = update.p;
+        auto &idx_q = update.q;
         auto &dist_pq = update.d;
 
-        bool bad_pd = !current_graph.accepts(p_idx, dist_pq);
-        bool bad_qd = !current_graph.accepts(q_idx, dist_pq);
-        if ((bad_pd && bad_qd) || seen.contains(p_idx, q_idx)) {
+        bool bad_pd = !current_graph.accepts(idx_p, dist_pq);
+        bool bad_qd = !current_graph.accepts(idx_q, dist_pq);
+        if ((bad_pd && bad_qd) || seen.contains(idx_p, idx_q)) {
           continue;
         }
 
         std::size_t local_c = 0;
         if (!bad_pd) {
-          current_graph.unchecked_push(p_idx, dist_pq, q_idx);
+          current_graph.unchecked_push(idx_p, dist_pq, idx_q);
           local_c += 1;
         }
 
-        if (p_idx != q_idx && !bad_qd) {
-          current_graph.unchecked_push(q_idx, dist_pq, p_idx);
+        if (idx_p != idx_q && !bad_qd) {
+          current_graph.unchecked_push(idx_q, dist_pq, idx_p);
           local_c += 1;
         }
 
         if (local_c > 0) {
-          seen.insert(p_idx, q_idx);
+          seen.insert(idx_p, idx_q);
           num_updates += local_c;
         }
       }
@@ -233,16 +233,16 @@ template <typename Distance> struct Serial {
       : current_graph(current_graph), distance(distance),
         upd_p(current_graph.npos()), upd_q(current_graph.npos()), upd_d(0) {}
 
-  auto generate_and_apply(Idx p_idx, Idx q_idx) -> std::size_t {
-    generate(p_idx, q_idx, p_idx);
+  auto generate_and_apply(Idx idx_p, Idx idx_q) -> std::size_t {
+    generate(idx_p, idx_q, idx_p);
     return apply();
   }
 
-  void generate(Idx p_idx, Idx q_idx, std::size_t /* key */) {
-    auto dist_pq = distance(p_idx, q_idx);
-    if (current_graph.accepts_either(p_idx, q_idx, dist_pq)) {
-      upd_p = p_idx;
-      upd_q = q_idx;
+  void generate(Idx idx_p, Idx idx_q, std::size_t /* key */) {
+    auto dist_pq = distance(idx_p, idx_q);
+    if (current_graph.accepts_either(idx_p, idx_q, dist_pq)) {
+      upd_p = idx_p;
+      upd_q = idx_q;
       upd_d = dist_pq;
     } else {
       upd_p = current_graph.npos();
@@ -271,18 +271,18 @@ template <typename Distance> struct SerialHiMem {
       : current_graph(current_graph), distance(distance), seen(current_graph),
         upd_p(current_graph.npos()), upd_q(current_graph.npos()) {}
 
-  auto generate_and_apply(Idx p_idx, Idx q_idx) -> std::size_t {
-    generate(p_idx, q_idx);
+  auto generate_and_apply(Idx idx_p, Idx idx_q) -> std::size_t {
+    generate(idx_p, idx_q);
     return apply();
   }
 
-  void generate(Idx p_idx, Idx q_idx) {
+  void generate(Idx idx_p, Idx idx_q) {
     // canonicalize the order of (p, q) so that qq >= pp
-    auto pp_idx = p_idx > q_idx ? q_idx : p_idx;
-    auto qq_idx = pp_idx == p_idx ? q_idx : p_idx;
+    auto idx_pp = idx_p > idx_q ? idx_q : idx_p;
+    auto idx_qq = idx_pp == idx_p ? idx_q : idx_p;
 
-    upd_p = pp_idx;
-    upd_q = qq_idx;
+    upd_p = idx_pp;
+    upd_q = idx_qq;
   }
 
   auto apply() -> std::size_t {
