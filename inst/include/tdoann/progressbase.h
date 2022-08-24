@@ -29,17 +29,16 @@
 
 #include <string>
 
-#define TDOANN_BREAKIFINTERRUPTED()                                            \
+#define TDOANN_ITERFINISHED()                                                  \
   if (progress.check_interrupt()) {                                            \
     break;                                                                     \
-  }
-
-#define TDOANN_ITERFINISHED()                                                  \
-  TDOANN_BREAKIFINTERRUPTED()                                                  \
+  }                                                                            \
   progress.iter_finished();
 
 #define TDOANN_BLOCKFINISHED()                                                 \
-  TDOANN_BREAKIFINTERRUPTED()                                                  \
+  if (progress.check_interrupt()) {                                            \
+    break;                                                                     \
+  }                                                                            \
   progress.block_finished();
 
 inline auto is_converged(std::size_t n_updates, double tol) -> bool {

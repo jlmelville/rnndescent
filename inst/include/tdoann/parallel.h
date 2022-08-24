@@ -52,7 +52,9 @@ void batch_parallel_for(Worker &worker, Progress &progress, std::size_t n,
     auto begin = i * block_size;
     auto end = std::min(n, begin + block_size);
     Parallel::parallel_for(begin, end, worker, n_threads, grain_size);
-    TDOANN_BREAKIFINTERRUPTED();
+    if (progress.check_interrupt()) {
+      break;
+    }
     TDOANN_BLOCKFINISHED();
   }
 }
@@ -69,7 +71,9 @@ void batch_parallel_for(Worker &worker, AfterWorker &after_worker,
     auto begin = i * block_size;
     auto end = std::min(n, begin + block_size);
     Parallel::parallel_for(begin, end, worker, n_threads, grain_size);
-    TDOANN_BREAKIFINTERRUPTED();
+    if (progress.check_interrupt()) {
+      break;
+    }
     after_worker(begin, end);
     TDOANN_BLOCKFINISHED();
   }
