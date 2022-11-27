@@ -49,7 +49,7 @@ inline auto parallel_rng() -> dqrng::rng64_t {
 }
 
 inline auto combine_seeds(uint32_t msw, uint32_t lsw) -> uint64_t {
-  return (static_cast<uint64_t>(msw) << 32) | static_cast<uint64_t>(lsw);
+  return (static_cast<uint64_t>(msw) << 32U) | static_cast<uint64_t>(lsw);
 }
 
 // Uniform RNG
@@ -62,9 +62,9 @@ struct RRand {
 
 // Use Taus88 RNG
 struct TauRand {
-  std::unique_ptr<tdoann::tau_prng> prng;
+  std::unique_ptr<tdoann::tau_prng> prng{nullptr};
 
-  TauRand(uint64_t seed, uint64_t seed2) : prng(nullptr) {
+  TauRand(uint64_t seed, uint64_t seed2) {
     dqrng::rng64_t rng = parallel_rng();
     rng->seed(seed, seed2);
 
@@ -92,9 +92,8 @@ struct PcgRand {
 };
 
 template <typename R = TauRand> struct ParallelRand {
-  uint64_t seed;
-
-  ParallelRand() : seed(0) {}
+  uint64_t seed{0};
+  ParallelRand() = default;
   void reseed() { seed = pseed(); };
   auto get_rand(uint64_t seed2) -> R { return R(seed, seed2); };
 };
@@ -105,8 +104,8 @@ template <typename Int> struct DQIntSampler {
 
   static auto get_seed() -> uint64_t { return pseed(); }
 
-  uint64_t seed;
-  uint64_t seed2;
+  uint64_t seed{0};
+  uint64_t seed2{0};
   dqrng::rng64_t rng;
 
   DQIntSampler(uint64_t seed, uint64_t seed2) : rng(parallel_rng()) {

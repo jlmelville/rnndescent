@@ -30,9 +30,12 @@
 #include "rnn_progress.h"
 #include "rnn_util.h"
 
+const constexpr std::size_t DEFAULT_BLOCK_SIZE{1024};
+
 template <typename HeapAdd, typename NbrHeap>
-void r_to_heap(NbrHeap &heap, Rcpp::IntegerMatrix nn_idx,
-               Rcpp::NumericMatrix nn_dist, std::size_t block_size = 1024,
+void r_to_heap(NbrHeap &heap, const Rcpp::IntegerMatrix &nn_idx,
+               Rcpp::NumericMatrix nn_dist,
+               std::size_t block_size = DEFAULT_BLOCK_SIZE,
                int max_idx = RNND_MAX_IDX, bool missing_ok = false,
                bool transpose = true) {
   auto nn_idx_copy = Rcpp::clone(nn_idx);
@@ -47,8 +50,9 @@ void r_to_heap(NbrHeap &heap, Rcpp::IntegerMatrix nn_idx,
 
 template <typename HeapAdd, typename NbrHeap>
 auto r_to_heap(Rcpp::IntegerMatrix nn_idx, Rcpp::NumericMatrix nn_dist,
-               std::size_t block_size = 1024, int max_idx = RNND_MAX_IDX,
-               bool missing_ok = false, bool transpose = true) -> NbrHeap {
+               std::size_t block_size = DEFAULT_BLOCK_SIZE,
+               int max_idx = RNND_MAX_IDX, bool missing_ok = false,
+               bool transpose = true) -> NbrHeap {
   NbrHeap nn_heap(nn_idx.nrow(), nn_idx.ncol());
   r_to_heap<HeapAdd>(nn_heap, nn_idx, nn_dist, block_size, max_idx, missing_ok,
                      transpose);
@@ -58,7 +62,7 @@ auto r_to_heap(Rcpp::IntegerMatrix nn_idx, Rcpp::NumericMatrix nn_dist,
 template <typename HeapAdd, typename NbrHeap>
 auto r_to_heap_missing_ok(Rcpp::IntegerMatrix nn_idx,
                           Rcpp::NumericMatrix nn_dist,
-                          std::size_t block_size = 1024,
+                          std::size_t block_size = DEFAULT_BLOCK_SIZE,
                           int max_idx = RNND_MAX_IDX, bool transpose = true)
     -> NbrHeap {
   return r_to_heap<HeapAdd, NbrHeap>(nn_idx, nn_dist, block_size, max_idx, true,
@@ -66,9 +70,10 @@ auto r_to_heap_missing_ok(Rcpp::IntegerMatrix nn_idx,
 }
 
 template <typename HeapAdd, typename NbrHeap>
-void r_to_heap(NbrHeap &heap, Rcpp::IntegerMatrix nn_idx,
+void r_to_heap(NbrHeap &heap, const Rcpp::IntegerMatrix &nn_idx,
                Rcpp::NumericMatrix nn_dist, std::size_t n_threads,
-               std::size_t grain_size, std::size_t block_size = 1024,
+               std::size_t grain_size,
+               std::size_t block_size = DEFAULT_BLOCK_SIZE,
                int max_idx = RNND_MAX_IDX, bool missing_ok = false,
                bool transpose = true) {
   auto nn_idx_copy = Rcpp::clone(nn_idx);
@@ -85,8 +90,9 @@ void r_to_heap(NbrHeap &heap, Rcpp::IntegerMatrix nn_idx,
 template <typename HeapAdd, typename NbrHeap>
 auto r_to_heap(Rcpp::IntegerMatrix nn_idx, Rcpp::NumericMatrix nn_dist,
                std::size_t n_threads, std::size_t grain_size = 1,
-               std::size_t block_size = 1024, int max_idx = RNND_MAX_IDX,
-               bool missing_ok = false, bool transpose = true) -> NbrHeap {
+               std::size_t block_size = DEFAULT_BLOCK_SIZE,
+               int max_idx = RNND_MAX_IDX, bool missing_ok = false,
+               bool transpose = true) -> NbrHeap {
   NbrHeap nn_heap(nn_idx.nrow(), nn_idx.ncol());
   r_to_heap<HeapAdd>(nn_heap, nn_idx, nn_dist, n_threads, grain_size,
                      block_size, max_idx, missing_ok, transpose);
@@ -97,7 +103,7 @@ template <typename HeapAdd, typename NbrHeap>
 auto r_to_heap_missing_ok(Rcpp::IntegerMatrix nn_idx,
                           Rcpp::NumericMatrix nn_dist, std::size_t n_threads,
                           std::size_t grain_size = 1,
-                          std::size_t block_size = 1024,
+                          std::size_t block_size = DEFAULT_BLOCK_SIZE,
                           int max_idx = RNND_MAX_IDX, bool transpose = true)
     -> NbrHeap {
   return r_to_heap<HeapAdd, NbrHeap>(nn_idx, nn_dist, n_threads, grain_size,

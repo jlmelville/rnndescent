@@ -17,6 +17,8 @@
 //  You should have received a copy of the GNU General Public License
 //  along with rnndescent.  If not, see <http://www.gnu.org/licenses/>.
 
+// NOLINTBEGIN(modernize-use-trailing-return-type)
+
 #include <Rcpp.h>
 
 #include "rnndescent/random.h"
@@ -30,7 +32,9 @@
 #include "rnn_progress.h"
 #include "rnn_rtoheap.h"
 
-using namespace Rcpp;
+using Rcpp::IntegerMatrix;
+using Rcpp::List;
+using Rcpp::NumericMatrix;
 
 #define NND_IMPL()                                                             \
   return nnd_impl.get_nn<GraphUpdate, Distance, Progress, NNDProgress>(        \
@@ -41,11 +45,10 @@ using namespace Rcpp;
     using Progress = RPProgress;                                               \
     using NNDProgress = tdoann::NNDProgress<Progress>;                         \
     NND_IMPL()                                                                 \
-  } else {                                                                     \
-    using Progress = RIterProgress;                                            \
-    using NNDProgress = tdoann::HeapSumProgress<Progress>;                     \
-    NND_IMPL()                                                                 \
-  }
+  }                                                                            \
+  using Progress = RIterProgress;                                              \
+  using NNDProgress = tdoann::HeapSumProgress<Progress>;                       \
+  NND_IMPL()
 
 #define NND_BUILD_UPDATER()                                                    \
   if (n_threads > 0) {                                                         \
@@ -54,32 +57,29 @@ using namespace Rcpp;
     if (low_memory) {                                                          \
       using GraphUpdate = tdoann::upd::Factory<tdoann::upd::Batch>;            \
       NND_PROGRESS()                                                           \
-    } else {                                                                   \
-      using GraphUpdate = tdoann::upd::Factory<tdoann::upd::BatchHiMem>;       \
-      NND_PROGRESS()                                                           \
     }                                                                          \
-  } else {                                                                     \
-    using NNDImpl = NNDBuildSerial;                                            \
-    NNDImpl nnd_impl(data);                                                    \
-    if (low_memory) {                                                          \
-      using GraphUpdate = tdoann::upd::Factory<tdoann::upd::Serial>;           \
-      NND_PROGRESS()                                                           \
-    } else {                                                                   \
-      using GraphUpdate = tdoann::upd::Factory<tdoann::upd::SerialHiMem>;      \
-      NND_PROGRESS()                                                           \
-    }                                                                          \
-  }
+    using GraphUpdate = tdoann::upd::Factory<tdoann::upd::BatchHiMem>;         \
+    NND_PROGRESS()                                                             \
+  }                                                                            \
+  using NNDImpl = NNDBuildSerial;                                              \
+  NNDImpl nnd_impl(data);                                                      \
+  if (low_memory) {                                                            \
+    using GraphUpdate = tdoann::upd::Factory<tdoann::upd::Serial>;             \
+    NND_PROGRESS()                                                             \
+  }                                                                            \
+  using GraphUpdate = tdoann::upd::Factory<tdoann::upd::SerialHiMem>;          \
+  NND_PROGRESS()
 
-struct NNDBuildSerial {
-  NumericMatrix data;
+class NNDBuildSerial {
 
-  NNDBuildSerial(NumericMatrix data) : data(data) {}
+public:
+  explicit NNDBuildSerial(const NumericMatrix &data) : data(data) {}
 
   template <typename GraphUpdate, typename Distance, typename Progress,
             typename NNDProgress>
-  auto get_nn(IntegerMatrix nn_idx, NumericMatrix nn_dist,
-              std::size_t max_candidates = 50, std::size_t n_iters = 10,
-              double delta = 0.001, bool verbose = false) -> List {
+  auto get_nn(const IntegerMatrix &nn_idx, const NumericMatrix &nn_dist,
+              std::size_t max_candidates, std::size_t n_iters, double delta,
+              bool verbose) -> List {
     using Out = typename Distance::Output;
     using Index = typename Distance::Index;
 
@@ -97,21 +97,21 @@ struct NNDBuildSerial {
 
     return heap_to_r(nnd_heap);
   }
+
+private:
+  NumericMatrix data;
 };
 
-struct NNDBuildParallel {
-  NumericMatrix data;
-
-  std::size_t n_threads;
-
-  NNDBuildParallel(NumericMatrix data, std::size_t n_threads)
+class NNDBuildParallel {
+public:
+  NNDBuildParallel(const NumericMatrix &data, std::size_t n_threads)
       : data(data), n_threads(n_threads) {}
 
   template <typename GraphUpdate, typename Distance, typename Progress,
             typename NNDProgress>
-  auto get_nn(IntegerMatrix nn_idx, NumericMatrix nn_dist,
-              std::size_t max_candidates = 50, std::size_t n_iters = 10,
-              double delta = 0.001, bool verbose = false) -> List {
+  auto get_nn(const IntegerMatrix &nn_idx, const NumericMatrix &nn_dist,
+              std::size_t max_candidates, std::size_t n_iters, double delta,
+              bool verbose) -> List {
     using Out = typename Distance::Output;
     using Index = typename Distance::Index;
 
@@ -130,14 +130,19 @@ struct NNDBuildParallel {
 
     return heap_to_r(nnd_heap, n_threads);
   }
+
+private:
+  NumericMatrix data;
+  std::size_t n_threads;
 };
 
 // [[Rcpp::export]]
-List nn_descent(NumericMatrix data, IntegerMatrix nn_idx, NumericMatrix nn_dist,
-                const std::string &metric = "euclidean",
-                std::size_t max_candidates = 50, std::size_t n_iters = 10,
-                double delta = 0.001, bool low_memory = true,
-                std::size_t n_threads = 0, bool verbose = false,
-                const std::string &progress = "bar") {
+List nn_descent(const NumericMatrix &data, const IntegerMatrix &nn_idx,
+                const NumericMatrix &nn_dist, const std::string &metric,
+                std::size_t max_candidates, std::size_t n_iters, double delta,
+                bool low_memory, std::size_t n_threads, bool verbose,
+                const std::string &progress) {
   DISPATCH_ON_DISTANCES(NND_BUILD_UPDATER);
 }
+
+// NOLINTEND(modernize-use-trailing-return-type)

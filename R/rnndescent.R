@@ -210,7 +210,7 @@ random_knn_impl <-
     args <- lmerge(
       args,
       list(
-        k = k,
+        nnbrs = k,
         metric = actual_metric,
         order_by_distance = order_by_distance,
         n_threads = n_threads,

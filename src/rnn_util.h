@@ -55,21 +55,21 @@ auto r_to_vec(Rcpp::NumericMatrix data) -> std::vector<T> {
 }
 
 template <typename T>
-auto r_to_vect(Rcpp::NumericMatrix data) -> std::vector<T> {
+auto r_to_vect(const Rcpp::NumericMatrix &data) -> std::vector<T> {
   return Rcpp::as<std::vector<T>>(Rcpp::transpose(data));
 }
 
 template <typename Int>
-inline auto r_to_idx(Rcpp::IntegerMatrix nn_idx, int max_idx = RNND_MAX_IDX)
-    -> std::vector<Int> {
+inline auto r_to_idx(const Rcpp::IntegerMatrix &nn_idx,
+                     int max_idx = RNND_MAX_IDX) -> std::vector<Int> {
   auto nn_idx_copy = Rcpp::clone(nn_idx);
   zero_index(nn_idx_copy, max_idx, true);
   return Rcpp::as<std::vector<Int>>(nn_idx_copy);
 }
 
 template <typename Int>
-inline auto r_to_idxt(Rcpp::IntegerMatrix nn_idx, int max_idx = RNND_MAX_IDX)
-    -> std::vector<Int> {
+inline auto r_to_idxt(const Rcpp::IntegerMatrix &nn_idx,
+                      int max_idx = RNND_MAX_IDX) -> std::vector<Int> {
   auto nn_idx_copy = Rcpp::clone(nn_idx);
   zero_index(nn_idx_copy, max_idx, true);
   return Rcpp::as<std::vector<Int>>(Rcpp::transpose(nn_idx_copy));
@@ -103,11 +103,11 @@ auto r_to_sparse_graph(Rcpp::IntegerMatrix idx, Rcpp::NumericMatrix dist)
   auto idx_vec = r_to_idxt<Idx>(idx);
   auto dist_vec = r_to_vect<Out>(dist);
 
-  const std::size_t nr = idx.nrow();
-  std::vector<std::size_t> ptr(nr + 1);
-  const std::size_t nc = idx.ncol();
-  for (std::size_t i = 0; i < nr + 1; i++) {
-    ptr[i] = i * nc;
+  const std::size_t nrow = idx.nrow();
+  std::vector<std::size_t> ptr(nrow + 1);
+  const std::size_t ncol = idx.ncol();
+  for (std::size_t i = 0; i < nrow + 1; i++) {
+    ptr[i] = i * ncol;
   }
 
   return tdoann::SparseNNGraph<Out, Idx>(ptr, idx_vec, dist_vec);

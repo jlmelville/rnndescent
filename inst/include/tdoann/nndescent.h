@@ -38,13 +38,13 @@ void flag_retained_new_candidates(NNDHeap<DistOut, Idx> &current_graph,
                                   std::size_t begin, std::size_t end) {
   const std::size_t n_nbrs = current_graph.n_nbrs;
   std::size_t innbrs = 0;
-  std::size_t ij = 0;
+  std::size_t idx_ij = 0;
   for (auto i = begin; i < end; i++) {
     innbrs = i * n_nbrs;
     for (std::size_t j = 0; j < n_nbrs; j++) {
-      ij = innbrs + j;
-      if (new_nbrs.contains(i, current_graph.idx[ij])) {
-        current_graph.flags[ij] = 0;
+      idx_ij = innbrs + j;
+      if (new_nbrs.contains(i, current_graph.idx[idx_ij])) {
+        current_graph.flags[idx_ij] = 0;
       }
     }
   }
@@ -77,25 +77,21 @@ void build_candidates_full(NNDHeap<DistOut, Idx> &current_graph,
   const std::size_t n_points = current_graph.n_points;
   const std::size_t n_nbrs = current_graph.n_nbrs;
   std::size_t innbrs = 0;
-  std::size_t ij = 0;
+  std::size_t idx_ij = 0;
 
   for (std::size_t i = 0; i < n_points; i++) {
     innbrs = i * n_nbrs;
     for (std::size_t j = 0; j < n_nbrs; j++) {
-      ij = innbrs + j;
-      auto &nbrs = current_graph.flags[ij] == 1 ? new_nbrs : old_nbrs;
-      if (current_graph.idx[ij] == nbrs.npos()) {
+      idx_ij = innbrs + j;
+      auto &nbrs = current_graph.flags[idx_ij] == 1 ? new_nbrs : old_nbrs;
+      if (current_graph.idx[idx_ij] == nbrs.npos()) {
         continue;
       }
-      auto d = rand.unif();
-      nbrs.checked_push_pair(i, d, current_graph.idx[ij]);
+      auto rand_weight = rand.unif();
+      nbrs.checked_push_pair(i, rand_weight, current_graph.idx[idx_ij]);
     }
   }
   flag_retained_new_candidates(current_graph, new_nbrs);
-}
-
-inline auto is_converged(std::size_t n_updates, double tol) -> bool {
-  return static_cast<double>(n_updates) <= tol;
 }
 
 // Pretty close to the NNDescentFull algorithm (#2 in the paper)
@@ -110,16 +106,20 @@ void nnd_build(GraphUpdater<Distance> &graph_updater,
   const std::size_t n_points = nn_heap.n_points;
   const double tol = delta * nn_heap.n_nbrs * n_points;
 
-  for (std::size_t n = 0; n < n_iters; n++) {
+  for (std::size_t iter = 0; iter < n_iters; iter++) {
     NNHeap<DistOut, Idx> new_nbrs(n_points, max_candidates);
     decltype(new_nbrs) old_nbrs(n_points, max_candidates);
 
     build_candidates_full(nn_heap, new_nbrs, old_nbrs, rand);
-    std::size_t c = local_join(graph_updater, new_nbrs, old_nbrs, progress);
+    std::size_t num_updated =
+        local_join(graph_updater, new_nbrs, old_nbrs, progress);
 
     TDOANN_ITERFINISHED();
     progress.heap_report(nn_heap);
-    TDOANN_CHECKCONVERGENCE();
+    if (is_converged(num_updated, tol)) {
+      progress.converged(num_updated, tol);
+      break;
+    }
   }
 }
 
@@ -137,32 +137,32 @@ auto local_join(
   const auto n_points = new_nbrs.n_points;
   const auto max_candidates = new_nbrs.n_nbrs;
   progress.set_n_blocks(n_points);
-  std::size_t c = 0;
+  std::size_t num_updates = 0;
   for (Idx i = 0; i < n_points; i++) {
     for (Idx j = 0; j < max_candidates; j++) {
-      auto p = new_nbrs.index(i, j);
-      if (p == new_nbrs.npos()) {
+      auto p_nbr = new_nbrs.index(i, j);
+      if (p_nbr == new_nbrs.npos()) {
         continue;
       }
       for (Idx k = j; k < max_candidates; k++) {
-        auto q = new_nbrs.index(i, k);
-        if (q == new_nbrs.npos()) {
+        auto new_nbr = new_nbrs.index(i, k);
+        if (new_nbr == new_nbrs.npos()) {
           continue;
         }
-        c += graph_updater.generate_and_apply(p, q);
+        num_updates += graph_updater.generate_and_apply(p_nbr, new_nbr);
       }
 
       for (Idx k = 0; k < max_candidates; k++) {
-        auto q = old_nbrs.index(i, k);
-        if (q == old_nbrs.npos()) {
+        auto old_nbr = old_nbrs.index(i, k);
+        if (old_nbr == old_nbrs.npos()) {
           continue;
         }
-        c += graph_updater.generate_and_apply(p, q);
+        num_updates += graph_updater.generate_and_apply(p_nbr, old_nbr);
       }
     }
     TDOANN_BLOCKFINISHED();
   }
-  return c;
+  return num_updates;
 }
 } // namespace tdoann
 #endif // TDOANN_NNDESCENT_H

@@ -22,13 +22,18 @@
 #include <thread>
 
 #include <Rcpp.h>
-#include <progress.hpp>
 
 #include "rnn_distance.h"
 #include "rnn_parallel.h"
 #include "rnn_util.h"
 
-using namespace Rcpp;
+// NOLINTBEGIN(modernize-use-trailing-return-type)
+
+using Rcpp::Datetime;
+using Rcpp::IntegerMatrix;
+using Rcpp::List;
+using Rcpp::Rcerr;
+using Rcpp::stop;
 
 void print_time(bool print_date) {
   auto now = std::chrono::system_clock::now();
@@ -37,11 +42,12 @@ void print_time(bool print_date) {
       std::chrono::duration_cast<std::chrono::seconds>(duration).count();
 
   std::string fmt = print_date ? "%Y-%m-%d %H:%M:%S" : "%H:%M:%S";
-  Datetime dt(secs);
-  std::string dt_str = dt.format(fmt.c_str());
+  Datetime dt_now(static_cast<double>(secs));
+  std::string dt_str = dt_now.format(fmt.c_str());
   // for some reason format always adds ".000000", so remove it
-  if (dt_str.size() >= 7) {
-    dt_str = dt_str.substr(0, dt_str.size() - 7);
+  const constexpr std::size_t MAX_EXPECTED_FMT_LEN{7UL};
+  if (dt_str.size() >= MAX_EXPECTED_FMT_LEN) {
+    dt_str = dt_str.substr(0, dt_str.size() - MAX_EXPECTED_FMT_LEN);
   }
   Rcerr << dt_str << " ";
 }
@@ -51,21 +57,21 @@ void ts(const std::string &msg) {
   Rcerr << msg << std::endl;
 }
 
-void zero_index(IntegerMatrix m, int max_idx, bool missing_ok) {
+void zero_index(IntegerMatrix matrix, int max_idx, bool missing_ok) {
   const int min_idx = missing_ok ? -1 : 0;
-  for (auto j = 0; j < m.ncol(); j++) {
-    for (auto i = 0; i < m.nrow(); i++) {
-      auto idx0 = m(i, j) - 1;
+  for (auto j = 0; j < matrix.ncol(); j++) {
+    for (auto i = 0; i < matrix.nrow(); i++) {
+      auto idx0 = matrix(i, j) - 1;
       if (idx0 < min_idx || idx0 > max_idx) {
         stop("Bad indexes in input: " + std::to_string(idx0));
       }
-      m(i, j) = idx0;
+      matrix(i, j) = idx0;
     }
   }
 }
 
 // [[Rcpp::export]]
-List sort_graph(List graph_list, std::size_t n_threads = 0) {
+List sort_graph(const List &graph_list, std::size_t n_threads = 0) {
   auto nn_graph = r_to_graph<DummyDistance>(graph_list);
   const std::size_t block_size = 100;
   const std::size_t grain_size = 1;
@@ -74,3 +80,5 @@ List sort_graph(List graph_list, std::size_t n_threads = 0) {
   // unzero = true
   return graph_to_r(nn_graph, true);
 }
+
+// NOLINTEND(modernize-use-trailing-return-type)

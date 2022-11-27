@@ -1,7 +1,31 @@
+//  rnndescent -- An R package for nearest neighbor descent
+//
+//  Copyright (C) 2022 James Melville
+//
+//  This file is part of rnndescent
+//
+//  rnndescent is free software: you can redistribute it and/or modify
+//  it under the terms of the GNU General Public License as published by
+//  the Free Software Foundation, either version 3 of the License, or
+//  (at your option) any later version.
+//
+//  rnndescent is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//  GNU General Public License for more details.
+//
+//  You should have received a copy of the GNU General Public License
+//  along with rnndescent.  If not, see <http://www.gnu.org/licenses/>.
+
+// NOLINTBEGIN(modernize-use-trailing-return-type,readability-identifier-length)
+
 #include "tdoann/distance.h"
 
 #include <Rcpp.h>
-using namespace Rcpp;
+
+using Rcpp::IntegerVector;
+using Rcpp::NumericVector;
+using Rcpp::stop;
 
 template <typename Vec> inline void check_vecs(Vec x, Vec y) {
   if (x.length() != y.length()) {
@@ -74,3 +98,5 @@ double correlation_distance(NumericVector x, NumericVector y) {
   check_vecs(x, y);
   return tdoann::correlation<double>(x.begin(), x.end(), y.begin());
 }
+
+// NOLINTEND(modernize-use-trailing-return-type, readability-identifier-length)

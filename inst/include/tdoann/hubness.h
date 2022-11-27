@@ -37,7 +37,7 @@
 
 namespace tdoann {
 
-template <typename T> std::pair<T, T> pair_dmax() {
+template <typename T> auto pair_dmax() -> std::pair<T, T> {
   return std::make_pair((std::numeric_limits<T>::max)(),
                         (std::numeric_limits<T>::max)());
 }
@@ -67,8 +67,8 @@ void local_scale(const std::vector<typename NbrHeap::Index> &idx_vec,
   // distances as values
   using PairNbrHeap = tdoann::NNHeap<DPair, Idx, pair_dmax>;
   tdoann::HeapAddQuery heap_add;
-  std::size_t block_size = 100;
-  std::size_t grain_size = 1;
+  const constexpr std::size_t block_size = 100;
+  const constexpr std::size_t grain_size = 1;
   auto n_points = nn_heap.n_points;
   auto n_nbrs = nn_heap.n_nbrs;
   bool transpose = false;
@@ -98,9 +98,10 @@ void local_scaled_distances(std::size_t begin, std::size_t end,
     std::size_t innbrs = i * n_nbrs;
     auto scalei = local_scales[i];
     for (std::size_t j = 0; j < n_nbrs; j++) {
-      auto ij = innbrs + j;
-      auto d = dist[ij];
-      sdist[ij] = (d * d) / (scalei * local_scales[idx[ij]]);
+      auto idx_ij = innbrs + j;
+      auto dist_ij = dist[idx_ij];
+      sdist[idx_ij] =
+          (dist_ij * dist_ij) / (scalei * local_scales[idx[idx_ij]]);
     }
   }
 }
@@ -125,23 +126,21 @@ auto local_scaled_distances(const std::vector<Idx> &idx,
 
 // Welford-style
 template <typename T>
-auto mean_average(const std::vector<T> &v, std::size_t begin, std::size_t end)
+auto mean_average(const std::vector<T> &vec, std::size_t begin, std::size_t end)
     -> double {
   long double mean = 0.0;
-  auto b1 = 1 - begin;
+  auto onemb = 1 - begin;
   for (auto i = begin; i < end; ++i) {
-    mean += (v[i] - mean) / (i + b1);
+    mean += (vec[i] - mean) / (i + onemb);
   }
   return static_cast<T>(mean);
 }
 
 template <typename T>
 void get_local_scales(std::size_t begin, std::size_t end,
-                      const std::vector<T> &dist_vec, std::size_t n_points,
-                      std::size_t n_nbrs, std::size_t k_begin,
-                      std::size_t k_end, T min_scale,
+                      const std::vector<T> &dist_vec, std::size_t n_nbrs,
+                      std::size_t k_begin, std::size_t k_end, T min_scale,
                       std::vector<T> &local_scales) {
-
   for (auto i = begin; i < end; i++) {
     auto innbrs = i * n_nbrs;
     local_scales[i] = std::max(
@@ -157,8 +156,8 @@ auto get_local_scales(const std::vector<T> &dist_vec, std::size_t n_nbrs,
   std::vector<T> local_scales(n_points);
 
   auto worker = [&](std::size_t begin, std::size_t end) {
-    get_local_scales(begin, end, dist_vec, n_points, n_nbrs, k_begin, k_end,
-                     min_scale, local_scales);
+    get_local_scales(begin, end, dist_vec, n_nbrs, k_begin, k_end, min_scale,
+                     local_scales);
   };
 
   batch_parallel_for<Parallel, Progress>(worker, n_points, n_threads);

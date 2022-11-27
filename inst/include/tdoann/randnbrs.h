@@ -59,9 +59,10 @@ auto get_nn(Distance &distance, typename Distance::Index n_nbrs, bool sort,
       auto idxi = int_sampler.sample(n_refs, n_nbrs);
       std::size_t kqi = n_nbrs * qi;
       for (std::size_t j = 0; j < n_nbrs; j++) {
-        auto &ri = idxi[j];
-        nn_idx[j + kqi] = ri;
-        nn_dist[j + kqi] = distance(ri, qi); // distance calcs are 0-indexed
+        auto &rand_nbri = idxi[j];
+        nn_idx[j + kqi] = rand_nbri;
+        nn_dist[j + kqi] =
+            distance(rand_nbri, qi); // distance calcs are 0-indexed
       }
     }
   };
@@ -84,15 +85,14 @@ template <typename Distance, typename Sampler, typename Progress,
 auto random_build(Distance &distance, typename Distance::Index n_nbrs,
                   bool sort, std::size_t n_threads = 0, bool verbose = false)
     -> NNGraph<typename Distance::Output, typename Distance::Index> {
-  if (n_threads > 0) {
-    return get_nn<Distance, Progress, Parallel, Sampler,
-                  tdoann::LockingHeapAddSymmetric>(distance, n_nbrs, sort,
-                                                   n_threads, verbose);
-  } else {
+  if (n_threads == 0) {
     return get_nn<Distance, Progress, Parallel, Sampler,
                   tdoann::HeapAddSymmetric>(distance, n_nbrs, sort, n_threads,
                                             verbose);
   }
+  return get_nn<Distance, Progress, Parallel, Sampler,
+                tdoann::LockingHeapAddSymmetric>(distance, n_nbrs, sort,
+                                                 n_threads, verbose);
 }
 
 template <typename Distance, typename Sampler, typename Progress,

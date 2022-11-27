@@ -35,7 +35,8 @@ namespace tdoann {
 
 // A priority queue that stores neighbors, where a smaller distance gives
 // a higher priority
-template <typename DistOut, typename Idx> struct NbrQueue {
+template <typename DistOut, typename Idx> class NbrQueue {
+private:
   using Nbr = std::pair<DistOut, Idx>;
 
   // std::priority_queue is a max heap, so we need to implement the comparison
@@ -47,6 +48,7 @@ template <typename DistOut, typename Idx> struct NbrQueue {
   };
   std::priority_queue<Nbr, std::vector<Nbr>, NbrCompare> queue;
 
+public:
   NbrQueue() : queue() {}
 
   auto pop() -> Nbr {
@@ -58,7 +60,7 @@ template <typename DistOut, typename Idx> struct NbrQueue {
   template <typename... Args> void emplace(Args... args) {
     queue.emplace(args...);
   }
-  auto empty() -> bool const { return queue.empty(); }
+  auto empty() const -> bool { return queue.empty(); }
 };
 
 } // namespace tdoann

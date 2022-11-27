@@ -51,9 +51,9 @@ void nn_query(
 }
 
 template <typename T, typename Container, typename Compare>
-auto pop(std::priority_queue<T, Container, Compare> &pq) -> T {
-  auto result = pq.top();
-  pq.pop();
+auto pop(std::priority_queue<T, Container, Compare> &queue) -> T {
+  auto result = queue.top();
+  queue.pop();
   return result;
 }
 
@@ -102,12 +102,12 @@ void non_search_query(
             has_been_and_mark_visited(visited, candidate_idx)) {
           continue;
         }
-        DistOut d = distance(candidate_idx, query_idx);
-        if (static_cast<double>(d) >= distance_bound) {
+        DistOut dist = distance(candidate_idx, query_idx);
+        if (static_cast<double>(dist) >= distance_bound) {
           continue;
         }
-        current_graph.checked_push(query_idx, d, candidate_idx);
-        seed_set.emplace(d, candidate_idx);
+        current_graph.checked_push(query_idx, dist, candidate_idx);
+        seed_set.emplace(dist, candidate_idx);
         distance_bound =
             distance_scale *
             static_cast<double>(current_graph.max_distance(query_idx));

@@ -17,6 +17,8 @@
 //  You should have received a copy of the GNU General Public License
 //  along with rnndescent.  If not, see <http://www.gnu.org/licenses/>.
 
+// NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers,modernize-use-trailing-return-type,readability-magic-numbers)
+
 #include <Rcpp.h>
 
 #include "tdoann/search.h"
@@ -27,7 +29,9 @@
 #include "rnn_progress.h"
 #include "rnn_rtoheap.h"
 
-using namespace Rcpp;
+using Rcpp::IntegerMatrix;
+using Rcpp::List;
+using Rcpp::NumericMatrix;
 
 #define NN_QUERY_IMPL()                                                        \
   return nn_query_impl<Distance>(reference, query, reference_graph_list,       \
@@ -54,9 +58,12 @@ auto nn_query_impl(NumericMatrix reference, NumericMatrix query,
 }
 
 // [[Rcpp::export]]
-List nn_query(NumericMatrix reference, List reference_graph_list,
-              NumericMatrix query, IntegerMatrix nn_idx, NumericMatrix nn_dist,
+List nn_query(const NumericMatrix &reference, const List &reference_graph_list,
+              const NumericMatrix &query, const IntegerMatrix &nn_idx,
+              const NumericMatrix &nn_dist,
               const std::string &metric = "euclidean", double epsilon = 0.1,
               std::size_t n_threads = 0, bool verbose = false) {
   DISPATCH_ON_QUERY_DISTANCES(NN_QUERY_IMPL)
 }
+
+// NOLINTEND(cppcoreguidelines-avoid-magic-numbers,modernize-use-trailing-return-type,readability-magic-numbers)

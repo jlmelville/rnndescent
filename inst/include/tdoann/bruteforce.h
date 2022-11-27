@@ -27,6 +27,7 @@
 #ifndef TDOANN_BRUTE_FORCE_H
 #define TDOANN_BRUTE_FORCE_H
 
+#include <cmath>
 #include <vector>
 
 #include "heap.h"
@@ -44,9 +45,9 @@ void nnbf_query(
   std::size_t n_ref_points = distance.nx;
   for (std::size_t ref = 0; ref < n_ref_points; ref++) {
     for (std::size_t query = begin; query < end; query++) {
-      typename Distance::Output d = distance(ref, query);
-      if (neighbor_heap.accepts(query, d)) {
-        neighbor_heap.unchecked_push(query, d, ref);
+      typename Distance::Output dist_rq = distance(ref, query);
+      if (neighbor_heap.accepts(query, dist_rq)) {
+        neighbor_heap.unchecked_push(query, dist_rq, ref);
       }
     }
   }
@@ -70,34 +71,47 @@ auto nnbf_query(Distance &distance, typename Distance::Index n_nbrs,
   return heap_to_graph(neighbor_heap);
 }
 
+// convert from 1D index k of upper triangular matrix of size n to 2D index i,j
+// https://stackoverflow.com/questions/27086195/linear-index-upper-triangular-matrix
+// e.g. for n = 5:
+// k = 0  -> i = 0, j = 0
+// k = 1  -> i = 0, j = 1
+// k = 4  -> i = 0, j = 4
+// k = 5  -> i = 1, j = 1
+// k = 14 -> i = 4, j = 4
+// NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers,readability-identifier-length,readability-magic-numbers)
+inline void upper_tri_2d(std::size_t k, std::size_t n, std::size_t &i,
+                         std::size_t &j) {
+  i = n - 1 -
+      static_cast<int>(
+          sqrt(static_cast<double>(-8 * k + 4 * n * (n + 1) - 7)) / 2 - 0.5);
+  j = k - n * (n - 1) / 2 + (n - i) * ((n - i) - 1) / 2;
+}
+// NOLINTEND(cppcoreguidelines-avoid-magic-numbers,readability-identifier-length,readability-magic-numbers)
+
 template <typename Distance>
 void nnbf_impl(
-    Distance &distance, typename Distance::Index n_nbrs, bool verbose,
+    Distance &distance,
     NNHeap<typename Distance::Output, typename Distance::Index> &neighbor_heap,
     std::size_t begin, std::size_t end) {
-  const std::size_t n = neighbor_heap.n_points;
+  const std::size_t n_points = neighbor_heap.n_points;
 
-  // Convert from the upper triangular index k back to i, j (including diagonal)
-  // e.g. for N = 5:
-  // k = 0  -> i = 0, j = 0
-  // k = 1  -> i = 0, j = 1
-  // k = 4  -> i = 0, j = 4
-  // k = 5  -> i = 1, j = 1
-  // k = 14 -> i = 4, j = 4
-  std::size_t i = n - 1 - int(sqrt(-8 * begin + 4 * n * (n + 1) - 7) / 2 - 0.5);
-  std::size_t j = begin - n * (n - 1) / 2 + (n - i) * ((n - i) - 1) / 2;
+  std::size_t idx_i{0};
+  std::size_t idx_j{0};
+  upper_tri_2d(begin, n_points, idx_i, idx_j);
+
   for (std::size_t k = begin; k < end; k++) {
-    typename Distance::Output d = distance(i, j);
-    if (neighbor_heap.accepts(i, d)) {
-      neighbor_heap.unchecked_push(i, d, j);
+    typename Distance::Output dist_ij = distance(idx_i, idx_j);
+    if (neighbor_heap.accepts(idx_i, dist_ij)) {
+      neighbor_heap.unchecked_push(idx_i, dist_ij, idx_j);
     }
-    if (i != j && neighbor_heap.accepts(j, d)) {
-      neighbor_heap.unchecked_push(j, d, i);
+    if (idx_i != idx_j && neighbor_heap.accepts(idx_j, dist_ij)) {
+      neighbor_heap.unchecked_push(idx_j, dist_ij, idx_i);
     }
-    ++j;
-    if (j == n) {
-      ++i;
-      j = i;
+    ++idx_j;
+    if (idx_j == n_points) {
+      ++idx_i;
+      idx_j = idx_i;
     }
   }
 }
@@ -109,23 +123,22 @@ auto brute_force_build(Distance &distance, typename Distance::Index n_nbrs,
   if (n_threads > 0) {
     return nnbf_query<Distance, Progress, Parallel>(distance, n_nbrs, n_threads,
                                                     verbose);
-  } else {
-    NNHeap<typename Distance::Output, typename Distance::Index> neighbor_heap(
-        distance.ny, n_nbrs);
-    auto worker = [&](std::size_t begin, std::size_t end) {
-      nnbf_impl(distance, n_nbrs, verbose, neighbor_heap, begin, end);
-    };
-    Progress progress(1, verbose);
-    const std::size_t n = neighbor_heap.n_points;
-    // in single-threaded case work is divided up across all unique pairs
-    // (including the self-distance)
-    const std::size_t n_pairs = (n * (n + 1)) / 2;
-    const std::size_t block_size = 2048;
-    batch_serial_for(worker, progress, n_pairs, block_size);
-
-    sort_heap(neighbor_heap);
-    return heap_to_graph(neighbor_heap);
   }
+  NNHeap<typename Distance::Output, typename Distance::Index> neighbor_heap(
+      distance.ny, n_nbrs);
+  auto worker = [&](std::size_t begin, std::size_t end) {
+    nnbf_impl(distance, neighbor_heap, begin, end);
+  };
+  Progress progress(1, verbose);
+  const std::size_t n_points = neighbor_heap.n_points;
+  // in single-threaded case work is divided up across all unique pairs
+  // (including the self-distance)
+  const std::size_t n_pairs = (n_points * (n_points + 1)) / 2;
+  constexpr const std::size_t block_size = 2048;
+  batch_serial_for(worker, progress, n_pairs, block_size);
+
+  sort_heap(neighbor_heap);
+  return heap_to_graph(neighbor_heap);
 }
 
 template <typename Distance, typename Progress, typename Parallel>
