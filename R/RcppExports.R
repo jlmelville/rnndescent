@@ -67,6 +67,10 @@ reverse_nbr_size_impl <- function(nn_idx, k, len, include_self = FALSE) {
     .Call(`_rnndescent_reverse_nbr_size_impl`, nn_idx, k, len, include_self)
 }
 
+shared_nbr_size_impl <- function(nn_idx, n_neighbors) {
+    .Call(`_rnndescent_shared_nbr_size_impl`, nn_idx, n_neighbors)
+}
+
 rnn_idx_to_graph_self <- function(data, idx, metric = "euclidean", n_threads = 0L, verbose = FALSE) {
     .Call(`_rnndescent_rnn_idx_to_graph_self`, data, idx, metric, n_threads, verbose)
 }
