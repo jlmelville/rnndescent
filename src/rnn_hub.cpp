@@ -21,6 +21,8 @@
 
 #include <Rcpp.h>
 
+#include "rnn_util.h"
+
 using Rcpp::as;
 using Rcpp::IntegerMatrix;
 using Rcpp::IntegerVector;
@@ -51,6 +53,36 @@ IntegerVector reverse_nbr_size_impl(const IntegerMatrix &nn_idx,
   }
 
   return {n_reverse.begin(), n_reverse.end()};
+}
+
+// [[Rcpp::export]]
+IntegerVector shared_nbr_size_impl(IntegerMatrix nn_idx,
+                                   std::size_t n_neighbors) {
+  const std::size_t n_items = nn_idx.nrow();
+  const constexpr std::size_t missing = static_cast<std::size_t>(-1);
+
+  const std::size_t n_dim = nn_idx.ncol();
+  auto data = r_to_idxt<std::size_t>(nn_idx);
+
+  std::vector<std::size_t> n_shared(n_items);
+
+  for (std::size_t i = 0; i < n_items; i++) {
+    const auto ind = n_dim * i;
+    for (std::size_t j = 0; j < n_neighbors; j++) {
+      const auto inbr = data[ind + j];
+      // skip missing and self neighbor
+      if (inbr == missing || inbr == i) {
+        continue;
+      }
+      const auto ij = n_dim * inbr;
+      for (std::size_t k = 0; k < n_neighbors; k++) {
+        if (data[ij + k] == i) {
+          ++n_shared[i];
+        }
+      }
+    }
+  }
+  return IntegerVector(n_shared.begin(), n_shared.end());
 }
 
 // NOLINTEND(modernize-use-trailing-return-type)
