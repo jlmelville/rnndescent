@@ -91,13 +91,15 @@
 <h2 class="pkg-version" data-toc-text="0.0.6" id="rnndescent-006-29-november-2019">rnndescent 0.0.6 (29 November 2019)<a class="anchor" aria-label="anchor" href="#rnndescent-006-29-november-2019"></a></h2>
 <div class="section level3">
 <h3 id="bug-fixes-and-minor-improvements-0-0-6">Bug fixes and minor improvements<a class="anchor" aria-label="anchor" href="#bug-fixes-and-minor-improvements-0-0-6"></a></h3>
-<ul><li>For some reason, I thought it would be ok to use the <code>dqrng</code> sample routines from inside a thread, despite it clearly using the R API extensively. It’s not ok and causes lots of crashes. There is now a re-implementation of <code>dqrng</code>’s sample routines using plain <code>std::vector</code>s in <code>src/rnn_sample.h</code>. That file is licensed under the AGPL (<code>rnndescent</code> as a whole remains GPL3).</li></ul></div>
+<ul><li>For some reason, I thought it would be ok to use the <code>dqrng</code> sample routines from inside a thread, despite it clearly using the R API extensively. It’s not ok and causes lots of crashes. There is now a re-implementation of <code>dqrng</code>’s sample routines using plain <code>std::vector</code>s in <code>src/rnn_sample.h</code>. That file is licensed under the AGPL (<code>rnndescent</code> as a whole remains GPL3).</li>
+</ul></div>
 </div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.0.5" id="rnndescent-005-23-november-2019">rnndescent 0.0.5 (23 November 2019)<a class="anchor" aria-label="anchor" href="#rnndescent-005-23-november-2019"></a></h2>
 <div class="section level3">
 <h3 id="new-features-0-0-5">New features<a class="anchor" aria-label="anchor" href="#new-features-0-0-5"></a></h3>
-<ul><li>New function: <code>merge_knn</code>, to combine two nearest neighbor graphs. Useful for combining the results of multiple runs of <code>nnd_knn</code> or <code>random_knn</code>. Also, <code>merge_knnl</code>, which operates on a list of multiple neighbor graphs, and can provide a speed up over <code>merge_knn</code> if you don’t mind storing multiple graphs in memory at once.</li></ul></div>
+<ul><li>New function: <code>merge_knn</code>, to combine two nearest neighbor graphs. Useful for combining the results of multiple runs of <code>nnd_knn</code> or <code>random_knn</code>. Also, <code>merge_knnl</code>, which operates on a list of multiple neighbor graphs, and can provide a speed up over <code>merge_knn</code> if you don’t mind storing multiple graphs in memory at once.</li>
+</ul></div>
 <div class="section level3">
 <h3 id="bug-fixes-and-minor-improvements-0-0-5">Bug fixes and minor improvements<a class="anchor" aria-label="anchor" href="#bug-fixes-and-minor-improvements-0-0-5"></a></h3>
 <ul><li>There was a thread-locking issue to do with converting R matrices to the internal heap data structure that affected <code>nnd_knn</code> with <code>n_threads &gt; 1</code> and <code>random_knn</code> with <code>n_threads &gt; 1</code> and <code>order_by_distance = TRUE</code>.</li>
@@ -120,7 +122,8 @@
 <h2 class="pkg-version" data-toc-text="0.0.3" id="rnndescent-003-15-november-2019">rnndescent 0.0.3 (15 November 2019)<a class="anchor" aria-label="anchor" href="#rnndescent-003-15-november-2019"></a></h2>
 <div class="section level3">
 <h3 id="new-features-0-0-3">New features<a class="anchor" aria-label="anchor" href="#new-features-0-0-3"></a></h3>
-<ul><li>There are now “query” versions of the three functions: <code>nnd_knn_query</code> being the most useful, but <code>brute_force_knn_query</code> and <code>random_knn_query</code> are also available. This allows for <code>query</code> data to search <code>reference</code> data, i.e. the returned indices and distances are relative to the <code>reference</code> data, not any other member of <code>query</code>. These methods are also available in multi-threaded mode, and <code>nnd_knn_query</code> has a low and high memory version.</li></ul></div>
+<ul><li>There are now “query” versions of the three functions: <code>nnd_knn_query</code> being the most useful, but <code>brute_force_knn_query</code> and <code>random_knn_query</code> are also available. This allows for <code>query</code> data to search <code>reference</code> data, i.e. the returned indices and distances are relative to the <code>reference</code> data, not any other member of <code>query</code>. These methods are also available in multi-threaded mode, and <code>nnd_knn_query</code> has a low and high memory version.</li>
+</ul></div>
 <div class="section level3">
 <h3 id="bug-fixes-and-minor-improvements-0-0-3">Bug fixes and minor improvements<a class="anchor" aria-label="anchor" href="#bug-fixes-and-minor-improvements-0-0-3"></a></h3>
 <ul><li>Incremental search in nearest neighbor descent didn’t work correctly, because retained new neighbors were marked as new rather than old. This made the search repeat distance calculations unnecessarily.</li>
@@ -161,7 +164,8 @@
 </div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.0.1" id="rnndescent-001-27-october-2019">rnndescent 0.0.1 (27 October 2019)<a class="anchor" aria-label="anchor" href="#rnndescent-001-27-october-2019"></a></h2>
-<ul><li>Initial release.</li></ul><div class="section level3">
+<ul><li>Initial release.</li>
+</ul><div class="section level3">
 <h3 id="new-features-0-0-1">New features<a class="anchor" aria-label="anchor" href="#new-features-0-0-1"></a></h3>
 <ul><li>Nearest Neighbor Descent with the following metrics: Euclidean, Cosine, Manhattan, Hamming.</li>
 <li>Support for multi-threading with RcppParallel.</li>
