@@ -347,3 +347,4 @@ a Julia implementation.
 * [nn_descent](https://github.com/eskomski/nn_descent), a C implementation.
 * [NNDescent.cpp](https://github.com/AnabelSMRuggiero/NNDescent.cpp), another
 C++ implementation.
+* [nndescent](https://github.com/brj0/nndescent), another C++ implementation, with Python bindings.
