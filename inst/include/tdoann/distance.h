@@ -27,6 +27,7 @@
 #ifndef TDOANN_DISTANCE_H
 #define TDOANN_DISTANCE_H
 
+#include <cstdint>
 #include <vector>
 
 #include "bitvec.h"
