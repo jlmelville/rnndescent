@@ -27,6 +27,8 @@
 #ifndef TDOANN_GRAPHUPDATE_H
 #define TDOANN_GRAPHUPDATE_H
 
+#include <numeric>
+#include <tuple>
 #include <unordered_set>
 #include <vector>
 
@@ -34,33 +36,27 @@
 
 namespace tdoann {
 
+// These classes are used in the "local join" step of nearest neighbor descent.
+// This is done in two separate steps to allow for parallelizing the (expensive)
+// distance calculation: distance calculations are carried out in batches
+// and stored, then updating the neighbor heaps is carried out in a serial
+// step (this is like a map-reduce procedure where the reduce step is
+// single-threaded).
+// There is also a "HiMem" variant, where distances are cached.
+
 namespace upd {
 
-template <typename DistOut, typename Idx> struct Update {
-  Idx p{0};
-  Idx q{0};
-  DistOut d{0};
+template <typename Idx> struct GraphCache {
+private:
+  std::vector<std::unordered_set<Idx>> seen;
 
-  Update() = default;
-  Update(Idx idx_p, Idx idx_q, DistOut dist) : p(idx_p), q(idx_q), d(dist) {}
-  Update(const Update &) = default;
-  auto operator=(const Update &) -> Update & = default;
-  Update(Update &&) noexcept = default;
-  auto operator=(Update &&) noexcept -> Update & = default;
-  ~Update() = default;
-};
-
-template <typename DistOut, typename Idx> struct GraphCacheConstructionInit {
-  using DistanceOut = DistOut;
-  using Index = Idx;
-  static void init(const NNDHeap<DistOut, Idx> &neighbor_heap,
-                   std::vector<std::unordered_set<Idx>> &seen) {
-    const auto n_points = neighbor_heap.n_points;
-    const auto n_nbrs = neighbor_heap.n_nbrs;
-    for (Idx i = 0; i < n_points; i++) {
-      std::size_t innbrs = i * n_nbrs;
-      for (std::size_t j = 0; j < n_nbrs; j++) {
-        auto idx_p = neighbor_heap.idx[innbrs + j];
+public:
+  GraphCache(std::size_t n_points, std::size_t n_nbrs,
+             const std::vector<Idx> &idx_data)
+      : seen(n_points) {
+    for (Idx i = 0, innbrs = 0; i < n_points; i++, innbrs += n_nbrs) {
+      for (std::size_t j = 0, idx_ij = innbrs; j < n_nbrs; j++, idx_ij++) {
+        auto idx_p = idx_data[idx_ij];
         if (i > idx_p) {
           seen[idx_p].emplace(i);
         } else {
@@ -69,153 +65,19 @@ template <typename DistOut, typename Idx> struct GraphCacheConstructionInit {
       }
     }
   }
-};
 
-template <typename DistOut, typename Idx> struct GraphCacheQueryInit {
-  using DistanceOut = DistOut;
-  using Index = Idx;
-  static void init(const NNDHeap<DistOut, Idx> &neighbor_heap,
-                   std::vector<std::unordered_set<Idx>> &seen) {
-    const auto n_points = neighbor_heap.n_points;
-    const auto n_nbrs = neighbor_heap.n_nbrs;
-    for (std::size_t idx_i = 0; idx_i < n_points; idx_i++) {
-      std::size_t innbrs = idx_i * n_nbrs;
-      for (std::size_t k = 0; k < n_nbrs; k++) {
-        std::size_t idx_j = neighbor_heap.idx[innbrs + k];
-        seen[idx_i].emplace(idx_j);
-      }
-    }
-  }
-};
-
-template <typename DistOut, typename Idx,
-          template <typename D, typename I> class GraphCacheInit =
-              GraphCacheConstructionInit>
-struct GraphCache {
-private:
-  std::vector<std::unordered_set<Idx>> seen;
-
-public:
-  explicit GraphCache(const NNDHeap<DistOut, Idx> &neighbor_heap)
-      : seen(neighbor_heap.n_points) {
-    GraphCacheInit<DistOut, Idx>::init(neighbor_heap, seen);
+  // Static factory function
+  template <typename DistOut>
+  static GraphCache<Idx> from_heap(const NNDHeap<DistOut, Idx> &heap) {
+    return GraphCache<Idx>(heap.n_points, heap.n_nbrs, heap.idx);
   }
 
-  auto contains(Idx &idx_p, Idx &idx_q) const -> bool {
+  auto contains(const Idx &idx_p, const Idx &idx_q) const -> bool {
     return seen[idx_p].find(idx_q) != seen[idx_p].end();
   }
 
   auto insert(Idx idx_p, Idx idx_q) -> bool {
     return !seen[idx_p].emplace(idx_q).second;
-  }
-
-  auto size() const -> std::size_t {
-    std::size_t sum = 0;
-    for (std::size_t i = 0; i < seen.size(); i++) {
-      sum += seen[i].size();
-    }
-    return sum;
-  }
-};
-
-template <typename Distance> struct Batch {
-  using DistOut = typename Distance::Output;
-  using Idx = typename Distance::Index;
-
-  NNDHeap<DistOut, Idx> &current_graph;
-  const Distance &distance;
-  std::vector<std::vector<Update<DistOut, Idx>>> updates;
-
-  Batch(NNDHeap<DistOut, Idx> &current_graph, const Distance &distance)
-      : current_graph(current_graph), distance(distance),
-        updates(current_graph.n_points) {}
-
-  void generate(Idx idx_p, Idx idx_q, std::size_t key) {
-    auto dist_pq = distance(idx_p, idx_q);
-    if (current_graph.accepts_either(idx_p, idx_q, dist_pq)) {
-      updates[key].emplace_back(idx_p, idx_q, dist_pq);
-    }
-  }
-
-  auto apply() -> std::size_t {
-    std::size_t num_updates = 0;
-    const auto n_points = updates.size();
-    for (std::size_t i = 0; i < n_points; i++) {
-      const auto n_updates = updates[i].size();
-      for (std::size_t j = 0; j < n_updates; j++) {
-        auto &update = updates[i][j];
-        num_updates +=
-            current_graph.checked_push_pair(update.p, update.d, update.q);
-      }
-      updates[i].clear();
-    }
-    return num_updates;
-  }
-};
-
-template <typename Distance> struct BatchHiMem {
-  using DistOut = typename Distance::Output;
-  using Idx = typename Distance::Index;
-
-  NNDHeap<DistOut, Idx> &current_graph;
-  const Distance &distance;
-  GraphCache<DistOut, Idx, GraphCacheConstructionInit> seen;
-  std::vector<std::vector<Update<DistOut, Idx>>> updates;
-
-  BatchHiMem(NNDHeap<DistOut, Idx> &current_graph, const Distance &distance)
-      : current_graph(current_graph), distance(distance), seen(current_graph),
-        updates(current_graph.n_points) {}
-
-  void generate(Idx idx_p, Idx idx_q, std::size_t key) {
-    // canonicalize the order of (p, q) so that qq >= pp
-    auto idx_pp = idx_p > idx_q ? idx_q : idx_p;
-    auto idx_qq = idx_pp == idx_p ? idx_q : idx_p;
-
-    if (seen.contains(idx_pp, idx_qq)) {
-      return;
-    }
-    auto dist_pq = distance(idx_pp, idx_qq);
-    if (current_graph.accepts_either(idx_pp, idx_qq, dist_pq)) {
-      updates[key].emplace_back(idx_pp, idx_qq, dist_pq);
-    }
-  }
-
-  auto apply() -> std::size_t {
-    std::size_t num_updates = 0;
-    const auto n_points = updates.size();
-    for (std::size_t i = 0; i < n_points; i++) {
-      const auto n_updates = updates[i].size();
-      for (std::size_t j = 0; j < n_updates; j++) {
-        auto &update = updates[i][j];
-        auto &idx_p = update.p;
-        auto &idx_q = update.q;
-        auto &dist_pq = update.d;
-
-        bool bad_pd = !current_graph.accepts(idx_p, dist_pq);
-        bool bad_qd = !current_graph.accepts(idx_q, dist_pq);
-        if ((bad_pd && bad_qd) || seen.contains(idx_p, idx_q)) {
-          continue;
-        }
-
-        std::size_t local_c = 0;
-        if (!bad_pd) {
-          current_graph.unchecked_push(idx_p, dist_pq, idx_q);
-          local_c += 1;
-        }
-
-        if (idx_p != idx_q && !bad_qd) {
-          current_graph.unchecked_push(idx_q, dist_pq, idx_p);
-          local_c += 1;
-        }
-
-        if (local_c > 0) {
-          seen.insert(idx_p, idx_q);
-          num_updates += local_c;
-        }
-      }
-      updates[i].clear();
-    }
-    return num_updates;
   }
 };
 
@@ -225,35 +87,16 @@ template <typename Distance> struct Serial {
 
   NNDHeap<DistOut, Idx> &current_graph;
   const Distance &distance;
-  Idx upd_p;
-  Idx upd_q;
-  DistOut upd_d;
 
-  Serial(NNDHeap<DistOut, Idx> &current_graph, const Distance &distance)
-      : current_graph(current_graph), distance(distance),
-        upd_p(current_graph.npos()), upd_q(current_graph.npos()), upd_d(0) {}
+  Serial(NNDHeap<DistOut, Idx> &graph, const Distance &dist)
+      : current_graph(graph), distance(dist) {}
 
-  auto generate_and_apply(Idx idx_p, Idx idx_q) -> std::size_t {
-    generate(idx_p, idx_q, idx_p);
-    return apply();
-  }
-
-  void generate(Idx idx_p, Idx idx_q, std::size_t /* key */) {
-    auto dist_pq = distance(idx_p, idx_q);
+  auto update(Idx idx_p, Idx idx_q) -> std::size_t {
+    const auto dist_pq = distance(idx_p, idx_q);
     if (current_graph.accepts_either(idx_p, idx_q, dist_pq)) {
-      upd_p = idx_p;
-      upd_q = idx_q;
-      upd_d = dist_pq;
-    } else {
-      upd_p = current_graph.npos();
+      return current_graph.checked_push_pair(idx_p, dist_pq, idx_q);
     }
-  }
-
-  auto apply() -> std::size_t {
-    if (upd_p == current_graph.npos()) {
-      return 0;
-    }
-    return current_graph.checked_push_pair(upd_p, upd_d, upd_q);
+    return 0; // No updates were made.
   }
 };
 
@@ -263,148 +106,138 @@ template <typename Distance> struct SerialHiMem {
 
   NNDHeap<DistOut, Idx> &current_graph;
   const Distance &distance;
-  GraphCache<DistOut, Idx, GraphCacheConstructionInit> seen;
-  Idx upd_p;
-  Idx upd_q;
+  GraphCache<Idx> seen;
 
-  SerialHiMem(NNDHeap<DistOut, Idx> &current_graph, const Distance &distance)
-      : current_graph(current_graph), distance(distance), seen(current_graph),
-        upd_p(current_graph.npos()), upd_q(current_graph.npos()) {}
+  SerialHiMem(NNDHeap<DistOut, Idx> &graph, const Distance &dist)
+      : current_graph(graph), distance(dist),
+        seen(GraphCache<Idx>::from_heap(graph)) {}
 
-  auto generate_and_apply(Idx idx_p, Idx idx_q) -> std::size_t {
-    generate(idx_p, idx_q);
-    return apply();
-  }
-
-  void generate(Idx idx_p, Idx idx_q) {
-    // canonicalize the order of (p, q) so that qq >= pp
-    auto idx_pp = idx_p > idx_q ? idx_q : idx_p;
-    auto idx_qq = idx_pp == idx_p ? idx_q : idx_p;
-
-    upd_p = idx_pp;
-    upd_q = idx_qq;
-  }
-
-  auto apply() -> std::size_t {
-    std::size_t num_updates = 0;
+  auto update(Idx idx_p, Idx idx_q) -> std::size_t {
+    Idx upd_p, upd_q;
+    std::tie(upd_p, upd_q) = std::minmax(idx_p, idx_q);
 
     if (seen.contains(upd_p, upd_q)) {
-      return num_updates;
+      return 0; // No updates made
     }
 
-    auto dist_pq = distance(upd_p, upd_q);
+    const auto dist = distance(upd_p, upd_q);
+    std::size_t updates = 0;
 
-    if (current_graph.accepts(upd_p, dist_pq)) {
-      current_graph.unchecked_push(upd_p, dist_pq, upd_q);
-      num_updates += 1;
+    if (current_graph.accepts(upd_p, dist)) {
+      current_graph.unchecked_push(upd_p, dist, upd_q);
+      updates++;
     }
 
-    if (upd_p != upd_q && current_graph.accepts(upd_q, dist_pq)) {
-      current_graph.unchecked_push(upd_q, dist_pq, upd_p);
-      num_updates += 1;
+    if (upd_p != upd_q && current_graph.accepts(upd_q, dist)) {
+      current_graph.unchecked_push(upd_q, dist, upd_p);
+      updates++;
     }
 
-    if (num_updates > 0) {
+    if (updates > 0) {
       seen.insert(upd_p, upd_q);
     }
-    return num_updates;
+
+    return updates;
   }
 };
 
-template <typename Idx> struct NullNeighborSet {
-  explicit NullNeighborSet(std::size_t /* n_nbrs */) {}
-  auto contains(Idx /* idx */) -> bool { return false; }
-  void clear() {}
-};
-
-template <typename Idx> struct UnorderedNeighborSet {
-  std::unordered_set<Idx> seen;
-
-  explicit UnorderedNeighborSet(std::size_t n_nbrs) : seen(n_nbrs) {}
-  auto contains(Idx idx) -> bool { return !seen.emplace(idx).second; }
-  void clear() { seen.clear(); }
-};
-
-template <typename Distance> struct QuerySerial {
+template <typename Distance> struct Batch {
   using DistOut = typename Distance::Output;
   using Idx = typename Distance::Index;
+  using Update = std::tuple<Idx, Idx, DistOut>;
 
   NNDHeap<DistOut, Idx> &current_graph;
   const Distance &distance;
-  Idx ref;
-  Idx query;
-  DistOut dist;
+  std::vector<std::vector<Update>> updates;
 
-  QuerySerial(NNDHeap<DistOut, Idx> &current_graph, const Distance &distance)
+  Batch(NNDHeap<DistOut, Idx> &current_graph, const Distance &distance)
       : current_graph(current_graph), distance(distance),
-        ref(current_graph.npos()), query(current_graph.npos()), dist(0) {}
+        updates(current_graph.n_points) {}
 
-  auto generate_and_apply(Idx query_idx, Idx ref_idx) -> std::size_t {
-    generate(query_idx, ref_idx, 0);
-    return apply();
-  }
-
-  void generate(Idx query_idx, Idx ref_idx, std::size_t /* key */) {
-    auto dist_rq = distance(ref_idx, query_idx);
-    if (current_graph.accepts(query_idx, dist_rq)) {
-      ref = ref_idx;
-      query = query_idx;
-      dist = dist_rq;
-    } else {
-      ref = current_graph.npos();
+  void generate(Idx idx_p, Idx idx_q, std::size_t key) {
+    const auto dist_pq = distance(idx_p, idx_q);
+    if (current_graph.accepts_either(idx_p, idx_q, dist_pq)) {
+      updates[key].emplace_back(idx_p, idx_q, dist_pq);
     }
-  }
-
-  auto apply() -> std::size_t {
-    if (ref == current_graph.npos()) {
-      return 0;
-    }
-    return current_graph.checked_push(query, dist, ref);
-  }
-
-  using NeighborSet = NullNeighborSet<Idx>;
-};
-
-template <typename Distance> struct QuerySerialHiMem {
-  using DistOut = typename Distance::Output;
-  using Idx = typename Distance::Index;
-
-  NNDHeap<DistOut, Idx> &current_graph;
-  const Distance &distance;
-  GraphCache<DistOut, Idx, GraphCacheQueryInit> seen;
-  Idx ref_;
-  Idx query_;
-
-  QuerySerialHiMem(NNDHeap<DistOut, Idx> &current_graph,
-                   const Distance &distance)
-      : current_graph(current_graph), distance(distance), seen(current_graph),
-        ref_(current_graph.npos()), query_(current_graph.npos()) {}
-
-  auto generate_and_apply(Idx query_idx, Idx ref_idx) -> std::size_t {
-    generate(query_idx, ref_idx, 0);
-    return apply();
-  }
-
-  void generate(Idx query_idx, Idx ref_idx, std::size_t /* key */) {
-    query_ = query_idx;
-    ref_ = ref_idx;
   }
 
   auto apply() -> std::size_t {
     std::size_t num_updates = 0;
-    if (seen.contains(query_, ref_)) {
-      return num_updates;
-    }
-
-    auto dist_rq = distance(ref_, query_);
-    num_updates += current_graph.checked_push(query_, dist_rq, ref_);
-    if (num_updates > 0) {
-      seen.insert(query_, ref_);
+    for (auto &update_set : updates) {
+      for (auto &[upd_p, upd_q, upd_d] : update_set) {
+        num_updates += current_graph.checked_push_pair(upd_p, upd_d, upd_q);
+      }
+      update_set.clear();
     }
     return num_updates;
   }
+};
 
-  using NeighborSet = UnorderedNeighborSet<Idx>;
+template <typename Distance> struct BatchHiMem {
+  using DistOut = typename Distance::Output;
+  using Idx = typename Distance::Index;
+  using Update = std::tuple<Idx, Idx, DistOut>;
+
+  NNDHeap<DistOut, Idx> &current_graph;
+  const Distance &distance;
+  GraphCache<Idx> seen;
+  std::vector<std::vector<Update>> updates;
+
+  BatchHiMem(NNDHeap<DistOut, Idx> &current_graph, const Distance &distance)
+      : current_graph(current_graph), distance(distance),
+        seen(GraphCache<Idx>::from_heap(current_graph)),
+        updates(current_graph.n_points) {}
+
+  void generate(Idx idx_p, Idx idx_q, std::size_t key) {
+    auto [idx_pp, idx_qq] = std::minmax(idx_p, idx_q);
+
+    if (seen.contains(idx_pp, idx_qq)) {
+      return;
+    }
+
+    const auto dist_pq = distance(idx_pp, idx_qq);
+    if (current_graph.accepts_either(idx_pp, idx_qq, dist_pq)) {
+      updates[key].emplace_back(idx_pp, idx_qq, dist_pq);
+    }
+  }
+
+  auto apply() -> std::size_t {
+    std::size_t num_updates = 0;
+
+    for (auto &update_set : updates) {
+      for (const auto &[idx_p, idx_q, dist_pq] : update_set) {
+
+        if (seen.contains(idx_p, idx_q)) {
+          continue;
+        }
+
+        const bool bad_pd = !current_graph.accepts(idx_p, dist_pq);
+        const bool bad_qd = !current_graph.accepts(idx_q, dist_pq);
+
+        if (bad_pd && bad_qd) {
+          continue;
+        }
+
+        std::size_t local_c = 0;
+        if (!bad_pd) {
+          current_graph.unchecked_push(idx_p, dist_pq, idx_q);
+          local_c++;
+        }
+
+        if (idx_p != idx_q && !bad_qd) {
+          current_graph.unchecked_push(idx_q, dist_pq, idx_p);
+          local_c++;
+        }
+
+        if (local_c > 0) {
+          seen.insert(idx_p, idx_q);
+          num_updates += local_c;
+        }
+      }
+      update_set.clear();
+    }
+    return num_updates;
+  }
 };
 
 // Template aliases can't be declared inside a function, so this struct is

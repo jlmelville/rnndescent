@@ -143,7 +143,7 @@ auto local_join(
         if (new_nbr == new_nbrs.npos()) {
           continue;
         }
-        num_updates += graph_updater.generate_and_apply(p_nbr, new_nbr);
+        num_updates += graph_updater.update(p_nbr, new_nbr);
       }
 
       for (Idx k = 0; k < max_candidates; k++) {
@@ -151,7 +151,7 @@ auto local_join(
         if (old_nbr == old_nbrs.npos()) {
           continue;
         }
-        num_updates += graph_updater.generate_and_apply(p_nbr, old_nbr);
+        num_updates += graph_updater.update(p_nbr, old_nbr);
       }
     }
     TDOANN_BLOCKFINISHED();
