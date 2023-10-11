@@ -37,12 +37,9 @@ void flag_retained_new_candidates(NNDHeap<DistOut, Idx> &current_graph,
                                   const NNHeap<DistOut, Idx> &new_nbrs,
                                   std::size_t begin, std::size_t end) {
   const std::size_t n_nbrs = current_graph.n_nbrs;
-  std::size_t innbrs = 0;
-  std::size_t idx_ij = 0;
-  for (auto i = begin; i < end; i++) {
-    innbrs = i * n_nbrs;
-    for (std::size_t j = 0; j < n_nbrs; j++) {
-      idx_ij = innbrs + j;
+  for (std::size_t i = begin, idx_offset = 0; i < end;
+       i++, idx_offset += n_nbrs) {
+    for (std::size_t j = 0, idx_ij = idx_offset; j < n_nbrs; j++, idx_ij++) {
       if (new_nbrs.contains(i, current_graph.idx[idx_ij])) {
         current_graph.flags[idx_ij] = 0;
       }
@@ -76,13 +73,10 @@ void build_candidates_full(NNDHeap<DistOut, Idx> &current_graph,
                            decltype(new_nbrs) &old_nbrs, Rand &rand) {
   const std::size_t n_points = current_graph.n_points;
   const std::size_t n_nbrs = current_graph.n_nbrs;
-  std::size_t innbrs = 0;
-  std::size_t idx_ij = 0;
 
-  for (std::size_t i = 0; i < n_points; i++) {
-    innbrs = i * n_nbrs;
-    for (std::size_t j = 0; j < n_nbrs; j++) {
-      idx_ij = innbrs + j;
+  for (std::size_t i = 0, idx_offset = 0; i < n_points;
+       i++, idx_offset += n_nbrs) {
+    for (std::size_t j = 0, idx_ij = idx_offset; j < n_nbrs; j++, idx_ij++) {
       auto &nbrs = current_graph.flags[idx_ij] == 1 ? new_nbrs : old_nbrs;
       if (current_graph.idx[idx_ij] == nbrs.npos()) {
         continue;

@@ -85,12 +85,11 @@ void build_candidates(
   const std::size_t n_nbrs = current_graph.n_nbrs;
   auto rand = parallel_rand.get_rand(end);
 
-  for (auto i = begin; i < end; i++) {
-    std::size_t innbrs = i * n_nbrs;
-    for (std::size_t j = 0; j < n_nbrs; j++) {
-      std::size_t inbrj = innbrs + j;
-      auto nbr = current_graph.idx[inbrj];
-      uint8_t isn = current_graph.flags[inbrj];
+  for (std::size_t i = begin, idx_offset = begin * n_nbrs; i < end;
+       i++, idx_offset += n_nbrs) {
+    for (std::size_t j = 0, idx_ij = idx_offset; j < n_nbrs; j++, idx_ij++) {
+      auto nbr = current_graph.idx[idx_ij];
+      uint8_t isn = current_graph.flags[idx_ij];
       auto &nbrs = isn == 1 ? new_nbrs : old_nbrs;
       if (nbr == nbrs.npos()) {
         continue;
@@ -135,23 +134,22 @@ void local_join(
     const NNHeap<typename Distance::Output, typename Distance::Index> &new_nbrs,
     const NNHeap<typename Distance::Output, typename Distance::Index> &old_nbrs,
     std::size_t max_candidates, std::size_t begin, std::size_t end) {
-  for (auto i = begin; i < end; i++) {
-    std::size_t imaxc = i * max_candidates;
+  for (std::size_t i = begin, idx_offset = begin * max_candidates; i < end;
+  i++, idx_offset += max_candidates) {
     for (std::size_t j = 0; j < max_candidates; j++) {
-      std::size_t item_p = new_nbrs.idx[imaxc + j];
+      std::size_t item_p = new_nbrs.idx[idx_offset + j];
       if (item_p == new_nbrs.npos()) {
         continue;
       }
       for (std::size_t k = j; k < max_candidates; k++) {
-        std::size_t item_new = new_nbrs.idx[imaxc + k];
+        std::size_t item_new = new_nbrs.idx[idx_offset + k];
         if (item_new == new_nbrs.npos()) {
           continue;
         }
         graph_updater.generate(item_p, item_new, i);
       }
-
       for (std::size_t k = 0; k < max_candidates; k++) {
-        std::size_t item_old = old_nbrs.idx[imaxc + k];
+        std::size_t item_old = old_nbrs.idx[idx_offset + k];
         if (item_old == old_nbrs.npos()) {
           continue;
         }

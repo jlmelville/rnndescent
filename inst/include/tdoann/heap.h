@@ -36,63 +36,78 @@
 namespace tdoann {
 
 template <typename DistOut>
-auto update_max_heap_criterion(std::size_t root, std::size_t len,
-                               const std::vector<DistOut> &weights,
-                               const DistOut &weight, std::size_t rel_parent,
-                               std::size_t &rel_swap) -> bool {
-  std::size_t left_child = 2 * rel_parent + 1;
+auto should_swap(std::size_t root, std::size_t len,
+                 const std::vector<DistOut> &weights, const DistOut &weight,
+                 std::size_t parent_idx, std::size_t &swap_idx) -> bool {
+  constexpr std::size_t left_offset = 1;
+  constexpr std::size_t right_offset = 2;
+
+  std::size_t left_child = 2 * parent_idx + left_offset;
   if (left_child >= len) {
     return true;
   }
-  std::size_t right_child = left_child + 1;
-  if (right_child >= len) {
-    if (weights[root + left_child] < weight) {
-      return true;
-    }
-    rel_swap = left_child;
-  } else if (weights[root + left_child] >= weights[root + right_child]) {
-    if (weight >= weights[root + left_child]) {
-      return true;
-    }
-    rel_swap = left_child;
-  } else {
-    if (weight >= weights[root + right_child]) {
-      return true;
-    }
-    rel_swap = right_child;
+
+  std::size_t right_child = left_child + right_offset - left_offset;
+
+  // Find the child with the maximum weight
+  std::size_t max_child_idx =
+      (right_child >= len ||
+       weights[root + left_child] >= weights[root + right_child])
+          ? left_child
+          : right_child;
+
+  if (weight >= weights[root + max_child_idx]) {
+    return true;
   }
+
+  swap_idx = max_child_idx;
   return false;
 }
 
+// Ensure max-heap property by moving the root element downwards until it is
+// in the correct position in the heap.
 template <typename DistOut, typename Idx>
 void siftdown(std::size_t root, std::size_t len, std::vector<Idx> &idx,
               std::vector<DistOut> &weights) {
-  std::size_t parent = 0;
-  std::size_t swap = parent;
-  std::size_t left_child = 1;
-  std::size_t right_child = 0;
 
-  while (left_child < len) {
+  std::size_t parent = 0;
+  std::size_t swap;
+  std::size_t left_child;
+  std::size_t right_child;
+
+  while (true) {
+    left_child = 2 * parent + 1;
+    if (left_child >= len) {
+      break;
+    }
+
     right_child = left_child + 1;
 
-    if (weights[root + swap] < weights[root + left_child]) {
+    // By default, set swap to parent
+    swap = parent;
+
+    // Should left child be swapped?
+    if (weights[root + left_child] > weights[root + swap]) {
       swap = left_child;
     }
 
+    // Should right child be swapped?
     if (right_child < len &&
-        weights[root + swap] < weights[root + right_child]) {
+        weights[root + right_child] > weights[root + swap]) {
       swap = right_child;
     }
 
+    // If no swap is needed, we can break out of the loop
     if (swap == parent) {
       break;
     }
 
+    // Swap the elements
     std::swap(weights[root + parent], weights[root + swap]);
     std::swap(idx[root + parent], idx[root + swap]);
-    parent = swap;
 
-    left_child = parent * 2 + 1;
+    // Update parent to the swap position for the next iteration
+    parent = swap;
   }
 }
 
@@ -177,8 +192,7 @@ public:
     std::size_t rel_swap = 0;
 
     while (true) {
-      if (update_max_heap_criterion(root, n_nbrs, dist, weight, rel_parent,
-                                    rel_swap)) {
+      if (should_swap(root, n_nbrs, dist, weight, rel_parent, rel_swap)) {
         break;
       }
 
@@ -237,7 +251,7 @@ template <typename T> auto limit_max() -> T {
 
 // Like NNDHeap, but no flag vector
 template <typename DistOut = float, typename Idx = uint32_t,
-          DistOut (*max_dist)() = limit_max>
+          DistOut (*max_dist_func)() = limit_max>
 struct NNHeap {
   using DistanceOut = DistOut;
   using Index = Idx;
@@ -252,7 +266,7 @@ struct NNHeap {
 
   NNHeap(Idx n_points, Idx n_nbrs)
       : n_points(n_points), n_nbrs(n_nbrs), idx(n_points * n_nbrs, npos()),
-        dist(n_points * n_nbrs, max_dist()), n_nbrs1(n_nbrs - 1) {}
+        dist(n_points * n_nbrs, max_dist_func()), n_nbrs1(n_nbrs - 1) {}
 
   NNHeap(const NNHeap &) = default;
   auto operator=(const NNHeap &) -> NNHeap & = default;
@@ -261,24 +275,21 @@ struct NNHeap {
   ~NNHeap() = default;
 
   auto contains(Idx row, Idx index) const -> bool {
-    std::size_t rnnbrs = row * n_nbrs;
-    for (std::size_t i = 0; i < n_nbrs; i++) {
-      if (index == idx[rnnbrs + i]) {
-        return true;
-      }
-    }
-    return false;
+    auto start = idx.begin() + row * n_nbrs;
+    auto end = start + n_nbrs;
+
+    return std::find(start, end, index) != end;
   }
 
-  // returns true if either p or q would accept a neighbor with distance d
-  auto accepts_either(Idx idx_p, Idx idx_q, const DistOut &d_pq) const -> bool {
-    return (idx_p < n_points && d_pq < dist[idx_p * n_nbrs]) ||
-           (idx_p != idx_q && idx_q < n_points && d_pq < dist[idx_q * n_nbrs]);
-  }
-
-  // returns true if p would accept a neighbor with distance d
+  // returns true if idx_p would accept a neighbor with distance d_pq
   auto accepts(Idx idx_p, const DistOut &d_pq) const -> bool {
     return idx_p < n_points && d_pq < dist[idx_p * n_nbrs];
+  }
+
+  // returns true if either idx_p or idx_q would accept a neighbor with distance
+  // d_pq
+  auto accepts_either(Idx idx_p, Idx idx_q, const DistOut &d_pq) const -> bool {
+    return accepts(idx_p, d_pq) || (idx_p != idx_q && accepts(idx_q, d_pq));
   }
 
   auto checked_push_pair(std::size_t row, const DistOut &weight, Idx idx)
@@ -296,11 +307,11 @@ struct NNHeap {
       return 0;
     }
 
-    return unchecked_push(row, weight, idx);
+    unchecked_push(row, weight, idx);
+    return 1;
   }
 
-  auto unchecked_push(Idx row, const DistOut &weight, Idx index)
-      -> std::size_t {
+  auto unchecked_push(Idx row, const DistOut &weight, Idx index) -> void {
     std::size_t root = row * n_nbrs;
 
     // insert val at position zero
@@ -311,14 +322,11 @@ struct NNHeap {
     std::size_t rel_parent = 0;
     std::size_t rel_swap = 0;
 
-    while (true) {
-      if (update_max_heap_criterion(root, n_nbrs, dist, weight, rel_parent,
-                                    rel_swap)) {
-        break;
-      }
-
+    // Continue until the heap property is satisfied or we reach a leaf node
+    while (!should_swap(root, n_nbrs, dist, weight, rel_parent, rel_swap)) {
       std::size_t parent = root + rel_parent;
       std::size_t swap = root + rel_swap;
+
       dist[parent] = dist[swap];
       idx[parent] = idx[swap];
 
@@ -328,8 +336,6 @@ struct NNHeap {
     std::size_t parent = root + rel_parent;
     dist[parent] = weight;
     idx[parent] = index;
-
-    return 1;
   }
 
   void deheap_sort() {
@@ -340,13 +346,15 @@ struct NNHeap {
 
   // NOLINTBEGIN(readability-identifier-length)
   void deheap_sort(Idx i) {
-    std::size_t root = i * n_nbrs;
+    std::size_t root_offset = i * n_nbrs;
     for (std::size_t j = 0; j < n_nbrs1; j++) {
-      std::size_t n1j = n_nbrs1 - j;
-      std::size_t r0nn1 = root + n1j;
-      std::swap(idx[root], idx[r0nn1]);
-      std::swap(dist[root], dist[r0nn1]);
-      siftdown(root, n1j, idx, dist);
+      std::size_t remaining_size = n_nbrs1 - j;
+      std::size_t last_elem_offset = root_offset + remaining_size;
+
+      std::swap(idx[root_offset], idx[last_elem_offset]);
+      std::swap(dist[root_offset], dist[last_elem_offset]);
+
+      siftdown(root_offset, remaining_size, idx, dist);
     }
   }
 
