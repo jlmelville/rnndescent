@@ -39,35 +39,47 @@ struct RPProgress {
   std::size_t block{0};
   bool is_aborted{false};
 
-  double scaled_niters;
+  double iter_increment;  // Amount progress increases per iteration
+  double block_increment; // Amount progress increases per block
 
   RPProgress(std::size_t n_iters, bool verbose)
-      : progress(scale, verbose), n_iters(n_iters), verbose(verbose),
-        scaled_niters(static_cast<double>(n_iters) /
-                      static_cast<double>(scale)) {}
+      : progress(scale, verbose), n_iters(n_iters), verbose(verbose) {
+    iter_increment = static_cast<double>(scale) / n_iters;
+    // Default block_increment if no blocks are set
+    block_increment = iter_increment;
+  }
 
   void set_n_blocks(std::size_t n_blocks) {
     n_blocks_ = n_blocks;
     block = 0;
+    block_increment = iter_increment / n_blocks_;
   }
+
   void block_finished() {
     ++block;
     if (verbose) {
-      progress.update(scaled(
-          static_cast<double>(iter) +
-          (static_cast<double>(block) / static_cast<double>(n_blocks_))));
+      unsigned long progress_val =
+          static_cast<unsigned long>(std::round(block * block_increment));
+      progress.update(
+          std::min(progress_val, static_cast<unsigned long>(scale)));
     }
   }
+
   void iter_finished() {
     if (verbose) {
       ++iter;
-      progress.update(scaled(static_cast<double>(iter)));
+      unsigned long progress_val =
+          static_cast<unsigned long>(std::round(iter * iter_increment));
+      progress.update(
+          std::min(progress_val, static_cast<unsigned long>(scale)));
     }
   }
+
   void stopping_early() {
-    progress.update(n_iters);
+    progress.update(scale); // Directly set progress to 100%
     progress.cleanup();
   }
+
   auto check_interrupt() -> bool {
     if (is_aborted) {
       return true;
@@ -79,6 +91,7 @@ struct RPProgress {
     }
     return false;
   }
+
   void converged(std::size_t n_updates, double tol) {
     stopping_early();
     if (verbose) {
@@ -87,10 +100,6 @@ struct RPProgress {
           << " tol = " << tol;
       log(oss.str());
     }
-  }
-  auto scaled(double val) const -> int {
-    auto res = std::nearbyint(val * scaled_niters);
-    return static_cast<int>(res);
   }
 
   void log(const std::string &msg) const {
