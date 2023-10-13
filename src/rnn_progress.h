@@ -21,41 +21,62 @@
 #define RNN_PROGRESS_H
 
 #include <Rcpp.h>
-#include <progress.hpp>
 
 #include "tdoann/heap.h"
-#include "tdoann/progress.h"
+#include "tdoann/nndprogress.h"
+#define TDOANN_PROGRESSBAR_OUTPUT_STREAM Rcpp::Rcerr
+#include "tdoann/progressbar.h"
 
 #include "rnn_util.h"
 
-struct RPProgress {
+struct RPProgress : public tdoann::ProgressBase {
   static const constexpr std::size_t scale{100};
-  Progress progress;
-  std::size_t n_iters;
-  std::size_t n_blocks_{0};
+  tdoann::ProgressBar progress;
   bool verbose;
 
   std::size_t iter{0};
   std::size_t block{0};
   bool is_aborted{false};
 
-  double iter_increment;  // Amount progress increases per iteration
-  double block_increment; // Amount progress increases per block
+  double iter_increment{scale};  // Amount progress increases per iteration
+  double block_increment{scale}; // Amount progress increases per block
+
+  RPProgress(bool verbose) : progress(scale, verbose), verbose(verbose) {}
 
   RPProgress(std::size_t n_iters, bool verbose)
-      : progress(scale, verbose), n_iters(n_iters), verbose(verbose) {
+      : progress(scale, verbose), verbose(verbose),
+        iter_increment(static_cast<double>(scale) / n_iters) {}
+
+  RPProgress(RPProgress &&other) noexcept
+      : progress(std::move(other.progress)), verbose(std::move(other.verbose)),
+        iter(std::move(other.iter)), block(std::move(other.block)),
+        is_aborted(std::move(other.is_aborted)),
+        iter_increment(std::move(other.iter_increment)),
+        block_increment(std::move(other.block_increment)) {}
+
+  RPProgress &operator=(RPProgress &&other) noexcept {
+    if (this != &other) {
+      progress = std::move(other.progress);
+      verbose = std::move(other.verbose);
+      iter = std::move(other.iter);
+      block = std::move(other.block);
+      is_aborted = std::move(other.is_aborted);
+      iter_increment = std::move(other.iter_increment);
+      block_increment = std::move(other.block_increment);
+    }
+    return *this;
+  }
+
+  void set_n_iters(std::size_t n_iters) override {
     iter_increment = static_cast<double>(scale) / n_iters;
-    // Default block_increment if no blocks are set
-    block_increment = iter_increment;
   }
 
-  void set_n_blocks(std::size_t n_blocks) {
-    n_blocks_ = n_blocks;
+  void set_n_blocks(std::size_t n_blocks) override {
     block = 0;
-    block_increment = iter_increment / n_blocks_;
+    block_increment = iter_increment / n_blocks;
   }
 
-  void block_finished() {
+  void block_finished() override {
     ++block;
     if (verbose) {
       unsigned long progress_val =
@@ -65,7 +86,7 @@ struct RPProgress {
     }
   }
 
-  void iter_finished() {
+  void iter_finished() override {
     if (verbose) {
       ++iter;
       unsigned long progress_val =
@@ -75,81 +96,7 @@ struct RPProgress {
     }
   }
 
-  void stopping_early() {
-    progress.update(scale); // Directly set progress to 100%
-    progress.cleanup();
-  }
-
-  auto check_interrupt() -> bool {
-    if (is_aborted) {
-      return true;
-    }
-    if (Progress::check_abort()) {
-      stopping_early();
-      is_aborted = true;
-      return true;
-    }
-    return false;
-  }
-
-  void converged(std::size_t n_updates, double tol) {
-    stopping_early();
-    if (verbose) {
-      std::ostringstream oss;
-      oss << "Convergence at iteration " << iter << ": c = " << n_updates
-          << " tol = " << tol;
-      log(oss.str());
-    }
-  }
-
-  void log(const std::string &msg) const {
-    if (verbose) {
-      Rcpp::Rcerr << msg << std::endl;
-    }
-  }
-};
-
-struct RInterruptableProgress {
-  bool is_aborted{false};
-
-  RInterruptableProgress();
-  RInterruptableProgress(std::size_t /* n_iters */, bool /* verbose */);
-  void set_n_blocks(std::size_t /* n_blocks */) {}
-  void block_finished() {}
-  void iter_finished() {}
-  void stopping_early() {}
-  void converged(std::size_t /* n_updates */, double /* tol */) {}
-  void log(const std::string & /* msg */) {}
-  auto check_interrupt() -> bool;
-};
-
-struct RIterProgress {
-  std::size_t n_iters;
-  bool verbose;
-
-  std::size_t iter{0};
-  bool is_aborted{false};
-
-  RIterProgress(std::size_t n_iters, bool verbose)
-      : n_iters(n_iters), verbose(verbose) {
-    iter_msg(0);
-  }
-
-  void iter_msg(std::size_t iter) const {
-    if (verbose) {
-      std::ostringstream oss;
-      oss << iter << " / " << n_iters;
-      log(oss.str());
-    }
-  }
-  void set_n_blocks(std::size_t /* n_blocks */) {}
-  void block_finished() {}
-  void iter_finished() {
-    ++iter;
-    iter_msg(iter);
-  }
-  void stopping_early() {}
-  auto check_interrupt() -> bool {
+  bool check_interrupt() override {
     if (is_aborted) {
       return true;
     }
@@ -162,15 +109,103 @@ struct RIterProgress {
     }
     return false;
   }
-  void converged(std::size_t n_updates, double tol) {
+
+  void log(const std::string &msg) const override {
+    if (verbose) {
+      Rcpp::Rcerr << msg << std::endl;
+    }
+  }
+
+  void stopping_early() override { progress.cleanup(); }
+};
+
+struct RInterruptableProgress : public tdoann::ProgressBase {
+  bool is_aborted{false};
+  bool verbose;
+
+  RInterruptableProgress() = default;
+  RInterruptableProgress(std::size_t /* n_iters */, bool verbose)
+      : verbose(verbose) {}
+
+  RInterruptableProgress(RInterruptableProgress &&other) noexcept
+      : is_aborted(std::move(other.is_aborted)),
+        verbose(std::move(other.verbose)) {
+    other.is_aborted = false;
+    other.verbose = false;
+  }
+
+  RInterruptableProgress &operator=(RInterruptableProgress &&other) noexcept {
+    if (this != &other) {
+      is_aborted = std::move(other.is_aborted);
+      verbose = std::move(other.verbose);
+
+      other.is_aborted = false;
+      other.verbose = false;
+    }
+    return *this;
+  }
+
+  void log(const std::string & /* msg */) const override {}
+
+  bool check_interrupt() override {
+    if (is_aborted) {
+      return true;
+    }
+    try {
+      Rcpp::checkUserInterrupt();
+    } catch (Rcpp::internal::InterruptedException &) {
+      is_aborted = true;
+      stopping_early();
+      return true;
+    }
+    return false;
+  }
+};
+
+struct RIterProgress : public RInterruptableProgress {
+  std::size_t n_iters;
+  std::size_t iter{0};
+
+  RIterProgress(std::size_t n_iters, bool verbose)
+      : RInterruptableProgress(n_iters, verbose), n_iters(n_iters) {
+    iter_msg(0);
+  }
+  RIterProgress(RIterProgress &&other) noexcept
+      : RInterruptableProgress(std::move(other)),
+        n_iters(std::move(other.n_iters)), iter(std::move(other.iter)) {
+
+    other.n_iters = 0;
+    other.iter = 0;
+  }
+  RIterProgress &operator=(RIterProgress &&other) noexcept {
+    if (this != &other) {
+      RInterruptableProgress::operator=(std::move(other));
+
+      n_iters = std::move(other.n_iters);
+      iter = std::move(other.iter);
+
+      other.n_iters = 0;
+      other.iter = 0;
+    }
+    return *this;
+  }
+
+  void iter_msg(std::size_t iter) const {
     if (verbose) {
       std::ostringstream oss;
-      oss << "Convergence: c = " << n_updates << " tol = " << tol;
+      oss << iter << " / " << n_iters;
       log(oss.str());
     }
-    stopping_early();
   }
-  void log(const std::string &msg) const {
+
+  void set_n_iters(std::size_t n_iters) override { this->n_iters = n_iters; }
+
+  void iter_finished() override {
+    ++iter;
+    iter_msg(iter);
+  }
+
+  void log(const std::string &msg) const override {
     if (verbose) {
       ts(msg);
     }

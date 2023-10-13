@@ -85,6 +85,7 @@ auto merge_nn_all_impl(List nn_graphs, MergeImpl &merge_impl,
   auto nn_idxc = clone(nn_idx);
 
   RPProgress progress(static_cast<std::size_t>(n_graphs), verbose);
+
   NeighborHeap nn_merged(nn_idxc.nrow(), nn_idxc.ncol());
   merge_impl.template init<HeapAdd>(nn_merged, nn_idxc, nn_dist);
   progress.iter_finished();
@@ -96,7 +97,10 @@ auto merge_nn_all_impl(List nn_graphs, MergeImpl &merge_impl,
     IntegerMatrix nn_idxi = nn_graphi["idx"];
     auto nn_idxic = clone(nn_idxi);
     merge_impl.template init<HeapAdd>(nn_merged, nn_idxic, nn_disti);
-    TDOANN_ITERFINISHED()
+    if (progress.check_interrupt()) {
+      break;
+    }
+    progress.iter_finished();
   }
 
   return merge_impl.to_r(nn_merged);

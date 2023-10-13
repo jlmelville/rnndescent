@@ -27,7 +27,10 @@
 #ifndef TDOANN_NNDESCENT_H
 #define TDOANN_NNDESCENT_H
 
+#include <sstream>
+
 #include "heap.h"
+#include "nndprogress.h"
 
 namespace tdoann {
 // mark any neighbor in the current graph that was retained in the new
@@ -90,10 +93,10 @@ void build_candidates_full(NNDHeap<DistOut, Idx> &current_graph,
 
 // Pretty close to the NNDescentFull algorithm (#2 in the paper)
 template <template <typename> class GraphUpdater, typename Distance,
-          typename Progress, typename Rand>
+          typename Rand>
 void nnd_build(GraphUpdater<Distance> &graph_updater,
                std::size_t max_candidates, std::size_t n_iters, double delta,
-               Rand &rand, Progress &progress) {
+               Rand &rand, NNDProgressBase &progress) {
   using DistOut = typename Distance::Output;
   using Idx = typename Distance::Index;
   auto &nn_heap = graph_updater.current_graph;
@@ -108,10 +111,8 @@ void nnd_build(GraphUpdater<Distance> &graph_updater,
     std::size_t num_updated =
         local_join(graph_updater, new_nbrs, old_nbrs, progress);
 
-    TDOANN_ITERFINISHED();
-    progress.heap_report(nn_heap);
-    if (is_converged(num_updated, tol)) {
-      progress.converged(num_updated, tol);
+    bool stop_early = nnd_should_stop(progress, nn_heap, num_updated, tol);
+    if (stop_early) {
       break;
     }
   }
@@ -120,12 +121,11 @@ void nnd_build(GraphUpdater<Distance> &graph_updater,
 // Local join update: instead of updating item i with the neighbors of the
 // candidates of i, explore pairs (p, q) of candidates and treat q as a
 // candidate for p, and vice versa.
-template <template <typename> class GraphUpdater, typename Distance,
-          typename Progress>
+template <template <typename> class GraphUpdater, typename Distance>
 auto local_join(
     GraphUpdater<Distance> &graph_updater,
     const NNHeap<typename Distance::Output, typename Distance::Index> &new_nbrs,
-    decltype(new_nbrs) &old_nbrs, Progress &progress) -> std::size_t {
+    decltype(new_nbrs) &old_nbrs, NNDProgressBase &progress) -> std::size_t {
 
   using Idx = typename Distance::Index;
   const auto n_points = new_nbrs.n_points;
@@ -154,7 +154,10 @@ auto local_join(
         num_updates += graph_updater.update(p_nbr, old_nbr);
       }
     }
-    TDOANN_BLOCKFINISHED();
+    if (progress.check_interrupt()) {
+      break;
+    }
+    progress.block_finished();
   }
   return num_updates;
 }

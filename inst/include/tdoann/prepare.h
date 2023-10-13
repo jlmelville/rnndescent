@@ -31,11 +31,12 @@
 #include <numeric>
 #include <vector>
 
-#include "nbrqueue.h"
 #include "parallel.h"
 
 namespace tdoann {
 
+// Returns a vector of indices that represents the sorted order of elements in
+// the range [first, last).
 template <typename It>
 auto order(It first, It last) -> std::vector<std::size_t> {
   std::vector<std::size_t> idx(last - first);
@@ -54,17 +55,16 @@ auto kth_smallest_distance(const SparseNNGraph &graph, std::size_t item_i,
                            std::size_t k_small) ->
     typename SparseNNGraph::DistanceOut {
   using DistOut = typename SparseNNGraph::DistanceOut;
-  using Idx = typename SparseNNGraph::Index;
-  const std::size_t n_nbrs = graph.n_nbrs(item_i);
-  NbrQueue<DistOut, Idx> nbr_queue;
-  for (std::size_t j = 0; j < n_nbrs; j++) {
-    nbr_queue.emplace(graph.distance(item_i, j), graph.index(item_i, j));
-  }
-  DistOut kth_small = nbr_queue.pop().first;
-  for (std::size_t j = 1; j < k_small; j++) {
-    kth_small = nbr_queue.pop().first;
-  }
-  return kth_small;
+
+  // This is coupled to the internals of SparseGraph
+  auto start_itr = graph.dist.begin() + graph.row_ptr[item_i];
+  auto end_itr = graph.dist.begin() + graph.row_ptr[item_i + 1];
+  std::vector<DistOut> distances(start_itr, end_itr);
+
+  // Find the k-th smallest distance
+  std::nth_element(distances.begin(), distances.begin() + k_small,
+                   distances.end());
+  return distances[k_small - 1];
 }
 
 template <typename SparseNNGraph>
@@ -80,7 +80,6 @@ void degree_prune_impl(const SparseNNGraph &graph, SparseNNGraph &result,
     }
 
     DistOut max_degree_dist = kth_smallest_distance(graph, i, max_degree);
-
     for (std::size_t j = 0; j < unpruned_n_nbrs; j++) {
       if (graph.distance(i, j) > max_degree_dist) {
         result.mark_for_deletion(i, j);
@@ -89,28 +88,28 @@ void degree_prune_impl(const SparseNNGraph &graph, SparseNNGraph &result,
   }
 }
 
-template <typename SparseNNGraph, typename Progress>
+template <typename SparseNNGraph>
 auto degree_prune(const SparseNNGraph &graph, std::size_t max_degree,
-                  Progress &progress) -> SparseNNGraph {
+                  ProgressBase &progress) -> SparseNNGraph {
   SparseNNGraph result(graph.row_ptr, graph.col_idx, graph.dist);
   auto worker = [&](std::size_t begin, std::size_t end) {
     degree_prune_impl(graph, result, max_degree, begin, end);
   };
-  batch_serial_for(worker, progress, graph.n_points);
+  batch_serial_for(worker, graph.n_points, progress);
   return result;
 }
 
-template <typename Parallel, typename SparseNNGraph, typename Progress>
+template <typename Parallel, typename SparseNNGraph>
 auto degree_prune(const SparseNNGraph &graph, std::size_t max_degree,
-                  Progress &progress, std::size_t n_threads = 0)
+                  ProgressBase &progress, std::size_t n_threads = 0)
     -> SparseNNGraph {
   SparseNNGraph result(graph.row_ptr, graph.col_idx, graph.dist);
   auto worker = [&](std::size_t begin, std::size_t end) {
     degree_prune_impl(graph, result, max_degree, begin, end);
   };
   const std::size_t grain_size = 1;
-  batch_parallel_for<Parallel>(worker, progress, graph.n_points, n_threads,
-                               grain_size);
+  batch_parallel_for<Parallel>(worker, graph.n_points, n_threads, grain_size,
+                               progress);
   return result;
 }
 
@@ -167,10 +166,10 @@ auto remove_long_edges(const SparseNNGraph &graph, const Distance &distance,
 }
 
 template <typename Parallel, typename SparseNNGraph, typename Distance,
-          typename Rand, typename Progress>
+          typename Rand>
 auto remove_long_edges(const SparseNNGraph &graph, const Distance &distance,
                        Rand &parallel_rand, double prune_probability,
-                       Progress &progress, std::size_t n_threads = 0)
+                       std::size_t n_threads, ProgressBase &progress)
     -> SparseNNGraph {
   SparseNNGraph result(graph.row_ptr, graph.col_idx, graph.dist);
   parallel_rand.reseed();
@@ -180,8 +179,8 @@ auto remove_long_edges(const SparseNNGraph &graph, const Distance &distance,
                            begin, end);
   };
   const std::size_t grain_size = 1;
-  batch_parallel_for<Parallel>(worker, progress, graph.n_points, n_threads,
-                               grain_size);
+  batch_parallel_for<Parallel>(worker, graph.n_points, n_threads, grain_size,
+                               progress);
   return result;
 }
 
@@ -193,35 +192,35 @@ auto merge_graphs(const SparseNNGraph &graph1, const SparseNNGraph &graph2)
 
   const std::size_t n_points = graph1.n_points;
 
-  std::vector<std::size_t> merged_row_ptr(n_points + 1);
+  std::vector<std::size_t> merged_row_ptr(n_points + 1, 0);
   std::vector<Idx> merged_col_idx;
   std::vector<DistOut> merged_dist;
 
-  std::vector<Idx> search_idx = graph1.col_idx;
   for (std::size_t i = 0; i < n_points; i++) {
-    const auto begin = graph1.row_ptr[i];
-    const auto end = graph1.row_ptr[i + 1];
+    const auto begin1 = graph1.row_ptr[i];
+    const auto end1 = graph1.row_ptr[i + 1];
+    const auto begin2 = graph2.row_ptr[i];
+    const auto end2 = graph2.row_ptr[i + 1];
 
-    std::sort(search_idx.begin() + begin, search_idx.begin() + end);
+    // Insert neighbors from graph1
+    merged_col_idx.insert(merged_col_idx.end(), graph1.col_idx.begin() + begin1,
+                          graph1.col_idx.begin() + end1);
+    merged_dist.insert(merged_dist.end(), graph1.dist.begin() + begin1,
+                       graph1.dist.begin() + end1);
 
-    std::vector<Idx> col_idx_i(graph1.col_idx.begin() + begin,
-                               graph1.col_idx.begin() + end);
-    std::vector<DistOut> dist_i(graph1.dist.begin() + begin,
-                                graph1.dist.begin() + end);
-
-    merged_row_ptr[i + 1] = merged_row_ptr[i] + col_idx_i.size();
-
-    for (std::size_t j = graph2.row_ptr[i]; j < graph2.row_ptr[i + 1]; j++) {
-      if (!std::binary_search(search_idx.begin() + begin,
-                              search_idx.begin() + end, graph2.col_idx[j])) {
-        col_idx_i.push_back(graph2.col_idx[j]);
-        dist_i.push_back(graph2.dist[j]);
-        ++merged_row_ptr[i + 1];
+    // Insert neighbors from graph2 only if they're not already present in
+    // graph1
+    for (std::size_t j = begin2; j < end2; j++) {
+      if (!std::binary_search(graph1.col_idx.begin() + begin1,
+                              graph1.col_idx.begin() + end1,
+                              graph2.col_idx[j])) {
+        merged_col_idx.push_back(graph2.col_idx[j]);
+        merged_dist.push_back(graph2.dist[j]);
       }
     }
-    merged_col_idx.insert(merged_col_idx.end(), col_idx_i.begin(),
-                          col_idx_i.end());
-    merged_dist.insert(merged_dist.end(), dist_i.begin(), dist_i.end());
+
+    // Update the merged_row_ptr for the next iteration
+    merged_row_ptr[i + 1] = merged_col_idx.size();
   }
   return SparseNNGraph(merged_row_ptr, merged_col_idx, merged_dist);
 }

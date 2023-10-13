@@ -29,36 +29,32 @@
 
 #include <string>
 
-#define TDOANN_ITERFINISHED()                                                  \
-  if (progress.check_interrupt()) {                                            \
-    break;                                                                     \
-  }                                                                            \
-  progress.iter_finished();
-
-#define TDOANN_BLOCKFINISHED()                                                 \
-  if (progress.check_interrupt()) {                                            \
-    break;                                                                     \
-  }                                                                            \
-  progress.block_finished();
-
-inline auto is_converged(std::size_t n_updates, double tol) -> bool {
-  return static_cast<double>(n_updates) <= tol;
-}
-
 namespace tdoann {
-// Defines the methods required, but does nothing. Safe to use from
-// multi-threaded code if a dummy no-op version is needed.
-struct NullProgress {
-  NullProgress() = default;
-  NullProgress(std::size_t /* niters */, bool /* verbose */) {}
-  void set_n_blocks(std::size_t /* n */) {}
-  void block_finished() {}
-  void iter_finished() {}
-  void stopping_early() {}
-  // NOLINTNEXTLINE(readability-convert-member-functions-to-static)
-  auto check_interrupt() -> bool { return false; }
-  void converged(std::size_t /* n_updates */, double /* tol */) {}
-  void log(const std::string & /* msg */) {}
+
+class ProgressBase {
+public:
+  // Constructors
+  ProgressBase() = default;
+  ProgressBase(std::size_t /* niters */, bool /* verbose */) {}
+  explicit ProgressBase(bool /* verbose */) {}
+
+  // Virtual Destructor
+  virtual ~ProgressBase() = default;
+
+  // Virtual Methods
+  virtual void set_n_iters(std::size_t /* n */) {}
+  virtual void set_n_blocks(std::size_t /* n */) {}
+  virtual void block_finished() {}
+  virtual void iter_finished() {}
+  virtual void stopping_early() {}
+  virtual void log(const std::string & /* msg */) const {}
+  virtual auto check_interrupt() -> bool { return false; }
+};
+
+// No-op implementation
+class NullProgress : public ProgressBase {
+public:
+  using ProgressBase::ProgressBase;
 };
 
 } // namespace tdoann

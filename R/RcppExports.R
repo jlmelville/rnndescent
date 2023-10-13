@@ -91,8 +91,8 @@ merge_nn_all <- function(nn_graphs, is_query, n_threads, verbose) {
     .Call(`_rnndescent_merge_nn_all`, nn_graphs, is_query, n_threads, verbose)
 }
 
-nn_descent <- function(data, nn_idx, nn_dist, metric, max_candidates, n_iters, delta, low_memory, n_threads, verbose, progress) {
-    .Call(`_rnndescent_nn_descent`, data, nn_idx, nn_dist, metric, max_candidates, n_iters, delta, low_memory, n_threads, verbose, progress)
+nn_descent <- function(data, nn_idx, nn_dist, metric, max_candidates, n_iters, delta, low_memory, n_threads, verbose, progress_type) {
+    .Call(`_rnndescent_nn_descent`, data, nn_idx, nn_dist, metric, max_candidates, n_iters, delta, low_memory, n_threads, verbose, progress_type)
 }
 
 diversify_cpp <- function(data, graph_list, metric, prune_probability, n_threads) {

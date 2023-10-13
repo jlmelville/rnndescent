@@ -30,24 +30,25 @@
 #include "bvset.h"
 #include "nbrqueue.h"
 #include "nngraph.h"
+#include "progressbase.h"
 
 namespace tdoann {
 
-template <typename Parallel, typename Progress, typename Distance>
+template <typename Parallel, typename Distance>
 void nn_query(
     const SparseNNGraph<typename Distance::Output, typename Distance::Index>
         &reference_graph,
     NNHeap<typename Distance::Output, typename Distance::Index> &nn_heap,
     const Distance &distance, double epsilon, std::size_t n_threads,
-    bool verbose) {
+    ProgressBase &progress) {
   auto query_non_search_worker = [&](std::size_t begin, std::size_t end) {
     non_search_query(nn_heap, distance, reference_graph, epsilon, begin, end);
   };
-  Progress progress(1, verbose);
+  progress.set_n_iters(1);
   const std::size_t n_points = nn_heap.n_points;
   const std::size_t grain_size = 1;
-  batch_parallel_for<Parallel>(query_non_search_worker, progress, n_points,
-                               n_threads, grain_size);
+  batch_parallel_for<Parallel>(query_non_search_worker, n_points, n_threads,
+                               grain_size, progress);
 }
 
 template <typename T, typename Container, typename Compare>

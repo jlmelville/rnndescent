@@ -43,8 +43,9 @@ auto bf_query_impl(const NumericMatrix &reference, const NumericMatrix &query,
                    typename Distance::Index nnbrs, std::size_t n_threads = 0,
                    bool verbose = false) -> List {
   auto distance = tr_to_dist<Distance>(reference, query);
-  auto nn_graph = tdoann::brute_force_query<Distance, RPProgress, RParallel>(
-      distance, nnbrs, n_threads, verbose);
+  auto progress = std::make_unique<RPProgress>(verbose);
+  auto nn_graph = tdoann::brute_force_query<Distance, RParallel>(
+      distance, nnbrs, n_threads, *progress);
 
   return graph_to_r(nn_graph);
 }
@@ -53,8 +54,9 @@ template <typename Distance>
 auto bf_build_impl(NumericMatrix data, typename Distance::Index nnbrs,
                    std::size_t n_threads = 0, bool verbose = false) -> List {
   auto distance = tr_to_dist<Distance>(data);
-  auto nn_graph = tdoann::brute_force_build<Distance, RPProgress, RParallel>(
-      distance, nnbrs, n_threads, verbose);
+  auto progress = std::make_unique<RPProgress>(verbose);
+  auto nn_graph = tdoann::brute_force_build<Distance, RParallel>(
+      distance, nnbrs, n_threads, *progress);
 
   return graph_to_r(nn_graph);
 }

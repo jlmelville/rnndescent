@@ -29,8 +29,10 @@
 
 #include <array>
 #include <mutex>
+#include <sstream>
 
 #include "heap.h"
+#include "nndprogress.h"
 
 namespace tdoann {
 
@@ -135,7 +137,7 @@ void local_join(
     const NNHeap<typename Distance::Output, typename Distance::Index> &old_nbrs,
     std::size_t max_candidates, std::size_t begin, std::size_t end) {
   for (std::size_t i = begin, idx_offset = begin * max_candidates; i < end;
-  i++, idx_offset += max_candidates) {
+       i++, idx_offset += max_candidates) {
     for (std::size_t j = 0; j < max_candidates; j++) {
       std::size_t item_p = new_nbrs.idx[idx_offset + j];
       if (item_p == new_nbrs.npos()) {
@@ -159,13 +161,12 @@ void local_join(
   }
 }
 
-template <typename Parallel, typename Distance, typename GraphUpdater,
-          typename Progress>
+template <typename Parallel, typename Distance, typename GraphUpdater>
 auto local_join(
     GraphUpdater &graph_updater,
     const NNHeap<typename Distance::Output, typename Distance::Index> &new_nbrs,
     const NNHeap<typename Distance::Output, typename Distance::Index> &old_nbrs,
-    Progress &progress, std::size_t n_threads) -> std::size_t {
+    NNDProgressBase &progress, std::size_t n_threads) -> std::size_t {
   std::size_t num_updated = 0;
   auto local_join_worker = [&](std::size_t begin, std::size_t end) {
     local_join<Distance, decltype(graph_updater)>(
@@ -176,18 +177,17 @@ auto local_join(
   };
   const std::size_t block_size = 16384;
   const std::size_t grain_size = 1;
-  batch_parallel_for<Parallel>(local_join_worker, after_local_join, progress,
-                               graph_updater.current_graph.n_points, block_size,
-                               n_threads, grain_size);
+  batch_parallel_for<Parallel>(
+      local_join_worker, after_local_join, graph_updater.current_graph.n_points,
+      block_size, n_threads, grain_size, progress.get_base_progress());
   return num_updated;
 }
 
 template <typename Parallel, typename ParallelRand,
-          template <typename> class GraphUpdater, typename Distance,
-          typename Progress>
+          template <typename> class GraphUpdater, typename Distance>
 void nnd_build(GraphUpdater<Distance> &graph_updater,
                std::size_t max_candidates, std::size_t n_iters, double delta,
-               Progress &progress, ParallelRand &parallel_rand,
+               NNDProgressBase &progress, ParallelRand &parallel_rand,
                std::size_t n_threads = 0) {
 
   using DistOut = typename Distance::Output;
@@ -212,10 +212,13 @@ void nnd_build(GraphUpdater<Distance> &graph_updater,
     std::size_t num_updated = local_join<Parallel, Distance>(
         graph_updater, new_nbrs, old_nbrs, progress, n_threads);
 
-    TDOANN_ITERFINISHED();
-    progress.heap_report(nn_heap);
-    if (is_converged(num_updated, tol)) {
-      progress.converged(num_updated, tol);
+    if (progress.check_interrupt()) {
+      break;
+    }
+    progress.iter_finished();
+
+    bool stop_early = nnd_should_stop(progress, nn_heap, num_updated, tol);
+    if (stop_early) {
       break;
     }
   }

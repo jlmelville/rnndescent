@@ -24,8 +24,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // OF SUCH DAMAGE.
 
-#ifndef TDOANN_PROGRESS_H
-#define TDOANN_PROGRESS_H
+#ifndef TDOANN_NNDPROGRESS_H
+#define TDOANN_NNDPROGRESS_H
 
 #include <sstream>
 #include <string>
@@ -33,54 +33,70 @@
 #include "progressbase.h"
 
 namespace tdoann {
-template <typename Progress> class NNDProgress {
-private:
-  Progress progress;
 
+// This enum exists because you can't have a virtual heap_report(NeighborHeap)
+// method because that method would have to be templated.
+enum class ReportingAction { HeapSum, DoNothing };
+
+class NNDProgressBase {
 public:
-  explicit NNDProgress(Progress &progress) : progress(progress) {}
-  void set_n_blocks(std::size_t n) { progress.set_n_blocks(n); }
-  void block_finished() { progress.block_finished(); }
-  void iter_finished() { progress.iter_finished(); }
-  void stopping_early() { progress.stopping_early(); }
-  auto check_interrupt() -> bool { return progress.check_interrupt(); }
-  void converged(std::size_t n_updates, double tol) {
-    progress.converged(n_updates, tol);
-  }
-  void log(const std::string &msg) { progress.log(msg); }
-  template <typename NeighborHeap>
-  void heap_report(const NeighborHeap & /* neighbor_heap */) {}
+  virtual ~NNDProgressBase() = default;
+
+  virtual ProgressBase &get_base_progress() = 0;
+
+  virtual void set_n_blocks(std::size_t n) = 0;
+  virtual void block_finished() = 0;
+  virtual void iter_finished() = 0;
+  virtual void stopping_early() = 0;
+  virtual bool check_interrupt() = 0;
+
+  virtual void log(const std::string &msg) = 0;
+  virtual void converged(std::size_t n_updates, double tol) = 0;
+  virtual ReportingAction get_reporting_action() const = 0;
 };
 
-template <typename Progress> class HeapSumProgress {
+template <typename Progress> class NNDProgress : public NNDProgressBase {
 private:
   Progress progress;
 
 public:
-  explicit HeapSumProgress(Progress &progress) : progress(progress) {}
+  explicit NNDProgress(Progress progress) : progress(std::move(progress)) {}
+
+  // Move constructor
+  NNDProgress(NNDProgress &&other) noexcept
+      : NNDProgressBase(std::move(other)), progress(std::move(other.progress)) {
+  }
+
+  ProgressBase &get_base_progress() override { return progress; }
+
   void set_n_blocks(std::size_t n) { progress.set_n_blocks(n); }
   void block_finished() { progress.block_finished(); }
   void iter_finished() { progress.iter_finished(); }
   void stopping_early() { progress.stopping_early(); }
   auto check_interrupt() -> bool { return progress.check_interrupt(); }
-  void converged(std::size_t n_updates, double tol) {
-    progress.converged(n_updates, tol);
-  }
+
   void log(const std::string &msg) { progress.log(msg); }
-  template <typename NeighborHeap>
-  void heap_report(const NeighborHeap &neighbor_heap) {
-    typename NeighborHeap::Index n_points = neighbor_heap.n_points;
-    std::size_t n_nbrs = neighbor_heap.n_nbrs;
-    typename NeighborHeap::DistanceOut hsum = 0.0;
-    for (typename NeighborHeap::Index i = 0; i < n_points; i++) {
-      std::size_t innbrs = i * n_nbrs;
-      for (std::size_t j = 0; j < n_nbrs; j++) {
-        hsum += neighbor_heap.dist[innbrs + j];
-      }
+  void converged(std::size_t n_updates, double tol) {
+    stopping_early();
+    if (progress.verbose) {
+      std::ostringstream oss;
+      oss << "Convergence: c = " << n_updates << " tol = " << tol;
+      log(oss.str());
     }
-    std::ostringstream os_out;
-    os_out << "heap sum = " << hsum;
-    log(os_out.str());
+  }
+  ReportingAction get_reporting_action() const override {
+    return ReportingAction::DoNothing;
+  }
+};
+
+template <typename Progress>
+class HeapSumProgress : public NNDProgress<Progress> {
+public:
+  // Use the base class constructor directly
+  using NNDProgress<Progress>::NNDProgress;
+
+  ReportingAction get_reporting_action() const override {
+    return ReportingAction::HeapSum;
   }
 };
 
@@ -124,6 +140,34 @@ void pr(Progress &progress, const NeighborHeap &neighbor_heap,
   }
   progress.log(os_out.str());
 }
+
+inline auto is_converged(std::size_t n_updates, double tol) -> bool {
+  return static_cast<double>(n_updates) <= tol;
+}
+
+template <typename NbrHeap>
+auto nnd_should_stop(NNDProgressBase &progress, const NbrHeap &nn_heap,
+                     std::size_t num_updated, double tol) -> bool {
+  if (progress.check_interrupt()) {
+    return true;
+  }
+  progress.iter_finished();
+
+  if (progress.get_reporting_action() == ReportingAction::HeapSum) {
+    double heap_sum_value = heap_sum(nn_heap);
+    std::ostringstream oss;
+    oss << "heap sum = " << heap_sum_value;
+    progress.log(oss.str());
+  }
+
+  if (is_converged(num_updated, tol)) {
+    progress.converged(num_updated, tol);
+    return true;
+  }
+
+  return false;
+}
+
 } // namespace tdoann
 
-#endif // TDOANN_PROGRESS_H
+#endif // TDOANN_NNDPROGRESS_H

@@ -370,15 +370,14 @@ struct NNHeap {
 
 template <typename Parallel = NoParallel, typename NbrHeap>
 void sort_heap(NbrHeap &heap, std::size_t block_size, std::size_t n_threads,
-               std::size_t grain_size) {
-  NullProgress progress;
+               std::size_t grain_size, ProgressBase &progress) {
   auto sort_worker = [&](std::size_t begin, std::size_t end) {
     for (auto i = begin; i < end; i++) {
       heap.deheap_sort(i);
     }
   };
-  batch_parallel_for<Parallel>(sort_worker, progress, heap.n_points, block_size,
-                               n_threads, grain_size);
+  batch_parallel_for<Parallel>(sort_worker, heap.n_points, block_size,
+                               n_threads, grain_size, progress);
 }
 
 template <typename Parallel = NoParallel, typename NbrHeap>
@@ -390,8 +389,8 @@ void sort_heap(NbrHeap &heap, std::size_t n_threads) {
     }
   };
   const std::size_t grain_size = 1;
-  batch_parallel_for<Parallel>(sort_worker, progress, heap.n_points, n_threads,
-                               grain_size);
+  batch_parallel_for<Parallel>(sort_worker, heap.n_points, n_threads,
+                               grain_size, progress);
 }
 
 template <typename NbrHeap> void sort_heap(NbrHeap &neighbor_heap) {
@@ -420,6 +419,23 @@ auto reverse_heap(const NbrHeap &heap, typename NbrHeap::Index n_reverse_nbrs,
 
 template <typename NbrHeap> auto reverse_heap(const NbrHeap &heap) -> NbrHeap {
   return reverse_heap(heap, heap.n_nbrs, heap.n_nbrs);
+}
+
+template <typename NbrHeap> auto heap_sum(const NbrHeap &heap) -> double {
+  using Index = typename NbrHeap::Index;
+  using DistanceOut = typename NbrHeap::DistanceOut;
+
+  Index n_points = heap.n_points;
+  std::size_t n_nbrs = heap.n_nbrs;
+
+  DistanceOut hsum = 0.0;
+  for (Index i = 0; i < n_points; ++i) {
+    hsum += std::accumulate(heap.dist.begin() + i * n_nbrs,
+                            heap.dist.begin() + (i + 1) * n_nbrs,
+                            static_cast<DistanceOut>(0));
+  }
+
+  return hsum;
 }
 
 } // namespace tdoann

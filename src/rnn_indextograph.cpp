@@ -26,6 +26,7 @@
 #include "rnn_distance.h"
 #include "rnn_macros.h"
 #include "rnn_parallel.h"
+#include "rnn_progress.h"
 #include "rnn_rtoheap.h"
 
 using Rcpp::IntegerMatrix;
@@ -45,13 +46,13 @@ auto idx_to_graph_impl(const Distance &distance, IntegerMatrix idx,
                        std::size_t n_threads = 0, bool verbose = false)
     -> List {
   auto idx_vec = r_to_idxt<typename Distance::Index>(idx);
+  RPProgress progress(verbose);
   if (n_threads == 0) {
-    auto nn_graph =
-        tdoann::idx_to_graph<Distance, RPProgress>(distance, idx_vec, verbose);
+    auto nn_graph = tdoann::idx_to_graph<Distance>(distance, idx_vec, progress);
     return graph_to_r(nn_graph, true);
   }
-  auto nn_graph = tdoann::idx_to_graph<Distance, RPProgress, RParallel>(
-      distance, idx_vec, n_threads, verbose);
+  auto nn_graph = tdoann::idx_to_graph<Distance, RParallel>(
+      distance, idx_vec, n_threads, progress);
   return graph_to_r(nn_graph, true);
 }
 

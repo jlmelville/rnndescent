@@ -48,7 +48,7 @@ auto diversify_impl(const SparseNNGraph &graph, const Distance &distance,
   RPProgress progress(1, false);
   rnndescent::ParallelRand<rnndescent::PcgRand> rand;
   return tdoann::remove_long_edges<RParallel>(
-      graph, distance, rand, prune_probability, progress, n_threads);
+      graph, distance, rand, prune_probability, n_threads, progress);
 }
 
 template <typename Distance>

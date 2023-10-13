@@ -440,7 +440,7 @@ nnd_knn <- function(data,
     low_memory = low_memory,
     n_threads = n_threads,
     verbose = verbose,
-    progress = progress
+    progress_type = progress
   )
   if (use_alt_metric) {
     res$dist <- apply_alt_metric_correction(metric, res$dist)

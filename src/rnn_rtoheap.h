@@ -24,7 +24,6 @@
 
 #include "tdoann/heap.h"
 #include "tdoann/nngraph.h"
-#include "tdoann/progress.h"
 
 #include "rnn_parallel.h"
 #include "rnn_progress.h"
@@ -43,9 +42,10 @@ void r_to_heap(NbrHeap &heap, const Rcpp::IntegerMatrix &nn_idx,
   auto nn_idxv = Rcpp::as<std::vector<typename NbrHeap::Index>>(nn_idx_copy);
   auto nn_distv = Rcpp::as<std::vector<typename NbrHeap::DistanceOut>>(nn_dist);
   std::size_t n_points = nn_idx_copy.nrow();
+  RInterruptableProgress progress;
 
-  tdoann::vec_to_heap<HeapAdd, RInterruptableProgress>(
-      heap, nn_idxv, n_points, nn_distv, block_size, transpose);
+  tdoann::vec_to_heap<HeapAdd>(heap, nn_idxv, n_points, nn_distv, block_size,
+                               transpose, progress);
 }
 
 template <typename HeapAdd, typename NbrHeap>
@@ -82,9 +82,11 @@ void r_to_heap(NbrHeap &heap, const Rcpp::IntegerMatrix &nn_idx,
   auto nn_distv = Rcpp::as<std::vector<typename NbrHeap::DistanceOut>>(nn_dist);
   std::size_t n_points = nn_idx_copy.nrow();
 
-  tdoann::vec_to_heap<HeapAdd, tdoann::NullProgress, RParallel>(
-      heap, nn_idxv, n_points, nn_distv, block_size, n_threads, grain_size,
-      transpose);
+  RInterruptableProgress progress;
+
+  tdoann::vec_to_heap<HeapAdd, RParallel>(heap, nn_idxv, n_points, nn_distv,
+                                          block_size, n_threads, grain_size,
+                                          transpose, progress);
 }
 
 template <typename HeapAdd, typename NbrHeap>

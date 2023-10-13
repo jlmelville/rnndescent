@@ -51,8 +51,10 @@ auto nn_query_impl(NumericMatrix reference, NumericMatrix query,
           nn_idx, nn_dist);
   auto distance = tr_to_dist<Distance>(reference, query);
   auto reference_graph = r_to_sparse_graph<Distance>(reference_graph_list);
-  tdoann::nn_query<RParallel, RPProgress>(reference_graph, nn_heap, distance,
-                                          epsilon, n_threads, verbose);
+  RPProgress progress(verbose);
+
+  tdoann::nn_query<RParallel>(reference_graph, nn_heap, distance, epsilon,
+                              n_threads, progress);
 
   return heap_to_r(nn_heap, n_threads);
 }
