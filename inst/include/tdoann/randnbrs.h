@@ -29,9 +29,9 @@
 
 #include <vector>
 
-#include "intsampler.h"
 #include "nngraph.h"
 #include "parallel.h"
+#include "random.h"
 
 namespace tdoann {
 
@@ -47,14 +47,14 @@ auto get_nn(Distance &distance, typename Distance::Index n_nbrs,
   const std::size_t n_points = distance.ny;
   const std::size_t n_refs = distance.nx;
 
-  // needs to happen outside of threads
-  const uint64_t seed = sampler.initialize_seed();
+  // needs to happen outside of any threads
+  sampler.initialize();
 
   std::vector<Idx> nn_idx(n_points * n_nbrs);
   std::vector<Out> nn_dist(n_points * n_nbrs);
 
-  auto worker = [&, seed](std::size_t begin, std::size_t end) {
-    auto thread_sampler = sampler.clone(seed, end);
+  auto worker = [&](std::size_t begin, std::size_t end) {
+    auto thread_sampler = sampler.get_parallel_instance(end);
 
     for (auto qi = begin, kqi = n_nbrs * begin; qi < end; ++qi, kqi += n_nbrs) {
       const auto idxi = thread_sampler->sample(n_refs, n_nbrs);

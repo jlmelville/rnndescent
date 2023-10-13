@@ -31,6 +31,7 @@
 
 #include "heap.h"
 #include "nndprogress.h"
+#include "random.h"
 
 namespace tdoann {
 // mark any neighbor in the current graph that was retained in the new
@@ -70,10 +71,11 @@ void flag_retained_new_candidates(
 // of the KNN are assigned into old and new based on their flag value, with the
 // size of the final candidate list controlled by the maximum size of
 // the candidates neighbors lists.
-template <typename DistOut, typename Idx, typename Rand>
+template <typename DistOut, typename Idx>
 void build_candidates_full(NNDHeap<DistOut, Idx> &current_graph,
                            NNHeap<DistOut, Idx> &new_nbrs,
-                           decltype(new_nbrs) &old_nbrs, Rand &rand) {
+                           decltype(new_nbrs) &old_nbrs,
+                           RandomGenerator &rand) {
   const std::size_t n_points = current_graph.n_points;
   const std::size_t n_nbrs = current_graph.n_nbrs;
 
@@ -92,11 +94,10 @@ void build_candidates_full(NNDHeap<DistOut, Idx> &current_graph,
 }
 
 // Pretty close to the NNDescentFull algorithm (#2 in the paper)
-template <template <typename> class GraphUpdater, typename Distance,
-          typename Rand>
+template <template <typename> class GraphUpdater, typename Distance>
 void nnd_build(GraphUpdater<Distance> &graph_updater,
                std::size_t max_candidates, std::size_t n_iters, double delta,
-               Rand &rand, NNDProgressBase &progress) {
+               RandomGenerator &rand, NNDProgressBase &progress) {
   using DistOut = typename Distance::Output;
   using Idx = typename Distance::Index;
   auto &nn_heap = graph_updater.current_graph;

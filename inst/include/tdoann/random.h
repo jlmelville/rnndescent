@@ -24,13 +24,47 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // OF SUCH DAMAGE.
 
-#ifndef TDOANN_INTSAMPLER_H
-#define TDOANN_INTSAMPLER_H
+#ifndef TDOANN_RANDOM_H
+#define TDOANN_RANDOM_H
 
 #include <cstdint>
 #include <memory>
 
 namespace tdoann {
+
+// Needed for random sampling in various places, e.g. search graph pruning
+// and nearest neighbor descent
+class RandomGenerator {
+public:
+  virtual ~RandomGenerator() = default;
+
+  // A random uniform value between 0 and 1
+  virtual double unif() = 0;
+};
+
+// To be used in a parallel way, the RNG must be able to be created from two
+// seeds
+class ClonableRandomGenerator : public RandomGenerator {
+public:
+  virtual ~ClonableRandomGenerator() = default;
+
+  // Create a new instance of the RNG with provided seeds
+  virtual std::unique_ptr<ClonableRandomGenerator>
+  clone(uint64_t seed1, uint64_t seed2) const = 0;
+};
+
+// This is an interface we will provide to the parallel NND routine
+class ParallelRandomProvider {
+public:
+  virtual ~ParallelRandomProvider() = default;
+
+  // do internal generation and storage of a random number based on an external
+  // seed to ensure reproducibility
+  virtual void initialize() = 0;
+  // create a RandomGenerator of uniform floats inside a thread
+  virtual std::unique_ptr<RandomGenerator>
+  get_parallel_instance(uint64_t seed2) = 0;
+};
 
 // This is an interface that needs to be implemented by users of randnbrs.h to
 // allow for thread-safe random sampling of integers
@@ -39,13 +73,13 @@ public:
   // Generate samples
   virtual std::vector<Int> sample(int max_val, int n_ints) = 0;
   // Clone for thread-specific samplers
-  virtual std::unique_ptr<BaseIntSampler<Int>> clone(uint64_t seed1,
-                                                     uint64_t seed2) const = 0;
+  virtual std::unique_ptr<BaseIntSampler<Int>>
+  get_parallel_instance(uint64_t seed2) const = 0;
 
   // Initialize the seed from an external source (can be called outside threads)
-  virtual uint64_t initialize_seed() const = 0;
+  virtual void initialize() = 0;
 };
 
 } // namespace tdoann
 
-#endif // TDOANN_INTSAMPLER_H
+#endif // TDOANN_RANDOM_H

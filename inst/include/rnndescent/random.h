@@ -34,13 +34,13 @@
 #include <pcg_random.hpp>
 
 #include "dqsample.h"
-#include "tdoann/intsampler.h"
+#include "tdoann/random.h"
 #include "tdoann/tauprng.h"
 
 namespace rnndescent {
 
 // Uses R API: Not thread safe
-inline auto pseed() -> uint64_t {
+inline auto r_seed() -> uint64_t {
   Rcpp::IntegerVector seed(2, dqrng::R_random_int);
   return dqrng::convert_seed<uint64_t>(seed);
 }
@@ -53,16 +53,15 @@ inline auto combine_seeds(uint32_t msw, uint32_t lsw) -> uint64_t {
   return (static_cast<uint64_t>(msw) << 32U) | static_cast<uint64_t>(lsw);
 }
 
-// Uniform RNG
-
-// Use R API for RNG
-struct RRand {
-  // a random uniform value between 0 and 1
-  auto unif() -> double { return R::runif(0, 1); };
+// Uniform RNG using R API: don't try and use this in anything that might
+// end up in a thread (this is why it's not Clonable)
+class RRand : public tdoann::RandomGenerator {
+public:
+  double unif() override { return R::runif(0, 1); }
 };
 
 // Use Taus88 RNG
-struct TauRand {
+struct TauRand : public tdoann::ClonableRandomGenerator {
   std::unique_ptr<tdoann::tau_prng> prng{nullptr};
 
   TauRand(uint64_t seed, uint64_t seed2) {
@@ -81,22 +80,40 @@ struct TauRand {
   }
   // a random uniform value between 0 and 1
   auto unif() -> double { return prng->rand(); }
+
+  std::unique_ptr<tdoann::ClonableRandomGenerator>
+  clone(uint64_t seed1, uint64_t seed2) const override {
+    return std::make_unique<TauRand>(seed1, seed2);
+  }
 };
 
-struct PcgRand {
+struct PcgRand : public tdoann::ClonableRandomGenerator {
   dqrng::uniform_distribution dist;
   pcg64 prng;
 
   PcgRand(uint64_t seed, uint64_t seed2) : dist(0.0, 1.0), prng(seed, seed2) {}
 
   auto unif() -> double { return dist(prng); }
+
+  std::unique_ptr<tdoann::ClonableRandomGenerator>
+  clone(uint64_t seed1, uint64_t seed2) const override {
+    return std::make_unique<PcgRand>(seed1, seed2);
+  }
 };
 
-template <typename R = TauRand> struct ParallelRand {
+template <typename T>
+class ParallelRNGAdapter : public tdoann::ParallelRandomProvider {
   uint64_t seed{0};
-  ParallelRand() = default;
-  void reseed() { seed = pseed(); };
-  auto get_rand(uint64_t seed2) -> R { return R(seed, seed2); };
+
+public:
+  ParallelRNGAdapter() = default;
+
+  void initialize() override { seed = r_seed(); }
+
+  std::unique_ptr<tdoann::RandomGenerator>
+  get_parallel_instance(uint64_t seed2) override {
+    return std::make_unique<T>(seed, seed2);
+  }
 };
 
 // Integer Sampler
@@ -104,6 +121,7 @@ template <typename Int>
 class DQIntSampler : public tdoann::BaseIntSampler<Int> {
 private:
   dqrng::rng64_t rng;
+  uint64_t seed{0};
 
 public:
   DQIntSampler() : rng(parallel_rng()) {}
@@ -122,14 +140,14 @@ public:
   // random numbers in each window, but they are related to the random number
   // seed
   std::unique_ptr<tdoann::BaseIntSampler<Int>>
-  clone(uint64_t seed1, uint64_t seed2) const override {
+  get_parallel_instance(uint64_t seed2) const override {
     auto cloned = std::make_unique<DQIntSampler<Int>>();
-    cloned->rng->seed(seed1, seed2);
+    cloned->rng->seed(seed, seed2);
     return cloned;
   }
 
   // Not thread safe: call this outside the lambda
-  uint64_t initialize_seed() const override { return pseed(); }
+  void initialize() override { seed = r_seed(); }
 };
 
 } // namespace rnndescent

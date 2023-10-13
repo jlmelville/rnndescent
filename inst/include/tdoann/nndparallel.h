@@ -33,6 +33,7 @@
 
 #include "heap.h"
 #include "nndprogress.h"
+#include "random.h"
 
 namespace tdoann {
 
@@ -75,17 +76,18 @@ public:
   }
 };
 
-template <typename ParallelRand, typename Distance>
+template <typename Distance>
 void build_candidates(
     const NNDHeap<typename Distance::Output, typename Distance::Index>
         &current_graph,
     NNHeap<typename Distance::Output, typename Distance::Index> &new_nbrs,
     NNHeap<typename Distance::Output, typename Distance::Index> &old_nbrs,
-    ParallelRand &parallel_rand, LockingHeapAdder<Distance> &heap_adder,
-    std::size_t begin, std::size_t end) {
+    ParallelRandomProvider &parallel_rand,
+    LockingHeapAdder<Distance> &heap_adder, std::size_t begin,
+    std::size_t end) {
 
   const std::size_t n_nbrs = current_graph.n_nbrs;
-  auto rand = parallel_rand.get_rand(end);
+  auto rand = parallel_rand.get_parallel_instance(end);
 
   for (std::size_t i = begin, idx_offset = begin * n_nbrs; i < end;
        i++, idx_offset += n_nbrs) {
@@ -96,20 +98,21 @@ void build_candidates(
       if (nbr == nbrs.npos()) {
         continue;
       }
-      auto rand_weight = rand.unif();
+      auto rand_weight = rand->unif();
       heap_adder.add(nbrs, i, nbr, rand_weight);
     }
   }
 }
 
-template <typename Parallel, typename Distance, typename ParallelRand>
+template <typename Parallel, typename Distance>
 void build_candidates(
     const NNDHeap<typename Distance::Output, typename Distance::Index> &nn_heap,
     NNHeap<typename Distance::Output, typename Distance::Index> &new_nbrs,
     NNHeap<typename Distance::Output, typename Distance::Index> &old_nbrs,
-    ParallelRand &parallel_rand, LockingHeapAdder<Distance> &heap_adder,
-    std::size_t n_threads) {
-  parallel_rand.reseed();
+    ParallelRandomProvider &parallel_rand,
+    LockingHeapAdder<Distance> &heap_adder, std::size_t n_threads) {
+
+  parallel_rand.initialize();
   auto worker = [&](std::size_t begin, std::size_t end) {
     build_candidates(nn_heap, new_nbrs, old_nbrs, parallel_rand, heap_adder,
                      begin, end);
@@ -183,11 +186,11 @@ auto local_join(
   return num_updated;
 }
 
-template <typename Parallel, typename ParallelRand,
-          template <typename> class GraphUpdater, typename Distance>
+template <typename Parallel, template <typename> class GraphUpdater,
+          typename Distance>
 void nnd_build(GraphUpdater<Distance> &graph_updater,
                std::size_t max_candidates, std::size_t n_iters, double delta,
-               NNDProgressBase &progress, ParallelRand &parallel_rand,
+               NNDProgressBase &progress, ParallelRandomProvider &parallel_rand,
                std::size_t n_threads = 0) {
 
   using DistOut = typename Distance::Output;

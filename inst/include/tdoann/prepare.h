@@ -32,6 +32,7 @@
 #include <vector>
 
 #include "parallel.h"
+#include "random.h"
 
 namespace tdoann {
 
@@ -115,9 +116,9 @@ auto degree_prune(const SparseNNGraph &graph, std::size_t max_degree,
 
 // remove neighbors which are "occlusions"
 // for point i with neighbors p and q, if d(p, q) < d(i, p), then p occludes q
-template <typename SparseNNGraph, typename Distance, typename Rand>
+template <typename SparseNNGraph, typename Distance>
 void remove_long_edges_impl(const SparseNNGraph &graph,
-                            const Distance &distance, Rand &rand,
+                            const Distance &distance, RandomGenerator &rand,
                             double prune_probability, SparseNNGraph &result,
                             std::size_t begin, std::size_t end) {
   using DistOut = typename SparseNNGraph::DistanceOut;
@@ -156,26 +157,26 @@ void remove_long_edges_impl(const SparseNNGraph &graph,
   }
 }
 
-template <typename SparseNNGraph, typename Distance, typename Rand>
+template <typename SparseNNGraph, typename Distance>
 auto remove_long_edges(const SparseNNGraph &graph, const Distance &distance,
-                       Rand &rand, double prune_probability) -> SparseNNGraph {
+                       RandomGenerator &rand, double prune_probability)
+    -> SparseNNGraph {
   SparseNNGraph result(graph.row_ptr, graph.col_idx, graph.dist);
   remove_long_edges_impl(graph, distance, rand, prune_probability, result, 0,
                          graph.n_points);
   return result;
 }
 
-template <typename Parallel, typename SparseNNGraph, typename Distance,
-          typename Rand>
+template <typename Parallel, typename SparseNNGraph, typename Distance>
 auto remove_long_edges(const SparseNNGraph &graph, const Distance &distance,
-                       Rand &parallel_rand, double prune_probability,
-                       std::size_t n_threads, ProgressBase &progress)
-    -> SparseNNGraph {
+                       ParallelRandomProvider &parallel_rand,
+                       double prune_probability, std::size_t n_threads,
+                       ProgressBase &progress) -> SparseNNGraph {
   SparseNNGraph result(graph.row_ptr, graph.col_idx, graph.dist);
-  parallel_rand.reseed();
+  parallel_rand.initialize();
   auto worker = [&](std::size_t begin, std::size_t end) {
-    auto rand = parallel_rand.get_rand(end);
-    remove_long_edges_impl(graph, distance, rand, prune_probability, result,
+    auto rand = parallel_rand.get_parallel_instance(end);
+    remove_long_edges_impl(graph, distance, *rand, prune_probability, result,
                            begin, end);
   };
   const std::size_t grain_size = 1;
