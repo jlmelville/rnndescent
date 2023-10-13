@@ -233,14 +233,42 @@ void graph_to_heap(NbrHeap &heap,
                        block_size, transpose, progress);
 }
 
-template <typename HeapAdd, typename Parallel = NoParallel, typename NbrGraph>
+// In a knn graph sort, it's assumed that the graph is a k-nearest neighbor
+// graph, i.e. the neighbors of i are drawn from the same data as i and
+// therefore that if the kth neighbor of i is j, then i may also be a neighbor
+// of j. This sort will therefore not only modify the order of the neighbors
+// but also replace some if it finds i in the neighbor list of any other item.
+// If this isn't what you want, use `sort_query_graph`.
+template <typename Parallel = NoParallel, typename NbrGraph>
 void sort_knn_graph(NbrGraph &nn_graph, std::size_t block_size,
                     std::size_t n_threads, std::size_t grain_size,
                     ProgressBase &progress) {
   NNHeap<typename NbrGraph::DistanceOut, typename NbrGraph::Index> heap(
       nn_graph.n_points, nn_graph.n_nbrs);
-  graph_to_heap<HeapAdd, Parallel>(heap, nn_graph, block_size, n_threads,
-                                   grain_size, false, progress);
+
+  if (n_threads == 0) {
+    graph_to_heap<tdoann::HeapAddSymmetric, Parallel>(
+        heap, nn_graph, block_size, n_threads, grain_size, false, progress);
+  } else {
+    graph_to_heap<tdoann::LockingHeapAddSymmetric, Parallel>(
+        heap, nn_graph, block_size, n_threads, grain_size, false, progress);
+  }
+
+  sort_heap(heap, block_size, n_threads, grain_size, progress);
+  heap_to_graph(heap, nn_graph);
+}
+
+// In a query graph sort, it's assumed the graph is bipartite, i.e. the
+// neighbors of i are not drawn from the same data as i. It's safe to run this
+// on a knn graph (where the neighbors of i *are* from the same data as i).
+template <typename Parallel = NoParallel, typename NbrGraph>
+void sort_query_graph(NbrGraph &nn_graph, std::size_t block_size,
+                      std::size_t n_threads, std::size_t grain_size,
+                      ProgressBase &progress) {
+  NNHeap<typename NbrGraph::DistanceOut, typename NbrGraph::Index> heap(
+      nn_graph.n_points, nn_graph.n_nbrs);
+  graph_to_heap<HeapAddQuery, Parallel>(heap, nn_graph, block_size, n_threads,
+                                        grain_size, false, progress);
   sort_heap(heap, block_size, n_threads, grain_size, progress);
   heap_to_graph(heap, nn_graph);
 }

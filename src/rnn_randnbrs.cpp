@@ -53,6 +53,7 @@ auto random_build_impl(NumericMatrix data, typename Distance::Index nnbrs,
   auto distance = tr_to_dist<Distance>(data);
   RPProgress progress(verbose);
   rnndescent::DQIntSampler<typename Distance::Index> sampler;
+
   auto nn_graph = tdoann::random_build<Distance, RParallel>(
       distance, nnbrs, sampler, order_by_distance, n_threads, progress);
 

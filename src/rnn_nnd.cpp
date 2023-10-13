@@ -124,8 +124,6 @@ public:
     auto graph_updater = GraphUpdate::create(nnd_heap, distance);
     auto nnd_progress = create_nnd_progress(progress_type, n_iters, verbose);
 
-    // Progress progress(n_iters, verbose);
-    // NNDProgress nnd_progress(progress);
     rnndescent::ParallelRand<rnndescent::PcgRand> parallel_rand;
 
     tdoann::nnd_build<RParallel>(graph_updater, max_candidates, n_iters, delta,
