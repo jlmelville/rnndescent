@@ -117,6 +117,8 @@ struct RPProgress : public tdoann::ProgressBase {
   }
 
   void stopping_early() override { progress.cleanup(); }
+
+  bool is_verbose() const override { return verbose; }
 };
 
 struct RInterruptableProgress : public tdoann::ProgressBase {
@@ -160,6 +162,8 @@ struct RInterruptableProgress : public tdoann::ProgressBase {
     }
     return false;
   }
+
+  bool is_verbose() const override { return verbose; }
 };
 
 struct RIterProgress : public RInterruptableProgress {

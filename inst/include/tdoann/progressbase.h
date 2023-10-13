@@ -49,6 +49,7 @@ public:
   virtual void stopping_early() {}
   virtual void log(const std::string & /* msg */) const {}
   virtual auto check_interrupt() -> bool { return false; }
+  virtual auto is_verbose() const -> bool { return false; }
 };
 
 // No-op implementation

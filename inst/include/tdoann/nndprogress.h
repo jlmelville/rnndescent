@@ -27,6 +27,7 @@
 #ifndef TDOANN_NNDPROGRESS_H
 #define TDOANN_NNDPROGRESS_H
 
+#include <memory>
 #include <sstream>
 #include <string>
 
@@ -55,30 +56,29 @@ public:
   virtual ReportingAction get_reporting_action() const = 0;
 };
 
-template <typename Progress> class NNDProgress : public NNDProgressBase {
+class NNDProgress : public NNDProgressBase {
 private:
-  Progress progress;
+  std::unique_ptr<ProgressBase> progress;
 
 public:
-  explicit NNDProgress(Progress progress) : progress(std::move(progress)) {}
+  explicit NNDProgress(std::unique_ptr<ProgressBase> p)
+      : progress(std::move(p)) {}
 
-  // Move constructor
   NNDProgress(NNDProgress &&other) noexcept
-      : NNDProgressBase(std::move(other)), progress(std::move(other.progress)) {
-  }
+      : progress(std::move(other.progress)) {}
 
-  ProgressBase &get_base_progress() override { return progress; }
+  ProgressBase &get_base_progress() override { return *progress; }
 
-  void set_n_blocks(std::size_t n) { progress.set_n_blocks(n); }
-  void block_finished() { progress.block_finished(); }
-  void iter_finished() { progress.iter_finished(); }
-  void stopping_early() { progress.stopping_early(); }
-  auto check_interrupt() -> bool { return progress.check_interrupt(); }
+  void set_n_blocks(std::size_t n) override { progress->set_n_blocks(n); }
+  void block_finished() override { progress->block_finished(); }
+  void iter_finished() override { progress->iter_finished(); }
+  void stopping_early() override { progress->stopping_early(); }
+  bool check_interrupt() override { return progress->check_interrupt(); }
 
-  void log(const std::string &msg) { progress.log(msg); }
-  void converged(std::size_t n_updates, double tol) {
+  void log(const std::string &msg) override { progress->log(msg); }
+  void converged(std::size_t n_updates, double tol) override {
     stopping_early();
-    if (progress.verbose) {
+    if (progress->is_verbose()) {
       std::ostringstream oss;
       oss << "Convergence: c = " << n_updates << " tol = " << tol;
       log(oss.str());
@@ -89,11 +89,9 @@ public:
   }
 };
 
-template <typename Progress>
-class HeapSumProgress : public NNDProgress<Progress> {
+class HeapSumProgress : public NNDProgress {
 public:
-  // Use the base class constructor directly
-  using NNDProgress<Progress>::NNDProgress;
+  using NNDProgress::NNDProgress; // Inherit constructors
 
   ReportingAction get_reporting_action() const override {
     return ReportingAction::HeapSum;

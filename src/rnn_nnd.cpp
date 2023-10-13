@@ -41,13 +41,11 @@ std::unique_ptr<tdoann::NNDProgressBase>
 create_nnd_progress(const std::string &progress_type, std::size_t n_iters,
                     bool verbose) {
   if (progress_type == "bar") {
-    RPProgress progress(n_iters, verbose);
-    return std::make_unique<tdoann::NNDProgress<RPProgress>>(
-        std::move(progress));
+    return std::make_unique<tdoann::NNDProgress>(
+        std::make_unique<RPProgress>(n_iters, verbose));
   }
-  RIterProgress progress(n_iters, verbose);
-  return std::make_unique<tdoann::HeapSumProgress<RIterProgress>>(
-      std::move(progress));
+  return std::make_unique<tdoann::HeapSumProgress>(
+      std::make_unique<RIterProgress>(n_iters, verbose));
 }
 
 #define NND_IMPL()                                                             \
