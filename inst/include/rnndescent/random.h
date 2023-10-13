@@ -34,6 +34,7 @@
 #include <pcg_random.hpp>
 
 #include "dqsample.h"
+#include "tdoann/intsampler.h"
 #include "tdoann/tauprng.h"
 
 namespace rnndescent {
@@ -99,24 +100,36 @@ template <typename R = TauRand> struct ParallelRand {
 };
 
 // Integer Sampler
-
-template <typename Int> struct DQIntSampler {
-
-  static auto get_seed() -> uint64_t { return pseed(); }
-
-  uint64_t seed{0};
-  uint64_t seed2{0};
+template <typename Int>
+class DQIntSampler : public tdoann::BaseIntSampler<Int> {
+private:
   dqrng::rng64_t rng;
 
-  DQIntSampler(uint64_t seed, uint64_t seed2) : rng(parallel_rng()) {
-    rng->seed(seed, seed2);
-  }
+public:
+  DQIntSampler() : rng(parallel_rng()) {}
 
-  auto sample(int n, int size, bool replace = false) -> std::vector<Int> {
+  // call this inside the thread after calling clone to generate a thread-local
+  // RNG
+  std::vector<Int> sample(int max_val, int n_ints) override {
     std::vector<Int> result;
-    dqsample::sample<Int>(result, rng, n, size, replace);
+    dqsample::sample<Int>(result, rng, max_val, n_ints, false);
     return result;
   }
+
+  // call this inside a window to get a thread safe RNG: seed1 is intended to
+  // be related to a system RNG (e.g. the R RNG) and seed2 is one of the window
+  // parameters (e.g. the end of the window size) so that you get different
+  // random numbers in each window, but they are related to the random number
+  // seed
+  std::unique_ptr<tdoann::BaseIntSampler<Int>>
+  clone(uint64_t seed1, uint64_t seed2) const override {
+    auto cloned = std::make_unique<DQIntSampler<Int>>();
+    cloned->rng->seed(seed1, seed2);
+    return cloned;
+  }
+
+  // Not thread safe: call this outside the lambda
+  uint64_t initialize_seed() const override { return pseed(); }
 };
 
 } // namespace rnndescent

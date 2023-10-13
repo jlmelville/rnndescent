@@ -29,14 +29,16 @@
 
 #include <vector>
 
+#include "intsampler.h"
 #include "nngraph.h"
 #include "parallel.h"
 
 namespace tdoann {
 
-template <typename Distance, typename Parallel, typename Sampler,
-          typename HeapAdd>
-auto get_nn(Distance &distance, typename Distance::Index n_nbrs, bool sort,
+template <typename Distance, typename Parallel, typename HeapAdd>
+// typename Sampler,
+auto get_nn(Distance &distance, typename Distance::Index n_nbrs,
+            BaseIntSampler<typename Distance::Index> &sampler, bool sort,
             std::size_t n_threads, ProgressBase &progress)
     -> NNGraph<typename Distance::Output, typename Distance::Index> {
 
@@ -47,16 +49,16 @@ auto get_nn(Distance &distance, typename Distance::Index n_nbrs, bool sort,
   const std::size_t n_refs = distance.nx;
 
   // needs to happen outside of threads
-  const uint64_t seed = Sampler::get_seed();
+  const uint64_t seed = sampler.initialize_seed();
 
   std::vector<Idx> nn_idx(n_points * n_nbrs);
   std::vector<Out> nn_dist(n_points * n_nbrs);
 
   auto worker = [&, seed](std::size_t begin, std::size_t end) {
-    Sampler int_sampler(seed, end);
+    auto thread_sampler = sampler.clone(seed, end);
 
     for (auto qi = begin, kqi = n_nbrs * begin; qi < end; ++qi, kqi += n_nbrs) {
-      const auto idxi = int_sampler.sample(n_refs, n_nbrs);
+      const auto idxi = thread_sampler->sample(n_refs, n_nbrs);
       for (std::size_t j = 0, idx_offset = kqi; j < n_nbrs; ++j, ++idx_offset) {
         const auto &rand_nbri = idxi[j];
         nn_idx[idx_offset] = rand_nbri;
@@ -80,24 +82,26 @@ auto get_nn(Distance &distance, typename Distance::Index n_nbrs, bool sort,
   return nn_graph;
 }
 
-template <typename Distance, typename Sampler, typename Parallel>
+template <typename Distance, typename Parallel>
 auto random_build(Distance &distance, typename Distance::Index n_nbrs,
-                  bool sort, std::size_t n_threads, ProgressBase &progress)
+                  BaseIntSampler<typename Distance::Index> &sampler, bool sort,
+                  std::size_t n_threads, ProgressBase &progress)
     -> NNGraph<typename Distance::Output, typename Distance::Index> {
   if (n_threads == 0) {
-    return get_nn<Distance, Parallel, Sampler, tdoann::HeapAddSymmetric>(
-        distance, n_nbrs, sort, n_threads, progress);
+    return get_nn<Distance, Parallel, tdoann::HeapAddSymmetric>(
+        distance, n_nbrs, sampler, sort, n_threads, progress);
   }
-  return get_nn<Distance, Parallel, Sampler, tdoann::LockingHeapAddSymmetric>(
-      distance, n_nbrs, sort, n_threads, progress);
+  return get_nn<Distance, Parallel, tdoann::LockingHeapAddSymmetric>(
+      distance, n_nbrs, sampler, sort, n_threads, progress);
 }
 
-template <typename Distance, typename Sampler, typename Parallel>
+template <typename Distance, typename Parallel>
 auto random_query(Distance &distance, typename Distance::Index n_nbrs,
-                  bool sort, std::size_t n_threads, ProgressBase &progress)
+                  BaseIntSampler<typename Distance::Index> &sampler, bool sort,
+                  std::size_t n_threads, ProgressBase &progress)
     -> NNGraph<typename Distance::Output, typename Distance::Index> {
-  return get_nn<Distance, Parallel, Sampler, tdoann::HeapAddQuery>(
-      distance, n_nbrs, sort, n_threads, progress);
+  return get_nn<Distance, Parallel, tdoann::HeapAddQuery>(
+      distance, n_nbrs, sampler, sort, n_threads, progress);
 }
 
 } // namespace tdoann

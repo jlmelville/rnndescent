@@ -51,11 +51,10 @@ auto random_build_impl(NumericMatrix data, typename Distance::Index nnbrs,
                        bool verbose) -> List {
 
   auto distance = tr_to_dist<Distance>(data);
-  auto progress = std::make_unique<RPProgress>(verbose);
-
-  auto nn_graph = tdoann::random_build<
-      Distance, rnndescent::DQIntSampler<typename Distance::Index>, RParallel>(
-      distance, nnbrs, order_by_distance, n_threads, *progress);
+  RPProgress progress(verbose);
+  rnndescent::DQIntSampler<typename Distance::Index> sampler;
+  auto nn_graph = tdoann::random_build<Distance, RParallel>(
+      distance, nnbrs, sampler, order_by_distance, n_threads, progress);
 
   return graph_to_r(nn_graph);
 }
@@ -66,11 +65,11 @@ auto random_query_impl(NumericMatrix reference, NumericMatrix query,
                        std::size_t n_threads, bool verbose) -> List {
 
   auto distance = tr_to_dist<Distance>(reference, query);
-  auto progress = std::make_unique<RPProgress>(verbose);
+  RPProgress progress(verbose);
+  rnndescent::DQIntSampler<typename Distance::Index> sampler;
 
-  auto nn_graph = tdoann::random_query<
-      Distance, rnndescent::DQIntSampler<typename Distance::Index>, RParallel>(
-      distance, nnbrs, order_by_distance, n_threads, *progress);
+  auto nn_graph = tdoann::random_query<Distance, RParallel>(
+      distance, nnbrs, sampler, order_by_distance, n_threads, progress);
 
   return graph_to_r(nn_graph);
 }
