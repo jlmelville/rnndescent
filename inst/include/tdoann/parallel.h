@@ -42,33 +42,11 @@ struct NoParallel {
   }
 };
 
-template <typename Parallel = NoParallel, typename Worker>
-void batch_parallel_for(Worker &worker, std::size_t n, std::size_t block_size,
-                        std::size_t n_threads, std::size_t grain_size,
-                        ProgressBase &progress) {
-  if (n_threads == 0) {
-    batch_serial_for(worker, n, block_size, progress);
-    return;
-  }
-
-  auto n_blocks = (n / block_size) + 1;
-  progress.set_n_blocks(n_blocks);
-  for (std::size_t i = 0; i < n_blocks; i++) {
-    auto begin = i * block_size;
-    auto end = std::min(n, begin + block_size);
-    Parallel::parallel_for(begin, end, worker, n_threads, grain_size);
-    if (progress.check_interrupt()) {
-      break;
-    }
-    progress.block_finished();
-  }
-}
-
 template <typename Parallel = NoParallel, typename Worker, typename AfterWorker>
-void batch_parallel_for(Worker &worker, AfterWorker &after_worker,
-                        std::size_t n, std::size_t block_size,
-                        std::size_t n_threads, std::size_t grain_size,
-                        ProgressBase &progress) {
+void batch_parallel_for_after(Worker &worker, AfterWorker &after_worker,
+                              std::size_t n, std::size_t block_size,
+                              std::size_t n_threads, std::size_t grain_size,
+                              ProgressBase &progress) {
   if (n_threads == 0) {
     batch_serial_for(worker, after_worker, n, block_size, progress);
     return;
@@ -91,19 +69,62 @@ void batch_parallel_for(Worker &worker, AfterWorker &after_worker,
   }
 }
 
+template <typename Parallel = NoParallel, typename Worker, typename AfterWorker>
+void batch_parallel_for_after(Worker &worker, AfterWorker &after_worker,
+                              std::size_t n, std::size_t n_threads,
+                              ProgressBase &progress) {
+  constexpr std::size_t grain_size = 1;
+  std::size_t block_size = std::max(grain_size, n / DEFAULT_NUM_BLOCKS);
+  batch_parallel_for_after(worker, after_worker, n, block_size, n_threads,
+                           grain_size, progress);
+}
+
+template <typename Parallel = NoParallel, typename Worker, typename AfterWorker>
+void batch_parallel_for_after(Worker &worker, AfterWorker &after_worker,
+                              std::size_t n, std::size_t block_size,
+                              std::size_t n_threads, ProgressBase &progress) {
+  constexpr std::size_t grain_size = 1;
+  batch_parallel_for_after(worker, after_worker, n, block_size, n_threads,
+                           grain_size, progress);
+}
+
+template <typename Parallel = NoParallel, typename Worker>
+void batch_parallel_for(Worker &worker, std::size_t n, std::size_t block_size,
+                        std::size_t n_threads, std::size_t grain_size,
+                        ProgressBase &progress) {
+  if (n_threads == 0) {
+    batch_serial_for(worker, n, block_size, progress);
+    return;
+  }
+
+  auto n_blocks = (n / block_size) + 1;
+  progress.set_n_blocks(n_blocks);
+  for (std::size_t i = 0; i < n_blocks; i++) {
+    auto begin = i * block_size;
+    auto end = std::min(n, begin + block_size);
+    Parallel::parallel_for(begin, end, worker, n_threads, grain_size);
+    if (progress.check_interrupt()) {
+      break;
+    }
+    progress.block_finished();
+  }
+}
+
 template <typename Parallel = NoParallel, typename Worker>
 void batch_parallel_for(Worker &worker, std::size_t n, std::size_t n_threads,
-                        std::size_t grain_size, ProgressBase &progress) {
+                        ProgressBase &progress) {
+  constexpr std::size_t grain_size = 1;
   std::size_t block_size = std::max(grain_size, n / DEFAULT_NUM_BLOCKS);
   batch_parallel_for<Parallel>(worker, n, block_size, n_threads, grain_size,
                                progress);
 }
 
 template <typename Parallel = NoParallel, typename Worker>
-void batch_parallel_for(Worker &worker, std::size_t n, std::size_t n_threads) {
-  NullProgress progress;
-  std::size_t grain_size = 1;
-  std::size_t block_size = std::max(grain_size, n / DEFAULT_NUM_BLOCKS);
+void batch_parallel_for(Worker &worker, std::size_t n, std::size_t block_size,
+                        std::size_t n_threads, ProgressBase &progress) {
+  // NullProgress progress;
+  constexpr std::size_t grain_size = 1;
+  // std::size_t block_size = std::max(grain_size, n / DEFAULT_NUM_BLOCKS);
   batch_parallel_for<Parallel>(worker, n, block_size, n_threads, grain_size,
                                progress);
 }

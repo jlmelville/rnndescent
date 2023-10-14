@@ -63,12 +63,10 @@ auto nnbf_query(Distance &distance, typename Distance::Index n_nbrs,
     nnbf_query(neighbor_heap, distance, begin, end);
   };
   progress.set_n_iters(1);
-  const std::size_t block_size = 64;
-  const std::size_t grain_size = 1;
+  constexpr std::size_t block_size = 64;
   batch_parallel_for<Parallel>(worker, neighbor_heap.n_points, block_size,
-                               n_threads, grain_size, progress);
-  sort_heap<Parallel>(neighbor_heap, block_size, n_threads, grain_size,
-                      progress);
+                               n_threads, progress);
+  sort_heap<Parallel>(neighbor_heap, block_size, n_threads, progress);
   return heap_to_graph(neighbor_heap);
 }
 
@@ -135,10 +133,9 @@ auto brute_force_build(Distance &distance, typename Distance::Index n_nbrs,
   // in single-threaded case work is divided up across all unique pairs
   // (including the self-distance)
   const std::size_t n_pairs = (n_points * (n_points + 1)) / 2;
-  constexpr const std::size_t block_size = 2048;
-  constexpr const std::size_t grain_size = 1;
+  constexpr std::size_t block_size = 2048;
   batch_parallel_for<Parallel>(worker, n_pairs, block_size, n_threads,
-                               grain_size, progress);
+                               progress);
   sort_heap(neighbor_heap);
   return heap_to_graph(neighbor_heap);
 }

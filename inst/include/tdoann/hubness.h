@@ -61,21 +61,20 @@ void local_scale(const std::vector<typename NbrHeap::Index> &idx_vec,
       dpairs.emplace_back(sdist_vec[i], dist_vec[i]);
     }
   };
-  const constexpr std::size_t grain_size = 1;
   batch_parallel_for<Parallel>(sdist_worker, dist_vec.size(), n_threads,
-                               grain_size, progress);
+                               progress);
 
   // Create an unsorted top-k neighbor heap of size n_nbrs using the paired
   // distances as values
   using PairNbrHeap = tdoann::NNHeap<DPair, Idx, pair_dmax>;
-  const constexpr std::size_t block_size = 100;
+  constexpr std::size_t block_size = 100;
   auto n_points = nn_heap.n_points;
   auto n_nbrs = nn_heap.n_nbrs;
   bool transpose = false;
   PairNbrHeap pair_heap(n_points, n_nbrs);
   tdoann::vec_to_query_heap<Parallel>(pair_heap, idx_vec, n_points, dpairs,
-                                      block_size, n_threads, grain_size,
-                                      transpose, progress);
+                                      block_size, n_threads, transpose,
+                                      progress);
 
   auto heap_worker = [&](std::size_t begin, std::size_t end) {
     for (auto i = begin; i < end; i++) {
@@ -85,8 +84,7 @@ void local_scale(const std::vector<typename NbrHeap::Index> &idx_vec,
       }
     }
   };
-  batch_parallel_for<Parallel>(heap_worker, n_points, n_threads, grain_size,
-                               progress);
+  batch_parallel_for<Parallel>(heap_worker, n_points, n_threads, progress);
 }
 
 template <typename Dist, typename Idx>
@@ -121,9 +119,7 @@ auto local_scaled_distances(const std::vector<Idx> &idx,
     local_scaled_distances(begin, end, idx, dist, n_nbrs, local_scales, sdist);
   };
 
-  const std::size_t grain_size = 1;
-  batch_parallel_for<Parallel>(worker, n_points, n_threads, grain_size,
-                               progress);
+  batch_parallel_for<Parallel>(worker, n_points, n_threads, progress);
 
   return sdist;
 }
@@ -165,9 +161,7 @@ auto get_local_scales(const std::vector<T> &dist_vec, std::size_t n_nbrs,
                      local_scales);
   };
 
-  const std::size_t grain_size = 1;
-  batch_parallel_for<Parallel>(worker, n_points, n_threads, grain_size,
-                               progress);
+  batch_parallel_for<Parallel>(worker, n_points, n_threads, progress);
 
   return local_scales;
 }

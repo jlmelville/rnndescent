@@ -63,13 +63,6 @@ template <typename NbrHeap> auto heap_to_r(NbrHeap &heap) -> Rcpp::List {
 }
 
 template <typename NbrHeap>
-auto heap_to_r(NbrHeap &heap, std::size_t block_size, std::size_t n_threads,
-               std::size_t grain_size) -> Rcpp::List {
-  tdoann::sort_heap(heap, block_size, n_threads, grain_size);
-  return heap_to_r_impl(heap);
-}
-
-template <typename NbrHeap>
 auto heap_to_r(NbrHeap &heap, std::size_t n_threads) -> Rcpp::List {
   tdoann::sort_heap(heap, n_threads);
   return heap_to_r_impl(heap);

@@ -46,9 +46,8 @@ void nn_query(
   };
   progress.set_n_iters(1);
   const std::size_t n_points = nn_heap.n_points;
-  const std::size_t grain_size = 1;
   batch_parallel_for<Parallel>(query_non_search_worker, n_points, n_threads,
-                               grain_size, progress);
+                               progress);
 }
 
 template <typename T, typename Container, typename Compare>

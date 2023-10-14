@@ -36,7 +36,6 @@ const constexpr std::size_t DEFAULT_BLOCK_SIZE{1024};
 template <typename NbrHeap>
 void r_add_to_knn_heap(NbrHeap &heap, const Rcpp::IntegerMatrix &nn_idx,
                        Rcpp::NumericMatrix nn_dist, std::size_t n_threads,
-                       std::size_t grain_size,
                        std::size_t block_size = DEFAULT_BLOCK_SIZE,
                        bool missing_ok = true, int max_idx = RNND_MAX_IDX,
                        bool transpose = true) {
@@ -48,8 +47,8 @@ void r_add_to_knn_heap(NbrHeap &heap, const Rcpp::IntegerMatrix &nn_idx,
 
   RInterruptableProgress progress;
   tdoann::vec_to_knn_heap<RParallel>(heap, nn_idxv, n_points, nn_distv,
-                                     block_size, n_threads, grain_size,
-                                     transpose, progress);
+                                     block_size, n_threads, transpose,
+                                     progress);
 }
 
 template <typename NbrHeap>
@@ -58,16 +57,14 @@ void r_add_to_knn_heap(NbrHeap &heap, const Rcpp::IntegerMatrix &nn_idx,
                        std::size_t block_size = DEFAULT_BLOCK_SIZE,
                        bool missing_ok = true, int max_idx = RNND_MAX_IDX,
                        bool transpose = true) {
-  const constexpr std::size_t n_threads = 0;
-  const constexpr std::size_t grain_size = 1;
-  return r_add_to_knn_heap(heap, nn_idx, nn_dist, n_threads, grain_size,
-                           block_size, missing_ok, RNND_MAX_IDX, transpose);
+  constexpr std::size_t n_threads = 0;
+  return r_add_to_knn_heap(heap, nn_idx, nn_dist, n_threads, block_size,
+                           missing_ok, RNND_MAX_IDX, transpose);
 }
 
 template <typename NbrHeap>
 void r_add_to_query_heap(NbrHeap &heap, const Rcpp::IntegerMatrix &nn_idx,
                          Rcpp::NumericMatrix nn_dist, std::size_t n_threads,
-                         std::size_t grain_size,
                          std::size_t block_size = DEFAULT_BLOCK_SIZE,
                          bool missing_ok = true, int max_idx = RNND_MAX_IDX,
                          bool transpose = true) {
@@ -80,8 +77,8 @@ void r_add_to_query_heap(NbrHeap &heap, const Rcpp::IntegerMatrix &nn_idx,
   RInterruptableProgress progress;
 
   tdoann::vec_to_query_heap<RParallel>(heap, nn_idxv, n_points, nn_distv,
-                                       block_size, n_threads, grain_size,
-                                       transpose, progress);
+                                       block_size, n_threads, transpose,
+                                       progress);
 }
 
 template <typename NbrHeap>
@@ -90,23 +87,22 @@ void r_add_to_query_heap(NbrHeap &heap, const Rcpp::IntegerMatrix &nn_idx,
                          std::size_t block_size = DEFAULT_BLOCK_SIZE,
                          bool missing_ok = true, int max_idx = RNND_MAX_IDX,
                          bool transpose = true) {
-  const constexpr std::size_t n_threads = 0;
-  const constexpr std::size_t grain_size = 1;
-  return r_add_to_query_heap(heap, nn_idx, nn_dist, n_threads, grain_size,
-                             block_size, missing_ok, RNND_MAX_IDX, transpose);
+  constexpr std::size_t n_threads = 0;
+  return r_add_to_query_heap(heap, nn_idx, nn_dist, n_threads, block_size,
+                             missing_ok, RNND_MAX_IDX, transpose);
 }
 
 // Convert R graph to neighbor heap
 
 template <typename NbrHeap>
 auto r_to_knn_heap(Rcpp::IntegerMatrix nn_idx, Rcpp::NumericMatrix nn_dist,
-                   std::size_t n_threads, std::size_t grain_size = 1,
+                   std::size_t n_threads,
                    std::size_t block_size = DEFAULT_BLOCK_SIZE,
                    bool missing_ok = true, int max_idx = RNND_MAX_IDX,
                    bool transpose = true) -> NbrHeap {
   NbrHeap nn_heap(nn_idx.nrow(), nn_idx.ncol());
-  r_add_to_knn_heap(nn_heap, nn_idx, nn_dist, n_threads, grain_size, block_size,
-                    missing_ok, max_idx, transpose);
+  r_add_to_knn_heap(nn_heap, nn_idx, nn_dist, n_threads, block_size, missing_ok,
+                    max_idx, transpose);
   return nn_heap;
 }
 
@@ -116,20 +112,19 @@ auto r_to_knn_heap(Rcpp::IntegerMatrix nn_idx, Rcpp::NumericMatrix nn_dist,
                    bool missing_ok = true, int max_idx = RNND_MAX_IDX,
                    bool transpose = true) -> NbrHeap {
   const constexpr std::size_t n_threads = 0;
-  const constexpr std::size_t grain_size = 1;
-  return r_to_knn_heap<NbrHeap>(nn_idx, nn_dist, n_threads, grain_size,
-                                block_size, missing_ok, max_idx, transpose);
+  return r_to_knn_heap<NbrHeap>(nn_idx, nn_dist, n_threads, block_size,
+                                missing_ok, max_idx, transpose);
 }
 
 template <typename NbrHeap>
 auto r_to_query_heap(Rcpp::IntegerMatrix nn_idx, Rcpp::NumericMatrix nn_dist,
-                     std::size_t n_threads, std::size_t grain_size = 1,
+                     std::size_t n_threads,
                      std::size_t block_size = DEFAULT_BLOCK_SIZE,
                      bool missing_ok = true, int max_idx = RNND_MAX_IDX,
                      bool transpose = true) -> NbrHeap {
   NbrHeap nn_heap(nn_idx.nrow(), nn_idx.ncol());
-  r_add_to_query_heap(nn_heap, nn_idx, nn_dist, n_threads, grain_size,
-                      block_size, missing_ok, max_idx, transpose);
+  r_add_to_query_heap(nn_heap, nn_idx, nn_dist, n_threads, block_size,
+                      missing_ok, max_idx, transpose);
   return nn_heap;
 }
 
@@ -138,10 +133,9 @@ auto r_to_query_heap(Rcpp::IntegerMatrix nn_idx, Rcpp::NumericMatrix nn_dist,
                      std::size_t block_size = DEFAULT_BLOCK_SIZE,
                      bool missing_ok = true, int max_idx = RNND_MAX_IDX,
                      bool transpose = true) -> NbrHeap {
-  const constexpr std::size_t n_threads = 0;
-  const constexpr std::size_t grain_size = 1;
-  return r_to_query_heap<NbrHeap>(nn_idx, nn_dist, n_threads, grain_size,
-                                  block_size, missing_ok, max_idx, transpose);
+  constexpr std::size_t n_threads = 0;
+  return r_to_query_heap<NbrHeap>(nn_idx, nn_dist, n_threads, block_size,
+                                  missing_ok, max_idx, transpose);
 }
 
 #endif // RNN_RTOHEAP_H

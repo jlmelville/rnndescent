@@ -90,11 +90,10 @@ public:
     auto after_local_join = [&](std::size_t, std::size_t) {
       num_updated += this->apply(current_graph);
     };
-    const std::size_t block_size = 16384;
-    const std::size_t grain_size = 1;
-    batch_parallel_for<Parallel>(local_join_worker, after_local_join,
-                                 current_graph.n_points, block_size, n_threads,
-                                 grain_size, progress.get_base_progress());
+    constexpr std::size_t block_size = 16384;
+    batch_parallel_for_after<Parallel>(local_join_worker, after_local_join,
+                                       current_graph.n_points, block_size,
+                                       n_threads, progress.get_base_progress());
     return num_updated;
   }
 };
@@ -281,8 +280,7 @@ void build_candidates(
     build_candidates(nn_heap, new_nbrs, old_nbrs, parallel_rand, heap_adder,
                      begin, end);
   };
-  const std::size_t grain_size = 1;
-  Parallel::parallel_for(0, nn_heap.n_points, worker, n_threads, grain_size);
+  Parallel::parallel_for(0, nn_heap.n_points, worker, n_threads);
 }
 
 template <typename Parallel, typename Distance>
@@ -293,8 +291,7 @@ void flag_new_candidates(
   auto worker = [&](std::size_t begin, std::size_t end) {
     flag_retained_new_candidates(nn_heap, new_nbrs, begin, end);
   };
-  const std::size_t grain_size = 1;
-  Parallel::parallel_for(0, nn_heap.n_points, worker, n_threads, grain_size);
+  Parallel::parallel_for(0, nn_heap.n_points, worker, n_threads);
 }
 
 template <typename Parallel, typename Distance>

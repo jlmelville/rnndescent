@@ -132,10 +132,9 @@ public:
     using Out = typename Distance::Output;
     using Index = typename Distance::Index;
 
-    const constexpr std::size_t grain_size = 1;
-    const constexpr bool missing_ok = false;
+    constexpr bool missing_ok = false;
     auto nnd_heap = r_to_knn_heap<tdoann::NNDHeap<Out, Index>>(
-        nn_idx, nn_dist, n_threads, grain_size, DEFAULT_BLOCK_SIZE, missing_ok);
+        nn_idx, nn_dist, n_threads, DEFAULT_BLOCK_SIZE, missing_ok);
     auto distance = tr_to_dist<Distance>(data);
     auto local_join =
         create_parallel_local_join<Distance>(nnd_heap, distance, low_memory);

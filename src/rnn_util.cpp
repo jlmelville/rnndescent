@@ -73,11 +73,10 @@ void zero_index(IntegerMatrix matrix, int max_idx, bool missing_ok) {
 // [[Rcpp::export]]
 List sort_graph(const List &graph_list, std::size_t n_threads = 0) {
   auto nn_graph = r_to_graph<DummyDistance>(graph_list);
-  const std::size_t block_size = 100;
-  const std::size_t grain_size = 1;
+  const constexpr std::size_t block_size = 100;
   tdoann::NullProgress progress;
   tdoann::sort_query_graph<RParallel>(nn_graph, block_size, n_threads,
-                                      grain_size, progress);
+                                      progress);
   // unzero = true
   return graph_to_r(nn_graph, true);
 }
