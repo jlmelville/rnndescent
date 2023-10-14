@@ -89,7 +89,7 @@ public:
 };
 
 template <typename Distance>
-class BasicSerialLocalJoin : public SerialLocalJoin<Distance> {
+class LowMemSerialLocalJoin : public SerialLocalJoin<Distance> {
   using DistOut = typename Distance::Output;
   using Idx = typename Distance::Index;
 
@@ -97,7 +97,7 @@ public:
   NNDHeap<DistOut, Idx> &current_graph;
   const Distance &distance;
 
-  BasicSerialLocalJoin(NNDHeap<DistOut, Idx> &graph, const Distance &dist)
+  LowMemSerialLocalJoin(NNDHeap<DistOut, Idx> &graph, const Distance &dist)
       : current_graph(graph), distance(dist) {}
 
   NNDHeap<DistOut, Idx> &get_current_graph() override { return current_graph; }
@@ -112,7 +112,7 @@ public:
 };
 
 template <typename Distance>
-class CachingSerialLocalJoin : public SerialLocalJoin<Distance> {
+class CacheSerialLocalJoin : public SerialLocalJoin<Distance> {
   using DistOut = typename Distance::Output;
   using Idx = typename Distance::Index;
 
@@ -121,7 +121,7 @@ public:
   const Distance &distance;
   upd::GraphCache<Idx> seen;
 
-  CachingSerialLocalJoin(NNDHeap<DistOut, Idx> &graph, const Distance &dist)
+  CacheSerialLocalJoin(NNDHeap<DistOut, Idx> &graph, const Distance &dist)
       : current_graph(graph), distance(dist),
         seen(upd::GraphCache<Idx>::from_heap(graph)) {}
 

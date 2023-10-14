@@ -58,19 +58,19 @@ create_nnd_progress(const std::string &progress_type, std::size_t n_iters,
     using NNDImpl = NNDBuildParallel;                                          \
     NNDImpl nnd_impl(data, n_threads);                                         \
     if (low_memory) {                                                          \
-      using LocalJoin = tdoann::upd::BatchLowMem<Distance>;                    \
+      using LocalJoin = tdoann::LowMemParallelLocalJoin<Distance, RParallel>;  \
       NND_IMPL()                                                               \
     }                                                                          \
-    using LocalJoin = tdoann::upd::BatchHiMem<Distance>;                       \
+    using LocalJoin = tdoann::CacheParallelLocalJoin<Distance, RParallel>;     \
     NND_IMPL()                                                                 \
   }                                                                            \
   using NNDImpl = NNDBuildSerial;                                              \
   NNDImpl nnd_impl(data);                                                      \
   if (low_memory) {                                                            \
-    using LocalJoin = tdoann::BasicSerialLocalJoin<Distance>;                  \
+    using LocalJoin = tdoann::LowMemSerialLocalJoin<Distance>;                 \
     NND_IMPL()                                                                 \
   }                                                                            \
-  using LocalJoin = tdoann::CachingSerialLocalJoin<Distance>;                  \
+  using LocalJoin = tdoann::CacheSerialLocalJoin<Distance>;                    \
   NND_IMPL()
 
 class NNDBuildSerial {
@@ -120,12 +120,12 @@ public:
         r_to_heap<tdoann::LockingHeapAddSymmetric, tdoann::NNDHeap<Out, Index>>(
             nn_idx, nn_dist, n_threads, grain_size);
     auto distance = tr_to_dist<Distance>(data);
-    LocalJoin graph_updater(nnd_heap, distance);
+    LocalJoin local_join(nnd_heap, distance);
     auto nnd_progress = create_nnd_progress(progress_type, n_iters, verbose);
     rnndescent::ParallelRNGAdapter<rnndescent::PcgRand> parallel_rand;
 
-    tdoann::nnd_build<RParallel>(graph_updater, max_candidates, n_iters, delta,
-                                 *nnd_progress, parallel_rand, n_threads);
+    tdoann::nnd_build(local_join, max_candidates, n_iters, delta, *nnd_progress,
+                      parallel_rand, n_threads);
 
     return heap_to_r(nnd_heap, n_threads);
   }
