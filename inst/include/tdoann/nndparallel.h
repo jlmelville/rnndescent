@@ -109,9 +109,8 @@ public:
   const Distance &distance;
   std::vector<std::vector<EdgeUpdate>> edge_updates;
 
-  LowMemParallelLocalJoin(NNDHeap<DistOut, Idx> &current_graph,
-                          const Distance &distance)
-      : distance(distance), edge_updates(current_graph.n_points) {}
+  LowMemParallelLocalJoin(const Distance &distance)
+      : distance(distance), edge_updates(distance.ny) {}
 
   void generate(const NNDHeap<DistOut, Idx> &current_graph, Idx idx_p,
                 Idx idx_q, std::size_t key) override {
@@ -144,7 +143,7 @@ public:
   EdgeCache<Idx> cache;
   std::vector<std::vector<EdgeUpdate>> edge_updates;
 
-  CacheParallelLocalJoin(NNDHeap<DistOut, Idx> &current_graph,
+  CacheParallelLocalJoin(const NNDHeap<DistOut, Idx> &current_graph,
                          const Distance &distance)
       : distance(distance), cache(EdgeCache<Idx>::from_graph(current_graph)),
         edge_updates(current_graph.n_points) {}

@@ -47,29 +47,44 @@ create_nnd_progress(const std::string &progress_type, std::size_t n_iters,
       std::make_unique<RIterProgress>(n_iters, verbose));
 }
 
+template <typename Distance>
+std::unique_ptr<tdoann::ParallelLocalJoin<Distance, RParallel>>
+create_parallel_local_join(
+    const tdoann::NNDHeap<typename Distance::Output, typename Distance::Index>
+        &nn_heap,
+    Distance &distance, bool low_memory) {
+  if (low_memory) {
+    return std::make_unique<
+        tdoann::LowMemParallelLocalJoin<Distance, RParallel>>(distance);
+  }
+  return std::make_unique<tdoann::CacheParallelLocalJoin<Distance, RParallel>>(
+      nn_heap, distance);
+}
+
+template <typename Distance>
+std::unique_ptr<tdoann::SerialLocalJoin<Distance>> create_serial_local_join(
+    const tdoann::NNDHeap<typename Distance::Output, typename Distance::Index>
+        &nn_heap,
+    Distance &distance, bool low_memory) {
+  if (low_memory) {
+    return std::make_unique<tdoann::LowMemSerialLocalJoin<Distance>>(distance);
+  }
+  return std::make_unique<tdoann::CacheSerialLocalJoin<Distance>>(nn_heap,
+                                                                  distance);
+}
+
 #define NND_IMPL()                                                             \
-  return nnd_impl.get_nn<LocalJoin, Distance>(nn_idx, nn_dist, max_candidates, \
-                                              n_iters, delta, progress_type,   \
-                                              verbose);
+  return nnd_impl.get_nn<Distance>(nn_idx, nn_dist, max_candidates, n_iters,   \
+                                   delta, progress_type, low_memory, verbose);
 
 #define NND_BUILD_UPDATER()                                                    \
   if (n_threads > 0) {                                                         \
     using NNDImpl = NNDBuildParallel;                                          \
     NNDImpl nnd_impl(data, n_threads);                                         \
-    if (low_memory) {                                                          \
-      using LocalJoin = tdoann::LowMemParallelLocalJoin<Distance, RParallel>;  \
-      NND_IMPL()                                                               \
-    }                                                                          \
-    using LocalJoin = tdoann::CacheParallelLocalJoin<Distance, RParallel>;     \
     NND_IMPL()                                                                 \
   }                                                                            \
   using NNDImpl = NNDBuildSerial;                                              \
   NNDImpl nnd_impl(data);                                                      \
-  if (low_memory) {                                                            \
-    using LocalJoin = tdoann::LowMemSerialLocalJoin<Distance>;                 \
-    NND_IMPL()                                                                 \
-  }                                                                            \
-  using LocalJoin = tdoann::CacheSerialLocalJoin<Distance>;                    \
   NND_IMPL()
 
 class NNDBuildSerial {
@@ -77,10 +92,11 @@ class NNDBuildSerial {
 public:
   explicit NNDBuildSerial(const NumericMatrix &data) : data(data) {}
 
-  template <typename LocalJoin, typename Distance>
+  template <typename Distance>
   auto get_nn(const IntegerMatrix &nn_idx, const NumericMatrix &nn_dist,
               std::size_t max_candidates, std::size_t n_iters, double delta,
-              const std::string &progress_type, bool verbose) -> List {
+              const std::string &progress_type, bool low_memory, bool verbose)
+      -> List {
     using Out = typename Distance::Output;
     using Index = typename Distance::Index;
 
@@ -88,11 +104,12 @@ public:
         r_to_heap<tdoann::HeapAddSymmetric, tdoann::NNDHeap<Out, Index>>(
             nn_idx, nn_dist);
     auto distance = tr_to_dist<Distance>(data);
-    LocalJoin local_join(nnd_heap, distance);
+    auto local_join =
+        create_serial_local_join<Distance>(nnd_heap, distance, low_memory);
     auto nnd_progress = create_nnd_progress(progress_type, n_iters, verbose);
     rnndescent::RRand rand;
 
-    tdoann::nnd_build(nnd_heap, local_join, max_candidates, n_iters, delta,
+    tdoann::nnd_build(nnd_heap, *local_join, max_candidates, n_iters, delta,
                       rand, *nnd_progress);
 
     return heap_to_r(nnd_heap);
@@ -107,10 +124,11 @@ public:
   NNDBuildParallel(const NumericMatrix &data, std::size_t n_threads)
       : data(data), n_threads(n_threads) {}
 
-  template <typename LocalJoin, typename Distance>
+  template <typename Distance>
   auto get_nn(const IntegerMatrix &nn_idx, const NumericMatrix &nn_dist,
               std::size_t max_candidates, std::size_t n_iters, double delta,
-              const std::string &progress_type, bool verbose) -> List {
+              const std::string &progress_type, bool low_memory, bool verbose)
+      -> List {
     using Out = typename Distance::Output;
     using Index = typename Distance::Index;
 
@@ -119,11 +137,13 @@ public:
         r_to_heap<tdoann::LockingHeapAddSymmetric, tdoann::NNDHeap<Out, Index>>(
             nn_idx, nn_dist, n_threads, grain_size);
     auto distance = tr_to_dist<Distance>(data);
-    LocalJoin local_join(nnd_heap, distance);
+    auto local_join =
+        create_parallel_local_join<Distance>(nnd_heap, distance, low_memory);
+
     auto nnd_progress = create_nnd_progress(progress_type, n_iters, verbose);
     rnndescent::ParallelRNGAdapter<rnndescent::PcgRand> parallel_rand;
 
-    tdoann::nnd_build(nnd_heap, local_join, max_candidates, n_iters, delta,
+    tdoann::nnd_build(nnd_heap, *local_join, max_candidates, n_iters, delta,
                       *nnd_progress, parallel_rand, n_threads);
 
     return heap_to_r(nnd_heap, n_threads);

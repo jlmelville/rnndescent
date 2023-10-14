@@ -96,9 +96,7 @@ class LowMemSerialLocalJoin : public SerialLocalJoin<Distance> {
 public:
   const Distance &distance;
 
-  LowMemSerialLocalJoin(NNDHeap<DistOut, Idx> & /* current_graph */,
-                        const Distance &dist)
-      : distance(dist) {}
+  LowMemSerialLocalJoin(const Distance &dist) : distance(dist) {}
 
   std::size_t update(NNDHeap<DistOut, Idx> &current_graph, Idx idx_p,
                      Idx idx_q) override {
@@ -119,7 +117,7 @@ public:
   const Distance &distance;
   EdgeCache<Idx> cache;
 
-  CacheSerialLocalJoin(NNDHeap<DistOut, Idx> &graph, const Distance &dist)
+  CacheSerialLocalJoin(const NNDHeap<DistOut, Idx> &graph, const Distance &dist)
       : distance(dist), cache(EdgeCache<Idx>::from_graph(graph)) {}
 
   std::size_t update(NNDHeap<DistOut, Idx> &current_graph, Idx idx_p,
