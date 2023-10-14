@@ -42,13 +42,14 @@ public:
 
   virtual ~SerialLocalJoin() = default;
 
-  virtual auto get_current_graph() -> NNDHeap<DistOut, Idx> & = 0;
-  virtual auto update(Idx idx_p, Idx idx_q) -> std::size_t = 0;
+  virtual auto update(NNDHeap<DistOut, Idx> &current_graph, Idx idx_p,
+                      Idx idx_q) -> std::size_t = 0;
 
   // Local join update: instead of updating item i with the neighbors of the
   // candidates of i, explore pairs (p, q) of candidates and treat q as a
   // candidate for p, and vice versa.
-  auto execute(const NNHeap<DistOut, Idx> &new_nbrs,
+  auto execute(NNDHeap<DistOut, Idx> &current_graph,
+               const NNHeap<DistOut, Idx> &new_nbrs,
                decltype(new_nbrs) &old_nbrs, NNDProgressBase &progress)
       -> std::size_t {
 
@@ -67,7 +68,7 @@ public:
           if (new_nbr == new_nbrs.npos()) {
             continue;
           }
-          num_updates += this->update(p_nbr, new_nbr);
+          num_updates += this->update(current_graph, p_nbr, new_nbr);
         }
 
         for (Idx k = 0; k < max_candidates; k++) {
@@ -75,7 +76,7 @@ public:
           if (old_nbr == old_nbrs.npos()) {
             continue;
           }
-          num_updates += this->update(p_nbr, old_nbr);
+          num_updates += this->update(current_graph, p_nbr, old_nbr);
         }
       }
       if (progress.check_interrupt()) {
@@ -93,15 +94,14 @@ class LowMemSerialLocalJoin : public SerialLocalJoin<Distance> {
   using Idx = typename Distance::Index;
 
 public:
-  NNDHeap<DistOut, Idx> &current_graph;
   const Distance &distance;
 
-  LowMemSerialLocalJoin(NNDHeap<DistOut, Idx> &graph, const Distance &dist)
-      : current_graph(graph), distance(dist) {}
+  LowMemSerialLocalJoin(NNDHeap<DistOut, Idx> & /* current_graph */,
+                        const Distance &dist)
+      : distance(dist) {}
 
-  NNDHeap<DistOut, Idx> &get_current_graph() override { return current_graph; }
-
-  std::size_t update(Idx idx_p, Idx idx_q) override {
+  std::size_t update(NNDHeap<DistOut, Idx> &current_graph, Idx idx_p,
+                     Idx idx_q) override {
     const auto dist_pq = distance(idx_p, idx_q);
     if (current_graph.accepts_either(idx_p, idx_q, dist_pq)) {
       return current_graph.checked_push_pair(idx_p, dist_pq, idx_q);
@@ -116,17 +116,14 @@ class CacheSerialLocalJoin : public SerialLocalJoin<Distance> {
   using Idx = typename Distance::Index;
 
 public:
-  NNDHeap<DistOut, Idx> &current_graph;
   const Distance &distance;
   GraphCache<Idx> seen;
 
   CacheSerialLocalJoin(NNDHeap<DistOut, Idx> &graph, const Distance &dist)
-      : current_graph(graph), distance(dist),
-        seen(GraphCache<Idx>::from_heap(graph)) {}
+      : distance(dist), seen(GraphCache<Idx>::from_heap(graph)) {}
 
-  NNDHeap<DistOut, Idx> &get_current_graph() override { return current_graph; }
-
-  std::size_t update(Idx idx_p, Idx idx_q) override {
+  std::size_t update(NNDHeap<DistOut, Idx> &current_graph, Idx idx_p,
+                     Idx idx_q) override {
     Idx upd_p, upd_q;
     std::tie(upd_p, upd_q) = std::minmax(idx_p, idx_q);
 
@@ -216,13 +213,14 @@ void build_candidates_full(NNDHeap<DistOut, Idx> &current_graph,
 
 // Pretty close to the NNDescentFull algorithm (#2 in the paper)
 template <typename Distance>
-void nnd_build(SerialLocalJoin<Distance> &local_join,
-               std::size_t max_candidates, std::size_t n_iters, double delta,
-               RandomGenerator &rand, NNDProgressBase &progress) {
+void nnd_build(
+    NNDHeap<typename Distance::Output, typename Distance::Index> &nn_heap,
+    SerialLocalJoin<Distance> &local_join, std::size_t max_candidates,
+    std::size_t n_iters, double delta, RandomGenerator &rand,
+    NNDProgressBase &progress) {
   using DistOut = typename Distance::Output;
   using Idx = typename Distance::Index;
 
-  auto &nn_heap = local_join.get_current_graph();
   const std::size_t n_points = nn_heap.n_points;
   const double tol = delta * nn_heap.n_nbrs * n_points;
 
@@ -231,7 +229,8 @@ void nnd_build(SerialLocalJoin<Distance> &local_join,
     decltype(new_nbrs) old_nbrs(n_points, max_candidates);
 
     build_candidates_full(nn_heap, new_nbrs, old_nbrs, rand);
-    std::size_t num_updated = local_join.execute(new_nbrs, old_nbrs, progress);
+    std::size_t num_updated =
+        local_join.execute(nn_heap, new_nbrs, old_nbrs, progress);
 
     bool stop_early = nnd_should_stop(progress, nn_heap, num_updated, tol);
     if (stop_early) {

@@ -92,8 +92,8 @@ public:
     auto nnd_progress = create_nnd_progress(progress_type, n_iters, verbose);
     rnndescent::RRand rand;
 
-    tdoann::nnd_build(local_join, max_candidates, n_iters, delta, rand,
-                      *nnd_progress);
+    tdoann::nnd_build(nnd_heap, local_join, max_candidates, n_iters, delta,
+                      rand, *nnd_progress);
 
     return heap_to_r(nnd_heap);
   }
@@ -123,8 +123,8 @@ public:
     auto nnd_progress = create_nnd_progress(progress_type, n_iters, verbose);
     rnndescent::ParallelRNGAdapter<rnndescent::PcgRand> parallel_rand;
 
-    tdoann::nnd_build(local_join, max_candidates, n_iters, delta, *nnd_progress,
-                      parallel_rand, n_threads);
+    tdoann::nnd_build(nnd_heap, local_join, max_candidates, n_iters, delta,
+                      *nnd_progress, parallel_rand, n_threads);
 
     return heap_to_r(nnd_heap, n_threads);
   }
