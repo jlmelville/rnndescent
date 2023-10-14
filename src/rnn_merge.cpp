@@ -38,31 +38,20 @@ extract_from_list(const List &nn_graph) {
 }
 
 template <typename NeighborHeap>
-void add_graph(NeighborHeap &heap, IntegerMatrix nn_idx, NumericMatrix nn_dist,
-               bool is_query, std::size_t n_threads) {
+void add_graph(NeighborHeap &heap, const IntegerMatrix &nn_idx,
+               const NumericMatrix &nn_dist, bool is_query,
+               std::size_t n_threads) {
 
   auto nn_idxc = clone(nn_idx);
 
-  const std::size_t block_size = 4096;
-  if (n_threads > 0) {
-    const std::size_t grain_size = 1;
-    if (is_query) {
-      r_to_heap<tdoann::HeapAddQuery>(heap, nn_idxc, nn_dist, n_threads,
-                                      grain_size, block_size, RNND_MAX_IDX,
-                                      true);
-    } else {
-      r_to_heap<tdoann::LockingHeapAddSymmetric>(
-          heap, nn_idxc, nn_dist, n_threads, grain_size, block_size,
-          RNND_MAX_IDX, true);
-    }
+  const constexpr std::size_t block_size = 4096;
+  const constexpr std::size_t grain_size = 1;
+  if (is_query) {
+    r_add_to_query_heap(heap, nn_idxc, nn_dist, n_threads, grain_size,
+                        block_size);
   } else {
-    if (is_query) {
-      r_to_heap<tdoann::HeapAddQuery>(heap, nn_idxc, nn_dist, block_size,
-                                      RNND_MAX_IDX, true);
-    } else {
-      r_to_heap<tdoann::HeapAddSymmetric>(heap, nn_idxc, nn_dist, block_size,
-                                          RNND_MAX_IDX, true);
-    }
+    r_add_to_knn_heap(heap, nn_idxc, nn_dist, n_threads, grain_size,
+                      block_size);
   }
 }
 
@@ -80,8 +69,8 @@ auto merge_nn_impl(const IntegerMatrix &nn_idx1, const NumericMatrix &nn_dist1,
   return heap_to_r(nn_merged, n_threads);
 }
 
-auto merge_nn_all_impl(List nn_graphs, bool is_query, std::size_t n_threads,
-                       bool verbose = false) -> List {
+auto merge_nn_all_impl(const List &nn_graphs, bool is_query,
+                       std::size_t n_threads, bool verbose = false) -> List {
   const auto n_graphs = nn_graphs.size();
 
   RPProgress progress(static_cast<std::size_t>(n_graphs), verbose);

@@ -46,9 +46,7 @@ auto nn_query_impl(NumericMatrix reference, NumericMatrix query,
   using Out = typename Distance::Output;
   using Index = typename Distance::Index;
 
-  auto nn_heap =
-      r_to_heap_missing_ok<tdoann::HeapAddQuery, tdoann::NNHeap<Out, Index>>(
-          nn_idx, nn_dist);
+  auto nn_heap = r_to_query_heap<tdoann::NNHeap<Out, Index>>(nn_idx, nn_dist);
   auto distance = tr_to_dist<Distance>(reference, query);
   auto reference_graph = r_to_sparse_graph<Distance>(reference_graph_list);
   RPProgress progress(verbose);
