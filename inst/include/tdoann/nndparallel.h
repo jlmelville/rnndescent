@@ -32,7 +32,7 @@
 #include <sstream>
 
 #include "heap.h"
-#include "nndprogress.h"
+#include "nndcommon.h"
 #include "random.h"
 
 namespace tdoann {

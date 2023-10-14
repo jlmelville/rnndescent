@@ -23,7 +23,7 @@
 #include <Rcpp.h>
 
 #include "tdoann/heap.h"
-#include "tdoann/nndprogress.h"
+#include "tdoann/nndcommon.h"
 #define TDOANN_PROGRESSBAR_OUTPUT_STREAM Rcpp::Rcerr
 #include "tdoann/progressbar.h"
 

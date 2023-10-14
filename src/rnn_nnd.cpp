@@ -22,9 +22,9 @@
 #include <Rcpp.h>
 
 #include "rnndescent/random.h"
+#include "tdoann/nndcommon.h"
 #include "tdoann/nndescent.h"
 #include "tdoann/nndparallel.h"
-#include "tdoann/nndprogress.h"
 
 #include "rnn_distance.h"
 #include "rnn_heaptor.h"
