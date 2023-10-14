@@ -43,7 +43,7 @@ public:
 
   // Virtual Methods
   virtual void set_n_iters(std::size_t /* n */) {}
-  virtual void set_n_blocks(std::size_t /* n */) {}
+  virtual void set_n_batches(std::size_t /* n */) {}
   virtual void block_finished() {}
   virtual void iter_finished() {}
   virtual void stopping_early() {}

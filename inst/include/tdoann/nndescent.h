@@ -55,7 +55,7 @@ public:
 
     const auto n_points = new_nbrs.n_points;
     const auto max_candidates = new_nbrs.n_nbrs;
-    progress.set_n_blocks(n_points);
+    progress.set_n_batches(n_points);
     std::size_t num_updates = 0;
     for (Idx i = 0; i < n_points; i++) {
       for (Idx j = 0; j < max_candidates; j++) {

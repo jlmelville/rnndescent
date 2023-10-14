@@ -44,11 +44,11 @@ void add_graph(NeighborHeap &heap, const IntegerMatrix &nn_idx,
 
   auto nn_idxc = clone(nn_idx);
 
-  constexpr std::size_t block_size = 4096;
+  constexpr std::size_t batch_size = 4096;
   if (is_query) {
-    r_add_to_query_heap(heap, nn_idxc, nn_dist, n_threads, block_size);
+    r_add_to_query_heap(heap, nn_idxc, nn_dist, n_threads, batch_size);
   } else {
-    r_add_to_knn_heap(heap, nn_idxc, nn_dist, n_threads, block_size);
+    r_add_to_knn_heap(heap, nn_idxc, nn_dist, n_threads, batch_size);
   }
 }
 

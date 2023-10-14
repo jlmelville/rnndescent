@@ -68,8 +68,8 @@ auto get_nn(Distance &distance, typename Distance::Index n_nbrs,
   };
 
   progress.set_n_iters(1);
-  constexpr std::size_t block_size = 128;
-  batch_parallel_for<Parallel>(worker, n_points, block_size, n_threads,
+  ExecutionParams exec_params{128};
+  batch_parallel_for<Parallel>(worker, n_points, n_threads, exec_params,
                                progress);
 
   return NNGraph<Out, Idx>(nn_idx, nn_dist, n_points);
@@ -84,8 +84,8 @@ auto random_build(Distance &distance, typename Distance::Index n_nbrs,
   auto nn_graph = get_nn<Distance, Parallel>(distance, n_nbrs, sampler,
                                              n_threads, progress);
   if (sort) {
-    constexpr std::size_t block_size = 128;
-    sort_knn_graph<Parallel>(nn_graph, block_size, n_threads, progress);
+    constexpr std::size_t batch_size = 128;
+    sort_knn_graph<Parallel>(nn_graph, batch_size, n_threads, progress);
   }
   return nn_graph;
 }
@@ -99,8 +99,8 @@ auto random_query(Distance &distance, typename Distance::Index n_nbrs,
   auto nn_graph = get_nn<Distance, Parallel>(distance, n_nbrs, sampler,
                                              n_threads, progress);
   if (sort) {
-    constexpr std::size_t block_size = 128;
-    sort_query_graph<Parallel>(nn_graph, block_size, n_threads, progress);
+    constexpr std::size_t batch_size = 128;
+    sort_query_graph<Parallel>(nn_graph, batch_size, n_threads, progress);
   }
   return nn_graph;
 }

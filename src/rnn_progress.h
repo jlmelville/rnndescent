@@ -71,9 +71,9 @@ struct RPProgress : public tdoann::ProgressBase {
     iter_increment = static_cast<double>(scale) / n_iters;
   }
 
-  void set_n_blocks(std::size_t n_blocks) override {
+  void set_n_batches(std::size_t n_batches) override {
     block = 0;
-    block_increment = iter_increment / n_blocks;
+    block_increment = iter_increment / n_batches;
   }
 
   void block_finished() override {

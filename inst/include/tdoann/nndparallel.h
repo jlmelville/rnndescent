@@ -90,10 +90,10 @@ public:
     auto after_local_join = [&](std::size_t, std::size_t) {
       num_updated += this->apply(current_graph);
     };
-    constexpr std::size_t block_size = 16384;
-    batch_parallel_for_after<Parallel>(local_join_worker, after_local_join,
-                                       current_graph.n_points, block_size,
-                                       n_threads, progress.get_base_progress());
+    ExecutionParams exec_params{16384};
+    batch_parallel_for_after<Parallel>(
+        local_join_worker, after_local_join, current_graph.n_points, n_threads,
+        exec_params, progress.get_base_progress());
     return num_updated;
   }
 };
