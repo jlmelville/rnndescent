@@ -79,7 +79,7 @@ struct TauRand : public tdoann::ClonableRandomGenerator {
                              combine_seeds(tau_seeds32[4], tau_seeds32[5])));
   }
   // a random uniform value between 0 and 1
-  auto unif() -> double { return prng->rand(); }
+  double unif() override { return prng->rand(); }
 
   std::unique_ptr<tdoann::ClonableRandomGenerator>
   clone(uint64_t seed1, uint64_t seed2) const override {
@@ -93,7 +93,7 @@ struct PcgRand : public tdoann::ClonableRandomGenerator {
 
   PcgRand(uint64_t seed, uint64_t seed2) : dist(0.0, 1.0), prng(seed, seed2) {}
 
-  auto unif() -> double { return dist(prng); }
+  double unif() override { return dist(prng); }
 
   std::unique_ptr<tdoann::ClonableRandomGenerator>
   clone(uint64_t seed1, uint64_t seed2) const override {
