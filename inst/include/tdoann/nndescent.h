@@ -29,11 +29,133 @@
 
 #include <sstream>
 
+#include "graphupdate.h"
 #include "heap.h"
 #include "nndprogress.h"
 #include "random.h"
 
 namespace tdoann {
+
+template <typename Distance> class SerialLocalJoin {
+public:
+  using DistOut = typename Distance::Output;
+  using Idx = typename Distance::Index;
+
+  virtual ~SerialLocalJoin() = default;
+
+  virtual auto get_current_graph() -> NNDHeap<DistOut, Idx> & = 0;
+  virtual auto update(Idx idx_p, Idx idx_q) -> std::size_t = 0;
+
+  // Local join update: instead of updating item i with the neighbors of the
+  // candidates of i, explore pairs (p, q) of candidates and treat q as a
+  // candidate for p, and vice versa.
+  auto execute(const NNHeap<DistOut, Idx> &new_nbrs,
+               decltype(new_nbrs) &old_nbrs, NNDProgressBase &progress)
+      -> std::size_t {
+
+    const auto n_points = new_nbrs.n_points;
+    const auto max_candidates = new_nbrs.n_nbrs;
+    progress.set_n_blocks(n_points);
+    std::size_t num_updates = 0;
+    for (Idx i = 0; i < n_points; i++) {
+      for (Idx j = 0; j < max_candidates; j++) {
+        auto p_nbr = new_nbrs.index(i, j);
+        if (p_nbr == new_nbrs.npos()) {
+          continue;
+        }
+        for (Idx k = j; k < max_candidates; k++) {
+          auto new_nbr = new_nbrs.index(i, k);
+          if (new_nbr == new_nbrs.npos()) {
+            continue;
+          }
+          num_updates += this->update(p_nbr, new_nbr);
+        }
+
+        for (Idx k = 0; k < max_candidates; k++) {
+          auto old_nbr = old_nbrs.index(i, k);
+          if (old_nbr == old_nbrs.npos()) {
+            continue;
+          }
+          num_updates += this->update(p_nbr, old_nbr);
+        }
+      }
+      if (progress.check_interrupt()) {
+        break;
+      }
+      progress.block_finished();
+    }
+    return num_updates;
+  }
+};
+
+template <typename Distance>
+class BasicSerialLocalJoin : public SerialLocalJoin<Distance> {
+  using DistOut = typename Distance::Output;
+  using Idx = typename Distance::Index;
+
+public:
+  NNDHeap<DistOut, Idx> &current_graph;
+  const Distance &distance;
+
+  BasicSerialLocalJoin(NNDHeap<DistOut, Idx> &graph, const Distance &dist)
+      : current_graph(graph), distance(dist) {}
+
+  NNDHeap<DistOut, Idx> &get_current_graph() override { return current_graph; }
+
+  std::size_t update(Idx idx_p, Idx idx_q) override {
+    const auto dist_pq = distance(idx_p, idx_q);
+    if (current_graph.accepts_either(idx_p, idx_q, dist_pq)) {
+      return current_graph.checked_push_pair(idx_p, dist_pq, idx_q);
+    }
+    return 0; // No updates were made.
+  }
+};
+
+template <typename Distance>
+class CachingSerialLocalJoin : public SerialLocalJoin<Distance> {
+  using DistOut = typename Distance::Output;
+  using Idx = typename Distance::Index;
+
+public:
+  NNDHeap<DistOut, Idx> &current_graph;
+  const Distance &distance;
+  upd::GraphCache<Idx> seen;
+
+  CachingSerialLocalJoin(NNDHeap<DistOut, Idx> &graph, const Distance &dist)
+      : current_graph(graph), distance(dist),
+        seen(upd::GraphCache<Idx>::from_heap(graph)) {}
+
+  NNDHeap<DistOut, Idx> &get_current_graph() override { return current_graph; }
+
+  std::size_t update(Idx idx_p, Idx idx_q) override {
+    Idx upd_p, upd_q;
+    std::tie(upd_p, upd_q) = std::minmax(idx_p, idx_q);
+
+    if (seen.contains(upd_p, upd_q)) {
+      return 0; // No updates made
+    }
+
+    const auto dist = distance(upd_p, upd_q);
+    std::size_t updates = 0;
+
+    if (current_graph.accepts(upd_p, dist)) {
+      current_graph.unchecked_push(upd_p, dist, upd_q);
+      updates++;
+    }
+
+    if (upd_p != upd_q && current_graph.accepts(upd_q, dist)) {
+      current_graph.unchecked_push(upd_q, dist, upd_p);
+      updates++;
+    }
+
+    if (updates > 0) {
+      seen.insert(upd_p, upd_q);
+    }
+
+    return updates;
+  }
+};
+
 // mark any neighbor in the current graph that was retained in the new
 // candidates as false
 template <typename DistOut, typename Idx>
@@ -94,13 +216,14 @@ void build_candidates_full(NNDHeap<DistOut, Idx> &current_graph,
 }
 
 // Pretty close to the NNDescentFull algorithm (#2 in the paper)
-template <template <typename> class GraphUpdater, typename Distance>
-void nnd_build(GraphUpdater<Distance> &graph_updater,
+template <typename Distance>
+void nnd_build(SerialLocalJoin<Distance> &local_join,
                std::size_t max_candidates, std::size_t n_iters, double delta,
                RandomGenerator &rand, NNDProgressBase &progress) {
   using DistOut = typename Distance::Output;
   using Idx = typename Distance::Index;
-  auto &nn_heap = graph_updater.current_graph;
+
+  auto &nn_heap = local_join.get_current_graph();
   const std::size_t n_points = nn_heap.n_points;
   const double tol = delta * nn_heap.n_nbrs * n_points;
 
@@ -109,58 +232,13 @@ void nnd_build(GraphUpdater<Distance> &graph_updater,
     decltype(new_nbrs) old_nbrs(n_points, max_candidates);
 
     build_candidates_full(nn_heap, new_nbrs, old_nbrs, rand);
-    std::size_t num_updated =
-        local_join(graph_updater, new_nbrs, old_nbrs, progress);
+    std::size_t num_updated = local_join.execute(new_nbrs, old_nbrs, progress);
 
     bool stop_early = nnd_should_stop(progress, nn_heap, num_updated, tol);
     if (stop_early) {
       break;
     }
   }
-}
-
-// Local join update: instead of updating item i with the neighbors of the
-// candidates of i, explore pairs (p, q) of candidates and treat q as a
-// candidate for p, and vice versa.
-template <template <typename> class GraphUpdater, typename Distance>
-auto local_join(
-    GraphUpdater<Distance> &graph_updater,
-    const NNHeap<typename Distance::Output, typename Distance::Index> &new_nbrs,
-    decltype(new_nbrs) &old_nbrs, NNDProgressBase &progress) -> std::size_t {
-
-  using Idx = typename Distance::Index;
-  const auto n_points = new_nbrs.n_points;
-  const auto max_candidates = new_nbrs.n_nbrs;
-  progress.set_n_blocks(n_points);
-  std::size_t num_updates = 0;
-  for (Idx i = 0; i < n_points; i++) {
-    for (Idx j = 0; j < max_candidates; j++) {
-      auto p_nbr = new_nbrs.index(i, j);
-      if (p_nbr == new_nbrs.npos()) {
-        continue;
-      }
-      for (Idx k = j; k < max_candidates; k++) {
-        auto new_nbr = new_nbrs.index(i, k);
-        if (new_nbr == new_nbrs.npos()) {
-          continue;
-        }
-        num_updates += graph_updater.update(p_nbr, new_nbr);
-      }
-
-      for (Idx k = 0; k < max_candidates; k++) {
-        auto old_nbr = old_nbrs.index(i, k);
-        if (old_nbr == old_nbrs.npos()) {
-          continue;
-        }
-        num_updates += graph_updater.update(p_nbr, old_nbr);
-      }
-    }
-    if (progress.check_interrupt()) {
-      break;
-    }
-    progress.block_finished();
-  }
-  return num_updates;
 }
 } // namespace tdoann
 #endif // TDOANN_NNDESCENT_H

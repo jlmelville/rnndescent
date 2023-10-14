@@ -49,28 +49,28 @@ create_nnd_progress(const std::string &progress_type, std::size_t n_iters,
 }
 
 #define NND_IMPL()                                                             \
-  return nnd_impl.get_nn<GraphUpdate, Distance>(                               \
-      nn_idx, nn_dist, max_candidates, n_iters, delta, progress_type,          \
-      verbose);
+  return nnd_impl.get_nn<LocalJoin, Distance>(nn_idx, nn_dist, max_candidates, \
+                                              n_iters, delta, progress_type,   \
+                                              verbose);
 
 #define NND_BUILD_UPDATER()                                                    \
   if (n_threads > 0) {                                                         \
     using NNDImpl = NNDBuildParallel;                                          \
     NNDImpl nnd_impl(data, n_threads);                                         \
     if (low_memory) {                                                          \
-      using GraphUpdate = tdoann::upd::Factory<tdoann::upd::Batch>;            \
+      using LocalJoin = tdoann::upd::BatchLowMem<Distance>;                    \
       NND_IMPL()                                                               \
     }                                                                          \
-    using GraphUpdate = tdoann::upd::Factory<tdoann::upd::BatchHiMem>;         \
+    using LocalJoin = tdoann::upd::BatchHiMem<Distance>;                       \
     NND_IMPL()                                                                 \
   }                                                                            \
   using NNDImpl = NNDBuildSerial;                                              \
   NNDImpl nnd_impl(data);                                                      \
   if (low_memory) {                                                            \
-    using GraphUpdate = tdoann::upd::Factory<tdoann::upd::Serial>;             \
+    using LocalJoin = tdoann::BasicSerialLocalJoin<Distance>;                  \
     NND_IMPL()                                                                 \
   }                                                                            \
-  using GraphUpdate = tdoann::upd::Factory<tdoann::upd::SerialHiMem>;          \
+  using LocalJoin = tdoann::CachingSerialLocalJoin<Distance>;                  \
   NND_IMPL()
 
 class NNDBuildSerial {
@@ -78,7 +78,7 @@ class NNDBuildSerial {
 public:
   explicit NNDBuildSerial(const NumericMatrix &data) : data(data) {}
 
-  template <typename GraphUpdate, typename Distance>
+  template <typename LocalJoin, typename Distance>
   auto get_nn(const IntegerMatrix &nn_idx, const NumericMatrix &nn_dist,
               std::size_t max_candidates, std::size_t n_iters, double delta,
               const std::string &progress_type, bool verbose) -> List {
@@ -89,12 +89,11 @@ public:
         r_to_heap<tdoann::HeapAddSymmetric, tdoann::NNDHeap<Out, Index>>(
             nn_idx, nn_dist);
     auto distance = tr_to_dist<Distance>(data);
-    auto graph_updater = GraphUpdate::create(nnd_heap, distance);
+    LocalJoin local_join(nnd_heap, distance);
     auto nnd_progress = create_nnd_progress(progress_type, n_iters, verbose);
-
     rnndescent::RRand rand;
 
-    tdoann::nnd_build(graph_updater, max_candidates, n_iters, delta, rand,
+    tdoann::nnd_build(local_join, max_candidates, n_iters, delta, rand,
                       *nnd_progress);
 
     return heap_to_r(nnd_heap);
@@ -109,7 +108,7 @@ public:
   NNDBuildParallel(const NumericMatrix &data, std::size_t n_threads)
       : data(data), n_threads(n_threads) {}
 
-  template <typename GraphUpdate, typename Distance>
+  template <typename LocalJoin, typename Distance>
   auto get_nn(const IntegerMatrix &nn_idx, const NumericMatrix &nn_dist,
               std::size_t max_candidates, std::size_t n_iters, double delta,
               const std::string &progress_type, bool verbose) -> List {
@@ -121,7 +120,7 @@ public:
         r_to_heap<tdoann::LockingHeapAddSymmetric, tdoann::NNDHeap<Out, Index>>(
             nn_idx, nn_dist, n_threads, grain_size);
     auto distance = tr_to_dist<Distance>(data);
-    auto graph_updater = GraphUpdate::create(nnd_heap, distance);
+    LocalJoin graph_updater(nnd_heap, distance);
     auto nnd_progress = create_nnd_progress(progress_type, n_iters, verbose);
     rnndescent::ParallelRNGAdapter<rnndescent::PcgRand> parallel_rand;
 

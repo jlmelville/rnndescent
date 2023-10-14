@@ -33,6 +33,7 @@
 #include <vector>
 
 #include "heap.h"
+#include "nndprogress.h"
 
 namespace tdoann {
 
@@ -81,76 +82,30 @@ public:
   }
 };
 
-template <typename Distance> struct Serial {
-  using DistOut = typename Distance::Output;
-  using Idx = typename Distance::Index;
-
-  NNDHeap<DistOut, Idx> &current_graph;
-  const Distance &distance;
-
-  Serial(NNDHeap<DistOut, Idx> &graph, const Distance &dist)
-      : current_graph(graph), distance(dist) {}
-
-  auto update(Idx idx_p, Idx idx_q) -> std::size_t {
-    const auto dist_pq = distance(idx_p, idx_q);
-    if (current_graph.accepts_either(idx_p, idx_q, dist_pq)) {
-      return current_graph.checked_push_pair(idx_p, dist_pq, idx_q);
-    }
-    return 0; // No updates were made.
-  }
-};
-
-template <typename Distance> struct SerialHiMem {
-  using DistOut = typename Distance::Output;
-  using Idx = typename Distance::Index;
-
-  NNDHeap<DistOut, Idx> &current_graph;
-  const Distance &distance;
-  GraphCache<Idx> seen;
-
-  SerialHiMem(NNDHeap<DistOut, Idx> &graph, const Distance &dist)
-      : current_graph(graph), distance(dist),
-        seen(GraphCache<Idx>::from_heap(graph)) {}
-
-  auto update(Idx idx_p, Idx idx_q) -> std::size_t {
-    Idx upd_p, upd_q;
-    std::tie(upd_p, upd_q) = std::minmax(idx_p, idx_q);
-
-    if (seen.contains(upd_p, upd_q)) {
-      return 0; // No updates made
-    }
-
-    const auto dist = distance(upd_p, upd_q);
-    std::size_t updates = 0;
-
-    if (current_graph.accepts(upd_p, dist)) {
-      current_graph.unchecked_push(upd_p, dist, upd_q);
-      updates++;
-    }
-
-    if (upd_p != upd_q && current_graph.accepts(upd_q, dist)) {
-      current_graph.unchecked_push(upd_q, dist, upd_p);
-      updates++;
-    }
-
-    if (updates > 0) {
-      seen.insert(upd_p, upd_q);
-    }
-
-    return updates;
-  }
-};
-
-template <typename Distance> struct Batch {
+template <typename Distance> class GraphBatchUpdater {
+public:
   using DistOut = typename Distance::Output;
   using Idx = typename Distance::Index;
   using Update = std::tuple<Idx, Idx, DistOut>;
 
+  virtual ~GraphBatchUpdater() = default;
+
+  virtual void generate(Idx idx_p, Idx idx_q, std::size_t key) = 0;
+  virtual auto apply() -> std::size_t = 0;
+};
+
+template <typename Distance>
+class BatchLowMem : public GraphBatchUpdater<Distance> {
+  using DistOut = typename Distance::Output;
+  using Idx = typename Distance::Index;
+  using Update = std::tuple<Idx, Idx, DistOut>;
+
+public:
   NNDHeap<DistOut, Idx> &current_graph;
   const Distance &distance;
   std::vector<std::vector<Update>> updates;
 
-  Batch(NNDHeap<DistOut, Idx> &current_graph, const Distance &distance)
+  BatchLowMem(NNDHeap<DistOut, Idx> &current_graph, const Distance &distance)
       : current_graph(current_graph), distance(distance),
         updates(current_graph.n_points) {}
 
@@ -173,11 +128,13 @@ template <typename Distance> struct Batch {
   }
 };
 
-template <typename Distance> struct BatchHiMem {
+template <typename Distance>
+class BatchHiMem : public GraphBatchUpdater<Distance> {
   using DistOut = typename Distance::Output;
   using Idx = typename Distance::Index;
   using Update = std::tuple<Idx, Idx, DistOut>;
 
+public:
   NNDHeap<DistOut, Idx> &current_graph;
   const Distance &distance;
   GraphCache<Idx> seen;
@@ -237,20 +194,6 @@ template <typename Distance> struct BatchHiMem {
       update_set.clear();
     }
     return num_updates;
-  }
-};
-
-// Template aliases can't be declared inside a function, so this struct is
-// necessary to avoid wanting to write e.g.:
-// template <typename T>
-// using  = Serial<T>;
-// which won't compile.
-template <template <typename> class Impl> struct Factory {
-  template <typename Distance>
-  static auto create(NNDHeap<typename Distance::Output,
-                             typename Distance::Index> &current_graph,
-                     Distance &distance) -> Impl<Distance> {
-    return Impl<Distance>(current_graph, distance);
   }
 };
 } // namespace upd
