@@ -68,21 +68,20 @@ void local_scale(const std::vector<typename NbrHeap::Index> &idx_vec,
   // Create an unsorted top-k neighbor heap of size n_nbrs using the paired
   // distances as values
   using PairNbrHeap = tdoann::NNHeap<DPair, Idx, pair_dmax>;
-  tdoann::HeapAddQuery heap_add;
   const constexpr std::size_t block_size = 100;
   auto n_points = nn_heap.n_points;
   auto n_nbrs = nn_heap.n_nbrs;
   bool transpose = false;
   PairNbrHeap pair_heap(n_points, n_nbrs);
-  tdoann::vec_to_heap<tdoann::HeapAddQuery, Parallel>(
-      pair_heap, idx_vec, n_points, dpairs, block_size, n_threads, grain_size,
-      transpose, progress);
+  tdoann::vec_to_query_heap<Parallel>(pair_heap, idx_vec, n_points, dpairs,
+                                      block_size, n_threads, grain_size,
+                                      transpose, progress);
 
   auto heap_worker = [&](std::size_t begin, std::size_t end) {
     for (auto i = begin; i < end; i++) {
       for (decltype(n_nbrs) j = 0; j < n_nbrs; j++) {
-        heap_add.push(nn_heap, i, pair_heap.index(i, j),
-                      pair_heap.distance(i, j).second);
+        nn_heap.checked_push(i, pair_heap.distance(i, j).second,
+                             pair_heap.index(i, j));
       }
     }
   };

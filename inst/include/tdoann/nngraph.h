@@ -196,19 +196,36 @@ void vec_to_heap(NbrHeap &heap,
                                grain_size, progress);
 }
 
-template <typename HeapAdd, typename NbrHeap>
-void vec_to_heap(NbrHeap &heap,
-                 const std::vector<typename NbrHeap::Index> &nn_idx,
-                 std::size_t n_points,
-                 const std::vector<typename NbrHeap::DistanceOut> &nn_dist,
-                 std::size_t block_size, bool transpose,
-                 ProgressBase &progress) {
-  HeapAdd heap_add;
-  auto worker = [&](std::size_t begin, std::size_t end) {
-    vec_to_heap<HeapAdd, NbrHeap>(heap, nn_idx, n_points, nn_dist, begin, end,
-                                  heap_add, transpose);
-  };
-  batch_serial_for(worker, n_points, block_size, progress);
+template <typename Parallel, typename NbrHeap>
+void vec_to_knn_heap(NbrHeap &heap,
+                     const std::vector<typename NbrHeap::Index> &nn_idx,
+                     std::size_t n_points,
+                     const std::vector<typename NbrHeap::DistanceOut> &nn_dist,
+                     std::size_t block_size, std::size_t n_threads,
+                     std::size_t grain_size, bool transpose,
+                     ProgressBase &progress) {
+  if (n_threads > 0) {
+    vec_to_heap<tdoann::LockingHeapAddSymmetric, Parallel>(
+        heap, nn_idx, n_points, nn_dist, block_size, n_threads, grain_size,
+        transpose, progress);
+  } else {
+    vec_to_heap<tdoann::HeapAddSymmetric, Parallel>(
+        heap, nn_idx, n_points, nn_dist, block_size, n_threads, grain_size,
+        transpose, progress);
+  }
+}
+
+template <typename Parallel, typename NbrHeap>
+void vec_to_query_heap(
+    NbrHeap &heap, const std::vector<typename NbrHeap::Index> &nn_idx,
+    std::size_t n_points,
+    const std::vector<typename NbrHeap::DistanceOut> &nn_dist,
+    std::size_t block_size, std::size_t n_threads, std::size_t grain_size,
+    bool transpose, ProgressBase &progress) {
+
+  vec_to_heap<tdoann::HeapAddQuery, Parallel>(heap, nn_idx, n_points, nn_dist,
+                                              block_size, n_threads, grain_size,
+                                              transpose, progress);
 }
 
 template <typename HeapAdd, typename Parallel, typename NbrHeap>
@@ -229,8 +246,11 @@ void graph_to_heap(NbrHeap &heap,
                                  typename NbrHeap::Index> &nn_graph,
                    std::size_t block_size, bool transpose,
                    ProgressBase &progress) {
-  vec_to_heap<HeapAdd>(heap, nn_graph.idx, nn_graph.n_points, nn_graph.dist,
-                       block_size, transpose, progress);
+  const constexpr std::size_t n_threads = 0;
+  const constexpr std::size_t grain_size = 1;
+  graph_to_heap<HeapAdd>(heap, nn_graph.idx, nn_graph.n_points, nn_graph.dist,
+                         n_threads, grain_size, block_size, transpose,
+                         progress);
 }
 
 // In a knn graph sort, it's assumed that the graph is a k-nearest neighbor
