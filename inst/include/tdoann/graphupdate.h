@@ -33,19 +33,8 @@
 #include <vector>
 
 #include "heap.h"
-#include "nndprogress.h"
 
 namespace tdoann {
-
-// These classes are used in the "local join" step of nearest neighbor descent.
-// This is done in two separate steps to allow for parallelizing the (expensive)
-// distance calculation: distance calculations are carried out in batches
-// and stored, then updating the neighbor heaps is carried out in a serial
-// step (this is like a map-reduce procedure where the reduce step is
-// single-threaded).
-// There is also a "HiMem" variant, where distances are cached.
-
-namespace upd {
 
 template <typename Idx> struct GraphCache {
 private:
@@ -82,7 +71,6 @@ public:
   }
 };
 
-} // namespace upd
 } // namespace tdoann
 
 #endif // TDOANN_GRAPHUPDATE_H

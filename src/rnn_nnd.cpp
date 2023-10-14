@@ -22,7 +22,6 @@
 #include <Rcpp.h>
 
 #include "rnndescent/random.h"
-#include "tdoann/graphupdate.h"
 #include "tdoann/nndescent.h"
 #include "tdoann/nndparallel.h"
 #include "tdoann/nndprogress.h"

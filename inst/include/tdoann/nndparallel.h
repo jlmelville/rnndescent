@@ -31,7 +31,6 @@
 #include <mutex>
 #include <sstream>
 
-#include "graphupdate.h"
 #include "heap.h"
 #include "nndprogress.h"
 #include "random.h"
@@ -143,13 +142,13 @@ class CacheParallelLocalJoin : public ParallelLocalJoin<Distance, Parallel> {
 public:
   NNDHeap<DistOut, Idx> &current_graph;
   const Distance &distance;
-  upd::GraphCache<Idx> seen;
+  GraphCache<Idx> seen;
   std::vector<std::vector<Update>> updates;
 
   CacheParallelLocalJoin(NNDHeap<DistOut, Idx> &current_graph,
                          const Distance &distance)
       : current_graph(current_graph), distance(distance),
-        seen(upd::GraphCache<Idx>::from_heap(current_graph)),
+        seen(GraphCache<Idx>::from_heap(current_graph)),
         updates(current_graph.n_points) {}
 
   NNDHeap<DistOut, Idx> &get_current_graph() override { return current_graph; }

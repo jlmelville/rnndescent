@@ -29,7 +29,6 @@
 
 #include <sstream>
 
-#include "graphupdate.h"
 #include "heap.h"
 #include "nndprogress.h"
 #include "random.h"
@@ -119,11 +118,11 @@ class CacheSerialLocalJoin : public SerialLocalJoin<Distance> {
 public:
   NNDHeap<DistOut, Idx> &current_graph;
   const Distance &distance;
-  upd::GraphCache<Idx> seen;
+  GraphCache<Idx> seen;
 
   CacheSerialLocalJoin(NNDHeap<DistOut, Idx> &graph, const Distance &dist)
       : current_graph(graph), distance(dist),
-        seen(upd::GraphCache<Idx>::from_heap(graph)) {}
+        seen(GraphCache<Idx>::from_heap(graph)) {}
 
   NNDHeap<DistOut, Idx> &get_current_graph() override { return current_graph; }
 

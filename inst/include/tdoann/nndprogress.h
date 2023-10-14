@@ -31,6 +31,7 @@
 #include <sstream>
 #include <string>
 
+#include "heap.h"
 #include "progressbase.h"
 
 namespace tdoann {
@@ -165,6 +166,42 @@ auto nnd_should_stop(NNDProgressBase &progress, const NbrHeap &nn_heap,
 
   return false;
 }
+
+// A cache of previously seen pairs used in caching versions of local join
+template <typename Idx> struct GraphCache {
+private:
+  std::vector<std::unordered_set<Idx>> seen;
+
+public:
+  GraphCache(std::size_t n_points, std::size_t n_nbrs,
+             const std::vector<Idx> &idx_data)
+      : seen(n_points) {
+    for (Idx i = 0, innbrs = 0; i < n_points; i++, innbrs += n_nbrs) {
+      for (std::size_t j = 0, idx_ij = innbrs; j < n_nbrs; j++, idx_ij++) {
+        auto idx_p = idx_data[idx_ij];
+        if (i > idx_p) {
+          seen[idx_p].emplace(i);
+        } else {
+          seen[i].emplace(idx_p);
+        }
+      }
+    }
+  }
+
+  // Static factory function
+  template <typename DistOut>
+  static GraphCache<Idx> from_heap(const NNDHeap<DistOut, Idx> &heap) {
+    return GraphCache<Idx>(heap.n_points, heap.n_nbrs, heap.idx);
+  }
+
+  auto contains(const Idx &idx_p, const Idx &idx_q) const -> bool {
+    return seen[idx_p].find(idx_q) != seen[idx_p].end();
+  }
+
+  auto insert(Idx idx_p, Idx idx_q) -> bool {
+    return !seen[idx_p].emplace(idx_q).second;
+  }
+};
 
 } // namespace tdoann
 
