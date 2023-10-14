@@ -66,8 +66,7 @@ auto nnbf_query(Distance &distance, typename Distance::Index n_nbrs,
   ExecutionParams exec_params{64};
   batch_parallel_for<Parallel>(worker, neighbor_heap.n_points, n_threads,
                                exec_params, progress);
-  sort_heap<Parallel>(neighbor_heap, exec_params.batch_size, n_threads,
-                      progress);
+  sort_heap<Parallel>(neighbor_heap, n_threads, progress);
   return heap_to_graph(neighbor_heap);
 }
 

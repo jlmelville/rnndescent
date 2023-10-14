@@ -84,8 +84,7 @@ auto random_build(Distance &distance, typename Distance::Index n_nbrs,
   auto nn_graph = get_nn<Distance, Parallel>(distance, n_nbrs, sampler,
                                              n_threads, progress);
   if (sort) {
-    constexpr std::size_t batch_size = 128;
-    sort_knn_graph<Parallel>(nn_graph, batch_size, n_threads, progress);
+    sort_knn_graph<Parallel>(nn_graph, n_threads, progress);
   }
   return nn_graph;
 }
@@ -99,8 +98,7 @@ auto random_query(Distance &distance, typename Distance::Index n_nbrs,
   auto nn_graph = get_nn<Distance, Parallel>(distance, n_nbrs, sampler,
                                              n_threads, progress);
   if (sort) {
-    constexpr std::size_t batch_size = 128;
-    sort_query_graph<Parallel>(nn_graph, batch_size, n_threads, progress);
+    sort_query_graph<Parallel>(nn_graph, n_threads, progress);
   }
   return nn_graph;
 }

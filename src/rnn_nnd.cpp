@@ -101,8 +101,8 @@ public:
     using Index = typename Distance::Index;
 
     const constexpr bool missing_ok = false; // but should it be?
-    auto nnd_heap = r_to_knn_heap<tdoann::NNDHeap<Out, Index>>(
-        nn_idx, nn_dist, DEFAULT_BLOCK_SIZE, missing_ok);
+    auto nnd_heap =
+        r_to_knn_heap<tdoann::NNDHeap<Out, Index>>(nn_idx, nn_dist, missing_ok);
     auto distance = tr_to_dist<Distance>(data);
     auto local_join =
         create_serial_local_join<Distance>(nnd_heap, distance, low_memory);
@@ -134,7 +134,7 @@ public:
 
     constexpr bool missing_ok = false;
     auto nnd_heap = r_to_knn_heap<tdoann::NNDHeap<Out, Index>>(
-        nn_idx, nn_dist, n_threads, DEFAULT_BLOCK_SIZE, missing_ok);
+        nn_idx, nn_dist, n_threads, missing_ok);
     auto distance = tr_to_dist<Distance>(data);
     auto local_join =
         create_parallel_local_join<Distance>(nnd_heap, distance, low_memory);
