@@ -91,7 +91,7 @@ public:
       num_updated += this->apply(current_graph);
     };
     ExecutionParams exec_params{16384};
-    batch_parallel_for_after<Parallel>(
+    batch_parallel_for<Parallel>(
         local_join_worker, after_local_join, current_graph.n_points, n_threads,
         exec_params, progress.get_base_progress());
     return num_updated;

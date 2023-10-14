@@ -62,7 +62,7 @@ struct NoParallel {
 };
 
 template <typename Parallel = NoParallel, typename Worker, typename AfterWorker>
-void batch_parallel_for_after(Worker &worker, AfterWorker &after_worker,
+void batch_parallel_for(Worker &worker, AfterWorker &after_worker,
                               std::size_t n, std::size_t n_threads,
                               const ExecutionParams &execution_params,
                               ProgressBase &progress) {
