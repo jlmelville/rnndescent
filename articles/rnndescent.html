@@ -706,7 +706,7 @@ graph:</p>
 <div class="sourceCode" id="cb52"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">g1000d_sgko</span><span class="op">)</span></span>
 <span><span class="co">#&gt;    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. </span></span>
-<span><span class="co">#&gt;   1.000   3.000   5.000   7.663   9.000 106.000</span></span>
+<span><span class="co">#&gt;   1.000   2.250   4.000   7.629   9.000 106.000</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">g1000d_sgko</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 113</span></span></code></pre></div>
 <p>This is not <em>quite</em> as skewed as the neighbor graph, but there
@@ -784,7 +784,7 @@ graph without back-tracking gives slightly better accuracies:</p>
 <span>    epsilon <span class="op">=</span> <span class="fl">0</span></span>
 <span>  <span class="op">)</span></span>
 <span><span class="fu">nn_accuracy</span><span class="op">(</span><span class="va">g1000d_nnbf</span>, <span class="va">g1000d_search0</span>, k <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 0.8501333</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 0.8492667</span></span></code></pre></div>
 <p>but it seems like some sort of back-tracking is to be recommended
 with this approach.</p>
 </div>
@@ -882,7 +882,7 @@ scaled neighbors?</p>
 <div class="sourceCode" id="cb64"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">g1000d_lssgko</span><span class="op">)</span></span>
 <span><span class="co">#&gt;    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. </span></span>
-<span><span class="co">#&gt;    1.00    6.00    9.00   10.45   13.00   82.00</span></span>
+<span><span class="co">#&gt;    1.00    6.00    9.00   10.39   13.00   82.00</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">g1000d_lssgko</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 17</span></span></code></pre></div>
 <p>Here the hubness properties are further improved over using either
@@ -902,7 +902,7 @@ backtracking:</p>
 <span>        epsilon <span class="op">=</span> <span class="fl">0</span></span>
 <span>    <span class="op">)</span></span>
 <span><span class="fu">nn_accuracy</span><span class="op">(</span><span class="va">g1000d_nnbf</span>, <span class="va">g1000dls_search0nnd</span>, k <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 0.9417333</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 0.9410667</span></span></code></pre></div>
 <p>Without having to do any back-tracking, we can get 94% accuracy, a
 nearly 10% improvement compared to the search graph generated from the
 15NN graph directly.</p>
@@ -931,7 +931,7 @@ graph we can use for initialization:</p>
 <span>        epsilon <span class="op">=</span> <span class="fl">0</span></span>
 <span>    <span class="op">)</span></span>
 <span><span class="fu">nn_accuracy</span><span class="op">(</span><span class="va">g1000d_nnbf</span>, <span class="va">g1000dls_search0</span>, k <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 0.8814667</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 0.8815333</span></span></code></pre></div>
 <p>This is noticeably less good than initializing using the 15 NND
 results, but it’s still the best non-back-tracking result. If we do set
 <code>epsilon = 0.1</code>, then we get 100% accuracy using both the
