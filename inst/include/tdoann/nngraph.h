@@ -205,13 +205,13 @@ void vec_to_knn_heap(NbrHeap &heap,
                      std::size_t grain_size, bool transpose,
                      ProgressBase &progress) {
   if (n_threads > 0) {
-    vec_to_heap<tdoann::LockingHeapAddSymmetric, Parallel>(
+    vec_to_heap<LockingHeapAddSymmetric, Parallel>(
         heap, nn_idx, n_points, nn_dist, block_size, n_threads, grain_size,
         transpose, progress);
   } else {
-    vec_to_heap<tdoann::HeapAddSymmetric, Parallel>(
-        heap, nn_idx, n_points, nn_dist, block_size, n_threads, grain_size,
-        transpose, progress);
+    vec_to_heap<HeapAddSymmetric, Parallel>(heap, nn_idx, n_points, nn_dist,
+                                            block_size, n_threads, grain_size,
+                                            transpose, progress);
   }
 }
 
@@ -223,34 +223,18 @@ void vec_to_query_heap(
     std::size_t block_size, std::size_t n_threads, std::size_t grain_size,
     bool transpose, ProgressBase &progress) {
 
-  vec_to_heap<tdoann::HeapAddQuery, Parallel>(heap, nn_idx, n_points, nn_dist,
-                                              block_size, n_threads, grain_size,
-                                              transpose, progress);
+  vec_to_heap<HeapAddQuery, Parallel>(heap, nn_idx, n_points, nn_dist,
+                                      block_size, n_threads, grain_size,
+                                      transpose, progress);
 }
 
-template <typename HeapAdd, typename Parallel, typename NbrHeap>
-void graph_to_heap(NbrHeap &heap,
-                   const NNGraph<typename NbrHeap::DistanceOut,
-                                 typename NbrHeap::Index> &nn_graph,
-                   std::size_t block_size, std::size_t n_threads,
-                   std::size_t grain_size, bool transpose,
-                   ProgressBase &progress) {
-  vec_to_heap<HeapAdd, Parallel>(heap, nn_graph.idx, nn_graph.n_points,
-                                 nn_graph.dist, block_size, n_threads,
-                                 grain_size, transpose, progress);
-}
-
-template <typename HeapAdd, typename NbrHeap>
-void graph_to_heap(NbrHeap &heap,
-                   const NNGraph<typename NbrHeap::DistanceOut,
-                                 typename NbrHeap::Index> &nn_graph,
-                   std::size_t block_size, bool transpose,
-                   ProgressBase &progress) {
-  const constexpr std::size_t n_threads = 0;
-  const constexpr std::size_t grain_size = 1;
-  graph_to_heap<HeapAdd>(heap, nn_graph.idx, nn_graph.n_points, nn_graph.dist,
-                         n_threads, grain_size, block_size, transpose,
-                         progress);
+// allow the use of auto heap = init_graph(nn_graph) and avoid long type in
+// sort graph
+template <typename NbrGraph>
+auto init_heap(const NbrGraph &nn_graph)
+    -> NNHeap<typename NbrGraph::DistanceOut, typename NbrGraph::Index> {
+  return NNHeap<typename NbrGraph::DistanceOut, typename NbrGraph::Index>(
+      nn_graph.n_points, nn_graph.n_nbrs);
 }
 
 // In a knn graph sort, it's assumed that the graph is a k-nearest neighbor
@@ -263,17 +247,10 @@ template <typename Parallel = NoParallel, typename NbrGraph>
 void sort_knn_graph(NbrGraph &nn_graph, std::size_t block_size,
                     std::size_t n_threads, std::size_t grain_size,
                     ProgressBase &progress) {
-  NNHeap<typename NbrGraph::DistanceOut, typename NbrGraph::Index> heap(
-      nn_graph.n_points, nn_graph.n_nbrs);
-
-  if (n_threads == 0) {
-    graph_to_heap<tdoann::HeapAddSymmetric, Parallel>(
-        heap, nn_graph, block_size, n_threads, grain_size, false, progress);
-  } else {
-    graph_to_heap<tdoann::LockingHeapAddSymmetric, Parallel>(
-        heap, nn_graph, block_size, n_threads, grain_size, false, progress);
-  }
-
+  auto heap = init_heap(nn_graph);
+  vec_to_knn_heap<Parallel>(heap, nn_graph.idx, nn_graph.n_points,
+                            nn_graph.dist, block_size, n_threads, grain_size,
+                            false, progress);
   sort_heap(heap, block_size, n_threads, grain_size, progress);
   heap_to_graph(heap, nn_graph);
 }
@@ -285,10 +262,10 @@ template <typename Parallel = NoParallel, typename NbrGraph>
 void sort_query_graph(NbrGraph &nn_graph, std::size_t block_size,
                       std::size_t n_threads, std::size_t grain_size,
                       ProgressBase &progress) {
-  NNHeap<typename NbrGraph::DistanceOut, typename NbrGraph::Index> heap(
-      nn_graph.n_points, nn_graph.n_nbrs);
-  graph_to_heap<HeapAddQuery, Parallel>(heap, nn_graph, block_size, n_threads,
-                                        grain_size, false, progress);
+  auto heap = init_heap(nn_graph);
+  vec_to_query_heap<Parallel>(heap, nn_graph.idx, nn_graph.n_points,
+                              nn_graph.dist, block_size, n_threads, grain_size,
+                              false, progress);
   sort_heap(heap, block_size, n_threads, grain_size, progress);
   heap_to_graph(heap, nn_graph);
 }
