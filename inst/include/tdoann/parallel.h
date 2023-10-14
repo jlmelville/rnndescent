@@ -46,6 +46,11 @@ template <typename Parallel, typename Worker>
 void batch_parallel_for(Worker &worker, std::size_t n, std::size_t block_size,
                         std::size_t n_threads, std::size_t grain_size,
                         ProgressBase &progress) {
+  if (n_threads == 0) {
+    batch_serial_for(worker, n, block_size, progress);
+    return;
+  }
+
   auto n_blocks = (n / block_size) + 1;
   progress.set_n_blocks(n_blocks);
   for (std::size_t i = 0; i < n_blocks; i++) {
@@ -64,6 +69,11 @@ void batch_parallel_for(Worker &worker, AfterWorker &after_worker,
                         std::size_t n, std::size_t block_size,
                         std::size_t n_threads, std::size_t grain_size,
                         ProgressBase &progress) {
+  if (n_threads == 0) {
+    batch_serial_for(worker, after_worker, n, block_size, progress);
+    return;
+  }
+
   auto n_blocks = (n / block_size) + 1;
   progress.set_n_blocks(n_blocks);
   for (std::size_t i = 0; i < n_blocks; i++) {
@@ -114,12 +124,25 @@ void batch_serial_for(Worker &worker, std::size_t n, std::size_t block_size,
   }
 }
 
-template <typename Worker>
-void batch_serial_for(Worker &worker, std::size_t n, ProgressBase &progress) {
-  const std::size_t block_size = std::max(std::size_t{1}, n / std::size_t{10});
-  batch_serial_for(worker, n, block_size, progress);
+template <typename Worker, typename AfterWorker>
+void batch_serial_for(Worker &worker, AfterWorker &after_worker, std::size_t n,
+                      std::size_t block_size, ProgressBase &progress) {
+  auto n_blocks = (n / block_size) + 1;
+  progress.set_n_blocks(n_blocks);
+  for (std::size_t i = 0; i < n_blocks; i++) {
+    auto begin = i * block_size;
+    auto end = std::min(n, begin + block_size);
+    worker(begin, end);
+    if (progress.check_interrupt()) {
+      break;
+    }
+    after_worker(begin, end);
+    if (progress.check_interrupt()) {
+      break;
+    }
+    progress.block_finished();
+  }
 }
-
 } // namespace tdoann
 
 #endif // TDOANN_PARALLEL_H

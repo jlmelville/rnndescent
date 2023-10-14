@@ -89,17 +89,6 @@ void degree_prune_impl(const SparseNNGraph &graph, SparseNNGraph &result,
   }
 }
 
-template <typename SparseNNGraph>
-auto degree_prune(const SparseNNGraph &graph, std::size_t max_degree,
-                  ProgressBase &progress) -> SparseNNGraph {
-  SparseNNGraph result(graph.row_ptr, graph.col_idx, graph.dist);
-  auto worker = [&](std::size_t begin, std::size_t end) {
-    degree_prune_impl(graph, result, max_degree, begin, end);
-  };
-  batch_serial_for(worker, graph.n_points, progress);
-  return result;
-}
-
 template <typename Parallel, typename SparseNNGraph>
 auto degree_prune(const SparseNNGraph &graph, std::size_t max_degree,
                   ProgressBase &progress, std::size_t n_threads = 0)

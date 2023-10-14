@@ -286,28 +286,6 @@ void idx_to_graph(const Distance &distance,
   }
 }
 
-template <typename Distance>
-auto idx_to_graph(const Distance &distance,
-                  const std::vector<typename Distance::Index> &idx,
-                  ProgressBase &progress)
-    -> NNGraph<typename Distance::Output, typename Distance::Index> {
-  using Out = typename Distance::Output;
-  using Index = typename Distance::Index;
-
-  progress.set_n_iters(1);
-  const std::size_t n_points = distance.ny;
-  const std::size_t n_nbrs = idx.size() / n_points;
-  std::vector<Out> dist(idx.size());
-
-  auto worker = [&](std::size_t begin, std::size_t end) {
-    idx_to_graph(distance, idx, dist, n_nbrs, begin, end);
-  };
-  const constexpr std::size_t batch_size = 1024;
-  batch_serial_for(worker, n_points, batch_size, progress);
-
-  return NNGraph<Out, Index>(idx, dist, n_points);
-}
-
 template <typename Distance, typename Parallel>
 auto idx_to_graph(const Distance &distance,
                   const std::vector<typename Distance::Index> &idx,

@@ -136,8 +136,9 @@ auto brute_force_build(Distance &distance, typename Distance::Index n_nbrs,
   // (including the self-distance)
   const std::size_t n_pairs = (n_points * (n_points + 1)) / 2;
   constexpr const std::size_t block_size = 2048;
-  batch_serial_for(worker, n_pairs, block_size, progress);
-
+  constexpr const std::size_t grain_size = 1;
+  batch_parallel_for<Parallel>(worker, n_pairs, block_size, n_threads,
+                               grain_size, progress);
   sort_heap(neighbor_heap);
   return heap_to_graph(neighbor_heap);
 }

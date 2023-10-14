@@ -82,9 +82,6 @@ template <typename SparseNNGraph>
 auto degree_prune_impl(const SparseNNGraph &graph, std::size_t max_degree,
                        std::size_t n_threads) -> SparseNNGraph {
   RPProgress progress(1, false);
-  if (n_threads == 0) {
-    return tdoann::degree_prune(graph, max_degree, progress);
-  }
   return tdoann::degree_prune<RParallel>(graph, max_degree, progress,
                                          n_threads);
 }
