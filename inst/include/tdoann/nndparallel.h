@@ -103,31 +103,31 @@ template <typename Distance, typename Parallel>
 class LowMemParallelLocalJoin : public ParallelLocalJoin<Distance, Parallel> {
   using DistOut = typename Distance::Output;
   using Idx = typename Distance::Index;
-  using Update = std::tuple<Idx, Idx, DistOut>;
+  using EdgeUpdate = std::tuple<Idx, Idx, DistOut>;
 
 public:
   const Distance &distance;
-  std::vector<std::vector<Update>> updates;
+  std::vector<std::vector<EdgeUpdate>> edge_updates;
 
   LowMemParallelLocalJoin(NNDHeap<DistOut, Idx> &current_graph,
                           const Distance &distance)
-      : distance(distance), updates(current_graph.n_points) {}
+      : distance(distance), edge_updates(current_graph.n_points) {}
 
   void generate(const NNDHeap<DistOut, Idx> &current_graph, Idx idx_p,
                 Idx idx_q, std::size_t key) override {
     const auto dist_pq = distance(idx_p, idx_q);
     if (current_graph.accepts_either(idx_p, idx_q, dist_pq)) {
-      updates[key].emplace_back(idx_p, idx_q, dist_pq);
+      edge_updates[key].emplace_back(idx_p, idx_q, dist_pq);
     }
   }
 
   std::size_t apply(NNDHeap<DistOut, Idx> &current_graph) override {
     std::size_t num_updates = 0;
-    for (auto &update_set : updates) {
-      for (auto &[upd_p, upd_q, upd_d] : update_set) {
-        num_updates += current_graph.checked_push_pair(upd_p, upd_d, upd_q);
+    for (auto &edge_set : edge_updates) {
+      for (auto &[idx_p, idx_q, dist_pq] : edge_set) {
+        num_updates += current_graph.checked_push_pair(idx_p, dist_pq, idx_q);
       }
-      update_set.clear();
+      edge_set.clear();
     }
     return num_updates;
   }
@@ -137,39 +137,39 @@ template <typename Distance, typename Parallel>
 class CacheParallelLocalJoin : public ParallelLocalJoin<Distance, Parallel> {
   using DistOut = typename Distance::Output;
   using Idx = typename Distance::Index;
-  using Update = std::tuple<Idx, Idx, DistOut>;
+  using EdgeUpdate = std::tuple<Idx, Idx, DistOut>;
 
 public:
   const Distance &distance;
-  GraphCache<Idx> seen;
-  std::vector<std::vector<Update>> updates;
+  EdgeCache<Idx> cache;
+  std::vector<std::vector<EdgeUpdate>> edge_updates;
 
   CacheParallelLocalJoin(NNDHeap<DistOut, Idx> &current_graph,
                          const Distance &distance)
-      : distance(distance), seen(GraphCache<Idx>::from_heap(current_graph)),
-        updates(current_graph.n_points) {}
+      : distance(distance), cache(EdgeCache<Idx>::from_graph(current_graph)),
+        edge_updates(current_graph.n_points) {}
 
   void generate(const NNDHeap<DistOut, Idx> &current_graph, Idx idx_p,
                 Idx idx_q, std::size_t key) override {
     auto [idx_pp, idx_qq] = std::minmax(idx_p, idx_q);
 
-    if (seen.contains(idx_pp, idx_qq)) {
+    if (cache.contains(idx_pp, idx_qq)) {
       return;
     }
 
     const auto dist_pq = distance(idx_pp, idx_qq);
     if (current_graph.accepts_either(idx_pp, idx_qq, dist_pq)) {
-      updates[key].emplace_back(idx_pp, idx_qq, dist_pq);
+      edge_updates[key].emplace_back(idx_pp, idx_qq, dist_pq);
     }
   }
 
   std::size_t apply(NNDHeap<DistOut, Idx> &current_graph) override {
     std::size_t num_updates = 0;
 
-    for (auto &update_set : updates) {
-      for (const auto &[idx_p, idx_q, dist_pq] : update_set) {
+    for (auto &edge_set : edge_updates) {
+      for (const auto &[idx_p, idx_q, dist_pq] : edge_set) {
 
-        if (seen.contains(idx_p, idx_q)) {
+        if (cache.contains(idx_p, idx_q)) {
           continue;
         }
 
@@ -192,11 +192,11 @@ public:
         }
 
         if (local_c > 0) {
-          seen.insert(idx_p, idx_q);
+          cache.insert(idx_p, idx_q);
           num_updates += local_c;
         }
       }
-      update_set.clear();
+      edge_set.clear();
     }
     return num_updates;
   }

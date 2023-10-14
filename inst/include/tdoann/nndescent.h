@@ -117,17 +117,17 @@ class CacheSerialLocalJoin : public SerialLocalJoin<Distance> {
 
 public:
   const Distance &distance;
-  GraphCache<Idx> seen;
+  EdgeCache<Idx> cache;
 
   CacheSerialLocalJoin(NNDHeap<DistOut, Idx> &graph, const Distance &dist)
-      : distance(dist), seen(GraphCache<Idx>::from_heap(graph)) {}
+      : distance(dist), cache(EdgeCache<Idx>::from_graph(graph)) {}
 
   std::size_t update(NNDHeap<DistOut, Idx> &current_graph, Idx idx_p,
                      Idx idx_q) override {
     Idx upd_p, upd_q;
     std::tie(upd_p, upd_q) = std::minmax(idx_p, idx_q);
 
-    if (seen.contains(upd_p, upd_q)) {
+    if (cache.contains(upd_p, upd_q)) {
       return 0; // No updates made
     }
 
@@ -145,7 +145,7 @@ public:
     }
 
     if (updates > 0) {
-      seen.insert(upd_p, upd_q);
+      cache.insert(upd_p, upd_q);
     }
 
     return updates;

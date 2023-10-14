@@ -167,14 +167,15 @@ auto nnd_should_stop(NNDProgressBase &progress, const NbrHeap &nn_heap,
   return false;
 }
 
-// A cache of previously seen pairs used in caching versions of local join
-template <typename Idx> struct GraphCache {
+// A cache of previously seen edges (potential neighbors) used in caching
+// variants of the local join process
+template <typename Idx> struct EdgeCache {
 private:
   std::vector<std::unordered_set<Idx>> seen;
 
 public:
-  GraphCache(std::size_t n_points, std::size_t n_nbrs,
-             const std::vector<Idx> &idx_data)
+  EdgeCache(std::size_t n_points, std::size_t n_nbrs,
+            const std::vector<Idx> &idx_data)
       : seen(n_points) {
     for (Idx i = 0, innbrs = 0; i < n_points; i++, innbrs += n_nbrs) {
       for (std::size_t j = 0, idx_ij = innbrs; j < n_nbrs; j++, idx_ij++) {
@@ -190,8 +191,8 @@ public:
 
   // Static factory function
   template <typename DistOut>
-  static GraphCache<Idx> from_heap(const NNDHeap<DistOut, Idx> &heap) {
-    return GraphCache<Idx>(heap.n_points, heap.n_nbrs, heap.idx);
+  static EdgeCache<Idx> from_graph(const NNDHeap<DistOut, Idx> &heap) {
+    return EdgeCache<Idx>(heap.n_points, heap.n_nbrs, heap.idx);
   }
 
   auto contains(const Idx &idx_p, const Idx &idx_q) const -> bool {
