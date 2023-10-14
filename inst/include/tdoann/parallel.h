@@ -42,7 +42,7 @@ struct NoParallel {
   }
 };
 
-template <typename Parallel, typename Worker>
+template <typename Parallel = NoParallel, typename Worker>
 void batch_parallel_for(Worker &worker, std::size_t n, std::size_t block_size,
                         std::size_t n_threads, std::size_t grain_size,
                         ProgressBase &progress) {
@@ -64,7 +64,7 @@ void batch_parallel_for(Worker &worker, std::size_t n, std::size_t block_size,
   }
 }
 
-template <typename Parallel, typename Worker, typename AfterWorker>
+template <typename Parallel = NoParallel, typename Worker, typename AfterWorker>
 void batch_parallel_for(Worker &worker, AfterWorker &after_worker,
                         std::size_t n, std::size_t block_size,
                         std::size_t n_threads, std::size_t grain_size,
@@ -91,7 +91,7 @@ void batch_parallel_for(Worker &worker, AfterWorker &after_worker,
   }
 }
 
-template <typename Parallel, typename Worker>
+template <typename Parallel = NoParallel, typename Worker>
 void batch_parallel_for(Worker &worker, std::size_t n, std::size_t n_threads,
                         std::size_t grain_size, ProgressBase &progress) {
   std::size_t block_size = std::max(grain_size, n / DEFAULT_NUM_BLOCKS);
@@ -99,7 +99,7 @@ void batch_parallel_for(Worker &worker, std::size_t n, std::size_t n_threads,
                                progress);
 }
 
-template <typename Parallel, typename Worker>
+template <typename Parallel = NoParallel, typename Worker>
 void batch_parallel_for(Worker &worker, std::size_t n, std::size_t n_threads) {
   NullProgress progress;
   std::size_t grain_size = 1;
