@@ -82,7 +82,7 @@ public:
       if (progress.check_interrupt()) {
         break;
       }
-      progress.block_finished();
+      progress.batch_finished();
     }
     return num_updates;
   }

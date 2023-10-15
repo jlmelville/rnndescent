@@ -47,7 +47,7 @@ public:
   virtual ProgressBase &get_base_progress() = 0;
 
   virtual void set_n_batches(std::size_t n) = 0;
-  virtual void block_finished() = 0;
+  virtual void batch_finished() = 0;
   virtual void iter_finished() = 0;
   virtual void stopping_early() = 0;
   virtual bool check_interrupt() = 0;
@@ -71,7 +71,7 @@ public:
   ProgressBase &get_base_progress() override { return *progress; }
 
   void set_n_batches(std::size_t n) override { progress->set_n_batches(n); }
-  void block_finished() override { progress->block_finished(); }
+  void batch_finished() override { progress->batch_finished(); }
   void iter_finished() override { progress->iter_finished(); }
   void stopping_early() override { progress->stopping_early(); }
   bool check_interrupt() override { return progress->check_interrupt(); }

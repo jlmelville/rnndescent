@@ -94,7 +94,7 @@ void batch_parallel_for(Worker &worker, AfterWorker &after_worker,
     if (progress.check_interrupt()) {
       break;
     }
-    progress.block_finished();
+    progress.batch_finished();
   }
 }
 
@@ -119,7 +119,7 @@ void batch_parallel_for(Worker &worker, std::size_t n, std::size_t n_threads,
     if (progress.check_interrupt()) {
       break;
     }
-    progress.block_finished();
+    progress.batch_finished();
   }
 }
 
@@ -149,7 +149,7 @@ void batch_serial_for(Worker &worker, std::size_t n,
     if (progress.check_interrupt()) {
       break;
     }
-    progress.block_finished();
+    progress.batch_finished();
   }
 }
 
@@ -171,7 +171,7 @@ void batch_serial_for(Worker &worker, AfterWorker &after_worker, std::size_t n,
     if (progress.check_interrupt()) {
       break;
     }
-    progress.block_finished();
+    progress.batch_finished();
   }
 }
 } // namespace tdoann

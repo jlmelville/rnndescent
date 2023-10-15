@@ -35,11 +35,11 @@ struct RPProgress : public tdoann::ProgressBase {
   bool verbose;
 
   std::size_t iter{0};
-  std::size_t block{0};
+  std::size_t batch{0};
   bool is_aborted{false};
 
   double iter_increment{scale};  // Amount progress increases per iteration
-  double block_increment{scale}; // Amount progress increases per block
+  double batch_increment{scale}; // Amount progress increases per batch
 
   RPProgress(bool verbose) : progress(scale, verbose), verbose(verbose) {}
 
@@ -49,20 +49,20 @@ struct RPProgress : public tdoann::ProgressBase {
 
   RPProgress(RPProgress &&other) noexcept
       : progress(std::move(other.progress)), verbose(std::move(other.verbose)),
-        iter(std::move(other.iter)), block(std::move(other.block)),
+        iter(std::move(other.iter)), batch(std::move(other.batch)),
         is_aborted(std::move(other.is_aborted)),
         iter_increment(std::move(other.iter_increment)),
-        block_increment(std::move(other.block_increment)) {}
+        batch_increment(std::move(other.batch_increment)) {}
 
   RPProgress &operator=(RPProgress &&other) noexcept {
     if (this != &other) {
       progress = std::move(other.progress);
       verbose = std::move(other.verbose);
       iter = std::move(other.iter);
-      block = std::move(other.block);
+      batch = std::move(other.batch);
       is_aborted = std::move(other.is_aborted);
       iter_increment = std::move(other.iter_increment);
-      block_increment = std::move(other.block_increment);
+      batch_increment = std::move(other.batch_increment);
     }
     return *this;
   }
@@ -72,15 +72,15 @@ struct RPProgress : public tdoann::ProgressBase {
   }
 
   void set_n_batches(std::size_t n_batches) override {
-    block = 0;
-    block_increment = iter_increment / n_batches;
+    batch = 0;
+    batch_increment = iter_increment / n_batches;
   }
 
-  void block_finished() override {
-    ++block;
+  void batch_finished() override {
+    ++batch;
     if (verbose) {
       unsigned long progress_val =
-          static_cast<unsigned long>(std::round(block * block_increment));
+          static_cast<unsigned long>(std::round(batch * batch_increment));
       progress.update(
           std::min(progress_val, static_cast<unsigned long>(scale)));
     }
