@@ -48,7 +48,7 @@ public:
 
   virtual void generate(const NNDHeap<DistOut, Idx> &current_graph, Idx idx_p,
                         Idx idx_q, std::size_t key) = 0;
-  virtual auto apply(NNDHeap<DistOut, Idx> &current_graph) -> std::size_t = 0;
+  virtual auto apply(NNDHeap<DistOut, Idx> &current_graph) -> unsigned long = 0;
 
   auto execute(const NNDHeap<DistOut, Idx> &current_graph,
                const NNHeap<DistOut, Idx> &new_nbrs,
@@ -83,19 +83,19 @@ public:
                const NNHeap<DistOut, Idx> &new_nbrs,
                decltype(new_nbrs) &old_nbrs, NNDProgressBase &progress,
                std::size_t n_threads, Executor &executor) -> std::size_t {
-    std::size_t num_updated = 0;
+    std::size_t num_updates = 0;
     auto local_join_worker = [&](std::size_t begin, std::size_t end) {
       this->execute(current_graph, new_nbrs, old_nbrs, new_nbrs.n_nbrs, begin,
                     end);
     };
     auto after_local_join = [&](std::size_t, std::size_t) {
-      num_updated += this->apply(current_graph);
+      num_updates += this->apply(current_graph);
     };
     ExecutionParams exec_params{16384};
     dispatch_work(local_join_worker, after_local_join, current_graph.n_points,
                   n_threads, exec_params, progress.get_base_progress(),
                   executor);
-    return num_updated;
+    return num_updates;
   }
 };
 
@@ -120,8 +120,8 @@ public:
     }
   }
 
-  std::size_t apply(NNDHeap<DistOut, Idx> &current_graph) override {
-    std::size_t num_updates = 0;
+  unsigned long apply(NNDHeap<DistOut, Idx> &current_graph) override {
+    unsigned long num_updates = 0UL;
     for (auto &edge_set : edge_updates) {
       for (auto &[idx_p, idx_q, dist_pq] : edge_set) {
         num_updates += current_graph.checked_push_pair(idx_p, dist_pq, idx_q);
@@ -162,9 +162,8 @@ public:
     }
   }
 
-  std::size_t apply(NNDHeap<DistOut, Idx> &current_graph) override {
-    std::size_t num_updates = 0;
-
+  unsigned long apply(NNDHeap<DistOut, Idx> &current_graph) override {
+    unsigned long num_updates = 0;
     for (auto &edge_set : edge_updates) {
       for (const auto &[idx_p, idx_q, dist_pq] : edge_set) {
 
@@ -179,7 +178,7 @@ public:
           continue;
         }
 
-        std::size_t local_c = 0;
+        unsigned int local_c = 0;
         if (!bad_pd) {
           current_graph.unchecked_push(idx_p, dist_pq, idx_q);
           local_c++;
@@ -300,7 +299,7 @@ template <typename Distance>
 void nnd_build(
     NNDHeap<typename Distance::Output, typename Distance::Index> &nn_heap,
     ParallelLocalJoin<Distance> &local_join, std::size_t max_candidates,
-    std::size_t n_iters, double delta, NNDProgressBase &progress,
+    unsigned int n_iters, double delta, NNDProgressBase &progress,
     ParallelRandomProvider &parallel_rand, std::size_t n_threads,
     Executor &executor) {
   using DistOut = typename Distance::Output;
@@ -311,7 +310,7 @@ void nnd_build(
 
   LockingHeapAdder<Distance> heap_adder;
 
-  for (std::size_t iter = 0; iter < n_iters; iter++) {
+  for (auto iter = 0U; iter < n_iters; iter++) {
     NNHeap<DistOut, Idx> new_nbrs(n_points, max_candidates);
     decltype(new_nbrs) old_nbrs(n_points, max_candidates);
 
@@ -320,15 +319,15 @@ void nnd_build(
 
     flag_new_candidates<Distance>(nn_heap, new_nbrs, n_threads, executor);
 
-    std::size_t num_updated = local_join.execute(nn_heap, new_nbrs, old_nbrs,
-                                                 progress, n_threads, executor);
+    auto num_updates = local_join.execute(nn_heap, new_nbrs, old_nbrs, progress,
+                                          n_threads, executor);
 
     if (progress.check_interrupt()) {
       break;
     }
     progress.iter_finished();
 
-    bool stop_early = nnd_should_stop(progress, nn_heap, num_updated, tol);
+    bool stop_early = nnd_should_stop(progress, nn_heap, num_updates, tol);
     if (stop_early) {
       break;
     }

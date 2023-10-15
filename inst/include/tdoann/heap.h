@@ -159,8 +159,8 @@ public:
   }
 
   auto checked_push_pair(Idx row, const DistOut &weight, Idx idx,
-                         uint8_t flag = 1) -> std::size_t {
-    std::size_t num_updates = checked_push(row, weight, idx, flag);
+                         uint8_t flag = 1) -> unsigned int {
+    unsigned int num_updates = checked_push(row, weight, idx, flag);
     if (row != idx) {
       // NOLINTNEXTLINE(readability-suspicious-call-argument)
       num_updates += checked_push(idx, weight, row, flag);
@@ -169,9 +169,9 @@ public:
   }
 
   auto checked_push(Idx row, const DistOut &weight, Idx idx, uint8_t flag = 1)
-      -> std::size_t {
+      -> unsigned int {
     if (!accepts(row, weight) || contains(row, idx)) {
-      return 0;
+      return 0U;
     }
 
     return unchecked_push(row, weight, idx, flag);

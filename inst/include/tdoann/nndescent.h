@@ -51,12 +51,11 @@ public:
   auto execute(NNDHeap<DistOut, Idx> &current_graph,
                const NNHeap<DistOut, Idx> &new_nbrs,
                decltype(new_nbrs) &old_nbrs, NNDProgressBase &progress)
-      -> std::size_t {
-
+      -> unsigned long {
     const auto n_points = new_nbrs.n_points;
     const auto max_candidates = new_nbrs.n_nbrs;
     progress.set_n_batches(n_points);
-    std::size_t num_updates = 0;
+    unsigned long num_updates = 0UL;
     for (Idx i = 0; i < n_points; i++) {
       for (Idx j = 0; j < max_candidates; j++) {
         auto p_nbr = new_nbrs.index(i, j);
@@ -214,7 +213,7 @@ template <typename Distance>
 void nnd_build(
     NNDHeap<typename Distance::Output, typename Distance::Index> &nn_heap,
     SerialLocalJoin<Distance> &local_join, std::size_t max_candidates,
-    std::size_t n_iters, double delta, RandomGenerator &rand,
+    unsigned int n_iters, double delta, RandomGenerator &rand,
     NNDProgressBase &progress) {
   using DistOut = typename Distance::Output;
   using Idx = typename Distance::Index;
@@ -222,15 +221,15 @@ void nnd_build(
   const std::size_t n_points = nn_heap.n_points;
   const double tol = delta * nn_heap.n_nbrs * n_points;
 
-  for (std::size_t iter = 0; iter < n_iters; iter++) {
+  for (auto iter = 0U; iter < n_iters; iter++) {
     NNHeap<DistOut, Idx> new_nbrs(n_points, max_candidates);
     decltype(new_nbrs) old_nbrs(n_points, max_candidates);
 
     build_candidates_full(nn_heap, new_nbrs, old_nbrs, rand);
-    std::size_t num_updated =
+    auto num_updates =
         local_join.execute(nn_heap, new_nbrs, old_nbrs, progress);
 
-    bool stop_early = nnd_should_stop(progress, nn_heap, num_updated, tol);
+    bool stop_early = nnd_should_stop(progress, nn_heap, num_updates, tol);
     if (stop_early) {
       break;
     }

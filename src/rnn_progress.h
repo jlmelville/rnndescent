@@ -34,8 +34,8 @@ struct RPProgress : public tdoann::ProgressBase {
   tdoann::ProgressBar progress;
   bool verbose;
 
-  std::size_t iter{0};
-  std::size_t batch{0};
+  unsigned int iter{0};
+  unsigned int batch{0};
   bool is_aborted{false};
 
   double iter_increment{scale};  // Amount progress increases per iteration
@@ -43,7 +43,7 @@ struct RPProgress : public tdoann::ProgressBase {
 
   RPProgress(bool verbose) : progress(scale, verbose), verbose(verbose) {}
 
-  RPProgress(std::size_t n_iters, bool verbose)
+  RPProgress(unsigned int n_iters, bool verbose)
       : progress(scale, verbose), verbose(verbose),
         iter_increment(static_cast<double>(scale) / n_iters) {}
 
@@ -67,11 +67,11 @@ struct RPProgress : public tdoann::ProgressBase {
     return *this;
   }
 
-  void set_n_iters(std::size_t n_iters) override {
+  void set_n_iters(unsigned int n_iters) override {
     iter_increment = static_cast<double>(scale) / n_iters;
   }
 
-  void set_n_batches(std::size_t n_batches) override {
+  void set_n_batches(unsigned int n_batches) override {
     batch = 0;
     batch_increment = iter_increment / n_batches;
   }
@@ -126,7 +126,7 @@ struct RInterruptableProgress : public tdoann::ProgressBase {
   bool verbose;
 
   RInterruptableProgress() = default;
-  RInterruptableProgress(std::size_t /* n_iters */, bool verbose)
+  RInterruptableProgress(unsigned int /* n_iters */, bool verbose)
       : verbose(verbose) {}
 
   RInterruptableProgress(RInterruptableProgress &&other) noexcept
@@ -167,10 +167,10 @@ struct RInterruptableProgress : public tdoann::ProgressBase {
 };
 
 struct RIterProgress : public RInterruptableProgress {
-  std::size_t n_iters;
-  std::size_t iter{0};
+  unsigned int n_iters;
+  unsigned int iter{0};
 
-  RIterProgress(std::size_t n_iters, bool verbose)
+  RIterProgress(unsigned int n_iters, bool verbose)
       : RInterruptableProgress(n_iters, verbose), n_iters(n_iters) {
     iter_msg(0);
   }
@@ -194,7 +194,7 @@ struct RIterProgress : public RInterruptableProgress {
     return *this;
   }
 
-  void iter_msg(std::size_t iter) const {
+  void iter_msg(unsigned int iter) const {
     if (verbose) {
       std::ostringstream oss;
       oss << iter << " / " << n_iters;
@@ -202,7 +202,7 @@ struct RIterProgress : public RInterruptableProgress {
     }
   }
 
-  void set_n_iters(std::size_t n_iters) override { this->n_iters = n_iters; }
+  void set_n_iters(unsigned int n_iters) override { this->n_iters = n_iters; }
 
   void iter_finished() override {
     ++iter;

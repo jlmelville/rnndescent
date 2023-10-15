@@ -42,8 +42,8 @@ public:
   virtual ~ProgressBase() = default;
 
   // Virtual Methods
-  virtual void set_n_iters(std::size_t /* n */) {}
-  virtual void set_n_batches(std::size_t /* n */) {}
+  virtual void set_n_iters(unsigned int /* n */) {}
+  virtual void set_n_batches(unsigned int /* n */) {}
   virtual void batch_finished() {}
   virtual void iter_finished() {}
   virtual void stopping_early() {}

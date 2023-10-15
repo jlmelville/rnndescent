@@ -37,7 +37,7 @@ using Rcpp::List;
 using Rcpp::NumericMatrix;
 
 std::unique_ptr<tdoann::NNDProgressBase>
-create_nnd_progress(const std::string &progress_type, std::size_t n_iters,
+create_nnd_progress(const std::string &progress_type, unsigned int n_iters,
                     bool verbose) {
   if (progress_type == "bar") {
     return std::make_unique<tdoann::NNDProgress>(
@@ -93,7 +93,7 @@ public:
 
   template <typename Distance>
   auto get_nn(const IntegerMatrix &nn_idx, const NumericMatrix &nn_dist,
-              std::size_t max_candidates, std::size_t n_iters, double delta,
+              std::size_t max_candidates, unsigned int n_iters, double delta,
               const std::string &progress_type, bool low_memory, bool verbose)
       -> List {
     using Out = typename Distance::Output;
@@ -124,7 +124,7 @@ public:
 
   template <typename Distance>
   auto get_nn(const IntegerMatrix &nn_idx, const NumericMatrix &nn_dist,
-              std::size_t max_candidates, std::size_t n_iters, double delta,
+              std::size_t max_candidates, unsigned int n_iters, double delta,
               const std::string &progress_type, bool low_memory, bool verbose)
       -> List {
     using Out = typename Distance::Output;
@@ -155,7 +155,7 @@ private:
 // [[Rcpp::export]]
 List nn_descent(const NumericMatrix &data, const IntegerMatrix &nn_idx,
                 const NumericMatrix &nn_dist, const std::string &metric,
-                std::size_t max_candidates, std::size_t n_iters, double delta,
+                std::size_t max_candidates, unsigned int n_iters, double delta,
                 bool low_memory, std::size_t n_threads, bool verbose,
                 const std::string &progress_type) {
 

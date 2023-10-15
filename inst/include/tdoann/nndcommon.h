@@ -46,7 +46,7 @@ public:
 
   virtual ProgressBase &get_base_progress() = 0;
 
-  virtual void set_n_batches(std::size_t n) = 0;
+  virtual void set_n_batches(unsigned int n) = 0;
   virtual void batch_finished() = 0;
   virtual void iter_finished() = 0;
   virtual void stopping_early() = 0;
@@ -70,7 +70,7 @@ public:
 
   ProgressBase &get_base_progress() override { return *progress; }
 
-  void set_n_batches(std::size_t n) override { progress->set_n_batches(n); }
+  void set_n_batches(unsigned int n) override { progress->set_n_batches(n); }
   void batch_finished() override { progress->batch_finished(); }
   void iter_finished() override { progress->iter_finished(); }
   void stopping_early() override { progress->stopping_early(); }
@@ -140,13 +140,13 @@ void pr(Progress &progress, const NeighborHeap &neighbor_heap,
   progress.log(os_out.str());
 }
 
-inline auto is_converged(std::size_t n_updates, double tol) -> bool {
-  return static_cast<double>(n_updates) <= tol;
+inline auto is_converged(unsigned long num_updates, double tol) -> bool {
+  return static_cast<double>(num_updates) <= tol;
 }
 
 template <typename NbrHeap>
 auto nnd_should_stop(NNDProgressBase &progress, const NbrHeap &nn_heap,
-                     std::size_t num_updated, double tol) -> bool {
+                     unsigned long num_updates, double tol) -> bool {
   if (progress.check_interrupt()) {
     return true;
   }
@@ -159,8 +159,8 @@ auto nnd_should_stop(NNDProgressBase &progress, const NbrHeap &nn_heap,
     progress.log(oss.str());
   }
 
-  if (is_converged(num_updated, tol)) {
-    progress.converged(num_updated, tol);
+  if (is_converged(num_updates, tol)) {
+    progress.converged(num_updates, tol);
     return true;
   }
 
