@@ -176,7 +176,7 @@ Still OK, but not as good as we might like.
 ## Comparing Low- and High-Dimensional Nearest Neighbors
 
 Let's look at the distribution of nearest neighbor distances in high and low
-dimensions (for easier, comparison, I have normalized them with respect to the
+dimensions (for easier comparison, I have normalized them with respect to the
 largest distance)
 
 ```{r NN distances distribution}
