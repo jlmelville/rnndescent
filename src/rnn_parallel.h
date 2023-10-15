@@ -22,7 +22,7 @@
 
 #include <functional>
 
-#include "RcppPerpendicular.h"
+#include "pforr.h"
 #include "tdoann/parallel.h"
 
 class RParallelExecutor : public tdoann::Executor {
@@ -30,7 +30,7 @@ public:
   void parallel_for(std::size_t begin, std::size_t end,
                     std::function<void(std::size_t, std::size_t)> worker,
                     std::size_t n_threads, std::size_t grain_size) override {
-    RcppPerpendicular::parallel_for(begin, end, worker, n_threads, grain_size);
+    pforr::parallel_for(begin, end, worker, n_threads, grain_size);
   }
 };
 

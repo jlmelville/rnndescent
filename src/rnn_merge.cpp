@@ -21,8 +21,8 @@
 
 #include <Rcpp.h>
 
-#include "RcppPerpendicular.h"
 #include "rnn_heaptor.h"
+#include "rnn_parallel.h"
 #include "rnn_rtoheap.h"
 #include "rnn_util.h"
 
