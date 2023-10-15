@@ -565,9 +565,9 @@ a look at some numbers:</p>
 <span><span class="co">#&gt; [1] 155</span></span></code></pre></div>
 <p>Compared to the converged (or exact) distribution, the median
 k-occurrence is not as low, the object with the largest k-occurrence,
-while large ($ &gt; 10k$, which seems like a good threshold to be
-concerned about the presence of hubs) is not as large, and there are
-fewer objects which are anti-hubs.</p>
+while large (<span class="math inline">\(&gt; 10k\)</span>, which seems
+like a good threshold to be concerned about the presence of hubs) is not
+as large, and there are fewer objects which are anti-hubs.</p>
 <p>At least for this dataset, hubness can be qualitatively detected with
 even a very inaccurate neighbor graph. What about datasets that don’t
 contain hubs? Let’s just check that what we are seeing is not an
@@ -622,7 +622,7 @@ can be quite expensive in terms of run time.</p>
 <p>What about taking advantage of the stochastic nature of the
 algorithm? If the results are sufficiently diverse between runs of NND,
 then we could generate two graphs from two separate runs, and then merge
-the the results.</p>
+the results.</p>
 <p>Let’s repeat NND and see what the accuracy of this new result is
 like.</p>
 <div class="sourceCode" id="cb46"><pre class="downlit sourceCode r">
