@@ -199,7 +199,7 @@ neighbors.</p>
 <h2 id="comparing-low--and-high-dimensional-nearest-neighbors">Comparing Low- and High-Dimensional Nearest Neighbors<a class="anchor" aria-label="anchor" href="#comparing-low--and-high-dimensional-nearest-neighbors"></a>
 </h2>
 <p>Let’s look at the distribution of nearest neighbor distances in high
-and low dimensions (for easier, comparison, I have normalized them with
+and low dimensions (for easier comparison, I have normalized them with
 respect to the largest distance)</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/hist.html" class="external-link">hist</a></span><span class="op">(</span><span class="va">g2d_nnbf</span><span class="op">$</span><span class="va">dist</span><span class="op">[</span>, <span class="op">-</span><span class="fl">1</span><span class="op">]</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">g2d_nnbf</span><span class="op">$</span><span class="va">dist</span><span class="op">[</span>, <span class="op">-</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span>, xlab <span class="op">=</span> <span class="st">"distances"</span>, main <span class="op">=</span> <span class="st">"2D 15-NN"</span><span class="op">)</span></span></code></pre></div>
