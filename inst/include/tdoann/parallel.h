@@ -44,11 +44,19 @@ struct ExecutionParams {
   ExecutionParams(std::size_t bs, std::size_t gs)
       : batch_size(bs), grain_size(gs) {}
 
+  // batch_size 0 means "1 batch of size n"
   auto get_batch_size(std::size_t n) const -> std::size_t {
     if (batch_size != 0) {
       return batch_size;
     }
-    return std::max(grain_size, n / DEFAULT_NUM_BLOCKS);
+    return n;
+  }
+
+  // get the appropriate batch size given n, subject to the grain size
+  // (which should always be at least 1)
+  auto batch_size_for_n_batches(std::size_t num_batches, std::size_t n)
+      -> std::size_t {
+    return std::max(n / num_batches, grain_size);
   }
 };
 
@@ -63,17 +71,17 @@ struct NoParallel {
 
 template <typename Parallel = NoParallel, typename Worker, typename AfterWorker>
 void batch_parallel_for(Worker &worker, AfterWorker &after_worker,
-                              std::size_t n, std::size_t n_threads,
-                              const ExecutionParams &execution_params,
-                              ProgressBase &progress) {
+                        std::size_t n, std::size_t n_threads,
+                        const ExecutionParams &execution_params,
+                        ProgressBase &progress) {
   if (n_threads == 0) {
     batch_serial_for(worker, after_worker, n, execution_params, progress);
     return;
   }
-  const auto &batch_size = execution_params.get_batch_size(n);
-  const auto &grain_size = execution_params.grain_size;
+  const auto batch_size = execution_params.get_batch_size(n);
+  const auto grain_size = execution_params.grain_size;
 
-  auto n_batches = (n / batch_size) + 1;
+  auto n_batches = (n + batch_size - 1) / batch_size;
   progress.set_n_batches(n_batches);
   for (std::size_t i = 0; i < n_batches; i++) {
     auto begin = i * batch_size;
@@ -99,10 +107,10 @@ void batch_parallel_for(Worker &worker, std::size_t n, std::size_t n_threads,
     return;
   }
 
-  const auto &batch_size = execution_params.get_batch_size(n);
-  const auto &grain_size = execution_params.grain_size;
+  const auto batch_size = execution_params.get_batch_size(n);
+  const auto grain_size = execution_params.grain_size;
 
-  auto n_batches = (n / batch_size) + 1;
+  auto n_batches = (n + batch_size - 1) / batch_size;
   progress.set_n_batches(n_batches);
   for (std::size_t i = 0; i < n_batches; i++) {
     auto begin = i * batch_size;
@@ -121,12 +129,18 @@ void batch_parallel_for(Worker &worker, std::size_t n, std::size_t n_threads,
   batch_parallel_for(worker, n, n_threads, {}, progress);
 }
 
+template <typename Parallel = NoParallel, typename Worker>
+void batch_parallel_for(Worker &worker, std::size_t n, std::size_t n_threads) {
+  NullProgress progress;
+  batch_parallel_for(worker, n, n_threads, {}, progress);
+}
+
 template <typename Worker>
 void batch_serial_for(Worker &worker, std::size_t n,
                       const ExecutionParams &execution_params,
                       ProgressBase &progress) {
   const auto &batch_size = execution_params.get_batch_size(n);
-  auto n_batches = (n / batch_size) + 1;
+  auto n_batches = (n + batch_size - 1) / batch_size;
   progress.set_n_batches(n_batches);
   for (std::size_t i = 0; i < n_batches; i++) {
     auto begin = i * batch_size;
@@ -144,7 +158,7 @@ void batch_serial_for(Worker &worker, AfterWorker &after_worker, std::size_t n,
                       const ExecutionParams &execution_params,
                       ProgressBase &progress) {
   const auto &batch_size = execution_params.get_batch_size(n);
-  auto n_batches = (n / batch_size) + 1;
+  auto n_batches = (n + batch_size - 1) / batch_size;
   progress.set_n_batches(n_batches);
   for (std::size_t i = 0; i < n_batches; i++) {
     auto begin = i * batch_size;

@@ -91,9 +91,9 @@ public:
       num_updated += this->apply(current_graph);
     };
     ExecutionParams exec_params{16384};
-    batch_parallel_for<Parallel>(
-        local_join_worker, after_local_join, current_graph.n_points, n_threads,
-        exec_params, progress.get_base_progress());
+    batch_parallel_for<Parallel>(local_join_worker, after_local_join,
+                                 current_graph.n_points, n_threads, exec_params,
+                                 progress.get_base_progress());
     return num_updated;
   }
 };
@@ -280,7 +280,7 @@ void build_candidates(
     build_candidates(nn_heap, new_nbrs, old_nbrs, parallel_rand, heap_adder,
                      begin, end);
   };
-  Parallel::parallel_for(0, nn_heap.n_points, worker, n_threads);
+  batch_parallel_for<Parallel>(worker, nn_heap.n_points, n_threads);
 }
 
 template <typename Parallel, typename Distance>
@@ -291,7 +291,7 @@ void flag_new_candidates(
   auto worker = [&](std::size_t begin, std::size_t end) {
     flag_retained_new_candidates(nn_heap, new_nbrs, begin, end);
   };
-  Parallel::parallel_for(0, nn_heap.n_points, worker, n_threads);
+  batch_parallel_for<Parallel>(worker, nn_heap.n_points, n_threads);
 }
 
 template <typename Parallel, typename Distance>
