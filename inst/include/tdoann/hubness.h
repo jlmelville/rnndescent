@@ -90,11 +90,9 @@ void local_scaled_distances(std::size_t begin, std::size_t end,
                             const std::vector<Dist> &dist, std::size_t n_nbrs,
                             const std::vector<Dist> &local_scales,
                             std::vector<Dist> &sdist) {
-  for (auto i = begin; i < end; i++) {
-    std::size_t innbrs = i * n_nbrs;
+  for (auto i = begin, innbrs = i * n_nbrs; i < end; i++, innbrs += n_nbrs) {
     auto scalei = local_scales[i];
-    for (std::size_t j = 0; j < n_nbrs; j++) {
-      auto idx_ij = innbrs + j;
+    for (std::size_t j = 0, idx_ij = innbrs; j < n_nbrs; j++, idx_ij++) {
       auto dist_ij = dist[idx_ij];
       sdist[idx_ij] =
           (dist_ij * dist_ij) / (scalei * local_scales[idx[idx_ij]]);
