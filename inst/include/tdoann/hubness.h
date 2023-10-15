@@ -42,12 +42,12 @@ template <typename T> auto pair_dmax() -> std::pair<T, T> {
                         (std::numeric_limits<T>::max)());
 }
 
-template <typename Parallel, typename NbrHeap>
+template <typename NbrHeap>
 void local_scale(const std::vector<typename NbrHeap::Index> &idx_vec,
                  const std::vector<typename NbrHeap::DistanceOut> &dist_vec,
                  const std::vector<typename NbrHeap::DistanceOut> &sdist_vec,
                  NbrHeap &nn_heap, std::size_t n_threads,
-                 ProgressBase &progress) {
+                 ProgressBase &progress, Executor &executor) {
   using Idx = typename NbrHeap::Index;
   using Out = typename NbrHeap::DistanceOut;
 
@@ -61,8 +61,8 @@ void local_scale(const std::vector<typename NbrHeap::Index> &idx_vec,
       dpairs.emplace_back(sdist_vec[i], dist_vec[i]);
     }
   };
-  batch_parallel_for<Parallel>(sdist_worker, dist_vec.size(), n_threads,
-                               progress);
+  batch_parallel_for(sdist_worker, dist_vec.size(), n_threads, progress,
+                     executor);
 
   // Create an unsorted top-k neighbor heap of size n_nbrs using the paired
   // distances as values
@@ -71,8 +71,8 @@ void local_scale(const std::vector<typename NbrHeap::Index> &idx_vec,
   auto n_nbrs = nn_heap.n_nbrs;
   bool transpose = false;
   PairNbrHeap pair_heap(n_points, n_nbrs);
-  tdoann::vec_to_query_heap<Parallel>(pair_heap, idx_vec, n_points, dpairs,
-                                      n_threads, transpose, progress);
+  tdoann::vec_to_query_heap(pair_heap, idx_vec, n_points, dpairs, n_threads,
+                            transpose, progress, executor);
 
   auto heap_worker = [&](std::size_t begin, std::size_t end) {
     for (auto i = begin; i < end; i++) {
@@ -82,7 +82,7 @@ void local_scale(const std::vector<typename NbrHeap::Index> &idx_vec,
       }
     }
   };
-  batch_parallel_for<Parallel>(heap_worker, n_points, n_threads, progress);
+  batch_parallel_for(heap_worker, n_points, n_threads, progress, executor);
 }
 
 template <typename Dist, typename Idx>
@@ -103,12 +103,12 @@ void local_scaled_distances(std::size_t begin, std::size_t end,
   }
 }
 
-template <typename Parallel, typename Dist, typename Idx>
+template <typename Dist, typename Idx>
 auto local_scaled_distances(const std::vector<Idx> &idx,
                             const std::vector<Dist> &dist, std::size_t n_nbrs,
                             const std::vector<Dist> &local_scales,
-                            std::size_t n_threads, ProgressBase &progress)
-    -> std::vector<Dist> {
+                            std::size_t n_threads, ProgressBase &progress,
+                            Executor &executor) -> std::vector<Dist> {
 
   std::size_t n_points = local_scales.size();
   std::vector<Dist> sdist(dist.size());
@@ -116,8 +116,7 @@ auto local_scaled_distances(const std::vector<Idx> &idx,
   auto worker = [&](std::size_t begin, std::size_t end) {
     local_scaled_distances(begin, end, idx, dist, n_nbrs, local_scales, sdist);
   };
-
-  batch_parallel_for<Parallel>(worker, n_points, n_threads, progress);
+  batch_parallel_for(worker, n_points, n_threads, progress, executor);
 
   return sdist;
 }
@@ -146,11 +145,11 @@ void get_local_scales(std::size_t begin, std::size_t end,
   }
 }
 
-template <typename Parallel, typename T>
+template <typename T>
 auto get_local_scales(const std::vector<T> &dist_vec, std::size_t n_nbrs,
                       std::size_t k_begin, std::size_t k_end, T min_scale,
-                      std::size_t n_threads, ProgressBase &progress)
-    -> std::vector<T> {
+                      std::size_t n_threads, ProgressBase &progress,
+                      Executor &executor) -> std::vector<T> {
   std::size_t n_points = dist_vec.size() / n_nbrs;
   std::vector<T> local_scales(n_points);
 
@@ -158,7 +157,7 @@ auto get_local_scales(const std::vector<T> &dist_vec, std::size_t n_nbrs,
     get_local_scales(begin, end, dist_vec, n_nbrs, k_begin, k_end, min_scale,
                      local_scales);
   };
-  batch_parallel_for<Parallel>(worker, n_points, n_threads, progress);
+  batch_parallel_for(worker, n_points, n_threads, progress, executor);
 
   return local_scales;
 }

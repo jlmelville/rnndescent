@@ -179,46 +179,48 @@ void vec_to_heap(NbrHeap &current_graph,
   }
 }
 
-template <typename HeapAdd, typename Parallel, typename NbrHeap>
+template <typename HeapAdd, typename NbrHeap>
 void vec_to_heap(NbrHeap &heap,
                  const std::vector<typename NbrHeap::Index> &nn_idx,
                  std::size_t n_points,
                  const std::vector<typename NbrHeap::DistanceOut> &nn_dist,
-                 std::size_t n_threads, bool transpose,
-                 ProgressBase &progress) {
+                 std::size_t n_threads, bool transpose, ProgressBase &progress,
+                 Executor &executor) {
   HeapAdd heap_add;
   auto worker = [&](std::size_t begin, std::size_t end) {
     vec_to_heap<HeapAdd>(heap, nn_idx, n_points, nn_dist, begin, end, heap_add,
                          transpose);
   };
-  batch_parallel_for<Parallel>(worker, n_points, n_threads, progress);
+  batch_parallel_for(worker, n_points, n_threads, progress, executor);
 }
 
-template <typename Parallel, typename NbrHeap>
+template <typename NbrHeap>
 void vec_to_knn_heap(NbrHeap &heap,
                      const std::vector<typename NbrHeap::Index> &nn_idx,
                      std::size_t n_points,
                      const std::vector<typename NbrHeap::DistanceOut> &nn_dist,
                      std::size_t n_threads, bool transpose,
-                     ProgressBase &progress) {
+                     ProgressBase &progress, Executor &executor) {
   if (n_threads > 0) {
-    vec_to_heap<LockingHeapAddSymmetric, Parallel>(
-        heap, nn_idx, n_points, nn_dist, n_threads, transpose, progress);
+    vec_to_heap<LockingHeapAddSymmetric>(heap, nn_idx, n_points, nn_dist,
+                                         n_threads, transpose, progress,
+                                         executor);
   } else {
-    vec_to_heap<HeapAddSymmetric, Parallel>(heap, nn_idx, n_points, nn_dist,
-                                            n_threads, transpose, progress);
+    vec_to_heap<HeapAddSymmetric>(heap, nn_idx, n_points, nn_dist, n_threads,
+                                  transpose, progress, executor);
   }
 }
 
-template <typename Parallel, typename NbrHeap>
+template <typename NbrHeap>
 void vec_to_query_heap(
     NbrHeap &heap, const std::vector<typename NbrHeap::Index> &nn_idx,
     std::size_t n_points,
     const std::vector<typename NbrHeap::DistanceOut> &nn_dist,
-    std::size_t n_threads, bool transpose, ProgressBase &progress) {
+    std::size_t n_threads, bool transpose, ProgressBase &progress,
+    Executor &executor) {
 
-  vec_to_heap<HeapAddQuery, Parallel>(heap, nn_idx, n_points, nn_dist,
-                                      n_threads, transpose, progress);
+  vec_to_heap<HeapAddQuery>(heap, nn_idx, n_points, nn_dist, n_threads,
+                            transpose, progress, executor);
 }
 
 // allow the use of auto heap = init_graph(nn_graph) and avoid long type in
@@ -236,27 +238,28 @@ auto init_heap(const NbrGraph &nn_graph)
 // of j. This sort will therefore not only modify the order of the neighbors
 // but also replace some if it finds i in the neighbor list of any other item.
 // If this isn't what you want, use `sort_query_graph`.
-template <typename Parallel = NoParallel, typename NbrGraph>
+template <typename NbrGraph>
 void sort_knn_graph(NbrGraph &nn_graph, std::size_t n_threads,
-                    ProgressBase &progress) {
+                    ProgressBase &progress, Executor &executor) {
   auto heap = init_heap(nn_graph);
-  vec_to_knn_heap<Parallel>(heap, nn_graph.idx, nn_graph.n_points,
-                            nn_graph.dist, n_threads, false, progress);
-  sort_heap(heap, n_threads, progress);
+  constexpr bool transpose = false;
+  vec_to_knn_heap(heap, nn_graph.idx, nn_graph.n_points, nn_graph.dist,
+                  n_threads, transpose, progress, executor);
+  sort_heap(heap, n_threads, progress, executor);
   heap_to_graph(heap, nn_graph);
 }
 
 // In a query graph sort, it's assumed the graph is bipartite, i.e. the
 // neighbors of i are not drawn from the same data as i. It's safe to run this
 // on a knn graph (where the neighbors of i *are* from the same data as i).
-template <typename Parallel = NoParallel, typename NbrGraph>
+template <typename NbrGraph>
 void sort_query_graph(NbrGraph &nn_graph, std::size_t n_threads,
-                      ProgressBase &progress) {
+                      ProgressBase &progress, Executor &executor) {
   auto heap = init_heap(nn_graph);
   bool transpose = false;
-  vec_to_query_heap<Parallel>(heap, nn_graph.idx, nn_graph.n_points,
-                              nn_graph.dist, n_threads, transpose, progress);
-  sort_heap(heap, n_threads, progress);
+  vec_to_query_heap(heap, nn_graph.idx, nn_graph.n_points, nn_graph.dist,
+                    n_threads, transpose, progress, executor);
+  sort_heap(heap, n_threads, progress, executor);
   heap_to_graph(heap, nn_graph);
 }
 
@@ -276,15 +279,15 @@ void idx_to_graph(const Distance &distance,
   }
 }
 
-template <typename Distance, typename Parallel>
+template <typename Distance>
 auto idx_to_graph(const Distance &distance,
                   const std::vector<typename Distance::Index> &idx,
-                  std::size_t n_threads, ProgressBase &progress)
+                  std::size_t n_threads, ProgressBase &progress,
+                  Executor &executor)
     -> NNGraph<typename Distance::Output, typename Distance::Index> {
   using Out = typename Distance::Output;
   using Index = typename Distance::Index;
 
-  progress.set_n_iters(1);
   const std::size_t n_points = distance.ny;
   const std::size_t n_nbrs = idx.size() / n_points;
   std::vector<Out> dist(idx.size());
@@ -292,10 +295,10 @@ auto idx_to_graph(const Distance &distance,
   auto worker = [&](std::size_t begin, std::size_t end) {
     idx_to_graph(distance, idx, dist, n_nbrs, begin, end);
   };
+  progress.set_n_iters(1);
   ExecutionParams exec_params{1024};
-  batch_parallel_for<Parallel>(worker, n_points, n_threads, exec_params,
-                               progress);
-
+  batch_parallel_for(worker, n_points, n_threads, exec_params, progress,
+                     executor);
   return NNGraph<Out, Index>(idx, dist, n_points);
 }
 

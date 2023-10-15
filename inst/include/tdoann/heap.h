@@ -368,27 +368,16 @@ struct NNHeap {
   // NOLINTEND(readability-identifier-length)
 };
 
-template <typename Parallel = NoParallel, typename NbrHeap>
-void sort_heap(NbrHeap &heap, std::size_t n_threads, ProgressBase &progress) {
-  auto sort_worker = [&](std::size_t begin, std::size_t end) {
+template <typename NbrHeap>
+void sort_heap(NbrHeap &heap, std::size_t n_threads, ProgressBase &progress,
+               Executor &executor) {
+  auto worker = [&](std::size_t begin, std::size_t end) {
     for (auto i = begin; i < end; i++) {
       heap.deheap_sort(i);
     }
   };
   ExecutionParams exec_params{64};
-  batch_parallel_for<Parallel>(sort_worker, heap.n_points, n_threads,
-                               exec_params, progress);
-}
-
-template <typename Parallel = NoParallel, typename NbrHeap>
-void sort_heap(NbrHeap &heap, std::size_t n_threads) {
-  NullProgress progress;
-  auto sort_worker = [&](std::size_t begin, std::size_t end) {
-    for (auto i = begin; i < end; i++) {
-      heap.deheap_sort(i);
-    }
-  };
-  batch_parallel_for<Parallel>(sort_worker, heap.n_points, n_threads, progress);
+  batch_parallel_for(worker, heap.n_points, n_threads, progress, executor);
 }
 
 template <typename NbrHeap> void sort_heap(NbrHeap &neighbor_heap) {

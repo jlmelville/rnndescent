@@ -45,10 +45,13 @@ auto diversify_impl(const SparseNNGraph &graph, const Distance &distance,
     rnndescent::RRand rand;
     return tdoann::remove_long_edges(graph, distance, rand, prune_probability);
   }
+
+  RParallelExecutor executor;
   RPProgress progress(1, false);
   rnndescent::ParallelRNGAdapter<rnndescent::PcgRand> parallel_rand;
-  return tdoann::remove_long_edges<RParallel>(
-      graph, distance, parallel_rand, prune_probability, n_threads, progress);
+  return tdoann::remove_long_edges(graph, distance, parallel_rand,
+                                   prune_probability, n_threads, progress,
+                                   executor);
 }
 
 template <typename Distance>
@@ -78,19 +81,15 @@ List merge_graph_lists_cpp(const List &graph_list1, const List &graph_list2) {
   return sparse_graph_to_r(graph_merged);
 }
 
-template <typename SparseNNGraph>
-auto degree_prune_impl(const SparseNNGraph &graph, std::size_t max_degree,
-                       std::size_t n_threads) -> SparseNNGraph {
-  RPProgress progress(1, false);
-  return tdoann::degree_prune<RParallel>(graph, max_degree, progress,
-                                         n_threads);
-}
-
 // [[Rcpp::export]]
 List degree_prune_cpp(const List &graph_list, std::size_t max_degree,
                       std::size_t n_threads) {
   auto graph = r_to_sparse_graph<DummyDistance>(graph_list);
-  auto pruned = degree_prune_impl(graph, max_degree, n_threads);
+
+  RParallelExecutor executor;
+  RPProgress progress(1, false);
+  auto pruned =
+      tdoann::degree_prune(graph, max_degree, n_threads, progress, executor);
   return sparse_graph_to_r(pruned);
 }
 

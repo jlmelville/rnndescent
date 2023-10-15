@@ -48,17 +48,16 @@ create_nnd_progress(const std::string &progress_type, std::size_t n_iters,
 }
 
 template <typename Distance>
-std::unique_ptr<tdoann::ParallelLocalJoin<Distance, RParallel>>
-create_parallel_local_join(
+std::unique_ptr<tdoann::ParallelLocalJoin<Distance>> create_parallel_local_join(
     const tdoann::NNDHeap<typename Distance::Output, typename Distance::Index>
         &nn_heap,
     Distance &distance, bool low_memory) {
   if (low_memory) {
-    return std::make_unique<
-        tdoann::LowMemParallelLocalJoin<Distance, RParallel>>(distance);
+    return std::make_unique<tdoann::LowMemParallelLocalJoin<Distance>>(
+        distance);
   }
-  return std::make_unique<tdoann::CacheParallelLocalJoin<Distance, RParallel>>(
-      nn_heap, distance);
+  return std::make_unique<tdoann::CacheParallelLocalJoin<Distance>>(nn_heap,
+                                                                    distance);
 }
 
 template <typename Distance>
@@ -112,7 +111,10 @@ public:
     tdoann::nnd_build(nnd_heap, *local_join, max_candidates, n_iters, delta,
                       rand, *nnd_progress);
 
-    return heap_to_r(nnd_heap);
+    constexpr std::size_t n_threads = 0;
+    RParallelExecutor executor;
+    tdoann::NullProgress progress;
+    return heap_to_r(nnd_heap, n_threads, progress, executor);
   }
 
 private:
@@ -138,14 +140,15 @@ public:
     auto distance = tr_to_dist<Distance>(data);
     auto local_join =
         create_parallel_local_join<Distance>(nnd_heap, distance, low_memory);
-
     auto nnd_progress = create_nnd_progress(progress_type, n_iters, verbose);
     rnndescent::ParallelRNGAdapter<rnndescent::PcgRand> parallel_rand;
+    RParallelExecutor executor;
 
     tdoann::nnd_build(nnd_heap, *local_join, max_candidates, n_iters, delta,
-                      *nnd_progress, parallel_rand, n_threads);
+                      *nnd_progress, parallel_rand, n_threads, executor);
 
-    return heap_to_r(nnd_heap, n_threads);
+    return heap_to_r(nnd_heap, n_threads, nnd_progress->get_base_progress(),
+                     executor);
   }
 
 private:

@@ -43,8 +43,9 @@ void r_add_to_knn_heap(NbrHeap &heap, const Rcpp::IntegerMatrix &nn_idx,
   std::size_t n_points = nn_idx_copy.nrow();
 
   RInterruptableProgress progress;
-  tdoann::vec_to_knn_heap<RParallel>(heap, nn_idxv, n_points, nn_distv,
-                                     n_threads, transpose, progress);
+  RParallelExecutor executor;
+  tdoann::vec_to_knn_heap(heap, nn_idxv, n_points, nn_distv, n_threads,
+                          transpose, progress, executor);
 }
 
 template <typename NbrHeap>
@@ -68,9 +69,9 @@ void r_add_to_query_heap(NbrHeap &heap, const Rcpp::IntegerMatrix &nn_idx,
   std::size_t n_points = nn_idx_copy.nrow();
 
   RInterruptableProgress progress;
-
-  tdoann::vec_to_query_heap<RParallel>(heap, nn_idxv, n_points, nn_distv,
-                                       n_threads, transpose, progress);
+  RParallelExecutor executor;
+  tdoann::vec_to_query_heap(heap, nn_idxv, n_points, nn_distv, n_threads,
+                            transpose, progress, executor);
 }
 
 template <typename NbrHeap>

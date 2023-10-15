@@ -47,8 +47,9 @@ auto idx_to_graph_impl(const Distance &distance, IntegerMatrix idx,
     -> List {
   auto idx_vec = r_to_idxt<typename Distance::Index>(idx);
   RPProgress progress(verbose);
-  auto nn_graph = tdoann::idx_to_graph<Distance, RParallel>(
-      distance, idx_vec, n_threads, progress);
+  RParallelExecutor executor;
+  auto nn_graph = tdoann::idx_to_graph<Distance>(distance, idx_vec, n_threads,
+                                                 progress, executor);
   return graph_to_r(nn_graph, true);
 }
 

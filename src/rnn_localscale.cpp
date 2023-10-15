@@ -41,16 +41,20 @@ List local_scaled_nbrs(const IntegerMatrix &idx, const NumericMatrix &dist,
   const constexpr Out MIN_SCALE = 1e-10;
 
   RInterruptableProgress progress;
-  auto local_scales = tdoann::get_local_scales<RParallel>(
-      dist_vec, n_orig_nbrs, k_begin0, k_end0, MIN_SCALE, n_threads, progress);
+  RParallelExecutor executor;
 
-  auto sdist_vec = tdoann::local_scaled_distances<RParallel>(
-      idx_vec, dist_vec, n_orig_nbrs, local_scales, n_threads, progress);
+  auto local_scales =
+      tdoann::get_local_scales(dist_vec, n_orig_nbrs, k_begin0, k_end0,
+                               MIN_SCALE, n_threads, progress, executor);
+
+  auto sdist_vec = tdoann::local_scaled_distances(
+      idx_vec, dist_vec, n_orig_nbrs, local_scales, n_threads, progress,
+      executor);
 
   tdoann::NNHeap<Out, Idx> nn_heap(n_points, n_scaled_nbrs);
-  tdoann::local_scale<RParallel>(idx_vec, dist_vec, sdist_vec, nn_heap,
-                                 n_threads, progress);
-  auto res = heap_to_r(nn_heap);
+  tdoann::local_scale(idx_vec, dist_vec, sdist_vec, nn_heap, n_threads,
+                      progress, executor);
+  auto res = heap_to_r(nn_heap, n_threads, progress, executor);
   if (ret_scales) {
     NumericVector scalesr(local_scales.begin(), local_scales.end());
     res["scales"] = scalesr;

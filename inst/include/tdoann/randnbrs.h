@@ -35,23 +35,22 @@
 
 namespace tdoann {
 
-template <typename Distance, typename Parallel>
+template <typename Distance>
 auto get_nn(Distance &distance, typename Distance::Index n_nbrs,
             BaseIntSampler<typename Distance::Index> &sampler,
-            std::size_t n_threads, ProgressBase &progress)
+            std::size_t n_threads, ProgressBase &progress, Executor &executor)
     -> NNGraph<typename Distance::Output, typename Distance::Index> {
-
   using Out = typename Distance::Output;
   using Idx = typename Distance::Index;
 
   const std::size_t n_points = distance.ny;
   const std::size_t n_refs = distance.nx;
 
-  // needs to happen outside of any threads
-  sampler.initialize();
-
   std::vector<Idx> nn_idx(n_points * n_nbrs);
   std::vector<Out> nn_dist(n_points * n_nbrs);
+
+  // needs to happen outside of any threads
+  sampler.initialize();
 
   auto worker = [&](std::size_t begin, std::size_t end) {
     auto thread_sampler = sampler.get_parallel_instance(end);
@@ -69,36 +68,37 @@ auto get_nn(Distance &distance, typename Distance::Index n_nbrs,
 
   progress.set_n_iters(1);
   ExecutionParams exec_params{128};
-  batch_parallel_for<Parallel>(worker, n_points, n_threads, exec_params,
-                               progress);
-
+  batch_parallel_for(worker, n_points, n_threads, exec_params, progress,
+                     executor);
   return NNGraph<Out, Idx>(nn_idx, nn_dist, n_points);
 }
 
-template <typename Distance, typename Parallel>
+template <typename Distance>
 auto random_build(Distance &distance, typename Distance::Index n_nbrs,
                   BaseIntSampler<typename Distance::Index> &sampler, bool sort,
-                  std::size_t n_threads, ProgressBase &progress)
+                  std::size_t n_threads, ProgressBase &progress,
+                  Executor &executor)
     -> NNGraph<typename Distance::Output, typename Distance::Index> {
 
-  auto nn_graph = get_nn<Distance, Parallel>(distance, n_nbrs, sampler,
-                                             n_threads, progress);
+  auto nn_graph = get_nn<Distance>(distance, n_nbrs, sampler, n_threads,
+                                   progress, executor);
   if (sort) {
-    sort_knn_graph<Parallel>(nn_graph, n_threads, progress);
+    sort_knn_graph(nn_graph, n_threads, progress, executor);
   }
   return nn_graph;
 }
 
-template <typename Distance, typename Parallel>
+template <typename Distance>
 auto random_query(Distance &distance, typename Distance::Index n_nbrs,
                   BaseIntSampler<typename Distance::Index> &sampler, bool sort,
-                  std::size_t n_threads, ProgressBase &progress)
+                  std::size_t n_threads, ProgressBase &progress,
+                  Executor &executor)
     -> NNGraph<typename Distance::Output, typename Distance::Index> {
 
-  auto nn_graph = get_nn<Distance, Parallel>(distance, n_nbrs, sampler,
-                                             n_threads, progress);
+  auto nn_graph = get_nn<Distance>(distance, n_nbrs, sampler, n_threads,
+                                   progress, executor);
   if (sort) {
-    sort_query_graph<Parallel>(nn_graph, n_threads, progress);
+    sort_query_graph(nn_graph, n_threads, progress, executor);
   }
   return nn_graph;
 }

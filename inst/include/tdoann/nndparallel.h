@@ -33,11 +33,12 @@
 
 #include "heap.h"
 #include "nndcommon.h"
+#include "parallel.h"
 #include "random.h"
 
 namespace tdoann {
 
-template <typename Distance, typename Parallel> class ParallelLocalJoin {
+template <typename Distance> class ParallelLocalJoin {
 public:
   using DistOut = typename Distance::Output;
   using Idx = typename Distance::Index;
@@ -81,7 +82,7 @@ public:
   auto execute(NNDHeap<DistOut, Idx> &current_graph,
                const NNHeap<DistOut, Idx> &new_nbrs,
                decltype(new_nbrs) &old_nbrs, NNDProgressBase &progress,
-               std::size_t n_threads) -> std::size_t {
+               std::size_t n_threads, Executor &executor) -> std::size_t {
     std::size_t num_updated = 0;
     auto local_join_worker = [&](std::size_t begin, std::size_t end) {
       this->execute(current_graph, new_nbrs, old_nbrs, new_nbrs.n_nbrs, begin,
@@ -91,15 +92,15 @@ public:
       num_updated += this->apply(current_graph);
     };
     ExecutionParams exec_params{16384};
-    batch_parallel_for<Parallel>(local_join_worker, after_local_join,
-                                 current_graph.n_points, n_threads, exec_params,
-                                 progress.get_base_progress());
+    batch_parallel_for(local_join_worker, after_local_join,
+                       current_graph.n_points, n_threads, exec_params,
+                       progress.get_base_progress(), executor);
     return num_updated;
   }
 };
 
-template <typename Distance, typename Parallel>
-class LowMemParallelLocalJoin : public ParallelLocalJoin<Distance, Parallel> {
+template <typename Distance>
+class LowMemParallelLocalJoin : public ParallelLocalJoin<Distance> {
   using DistOut = typename Distance::Output;
   using Idx = typename Distance::Index;
   using EdgeUpdate = std::tuple<Idx, Idx, DistOut>;
@@ -131,8 +132,8 @@ public:
   }
 };
 
-template <typename Distance, typename Parallel>
-class CacheParallelLocalJoin : public ParallelLocalJoin<Distance, Parallel> {
+template <typename Distance>
+class CacheParallelLocalJoin : public ParallelLocalJoin<Distance> {
   using DistOut = typename Distance::Output;
   using Idx = typename Distance::Index;
   using EdgeUpdate = std::tuple<Idx, Idx, DistOut>;
@@ -267,40 +268,41 @@ void build_candidates(
   }
 }
 
-template <typename Parallel, typename Distance>
+template <typename Distance>
 void build_candidates(
     const NNDHeap<typename Distance::Output, typename Distance::Index> &nn_heap,
     NNHeap<typename Distance::Output, typename Distance::Index> &new_nbrs,
     NNHeap<typename Distance::Output, typename Distance::Index> &old_nbrs,
     ParallelRandomProvider &parallel_rand,
-    LockingHeapAdder<Distance> &heap_adder, std::size_t n_threads) {
+    LockingHeapAdder<Distance> &heap_adder, std::size_t n_threads,
+    Executor &executor) {
 
   parallel_rand.initialize();
   auto worker = [&](std::size_t begin, std::size_t end) {
     build_candidates(nn_heap, new_nbrs, old_nbrs, parallel_rand, heap_adder,
                      begin, end);
   };
-  batch_parallel_for<Parallel>(worker, nn_heap.n_points, n_threads);
+  batch_parallel_for(worker, nn_heap.n_points, n_threads, executor);
 }
 
-template <typename Parallel, typename Distance>
+template <typename Distance>
 void flag_new_candidates(
     NNDHeap<typename Distance::Output, typename Distance::Index> &nn_heap,
     const NNHeap<typename Distance::Output, typename Distance::Index> &new_nbrs,
-    std::size_t n_threads) {
+    std::size_t n_threads, Executor &executor) {
   auto worker = [&](std::size_t begin, std::size_t end) {
     flag_retained_new_candidates(nn_heap, new_nbrs, begin, end);
   };
-  batch_parallel_for<Parallel>(worker, nn_heap.n_points, n_threads);
+  batch_parallel_for(worker, nn_heap.n_points, n_threads, executor);
 }
 
-template <typename Parallel, typename Distance>
+template <typename Distance>
 void nnd_build(
     NNDHeap<typename Distance::Output, typename Distance::Index> &nn_heap,
-    ParallelLocalJoin<Distance, Parallel> &local_join,
-    std::size_t max_candidates, std::size_t n_iters, double delta,
-    NNDProgressBase &progress, ParallelRandomProvider &parallel_rand,
-    std::size_t n_threads = 0) {
+    ParallelLocalJoin<Distance> &local_join, std::size_t max_candidates,
+    std::size_t n_iters, double delta, NNDProgressBase &progress,
+    ParallelRandomProvider &parallel_rand, std::size_t n_threads,
+    Executor &executor) {
   using DistOut = typename Distance::Output;
   using Idx = typename Distance::Index;
 
@@ -313,15 +315,13 @@ void nnd_build(
     NNHeap<DistOut, Idx> new_nbrs(n_points, max_candidates);
     decltype(new_nbrs) old_nbrs(n_points, max_candidates);
 
-    build_candidates<Parallel, Distance>(nn_heap, new_nbrs, old_nbrs,
-                                         parallel_rand, heap_adder, n_threads);
+    build_candidates<Distance>(nn_heap, new_nbrs, old_nbrs, parallel_rand,
+                               heap_adder, n_threads, executor);
 
-    // mark any neighbor in the current graph that was retained in the new
-    // candidates as true
-    flag_new_candidates<Parallel, Distance>(nn_heap, new_nbrs, n_threads);
+    flag_new_candidates<Distance>(nn_heap, new_nbrs, n_threads, executor);
 
-    std::size_t num_updated =
-        local_join.execute(nn_heap, new_nbrs, old_nbrs, progress, n_threads);
+    std::size_t num_updated = local_join.execute(nn_heap, new_nbrs, old_nbrs,
+                                                 progress, n_threads, executor);
 
     if (progress.check_interrupt()) {
       break;

@@ -62,7 +62,9 @@ auto merge_nn_impl(const IntegerMatrix &nn_idx1, const NumericMatrix &nn_dist1,
   add_graph(nn_merged, nn_idx1, nn_dist1, is_query, n_threads);
   add_graph(nn_merged, nn_idx2, nn_dist2, is_query, n_threads);
 
-  return heap_to_r(nn_merged, n_threads);
+  RParallelExecutor executor;
+  tdoann::NullProgress progress;
+  return heap_to_r(nn_merged, n_threads, progress, executor);
 }
 
 auto merge_nn_all_impl(const List &nn_graphs, bool is_query,
@@ -90,7 +92,8 @@ auto merge_nn_all_impl(const List &nn_graphs, bool is_query,
     progress.iter_finished();
   }
 
-  return heap_to_r(nn_merged, n_threads);
+  RParallelExecutor executor;
+  return heap_to_r(nn_merged, n_threads, progress, executor);
 }
 
 // [[Rcpp::export]]

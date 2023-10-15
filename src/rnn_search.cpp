@@ -26,6 +26,7 @@
 #include "rnn_distance.h"
 #include "rnn_heaptor.h"
 #include "rnn_macros.h"
+#include "rnn_parallel.h"
 #include "rnn_progress.h"
 #include "rnn_rtoheap.h"
 
@@ -50,11 +51,11 @@ auto nn_query_impl(NumericMatrix reference, NumericMatrix query,
   auto distance = tr_to_dist<Distance>(reference, query);
   auto reference_graph = r_to_sparse_graph<Distance>(reference_graph_list);
   RPProgress progress(verbose);
+  RParallelExecutor executor;
+  tdoann::nn_query(reference_graph, nn_heap, distance, epsilon, n_threads,
+                   progress, executor);
 
-  tdoann::nn_query<RParallel>(reference_graph, nn_heap, distance, epsilon,
-                              n_threads, progress);
-
-  return heap_to_r(nn_heap, n_threads);
+  return heap_to_r(nn_heap, n_threads, progress, executor);
 }
 
 // [[Rcpp::export]]

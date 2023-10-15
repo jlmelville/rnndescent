@@ -89,15 +89,15 @@ void degree_prune_impl(const SparseNNGraph &graph, SparseNNGraph &result,
   }
 }
 
-template <typename Parallel, typename SparseNNGraph>
+template <typename SparseNNGraph>
 auto degree_prune(const SparseNNGraph &graph, std::size_t max_degree,
-                  ProgressBase &progress, std::size_t n_threads = 0)
-    -> SparseNNGraph {
+                  std::size_t n_threads, ProgressBase &progress,
+                  Executor &executor) -> SparseNNGraph {
   SparseNNGraph result(graph.row_ptr, graph.col_idx, graph.dist);
   auto worker = [&](std::size_t begin, std::size_t end) {
     degree_prune_impl(graph, result, max_degree, begin, end);
   };
-  batch_parallel_for<Parallel>(worker, graph.n_points, n_threads, progress);
+  batch_parallel_for(worker, graph.n_points, n_threads, progress, executor);
   return result;
 }
 
@@ -154,11 +154,12 @@ auto remove_long_edges(const SparseNNGraph &graph, const Distance &distance,
   return result;
 }
 
-template <typename Parallel, typename SparseNNGraph, typename Distance>
+template <typename SparseNNGraph, typename Distance>
 auto remove_long_edges(const SparseNNGraph &graph, const Distance &distance,
                        ParallelRandomProvider &parallel_rand,
                        double prune_probability, std::size_t n_threads,
-                       ProgressBase &progress) -> SparseNNGraph {
+                       ProgressBase &progress, Executor &executor)
+    -> SparseNNGraph {
   SparseNNGraph result(graph.row_ptr, graph.col_idx, graph.dist);
   parallel_rand.initialize();
   auto worker = [&](std::size_t begin, std::size_t end) {
@@ -166,7 +167,7 @@ auto remove_long_edges(const SparseNNGraph &graph, const Distance &distance,
     remove_long_edges_impl(graph, distance, *rand, prune_probability, result,
                            begin, end);
   };
-  batch_parallel_for<Parallel>(worker, graph.n_points, n_threads, progress);
+  batch_parallel_for(worker, graph.n_points, n_threads, progress, executor);
   return result;
 }
 
