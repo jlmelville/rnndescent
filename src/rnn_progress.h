@@ -30,7 +30,7 @@
 #include "rnn_util.h"
 
 struct RPProgress : public tdoann::ProgressBase {
-  static const constexpr std::size_t scale{100};
+  static constexpr std::size_t scale{100};
   tdoann::ProgressBar progress;
   bool verbose;
 

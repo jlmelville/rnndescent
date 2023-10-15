@@ -150,7 +150,7 @@ auto do_nothing(const std::vector<T> &vec, std::size_t /* ndim */)
 // relies on NRVO to avoid a copy
 template <typename T>
 auto normalize(const std::vector<T> &vec, std::size_t ndim) -> std::vector<T> {
-  const constexpr T MIN_NORM = 1e-30;
+  constexpr T MIN_NORM = 1e-30;
 
   std::vector<T> normalized(vec.size());
   std::size_t npoints = vec.size() / ndim;

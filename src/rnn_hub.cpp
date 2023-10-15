@@ -33,7 +33,7 @@ IntegerVector reverse_nbr_size_impl(const IntegerMatrix &nn_idx,
                                     bool include_self = false) {
   const std::size_t nobs = nn_idx.nrow();
   auto data = as<std::vector<std::size_t>>(nn_idx);
-  const constexpr auto missing = static_cast<std::size_t>(-1);
+  constexpr auto missing = static_cast<std::size_t>(-1);
   std::vector<std::size_t> n_reverse(len);
 
   for (std::size_t i = 0; i < nnbrs; i++) {
@@ -59,7 +59,7 @@ IntegerVector reverse_nbr_size_impl(const IntegerMatrix &nn_idx,
 IntegerVector shared_nbr_size_impl(IntegerMatrix nn_idx,
                                    std::size_t n_neighbors) {
   const std::size_t n_items = nn_idx.nrow();
-  const constexpr std::size_t missing = static_cast<std::size_t>(-1);
+  constexpr std::size_t missing = static_cast<std::size_t>(-1);
 
   const std::size_t n_dim = nn_idx.ncol();
   auto data = r_to_idxt<std::size_t>(nn_idx);

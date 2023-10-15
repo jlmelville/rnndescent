@@ -38,7 +38,7 @@ List local_scaled_nbrs(const IntegerMatrix &idx, const NumericMatrix &dist,
   // and end should be one past the final element (those last two cancel out)
   auto k_begin0 = k_begin - 1;
   auto k_end0 = k_end;
-  const constexpr Out MIN_SCALE = 1e-10;
+  constexpr Out MIN_SCALE = 1e-10;
 
   RInterruptableProgress progress;
   RParallelExecutor executor;

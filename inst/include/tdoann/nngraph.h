@@ -141,7 +141,7 @@ struct HeapAddQuery {
 };
 
 struct LockingHeapAddSymmetric {
-  static const constexpr std::size_t n_mutexes = 10;
+  static constexpr std::size_t n_mutexes = 10;
   std::array<std::mutex, n_mutexes> mutexes;
 
   template <typename NbrHeap>

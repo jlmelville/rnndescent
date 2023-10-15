@@ -206,7 +206,7 @@ private:
   using Idx = typename Distance::Index;
   using Out = typename Distance::Output;
 
-  static const constexpr std::size_t n_mutexes = 10;
+  static constexpr std::size_t n_mutexes = 10;
   std::array<std::mutex, n_mutexes> mutexes;
 
 public:

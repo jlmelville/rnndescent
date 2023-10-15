@@ -45,7 +45,7 @@ void print_time(bool print_date) {
   Datetime dt_now(static_cast<double>(secs));
   std::string dt_str = dt_now.format(fmt.c_str());
   // for some reason format always adds ".000000", so remove it
-  const constexpr std::size_t MAX_EXPECTED_FMT_LEN{7UL};
+  constexpr std::size_t MAX_EXPECTED_FMT_LEN{7UL};
   if (dt_str.size() >= MAX_EXPECTED_FMT_LEN) {
     dt_str = dt_str.substr(0, dt_str.size() - MAX_EXPECTED_FMT_LEN);
   }

@@ -44,29 +44,29 @@ class tau_prng {
   uint64_t state2; // and this should be > 15
 
   // Numbers from Figure 1
-  static const constexpr uint64_t MAGIC0{4294967294};
-  static const constexpr uint64_t MAGIC1{4294967288};
-  static const constexpr uint64_t MAGIC2{4294967280};
+  static constexpr uint64_t MAGIC0{4294967294};
+  static constexpr uint64_t MAGIC1{4294967288};
+  static constexpr uint64_t MAGIC2{4294967280};
 
   // These are the first q1, q2, q3 from Example 3
-  static const constexpr uint64_t QUICKTAUS_Q0{13};
-  static const constexpr uint64_t QUICKTAUS_Q1{2};
-  static const constexpr uint64_t QUICKTAUS_Q2{3};
+  static constexpr uint64_t QUICKTAUS_Q0{13};
+  static constexpr uint64_t QUICKTAUS_Q1{2};
+  static constexpr uint64_t QUICKTAUS_Q2{3};
 
   // These are the first s1, s2, s3 from Example 3
-  static const constexpr uint64_t QUICKTAUS_S0{12};
-  static const constexpr uint64_t QUICKTAUS_S1{4};
-  static const constexpr uint64_t QUICKTAUS_S2{17};
+  static constexpr uint64_t QUICKTAUS_S0{12};
+  static constexpr uint64_t QUICKTAUS_S1{4};
+  static constexpr uint64_t QUICKTAUS_S2{17};
 
   // From Figure 1
-  static const constexpr uint64_t SHIFT0{19};
-  static const constexpr uint64_t SHIFT1{25};
-  static const constexpr uint64_t SHIFT2{11};
+  static constexpr uint64_t SHIFT0{19};
+  static constexpr uint64_t SHIFT1{25};
+  static constexpr uint64_t SHIFT2{11};
 
-  static const constexpr uint64_t MASK{0xffffffff};
+  static constexpr uint64_t MASK{0xffffffff};
 
-  static const constexpr uint64_t MIN_STATE1{8};
-  static const constexpr uint64_t MIN_STATE2{16};
+  static constexpr uint64_t MIN_STATE1{8};
+  static constexpr uint64_t MIN_STATE2{16};
 
 public:
   static constexpr double DINT_MAX =

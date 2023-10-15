@@ -99,7 +99,7 @@ public:
     using Out = typename Distance::Output;
     using Index = typename Distance::Index;
 
-    const constexpr bool missing_ok = false; // but should it be?
+    constexpr bool missing_ok = false; // but should it be?
     auto nnd_heap =
         r_to_knn_heap<tdoann::NNDHeap<Out, Index>>(nn_idx, nn_dist, missing_ok);
     auto distance = tr_to_dist<Distance>(data);

@@ -34,7 +34,7 @@
 
 namespace tdoann {
 
-const constexpr std::size_t DEFAULT_NUM_BLOCKS{10};
+constexpr std::size_t DEFAULT_NUM_BLOCKS{10};
 
 class Executor {
 public:
