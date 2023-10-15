@@ -580,7 +580,7 @@ sum(g1000d_nndkoi1 == 1)
 ```
 
 Compared to the converged (or exact) distribution, the median k-occurrence is
-not as low, the object with the largest k-occurrence, while large ($ > 10k$,
+not as low, the object with the largest k-occurrence, while large ($> 10k$,
 which seems like a good threshold to be concerned about the presence of hubs) is
 not as large, and there are fewer objects which are anti-hubs.
 
@@ -633,7 +633,7 @@ in terms of run time.
 
 What about taking advantage of the stochastic nature of the algorithm? If the
 results are sufficiently diverse between runs of NND, then we could generate two
-graphs from two separate runs, and then merge the the results.
+graphs from two separate runs, and then merge the results.
 
 Let's repeat NND and see what the accuracy of this new result is like.
 
