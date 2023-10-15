@@ -26,6 +26,8 @@
 #include "tdoann/parallel.h"
 #include "tdoann/progressbase.h"
 
+#include "rnn_parallel.h"
+
 // input heap index is 0-indexed
 // output idx R matrix is 1-indexed and untransposed
 template <typename NbrHeap>
@@ -63,6 +65,14 @@ template <typename NbrHeap>
 auto heap_to_r(NbrHeap &heap, std::size_t n_threads,
                tdoann::ProgressBase &progress, tdoann::Executor &executor)
     -> Rcpp::List {
+  tdoann::sort_heap(heap, n_threads, progress, executor);
+  return heap_to_r_impl(heap);
+}
+
+template <typename NbrHeap> auto heap_to_r(NbrHeap &heap) -> Rcpp::List {
+  constexpr std::size_t n_threads = 0;
+  RParallelExecutor executor;
+  tdoann::NullProgress progress;
   tdoann::sort_heap(heap, n_threads, progress, executor);
   return heap_to_r_impl(heap);
 }

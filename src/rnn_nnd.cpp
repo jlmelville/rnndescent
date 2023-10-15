@@ -110,11 +110,7 @@ public:
 
     tdoann::nnd_build(nnd_heap, *local_join, max_candidates, n_iters, delta,
                       rand, *nnd_progress);
-
-    constexpr std::size_t n_threads = 0;
-    RParallelExecutor executor;
-    tdoann::NullProgress progress;
-    return heap_to_r(nnd_heap, n_threads, progress, executor);
+    return heap_to_r(nnd_heap);
   }
 
 private:
