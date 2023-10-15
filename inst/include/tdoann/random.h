@@ -70,6 +70,8 @@ public:
 // allow for thread-safe random sampling of integers
 template <typename Int> class BaseIntSampler {
 public:
+  virtual ~BaseIntSampler() = default;
+
   // Generate samples
   virtual std::vector<Int> sample(int max_val, int n_ints) = 0;
   // Clone for thread-specific samplers
