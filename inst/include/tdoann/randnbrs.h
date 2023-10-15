@@ -68,8 +68,7 @@ auto get_nn(Distance &distance, typename Distance::Index n_nbrs,
 
   progress.set_n_iters(1);
   ExecutionParams exec_params{128};
-  batch_parallel_for(worker, n_points, n_threads, exec_params, progress,
-                     executor);
+  dispatch_work(worker, n_points, n_threads, exec_params, progress, executor);
   return NNGraph<Out, Idx>(nn_idx, nn_dist, n_points);
 }
 

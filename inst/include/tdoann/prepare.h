@@ -97,7 +97,7 @@ auto degree_prune(const SparseNNGraph &graph, std::size_t max_degree,
   auto worker = [&](std::size_t begin, std::size_t end) {
     degree_prune_impl(graph, result, max_degree, begin, end);
   };
-  batch_parallel_for(worker, graph.n_points, n_threads, progress, executor);
+  dispatch_work(worker, graph.n_points, n_threads, progress, executor);
   return result;
 }
 
@@ -167,7 +167,7 @@ auto remove_long_edges(const SparseNNGraph &graph, const Distance &distance,
     remove_long_edges_impl(graph, distance, *rand, prune_probability, result,
                            begin, end);
   };
-  batch_parallel_for(worker, graph.n_points, n_threads, progress, executor);
+  dispatch_work(worker, graph.n_points, n_threads, progress, executor);
   return result;
 }
 

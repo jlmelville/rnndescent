@@ -64,8 +64,8 @@ auto nnbf_query(Distance &distance, typename Distance::Index n_nbrs,
   };
   progress.set_n_iters(1);
   ExecutionParams exec_params{64};
-  batch_parallel_for(worker, neighbor_heap.n_points, n_threads, exec_params,
-                     progress, executor);
+  dispatch_work(worker, neighbor_heap.n_points, n_threads, exec_params,
+                progress, executor);
   sort_heap(neighbor_heap, n_threads, progress, executor);
   return heap_to_graph(neighbor_heap);
 }
@@ -135,8 +135,7 @@ auto brute_force_build(Distance &distance, typename Distance::Index n_nbrs,
   // (including the self-distance)
   const std::size_t n_pairs = (n_points * (n_points + 1)) / 2;
   ExecutionParams exec_params{2048};
-  batch_parallel_for(worker, n_pairs, n_threads, exec_params, progress,
-                     executor);
+  dispatch_work(worker, n_pairs, n_threads, exec_params, progress, executor);
   sort_heap(neighbor_heap, n_threads, progress, executor);
   return heap_to_graph(neighbor_heap);
 }

@@ -42,7 +42,17 @@ public:
   virtual void
   parallel_for(std::size_t begin, std::size_t end,
                std::function<void(std::size_t, std::size_t)> worker,
-               std::size_t n_threads, std::size_t grain_size = 1) = 0;
+               std::size_t n_threads, std::size_t grain_size) = 0;
+};
+
+class SerialExecutor : public Executor {
+public:
+  void parallel_for(std::size_t begin, std::size_t end,
+                    std::function<void(std::size_t, std::size_t)> worker,
+                    std::size_t /* n_threads */,
+                    std::size_t /* grain_size */) override {
+    worker(begin, end);
+  }
 };
 
 struct ExecutionParams {
@@ -72,22 +82,12 @@ struct ExecutionParams {
   }
 };
 
-class SerialExecutor : public Executor {
-public:
-  void parallel_for(std::size_t begin, std::size_t end,
-                    std::function<void(std::size_t, std::size_t)> worker,
-                    std::size_t /* n_threads */,
-                    std::size_t /* grain_size */) override {
-    worker(begin, end);
-  }
-};
-
 template <typename Worker>
-void batch_parallel_for(Worker &&worker, std::size_t n, std::size_t n_threads,
-                        const ExecutionParams &execution_params,
-                        ProgressBase &progress, Executor &executor) {
+void dispatch_work(Worker &&worker, std::size_t n, std::size_t n_threads,
+                   const ExecutionParams &execution_params,
+                   ProgressBase &progress, Executor &executor) {
   if (n_threads == 0) {
-    batch_serial_for(worker, n, execution_params, progress);
+    dispatch_work(worker, n, execution_params, progress);
     return;
   }
 
@@ -111,27 +111,27 @@ void batch_parallel_for(Worker &&worker, std::size_t n, std::size_t n_threads,
 }
 
 template <typename Worker>
-void batch_parallel_for(Worker &&worker, std::size_t n, std::size_t n_threads,
-                        ProgressBase &progress, Executor &executor) {
-  batch_parallel_for(std::forward<Worker>(worker), n, n_threads, {}, progress,
-                     executor);
+void dispatch_work(Worker &&worker, std::size_t n, std::size_t n_threads,
+                   ProgressBase &progress, Executor &executor) {
+  dispatch_work(std::forward<Worker>(worker), n, n_threads, {}, progress,
+                executor);
 }
 
 template <typename Worker>
-void batch_parallel_for(Worker &&worker, std::size_t n, std::size_t n_threads,
-                        Executor &executor) {
+void dispatch_work(Worker &&worker, std::size_t n, std::size_t n_threads,
+                   Executor &executor) {
   NullProgress progress;
-  batch_parallel_for(std::forward<Worker>(worker), n, n_threads, {}, progress,
-                     executor);
+  dispatch_work(std::forward<Worker>(worker), n, n_threads, {}, progress,
+                executor);
 }
 
 template <typename Worker, typename AfterWorker>
-void batch_parallel_for(Worker &&worker, AfterWorker &after_worker,
-                        std::size_t n, std::size_t n_threads,
-                        const ExecutionParams &execution_params,
-                        ProgressBase &progress, Executor &executor) {
+void dispatch_work(Worker &&worker, AfterWorker &after_worker, std::size_t n,
+                   std::size_t n_threads,
+                   const ExecutionParams &execution_params,
+                   ProgressBase &progress, Executor &executor) {
   if (n_threads == 0) {
-    batch_serial_for(worker, after_worker, n, execution_params, progress);
+    dispatch_work(worker, after_worker, n, execution_params, progress);
     return;
   }
 
@@ -159,9 +159,9 @@ void batch_parallel_for(Worker &&worker, AfterWorker &after_worker,
 }
 
 template <typename Worker>
-void batch_serial_for(Worker &worker, std::size_t n,
-                      const ExecutionParams &execution_params,
-                      ProgressBase &progress) {
+void dispatch_work(Worker &worker, std::size_t n,
+                   const ExecutionParams &execution_params,
+                   ProgressBase &progress) {
   const auto &batch_size = execution_params.get_batch_size(n);
   auto n_batches = (n + batch_size - 1) / batch_size;
   progress.set_n_batches(n_batches);
@@ -177,9 +177,9 @@ void batch_serial_for(Worker &worker, std::size_t n,
 }
 
 template <typename Worker, typename AfterWorker>
-void batch_serial_for(Worker &worker, AfterWorker &after_worker, std::size_t n,
-                      const ExecutionParams &execution_params,
-                      ProgressBase &progress) {
+void dispatch_work(Worker &worker, AfterWorker &after_worker, std::size_t n,
+                   const ExecutionParams &execution_params,
+                   ProgressBase &progress) {
   const auto &batch_size = execution_params.get_batch_size(n);
   auto n_batches = (n + batch_size - 1) / batch_size;
   progress.set_n_batches(n_batches);

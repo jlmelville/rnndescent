@@ -61,8 +61,7 @@ void local_scale(const std::vector<typename NbrHeap::Index> &idx_vec,
       dpairs.emplace_back(sdist_vec[i], dist_vec[i]);
     }
   };
-  batch_parallel_for(sdist_worker, dist_vec.size(), n_threads, progress,
-                     executor);
+  dispatch_work(sdist_worker, dist_vec.size(), n_threads, progress, executor);
 
   // Create an unsorted top-k neighbor heap of size n_nbrs using the paired
   // distances as values
@@ -82,7 +81,7 @@ void local_scale(const std::vector<typename NbrHeap::Index> &idx_vec,
       }
     }
   };
-  batch_parallel_for(heap_worker, n_points, n_threads, progress, executor);
+  dispatch_work(heap_worker, n_points, n_threads, progress, executor);
 }
 
 template <typename Dist, typename Idx>
@@ -116,7 +115,7 @@ auto local_scaled_distances(const std::vector<Idx> &idx,
   auto worker = [&](std::size_t begin, std::size_t end) {
     local_scaled_distances(begin, end, idx, dist, n_nbrs, local_scales, sdist);
   };
-  batch_parallel_for(worker, n_points, n_threads, progress, executor);
+  dispatch_work(worker, n_points, n_threads, progress, executor);
 
   return sdist;
 }
@@ -157,7 +156,7 @@ auto get_local_scales(const std::vector<T> &dist_vec, std::size_t n_nbrs,
     get_local_scales(begin, end, dist_vec, n_nbrs, k_begin, k_end, min_scale,
                      local_scales);
   };
-  batch_parallel_for(worker, n_points, n_threads, progress, executor);
+  dispatch_work(worker, n_points, n_threads, progress, executor);
 
   return local_scales;
 }

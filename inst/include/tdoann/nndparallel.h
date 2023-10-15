@@ -92,9 +92,9 @@ public:
       num_updated += this->apply(current_graph);
     };
     ExecutionParams exec_params{16384};
-    batch_parallel_for(local_join_worker, after_local_join,
-                       current_graph.n_points, n_threads, exec_params,
-                       progress.get_base_progress(), executor);
+    dispatch_work(local_join_worker, after_local_join, current_graph.n_points,
+                  n_threads, exec_params, progress.get_base_progress(),
+                  executor);
     return num_updated;
   }
 };
@@ -282,7 +282,7 @@ void build_candidates(
     build_candidates(nn_heap, new_nbrs, old_nbrs, parallel_rand, heap_adder,
                      begin, end);
   };
-  batch_parallel_for(worker, nn_heap.n_points, n_threads, executor);
+  dispatch_work(worker, nn_heap.n_points, n_threads, executor);
 }
 
 template <typename Distance>
@@ -293,7 +293,7 @@ void flag_new_candidates(
   auto worker = [&](std::size_t begin, std::size_t end) {
     flag_retained_new_candidates(nn_heap, new_nbrs, begin, end);
   };
-  batch_parallel_for(worker, nn_heap.n_points, n_threads, executor);
+  dispatch_work(worker, nn_heap.n_points, n_threads, executor);
 }
 
 template <typename Distance>

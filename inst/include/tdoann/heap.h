@@ -377,7 +377,7 @@ void sort_heap(NbrHeap &heap, std::size_t n_threads, ProgressBase &progress,
     }
   };
   ExecutionParams exec_params{64};
-  batch_parallel_for(worker, heap.n_points, n_threads, progress, executor);
+  dispatch_work(worker, heap.n_points, n_threads, progress, executor);
 }
 
 template <typename NbrHeap> void sort_heap(NbrHeap &neighbor_heap) {

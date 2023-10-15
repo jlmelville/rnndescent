@@ -191,7 +191,7 @@ void vec_to_heap(NbrHeap &heap,
     vec_to_heap<HeapAdd>(heap, nn_idx, n_points, nn_dist, begin, end, heap_add,
                          transpose);
   };
-  batch_parallel_for(worker, n_points, n_threads, progress, executor);
+  dispatch_work(worker, n_points, n_threads, progress, executor);
 }
 
 template <typename NbrHeap>
@@ -297,8 +297,7 @@ auto idx_to_graph(const Distance &distance,
   };
   progress.set_n_iters(1);
   ExecutionParams exec_params{1024};
-  batch_parallel_for(worker, n_points, n_threads, exec_params, progress,
-                     executor);
+  dispatch_work(worker, n_points, n_threads, exec_params, progress, executor);
   return NNGraph<Out, Index>(idx, dist, n_points);
 }
 
