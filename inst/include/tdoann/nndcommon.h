@@ -204,6 +204,22 @@ public:
   }
 };
 
+// mark any neighbor in the current graph that was retained in the new
+// candidates as false
+template <typename DistOut, typename Idx>
+void flag_retained_new_candidates(NNDHeap<DistOut, Idx> &current_graph,
+                                  const NNHeap<DistOut, Idx> &new_nbrs,
+                                  std::size_t begin, std::size_t end) {
+  const std::size_t n_nbrs = current_graph.n_nbrs;
+  for (std::size_t i = begin, idx_offset = 0; i < end;
+       i++, idx_offset += n_nbrs) {
+    for (std::size_t j = 0, idx_ij = idx_offset; j < n_nbrs; j++, idx_ij++) {
+      if (new_nbrs.contains(i, current_graph.idx[idx_ij])) {
+        current_graph.flags[idx_ij] = 0;
+      }
+    }
+  }
+}
 } // namespace tdoann
 
 #endif // TDOANN_NNDPROGRESS_H

@@ -149,32 +149,6 @@ public:
   }
 };
 
-// mark any neighbor in the current graph that was retained in the new
-// candidates as false
-template <typename DistOut, typename Idx>
-void flag_retained_new_candidates(NNDHeap<DistOut, Idx> &current_graph,
-                                  const NNHeap<DistOut, Idx> &new_nbrs,
-                                  std::size_t begin, std::size_t end) {
-  const std::size_t n_nbrs = current_graph.n_nbrs;
-  for (std::size_t i = begin, idx_offset = 0; i < end;
-       i++, idx_offset += n_nbrs) {
-    for (std::size_t j = 0, idx_ij = idx_offset; j < n_nbrs; j++, idx_ij++) {
-      if (new_nbrs.contains(i, current_graph.idx[idx_ij])) {
-        current_graph.flags[idx_ij] = 0;
-      }
-    }
-  }
-}
-
-// overload for serial processing case which does entire graph in one chunk
-template <typename DistOut, typename Idx>
-void flag_retained_new_candidates(
-    NNDHeap<DistOut, Idx> &current_graph,
-    const NNHeap<DistOut, Idx> &new_candidate_neighbors) {
-  flag_retained_new_candidates(current_graph, new_candidate_neighbors, 0,
-                               current_graph.n_points);
-}
-
 // This corresponds to the construction of new, old, new' and old' in
 // Algorithm 2, with some minor differences:
 // 1. old' and new' (the reverse candidates) are built at the same time as old
@@ -187,10 +161,10 @@ void flag_retained_new_candidates(
 // size of the final candidate list controlled by the maximum size of
 // the candidates neighbors lists.
 template <typename DistOut, typename Idx>
-void build_candidates_full(NNDHeap<DistOut, Idx> &current_graph,
-                           NNHeap<DistOut, Idx> &new_nbrs,
-                           decltype(new_nbrs) &old_nbrs,
-                           RandomGenerator &rand) {
+void build_candidates(NNDHeap<DistOut, Idx> &current_graph,
+                      NNHeap<DistOut, Idx> &new_nbrs,
+                      decltype(new_nbrs) &old_nbrs, RandomGenerator &rand) {
+  constexpr auto npos = static_cast<Idx>(-1);
   const std::size_t n_points = current_graph.n_points;
   const std::size_t n_nbrs = current_graph.n_nbrs;
 
@@ -198,14 +172,13 @@ void build_candidates_full(NNDHeap<DistOut, Idx> &current_graph,
        i++, idx_offset += n_nbrs) {
     for (std::size_t j = 0, idx_ij = idx_offset; j < n_nbrs; j++, idx_ij++) {
       auto &nbrs = current_graph.flags[idx_ij] == 1 ? new_nbrs : old_nbrs;
-      if (current_graph.idx[idx_ij] == nbrs.npos()) {
+      if (current_graph.idx[idx_ij] == npos) {
         continue;
       }
       auto rand_weight = rand.unif();
       nbrs.checked_push_pair(i, rand_weight, current_graph.idx[idx_ij]);
     }
   }
-  flag_retained_new_candidates(current_graph, new_nbrs);
 }
 
 // Pretty close to the NNDescentFull algorithm (#2 in the paper)
@@ -225,7 +198,9 @@ void nnd_build(
     NNHeap<DistOut, Idx> new_nbrs(n_points, max_candidates);
     decltype(new_nbrs) old_nbrs(n_points, max_candidates);
 
-    build_candidates_full(nn_heap, new_nbrs, old_nbrs, rand);
+    build_candidates(nn_heap, new_nbrs, old_nbrs, rand);
+    // shared with parallel code path
+    flag_retained_new_candidates(nn_heap, new_nbrs, 0, nn_heap.n_points);
     auto num_updates =
         local_join.execute(nn_heap, new_nbrs, old_nbrs, progress);
 

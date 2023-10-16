@@ -241,45 +241,30 @@ public:
 
 template <typename Distance>
 void build_candidates(
-    const NNDHeap<typename Distance::Output, typename Distance::Index>
-        &current_graph,
-    NNHeap<typename Distance::Output, typename Distance::Index> &new_nbrs,
-    NNHeap<typename Distance::Output, typename Distance::Index> &old_nbrs,
-    ParallelRandomProvider &parallel_rand,
-    LockingHeapAdder<Distance> &heap_adder, std::size_t begin,
-    std::size_t end) {
-
-  const std::size_t n_nbrs = current_graph.n_nbrs;
-  auto rand = parallel_rand.get_parallel_instance(end);
-
-  for (std::size_t i = begin, idx_offset = begin * n_nbrs; i < end;
-       i++, idx_offset += n_nbrs) {
-    for (std::size_t j = 0, idx_ij = idx_offset; j < n_nbrs; j++, idx_ij++) {
-      auto nbr = current_graph.idx[idx_ij];
-      uint8_t isn = current_graph.flags[idx_ij];
-      auto &nbrs = isn == 1 ? new_nbrs : old_nbrs;
-      if (nbr == nbrs.npos()) {
-        continue;
-      }
-      auto rand_weight = rand->unif();
-      heap_adder.add(nbrs, i, nbr, rand_weight);
-    }
-  }
-}
-
-template <typename Distance>
-void build_candidates(
     const NNDHeap<typename Distance::Output, typename Distance::Index> &nn_heap,
     NNHeap<typename Distance::Output, typename Distance::Index> &new_nbrs,
-    NNHeap<typename Distance::Output, typename Distance::Index> &old_nbrs,
-    ParallelRandomProvider &parallel_rand,
+    decltype(new_nbrs) &old_nbrs, ParallelRandomProvider &parallel_rand,
     LockingHeapAdder<Distance> &heap_adder, std::size_t n_threads,
     Executor &executor) {
+  constexpr auto npos = static_cast<typename Distance::Index>(-1);
+  const std::size_t n_nbrs = nn_heap.n_nbrs;
 
   parallel_rand.initialize();
   auto worker = [&](std::size_t begin, std::size_t end) {
-    build_candidates(nn_heap, new_nbrs, old_nbrs, parallel_rand, heap_adder,
-                     begin, end);
+    auto rand = parallel_rand.get_parallel_instance(end);
+
+    for (std::size_t i = begin, idx_offset = begin * n_nbrs; i < end;
+         i++, idx_offset += n_nbrs) {
+      for (std::size_t j = 0, idx_ij = idx_offset; j < n_nbrs; j++, idx_ij++) {
+        auto nbr = nn_heap.idx[idx_ij];
+        auto &nbrs = nn_heap.flags[idx_ij] == 1 ? new_nbrs : old_nbrs;
+        if (nbr == npos) {
+          continue;
+        }
+        auto rand_weight = rand->unif();
+        heap_adder.add(nbrs, i, nbr, rand_weight);
+      }
+    }
   };
   dispatch_work(worker, nn_heap.n_points, n_threads, executor);
 }
@@ -290,6 +275,7 @@ void flag_new_candidates(
     const NNHeap<typename Distance::Output, typename Distance::Index> &new_nbrs,
     std::size_t n_threads, Executor &executor) {
   auto worker = [&](std::size_t begin, std::size_t end) {
+    // shared with parallel code path
     flag_retained_new_candidates(nn_heap, new_nbrs, begin, end);
   };
   dispatch_work(worker, nn_heap.n_points, n_threads, executor);
