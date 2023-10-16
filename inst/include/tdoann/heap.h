@@ -111,6 +111,83 @@ void siftdown(std::size_t root, std::size_t len, std::vector<Idx> &idx,
   }
 }
 
+template <typename DistOut, typename Idx>
+void deheap_sort(std::vector<Idx> &idx, std::vector<DistOut> &dist,
+                 std::size_t neighbors_start, std::size_t neighbors_end) {
+  auto remaining_size = neighbors_end - neighbors_start;
+
+  while (remaining_size != 0) {
+    std::swap(idx[neighbors_start], idx[neighbors_end]);
+    std::swap(dist[neighbors_start], dist[neighbors_end]);
+
+    siftdown(neighbors_start, remaining_size, idx, dist);
+
+    --remaining_size;
+    --neighbors_end;
+  }
+}
+
+template <typename NbrHeap>
+void sort_heap(NbrHeap &heap, std::size_t n_threads, ProgressBase &progress,
+               Executor &executor) {
+  auto worker = [&](std::size_t begin, std::size_t end) {
+    for (auto i = begin; i < end; i++) {
+      heap.deheap_sort(i);
+    }
+  };
+  ExecutionParams exec_params{64};
+  dispatch_work(worker, heap.n_points, n_threads, progress, executor);
+}
+
+template <typename NbrHeap> void sort_heap(NbrHeap &neighbor_heap) {
+  neighbor_heap.deheap_sort();
+}
+
+// Construct a heap containing the reverse neighbors of the input neighbor heap.
+// n_reverse_nbrs is the number of neighbors to retain in the returned heap
+// (note that the full reverse neighbor list for a vertex could be as large as
+// N).
+// n_forward_nbrs restricts the search to the specified number of nearest
+// neighbors (i.e. effectively passes heap[, 1:n_forward_nbrs]).
+template <typename NbrHeap>
+auto reverse_heap(const NbrHeap &heap, typename NbrHeap::Index n_reverse_nbrs,
+                  typename NbrHeap::Index n_forward_nbrs) -> NbrHeap {
+  NbrHeap reversed(heap.n_points, n_reverse_nbrs);
+  const auto n_fwd_nbrs = std::min(n_forward_nbrs, heap.n_nbrs);
+
+  for (typename NbrHeap::Index i = 0; i < heap.n_points; i++) {
+    for (std::size_t j = 0; j < n_fwd_nbrs; j++) {
+      reversed.checked_push(heap.index(i, j), heap.distance(i, j), i);
+    }
+  }
+  return reversed;
+}
+
+template <typename NbrHeap> auto reverse_heap(const NbrHeap &heap) -> NbrHeap {
+  return reverse_heap(heap, heap.n_nbrs, heap.n_nbrs);
+}
+
+template <typename NbrHeap> auto heap_sum(const NbrHeap &heap) -> double {
+  using Index = typename NbrHeap::Index;
+  using DistanceOut = typename NbrHeap::DistanceOut;
+
+  Index n_points = heap.n_points;
+  std::size_t n_nbrs = heap.n_nbrs;
+
+  DistanceOut hsum = 0.0;
+  for (Index i = 0; i < n_points; ++i) {
+    hsum += std::accumulate(heap.dist.begin() + i * n_nbrs,
+                            heap.dist.begin() + (i + 1) * n_nbrs,
+                            static_cast<DistanceOut>(0));
+  }
+
+  return hsum;
+}
+
+template <typename T> auto limit_max() -> T {
+  return (std::numeric_limits<T>::max)();
+}
+
 // Base class storing neighbor data as a series of heaps
 template <typename DistOut = float, typename Idx = uint32_t> class NNDHeap {
 public:
@@ -138,13 +215,10 @@ public:
   ~NNDHeap() = default;
 
   auto contains(Idx row, Idx index) const -> bool {
-    std::size_t rnnbrs = row * n_nbrs;
-    for (std::size_t i = 0; i < n_nbrs; i++) {
-      if (index == idx[rnnbrs + i]) {
-        return true;
-      }
-    }
-    return false;
+    auto start = idx.begin() + row * n_nbrs;
+    auto end = start + n_nbrs;
+
+    return std::find(start, end, index) != end;
   }
 
   // returns true if either p or q would accept a neighbor with distance dist
@@ -199,6 +273,7 @@ public:
 
       std::size_t parent = root + rel_parent;
       std::size_t swap = root + rel_swap;
+
       dist[parent] = dist[swap];
       idx[parent] = idx[swap];
       flags[parent] = flags[swap];
@@ -209,6 +284,7 @@ public:
     std::size_t parent = root + rel_parent;
     dist[parent] = weight;
     idx[parent] = index;
+
     flags[parent] = flag;
   }
 
@@ -217,36 +293,22 @@ public:
       deheap_sort(i);
     }
   }
-  // NOLINTBEGIN(readability-identifier-length)
+
   void deheap_sort(Idx i) {
-    std::size_t r0 = i * n_nbrs;
-    for (std::size_t j = 0; j < n_nbrs1; j++) {
-      std::size_t n1j = n_nbrs1 - j;
-      std::size_t r0nn1 = r0 + n1j;
-      std::swap(idx[r0], idx[r0nn1]);
-      std::swap(dist[r0], dist[r0nn1]);
-      siftdown(r0, n1j, idx, dist);
-    }
+    const std::size_t neighbors_start = i * n_nbrs;
+    tdoann::deheap_sort(idx, dist, neighbors_start, neighbors_start + n_nbrs1);
   }
 
   auto index(Idx i, Idx j) const -> Idx { return idx[i * n_nbrs + j]; }
-  auto index(Idx i, Idx j) -> Idx & { return idx[i * n_nbrs + j]; }
 
   auto distance(Idx i, Idx j) const -> DistOut { return dist[i * n_nbrs + j]; }
-  auto distance(Idx i, Idx j) -> DistOut & { return dist[i * n_nbrs + j]; }
-
-  auto flag(Idx i, Idx j) const -> uint8_t { return flags[i * n_nbrs + j]; }
-  auto flag(Idx i, Idx j) -> uint8_t & { return flags[i * n_nbrs + j]; }
 
   auto max_distance(Idx i) const -> DistOut { return dist[i * n_nbrs]; }
 
   auto is_full(Idx i) const -> bool { return idx[i * n_nbrs] != npos(); }
-  // NOLINTEND(readability-identifier-length)
-};
 
-template <typename T> auto limit_max() -> T {
-  return (std::numeric_limits<T>::max)();
-}
+  auto flag(Idx i, Idx j) const -> uint8_t { return flags[i * n_nbrs + j]; }
+};
 
 // Like NNDHeap, but no flag vector
 template <typename DistOut = float, typename Idx = uint32_t,
@@ -345,16 +407,8 @@ struct NNHeap {
 
   // NOLINTBEGIN(readability-identifier-length)
   void deheap_sort(Idx i) {
-    const std::size_t root_offset = i * n_nbrs;
-    for (std::size_t j = 0; j < n_nbrs1; j++) {
-      std::size_t remaining_size = n_nbrs1 - j;
-      std::size_t last_elem_offset = root_offset + remaining_size;
-
-      std::swap(idx[root_offset], idx[last_elem_offset]);
-      std::swap(dist[root_offset], dist[last_elem_offset]);
-
-      siftdown(root_offset, remaining_size, idx, dist);
-    }
+    const std::size_t neighbors_start = i * n_nbrs;
+    tdoann::deheap_sort(idx, dist, neighbors_start, neighbors_start + n_nbrs1);
   }
 
   auto index(Idx i, Idx j) const -> Idx { return idx[i * n_nbrs + j]; }
@@ -366,63 +420,6 @@ struct NNHeap {
   auto is_full(Idx i) const -> bool { return idx[i * n_nbrs] != npos(); }
   // NOLINTEND(readability-identifier-length)
 };
-
-template <typename NbrHeap>
-void sort_heap(NbrHeap &heap, std::size_t n_threads, ProgressBase &progress,
-               Executor &executor) {
-  auto worker = [&](std::size_t begin, std::size_t end) {
-    for (auto i = begin; i < end; i++) {
-      heap.deheap_sort(i);
-    }
-  };
-  ExecutionParams exec_params{64};
-  dispatch_work(worker, heap.n_points, n_threads, progress, executor);
-}
-
-template <typename NbrHeap> void sort_heap(NbrHeap &neighbor_heap) {
-  neighbor_heap.deheap_sort();
-}
-
-// Construct a heap containing the reverse neighbors of the input neighbor heap.
-// n_reverse_nbrs is the number of neighbors to retain in the returned heap
-// (note that the full reverse neighbor list for a vertex could be as large as
-// N).
-// n_forward_nbrs restricts the search to the specified number of nearest
-// neighbors (i.e. effectively passes heap[, 1:n_forward_nbrs]).
-template <typename NbrHeap>
-auto reverse_heap(const NbrHeap &heap, typename NbrHeap::Index n_reverse_nbrs,
-                  typename NbrHeap::Index n_forward_nbrs) -> NbrHeap {
-  NbrHeap reversed(heap.n_points, n_reverse_nbrs);
-  const auto n_fwd_nbrs = std::min(n_forward_nbrs, heap.n_nbrs);
-
-  for (typename NbrHeap::Index i = 0; i < heap.n_points; i++) {
-    for (std::size_t j = 0; j < n_fwd_nbrs; j++) {
-      reversed.checked_push(heap.index(i, j), heap.distance(i, j), i);
-    }
-  }
-  return reversed;
-}
-
-template <typename NbrHeap> auto reverse_heap(const NbrHeap &heap) -> NbrHeap {
-  return reverse_heap(heap, heap.n_nbrs, heap.n_nbrs);
-}
-
-template <typename NbrHeap> auto heap_sum(const NbrHeap &heap) -> double {
-  using Index = typename NbrHeap::Index;
-  using DistanceOut = typename NbrHeap::DistanceOut;
-
-  Index n_points = heap.n_points;
-  std::size_t n_nbrs = heap.n_nbrs;
-
-  DistanceOut hsum = 0.0;
-  for (Index i = 0; i < n_points; ++i) {
-    hsum += std::accumulate(heap.dist.begin() + i * n_nbrs,
-                            heap.dist.begin() + (i + 1) * n_nbrs,
-                            static_cast<DistanceOut>(0));
-  }
-
-  return hsum;
-}
 
 } // namespace tdoann
 #endif // TDOANN_HEAP_H
