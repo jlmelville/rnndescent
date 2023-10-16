@@ -174,12 +174,13 @@ public:
       return 0U;
     }
 
-    return unchecked_push(row, weight, idx, flag);
+    unchecked_push(row, weight, idx, flag);
+    return 1U;
   }
 
   // This differs from the pynndescent version as it is truly unchecked
-  auto unchecked_push(Idx row, const DistOut &weight, Idx index,
-                      uint8_t flag = 1) -> std::size_t {
+  void unchecked_push(Idx row, const DistOut &weight, Idx index,
+                      uint8_t flag = 1U) {
     std::size_t root = row * n_nbrs;
 
     // insert val at position zero
@@ -209,8 +210,6 @@ public:
     dist[parent] = weight;
     idx[parent] = index;
     flags[parent] = flag;
-
-    return 1;
   }
 
   void deheap_sort() {
@@ -293,8 +292,8 @@ struct NNHeap {
   }
 
   auto checked_push_pair(std::size_t row, const DistOut &weight, Idx idx)
-      -> std::size_t {
-    std::size_t n_updates = checked_push(row, weight, idx);
+      -> unsigned int {
+    unsigned int n_updates = checked_push(row, weight, idx);
     if (row != idx) {
       // NOLINTNEXTLINE(readability-suspicious-call-argument)
       n_updates += checked_push(idx, weight, row);
@@ -302,17 +301,17 @@ struct NNHeap {
     return n_updates;
   }
 
-  auto checked_push(Idx row, const DistOut &weight, Idx idx) -> std::size_t {
+  auto checked_push(Idx row, const DistOut &weight, Idx idx) -> unsigned int {
     if (!accepts(row, weight) || contains(row, idx)) {
-      return 0;
+      return 0U;
     }
 
     unchecked_push(row, weight, idx);
-    return 1;
+    return 1U;
   }
 
-  auto unchecked_push(Idx row, const DistOut &weight, Idx index) -> void {
-    std::size_t root = row * n_nbrs;
+  void unchecked_push(Idx row, const DistOut &weight, Idx index) {
+    const std::size_t root = row * n_nbrs;
 
     // insert val at position zero
     dist[root] = weight;
@@ -324,8 +323,8 @@ struct NNHeap {
 
     // Continue until the heap property is satisfied or we reach a leaf node
     while (!should_swap(root, n_nbrs, dist, weight, rel_parent, rel_swap)) {
-      std::size_t parent = root + rel_parent;
-      std::size_t swap = root + rel_swap;
+      const auto parent = root + rel_parent;
+      const auto swap = root + rel_swap;
 
       dist[parent] = dist[swap];
       idx[parent] = idx[swap];
@@ -333,7 +332,7 @@ struct NNHeap {
       rel_parent = rel_swap;
     }
 
-    std::size_t parent = root + rel_parent;
+    const auto parent = root + rel_parent;
     dist[parent] = weight;
     idx[parent] = index;
   }
@@ -346,7 +345,7 @@ struct NNHeap {
 
   // NOLINTBEGIN(readability-identifier-length)
   void deheap_sort(Idx i) {
-    std::size_t root_offset = i * n_nbrs;
+    const std::size_t root_offset = i * n_nbrs;
     for (std::size_t j = 0; j < n_nbrs1; j++) {
       std::size_t remaining_size = n_nbrs1 - j;
       std::size_t last_elem_offset = root_offset + remaining_size;
