@@ -39,7 +39,8 @@ namespace tdoann {
 template <typename Out, typename Idx>
 auto get_nn(const BaseDistance<Out, Idx> &distance, Idx n_nbrs,
             BaseIntSampler<Idx> &sampler, std::size_t n_threads,
-            ProgressBase &progress, Executor &executor) -> NNGraph<Out, Idx> {
+            ProgressBase &progress, const Executor &executor)
+    -> NNGraph<Out, Idx> {
   const std::size_t n_points = distance.get_ny();
   const std::size_t n_refs = distance.get_nx();
 
@@ -73,7 +74,7 @@ template <typename Out, typename Idx>
 auto random_build(const BaseDistance<Out, Idx> &distance, Idx n_nbrs,
                   BaseIntSampler<Idx> &sampler, bool sort,
                   std::size_t n_threads, ProgressBase &progress,
-                  Executor &executor) -> NNGraph<Out, Idx> {
+                  const Executor &executor) -> NNGraph<Out, Idx> {
 
   auto nn_graph =
       get_nn(distance, n_nbrs, sampler, n_threads, progress, executor);
@@ -87,7 +88,7 @@ template <typename Out, typename Idx>
 auto random_query(const BaseDistance<Out, Idx> &distance, Idx n_nbrs,
                   BaseIntSampler<Idx> &sampler, bool sort,
                   std::size_t n_threads, ProgressBase &progress,
-                  Executor &executor) -> NNGraph<Out, Idx> {
+                  const Executor &executor) -> NNGraph<Out, Idx> {
 
   auto nn_graph =
       get_nn(distance, n_nbrs, sampler, n_threads, progress, executor);

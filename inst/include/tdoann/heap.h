@@ -129,7 +129,7 @@ void deheap_sort(std::vector<Idx> &idx, std::vector<Out> &dist,
 
 template <typename NbrHeap>
 void sort_heap(NbrHeap &heap, std::size_t n_threads, ProgressBase &progress,
-               Executor &executor) {
+               const Executor &executor) {
   auto worker = [&](std::size_t begin, std::size_t end) {
     for (auto i = begin; i < end; i++) {
       heap.deheap_sort(i);

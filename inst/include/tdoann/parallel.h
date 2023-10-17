@@ -42,7 +42,7 @@ public:
   virtual void
   parallel_for(std::size_t begin, std::size_t end,
                std::function<void(std::size_t, std::size_t)> worker,
-               std::size_t n_threads, std::size_t grain_size) = 0;
+               std::size_t n_threads, std::size_t grain_size) const = 0;
 };
 
 class SerialExecutor : public Executor {
@@ -50,7 +50,7 @@ public:
   void parallel_for(std::size_t begin, std::size_t end,
                     std::function<void(std::size_t, std::size_t)> worker,
                     std::size_t /* n_threads */,
-                    std::size_t /* grain_size */) override {
+                    std::size_t /* grain_size */) const override {
     worker(begin, end);
   }
 };
@@ -85,7 +85,7 @@ struct ExecutionParams {
 template <typename Worker>
 void dispatch_work(Worker &&worker, std::size_t n, std::size_t n_threads,
                    const ExecutionParams &execution_params,
-                   ProgressBase &progress, Executor &executor) {
+                   ProgressBase &progress, const Executor &executor) {
   if (n_threads == 0) {
     dispatch_work(worker, n, execution_params, progress);
     return;
@@ -112,14 +112,14 @@ void dispatch_work(Worker &&worker, std::size_t n, std::size_t n_threads,
 
 template <typename Worker>
 void dispatch_work(Worker &&worker, std::size_t n, std::size_t n_threads,
-                   ProgressBase &progress, Executor &executor) {
+                   ProgressBase &progress, const Executor &executor) {
   dispatch_work(std::forward<Worker>(worker), n, n_threads, {}, progress,
                 executor);
 }
 
 template <typename Worker>
 void dispatch_work(Worker &&worker, std::size_t n, std::size_t n_threads,
-                   Executor &executor) {
+                   const Executor &executor) {
   NullProgress progress;
   dispatch_work(std::forward<Worker>(worker), n, n_threads, {}, progress,
                 executor);
@@ -129,7 +129,7 @@ template <typename Worker, typename AfterWorker>
 void dispatch_work(Worker &&worker, AfterWorker &after_worker, std::size_t n,
                    std::size_t n_threads,
                    const ExecutionParams &execution_params,
-                   ProgressBase &progress, Executor &executor) {
+                   ProgressBase &progress, const Executor &executor) {
   if (n_threads == 0) {
     dispatch_work(worker, after_worker, n, execution_params, progress);
     return;

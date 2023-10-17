@@ -40,7 +40,7 @@ template <typename Out, typename Idx>
 void nn_query(const SparseNNGraph<Out, Idx> &reference_graph,
               NNHeap<Out, Idx> &nn_heap, const BaseDistance<Out, Idx> &distance,
               double epsilon, std::size_t n_threads, ProgressBase &progress,
-              Executor &executor) {
+              const Executor &executor) {
   auto worker = [&](std::size_t begin, std::size_t end) {
     non_search_query(nn_heap, distance, reference_graph, epsilon, begin, end);
   };

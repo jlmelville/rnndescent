@@ -56,7 +56,7 @@ void nnbf_query_impl(NNHeap<Out, Idx> &neighbor_heap,
 template <typename Out, typename Idx>
 auto nnbf_query(const BaseDistance<Out, Idx> &distance, Idx n_nbrs,
                 std::size_t n_threads, ProgressBase &progress,
-                Executor &executor) -> NNGraph<Out, Idx> {
+                const Executor &executor) -> NNGraph<Out, Idx> {
   NNHeap<Out, Idx> neighbor_heap(distance.get_ny(), n_nbrs);
   auto worker = [&](std::size_t begin, std::size_t end) {
     nnbf_query_impl(neighbor_heap, distance, begin, end);
@@ -116,7 +116,7 @@ void nnbf_impl(const BaseDistance<Out, Idx> &distance,
 template <typename Out, typename Idx>
 auto brute_force_build(const BaseDistance<Out, Idx> &distance, Idx n_nbrs,
                        std::size_t n_threads, ProgressBase &progress,
-                       Executor &executor) -> NNGraph<Out, Idx> {
+                       const Executor &executor) -> NNGraph<Out, Idx> {
   if (n_threads > 0) {
     return nnbf_query(distance, n_nbrs, n_threads, progress, executor);
   }
@@ -138,7 +138,7 @@ auto brute_force_build(const BaseDistance<Out, Idx> &distance, Idx n_nbrs,
 template <typename Out, typename Idx>
 auto brute_force_query(const BaseDistance<Out, Idx> &distance, Idx n_nbrs,
                        std::size_t n_threads, ProgressBase &progress,
-                       Executor &executor) -> NNGraph<Out, Idx> {
+                       const Executor &executor) -> NNGraph<Out, Idx> {
   return nnbf_query(distance, n_nbrs, n_threads, progress, executor);
 }
 

@@ -184,7 +184,7 @@ void vec_to_heap(NbrHeap &heap,
                  std::size_t n_points,
                  const std::vector<typename NbrHeap::DistanceOut> &nn_dist,
                  std::size_t n_threads, bool transpose, ProgressBase &progress,
-                 Executor &executor) {
+                 const Executor &executor) {
   HeapAdd heap_add;
   auto worker = [&](std::size_t begin, std::size_t end) {
     vec_to_heap<HeapAdd>(heap, nn_idx, n_points, nn_dist, begin, end, heap_add,
@@ -199,7 +199,7 @@ void vec_to_knn_heap(NbrHeap &heap,
                      std::size_t n_points,
                      const std::vector<typename NbrHeap::DistanceOut> &nn_dist,
                      std::size_t n_threads, bool transpose,
-                     ProgressBase &progress, Executor &executor) {
+                     ProgressBase &progress, const Executor &executor) {
   if (n_threads > 0) {
     vec_to_heap<LockingHeapAddSymmetric>(heap, nn_idx, n_points, nn_dist,
                                          n_threads, transpose, progress,
@@ -216,7 +216,7 @@ void vec_to_query_heap(
     std::size_t n_points,
     const std::vector<typename NbrHeap::DistanceOut> &nn_dist,
     std::size_t n_threads, bool transpose, ProgressBase &progress,
-    Executor &executor) {
+    const Executor &executor) {
 
   vec_to_heap<HeapAddQuery>(heap, nn_idx, n_points, nn_dist, n_threads,
                             transpose, progress, executor);
@@ -239,7 +239,7 @@ auto init_heap(const NbrGraph &nn_graph)
 // If this isn't what you want, use `sort_query_graph`.
 template <typename NbrGraph>
 void sort_knn_graph(NbrGraph &nn_graph, std::size_t n_threads,
-                    ProgressBase &progress, Executor &executor) {
+                    ProgressBase &progress, const Executor &executor) {
   auto heap = init_heap(nn_graph);
   constexpr bool transpose = false;
   vec_to_knn_heap(heap, nn_graph.idx, nn_graph.n_points, nn_graph.dist,
@@ -253,7 +253,7 @@ void sort_knn_graph(NbrGraph &nn_graph, std::size_t n_threads,
 // on a knn graph (where the neighbors of i *are* from the same data as i).
 template <typename NbrGraph>
 void sort_query_graph(NbrGraph &nn_graph, std::size_t n_threads,
-                      ProgressBase &progress, Executor &executor) {
+                      ProgressBase &progress, const Executor &executor) {
   auto heap = init_heap(nn_graph);
   constexpr bool transpose = false;
   vec_to_query_heap(heap, nn_graph.idx, nn_graph.n_points, nn_graph.dist,
@@ -276,7 +276,7 @@ void idx_to_graph(const BaseDistance<Out, Idx> &distance,
 template <typename Out, typename Idx>
 auto idx_to_graph(const BaseDistance<Out, Idx> &distance,
                   const std::vector<Idx> &idx, std::size_t n_threads,
-                  ProgressBase &progress, Executor &executor)
+                  ProgressBase &progress, const Executor &executor)
     -> NNGraph<Out, Idx> {
   const std::size_t n_points = distance.get_ny();
   const std::size_t n_nbrs = idx.size() / n_points;

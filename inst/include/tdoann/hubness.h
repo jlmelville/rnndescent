@@ -47,7 +47,7 @@ void local_scale(const std::vector<typename NbrHeap::Index> &idx_vec,
                  const std::vector<typename NbrHeap::DistanceOut> &dist_vec,
                  const std::vector<typename NbrHeap::DistanceOut> &sdist_vec,
                  NbrHeap &nn_heap, std::size_t n_threads,
-                 ProgressBase &progress, Executor &executor) {
+                 ProgressBase &progress, const Executor &executor) {
   using Idx = typename NbrHeap::Index;
   using Out = typename NbrHeap::DistanceOut;
 
@@ -105,7 +105,7 @@ auto local_scaled_distances(const std::vector<Idx> &idx,
                             const std::vector<Out> &dist, std::size_t n_nbrs,
                             const std::vector<Out> &local_scales,
                             std::size_t n_threads, ProgressBase &progress,
-                            Executor &executor) -> std::vector<Out> {
+                            const Executor &executor) -> std::vector<Out> {
 
   std::size_t n_points = local_scales.size();
   std::vector<Out> sdist(dist.size());
@@ -146,7 +146,7 @@ template <typename T>
 auto get_local_scales(const std::vector<T> &dist_vec, std::size_t n_nbrs,
                       std::size_t k_begin, std::size_t k_end, T min_scale,
                       std::size_t n_threads, ProgressBase &progress,
-                      Executor &executor) -> std::vector<T> {
+                      const Executor &executor) -> std::vector<T> {
   std::size_t n_points = dist_vec.size() / n_nbrs;
   std::vector<T> local_scales(n_points);
 

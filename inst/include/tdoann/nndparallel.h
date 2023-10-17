@@ -80,7 +80,7 @@ public:
   auto execute(NNDHeap<Out, Idx> &current_graph,
                const NNHeap<Out, Idx> &new_nbrs, decltype(new_nbrs) &old_nbrs,
                NNDProgressBase &progress, std::size_t n_threads,
-               Executor &executor) -> std::size_t {
+               const Executor &executor) -> std::size_t {
     std::size_t num_updates = 0;
     auto local_join_worker = [&](std::size_t begin, std::size_t end) {
       this->execute(current_graph, new_nbrs, old_nbrs, new_nbrs.n_nbrs, begin,
@@ -235,7 +235,7 @@ void build_candidates(const NNDHeap<Out, Idx> &nn_heap,
                       NNHeap<Out, Idx> &new_nbrs, decltype(new_nbrs) &old_nbrs,
                       ParallelRandomProvider &parallel_rand,
                       LockingHeapAdder<Out, Idx> &heap_adder,
-                      std::size_t n_threads, Executor &executor) {
+                      std::size_t n_threads, const Executor &executor) {
   constexpr auto npos = static_cast<Idx>(-1);
   const std::size_t n_nbrs = nn_heap.n_nbrs;
 
@@ -262,7 +262,7 @@ void build_candidates(const NNDHeap<Out, Idx> &nn_heap,
 template <typename Out, typename Idx>
 void flag_new_candidates(NNDHeap<Out, Idx> &nn_heap,
                          const NNHeap<Out, Idx> &new_nbrs,
-                         std::size_t n_threads, Executor &executor) {
+                         std::size_t n_threads, const Executor &executor) {
   auto worker = [&](std::size_t begin, std::size_t end) {
     // shared with parallel code path
     flag_retained_new_candidates(nn_heap, new_nbrs, begin, end);
@@ -275,7 +275,7 @@ void nnd_build(NNDHeap<Out, Idx> &nn_heap,
                ParallelLocalJoin<Out, Idx> &local_join,
                std::size_t max_candidates, unsigned int n_iters, double delta,
                NNDProgressBase &progress, ParallelRandomProvider &parallel_rand,
-               std::size_t n_threads, Executor &executor) {
+               std::size_t n_threads, const Executor &executor) {
   const std::size_t n_points = nn_heap.n_points;
   const double tol = delta * nn_heap.n_nbrs * n_points;
 

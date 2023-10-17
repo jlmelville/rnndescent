@@ -63,7 +63,7 @@ auto heap_to_r_impl(const NbrHeap &heap) -> Rcpp::List {
 // output idx R matrix is 1-indexed and untransposed
 template <typename NbrHeap>
 auto heap_to_r(NbrHeap &heap, std::size_t n_threads,
-               tdoann::ProgressBase &progress, tdoann::Executor &executor)
+               tdoann::ProgressBase &progress, const tdoann::Executor &executor)
     -> Rcpp::List {
   tdoann::sort_heap(heap, n_threads, progress, executor);
   return heap_to_r_impl(heap);
