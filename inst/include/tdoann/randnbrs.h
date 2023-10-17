@@ -69,11 +69,11 @@ auto get_nn(const BaseDistance<Out, Idx> &distance, Idx n_nbrs,
   return NNGraph<Out, Idx>(nn_idx, nn_dist, n_points);
 }
 
-template <typename Output, typename Index>
-auto random_build(const BaseDistance<Output, Index> &distance, Index n_nbrs,
-                  BaseIntSampler<Index> &sampler, bool sort,
+template <typename Out, typename Idx>
+auto random_build(const BaseDistance<Out, Idx> &distance, Idx n_nbrs,
+                  BaseIntSampler<Idx> &sampler, bool sort,
                   std::size_t n_threads, ProgressBase &progress,
-                  Executor &executor) -> NNGraph<Output, Index> {
+                  Executor &executor) -> NNGraph<Out, Idx> {
 
   auto nn_graph =
       get_nn(distance, n_nbrs, sampler, n_threads, progress, executor);
@@ -83,11 +83,11 @@ auto random_build(const BaseDistance<Output, Index> &distance, Index n_nbrs,
   return nn_graph;
 }
 
-template <typename Output, typename Index>
-auto random_query(const BaseDistance<Output, Index> &distance, Index n_nbrs,
-                  BaseIntSampler<Index> &sampler, bool sort,
+template <typename Out, typename Idx>
+auto random_query(const BaseDistance<Out, Idx> &distance, Idx n_nbrs,
+                  BaseIntSampler<Idx> &sampler, bool sort,
                   std::size_t n_threads, ProgressBase &progress,
-                  Executor &executor) -> NNGraph<Output, Index> {
+                  Executor &executor) -> NNGraph<Out, Idx> {
 
   auto nn_graph =
       get_nn(distance, n_nbrs, sampler, n_threads, progress, executor);

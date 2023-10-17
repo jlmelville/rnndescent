@@ -36,8 +36,8 @@ void ts(const std::string &);
 void zero_index(Rcpp::IntegerMatrix &, int max_idx = RNND_MAX_IDX,
                 bool missing_ok = false);
 
-template <typename DistOut>
-auto graph_to_r(const tdoann::NNGraph<DistOut> &graph, bool unzero = false)
+template <typename Out>
+auto graph_to_r(const tdoann::NNGraph<Out> &graph, bool unzero = false)
     -> Rcpp::List {
   Rcpp::IntegerMatrix indices(graph.n_nbrs, graph.n_points, graph.idx.begin());
   Rcpp::NumericMatrix dist(graph.n_nbrs, graph.n_points, graph.dist.begin());

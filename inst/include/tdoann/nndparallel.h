@@ -39,20 +39,19 @@
 
 namespace tdoann {
 
-template <typename DistOut, typename Idx> class ParallelLocalJoin {
+template <typename Out, typename Idx> class ParallelLocalJoin {
 public:
-  using Update = std::tuple<Idx, Idx, DistOut>;
+  using Update = std::tuple<Idx, Idx, Out>;
 
   virtual ~ParallelLocalJoin() = default;
 
-  virtual void generate(const NNDHeap<DistOut, Idx> &current_graph, Idx idx_p,
+  virtual void generate(const NNDHeap<Out, Idx> &current_graph, Idx idx_p,
                         Idx idx_q, std::size_t key) = 0;
-  virtual auto apply(NNDHeap<DistOut, Idx> &current_graph) -> unsigned long = 0;
+  virtual auto apply(NNDHeap<Out, Idx> &current_graph) -> unsigned long = 0;
 
-  auto execute(const NNDHeap<DistOut, Idx> &current_graph,
-               const NNHeap<DistOut, Idx> &new_nbrs,
-               decltype(new_nbrs) &old_nbrs, std::size_t max_candidates,
-               std::size_t begin, std::size_t end) {
+  auto execute(const NNDHeap<Out, Idx> &current_graph,
+               const NNHeap<Out, Idx> &new_nbrs, decltype(new_nbrs) &old_nbrs,
+               std::size_t max_candidates, std::size_t begin, std::size_t end) {
     for (auto i = begin, idx_offset = begin * max_candidates; i < end;
          i++, idx_offset += max_candidates) {
       for (std::size_t j = 0; j < max_candidates; j++) {
@@ -78,10 +77,10 @@ public:
     }
   }
 
-  auto execute(NNDHeap<DistOut, Idx> &current_graph,
-               const NNHeap<DistOut, Idx> &new_nbrs,
-               decltype(new_nbrs) &old_nbrs, NNDProgressBase &progress,
-               std::size_t n_threads, Executor &executor) -> std::size_t {
+  auto execute(NNDHeap<Out, Idx> &current_graph,
+               const NNHeap<Out, Idx> &new_nbrs, decltype(new_nbrs) &old_nbrs,
+               NNDProgressBase &progress, std::size_t n_threads,
+               Executor &executor) -> std::size_t {
     std::size_t num_updates = 0;
     auto local_join_worker = [&](std::size_t begin, std::size_t end) {
       this->execute(current_graph, new_nbrs, old_nbrs, new_nbrs.n_nbrs, begin,
@@ -98,26 +97,26 @@ public:
   }
 };
 
-template <typename DistOut, typename Idx>
-class LowMemParallelLocalJoin : public ParallelLocalJoin<DistOut, Idx> {
-  using EdgeUpdate = std::tuple<Idx, Idx, DistOut>;
+template <typename Out, typename Idx>
+class LowMemParallelLocalJoin : public ParallelLocalJoin<Out, Idx> {
+  using EdgeUpdate = std::tuple<Idx, Idx, Out>;
 
 public:
-  const BaseDistance<DistOut, Idx> &distance;
+  const BaseDistance<Out, Idx> &distance;
   std::vector<std::vector<EdgeUpdate>> edge_updates;
 
-  LowMemParallelLocalJoin(const BaseDistance<DistOut, Idx> &distance)
+  LowMemParallelLocalJoin(const BaseDistance<Out, Idx> &distance)
       : distance(distance), edge_updates(distance.get_ny()) {}
 
-  void generate(const NNDHeap<DistOut, Idx> &current_graph, Idx idx_p,
-                Idx idx_q, std::size_t key) override {
+  void generate(const NNDHeap<Out, Idx> &current_graph, Idx idx_p, Idx idx_q,
+                std::size_t key) override {
     const auto dist_pq = distance.calculate(idx_p, idx_q);
     if (current_graph.accepts_either(idx_p, idx_q, dist_pq)) {
       edge_updates[key].emplace_back(idx_p, idx_q, dist_pq);
     }
   }
 
-  unsigned long apply(NNDHeap<DistOut, Idx> &current_graph) override {
+  unsigned long apply(NNDHeap<Out, Idx> &current_graph) override {
     unsigned long num_updates = 0UL;
     for (auto &edge_set : edge_updates) {
       for (auto &[idx_p, idx_q, dist_pq] : edge_set) {
@@ -129,22 +128,22 @@ public:
   }
 };
 
-template <typename DistOut, typename Idx>
-class CacheParallelLocalJoin : public ParallelLocalJoin<DistOut, Idx> {
-  using EdgeUpdate = std::tuple<Idx, Idx, DistOut>;
+template <typename Out, typename Idx>
+class CacheParallelLocalJoin : public ParallelLocalJoin<Out, Idx> {
+  using EdgeUpdate = std::tuple<Idx, Idx, Out>;
 
 public:
-  const BaseDistance<DistOut, Idx> &distance;
+  const BaseDistance<Out, Idx> &distance;
   EdgeCache<Idx> cache;
   std::vector<std::vector<EdgeUpdate>> edge_updates;
 
-  CacheParallelLocalJoin(const NNDHeap<DistOut, Idx> &current_graph,
-                         const BaseDistance<DistOut, Idx> &distance)
+  CacheParallelLocalJoin(const NNDHeap<Out, Idx> &current_graph,
+                         const BaseDistance<Out, Idx> &distance)
       : distance(distance), cache(EdgeCache<Idx>::from_graph(current_graph)),
         edge_updates(current_graph.n_points) {}
 
-  void generate(const NNDHeap<DistOut, Idx> &current_graph, Idx idx_p,
-                Idx idx_q, std::size_t key) override {
+  void generate(const NNDHeap<Out, Idx> &current_graph, Idx idx_p, Idx idx_q,
+                std::size_t key) override {
     auto [idx_pp, idx_qq] = std::minmax(idx_p, idx_q);
 
     if (cache.contains(idx_pp, idx_qq)) {
@@ -157,7 +156,7 @@ public:
     }
   }
 
-  unsigned long apply(NNDHeap<DistOut, Idx> &current_graph) override {
+  unsigned long apply(NNDHeap<Out, Idx> &current_graph) override {
     unsigned long num_updates = 0;
     for (auto &edge_set : edge_updates) {
       for (const auto &[idx_p, idx_q, dist_pq] : edge_set) {
@@ -271,25 +270,25 @@ void flag_new_candidates(NNDHeap<Out, Idx> &nn_heap,
   dispatch_work(worker, nn_heap.n_points, n_threads, executor);
 }
 
-template <typename DistOut, typename Idx>
-void nnd_build(NNDHeap<DistOut, Idx> &nn_heap,
-               ParallelLocalJoin<DistOut, Idx> &local_join,
+template <typename Out, typename Idx>
+void nnd_build(NNDHeap<Out, Idx> &nn_heap,
+               ParallelLocalJoin<Out, Idx> &local_join,
                std::size_t max_candidates, unsigned int n_iters, double delta,
                NNDProgressBase &progress, ParallelRandomProvider &parallel_rand,
                std::size_t n_threads, Executor &executor) {
   const std::size_t n_points = nn_heap.n_points;
   const double tol = delta * nn_heap.n_nbrs * n_points;
 
-  LockingHeapAdder<DistOut, Idx> heap_adder;
+  LockingHeapAdder<Out, Idx> heap_adder;
 
   for (auto iter = 0U; iter < n_iters; iter++) {
-    NNHeap<DistOut, Idx> new_nbrs(n_points, max_candidates);
+    NNHeap<Out, Idx> new_nbrs(n_points, max_candidates);
     decltype(new_nbrs) old_nbrs(n_points, max_candidates);
 
-    build_candidates<DistOut, Idx>(nn_heap, new_nbrs, old_nbrs, parallel_rand,
-                                   heap_adder, n_threads, executor);
+    build_candidates<Out, Idx>(nn_heap, new_nbrs, old_nbrs, parallel_rand,
+                               heap_adder, n_threads, executor);
 
-    flag_new_candidates<DistOut, Idx>(nn_heap, new_nbrs, n_threads, executor);
+    flag_new_candidates<Out, Idx>(nn_heap, new_nbrs, n_threads, executor);
 
     auto num_updates = local_join.execute(nn_heap, new_nbrs, old_nbrs, progress,
                                           n_threads, executor);

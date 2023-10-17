@@ -37,10 +37,10 @@
 
 namespace tdoann {
 
-template <typename Output, typename Index>
-void nnbf_query_impl(NNHeap<Output, Index> &neighbor_heap,
-                     const BaseDistance<Output, Index> &distance,
-                     std::size_t begin, std::size_t end) {
+template <typename Out, typename Idx>
+void nnbf_query_impl(NNHeap<Out, Idx> &neighbor_heap,
+                     const BaseDistance<Out, Idx> &distance, std::size_t begin,
+                     std::size_t end) {
 
   const auto n_ref_points = distance.get_nx();
   for (std::size_t ref = 0; ref < n_ref_points; ref++) {
@@ -53,11 +53,11 @@ void nnbf_query_impl(NNHeap<Output, Index> &neighbor_heap,
   }
 }
 
-template <typename Output, typename Index>
-auto nnbf_query(const BaseDistance<Output, Index> &distance, Index n_nbrs,
+template <typename Out, typename Idx>
+auto nnbf_query(const BaseDistance<Out, Idx> &distance, Idx n_nbrs,
                 std::size_t n_threads, ProgressBase &progress,
-                Executor &executor) -> NNGraph<Output, Index> {
-  NNHeap<Output, Index> neighbor_heap(distance.get_ny(), n_nbrs);
+                Executor &executor) -> NNGraph<Out, Idx> {
+  NNHeap<Out, Idx> neighbor_heap(distance.get_ny(), n_nbrs);
   auto worker = [&](std::size_t begin, std::size_t end) {
     nnbf_query_impl(neighbor_heap, distance, begin, end);
   };
@@ -87,9 +87,9 @@ inline void upper_tri_2d(std::size_t k, std::size_t n, std::size_t &i,
 }
 // NOLINTEND(cppcoreguidelines-avoid-magic-numbers,readability-identifier-length,readability-magic-numbers)
 
-template <typename Output, typename Index>
-void nnbf_impl(const BaseDistance<Output, Index> &distance,
-               NNHeap<Output, Index> &neighbor_heap, std::size_t begin,
+template <typename Out, typename Idx>
+void nnbf_impl(const BaseDistance<Out, Idx> &distance,
+               NNHeap<Out, Idx> &neighbor_heap, std::size_t begin,
                std::size_t end) {
   const std::size_t n_points = neighbor_heap.n_points;
 
@@ -98,7 +98,7 @@ void nnbf_impl(const BaseDistance<Output, Index> &distance,
   upper_tri_2d(begin, n_points, idx_i, idx_j);
 
   for (std::size_t k = begin; k < end; k++) {
-    Output dist_ij = distance.calculate(idx_i, idx_j);
+    auto dist_ij = distance.calculate(idx_i, idx_j);
     if (neighbor_heap.accepts(idx_i, dist_ij)) {
       neighbor_heap.unchecked_push(idx_i, dist_ij, idx_j);
     }
@@ -113,15 +113,14 @@ void nnbf_impl(const BaseDistance<Output, Index> &distance,
   }
 }
 
-template <typename Output, typename Index>
-auto brute_force_build(const BaseDistance<Output, Index> &distance,
-                       Index n_nbrs, std::size_t n_threads,
-                       ProgressBase &progress, Executor &executor)
-    -> NNGraph<Output, Index> {
+template <typename Out, typename Idx>
+auto brute_force_build(const BaseDistance<Out, Idx> &distance, Idx n_nbrs,
+                       std::size_t n_threads, ProgressBase &progress,
+                       Executor &executor) -> NNGraph<Out, Idx> {
   if (n_threads > 0) {
     return nnbf_query(distance, n_nbrs, n_threads, progress, executor);
   }
-  NNHeap<Output, Index> neighbor_heap(distance.get_ny(), n_nbrs);
+  NNHeap<Out, Idx> neighbor_heap(distance.get_ny(), n_nbrs);
   auto worker = [&](std::size_t begin, std::size_t end) {
     nnbf_impl(distance, neighbor_heap, begin, end);
   };
@@ -136,11 +135,10 @@ auto brute_force_build(const BaseDistance<Output, Index> &distance,
   return heap_to_graph(neighbor_heap);
 }
 
-template <typename Output, typename Index>
-auto brute_force_query(const BaseDistance<Output, Index> &distance,
-                       Index n_nbrs, std::size_t n_threads,
-                       ProgressBase &progress, Executor &executor)
-    -> NNGraph<Output, Index> {
+template <typename Out, typename Idx>
+auto brute_force_query(const BaseDistance<Out, Idx> &distance, Idx n_nbrs,
+                       std::size_t n_threads, ProgressBase &progress,
+                       Executor &executor) -> NNGraph<Out, Idx> {
   return nnbf_query(distance, n_nbrs, n_threads, progress, executor);
 }
 

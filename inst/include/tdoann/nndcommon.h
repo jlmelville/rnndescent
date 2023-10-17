@@ -190,8 +190,8 @@ public:
   }
 
   // Static factory function
-  template <typename DistOut>
-  static EdgeCache<Idx> from_graph(const NNDHeap<DistOut, Idx> &heap) {
+  template <typename Out>
+  static EdgeCache<Idx> from_graph(const NNDHeap<Out, Idx> &heap) {
     return EdgeCache<Idx>(heap.n_points, heap.n_nbrs, heap.idx);
   }
 
@@ -206,9 +206,9 @@ public:
 
 // mark any neighbor in the current graph that was retained in the new
 // candidates as false
-template <typename DistOut, typename Idx>
-void flag_retained_new_candidates(NNDHeap<DistOut, Idx> &current_graph,
-                                  const NNHeap<DistOut, Idx> &new_nbrs,
+template <typename Out, typename Idx>
+void flag_retained_new_candidates(NNDHeap<Out, Idx> &current_graph,
+                                  const NNHeap<Out, Idx> &new_nbrs,
                                   std::size_t begin, std::size_t end) {
   const std::size_t n_nbrs = current_graph.n_nbrs;
   for (std::size_t i = begin, idx_offset = 0; i < end;

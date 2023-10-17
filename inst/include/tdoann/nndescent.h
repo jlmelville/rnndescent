@@ -36,20 +36,19 @@
 
 namespace tdoann {
 
-template <typename DistOut, typename Idx> class SerialLocalJoin {
+template <typename Out, typename Idx> class SerialLocalJoin {
 public:
   virtual ~SerialLocalJoin() = default;
 
-  virtual auto update(NNDHeap<DistOut, Idx> &current_graph, Idx idx_p,
-                      Idx idx_q) -> std::size_t = 0;
+  virtual auto update(NNDHeap<Out, Idx> &current_graph, Idx idx_p, Idx idx_q)
+      -> std::size_t = 0;
 
   // Local join update: instead of updating item i with the neighbors of the
   // candidates of i, explore pairs (p, q) of candidates and treat q as a
   // candidate for p, and vice versa.
-  auto execute(NNDHeap<DistOut, Idx> &current_graph,
-               const NNHeap<DistOut, Idx> &new_nbrs,
-               decltype(new_nbrs) &old_nbrs, NNDProgressBase &progress)
-      -> unsigned long {
+  auto execute(NNDHeap<Out, Idx> &current_graph,
+               const NNHeap<Out, Idx> &new_nbrs, decltype(new_nbrs) &old_nbrs,
+               NNDProgressBase &progress) -> unsigned long {
     const auto n_points = new_nbrs.n_points;
     const auto max_candidates = new_nbrs.n_nbrs;
     progress.set_n_batches(n_points);
@@ -85,16 +84,15 @@ public:
   }
 };
 
-template <typename DistOut, typename Idx>
-class LowMemSerialLocalJoin : public SerialLocalJoin<DistOut, Idx> {
+template <typename Out, typename Idx>
+class LowMemSerialLocalJoin : public SerialLocalJoin<Out, Idx> {
 
 public:
-  const BaseDistance<DistOut, Idx> &distance;
+  const BaseDistance<Out, Idx> &distance;
 
-  LowMemSerialLocalJoin(const BaseDistance<DistOut, Idx> &dist)
-      : distance(dist) {}
+  LowMemSerialLocalJoin(const BaseDistance<Out, Idx> &dist) : distance(dist) {}
 
-  std::size_t update(NNDHeap<DistOut, Idx> &current_graph, Idx idx_p,
+  std::size_t update(NNDHeap<Out, Idx> &current_graph, Idx idx_p,
                      Idx idx_q) override {
     const auto dist_pq = distance.calculate(idx_p, idx_q);
     if (current_graph.accepts_either(idx_p, idx_q, dist_pq)) {
@@ -104,18 +102,18 @@ public:
   }
 };
 
-template <typename DistOut, typename Idx>
-class CacheSerialLocalJoin : public SerialLocalJoin<DistOut, Idx> {
+template <typename Out, typename Idx>
+class CacheSerialLocalJoin : public SerialLocalJoin<Out, Idx> {
 
 public:
-  const BaseDistance<DistOut, Idx> &distance;
+  const BaseDistance<Out, Idx> &distance;
   EdgeCache<Idx> cache;
 
-  CacheSerialLocalJoin(const NNDHeap<DistOut, Idx> &graph,
-                       const BaseDistance<DistOut, Idx> &dist)
+  CacheSerialLocalJoin(const NNDHeap<Out, Idx> &graph,
+                       const BaseDistance<Out, Idx> &dist)
       : distance(dist), cache(EdgeCache<Idx>::from_graph(graph)) {}
 
-  std::size_t update(NNDHeap<DistOut, Idx> &current_graph, Idx idx_p,
+  std::size_t update(NNDHeap<Out, Idx> &current_graph, Idx idx_p,
                      Idx idx_q) override {
     Idx upd_p, upd_q;
     std::tie(upd_p, upd_q) = std::minmax(idx_p, idx_q);
@@ -156,10 +154,10 @@ public:
 // of the KNN are assigned into old and new based on their flag value, with the
 // size of the final candidate list controlled by the maximum size of
 // the candidates neighbors lists.
-template <typename DistOut, typename Idx>
-void build_candidates(NNDHeap<DistOut, Idx> &current_graph,
-                      NNHeap<DistOut, Idx> &new_nbrs,
-                      decltype(new_nbrs) &old_nbrs, RandomGenerator &rand) {
+template <typename Out, typename Idx>
+void build_candidates(NNDHeap<Out, Idx> &current_graph,
+                      NNHeap<Out, Idx> &new_nbrs, decltype(new_nbrs) &old_nbrs,
+                      RandomGenerator &rand) {
   constexpr auto npos = static_cast<Idx>(-1);
   const std::size_t n_points = current_graph.n_points;
   const std::size_t n_nbrs = current_graph.n_nbrs;
@@ -178,16 +176,16 @@ void build_candidates(NNDHeap<DistOut, Idx> &current_graph,
 }
 
 // Pretty close to the NNDescentFull algorithm (#2 in the paper)
-template <typename DistOut, typename Idx>
-void nnd_build(NNDHeap<DistOut, Idx> &nn_heap,
-               SerialLocalJoin<DistOut, Idx> &local_join,
+template <typename Out, typename Idx>
+void nnd_build(NNDHeap<Out, Idx> &nn_heap,
+               SerialLocalJoin<Out, Idx> &local_join,
                std::size_t max_candidates, unsigned int n_iters, double delta,
                RandomGenerator &rand, NNDProgressBase &progress) {
   const std::size_t n_points = nn_heap.n_points;
   const double tol = delta * nn_heap.n_nbrs * n_points;
 
   for (auto iter = 0U; iter < n_iters; iter++) {
-    NNHeap<DistOut, Idx> new_nbrs(n_points, max_candidates);
+    NNHeap<Out, Idx> new_nbrs(n_points, max_candidates);
     decltype(new_nbrs) old_nbrs(n_points, max_candidates);
 
     build_candidates(nn_heap, new_nbrs, old_nbrs, rand);

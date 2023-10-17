@@ -37,25 +37,23 @@
 
 namespace tdoann {
 
-template <typename DistOut = float, typename Idx = uint32_t>
-struct SparseNNGraph {
+template <typename Out = float, typename Idx = uint32_t> struct SparseNNGraph {
   std::vector<std::size_t> row_ptr;
   std::vector<Idx> col_idx;
-  std::vector<DistOut> dist;
+  std::vector<Out> dist;
   std::size_t n_points;
 
   SparseNNGraph(const std::vector<std::size_t> &row_ptr,
-                const std::vector<Idx> &col_idx,
-                const std::vector<DistOut> &dist)
+                const std::vector<Idx> &col_idx, const std::vector<Out> &dist)
       : row_ptr(row_ptr), col_idx(col_idx), dist(dist),
         n_points(row_ptr.size() - 1) {}
 
-  using DistanceOut = DistOut;
+  using DistanceOut = Out;
   using Index = Idx;
 
   static constexpr auto npos() -> Idx { return static_cast<Idx>(-1); }
 
-  static constexpr auto zero = static_cast<DistOut>(0);
+  static constexpr auto zero = static_cast<Out>(0);
 
   auto n_nbrs(Idx idx) const -> std::size_t {
     return row_ptr[idx + 1] - row_ptr[idx];
@@ -67,10 +65,10 @@ struct SparseNNGraph {
   }
 
   // distance of the ith non-zero nbr of idx
-  auto distance(Idx idx, Idx i) const -> DistOut {
+  auto distance(Idx idx, Idx i) const -> Out {
     return dist[row_ptr[idx] + static_cast<std::size_t>(i)];
   }
-  auto distance(Idx idx, Idx i) -> DistOut & {
+  auto distance(Idx idx, Idx i) -> Out & {
     return dist[row_ptr[idx] + static_cast<std::size_t>(i)];
   }
 
@@ -81,27 +79,27 @@ struct SparseNNGraph {
   }
 };
 
-template <typename DistOut = float, typename Idx = uint32_t> struct NNGraph {
+template <typename Out = float, typename Idx = uint32_t> struct NNGraph {
   std::vector<Idx> idx;
-  std::vector<DistOut> dist;
+  std::vector<Out> dist;
 
   std::size_t n_points;
   std::size_t n_nbrs;
 
   static constexpr auto npos() -> Idx { return static_cast<Idx>(-1); }
 
-  NNGraph(const std::vector<Idx> &idx, const std::vector<DistOut> &dist,
+  NNGraph(const std::vector<Idx> &idx, const std::vector<Out> &dist,
           std::size_t n_points)
       : idx(idx), dist(dist), n_points(n_points),
         n_nbrs(idx.size() / n_points) {}
 
   NNGraph(std::size_t n_points, std::size_t n_nbrs)
       : idx(std::vector<Idx>(n_points * n_nbrs, npos())),
-        dist(std::vector<DistOut>(n_points * n_nbrs,
-                                  (std::numeric_limits<DistOut>::max)())),
+        dist(std::vector<Out>(n_points * n_nbrs,
+                              (std::numeric_limits<Out>::max)())),
         n_points(n_points), n_nbrs(n_nbrs) {}
 
-  using DistanceOut = DistOut;
+  using DistanceOut = Out;
   using Index = Idx;
 };
 
@@ -264,9 +262,9 @@ void sort_query_graph(NbrGraph &nn_graph, std::size_t n_threads,
   heap_to_graph(heap, nn_graph);
 }
 
-template <typename Out, typename Index>
-void idx_to_graph(const BaseDistance<Out, Index> &distance,
-                  const std::vector<Index> &idx, std::vector<Out> &dist,
+template <typename Out, typename Idx>
+void idx_to_graph(const BaseDistance<Out, Idx> &distance,
+                  const std::vector<Idx> &idx, std::vector<Out> &dist,
                   std::size_t n_nbrs, std::size_t begin, std::size_t end) {
   for (auto i = begin, innbrs = i * n_nbrs; i < end; i++, innbrs += n_nbrs) {
     for (std::size_t j = 0, idx_ij = innbrs; j < n_nbrs; j++, idx_ij++) {
@@ -275,11 +273,11 @@ void idx_to_graph(const BaseDistance<Out, Index> &distance,
   }
 }
 
-template <typename Out, typename Index>
-auto idx_to_graph(const BaseDistance<Out, Index> &distance,
-                  const std::vector<Index> &idx, std::size_t n_threads,
+template <typename Out, typename Idx>
+auto idx_to_graph(const BaseDistance<Out, Idx> &distance,
+                  const std::vector<Idx> &idx, std::size_t n_threads,
                   ProgressBase &progress, Executor &executor)
-    -> NNGraph<Out, Index> {
+    -> NNGraph<Out, Idx> {
   const std::size_t n_points = distance.get_ny();
   const std::size_t n_nbrs = idx.size() / n_points;
   std::vector<Out> dist(idx.size());
@@ -290,7 +288,7 @@ auto idx_to_graph(const BaseDistance<Out, Index> &distance,
   progress.set_n_iters(1);
   ExecutionParams exec_params{1024};
   dispatch_work(worker, n_points, n_threads, exec_params, progress, executor);
-  return NNGraph<Out, Index>(idx, dist, n_points);
+  return NNGraph<Out, Idx>(idx, dist, n_points);
 }
 
 } // namespace tdoann

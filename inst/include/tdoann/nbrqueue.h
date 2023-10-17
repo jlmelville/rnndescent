@@ -35,9 +35,9 @@ namespace tdoann {
 
 // A priority queue that stores neighbors, where a smaller distance gives
 // a higher priority
-template <typename DistOut, typename Idx> class NbrQueue {
+template <typename Out, typename Idx> class NbrQueue {
 private:
-  using Nbr = std::pair<DistOut, Idx>;
+  using Nbr = std::pair<Out, Idx>;
 
   // std::priority_queue is a max heap, so we need to implement the comparison
   // as "greater than" to get the smallest distance first

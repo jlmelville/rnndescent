@@ -84,12 +84,12 @@ void local_scale(const std::vector<typename NbrHeap::Index> &idx_vec,
   dispatch_work(heap_worker, n_points, n_threads, progress, executor);
 }
 
-template <typename Dist, typename Idx>
+template <typename Out, typename Idx>
 void local_scaled_distances(std::size_t begin, std::size_t end,
                             const std::vector<Idx> &idx,
-                            const std::vector<Dist> &dist, std::size_t n_nbrs,
-                            const std::vector<Dist> &local_scales,
-                            std::vector<Dist> &sdist) {
+                            const std::vector<Out> &dist, std::size_t n_nbrs,
+                            const std::vector<Out> &local_scales,
+                            std::vector<Out> &sdist) {
   for (auto i = begin, innbrs = i * n_nbrs; i < end; i++, innbrs += n_nbrs) {
     auto scalei = local_scales[i];
     for (std::size_t j = 0, idx_ij = innbrs; j < n_nbrs; j++, idx_ij++) {
@@ -100,15 +100,15 @@ void local_scaled_distances(std::size_t begin, std::size_t end,
   }
 }
 
-template <typename Dist, typename Idx>
+template <typename Out, typename Idx>
 auto local_scaled_distances(const std::vector<Idx> &idx,
-                            const std::vector<Dist> &dist, std::size_t n_nbrs,
-                            const std::vector<Dist> &local_scales,
+                            const std::vector<Out> &dist, std::size_t n_nbrs,
+                            const std::vector<Out> &local_scales,
                             std::size_t n_threads, ProgressBase &progress,
-                            Executor &executor) -> std::vector<Dist> {
+                            Executor &executor) -> std::vector<Out> {
 
   std::size_t n_points = local_scales.size();
-  std::vector<Dist> sdist(dist.size());
+  std::vector<Out> sdist(dist.size());
 
   auto worker = [&](std::size_t begin, std::size_t end) {
     local_scaled_distances(begin, end, idx, dist, n_nbrs, local_scales, sdist);

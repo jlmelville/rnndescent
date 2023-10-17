@@ -47,30 +47,29 @@ create_nnd_progress(const std::string &progress_type, unsigned int n_iters,
       std::make_unique<RIterProgress>(n_iters, verbose));
 }
 
-template <typename Out, typename Index>
-std::unique_ptr<tdoann::ParallelLocalJoin<Out, Index>>
-create_parallel_local_join(const tdoann::NNDHeap<Out, Index> &nn_heap,
-                           const tdoann::BaseDistance<Out, Index> &distance,
+template <typename Out, typename Idx>
+std::unique_ptr<tdoann::ParallelLocalJoin<Out, Idx>>
+create_parallel_local_join(const tdoann::NNDHeap<Out, Idx> &nn_heap,
+                           const tdoann::BaseDistance<Out, Idx> &distance,
                            bool low_memory) {
   if (low_memory) {
-    return std::make_unique<tdoann::LowMemParallelLocalJoin<Out, Index>>(
+    return std::make_unique<tdoann::LowMemParallelLocalJoin<Out, Idx>>(
         distance);
   }
-  return std::make_unique<tdoann::CacheParallelLocalJoin<Out, Index>>(nn_heap,
-                                                                      distance);
+  return std::make_unique<tdoann::CacheParallelLocalJoin<Out, Idx>>(nn_heap,
+                                                                    distance);
 }
 
-template <typename Out, typename Index>
-std::unique_ptr<tdoann::SerialLocalJoin<Out, Index>>
-create_serial_local_join(const tdoann::NNDHeap<Out, Index> &nn_heap,
-                         const tdoann::BaseDistance<Out, Index> &distance,
+template <typename Out, typename Idx>
+std::unique_ptr<tdoann::SerialLocalJoin<Out, Idx>>
+create_serial_local_join(const tdoann::NNDHeap<Out, Idx> &nn_heap,
+                         const tdoann::BaseDistance<Out, Idx> &distance,
                          bool low_memory) {
   if (low_memory) {
-    return std::make_unique<tdoann::LowMemSerialLocalJoin<Out, Index>>(
-        distance);
+    return std::make_unique<tdoann::LowMemSerialLocalJoin<Out, Idx>>(distance);
   }
-  return std::make_unique<tdoann::CacheSerialLocalJoin<Out, Index>>(nn_heap,
-                                                                    distance);
+  return std::make_unique<tdoann::CacheSerialLocalJoin<Out, Idx>>(nn_heap,
+                                                                  distance);
 }
 
 // [[Rcpp::export]]

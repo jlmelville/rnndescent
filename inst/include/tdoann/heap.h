@@ -35,9 +35,9 @@
 
 namespace tdoann {
 
-template <typename DistOut>
+template <typename Out>
 auto should_swap(std::size_t root, std::size_t len,
-                 const std::vector<DistOut> &weights, const DistOut &weight,
+                 const std::vector<Out> &weights, const Out &weight,
                  std::size_t parent_idx, std::size_t &swap_idx) -> bool {
   constexpr std::size_t left_offset = 1;
   constexpr std::size_t right_offset = 2;
@@ -66,9 +66,9 @@ auto should_swap(std::size_t root, std::size_t len,
 
 // Ensure max-heap property by moving the root element downwards until it is
 // in the correct position in the heap.
-template <typename DistOut, typename Idx>
+template <typename Out, typename Idx>
 void siftdown(std::size_t root, std::size_t len, std::vector<Idx> &idx,
-              std::vector<DistOut> &weights) {
+              std::vector<Out> &weights) {
 
   std::size_t parent = 0;
   std::size_t swap;
@@ -111,8 +111,8 @@ void siftdown(std::size_t root, std::size_t len, std::vector<Idx> &idx,
   }
 }
 
-template <typename DistOut, typename Idx>
-void deheap_sort(std::vector<Idx> &idx, std::vector<DistOut> &dist,
+template <typename Out, typename Idx>
+void deheap_sort(std::vector<Idx> &idx, std::vector<Out> &dist,
                  std::size_t neighbors_start, std::size_t neighbors_end) {
   auto remaining_size = neighbors_end - neighbors_start;
 
@@ -189,9 +189,9 @@ template <typename T> auto limit_max() -> T {
 }
 
 // Base class storing neighbor data as a series of heaps
-template <typename DistOut = float, typename Idx = uint32_t> class NNDHeap {
+template <typename Out = float, typename Idx = uint32_t> class NNDHeap {
 public:
-  using DistanceOut = DistOut;
+  using DistanceOut = Out;
   using Index = Idx;
 
   static constexpr auto npos() -> Idx { return static_cast<Idx>(-1); }
@@ -199,13 +199,13 @@ public:
   Idx n_points;
   Idx n_nbrs;
   std::vector<Idx> idx;
-  std::vector<DistOut> dist;
+  std::vector<Out> dist;
   Idx n_nbrs1;
   std::vector<uint8_t> flags;
 
   NNDHeap(std::size_t n_points, std::size_t n_nbrs)
       : n_points(n_points), n_nbrs(n_nbrs), idx(n_points * n_nbrs, npos()),
-        dist(n_points * n_nbrs, (std::numeric_limits<DistOut>::max)()),
+        dist(n_points * n_nbrs, (std::numeric_limits<Out>::max)()),
         n_nbrs1(n_nbrs - 1), flags(n_points * n_nbrs, 0) {}
 
   NNDHeap(const NNDHeap &) = default;
@@ -222,18 +222,18 @@ public:
   }
 
   // returns true if either p or q would accept a neighbor with distance dist
-  auto accepts_either(Idx idx_p, Idx idx_q, const DistOut &d_pq) const -> bool {
+  auto accepts_either(Idx idx_p, Idx idx_q, const Out &d_pq) const -> bool {
     return (idx_p < n_points && d_pq < dist[idx_p * n_nbrs]) ||
            (idx_p != idx_q && idx_q < n_points && d_pq < dist[idx_q * n_nbrs]);
   }
 
   // returns true if p would accept a neighbor with distance d
-  auto accepts(Idx idx_p, const DistOut &d_pq) const -> bool {
+  auto accepts(Idx idx_p, const Out &d_pq) const -> bool {
     return idx_p < n_points && d_pq < dist[idx_p * n_nbrs];
   }
 
-  auto checked_push_pair(Idx row, const DistOut &weight, Idx idx,
-                         uint8_t flag = 1) -> unsigned int {
+  auto checked_push_pair(Idx row, const Out &weight, Idx idx, uint8_t flag = 1)
+      -> unsigned int {
     unsigned int num_updates = checked_push(row, weight, idx, flag);
     if (row != idx) {
       // NOLINTNEXTLINE(readability-suspicious-call-argument)
@@ -242,7 +242,7 @@ public:
     return num_updates;
   }
 
-  auto checked_push(Idx row, const DistOut &weight, Idx idx, uint8_t flag = 1)
+  auto checked_push(Idx row, const Out &weight, Idx idx, uint8_t flag = 1)
       -> unsigned int {
     if (!accepts(row, weight) || contains(row, idx)) {
       return 0U;
@@ -253,7 +253,7 @@ public:
   }
 
   // This differs from the pynndescent version as it is truly unchecked
-  void unchecked_push(Idx row, const DistOut &weight, Idx index,
+  void unchecked_push(Idx row, const Out &weight, Idx index,
                       uint8_t flag = 1U) {
     std::size_t root = row * n_nbrs;
 
@@ -301,9 +301,9 @@ public:
 
   auto index(Idx i, Idx j) const -> Idx { return idx[i * n_nbrs + j]; }
 
-  auto distance(Idx i, Idx j) const -> DistOut { return dist[i * n_nbrs + j]; }
+  auto distance(Idx i, Idx j) const -> Out { return dist[i * n_nbrs + j]; }
 
-  auto max_distance(Idx i) const -> DistOut { return dist[i * n_nbrs]; }
+  auto max_distance(Idx i) const -> Out { return dist[i * n_nbrs]; }
 
   auto is_full(Idx i) const -> bool { return idx[i * n_nbrs] != npos(); }
 
@@ -311,10 +311,10 @@ public:
 };
 
 // Like NNDHeap, but no flag vector
-template <typename DistOut = float, typename Idx = uint32_t,
-          DistOut (*max_dist_func)() = limit_max>
+template <typename Out = float, typename Idx = uint32_t,
+          Out (*max_dist_func)() = limit_max>
 struct NNHeap {
-  using DistanceOut = DistOut;
+  using DistanceOut = Out;
   using Index = Idx;
 
   static constexpr auto npos() -> Idx { return static_cast<Idx>(-1); }
@@ -322,7 +322,7 @@ struct NNHeap {
   Idx n_points;
   Idx n_nbrs;
   std::vector<Idx> idx;
-  std::vector<DistOut> dist;
+  std::vector<Out> dist;
   Idx n_nbrs1;
 
   NNHeap(Idx n_points, Idx n_nbrs)
@@ -343,17 +343,17 @@ struct NNHeap {
   }
 
   // returns true if idx_p would accept a neighbor with distance d_pq
-  auto accepts(Idx idx_p, const DistOut &d_pq) const -> bool {
+  auto accepts(Idx idx_p, const Out &d_pq) const -> bool {
     return idx_p < n_points && d_pq < dist[idx_p * n_nbrs];
   }
 
   // returns true if either idx_p or idx_q would accept a neighbor with distance
   // d_pq
-  auto accepts_either(Idx idx_p, Idx idx_q, const DistOut &d_pq) const -> bool {
+  auto accepts_either(Idx idx_p, Idx idx_q, const Out &d_pq) const -> bool {
     return accepts(idx_p, d_pq) || (idx_p != idx_q && accepts(idx_q, d_pq));
   }
 
-  auto checked_push_pair(std::size_t row, const DistOut &weight, Idx idx)
+  auto checked_push_pair(std::size_t row, const Out &weight, Idx idx)
       -> unsigned int {
     unsigned int n_updates = checked_push(row, weight, idx);
     if (row != idx) {
@@ -363,7 +363,7 @@ struct NNHeap {
     return n_updates;
   }
 
-  auto checked_push(Idx row, const DistOut &weight, Idx idx) -> unsigned int {
+  auto checked_push(Idx row, const Out &weight, Idx idx) -> unsigned int {
     if (!accepts(row, weight) || contains(row, idx)) {
       return 0U;
     }
@@ -372,7 +372,7 @@ struct NNHeap {
     return 1U;
   }
 
-  void unchecked_push(Idx row, const DistOut &weight, Idx index) {
+  void unchecked_push(Idx row, const Out &weight, Idx index) {
     const std::size_t root = row * n_nbrs;
 
     // insert val at position zero
@@ -413,9 +413,9 @@ struct NNHeap {
 
   auto index(Idx i, Idx j) const -> Idx { return idx[i * n_nbrs + j]; }
 
-  auto distance(Idx i, Idx j) const -> DistOut { return dist[i * n_nbrs + j]; }
+  auto distance(Idx i, Idx j) const -> Out { return dist[i * n_nbrs + j]; }
 
-  auto max_distance(Idx i) const -> DistOut { return dist[i * n_nbrs]; }
+  auto max_distance(Idx i) const -> Out { return dist[i * n_nbrs]; }
 
   auto is_full(Idx i) const -> bool { return idx[i * n_nbrs] != npos(); }
   // NOLINTEND(readability-identifier-length)

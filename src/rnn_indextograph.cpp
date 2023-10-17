@@ -33,11 +33,11 @@ using Rcpp::IntegerMatrix;
 using Rcpp::List;
 using Rcpp::NumericMatrix;
 
-template <typename Output, typename Index>
-auto idx_to_graph_impl(const tdoann::BaseDistance<Output, Index> &distance,
+template <typename Out, typename Idx>
+auto idx_to_graph_impl(const tdoann::BaseDistance<Out, Idx> &distance,
                        const IntegerMatrix &idx, std::size_t n_threads = 0,
                        bool verbose = false) -> List {
-  auto idx_vec = r_to_idxt<Index>(idx);
+  auto idx_vec = r_to_idxt<Idx>(idx);
   RPProgress progress(verbose);
   RParallelExecutor executor;
   auto nn_graph =

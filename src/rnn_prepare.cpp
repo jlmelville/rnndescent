@@ -32,11 +32,11 @@
 using Rcpp::List;
 using Rcpp::NumericMatrix;
 
-template <typename DistOut, typename Idx>
-auto diversify_impl(const tdoann::SparseNNGraph<DistOut, Idx> &graph,
-                    const tdoann::BaseDistance<DistOut, Idx> &distance,
+template <typename Out, typename Idx>
+auto diversify_impl(const tdoann::SparseNNGraph<Out, Idx> &graph,
+                    const tdoann::BaseDistance<Out, Idx> &distance,
                     double prune_probability, std::size_t n_threads)
-    -> tdoann::SparseNNGraph<DistOut, Idx> {
+    -> tdoann::SparseNNGraph<Out, Idx> {
   if (n_threads == 0) {
     rnndescent::RRand rand;
     return tdoann::remove_long_edges(graph, distance, rand, prune_probability);
