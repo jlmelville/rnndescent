@@ -42,73 +42,73 @@ BEGIN_RCPP
 END_RCPP
 }
 // euclidean_distance
-double euclidean_distance(NumericVector x, NumericVector y);
+double euclidean_distance(const NumericVector& x, const NumericVector& y);
 RcppExport SEXP _rnndescent_euclidean_distance(SEXP xSEXP, SEXP ySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type y(ySEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type y(ySEXP);
     rcpp_result_gen = Rcpp::wrap(euclidean_distance(x, y));
     return rcpp_result_gen;
 END_RCPP
 }
 // l2sqr_distance
-double l2sqr_distance(NumericVector x, NumericVector y);
+double l2sqr_distance(const NumericVector& x, const NumericVector& y);
 RcppExport SEXP _rnndescent_l2sqr_distance(SEXP xSEXP, SEXP ySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type y(ySEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type y(ySEXP);
     rcpp_result_gen = Rcpp::wrap(l2sqr_distance(x, y));
     return rcpp_result_gen;
 END_RCPP
 }
 // cosine_distance
-double cosine_distance(NumericVector x, NumericVector y);
+double cosine_distance(const NumericVector& x, const NumericVector& y);
 RcppExport SEXP _rnndescent_cosine_distance(SEXP xSEXP, SEXP ySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type y(ySEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type y(ySEXP);
     rcpp_result_gen = Rcpp::wrap(cosine_distance(x, y));
     return rcpp_result_gen;
 END_RCPP
 }
 // manhattan_distance
-double manhattan_distance(NumericVector x, NumericVector y);
+double manhattan_distance(const NumericVector& x, const NumericVector& y);
 RcppExport SEXP _rnndescent_manhattan_distance(SEXP xSEXP, SEXP ySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type y(ySEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type y(ySEXP);
     rcpp_result_gen = Rcpp::wrap(manhattan_distance(x, y));
     return rcpp_result_gen;
 END_RCPP
 }
 // hamming_distance
-double hamming_distance(IntegerVector x, IntegerVector y);
+double hamming_distance(const IntegerVector& x, const IntegerVector& y);
 RcppExport SEXP _rnndescent_hamming_distance(SEXP xSEXP, SEXP ySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< IntegerVector >::type x(xSEXP);
-    Rcpp::traits::input_parameter< IntegerVector >::type y(ySEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type y(ySEXP);
     rcpp_result_gen = Rcpp::wrap(hamming_distance(x, y));
     return rcpp_result_gen;
 END_RCPP
 }
 // correlation_distance
-double correlation_distance(NumericVector x, NumericVector y);
+double correlation_distance(const NumericVector& x, const NumericVector& y);
 RcppExport SEXP _rnndescent_correlation_distance(SEXP xSEXP, SEXP ySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type y(ySEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type y(ySEXP);
     rcpp_result_gen = Rcpp::wrap(correlation_distance(x, y));
     return rcpp_result_gen;
 END_RCPP
@@ -128,12 +128,12 @@ BEGIN_RCPP
 END_RCPP
 }
 // shared_nbr_size_impl
-IntegerVector shared_nbr_size_impl(IntegerMatrix nn_idx, std::size_t n_neighbors);
+IntegerVector shared_nbr_size_impl(const IntegerMatrix& nn_idx, std::size_t n_neighbors);
 RcppExport SEXP _rnndescent_shared_nbr_size_impl(SEXP nn_idxSEXP, SEXP n_neighborsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< IntegerMatrix >::type nn_idx(nn_idxSEXP);
+    Rcpp::traits::input_parameter< const IntegerMatrix& >::type nn_idx(nn_idxSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type n_neighbors(n_neighborsSEXP);
     rcpp_result_gen = Rcpp::wrap(shared_nbr_size_impl(nn_idx, n_neighbors));
     return rcpp_result_gen;

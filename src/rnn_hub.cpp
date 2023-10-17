@@ -56,7 +56,7 @@ IntegerVector reverse_nbr_size_impl(const IntegerMatrix &nn_idx,
 }
 
 // [[Rcpp::export]]
-IntegerVector shared_nbr_size_impl(IntegerMatrix nn_idx,
+IntegerVector shared_nbr_size_impl(const IntegerMatrix &nn_idx,
                                    std::size_t n_neighbors) {
   const std::size_t n_items = nn_idx.nrow();
   constexpr std::size_t missing = static_cast<std::size_t>(-1);

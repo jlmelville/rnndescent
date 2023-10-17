@@ -30,7 +30,7 @@
 
 void print_time(bool print_date = false);
 void ts(const std::string &);
-void zero_index(Rcpp::IntegerMatrix, int max_idx = RNND_MAX_IDX,
+void zero_index(Rcpp::IntegerMatrix &, int max_idx = RNND_MAX_IDX,
                 bool missing_ok = false);
 
 template <typename DistOut>
@@ -45,12 +45,12 @@ auto graph_to_r(const tdoann::NNGraph<DistOut> &graph, bool unzero = false)
 }
 
 template <typename T>
-auto r_to_vec(Rcpp::NumericVector data) -> std::vector<T> {
+auto r_to_vec(const Rcpp::NumericVector &data) -> std::vector<T> {
   return Rcpp::as<std::vector<T>>(data);
 }
 
 template <typename T>
-auto r_to_vec(Rcpp::NumericMatrix data) -> std::vector<T> {
+auto r_to_vec(const Rcpp::NumericMatrix &data) -> std::vector<T> {
   return Rcpp::as<std::vector<T>>(data);
 }
 
@@ -62,8 +62,9 @@ auto r_to_vect(const Rcpp::NumericMatrix &data) -> std::vector<T> {
 template <typename Int>
 inline auto r_to_idx(const Rcpp::IntegerMatrix &nn_idx,
                      int max_idx = RNND_MAX_IDX) -> std::vector<Int> {
-  auto nn_idx_copy = Rcpp::clone(nn_idx);
-  zero_index(nn_idx_copy, max_idx, true);
+  Rcpp::IntegerMatrix nn_idx_copy = Rcpp::clone(nn_idx);
+  constexpr bool missing_ok = true;
+  zero_index(nn_idx_copy, max_idx, missing_ok);
   return Rcpp::as<std::vector<Int>>(nn_idx_copy);
 }
 
@@ -71,7 +72,8 @@ template <typename Int>
 inline auto r_to_idxt(const Rcpp::IntegerMatrix &nn_idx,
                       int max_idx = RNND_MAX_IDX) -> std::vector<Int> {
   auto nn_idx_copy = Rcpp::clone(nn_idx);
-  zero_index(nn_idx_copy, max_idx, true);
+  constexpr bool missing_ok = true;
+  zero_index(nn_idx_copy, max_idx, missing_ok);
   return Rcpp::as<std::vector<Int>>(Rcpp::transpose(nn_idx_copy));
 }
 
@@ -90,7 +92,8 @@ auto r_to_graph(const Rcpp::List &nn_graph) -> tdoann::NNGraph<Out, Idx> {
 }
 
 template <typename Out = double, typename Idx = uint32_t>
-auto r_to_sparse_graph(Rcpp::IntegerMatrix idx, Rcpp::NumericMatrix dist)
+auto r_to_sparse_graph(const Rcpp::IntegerMatrix &idx,
+                       const Rcpp::NumericMatrix &dist)
     -> tdoann::SparseNNGraph<Out, Idx> {
 
   auto idx_vec = r_to_idxt<Idx>(idx);

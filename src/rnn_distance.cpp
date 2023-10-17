@@ -27,7 +27,7 @@ using Rcpp::IntegerVector;
 using Rcpp::NumericVector;
 using Rcpp::stop;
 
-template <typename Vec> inline void check_vecs(Vec x, Vec y) {
+template <typename Vec> inline void check_vecs(const Vec &x, const Vec &y) {
   if (x.length() != y.length()) {
     stop("x and y are not the same length");
   }
@@ -39,7 +39,7 @@ template <typename Vec> inline void check_vecs(Vec x, Vec y) {
 //' @param y A numeric vector of the same length as \code{x}.
 //' @export
 // [[Rcpp::export]]
-double euclidean_distance(NumericVector x, NumericVector y) {
+double euclidean_distance(const NumericVector &x, const NumericVector &y) {
   check_vecs(x, y);
   return tdoann::euclidean<double>(x.begin(), x.end(), y.begin());
 }
@@ -50,7 +50,7 @@ double euclidean_distance(NumericVector x, NumericVector y) {
 //' @param y A numeric vector of the same length as \code{x}.
 //' @export
 // [[Rcpp::export]]
-double l2sqr_distance(NumericVector x, NumericVector y) {
+double l2sqr_distance(const NumericVector &x, const NumericVector &y) {
   check_vecs(x, y);
   return tdoann::l2sqr<double>(x.begin(), x.end(), y.begin());
 }
@@ -61,7 +61,7 @@ double l2sqr_distance(NumericVector x, NumericVector y) {
 //' @param y A numeric vector of the same length as \code{x}.
 //' @export
 // [[Rcpp::export]]
-double cosine_distance(NumericVector x, NumericVector y) {
+double cosine_distance(const NumericVector &x, const NumericVector &y) {
   check_vecs(x, y);
   return tdoann::cosine<double>(x.begin(), x.end(), y.begin());
 }
@@ -72,7 +72,7 @@ double cosine_distance(NumericVector x, NumericVector y) {
 //' @param y A numeric vector of the same length as \code{x}.
 //' @export
 // [[Rcpp::export]]
-double manhattan_distance(NumericVector x, NumericVector y) {
+double manhattan_distance(const NumericVector &x, const NumericVector &y) {
   check_vecs(x, y);
   return tdoann::manhattan<double>(x.begin(), x.end(), y.begin());
 }
@@ -83,7 +83,7 @@ double manhattan_distance(NumericVector x, NumericVector y) {
 //' @param y An integer vector of the same length as \code{x}.
 //' @export
 // [[Rcpp::export]]
-double hamming_distance(IntegerVector x, IntegerVector y) {
+double hamming_distance(const IntegerVector &x, const IntegerVector &y) {
   check_vecs(x, y);
   return tdoann::hamming<double>(x.begin(), x.end(), y.begin());
 }
@@ -94,7 +94,7 @@ double hamming_distance(IntegerVector x, IntegerVector y) {
 //' @param y A numeric vector of the same length as \code{x}.
 //' @export
 // [[Rcpp::export]]
-double correlation_distance(NumericVector x, NumericVector y) {
+double correlation_distance(const NumericVector &x, const NumericVector &y) {
   check_vecs(x, y);
   return tdoann::correlation<double>(x.begin(), x.end(), y.begin());
 }

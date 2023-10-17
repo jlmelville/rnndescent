@@ -31,8 +31,8 @@
 // input heap index is 0-indexed
 // output idx R matrix is 1-indexed and untransposed
 template <typename NbrHeap>
-void heap_to_r(const NbrHeap &heap, Rcpp::IntegerMatrix nn_idx,
-               Rcpp::NumericMatrix nn_dist) {
+void heap_to_r(const NbrHeap &heap, Rcpp::IntegerMatrix &nn_idx,
+               Rcpp::NumericMatrix &nn_dist) {
   std::size_t n_points = heap.n_points;
   std::size_t n_nbrs = heap.n_nbrs;
   for (std::size_t i = 0; i < n_points; i++) {

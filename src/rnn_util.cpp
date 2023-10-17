@@ -57,7 +57,7 @@ void ts(const std::string &msg) {
   Rcerr << msg << std::endl;
 }
 
-void zero_index(IntegerMatrix matrix, int max_idx, bool missing_ok) {
+void zero_index(IntegerMatrix &matrix, int max_idx, bool missing_ok) {
   const int min_idx = missing_ok ? -1 : 0;
   for (auto j = 0; j < matrix.ncol(); j++) {
     for (auto i = 0; i < matrix.nrow(); i++) {
