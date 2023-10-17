@@ -82,9 +82,8 @@ List nn_descent(const NumericMatrix &data, const IntegerMatrix &nn_idx,
   using Out = typename tdoann::DistanceTraits<decltype(distance_ptr)>::Output;
   using Idx = typename tdoann::DistanceTraits<decltype(distance_ptr)>::Index;
 
-  constexpr bool missing_ok = false;
-  auto nnd_heap = r_to_knn_heap<tdoann::NNDHeap<Out, Idx>>(
-      nn_idx, nn_dist, n_threads, missing_ok);
+  auto nnd_heap =
+      r_to_knn_heap<tdoann::NNDHeap<Out, Idx>>(nn_idx, nn_dist, n_threads);
 
   auto nnd_progress_ptr = create_nnd_progress(progress_type, n_iters, verbose);
   RParallelExecutor executor;

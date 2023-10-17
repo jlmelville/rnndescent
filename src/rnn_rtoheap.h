@@ -99,20 +99,13 @@ auto r_to_knn_heap(const Rcpp::IntegerMatrix &nn_idx,
 
 template <typename NbrHeap>
 auto r_to_knn_heap(const Rcpp::IntegerMatrix &nn_idx,
-                   const Rcpp::NumericMatrix &nn_dist, std::size_t n_threads,
-                   bool missing_ok) -> NbrHeap {
+                   const Rcpp::NumericMatrix &nn_dist, std::size_t n_threads)
+    -> NbrHeap {
+  constexpr bool missing_ok = true;
   constexpr int max_idx = RNND_MAX_IDX;
   constexpr bool transpose = true;
   return r_to_knn_heap<NbrHeap>(nn_idx, nn_dist, n_threads, missing_ok, max_idx,
                                 transpose);
-}
-
-template <typename NbrHeap>
-auto r_to_knn_heap(const Rcpp::IntegerMatrix &nn_idx,
-                   const Rcpp::NumericMatrix &nn_dist, bool missing_ok)
-    -> NbrHeap {
-  constexpr std::size_t n_threads = 0;
-  return r_to_knn_heap<NbrHeap>(nn_idx, nn_dist, n_threads, missing_ok);
 }
 
 template <typename NbrHeap>
