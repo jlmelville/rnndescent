@@ -31,6 +31,7 @@
 #include <mutex>
 #include <vector>
 
+#include "distancebase.h"
 #include "heap.h"
 #include "parallel.h"
 
@@ -256,39 +257,30 @@ template <typename NbrGraph>
 void sort_query_graph(NbrGraph &nn_graph, std::size_t n_threads,
                       ProgressBase &progress, Executor &executor) {
   auto heap = init_heap(nn_graph);
-  bool transpose = false;
+  constexpr bool transpose = false;
   vec_to_query_heap(heap, nn_graph.idx, nn_graph.n_points, nn_graph.dist,
                     n_threads, transpose, progress, executor);
   sort_heap(heap, n_threads, progress, executor);
   heap_to_graph(heap, nn_graph);
 }
 
-template <typename Distance>
-void idx_to_graph(const Distance &distance,
-                  const std::vector<typename Distance::Index> &idx,
-                  std::vector<typename Distance::Output> &dist,
+template <typename Out, typename Index>
+void idx_to_graph(const BaseDistance<Out, Index> &distance,
+                  const std::vector<Index> &idx, std::vector<Out> &dist,
                   std::size_t n_nbrs, std::size_t begin, std::size_t end) {
-  std::size_t innbrs = 0;
-  std::size_t ij_1d = 0;
-  for (std::size_t i = begin; i < end; i++) {
-    innbrs = i * n_nbrs;
-    for (std::size_t j = 0; j < n_nbrs; j++) {
-      ij_1d = innbrs + j;
-      dist[ij_1d] = distance(idx[ij_1d], i);
+  for (auto i = begin, innbrs = i * n_nbrs; i < end; i++, innbrs += n_nbrs) {
+    for (std::size_t j = 0, idx_ij = innbrs; j < n_nbrs; j++, idx_ij++) {
+      dist[idx_ij] = distance.calculate(idx[idx_ij], i);
     }
   }
 }
 
-template <typename Distance>
-auto idx_to_graph(const Distance &distance,
-                  const std::vector<typename Distance::Index> &idx,
-                  std::size_t n_threads, ProgressBase &progress,
-                  Executor &executor)
-    -> NNGraph<typename Distance::Output, typename Distance::Index> {
-  using Out = typename Distance::Output;
-  using Index = typename Distance::Index;
-
-  const std::size_t n_points = distance.ny;
+template <typename Out, typename Index>
+auto idx_to_graph(const BaseDistance<Out, Index> &distance,
+                  const std::vector<Index> &idx, std::size_t n_threads,
+                  ProgressBase &progress, Executor &executor)
+    -> NNGraph<Out, Index> {
+  const std::size_t n_points = distance.get_ny();
   const std::size_t n_nbrs = idx.size() / n_points;
   std::vector<Out> dist(idx.size());
 

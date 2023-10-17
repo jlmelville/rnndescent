@@ -24,7 +24,6 @@
 #include "tdoann/bruteforce.h"
 
 #include "rnn_distance.h"
-#include "rnn_macros.h"
 #include "rnn_parallel.h"
 #include "rnn_progress.h"
 #include "rnn_util.h"
@@ -32,50 +31,33 @@
 using Rcpp::List;
 using Rcpp::NumericMatrix;
 
-#define BRUTE_FORCE_BUILD()                                                    \
-  return bf_build_impl<Distance>(data, nnbrs, n_threads, verbose);
-
-#define BRUTE_FORCE_QUERY()                                                    \
-  return bf_query_impl<Distance>(reference, query, nnbrs, n_threads, verbose);
-
-template <typename Distance>
-auto bf_query_impl(const NumericMatrix &reference, const NumericMatrix &query,
-                   typename Distance::Index nnbrs, std::size_t n_threads = 0,
-                   bool verbose = false) -> List {
-  auto distance = tr_to_dist<Distance>(reference, query);
-  auto progress = std::make_unique<RPProgress>(verbose);
-  RParallelExecutor executor;
-  auto nn_graph = tdoann::brute_force_query<Distance>(
-      distance, nnbrs, n_threads, *progress, executor);
-
-  return graph_to_r(nn_graph);
-}
-
-template <typename Distance>
-auto bf_build_impl(NumericMatrix data, typename Distance::Index nnbrs,
-                   std::size_t n_threads = 0, bool verbose = false) -> List {
-  auto distance = tr_to_dist<Distance>(data);
-  auto progress = std::make_unique<RPProgress>(verbose);
-
-  RParallelExecutor executor;
-  auto nn_graph = tdoann::brute_force_build<Distance>(
-      distance, nnbrs, n_threads, *progress, executor);
-
-  return graph_to_r(nn_graph);
-}
-
 // [[Rcpp::export]]
 List rnn_brute_force(const NumericMatrix &data, uint32_t nnbrs,
                      const std::string &metric = "euclidean",
-                     std::size_t n_threads = 0, bool verbose = false){
-    DISPATCH_ON_DISTANCES(BRUTE_FORCE_BUILD)}
+                     std::size_t n_threads = 0, bool verbose = false) {
+  auto distance = create_self_distance(data, metric);
+  RPProgress progress(verbose);
+  RParallelExecutor executor;
+
+  auto nn_graph = tdoann::brute_force_build(*distance, nnbrs, n_threads,
+                                            progress, executor);
+
+  return graph_to_r(nn_graph);
+}
 
 // [[Rcpp::export]]
 List rnn_brute_force_query(const NumericMatrix &reference,
                            const NumericMatrix &query, uint32_t nnbrs,
                            const std::string &metric = "euclidean",
                            std::size_t n_threads = 0, bool verbose = false) {
-  DISPATCH_ON_QUERY_DISTANCES(BRUTE_FORCE_QUERY)
+  auto distance = create_query_distance(reference, query, metric);
+  RPProgress progress(verbose);
+  RParallelExecutor executor;
+
+  auto nn_graph = tdoann::brute_force_query(*distance, nnbrs, n_threads,
+                                            progress, executor);
+
+  return graph_to_r(nn_graph);
 }
 
 // NOLINTEND(modernize-use-trailing-return-type)

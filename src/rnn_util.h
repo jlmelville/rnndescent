@@ -75,30 +75,23 @@ inline auto r_to_idxt(const Rcpp::IntegerMatrix &nn_idx,
   return Rcpp::as<std::vector<Int>>(Rcpp::transpose(nn_idx_copy));
 }
 
-template <typename Distance>
-auto r_to_graph(Rcpp::IntegerMatrix idx, Rcpp::NumericMatrix dist)
-    -> tdoann::NNGraph<typename Distance::Output, typename Distance::Index> {
-  using Out = typename Distance::Output;
-  using Idx = typename Distance::Index;
-
+template <typename Out = double, typename Idx = uint32_t>
+auto r_to_graph(const Rcpp::IntegerMatrix &idx, const Rcpp::NumericMatrix &dist)
+    -> tdoann::NNGraph<Out, Idx> {
   auto idx_vec = r_to_idxt<Idx>(idx);
   auto dist_vec = r_to_vect<Out>(dist);
 
   return tdoann::NNGraph<Out, Idx>(idx_vec, dist_vec, idx.nrow());
 }
 
-template <typename Distance>
-auto r_to_graph(Rcpp::List nn_graph)
-    -> tdoann::NNGraph<typename Distance::Output, typename Distance::Index> {
-  return r_to_graph<Distance>(nn_graph["idx"], nn_graph["dist"]);
+template <typename Out = double, typename Idx = uint32_t>
+auto r_to_graph(const Rcpp::List &nn_graph) -> tdoann::NNGraph<Out, Idx> {
+  return r_to_graph(nn_graph["idx"], nn_graph["dist"]);
 }
 
-template <typename Distance>
+template <typename Out = double, typename Idx = uint32_t>
 auto r_to_sparse_graph(Rcpp::IntegerMatrix idx, Rcpp::NumericMatrix dist)
-    -> tdoann::SparseNNGraph<typename Distance::Output,
-                             typename Distance::Index> {
-  using Out = typename Distance::Output;
-  using Idx = typename Distance::Index;
+    -> tdoann::SparseNNGraph<Out, Idx> {
 
   auto idx_vec = r_to_idxt<Idx>(idx);
   auto dist_vec = r_to_vect<Out>(dist);
@@ -113,13 +106,20 @@ auto r_to_sparse_graph(Rcpp::IntegerMatrix idx, Rcpp::NumericMatrix dist)
   return tdoann::SparseNNGraph<Out, Idx>(ptr, idx_vec, dist_vec);
 }
 
-template <typename Distance>
-auto r_to_sparse_graph(Rcpp::List reference_graph)
-    -> tdoann::SparseNNGraph<typename Distance::Output,
-                             typename Distance::Index> {
-  using Out = typename Distance::Output;
-  using Idx = typename Distance::Index;
+template <typename DistancePtr>
+decltype(auto) r_to_sparse_graph(const Rcpp::List &reference_graph,
+                                 DistancePtr &&distance) {
+  using Out = typename std::remove_reference_t<decltype(*distance)>::Output;
+  using Idx = typename std::remove_reference_t<decltype(*distance)>::Index;
 
+  return tdoann::SparseNNGraph<Out, Idx>(reference_graph["row_ptr"],
+                                         reference_graph["col_idx"],
+                                         reference_graph["dist"]);
+}
+
+template <typename Out = double, typename Idx = uint32_t>
+auto r_to_sparse_graph(const Rcpp::List &reference_graph)
+    -> tdoann::SparseNNGraph<Out, Idx> {
   return tdoann::SparseNNGraph<Out, Idx>(reference_graph["row_ptr"],
                                          reference_graph["col_idx"],
                                          reference_graph["dist"]);

@@ -30,21 +30,22 @@
 #include <cmath>
 #include <vector>
 
+#include "distancebase.h"
 #include "heap.h"
 #include "nngraph.h"
 #include "parallel.h"
 
 namespace tdoann {
 
-template <typename Distance>
-void nnbf_query_impl(
-    NNHeap<typename Distance::Output, typename Distance::Index> &neighbor_heap,
-    Distance &distance, std::size_t begin, std::size_t end) {
+template <typename Output, typename Index>
+void nnbf_query_impl(NNHeap<Output, Index> &neighbor_heap,
+                     BaseDistance<Output, Index> &distance, std::size_t begin,
+                     std::size_t end) {
 
-  std::size_t n_ref_points = distance.nx;
+  const auto n_ref_points = distance.get_nx();
   for (std::size_t ref = 0; ref < n_ref_points; ref++) {
-    for (std::size_t query = begin; query < end; query++) {
-      typename Distance::Output dist_rq = distance(ref, query);
+    for (auto query = begin; query < end; query++) {
+      auto dist_rq = distance.calculate(ref, query);
       if (neighbor_heap.accepts(query, dist_rq)) {
         neighbor_heap.unchecked_push(query, dist_rq, ref);
       }
@@ -52,13 +53,11 @@ void nnbf_query_impl(
   }
 }
 
-template <typename Distance>
-auto nnbf_query(Distance &distance, typename Distance::Index n_nbrs,
+template <typename Output, typename Index>
+auto nnbf_query(BaseDistance<Output, Index> &distance, Index n_nbrs,
                 std::size_t n_threads, ProgressBase &progress,
-                Executor &executor)
-    -> NNGraph<typename Distance::Output, typename Distance::Index> {
-  NNHeap<typename Distance::Output, typename Distance::Index> neighbor_heap(
-      distance.ny, n_nbrs);
+                Executor &executor) -> NNGraph<Output, Index> {
+  NNHeap<Output, Index> neighbor_heap(distance.get_ny(), n_nbrs);
   auto worker = [&](std::size_t begin, std::size_t end) {
     nnbf_query_impl(neighbor_heap, distance, begin, end);
   };
@@ -88,11 +87,10 @@ inline void upper_tri_2d(std::size_t k, std::size_t n, std::size_t &i,
 }
 // NOLINTEND(cppcoreguidelines-avoid-magic-numbers,readability-identifier-length,readability-magic-numbers)
 
-template <typename Distance>
-void nnbf_impl(
-    Distance &distance,
-    NNHeap<typename Distance::Output, typename Distance::Index> &neighbor_heap,
-    std::size_t begin, std::size_t end) {
+template <typename Output, typename Index>
+void nnbf_impl(BaseDistance<Output, Index> &distance,
+               NNHeap<Output, Index> &neighbor_heap, std::size_t begin,
+               std::size_t end) {
   const std::size_t n_points = neighbor_heap.n_points;
 
   std::size_t idx_i{0};
@@ -100,7 +98,7 @@ void nnbf_impl(
   upper_tri_2d(begin, n_points, idx_i, idx_j);
 
   for (std::size_t k = begin; k < end; k++) {
-    typename Distance::Output dist_ij = distance(idx_i, idx_j);
+    Output dist_ij = distance.calculate(idx_i, idx_j);
     if (neighbor_heap.accepts(idx_i, dist_ij)) {
       neighbor_heap.unchecked_push(idx_i, dist_ij, idx_j);
     }
@@ -115,17 +113,14 @@ void nnbf_impl(
   }
 }
 
-template <typename Distance>
-auto brute_force_build(Distance &distance, typename Distance::Index n_nbrs,
+template <typename Output, typename Index>
+auto brute_force_build(BaseDistance<Output, Index> &distance, Index n_nbrs,
                        std::size_t n_threads, ProgressBase &progress,
-                       Executor &executor)
-    -> NNGraph<typename Distance::Output, typename Distance::Index> {
+                       Executor &executor) -> NNGraph<Output, Index> {
   if (n_threads > 0) {
-    return nnbf_query<Distance>(distance, n_nbrs, n_threads, progress,
-                                executor);
+    return nnbf_query(distance, n_nbrs, n_threads, progress, executor);
   }
-  NNHeap<typename Distance::Output, typename Distance::Index> neighbor_heap(
-      distance.ny, n_nbrs);
+  NNHeap<Output, Index> neighbor_heap(distance.get_ny(), n_nbrs);
   auto worker = [&](std::size_t begin, std::size_t end) {
     nnbf_impl(distance, neighbor_heap, begin, end);
   };
@@ -140,12 +135,11 @@ auto brute_force_build(Distance &distance, typename Distance::Index n_nbrs,
   return heap_to_graph(neighbor_heap);
 }
 
-template <typename Distance>
-auto brute_force_query(Distance &distance, typename Distance::Index n_nbrs,
+template <typename Output, typename Index>
+auto brute_force_query(BaseDistance<Output, Index> &distance, Index n_nbrs,
                        std::size_t n_threads, ProgressBase &progress,
-                       Executor &executor)
-    -> NNGraph<typename Distance::Output, typename Distance::Index> {
-  return nnbf_query<Distance>(distance, n_nbrs, n_threads, progress, executor);
+                       Executor &executor) -> NNGraph<Output, Index> {
+  return nnbf_query(distance, n_nbrs, n_threads, progress, executor);
 }
 
 } // namespace tdoann

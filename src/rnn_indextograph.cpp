@@ -21,10 +21,10 @@
 
 #include <Rcpp.h>
 
+#include "tdoann/distancebase.h"
 #include "tdoann/nngraph.h"
 
 #include "rnn_distance.h"
-#include "rnn_macros.h"
 #include "rnn_parallel.h"
 #include "rnn_progress.h"
 #include "rnn_rtoheap.h"
@@ -33,39 +33,34 @@ using Rcpp::IntegerMatrix;
 using Rcpp::List;
 using Rcpp::NumericMatrix;
 
-#define IDX_TO_GRAPH_SELF()                                                    \
-  auto distance = tr_to_dist<Distance>(data);                                  \
-  return idx_to_graph_impl(distance, idx, n_threads, verbose);
-
-#define IDX_TO_GRAPH_QUERY()                                                   \
-  auto distance = tr_to_dist<Distance>(reference, query);                      \
-  return idx_to_graph_impl<Distance>(distance, idx, n_threads, verbose);
-
-template <typename Distance>
-auto idx_to_graph_impl(const Distance &distance, IntegerMatrix idx,
-                       std::size_t n_threads = 0, bool verbose = false)
-    -> List {
-  auto idx_vec = r_to_idxt<typename Distance::Index>(idx);
+template <typename Output, typename Index>
+auto idx_to_graph_impl(const tdoann::BaseDistance<Output, Index> &distance,
+                       const IntegerMatrix &idx, std::size_t n_threads = 0,
+                       bool verbose = false) -> List {
+  auto idx_vec = r_to_idxt<Index>(idx);
   RPProgress progress(verbose);
   RParallelExecutor executor;
-  auto nn_graph = tdoann::idx_to_graph<Distance>(distance, idx_vec, n_threads,
-                                                 progress, executor);
+  auto nn_graph =
+      tdoann::idx_to_graph(distance, idx_vec, n_threads, progress, executor);
   return graph_to_r(nn_graph, true);
 }
 
 // [[Rcpp::export]]
 List rnn_idx_to_graph_self(const NumericMatrix &data, const IntegerMatrix &idx,
                            const std::string &metric = "euclidean",
-                           std::size_t n_threads = 0, bool verbose = false){
-    DISPATCH_ON_DISTANCES(IDX_TO_GRAPH_SELF)}
+                           std::size_t n_threads = 0, bool verbose = false) {
+  auto distance = create_self_distance(data, metric);
+  return idx_to_graph_impl(*distance, idx, n_threads, verbose);
+}
 
 // [[Rcpp::export]]
-List
-    rnn_idx_to_graph_query(const NumericMatrix &reference,
-                           const NumericMatrix &query, const IntegerMatrix &idx,
-                           const std::string &metric = "euclidean",
-                           std::size_t n_threads = 0, bool verbose = false) {
-  DISPATCH_ON_QUERY_DISTANCES(IDX_TO_GRAPH_QUERY)
+List rnn_idx_to_graph_query(const NumericMatrix &reference,
+                            const NumericMatrix &query,
+                            const IntegerMatrix &idx,
+                            const std::string &metric = "euclidean",
+                            std::size_t n_threads = 0, bool verbose = false) {
+  auto distance = create_query_distance(reference, query, metric);
+  return idx_to_graph_impl(*distance, idx, n_threads, verbose);
 }
 
 // NOLINTEND(cppcoreguidelines-avoid-magic-numbers,modernize-use-trailing-return-type,readability-magic-numbers)

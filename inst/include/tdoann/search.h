@@ -28,6 +28,7 @@
 #define TDOANN_SEARCH_H
 
 #include "bvset.h"
+#include "distancebase.h"
 #include "nbrqueue.h"
 #include "nngraph.h"
 #include "parallel.h"
@@ -35,13 +36,12 @@
 
 namespace tdoann {
 
-template <typename Distance>
-void nn_query(
-    const SparseNNGraph<typename Distance::Output, typename Distance::Index>
-        &reference_graph,
-    NNHeap<typename Distance::Output, typename Distance::Index> &nn_heap,
-    const Distance &distance, double epsilon, std::size_t n_threads,
-    ProgressBase &progress, Executor &executor) {
+template <typename DistOut, typename Idx>
+void nn_query(const SparseNNGraph<DistOut, Idx> &reference_graph,
+              NNHeap<DistOut, Idx> &nn_heap,
+              const BaseDistance<DistOut, Idx> &distance, double epsilon,
+              std::size_t n_threads, ProgressBase &progress,
+              Executor &executor) {
   auto worker = [&](std::size_t begin, std::size_t end) {
     non_search_query(nn_heap, distance, reference_graph, epsilon, begin, end);
   };
@@ -56,19 +56,12 @@ auto pop(std::priority_queue<T, Container, Compare> &queue) -> T {
   return result;
 }
 
-template <typename Distance>
-void non_search_query(
-    NNHeap<typename Distance::Output, typename Distance::Index> &current_graph,
-    const Distance &distance,
-    const SparseNNGraph<typename Distance::Output, typename Distance::Index>
-        &search_graph,
-    double epsilon, std::size_t begin, std::size_t end) {
-
-  using DistOut = typename Distance::Output;
-  using Idx = typename Distance::Index;
-
+template <typename DistOut, typename Idx>
+void non_search_query(NNHeap<DistOut, Idx> &current_graph,
+                      const BaseDistance<DistOut, Idx> &distance,
+                      const SparseNNGraph<DistOut, Idx> &search_graph,
+                      double epsilon, std::size_t begin, std::size_t end) {
   const std::size_t n_nbrs = current_graph.n_nbrs;
-
   const double distance_scale = 1.0 + epsilon;
 
   for (std::size_t query_idx = begin; query_idx < end; query_idx++) {
@@ -101,7 +94,7 @@ void non_search_query(
             has_been_and_mark_visited(visited, candidate_idx)) {
           continue;
         }
-        DistOut dist = distance(candidate_idx, query_idx);
+        DistOut dist = distance.calculate(candidate_idx, query_idx);
         if (static_cast<double>(dist) >= distance_bound) {
           continue;
         }

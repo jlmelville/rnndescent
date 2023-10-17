@@ -86,10 +86,9 @@ void r_add_to_query_heap(NbrHeap &heap, const Rcpp::IntegerMatrix &nn_idx,
 // Convert R graph to neighbor heap
 
 template <typename NbrHeap>
-auto r_to_knn_heap(Rcpp::IntegerMatrix nn_idx, Rcpp::NumericMatrix nn_dist,
-                   std::size_t n_threads, bool missing_ok = true,
-                   int max_idx = RNND_MAX_IDX, bool transpose = true)
-    -> NbrHeap {
+auto r_to_knn_heap(const Rcpp::IntegerMatrix &nn_idx,
+                   const Rcpp::NumericMatrix &nn_dist, std::size_t n_threads,
+                   bool missing_ok, int max_idx, bool transpose) -> NbrHeap {
   NbrHeap nn_heap(nn_idx.nrow(), nn_idx.ncol());
   r_add_to_knn_heap(nn_heap, nn_idx, nn_dist, n_threads, missing_ok, max_idx,
                     transpose);
@@ -97,32 +96,38 @@ auto r_to_knn_heap(Rcpp::IntegerMatrix nn_idx, Rcpp::NumericMatrix nn_dist,
 }
 
 template <typename NbrHeap>
-auto r_to_knn_heap(Rcpp::IntegerMatrix nn_idx, Rcpp::NumericMatrix nn_dist,
-                   bool missing_ok = true, int max_idx = RNND_MAX_IDX,
-                   bool transpose = true) -> NbrHeap {
-  constexpr std::size_t n_threads = 0;
+auto r_to_knn_heap(const Rcpp::IntegerMatrix &nn_idx,
+                   const Rcpp::NumericMatrix &nn_dist, std::size_t n_threads,
+                   bool missing_ok) -> NbrHeap {
+  constexpr int max_idx = RNND_MAX_IDX;
+  constexpr bool transpose = true;
   return r_to_knn_heap<NbrHeap>(nn_idx, nn_dist, n_threads, missing_ok, max_idx,
                                 transpose);
 }
 
 template <typename NbrHeap>
-auto r_to_query_heap(Rcpp::IntegerMatrix nn_idx, Rcpp::NumericMatrix nn_dist,
-                     std::size_t n_threads, bool missing_ok = true,
-                     int max_idx = RNND_MAX_IDX, bool transpose = true)
+auto r_to_knn_heap(const Rcpp::IntegerMatrix &nn_idx,
+                   const Rcpp::NumericMatrix &nn_dist, bool missing_ok)
     -> NbrHeap {
-  NbrHeap nn_heap(nn_idx.nrow(), nn_idx.ncol());
+  constexpr std::size_t n_threads = 0;
+  return r_to_knn_heap<NbrHeap>(nn_idx, nn_dist, n_threads, missing_ok);
+}
+
+template <typename DistancePtr>
+decltype(auto) r_to_query_heap(Rcpp::IntegerMatrix nn_idx,
+                               Rcpp::NumericMatrix nn_dist,
+                               DistancePtr &&distance) {
+  using Out = typename std::remove_reference_t<decltype(*distance)>::Output;
+  using Idx = typename std::remove_reference_t<decltype(*distance)>::Index;
+  tdoann::NNHeap<Out, Idx> nn_heap(nn_idx.nrow(), nn_idx.ncol());
+
+  constexpr std::size_t n_threads = 0;
+  constexpr int max_idx = RNND_MAX_IDX;
+  constexpr bool transpose = true;
+  constexpr bool missing_ok = true;
   r_add_to_query_heap(nn_heap, nn_idx, nn_dist, n_threads, missing_ok, max_idx,
                       transpose);
   return nn_heap;
-}
-
-template <typename NbrHeap>
-auto r_to_query_heap(Rcpp::IntegerMatrix nn_idx, Rcpp::NumericMatrix nn_dist,
-                     bool missing_ok = true, int max_idx = RNND_MAX_IDX,
-                     bool transpose = true) -> NbrHeap {
-  constexpr std::size_t n_threads = 0;
-  return r_to_query_heap<NbrHeap>(nn_idx, nn_dist, n_threads, missing_ok,
-                                  max_idx, transpose);
 }
 
 #endif // RNN_RTOHEAP_H

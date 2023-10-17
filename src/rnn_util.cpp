@@ -72,7 +72,7 @@ void zero_index(IntegerMatrix matrix, int max_idx, bool missing_ok) {
 
 // [[Rcpp::export]]
 List sort_graph(const List &graph_list, std::size_t n_threads = 0) {
-  auto nn_graph = r_to_graph<DummyDistance>(graph_list);
+  auto nn_graph = r_to_graph(graph_list);
   tdoann::NullProgress progress;
   RParallelExecutor executor;
 

@@ -25,7 +25,6 @@
 
 #include "rnn_distance.h"
 #include "rnn_heaptor.h"
-#include "rnn_macros.h"
 #include "rnn_parallel.h"
 #include "rnn_progress.h"
 #include "rnn_rtoheap.h"
@@ -34,37 +33,23 @@ using Rcpp::IntegerMatrix;
 using Rcpp::List;
 using Rcpp::NumericMatrix;
 
-#define NN_QUERY_IMPL()                                                        \
-  return nn_query_impl<Distance>(reference, query, reference_graph_list,       \
-                                 nn_idx, nn_dist, epsilon, n_threads,          \
-                                 verbose);
-
-template <typename Distance>
-auto nn_query_impl(NumericMatrix reference, NumericMatrix query,
-                   List reference_graph_list, IntegerMatrix nn_idx,
-                   NumericMatrix nn_dist, double epsilon, std::size_t n_threads,
-                   bool verbose) -> List {
-  using Out = typename Distance::Output;
-  using Index = typename Distance::Index;
-
-  auto nn_heap = r_to_query_heap<tdoann::NNHeap<Out, Index>>(nn_idx, nn_dist);
-  auto distance = tr_to_dist<Distance>(reference, query);
-  auto reference_graph = r_to_sparse_graph<Distance>(reference_graph_list);
-  RPProgress progress(verbose);
-  RParallelExecutor executor;
-  tdoann::nn_query(reference_graph, nn_heap, distance, epsilon, n_threads,
-                   progress, executor);
-
-  return heap_to_r(nn_heap, n_threads, progress, executor);
-}
-
 // [[Rcpp::export]]
 List nn_query(const NumericMatrix &reference, const List &reference_graph_list,
               const NumericMatrix &query, const IntegerMatrix &nn_idx,
               const NumericMatrix &nn_dist,
               const std::string &metric = "euclidean", double epsilon = 0.1,
               std::size_t n_threads = 0, bool verbose = false) {
-  DISPATCH_ON_QUERY_DISTANCES(NN_QUERY_IMPL)
+  auto distance_ptr = create_query_distance(reference, query, metric);
+  const auto reference_graph =
+      r_to_sparse_graph(reference_graph_list, distance_ptr);
+  auto nn_heap = r_to_query_heap(nn_idx, nn_dist, distance_ptr);
+  RPProgress progress(verbose);
+  RParallelExecutor executor;
+
+  tdoann::nn_query(reference_graph, nn_heap, *distance_ptr, epsilon, n_threads,
+                   progress, executor);
+
+  return heap_to_r(nn_heap, n_threads, progress, executor);
 }
 
 // NOLINTEND(cppcoreguidelines-avoid-magic-numbers,modernize-use-trailing-return-type,readability-magic-numbers)

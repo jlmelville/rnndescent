@@ -25,7 +25,6 @@
 #include "tdoann/randnbrs.h"
 
 #include "rnn_distance.h"
-#include "rnn_macros.h"
 #include "rnn_parallel.h"
 #include "rnn_progress.h"
 #include "rnn_util.h"
@@ -33,60 +32,29 @@
 using Rcpp::List;
 using Rcpp::NumericMatrix;
 
-/* Macros */
-
-#define RANDOM_NBRS_BUILD()                                                    \
-  return random_build_impl<Distance>(data, nnbrs, order_by_distance,           \
-                                     n_threads, verbose);
-
-#define RANDOM_NBRS_QUERY()                                                    \
-  return random_query_impl<Distance>(reference, query, nnbrs,                  \
-                                     order_by_distance, n_threads, verbose);
-
-/* Functions */
-
-template <typename Distance>
-auto random_build_impl(NumericMatrix data, typename Distance::Index nnbrs,
-                       bool order_by_distance, std::size_t n_threads,
-                       bool verbose) -> List {
-
-  auto distance = tr_to_dist<Distance>(data);
-  RPProgress progress(verbose);
-  rnndescent::DQIntSampler<typename Distance::Index> sampler;
-  RParallelExecutor executor;
-
-  auto nn_graph = tdoann::random_build<Distance>(distance, nnbrs, sampler,
-                                                 order_by_distance, n_threads,
-                                                 progress, executor);
-
-  return graph_to_r(nn_graph);
+// function that exists purely to hide that monstrous using declaration
+template <typename DistancePtr>
+decltype(auto) create_sampler(DistancePtr &&distance) {
+  using IndexT = typename std::remove_reference_t<decltype(*distance)>::Index;
+  return rnndescent::DQIntSampler<IndexT>();
 }
-
-template <typename Distance>
-auto random_query_impl(NumericMatrix reference, NumericMatrix query,
-                       typename Distance::Index nnbrs, bool order_by_distance,
-                       std::size_t n_threads, bool verbose) -> List {
-
-  auto distance = tr_to_dist<Distance>(reference, query);
-  RPProgress progress(verbose);
-  rnndescent::DQIntSampler<typename Distance::Index> sampler;
-  RParallelExecutor executor;
-
-  auto nn_graph = tdoann::random_query<Distance>(distance, nnbrs, sampler,
-                                                 order_by_distance, n_threads,
-                                                 progress, executor);
-
-  return graph_to_r(nn_graph);
-}
-
-/* Exports */
 
 // [[Rcpp::export]]
 List random_knn_cpp(const NumericMatrix &data, uint32_t nnbrs,
                     const std::string &metric = "euclidean",
                     bool order_by_distance = true, std::size_t n_threads = 0,
-                    bool verbose = false){
-    DISPATCH_ON_DISTANCES(RANDOM_NBRS_BUILD)}
+                    bool verbose = false) {
+  auto distance = create_self_distance(data, metric);
+  auto sampler = create_sampler(distance);
+  RPProgress progress(verbose);
+  RParallelExecutor executor;
+
+  auto nn_graph =
+      tdoann::random_build(*distance, nnbrs, sampler, order_by_distance,
+                           n_threads, progress, executor);
+
+  return graph_to_r(nn_graph);
+}
 
 // [[Rcpp::export]]
 List random_knn_query_cpp(const NumericMatrix &reference,
@@ -94,7 +62,16 @@ List random_knn_query_cpp(const NumericMatrix &reference,
                           const std::string &metric = "euclidean",
                           bool order_by_distance = true,
                           std::size_t n_threads = 0, bool verbose = false) {
-  DISPATCH_ON_QUERY_DISTANCES(RANDOM_NBRS_QUERY)
+  auto distance = create_query_distance(reference, query, metric);
+  auto sampler = create_sampler(distance);
+  RPProgress progress(verbose);
+  RParallelExecutor executor;
+
+  auto nn_graph =
+      tdoann::random_query(*distance, nnbrs, sampler, order_by_distance,
+                           n_threads, progress, executor);
+
+  return graph_to_r(nn_graph);
 }
 
 // NOLINTEND(modernize-use-trailing-return-type)
