@@ -27,7 +27,9 @@
 #ifndef TDOANN_DISTANCE_H
 #define TDOANN_DISTANCE_H
 
+#include <algorithm>
 #include <cstdint>
+#include <numeric>
 #include <vector>
 
 #include "bitvec.h"
@@ -102,7 +104,7 @@ inline auto correlation(const It xbegin, const It xend, const It ybegin)
     xmu += *xit;
     ymu += *yit;
   }
-  const auto n = static_cast<Out>(xend - xbegin);
+  const auto n = std::distance(xbegin, xend);
   xmu /= n;
   ymu /= n;
 
@@ -163,26 +165,21 @@ auto do_nothing(const std::vector<T> &vec, std::size_t /* ndim */)
   return vec;
 }
 
-// relies on NRVO to avoid a copy
 template <typename T>
 auto normalize(const std::vector<T> &vec, std::size_t ndim) -> std::vector<T> {
   constexpr T MIN_NORM = 1e-30;
-
   std::vector<T> normalized(vec.size());
-  std::size_t npoints = vec.size() / ndim;
-  for (std::size_t i = 0; i < npoints; i++) {
-    std::size_t di = ndim * i;
-    T norm = 0.0;
 
-    for (std::size_t d = 0; d < ndim; d++) {
-      auto val = vec[di + d];
-      norm += val * val;
-    }
-    norm = std::sqrt(norm) + MIN_NORM;
-    for (std::size_t d = 0; d < ndim; d++) {
-      normalized[di + d] = vec[di + d] / norm;
-    }
+  for (auto start_it = vec.begin(); start_it != vec.end(); start_it += ndim) {
+    T norm = std::sqrt(std::inner_product(start_it, start_it + ndim, start_it,
+                                          T{0})) +
+             MIN_NORM;
+
+    std::transform(start_it, start_it + ndim,
+                   normalized.begin() + (start_it - vec.begin()),
+                   [norm](T val) { return val / norm; });
   }
+
   return normalized;
 }
 
@@ -190,18 +187,13 @@ template <typename T>
 auto mean_center(const std::vector<T> &vec, std::size_t ndim)
     -> std::vector<T> {
   std::vector<T> centered(vec.size());
-  std::size_t npoints = vec.size() / ndim;
 
-  for (std::size_t i = 0; i < npoints; i++) {
-    T mu{0};
-    const std::size_t di = ndim * i;
-    for (std::size_t d = 0; d < ndim; d++) {
-      mu += vec[di + d];
-    }
-    mu /= static_cast<T>(ndim);
-    for (std::size_t d = 0; d < ndim; d++) {
-      centered[di + d] = vec[di + d] - mu;
-    }
+  for (auto start_it = vec.begin(); start_it != vec.end(); start_it += ndim) {
+    T mu = std::accumulate(start_it, start_it + ndim, T{0}) / ndim;
+
+    std::transform(start_it, start_it + ndim,
+                   centered.begin() + (start_it - vec.begin()),
+                   [mu](T val) { return val - mu; });
   }
   return centered;
 }
