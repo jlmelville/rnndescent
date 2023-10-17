@@ -121,7 +121,7 @@ auto local_scaled_distances(const std::vector<Idx> &idx,
 // Welford-style
 template <typename T>
 auto mean_average(const std::vector<T> &vec, std::size_t begin, std::size_t end)
-    -> double {
+    -> T {
   long double mean = 0.0;
   auto onemb = 1 - begin;
   for (auto i = begin; i < end; ++i) {
