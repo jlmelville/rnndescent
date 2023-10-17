@@ -26,6 +26,9 @@
 
 #include "tdoann/nngraph.h"
 
+using RNN_DEFAULT_DIST = float;
+using RNN_DEFAULT_IDX = uint32_t;
+
 #define RNND_MAX_IDX (std::numeric_limits<int>::max)()
 
 void print_time(bool print_date = false);
@@ -77,7 +80,7 @@ inline auto r_to_idxt(const Rcpp::IntegerMatrix &nn_idx,
   return Rcpp::as<std::vector<Int>>(Rcpp::transpose(nn_idx_copy));
 }
 
-template <typename Out = double, typename Idx = uint32_t>
+template <typename Out = RNN_DEFAULT_DIST, typename Idx = RNN_DEFAULT_IDX>
 auto r_to_graph(const Rcpp::IntegerMatrix &idx, const Rcpp::NumericMatrix &dist)
     -> tdoann::NNGraph<Out, Idx> {
   auto idx_vec = r_to_idxt<Idx>(idx);
@@ -86,12 +89,12 @@ auto r_to_graph(const Rcpp::IntegerMatrix &idx, const Rcpp::NumericMatrix &dist)
   return tdoann::NNGraph<Out, Idx>(idx_vec, dist_vec, idx.nrow());
 }
 
-template <typename Out = double, typename Idx = uint32_t>
+template <typename Out = RNN_DEFAULT_DIST, typename Idx = RNN_DEFAULT_IDX>
 auto r_to_graph(const Rcpp::List &nn_graph) -> tdoann::NNGraph<Out, Idx> {
   return r_to_graph(nn_graph["idx"], nn_graph["dist"]);
 }
 
-template <typename Out = double, typename Idx = uint32_t>
+template <typename Out = RNN_DEFAULT_DIST, typename Idx = RNN_DEFAULT_IDX>
 auto r_to_sparse_graph(const Rcpp::IntegerMatrix &idx,
                        const Rcpp::NumericMatrix &dist)
     -> tdoann::SparseNNGraph<Out, Idx> {
@@ -120,7 +123,7 @@ decltype(auto) r_to_sparse_graph(const Rcpp::List &reference_graph,
                                          reference_graph["dist"]);
 }
 
-template <typename Out = double, typename Idx = uint32_t>
+template <typename Out = RNN_DEFAULT_DIST, typename Idx = RNN_DEFAULT_IDX>
 auto r_to_sparse_graph(const Rcpp::List &reference_graph)
     -> tdoann::SparseNNGraph<Out, Idx> {
   return tdoann::SparseNNGraph<Out, Idx>(reference_graph["row_ptr"],

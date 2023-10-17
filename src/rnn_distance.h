@@ -29,13 +29,13 @@
 
 #include "rnn_util.h"
 
-template <typename Idx = uint32_t>
-std::unique_ptr<tdoann::BaseDistance<float, Idx>>
+template <typename Idx = RNN_DEFAULT_IDX>
+std::unique_ptr<tdoann::BaseDistance<RNN_DEFAULT_DIST, Idx>>
 create_query_distance(const Rcpp::NumericMatrix &reference,
                       const Rcpp::NumericMatrix &query,
                       const std::string &metric) {
-  using In = float;
-  using Out = float;
+  using In = RNN_DEFAULT_DIST;
+  using Out = RNN_DEFAULT_DIST;
 
   auto ref_vec = r_to_vec<In>(reference);
   auto query_vec = r_to_vec<In>(query);
@@ -75,12 +75,12 @@ create_query_distance(const Rcpp::NumericMatrix &reference,
   Rcpp::stop("Bad metric");
 }
 
-template <typename Idx = uint32_t>
-std::unique_ptr<tdoann::BaseDistance<float, Idx>>
+template <typename Idx = RNN_DEFAULT_IDX>
+std::unique_ptr<tdoann::BaseDistance<RNN_DEFAULT_DIST, Idx>>
 create_self_distance(const Rcpp::NumericMatrix &data,
                      const std::string &metric) {
-  using In = float;
-  using Out = float;
+  using In = RNN_DEFAULT_DIST;
+  using Out = RNN_DEFAULT_DIST;
 
   auto data_vec = r_to_vec<In>(data);
   const auto ndim = data.nrow();

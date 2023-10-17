@@ -51,7 +51,7 @@ srnn4_23 <- local_scale_nn(rnn6, k = 4, k_scale = c(2, 3), n_threads = 0, ret_sc
 expect_equal(srnn4_23$scales, local_scales, tol = 1e-7)
 
 srnn4_22 <- local_scale_nn(rnn6, k = 4, k_scale = 2, n_threads = 0, ret_scales = TRUE)
-expect_equal(srnn4_22$scales, rnn$dist[, 2])
+expect_equal(srnn4_22$scales, rnn$dist[, 2], tol = 1e-7)
 
 srnn4 <- local_scale_nn(rnn6, k = 4, k_scale = c(2, 4), n_threads = 2)
 expect_equal(srnn4$idx, scaled_idx)

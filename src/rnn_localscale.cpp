@@ -27,8 +27,8 @@ List local_scaled_nbrs(const IntegerMatrix &idx, const NumericMatrix &dist,
     stop("Can't return more neighbors than is in the original graph");
   }
 
-  using Idx = uint32_t;
-  using Out = double;
+  using Idx = RNN_DEFAULT_IDX;
+  using Out = RNN_DEFAULT_DIST;
 
   auto idx_vec = r_to_idxt<Idx>(idx);
   auto dist_vec = r_to_vect<Out>(dist);

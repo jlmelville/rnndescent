@@ -21,6 +21,7 @@
 
 #include <Rcpp.h>
 
+#include "rnn_distance.h"
 #include "rnn_heaptor.h"
 #include "rnn_parallel.h"
 #include "rnn_rtoheap.h"
@@ -54,7 +55,7 @@ void add_graph(NeighborHeap &heap, const IntegerMatrix &nn_idx,
 auto merge_nn_impl(const IntegerMatrix &nn_idx1, const NumericMatrix &nn_dist1,
                    const IntegerMatrix &nn_idx2, const NumericMatrix &nn_dist2,
                    bool is_query, std::size_t n_threads, bool verbose) -> List {
-  tdoann::NNHeap<float> nn_merged(nn_idx1.nrow(), nn_idx1.ncol());
+  tdoann::NNHeap<RNN_DEFAULT_DIST> nn_merged(nn_idx1.nrow(), nn_idx1.ncol());
 
   if (verbose) {
     ts("Merging graphs");
@@ -74,7 +75,7 @@ auto merge_nn_all_impl(const List &nn_graphs, bool is_query,
   RPProgress progress(static_cast<std::size_t>(n_graphs), verbose);
 
   auto [nn_idx, nn_dist] = extract_from_list(nn_graphs[0]);
-  tdoann::NNHeap<float> nn_merged(nn_idx.nrow(), nn_idx.ncol());
+  tdoann::NNHeap<RNN_DEFAULT_DIST> nn_merged(nn_idx.nrow(), nn_idx.ncol());
 
   add_graph(nn_merged, nn_idx, nn_dist, is_query, n_threads);
 

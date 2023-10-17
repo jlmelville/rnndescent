@@ -19,6 +19,11 @@
 
 // NOLINTBEGIN(modernize-use-trailing-return-type,readability-identifier-length)
 
+// Standalone distance functions that can be used from R. NB for consistency,
+// the return type should match RNN_DEFAULT_DIST defined in rnn_distance.h.
+// The preprocessing prevents the simple use of a using declaration (or even
+// a macro)
+
 #include "tdoann/distance.h"
 
 #include <Rcpp.h>
@@ -39,9 +44,9 @@ template <typename Vec> inline void check_vecs(const Vec &x, const Vec &y) {
 //' @param y A numeric vector of the same length as \code{x}.
 //' @export
 // [[Rcpp::export]]
-double euclidean_distance(const NumericVector &x, const NumericVector &y) {
+float euclidean_distance(const NumericVector &x, const NumericVector &y) {
   check_vecs(x, y);
-  return tdoann::euclidean<double>(x.begin(), x.end(), y.begin());
+  return tdoann::euclidean<float>(x.begin(), x.end(), y.begin());
 }
 
 //' Find the squared Euclidean (squared L2) distance between two vectors
@@ -50,9 +55,9 @@ double euclidean_distance(const NumericVector &x, const NumericVector &y) {
 //' @param y A numeric vector of the same length as \code{x}.
 //' @export
 // [[Rcpp::export]]
-double l2sqr_distance(const NumericVector &x, const NumericVector &y) {
+float l2sqr_distance(const NumericVector &x, const NumericVector &y) {
   check_vecs(x, y);
-  return tdoann::l2sqr<double>(x.begin(), x.end(), y.begin());
+  return tdoann::l2sqr<float>(x.begin(), x.end(), y.begin());
 }
 
 //' Find the cosine distance between two vectors
@@ -61,9 +66,9 @@ double l2sqr_distance(const NumericVector &x, const NumericVector &y) {
 //' @param y A numeric vector of the same length as \code{x}.
 //' @export
 // [[Rcpp::export]]
-double cosine_distance(const NumericVector &x, const NumericVector &y) {
+float cosine_distance(const NumericVector &x, const NumericVector &y) {
   check_vecs(x, y);
-  return tdoann::cosine<double>(x.begin(), x.end(), y.begin());
+  return tdoann::cosine<float>(x.begin(), x.end(), y.begin());
 }
 
 //' Find the Manhattan (L1) distance between two vectors
@@ -72,9 +77,9 @@ double cosine_distance(const NumericVector &x, const NumericVector &y) {
 //' @param y A numeric vector of the same length as \code{x}.
 //' @export
 // [[Rcpp::export]]
-double manhattan_distance(const NumericVector &x, const NumericVector &y) {
+float manhattan_distance(const NumericVector &x, const NumericVector &y) {
   check_vecs(x, y);
-  return tdoann::manhattan<double>(x.begin(), x.end(), y.begin());
+  return tdoann::manhattan<float>(x.begin(), x.end(), y.begin());
 }
 
 //' Find the Hamming distance between two vectors
@@ -83,9 +88,9 @@ double manhattan_distance(const NumericVector &x, const NumericVector &y) {
 //' @param y An integer vector of the same length as \code{x}.
 //' @export
 // [[Rcpp::export]]
-double hamming_distance(const IntegerVector &x, const IntegerVector &y) {
+float hamming_distance(const IntegerVector &x, const IntegerVector &y) {
   check_vecs(x, y);
-  return tdoann::hamming<double>(x.begin(), x.end(), y.begin());
+  return tdoann::hamming<float>(x.begin(), x.end(), y.begin());
 }
 
 //' Find the correlation distance between two vectors
@@ -94,9 +99,9 @@ double hamming_distance(const IntegerVector &x, const IntegerVector &y) {
 //' @param y A numeric vector of the same length as \code{x}.
 //' @export
 // [[Rcpp::export]]
-double correlation_distance(const NumericVector &x, const NumericVector &y) {
+float correlation_distance(const NumericVector &x, const NumericVector &y) {
   check_vecs(x, y);
-  return tdoann::correlation<double>(x.begin(), x.end(), y.begin());
+  return tdoann::correlation<float>(x.begin(), x.end(), y.begin());
 }
 
 // NOLINTEND(modernize-use-trailing-return-type, readability-identifier-length)

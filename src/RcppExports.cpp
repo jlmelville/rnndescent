@@ -42,7 +42,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // euclidean_distance
-double euclidean_distance(const NumericVector& x, const NumericVector& y);
+float euclidean_distance(const NumericVector& x, const NumericVector& y);
 RcppExport SEXP _rnndescent_euclidean_distance(SEXP xSEXP, SEXP ySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -54,7 +54,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // l2sqr_distance
-double l2sqr_distance(const NumericVector& x, const NumericVector& y);
+float l2sqr_distance(const NumericVector& x, const NumericVector& y);
 RcppExport SEXP _rnndescent_l2sqr_distance(SEXP xSEXP, SEXP ySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -66,7 +66,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // cosine_distance
-double cosine_distance(const NumericVector& x, const NumericVector& y);
+float cosine_distance(const NumericVector& x, const NumericVector& y);
 RcppExport SEXP _rnndescent_cosine_distance(SEXP xSEXP, SEXP ySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -78,7 +78,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // manhattan_distance
-double manhattan_distance(const NumericVector& x, const NumericVector& y);
+float manhattan_distance(const NumericVector& x, const NumericVector& y);
 RcppExport SEXP _rnndescent_manhattan_distance(SEXP xSEXP, SEXP ySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -90,7 +90,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // hamming_distance
-double hamming_distance(const IntegerVector& x, const IntegerVector& y);
+float hamming_distance(const IntegerVector& x, const IntegerVector& y);
 RcppExport SEXP _rnndescent_hamming_distance(SEXP xSEXP, SEXP ySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -102,7 +102,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // correlation_distance
-double correlation_distance(const NumericVector& x, const NumericVector& y);
+float correlation_distance(const NumericVector& x, const NumericVector& y);
 RcppExport SEXP _rnndescent_correlation_distance(SEXP xSEXP, SEXP ySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
