@@ -115,13 +115,10 @@ auto r_to_knn_heap(const Rcpp::IntegerMatrix &nn_idx,
   return r_to_knn_heap<NbrHeap>(nn_idx, nn_dist, n_threads, missing_ok);
 }
 
-template <typename DistancePtr>
-decltype(auto) r_to_query_heap(const Rcpp::IntegerMatrix &nn_idx,
-                               const Rcpp::NumericMatrix &nn_dist,
-                               DistancePtr &&distance) {
-  using Out = typename std::remove_reference_t<decltype(*distance)>::Output;
-  using Idx = typename std::remove_reference_t<decltype(*distance)>::Index;
-  tdoann::NNHeap<Out, Idx> nn_heap(nn_idx.nrow(), nn_idx.ncol());
+template <typename NbrHeap>
+auto r_to_query_heap(const Rcpp::IntegerMatrix &nn_idx,
+                     const Rcpp::NumericMatrix &nn_dist) -> NbrHeap {
+  NbrHeap nn_heap(nn_idx.nrow(), nn_idx.ncol());
 
   constexpr std::size_t n_threads = 0;
   constexpr int max_idx = RNND_MAX_IDX;

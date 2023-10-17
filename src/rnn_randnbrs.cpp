@@ -32,20 +32,15 @@
 using Rcpp::List;
 using Rcpp::NumericMatrix;
 
-// function that exists purely to hide that monstrous using declaration
-template <typename DistancePtr>
-decltype(auto) create_sampler(DistancePtr &&distance) {
-  using IndexT = typename std::remove_reference_t<decltype(*distance)>::Index;
-  return rnndescent::DQIntSampler<IndexT>();
-}
-
 // [[Rcpp::export]]
 List random_knn_cpp(const NumericMatrix &data, uint32_t nnbrs,
                     const std::string &metric = "euclidean",
                     bool order_by_distance = true, std::size_t n_threads = 0,
                     bool verbose = false) {
   auto distance = create_self_distance(data, metric);
-  auto sampler = create_sampler(distance);
+  using Idx = typename tdoann::DistanceTraits<decltype(distance)>::Index;
+
+  rnndescent::DQIntSampler<Idx> sampler;
   RPProgress progress(verbose);
   RParallelExecutor executor;
 
@@ -63,7 +58,9 @@ List random_knn_query_cpp(const NumericMatrix &reference,
                           bool order_by_distance = true,
                           std::size_t n_threads = 0, bool verbose = false) {
   auto distance = create_query_distance(reference, query, metric);
-  auto sampler = create_sampler(distance);
+  using Idx = typename tdoann::DistanceTraits<decltype(distance)>::Index;
+
+  rnndescent::DQIntSampler<Idx> sampler;
   RPProgress progress(verbose);
   RParallelExecutor executor;
 

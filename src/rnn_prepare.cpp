@@ -55,7 +55,9 @@ List diversify_cpp(const NumericMatrix &data, const List &graph_list,
                    const std::string &metric, double prune_probability,
                    std::size_t n_threads) {
   auto distance_ptr = create_self_distance(data, metric);
-  const auto graph = r_to_sparse_graph(graph_list, distance_ptr);
+  using Out = typename tdoann::DistanceTraits<decltype(distance_ptr)>::Output;
+  using Idx = typename tdoann::DistanceTraits<decltype(distance_ptr)>::Index;
+  const auto graph = r_to_sparse_graph<Out, Idx>(graph_list);
 
   auto diversified =
       diversify_impl(graph, *distance_ptr, prune_probability, n_threads);

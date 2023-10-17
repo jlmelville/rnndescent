@@ -40,9 +40,12 @@ List nn_query(const NumericMatrix &reference, const List &reference_graph_list,
               const std::string &metric = "euclidean", double epsilon = 0.1,
               std::size_t n_threads = 0, bool verbose = false) {
   auto distance_ptr = create_query_distance(reference, query, metric);
+  using Out = typename tdoann::DistanceTraits<decltype(distance_ptr)>::Output;
+  using Idx = typename tdoann::DistanceTraits<decltype(distance_ptr)>::Index;
+
   const auto reference_graph =
-      r_to_sparse_graph(reference_graph_list, distance_ptr);
-  auto nn_heap = r_to_query_heap(nn_idx, nn_dist, distance_ptr);
+      r_to_sparse_graph<Out, Idx>(reference_graph_list);
+  auto nn_heap = r_to_query_heap<tdoann::NNHeap<Out, Idx>>(nn_idx, nn_dist);
   RPProgress progress(verbose);
   RParallelExecutor executor;
 
