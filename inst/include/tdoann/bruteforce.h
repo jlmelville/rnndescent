@@ -39,8 +39,8 @@ namespace tdoann {
 
 template <typename Output, typename Index>
 void nnbf_query_impl(NNHeap<Output, Index> &neighbor_heap,
-                     BaseDistance<Output, Index> &distance, std::size_t begin,
-                     std::size_t end) {
+                     const BaseDistance<Output, Index> &distance,
+                     std::size_t begin, std::size_t end) {
 
   const auto n_ref_points = distance.get_nx();
   for (std::size_t ref = 0; ref < n_ref_points; ref++) {
@@ -54,7 +54,7 @@ void nnbf_query_impl(NNHeap<Output, Index> &neighbor_heap,
 }
 
 template <typename Output, typename Index>
-auto nnbf_query(BaseDistance<Output, Index> &distance, Index n_nbrs,
+auto nnbf_query(const BaseDistance<Output, Index> &distance, Index n_nbrs,
                 std::size_t n_threads, ProgressBase &progress,
                 Executor &executor) -> NNGraph<Output, Index> {
   NNHeap<Output, Index> neighbor_heap(distance.get_ny(), n_nbrs);
@@ -88,7 +88,7 @@ inline void upper_tri_2d(std::size_t k, std::size_t n, std::size_t &i,
 // NOLINTEND(cppcoreguidelines-avoid-magic-numbers,readability-identifier-length,readability-magic-numbers)
 
 template <typename Output, typename Index>
-void nnbf_impl(BaseDistance<Output, Index> &distance,
+void nnbf_impl(const BaseDistance<Output, Index> &distance,
                NNHeap<Output, Index> &neighbor_heap, std::size_t begin,
                std::size_t end) {
   const std::size_t n_points = neighbor_heap.n_points;
@@ -114,9 +114,10 @@ void nnbf_impl(BaseDistance<Output, Index> &distance,
 }
 
 template <typename Output, typename Index>
-auto brute_force_build(BaseDistance<Output, Index> &distance, Index n_nbrs,
-                       std::size_t n_threads, ProgressBase &progress,
-                       Executor &executor) -> NNGraph<Output, Index> {
+auto brute_force_build(const BaseDistance<Output, Index> &distance,
+                       Index n_nbrs, std::size_t n_threads,
+                       ProgressBase &progress, Executor &executor)
+    -> NNGraph<Output, Index> {
   if (n_threads > 0) {
     return nnbf_query(distance, n_nbrs, n_threads, progress, executor);
   }
@@ -136,9 +137,10 @@ auto brute_force_build(BaseDistance<Output, Index> &distance, Index n_nbrs,
 }
 
 template <typename Output, typename Index>
-auto brute_force_query(BaseDistance<Output, Index> &distance, Index n_nbrs,
-                       std::size_t n_threads, ProgressBase &progress,
-                       Executor &executor) -> NNGraph<Output, Index> {
+auto brute_force_query(const BaseDistance<Output, Index> &distance,
+                       Index n_nbrs, std::size_t n_threads,
+                       ProgressBase &progress, Executor &executor)
+    -> NNGraph<Output, Index> {
   return nnbf_query(distance, n_nbrs, n_threads, progress, executor);
 }
 
