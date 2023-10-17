@@ -37,15 +37,15 @@ List random_knn_cpp(const NumericMatrix &data, uint32_t nnbrs,
                     const std::string &metric = "euclidean",
                     bool order_by_distance = true, std::size_t n_threads = 0,
                     bool verbose = false) {
-  auto distance = create_self_distance(data, metric);
-  using Idx = typename tdoann::DistanceTraits<decltype(distance)>::Index;
+  auto distance_ptr = create_self_distance(data, metric);
+  using Idx = typename tdoann::DistanceTraits<decltype(distance_ptr)>::Index;
 
   rnndescent::DQIntSampler<Idx> sampler;
   RPProgress progress(verbose);
   RParallelExecutor executor;
 
   auto nn_graph =
-      tdoann::random_build(*distance, nnbrs, sampler, order_by_distance,
+      tdoann::random_build(*distance_ptr, nnbrs, sampler, order_by_distance,
                            n_threads, progress, executor);
 
   return graph_to_r(nn_graph);
@@ -57,15 +57,15 @@ List random_knn_query_cpp(const NumericMatrix &reference,
                           const std::string &metric = "euclidean",
                           bool order_by_distance = true,
                           std::size_t n_threads = 0, bool verbose = false) {
-  auto distance = create_query_distance(reference, query, metric);
-  using Idx = typename tdoann::DistanceTraits<decltype(distance)>::Index;
+  auto distance_ptr = create_query_distance(reference, query, metric);
+  using Idx = typename tdoann::DistanceTraits<decltype(distance_ptr)>::Index;
 
   rnndescent::DQIntSampler<Idx> sampler;
   RPProgress progress(verbose);
   RParallelExecutor executor;
 
   auto nn_graph =
-      tdoann::random_query(*distance, nnbrs, sampler, order_by_distance,
+      tdoann::random_query(*distance_ptr, nnbrs, sampler, order_by_distance,
                            n_threads, progress, executor);
 
   return graph_to_r(nn_graph);

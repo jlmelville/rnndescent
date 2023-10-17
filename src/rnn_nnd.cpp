@@ -79,31 +79,32 @@ List nn_descent(const NumericMatrix &data, const IntegerMatrix &nn_idx,
                 std::size_t max_candidates, unsigned int n_iters, double delta,
                 bool low_memory, std::size_t n_threads, bool verbose,
                 const std::string &progress_type) {
-  auto distance = create_self_distance(data, metric);
-  using Out = typename tdoann::DistanceTraits<decltype(distance)>::Output;
-  using Idx = typename tdoann::DistanceTraits<decltype(distance)>::Index;
+  auto distance_ptr = create_self_distance(data, metric);
+  using Out = typename tdoann::DistanceTraits<decltype(distance_ptr)>::Output;
+  using Idx = typename tdoann::DistanceTraits<decltype(distance_ptr)>::Index;
 
   constexpr bool missing_ok = false;
   auto nnd_heap = r_to_knn_heap<tdoann::NNDHeap<Out, Idx>>(
       nn_idx, nn_dist, n_threads, missing_ok);
 
-  auto nnd_progress = create_nnd_progress(progress_type, n_iters, verbose);
+  auto nnd_progress_ptr = create_nnd_progress(progress_type, n_iters, verbose);
   RParallelExecutor executor;
 
   if (n_threads > 0) {
-    auto local_join =
-        create_parallel_local_join(nnd_heap, *distance, low_memory);
+    auto local_join_ptr =
+        create_parallel_local_join(nnd_heap, *distance_ptr, low_memory);
     rnndescent::ParallelRNGAdapter<rnndescent::PcgRand> parallel_rand;
-    tdoann::nnd_build(nnd_heap, *local_join, max_candidates, n_iters, delta,
-                      *nnd_progress, parallel_rand, n_threads, executor);
+    tdoann::nnd_build(nnd_heap, *local_join_ptr, max_candidates, n_iters, delta,
+                      *nnd_progress_ptr, parallel_rand, n_threads, executor);
   } else {
-    auto local_join = create_serial_local_join(nnd_heap, *distance, low_memory);
+    auto local_join_ptr =
+        create_serial_local_join(nnd_heap, *distance_ptr, low_memory);
     rnndescent::RRand rand;
-    tdoann::nnd_build(nnd_heap, *local_join, max_candidates, n_iters, delta,
-                      rand, *nnd_progress);
+    tdoann::nnd_build(nnd_heap, *local_join_ptr, max_candidates, n_iters, delta,
+                      rand, *nnd_progress_ptr);
   }
 
-  return heap_to_r(nnd_heap, n_threads, nnd_progress->get_base_progress(),
+  return heap_to_r(nnd_heap, n_threads, nnd_progress_ptr->get_base_progress(),
                    executor);
 }
 

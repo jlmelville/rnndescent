@@ -35,11 +35,11 @@ using Rcpp::NumericMatrix;
 List rnn_brute_force(const NumericMatrix &data, uint32_t nnbrs,
                      const std::string &metric = "euclidean",
                      std::size_t n_threads = 0, bool verbose = false) {
-  auto distance = create_self_distance(data, metric);
+  auto distance_ptr = create_self_distance(data, metric);
   RPProgress progress(verbose);
   RParallelExecutor executor;
 
-  auto nn_graph = tdoann::brute_force_build(*distance, nnbrs, n_threads,
+  auto nn_graph = tdoann::brute_force_build(*distance_ptr, nnbrs, n_threads,
                                             progress, executor);
 
   return graph_to_r(nn_graph);
@@ -50,11 +50,11 @@ List rnn_brute_force_query(const NumericMatrix &reference,
                            const NumericMatrix &query, uint32_t nnbrs,
                            const std::string &metric = "euclidean",
                            std::size_t n_threads = 0, bool verbose = false) {
-  auto distance = create_query_distance(reference, query, metric);
+  auto distance_ptr = create_query_distance(reference, query, metric);
   RPProgress progress(verbose);
   RParallelExecutor executor;
 
-  auto nn_graph = tdoann::brute_force_query(*distance, nnbrs, n_threads,
+  auto nn_graph = tdoann::brute_force_query(*distance_ptr, nnbrs, n_threads,
                                             progress, executor);
 
   return graph_to_r(nn_graph);

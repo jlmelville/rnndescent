@@ -49,8 +49,8 @@ auto idx_to_graph_impl(const tdoann::BaseDistance<Output, Index> &distance,
 List rnn_idx_to_graph_self(const NumericMatrix &data, const IntegerMatrix &idx,
                            const std::string &metric = "euclidean",
                            std::size_t n_threads = 0, bool verbose = false) {
-  auto distance = create_self_distance(data, metric);
-  return idx_to_graph_impl(*distance, idx, n_threads, verbose);
+  auto distance_ptr = create_self_distance(data, metric);
+  return idx_to_graph_impl(*distance_ptr, idx, n_threads, verbose);
 }
 
 // [[Rcpp::export]]
@@ -59,8 +59,8 @@ List rnn_idx_to_graph_query(const NumericMatrix &reference,
                             const IntegerMatrix &idx,
                             const std::string &metric = "euclidean",
                             std::size_t n_threads = 0, bool verbose = false) {
-  auto distance = create_query_distance(reference, query, metric);
-  return idx_to_graph_impl(*distance, idx, n_threads, verbose);
+  auto distance_ptr = create_query_distance(reference, query, metric);
+  return idx_to_graph_impl(*distance_ptr, idx, n_threads, verbose);
 }
 
 // NOLINTEND(cppcoreguidelines-avoid-magic-numbers,modernize-use-trailing-return-type,readability-magic-numbers)
