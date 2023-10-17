@@ -34,6 +34,10 @@
 #include "bitvec.h"
 #include "distance.h"
 
+// Pointer-based polymorphic classes for calculating distances. This is all
+// boilerplate: the actual calculations take place in functions defined in
+// distance.h
+
 namespace tdoann {
 
 template <typename Out, typename Idx = uint32_t> class BaseDistance {
@@ -55,6 +59,8 @@ struct DistanceTraits<std::unique_ptr<tdoann::BaseDistance<Out, Idx>>> {
 };
 
 // Mixin for shared Self data
+// The QueryDataMixin with xdata(data), ydata(data) is entirely sufficient
+// if you don't need to preprocess the data during creation
 template <typename In> class SelfDataMixin {
 public:
   explicit SelfDataMixin(const std::vector<In> &data, std::size_t ndim)
@@ -91,27 +97,12 @@ protected:
 };
 
 template <typename In, typename Out, typename Idx = uint32_t>
-class L2SqrSelfDistance : public BaseDistance<Out, Idx>,
-                          public SelfDataMixin<In> {
-public:
-  using SelfDataMixin<In>::SelfDataMixin;
-
-  Out calculate(Idx i, Idx j) const override {
-    const std::size_t di = this->ndim * i;
-    return l2sqr<Out>(this->x.begin() + di, this->x.begin() + di + this->ndim,
-                      this->x.begin() + this->ndim * j);
-  }
-
-  std::size_t get_nx() const override { return SelfDataMixin<In>::get_nx(); }
-
-  std::size_t get_ny() const override { return SelfDataMixin<In>::get_ny(); }
-};
-
-template <typename In, typename Out, typename Idx = uint32_t>
-class L2SqrQueryDistance : public BaseDistance<Out, Idx>,
-                           public QueryDataMixin<In> {
+class L2SqrDistance : public BaseDistance<Out, Idx>, public QueryDataMixin<In> {
 public:
   using QueryDataMixin<In>::QueryDataMixin;
+
+  L2SqrDistance(const std::vector<In> &data, std::size_t ndim)
+      : QueryDataMixin<In>(data, data, ndim) {}
 
   Out calculate(Idx i, Idx j) const override {
     const std::size_t di = this->ndim * i;
@@ -125,28 +116,13 @@ public:
 };
 
 template <typename In, typename Out, typename Idx = uint32_t>
-class EuclideanSelfDistance : public BaseDistance<Out, Idx>,
-                              public SelfDataMixin<In> {
-public:
-  using SelfDataMixin<In>::SelfDataMixin;
-
-  Out calculate(Idx i, Idx j) const override {
-    const std::size_t di = this->ndim * i;
-    return euclidean<Out>(this->x.begin() + di,
-                          this->x.begin() + di + this->ndim,
-                          this->x.begin() + this->ndim * j);
-  }
-
-  std::size_t get_nx() const override { return SelfDataMixin<In>::get_nx(); }
-
-  std::size_t get_ny() const override { return SelfDataMixin<In>::get_ny(); }
-};
-
-template <typename In, typename Out, typename Idx = uint32_t>
-class EuclideanQueryDistance : public BaseDistance<Out, Idx>,
-                               public QueryDataMixin<In> {
+class EuclideanDistance : public BaseDistance<Out, Idx>,
+                          public QueryDataMixin<In> {
 public:
   using QueryDataMixin<In>::QueryDataMixin;
+
+  EuclideanDistance(const std::vector<In> &data, std::size_t ndim)
+      : QueryDataMixin<In>(data, data, ndim) {}
 
   Out calculate(Idx i, Idx j) const override {
     const std::size_t di = this->ndim * i;
@@ -161,28 +137,12 @@ public:
 };
 
 template <typename In, typename Out, typename Idx>
-class ManhattanSelfDistance : public BaseDistance<Out, Idx>,
-                              public SelfDataMixin<In> {
-public:
-  using SelfDataMixin<In>::SelfDataMixin;
-
-  Out calculate(Idx i, Idx j) const override {
-    const std::size_t di = this->ndim * i;
-    return tdoann::manhattan<Out>(this->x.begin() + di,
-                                  this->x.begin() + di + this->ndim,
-                                  this->x.begin() + this->ndim * j);
-  }
-
-  std::size_t get_nx() const override { return SelfDataMixin<In>::get_nx(); }
-
-  std::size_t get_ny() const override { return SelfDataMixin<In>::get_ny(); }
-};
-
-template <typename In, typename Out, typename Idx>
-class ManhattanQueryDistance : public BaseDistance<Out, Idx>,
-                               public QueryDataMixin<In> {
+class ManhattanDistance : public BaseDistance<Out, Idx>,
+                          public QueryDataMixin<In> {
 public:
   using QueryDataMixin<In>::QueryDataMixin;
+  ManhattanDistance(const std::vector<In> &data, std::size_t ndim)
+      : QueryDataMixin<In>(data, data, ndim) {}
 
   Out calculate(Idx i, Idx j) const override {
     const std::size_t di = this->ndim * i;
@@ -277,28 +237,12 @@ public:
 };
 
 template <typename In, typename Out, typename Idx = uint32_t>
-class HammingSelfDistance : public BaseDistance<Out, Idx>,
-                            public SelfDataMixin<In> {
-public:
-  using SelfDataMixin<In>::SelfDataMixin;
-
-  Out calculate(Idx i, Idx j) const override {
-    const std::size_t di = this->ndim * i;
-    return tdoann::hamming<Out>(this->x.begin() + di,
-                                this->x.begin() + di + this->ndim,
-                                this->x.begin() + this->ndim * j);
-  }
-
-  std::size_t get_nx() const override { return SelfDataMixin<In>::get_nx(); }
-
-  std::size_t get_ny() const override { return SelfDataMixin<In>::get_ny(); }
-};
-
-template <typename In, typename Out, typename Idx = uint32_t>
-class HammingQueryDistance : public BaseDistance<Out, Idx>,
-                             public QueryDataMixin<In> {
+class HammingDistance : public BaseDistance<Out, Idx>,
+                        public QueryDataMixin<In> {
 public:
   using QueryDataMixin<In>::QueryDataMixin;
+  HammingDistance(const std::vector<In> &data, std::size_t ndim)
+      : QueryDataMixin<In>(data, data, ndim) {}
 
   Out calculate(Idx i, Idx j) const override {
     const std::size_t di = this->ndim * i;

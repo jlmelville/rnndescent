@@ -42,15 +42,15 @@ create_query_distance(const Rcpp::NumericMatrix &reference,
   const auto ndim = reference.nrow();
 
   if (metric == "euclidean") {
-    return std::make_unique<tdoann::EuclideanQueryDistance<In, Out, Idx>>(
+    return std::make_unique<tdoann::EuclideanDistance<In, Out, Idx>>(
         ref_vec, query_vec, ndim);
   }
   if (metric == "l2sqr") {
-    return std::make_unique<tdoann::L2SqrQueryDistance<In, Out, Idx>>(
+    return std::make_unique<tdoann::L2SqrDistance<In, Out, Idx>>(
         ref_vec, query_vec, ndim);
   }
   if (metric == "manhattan") {
-    return std::make_unique<tdoann::ManhattanQueryDistance<In, Out, Idx>>(
+    return std::make_unique<tdoann::ManhattanDistance<In, Out, Idx>>(
         ref_vec, query_vec, ndim);
   }
   if (metric == "cosine") {
@@ -62,7 +62,7 @@ create_query_distance(const Rcpp::NumericMatrix &reference,
         ref_vec, query_vec, ndim);
   }
   if (metric == "hamming") {
-    return std::make_unique<tdoann::HammingQueryDistance<In, Out, Idx>>(
+    return std::make_unique<tdoann::HammingDistance<In, Out, Idx>>(
         ref_vec, query_vec, ndim);
   }
   if (metric == "bhamming") {
@@ -86,16 +86,16 @@ create_self_distance(const Rcpp::NumericMatrix &data,
   const auto ndim = data.nrow();
 
   if (metric == "euclidean") {
-    return std::make_unique<tdoann::EuclideanSelfDistance<In, Out, Idx>>(
-        data_vec, ndim);
-  }
-  if (metric == "l2sqr") {
-    return std::make_unique<tdoann::L2SqrSelfDistance<In, Out, Idx>>(data_vec,
+    return std::make_unique<tdoann::EuclideanDistance<In, Out, Idx>>(data_vec,
                                                                      ndim);
   }
+  if (metric == "l2sqr") {
+    return std::make_unique<tdoann::L2SqrDistance<In, Out, Idx>>(data_vec,
+                                                                 ndim);
+  }
   if (metric == "manhattan") {
-    return std::make_unique<tdoann::ManhattanSelfDistance<In, Out, Idx>>(
-        data_vec, ndim);
+    return std::make_unique<tdoann::ManhattanDistance<In, Out, Idx>>(data_vec,
+                                                                     ndim);
   }
   if (metric == "cosine") {
     return std::make_unique<tdoann::CosineSelfDistance<In, Out, Idx>>(data_vec,
@@ -106,8 +106,8 @@ create_self_distance(const Rcpp::NumericMatrix &data,
         data_vec, ndim);
   }
   if (metric == "hamming") {
-    return std::make_unique<tdoann::HammingSelfDistance<In, Out, Idx>>(data_vec,
-                                                                       ndim);
+    return std::make_unique<tdoann::HammingDistance<In, Out, Idx>>(data_vec,
+                                                                   ndim);
   }
   if (metric == "bhamming") {
     auto data_bvec = r_to_vec<uint8_t>(data);
