@@ -147,11 +147,11 @@ template <typename Out, typename Idx = uint32_t>
 auto bhamming_impl(const BitVec &x, const Idx i, const BitVec &y, Idx j,
                    std::size_t len) -> Out {
   Out sum = 0;
-  const std::size_t di = len * i;
-  const std::size_t dj = len * j;
+  std::size_t di = len * i;
+  std::size_t dj = len * j;
 
-  for (std::size_t d = 0; d < len; d++) {
-    sum += (x[di + d] ^ y[dj + d]).count();
+  for (std::size_t d = 0; d < len; ++d, ++di, ++dj) {
+    sum += (x[di] ^ y[dj]).count();
   }
 
   return sum;
@@ -199,9 +199,8 @@ auto mean_center(const std::vector<T> &vec, std::size_t ndim)
 }
 
 template <typename T>
-auto normalize_center(const std::vector<T> &vec, std::size_t ndim)
-    -> std::vector<T> {
-  return normalize(mean_center(vec, ndim), ndim);
+auto normalize_center(std::vector<T> vec, std::size_t ndim) -> std::vector<T> {
+  return normalize(mean_center(std::move(vec), ndim), ndim);
 }
 
 } // namespace tdoann
