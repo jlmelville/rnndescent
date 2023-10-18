@@ -32,7 +32,7 @@ expect_equal(sum(juiris_rnn$dist), expected_sum, tol = 1e-3)
 
 # queries
 
-context("NN descent Manhattan queries")
+context("Manhattan queries")
 
 set.seed(1337)
 ui6_nnd <- nnd_knn(ui6, k = 4, metric = "manhattan")

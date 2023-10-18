@@ -25,19 +25,17 @@ format as \code{nn_graph1}. The number of neighbors can differ between
 graphs, but the merged result will have the same number of neighbors as
 specified in \code{nn_graph1}.}
 
-\item{is_query}{If \code{TRUE} then the graphs are treated as the result of
-a knn query, not a knn building process. This should be set to
-\code{TRUE} if \code{nn_graph1} and \code{nn_graph2} are the results of
-using e.g. \code{\link[=graph_knn_query]{graph_knn_query()}} or \code{\link[=random_knn_query]{random_knn_query()}},
-and set to \code{FALSE} if these are the results of
-\code{\link[=nnd_knn]{nnd_knn()}} or \code{\link[=random_knn]{random_knn()}}. The difference is that
-if \code{is_query = FALSE}, if an index \code{p} is found in
-\code{nn_graph1[i, ]}, i.e. \code{p} is a neighbor of \code{i} with
-distance \code{d}, then it is assumed that \code{i} is a neighbor of
-\code{p} with the same distance. If \code{is_query = TRUE}, then \code{i}
-and \code{p} are indexes into two different datasets and the symmetry does
-not hold. If you aren't sure what case applies to you, it's safe (but
-potentially inefficient) to set \code{is_query = TRUE}.}
+\item{is_query}{If \code{TRUE} then the graphs are treated as the result of a knn
+query, not a knn building process. Or: is the graph bipartite? This should
+be set to \code{TRUE} if \code{nn_graphs} are the results of using e.g.
+\code{\link[=graph_knn_query]{graph_knn_query()}} or \code{\link[=random_knn_query]{random_knn_query()}}, and set to \code{FALSE} if these
+are the results of \code{\link[=nnd_knn]{nnd_knn()}} or \code{\link[=random_knn]{random_knn()}}. The difference is that if
+\code{is_query = FALSE}, if an index \code{p} is found in \code{nn_graph1[i, ]}, i.e. \code{p}
+is a neighbor of \code{i} with distance \code{d}, then it is assumed that \code{i} is a
+neighbor of \code{p} with the same distance. If \code{is_query = TRUE}, then \code{i} and
+\code{p} are indexes into two different datasets and the symmetry does not hold.
+If you aren't sure what case applies to you, it's safe (but potentially
+inefficient) to set \code{is_query = TRUE}}
 
 \item{n_threads}{Number of threads to use.}
 

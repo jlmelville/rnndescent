@@ -7,10 +7,25 @@
 #'   with observations in the columns, by setting `obs = "C"`, which should be
 #'   more efficient.
 #' @param k Number of nearest neighbors to return.
-#' @param metric Type of distance calculation to use. One of `"euclidean"`,
-#'   `"l2sqr"` (squared Euclidean), `"cosine"`, `"manhattan"`, `"correlation"`
-#'   (1 minus the Pearson correlation), `"hamming"` or `"bhamming"` (hamming
-#'   on binary data with bitset internal memory optimization).
+#' @param metric Type of distance calculation to use. One of:
+#'   - `"euclidean"`.
+#'   - `"l2sqr"` (squared Euclidean).
+#'   - `"cosine"`.
+#'   - `"cosine-cache"`: cosine with pre-processing: this trades memory for a
+#'   potential speed up during the distance calculation.It should give the
+#'   same results as `cosine`, give or take minor numerical changes. Be aware
+#'   that the distance between two identical items may not always give exactly
+#'   zero with this method.
+#'   - `"manhattan"`.
+#'   - `"correlation"` (1 minus the Pearson correlation).
+#'   - `"correlation-cache"`: `correlation` with pre-processing. This trades
+#'   memory for a potential speed up during the distance calculation. It should
+#'   give the same results as `correlation`, give or take minor numerical
+#'   changes. Be aware that the distance between two identical items may not
+#'   always give exactly zero with this method.
+#'   - `"hamming"`.
+#'   - `"bhamming"` (hamming on binary data with bitset internal memory
+#'   optimization).
 #' @param use_alt_metric If `TRUE`, use faster metrics that maintain the
 #'   ordering of distances internally (e.g. squared Euclidean distances if using
 #'   `metric = "euclidean"`), then apply a correction at the end. Probably
@@ -100,10 +115,25 @@ brute_force_knn <- function(data,
 #'   be passed with observations in the columns, by setting `obs = "C"`, which
 #'   should be more efficient.
 #' @param k Number of nearest neighbors to return.
-#' @param metric Type of distance calculation to use. One of `"euclidean"`,
-#'   `"l2sqr"` (squared Euclidean), `"cosine"`, `"manhattan"`, `"correlation"`
-#'   (1 minus the Pearson correlation), `"hamming"` or `"bhamming"` (hamming
-#'   on binary data with bitset internal memory optimization).
+#' @param metric Type of distance calculation to use. One of:
+#'   - `"euclidean"`.
+#'   - `"l2sqr"` (squared Euclidean).
+#'   - `"cosine"`.
+#'   - `"cosine-cache"`: cosine with pre-processing: this trades memory for a
+#'   potential speed up during the distance calculation.It should give the
+#'   same results as `cosine`, give or take minor numerical changes. Be aware
+#'   that the distance between two identical items may not always give exactly
+#'   zero with this method.
+#'   - `"manhattan"`.
+#'   - `"correlation"` (1 minus the Pearson correlation).
+#'   - `"correlation-cache"`: `correlation` with pre-processing. This trades
+#'   memory for a potential speed up during the distance calculation. It should
+#'   give the same results as `correlation`, give or take minor numerical
+#'   changes. Be aware that the distance between two identical items may not
+#'   always give exactly zero with this method.
+#'   - `"hamming"`.
+#'   - `"bhamming"` (hamming on binary data with bitset internal memory
+#'   optimization).
 #' @param use_alt_metric If `TRUE`, use faster metrics that maintain the
 #'   ordering of distances internally (e.g. squared Euclidean distances if using
 #'   `metric = "euclidean"`), then apply a correction at the end. Probably
@@ -241,10 +271,25 @@ random_knn_impl <-
 #'   more efficient.
 #' @param k Number of nearest neighbors to return. Optional if `init` is
 #'   specified.
-#' @param metric Type of distance calculation to use. One of `"euclidean"`,
-#'   `"l2sqr"` (squared Euclidean), `"cosine"`, `"manhattan"`, `"correlation"`
-#'   (1 minus the Pearson correlation), `"hamming"` or `"bhamming"` (hamming
-#'   on binary data with bitset internal memory optimization).
+#' @param metric Type of distance calculation to use. One of:
+#'   - `"euclidean"`.
+#'   - `"l2sqr"` (squared Euclidean).
+#'   - `"cosine"`.
+#'   - `"cosine-cache"`: cosine with pre-processing: this trades memory for a
+#'   potential speed up during the distance calculation.It should give the
+#'   same results as `cosine`, give or take minor numerical changes. Be aware
+#'   that the distance between two identical items may not always give exactly
+#'   zero with this method.
+#'   - `"manhattan"`.
+#'   - `"correlation"` (1 minus the Pearson correlation).
+#'   - `"correlation-cache"`: `correlation` with pre-processing. This trades
+#'   memory for a potential speed up during the distance calculation. It should
+#'   give the same results as `correlation`, give or take minor numerical
+#'   changes. Be aware that the distance between two identical items may not
+#'   always give exactly zero with this method.
+#'   - `"hamming"`.
+#'   - `"bhamming"` (hamming on binary data with bitset internal memory
+#'   optimization).
 #' @param init Initial `data` neighbor graph to optimize. If not provided, `k`
 #'   random neighbors are created. If provided, the input format should be a
 #'   list containing:
@@ -466,10 +511,25 @@ nnd_knn <- function(data,
 #'   efficient. The `query` data must be passed in the same orientation as
 #'   `reference`.
 #' @param k Number of nearest neighbors to return.
-#' @param metric Type of distance calculation to use. One of `"euclidean"`,
-#'   `"l2sqr"` (squared Euclidean), `"cosine"`, `"manhattan"`, `"correlation"`
-#'   (1 minus the Pearson correlation), `"hamming"` or `"bhamming"` (hamming
-#'   on binary data with bitset internal memory optimization).
+#' @param metric Type of distance calculation to use. One of:
+#'   - `"euclidean"`.
+#'   - `"l2sqr"` (squared Euclidean).
+#'   - `"cosine"`.
+#'   - `"cosine-cache"`: cosine with pre-processing: this trades memory for a
+#'   potential speed up during the distance calculation.It should give the
+#'   same results as `cosine`, give or take minor numerical changes. Be aware
+#'   that the distance between two identical items may not always give exactly
+#'   zero with this method.
+#'   - `"manhattan"`.
+#'   - `"correlation"` (1 minus the Pearson correlation).
+#'   - `"correlation-cache"`: `correlation` with pre-processing. This trades
+#'   memory for a potential speed up during the distance calculation. It should
+#'   give the same results as `correlation`, give or take minor numerical
+#'   changes. Be aware that the distance between two identical items may not
+#'   always give exactly zero with this method.
+#'   - `"hamming"`.
+#'   - `"bhamming"` (hamming on binary data with bitset internal memory
+#'   optimization).
 #' @param use_alt_metric If `TRUE`, use faster metrics that maintain the
 #'   ordering of distances internally (e.g. squared Euclidean distances if using
 #'   `metric = "euclidean"`), then apply a correction at the end. Probably
@@ -572,10 +632,25 @@ brute_force_knn_query <- function(query,
 #'   more efficient. The `query` data must be passed in the same orientation as
 #'   `reference`.
 #' @param k Number of nearest neighbors to return.
-#' @param metric Type of distance calculation to use. One of `"euclidean"`,
-#'   `"l2sqr"` (squared Euclidean), `"cosine"`, `"manhattan"`, `"correlation"`
-#'   (1 minus the Pearson correlation), `"hamming"` or `"bhamming"` (hamming
-#'   on binary data with bitset internal memory optimization).
+#' @param metric Type of distance calculation to use. One of:
+#'   - `"euclidean"`.
+#'   - `"l2sqr"` (squared Euclidean).
+#'   - `"cosine"`.
+#'   - `"cosine-cache"`: cosine with pre-processing: this trades memory for a
+#'   potential speed up during the distance calculation.It should give the
+#'   same results as `cosine`, give or take minor numerical changes. Be aware
+#'   that the distance between two identical items may not always give exactly
+#'   zero with this method.
+#'   - `"manhattan"`.
+#'   - `"correlation"` (1 minus the Pearson correlation).
+#'   - `"correlation-cache"`: `correlation` with pre-processing. This trades
+#'   memory for a potential speed up during the distance calculation. It should
+#'   give the same results as `correlation`, give or take minor numerical
+#'   changes. Be aware that the distance between two identical items may not
+#'   always give exactly zero with this method.
+#'   - `"hamming"`.
+#'   - `"bhamming"` (hamming on binary data with bitset internal memory
+#'   optimization).
 #' @param use_alt_metric If `TRUE`, use faster metrics that maintain the
 #'   ordering of distances internally (e.g. squared Euclidean distances if using
 #'   `metric = "euclidean"`), then apply a correction at the end. Probably
@@ -941,10 +1016,25 @@ graph_knn_query <- function(query,
 #'   * `idx` an `n` by `k` matrix containing the nearest neighbor indices of
 #'   the data in `data`.
 #'   * `dist` an `n` by `k` matrix containing the nearest neighbor distances.
-#' @param metric Type of distance calculation to use. One of `"euclidean"`,
-#'   `"l2sqr"` (squared Euclidean), `"cosine"`, `"manhattan"`, `"correlation"`
-#'   (1 minus the Pearson correlation), `"hamming"` or `"bhamming"` (hamming
-#'   on binary data with bitset internal memory optimization).
+#' @param metric Type of distance calculation to use. One of:
+#'   - `"euclidean"`.
+#'   - `"l2sqr"` (squared Euclidean).
+#'   - `"cosine"`.
+#'   - `"cosine-cache"`: cosine with pre-processing: this trades memory for a
+#'   potential speed up during the distance calculation.It should give the
+#'   same results as `cosine`, give or take minor numerical changes. Be aware
+#'   that the distance between two identical items may not always give exactly
+#'   zero with this method.
+#'   - `"manhattan"`.
+#'   - `"correlation"` (1 minus the Pearson correlation).
+#'   - `"correlation-cache"`: `correlation` with pre-processing. This trades
+#'   memory for a potential speed up during the distance calculation. It should
+#'   give the same results as `correlation`, give or take minor numerical
+#'   changes. Be aware that the distance between two identical items may not
+#'   always give exactly zero with this method.
+#'   - `"hamming"`.
+#'   - `"bhamming"` (hamming on binary data with bitset internal memory
+#'   optimization).
 #' @param diversify_prob the degree of diversification of the search graph
 #'   by removing unnecessary edges through occlusion pruning. This should take a
 #'   value between `0` (no diversification) and `1` (remove as many edges as
@@ -1214,19 +1304,17 @@ reverse_knn_sp <- function(graph) {
 #'   format as `nn_graph1`. The number of neighbors can differ between
 #'   graphs, but the merged result will have the same number of neighbors as
 #'   specified in `nn_graph1`.
-#' @param is_query If `TRUE` then the graphs are treated as the result of
-#'   a knn query, not a knn building process. This should be set to
-#'   `TRUE` if `nn_graph1` and `nn_graph2` are the results of
-#'   using e.g. [graph_knn_query()] or [random_knn_query()],
-#'   and set to `FALSE` if these are the results of
-#'   [nnd_knn()] or [random_knn()]. The difference is that
-#'   if `is_query = FALSE`, if an index `p` is found in
-#'   `nn_graph1[i, ]`, i.e. `p` is a neighbor of `i` with
-#'   distance `d`, then it is assumed that `i` is a neighbor of
-#'   `p` with the same distance. If `is_query = TRUE`, then `i`
-#'   and `p` are indexes into two different datasets and the symmetry does
-#'   not hold. If you aren't sure what case applies to you, it's safe (but
-#'   potentially inefficient) to set `is_query = TRUE`.
+#' @param is_query If `TRUE` then the graphs are treated as the result of a knn
+#'   query, not a knn building process. Or: is the graph bipartite? This should
+#'   be set to `TRUE` if `nn_graphs` are the results of using e.g.
+#'   [graph_knn_query()] or [random_knn_query()], and set to `FALSE` if these
+#'   are the results of [nnd_knn()] or [random_knn()]. The difference is that if
+#'   `is_query = FALSE`, if an index `p` is found in `nn_graph1[i, ]`, i.e. `p`
+#'   is a neighbor of `i` with distance `d`, then it is assumed that `i` is a
+#'   neighbor of `p` with the same distance. If `is_query = TRUE`, then `i` and
+#'   `p` are indexes into two different datasets and the symmetry does not hold.
+#'   If you aren't sure what case applies to you, it's safe (but potentially
+#'   inefficient) to set `is_query = TRUE`
 #' @param n_threads Number of threads to use.
 #' @param verbose If `TRUE`, log information to the console.
 #' @return a list containing:
@@ -1274,22 +1362,19 @@ merge_knn <- function(nn_graph1,
 #'   containing:
 #'   * `idx` an n by k matrix containing the k nearest neighbor indices.
 #'   * `dist` an n by k matrix containing k nearest neighbor distances.
-#'
 #'   The number of neighbors can differ between graphs, but the merged result
 #'   will have the same number of neighbors as the first graph in the list.
-#' @param is_query If `TRUE` then the graphs are treated as the result of
-#'   a knn query, not a knn building process. This should be set to
-#'   `TRUE` if `nn_graphs` are the results of
-#'   using e.g. [graph_knn_query()] or [random_knn_query()],
-#'   and set to `FALSE` if these are the results of [nnd_knn()]
-#'   or [random_knn()]. The difference is that if `is_query = FALSE`,
-#'   if an index `p` is found in `nn_graph1[i, ]`, i.e.
-#'   `p` is a neighbor of `i` with distance `d`, then it is
-#'   assumed that `i` is a neighbor of `p` with the same distance. If
-#'   `is_query = TRUE`, then `i` and `p` are indexes into two
-#'   different datasets and the symmetry does not hold. If you aren't sure what
-#'   case applies to you, it's safe (but potentially inefficient) to set
-#'   `is_query = TRUE`.
+#' @param is_query If `TRUE` then the graphs are treated as the result of a knn
+#'   query, not a knn building process. Or: is the graph bipartite? This should
+#'   be set to `TRUE` if `nn_graphs` are the results of using e.g.
+#'   [graph_knn_query()] or [random_knn_query()], and set to `FALSE` if these
+#'   are the results of [nnd_knn()] or [random_knn()]. The difference is that if
+#'   `is_query = FALSE`, if an index `p` is found in `nn_graph1[i, ]`, i.e. `p`
+#'   is a neighbor of `i` with distance `d`, then it is assumed that `i` is a
+#'   neighbor of `p` with the same distance. If `is_query = TRUE`, then `i` and
+#'   `p` are indexes into two different datasets and the symmetry does not hold.
+#'   If you aren't sure what case applies to you, it's safe (but potentially
+#'   inefficient) to set `is_query = TRUE`.
 #' @param n_threads Number of threads to use.
 #' @param verbose If `TRUE`, log information to the console.
 #' @return a list containing:

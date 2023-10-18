@@ -211,7 +211,7 @@ expect_equal(sum(iris_nnd$dist), ui_edsum, tol = 1e-3)
 
 # Queries -----------------------------------------------------------------
 
-context("NN descent Euclidean queries")
+context("Euclidean queries")
 
 set.seed(1337)
 ui6_nnd <- nnd_knn(ui6, k = 4)

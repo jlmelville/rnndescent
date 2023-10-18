@@ -71,7 +71,7 @@ expect_equal(bit_rnn$dist, expected_hamm_dist, check.attributes = FALSE)
 
 # queries
 
-context("NN descent hamming queries")
+context("Hamming queries")
 
 set.seed(1337)
 bit6_nnd <- nnd_knn(bit6, k = 4, metric = "hamming")

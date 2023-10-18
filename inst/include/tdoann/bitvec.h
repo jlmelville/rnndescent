@@ -47,32 +47,6 @@ inline auto num_blocks_needed(std::size_t num_bits) -> std::size_t {
 // into a series of BITVEC_BIT_WIDTH-bit bitsets. Possibly compilers are smart
 // enough to use built in integer popcount routines for the bitset count()
 // method.
-// template <typename T>
-// BitVec to_bitvec(T&& vec, std::size_t ndim) {
-// template <typename T> BitVec to_bitvec(std::vector<T> &&vec, std::size_t
-// ndim) {
-//   const std::size_t n = vec.size() / ndim;
-//   const std::size_t num_blocks = num_blocks_needed(ndim);
-//
-//   BitVec bitvec;
-//   bitvec.reserve(n * num_blocks);
-//
-//   // each binary string
-//   for (std::size_t i = 0; i < vec.size(); i += ndim) {
-//     // each block of of binary data
-//     for (std::size_t j = 0; j < num_blocks; j++) {
-//       BitSet<BITVEC_BIT_WIDTH> bits;
-//       // each bit
-//       for (std::size_t k = 0;
-//            k < BITVEC_BIT_WIDTH && (j * BITVEC_BIT_WIDTH + k) < ndim; k++) {
-//         bits[k] = vec[i + j * BITVEC_BIT_WIDTH + k];
-//       }
-//       bitvec.push_back(bits);
-//     }
-//   }
-//
-//   return bitvec;
-// }
 template <typename T> BitVec to_bitvec(T &&vec, std::size_t ndim) {
   const std::size_t n = vec.size() / ndim;
   const std::size_t num_blocks = num_blocks_needed(ndim);
@@ -80,7 +54,6 @@ template <typename T> BitVec to_bitvec(T &&vec, std::size_t ndim) {
   BitVec bitvec;
   bitvec.reserve(n * num_blocks);
 
-  // Use a copy of the input to iterate through since you may move from it.
   auto vec_copy = std::forward<T>(vec);
 
   // each binary string

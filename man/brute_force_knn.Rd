@@ -22,10 +22,27 @@ more efficient.}
 
 \item{k}{Number of nearest neighbors to return.}
 
-\item{metric}{Type of distance calculation to use. One of \code{"euclidean"},
-\code{"l2sqr"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"}, \code{"correlation"}
-(1 minus the Pearson correlation), \code{"hamming"} or \code{"bhamming"} (hamming
-on binary data with bitset internal memory optimization).}
+\item{metric}{Type of distance calculation to use. One of:
+\itemize{
+\item \code{"euclidean"}.
+\item \code{"l2sqr"} (squared Euclidean).
+\item \code{"cosine"}.
+\item \code{"cosine-cache"}: cosine with pre-processing: this trades memory for a
+potential speed up during the distance calculation.It should give the
+same results as \code{cosine}, give or take minor numerical changes. Be aware
+that the distance between two identical items may not always give exactly
+zero with this method.
+\item \code{"manhattan"}.
+\item \code{"correlation"} (1 minus the Pearson correlation).
+\item \code{"correlation-cache"}: \code{correlation} with pre-processing. This trades
+memory for a potential speed up during the distance calculation. It should
+give the same results as \code{correlation}, give or take minor numerical
+changes. Be aware that the distance between two identical items may not
+always give exactly zero with this method.
+\item \code{"hamming"}.
+\item \code{"bhamming"} (hamming on binary data with bitset internal memory
+optimization).
+}}
 
 \item{use_alt_metric}{If \code{TRUE}, use faster metrics that maintain the
 ordering of distances internally (e.g. squared Euclidean distances if using
