@@ -57,25 +57,24 @@
 <dd><p>A list of nearest neighbor graph to merge. Each item in the
 list should consist of a sub-list
 containing:</p><ul><li><p><code>idx</code> an n by k matrix containing the k nearest neighbor indices.</p></li>
-<li><p><code>dist</code> an n by k matrix containing k nearest neighbor distances.</p></li>
-</ul><p>The number of neighbors can differ between graphs, but the merged result
-will have the same number of neighbors as the first graph in the list.</p></dd>
+<li><p><code>dist</code> an n by k matrix containing k nearest neighbor distances.
+The number of neighbors can differ between graphs, but the merged result
+will have the same number of neighbors as the first graph in the list.</p></li>
+</ul></dd>
 
 
 <dt>is_query</dt>
-<dd><p>If <code>TRUE</code> then the graphs are treated as the result of
-a knn query, not a knn building process. This should be set to
-<code>TRUE</code> if <code>nn_graphs</code> are the results of
-using e.g. <code><a href="graph_knn_query.html">graph_knn_query()</a></code> or <code><a href="random_knn_query.html">random_knn_query()</a></code>,
-and set to <code>FALSE</code> if these are the results of <code><a href="nnd_knn.html">nnd_knn()</a></code>
-or <code><a href="random_knn.html">random_knn()</a></code>. The difference is that if <code>is_query = FALSE</code>,
-if an index <code>p</code> is found in <code>nn_graph1[i, ]</code>, i.e.
-<code>p</code> is a neighbor of <code>i</code> with distance <code>d</code>, then it is
-assumed that <code>i</code> is a neighbor of <code>p</code> with the same distance. If
-<code>is_query = TRUE</code>, then <code>i</code> and <code>p</code> are indexes into two
-different datasets and the symmetry does not hold. If you aren't sure what
-case applies to you, it's safe (but potentially inefficient) to set
-<code>is_query = TRUE</code>.</p></dd>
+<dd><p>If <code>TRUE</code> then the graphs are treated as the result of a knn
+query, not a knn building process. Or: is the graph bipartite? This should
+be set to <code>TRUE</code> if <code>nn_graphs</code> are the results of using e.g.
+<code><a href="graph_knn_query.html">graph_knn_query()</a></code> or <code><a href="random_knn_query.html">random_knn_query()</a></code>, and set to <code>FALSE</code> if these
+are the results of <code><a href="nnd_knn.html">nnd_knn()</a></code> or <code><a href="random_knn.html">random_knn()</a></code>. The difference is that if
+<code>is_query = FALSE</code>, if an index <code>p</code> is found in <code>nn_graph1[i, ]</code>, i.e. <code>p</code>
+is a neighbor of <code>i</code> with distance <code>d</code>, then it is assumed that <code>i</code> is a
+neighbor of <code>p</code> with the same distance. If <code>is_query = TRUE</code>, then <code>i</code> and
+<code>p</code> are indexes into two different datasets and the symmetry does not hold.
+If you aren't sure what case applies to you, it's safe (but potentially
+inefficient) to set <code>is_query = TRUE</code>.</p></dd>
 
 
 <dt>n_threads</dt>
