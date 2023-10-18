@@ -42,18 +42,10 @@ public:
   virtual double unif() = 0;
 };
 
-// To be used in a parallel way, the RNG must be able to be created from two
-// seeds
-class ClonableRandomGenerator : public RandomGenerator {
-public:
-  virtual ~ClonableRandomGenerator() = default;
-
-  // Create a new instance of the RNG with provided seeds
-  virtual std::unique_ptr<ClonableRandomGenerator>
-  clone(uint64_t seed1, uint64_t seed2) const = 0;
-};
-
-// This is an interface we will provide to the parallel NND routine
+// This wraps a RNG in such a way that it can be used in a parallel fashion
+// Note that it is only deterministic for a given number of threads
+// (because we use the end of each "window" into the range being processed as
+// one of the seeds for each thread's generator)
 class ParallelRandomProvider {
 public:
   virtual ~ParallelRandomProvider() = default;

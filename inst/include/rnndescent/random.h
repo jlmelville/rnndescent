@@ -54,14 +54,14 @@ inline auto combine_seeds(uint32_t msw, uint32_t lsw) -> uint64_t {
 }
 
 // Uniform RNG using R API: don't try and use this in anything that might
-// end up in a thread (this is why it's not Clonable)
+// end up in a thread
 class RRand : public tdoann::RandomGenerator {
 public:
   double unif() override { return R::runif(0, 1); }
 };
 
 // Use Taus88 RNG
-struct TauRand : public tdoann::ClonableRandomGenerator {
+struct TauRand : public tdoann::RandomGenerator {
   std::unique_ptr<tdoann::tau_prng> prng{nullptr};
 
   TauRand(uint64_t seed, uint64_t seed2) {
@@ -80,25 +80,15 @@ struct TauRand : public tdoann::ClonableRandomGenerator {
   }
   // a random uniform value between 0 and 1
   double unif() override { return prng->rand(); }
-
-  std::unique_ptr<tdoann::ClonableRandomGenerator>
-  clone(uint64_t seed1, uint64_t seed2) const override {
-    return std::make_unique<TauRand>(seed1, seed2);
-  }
 };
 
-struct PcgRand : public tdoann::ClonableRandomGenerator {
+struct PcgRand : public tdoann::RandomGenerator {
   dqrng::uniform_distribution dist;
   pcg64 prng;
 
   PcgRand(uint64_t seed, uint64_t seed2) : dist(0.0, 1.0), prng(seed, seed2) {}
 
   double unif() override { return dist(prng); }
-
-  std::unique_ptr<tdoann::ClonableRandomGenerator>
-  clone(uint64_t seed1, uint64_t seed2) const override {
-    return std::make_unique<PcgRand>(seed1, seed2);
-  }
 };
 
 template <typename T>
