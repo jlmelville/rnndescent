@@ -70,15 +70,4 @@ void zero_index(IntegerMatrix &matrix, int max_idx, bool missing_ok) {
   }
 }
 
-// [[Rcpp::export]]
-List sort_graph(const List &graph_list, std::size_t n_threads = 0) {
-  auto nn_graph = r_to_graph(graph_list);
-  tdoann::NullProgress progress;
-  RParallelExecutor executor;
-
-  tdoann::sort_query_graph(nn_graph, n_threads, progress, executor);
-  constexpr bool unzero = true;
-  return graph_to_r(nn_graph, unzero);
-}
-
 // NOLINTEND(modernize-use-trailing-return-type)

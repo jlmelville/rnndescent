@@ -81,20 +81,6 @@ inline auto r_to_idxt(const Rcpp::IntegerMatrix &nn_idx,
 }
 
 template <typename Out = RNN_DEFAULT_DIST, typename Idx = RNN_DEFAULT_IDX>
-auto r_to_graph(const Rcpp::IntegerMatrix &idx, const Rcpp::NumericMatrix &dist)
-    -> tdoann::NNGraph<Out, Idx> {
-  auto idx_vec = r_to_idxt<Idx>(idx);
-  auto dist_vec = r_to_vect<Out>(dist);
-
-  return tdoann::NNGraph<Out, Idx>(idx_vec, dist_vec, idx.nrow());
-}
-
-template <typename Out = RNN_DEFAULT_DIST, typename Idx = RNN_DEFAULT_IDX>
-auto r_to_graph(const Rcpp::List &nn_graph) -> tdoann::NNGraph<Out, Idx> {
-  return r_to_graph(nn_graph["idx"], nn_graph["dist"]);
-}
-
-template <typename Out = RNN_DEFAULT_DIST, typename Idx = RNN_DEFAULT_IDX>
 auto r_to_sparse_graph(const Rcpp::IntegerMatrix &idx,
                        const Rcpp::NumericMatrix &dist)
     -> tdoann::SparseNNGraph<Out, Idx> {

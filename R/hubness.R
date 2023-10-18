@@ -82,26 +82,6 @@ k_occur <- function(idx,
   reverse_nbr_size_impl(idx, k, len, include_self)
 }
 
-
-# Unlike k_occurences, this isn't defined for bipartite graphs
-s_occur <- function(idx,
-                    k = NULL) {
-  if (methods::is(idx, "sparseMatrix")) {
-    stop("Not implemented")
-  }
-  if (is.list(idx)) {
-    idx <- idx$idx
-  }
-  stopifnot(methods::is(idx, "matrix"))
-  if (is.null(k)) {
-    k <- ncol(idx)
-  }
-  nc <- ncol(idx)
-  stopifnot(k >= 1)
-  stopifnot(k <= nc)
-  shared_nbr_size_impl(idx, k)
-}
-
 # Local Scaling -----------------------------------------------------------
 
 #' Locally Scaled Nearest Neighbors

@@ -60,16 +60,3 @@ is_dense_nn <- function(nn) {
     is.matrix(nn$idx) &&
     is.matrix(nn$dist) && all(dim(nn$idx) == dim(nn$dist))
 }
-
-# return a new neighbor graph with k neighbors (< than the current size)
-nn_k_smallest <- function(nn, k) {
-  if (!is_dense_nn(nn)) {
-    stop("input must be dense neighbor matrix format")
-  }
-  nnk <- ncol(nn$idx)
-  if (k > nnk) {
-    stop("Requested k is larger than number of neighbors")
-  }
-  list(idx = nn$idx[, 1:k], dist = nn$dist[, 1:k])
-}
-

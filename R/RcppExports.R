@@ -67,10 +67,6 @@ reverse_nbr_size_impl <- function(nn_idx, nnbrs, len, include_self = FALSE) {
     .Call(`_rnndescent_reverse_nbr_size_impl`, nn_idx, nnbrs, len, include_self)
 }
 
-shared_nbr_size_impl <- function(nn_idx, n_neighbors) {
-    .Call(`_rnndescent_shared_nbr_size_impl`, nn_idx, n_neighbors)
-}
-
 rnn_idx_to_graph_self <- function(data, idx, metric = "euclidean", n_threads = 0L, verbose = FALSE) {
     .Call(`_rnndescent_rnn_idx_to_graph_self`, data, idx, metric, n_threads, verbose)
 }
@@ -117,9 +113,5 @@ random_knn_query_cpp <- function(reference, query, nnbrs, metric = "euclidean", 
 
 nn_query <- function(reference, reference_graph_list, query, nn_idx, nn_dist, metric = "euclidean", epsilon = 0.1, n_threads = 0L, verbose = FALSE) {
     .Call(`_rnndescent_nn_query`, reference, reference_graph_list, query, nn_idx, nn_dist, metric, epsilon, n_threads, verbose)
-}
-
-sort_graph <- function(graph_list, n_threads = 0L) {
-    .Call(`_rnndescent_sort_graph`, graph_list, n_threads)
 }
 

@@ -103,7 +103,6 @@ set.seed(1337)
 qnbrs6 <- random_knn_query(reference = bit4, query = bit6, k = 4, metric = "bhamming")
 check_query_nbrs(nn = qnbrs6, query = bit6, ref_range = 7:10, query_range = 1:6, k = 4, expected_dist = bit10_hamd, tol = 1e-6)
 
-
 test_that("column orientation", {
   set.seed(1337)
   rnbrs <- random_knn(t(ui10), k = 4, n_threads = 0, obs = "C")
@@ -112,4 +111,16 @@ test_that("column orientation", {
   set.seed(1337)
   qnbrs6 <- random_knn_query(reference = t(bit4), query = t(bit6), k = 4, metric = "bhamming", obs = "C")
   check_query_nbrs(nn = qnbrs6, query = bit6, ref_range = 7:10, query_range = 1:6, k = 4, expected_dist = bit10_hamd, tol = 1e-6)
+})
+
+test_that("one neighbor code path is ok", {
+  set.seed(1337)
+  rnbrs1 <- random_knn(ui10, k = 1)
+
+  expect_equal(ncol(rnbrs1$idx), 1)
+  expect_equal(nrow(rnbrs1$idx), 10)
+  expect_equal(ncol(rnbrs1$dist), 1)
+  expect_equal(nrow(rnbrs1$dist), 10)
+
+  expect_in(rnbrs1$idx, 1:10)
 })
