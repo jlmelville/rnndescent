@@ -32,50 +32,74 @@
 #include <vector>
 
 namespace tdoann {
-static const unsigned int BITVEC_BIT_WIDTH = 64;
+static constexpr unsigned int BITVEC_BIT_WIDTH = 64;
 template <unsigned int n> using BitSet = std::bitset<n>;
 using BitVec = std::vector<BitSet<BITVEC_BIT_WIDTH>>;
 
-inline auto bitvec_size(std::size_t nbits) -> std::size_t {
-  return std::ceil(static_cast<float>(nbits) /
+// Calculate the number of bitsets of size BITVEC_BIT_WIDTH required to account
+// for a binary string of num_bits
+inline auto num_blocks_needed(std::size_t num_bits) -> std::size_t {
+  return std::ceil(static_cast<float>(num_bits) /
                    static_cast<float>(BITVEC_BIT_WIDTH));
 }
 
 // Instead of storing each bit as an element, we will pack them
 // into a series of BITVEC_BIT_WIDTH-bit bitsets. Possibly compilers are smart
 // enough to use built in integer popcount routines for the bitset count()
-// method. Relies on NRVO to avoid copying return value
-template <typename T>
-auto to_bitvec(const std::vector<T> &vec, std::size_t ndim) -> BitVec {
-  BitSet<BITVEC_BIT_WIDTH> bits;
-  std::size_t bit_count = 0;
-  std::size_t vd_count = 0;
+// method.
+// template <typename T>
+// BitVec to_bitvec(T&& vec, std::size_t ndim) {
+// template <typename T> BitVec to_bitvec(std::vector<T> &&vec, std::size_t
+// ndim) {
+//   const std::size_t n = vec.size() / ndim;
+//   const std::size_t num_blocks = num_blocks_needed(ndim);
+//
+//   BitVec bitvec;
+//   bitvec.reserve(n * num_blocks);
+//
+//   // each binary string
+//   for (std::size_t i = 0; i < vec.size(); i += ndim) {
+//     // each block of of binary data
+//     for (std::size_t j = 0; j < num_blocks; j++) {
+//       BitSet<BITVEC_BIT_WIDTH> bits;
+//       // each bit
+//       for (std::size_t k = 0;
+//            k < BITVEC_BIT_WIDTH && (j * BITVEC_BIT_WIDTH + k) < ndim; k++) {
+//         bits[k] = vec[i + j * BITVEC_BIT_WIDTH + k];
+//       }
+//       bitvec.push_back(bits);
+//     }
+//   }
+//
+//   return bitvec;
+// }
+template <typename T> BitVec to_bitvec(T &&vec, std::size_t ndim) {
+  const std::size_t n = vec.size() / ndim;
+  const std::size_t num_blocks = num_blocks_needed(ndim);
 
   BitVec bitvec;
+  bitvec.reserve(n * num_blocks);
 
-  for (std::size_t i = 0; i < vec.size(); i++) {
-    if (bit_count == bits.size() || vd_count == ndim) {
-      // filled up current bitset
-      bitvec.push_back(bits);
-      bit_count = 0;
-      bits.reset();
+  // Use a copy of the input to iterate through since you may move from it.
+  auto vec_copy = std::forward<T>(vec);
 
-      if (vd_count == ndim) {
-        // end of item
-        vd_count = 0;
+  // each binary string
+  for (std::size_t i = 0; i < vec_copy.size(); i += ndim) {
+    // each block of of binary data
+    for (std::size_t j = 0; j < num_blocks; j++) {
+      BitSet<BITVEC_BIT_WIDTH> bits;
+      // each bit
+      for (std::size_t k = 0;
+           k < BITVEC_BIT_WIDTH && (j * BITVEC_BIT_WIDTH + k) < ndim; k++) {
+        bits[k] = vec_copy[i + j * BITVEC_BIT_WIDTH + k];
       }
+      bitvec.push_back(bits);
     }
-    bits[bit_count] = vec[i];
-
-    ++vd_count;
-    ++bit_count;
-  }
-  if (bit_count > 0) {
-    bitvec.push_back(bits);
   }
 
   return bitvec;
 }
+
 } // namespace tdoann
 
 #endif // TDOANN_BITVEC_H

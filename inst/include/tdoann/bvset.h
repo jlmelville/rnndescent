@@ -32,7 +32,7 @@
 namespace tdoann {
 
 inline auto create_set(std::size_t n_points) -> BitVec {
-  const std::size_t n_bitsets = bitvec_size(n_points);
+  const std::size_t n_bitsets = num_blocks_needed(n_points);
   return BitVec(n_bitsets);
 }
 
