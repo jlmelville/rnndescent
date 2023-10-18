@@ -37,6 +37,12 @@ namespace tdoann {
 
 // template for distance functors
 
+template <typename T>
+auto do_nothing(const std::vector<T> &vec, std::size_t /* ndim */)
+    -> std::vector<T> {
+  return vec;
+}
+
 template <typename In, typename Out, typename It, Out (*dfun)(It, It, It),
           std::vector<In> (*initfun)(const std::vector<In> &vec,
                                      std::size_t ndim) = do_nothing,

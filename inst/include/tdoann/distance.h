@@ -157,50 +157,25 @@ auto bhamming_impl(const BitVec &x, const Idx i, const BitVec &y, Idx j,
   return sum;
 }
 
-// Functions for initializing input vectors in functor structs
-
-template <typename T>
-auto do_nothing(const std::vector<T> &vec, std::size_t /* ndim */)
-    -> std::vector<T> {
-  return vec;
-}
-
-template <typename T>
-auto normalize(const std::vector<T> &vec, std::size_t ndim) -> std::vector<T> {
+// Note that this is done *in-place* to avoid unnecessary copying
+template <typename T> void normalize(std::vector<T> &vec, std::size_t ndim) {
   constexpr T MIN_NORM = 1e-30;
-  std::vector<T> normalized(vec.size());
-
   for (auto start_it = vec.begin(); start_it != vec.end(); start_it += ndim) {
     T norm = std::sqrt(std::inner_product(start_it, start_it + ndim, start_it,
                                           T{0})) +
              MIN_NORM;
-
-    std::transform(start_it, start_it + ndim,
-                   normalized.begin() + (start_it - vec.begin()),
+    std::transform(start_it, start_it + ndim, start_it,
                    [norm](T val) { return val / norm; });
   }
-
-  return normalized;
 }
 
-template <typename T>
-auto mean_center(const std::vector<T> &vec, std::size_t ndim)
-    -> std::vector<T> {
-  std::vector<T> centered(vec.size());
-
+// Note that this is done *in-place* to avoid unnecessary copying
+template <typename T> void mean_center(std::vector<T> &vec, std::size_t ndim) {
   for (auto start_it = vec.begin(); start_it != vec.end(); start_it += ndim) {
     T mu = std::accumulate(start_it, start_it + ndim, T{0}) / ndim;
-
-    std::transform(start_it, start_it + ndim,
-                   centered.begin() + (start_it - vec.begin()),
+    std::transform(start_it, start_it + ndim, start_it,
                    [mu](T val) { return val - mu; });
   }
-  return centered;
-}
-
-template <typename T>
-auto normalize_center(std::vector<T> vec, std::size_t ndim) -> std::vector<T> {
-  return normalize(mean_center(std::move(vec), ndim), ndim);
 }
 
 } // namespace tdoann

@@ -11,14 +11,14 @@
 #'   - `"euclidean"`.
 #'   - `"l2sqr"` (squared Euclidean).
 #'   - `"cosine"`.
-#'   - `"cosine-cache"`: cosine with pre-processing: this trades memory for a
+#'   - `"cosine-preprocessing"`: cosine with preprocessing: this trades memory for a
 #'   potential speed up during the distance calculation.It should give the
 #'   same results as `cosine`, give or take minor numerical changes. Be aware
 #'   that the distance between two identical items may not always give exactly
 #'   zero with this method.
 #'   - `"manhattan"`.
 #'   - `"correlation"` (1 minus the Pearson correlation).
-#'   - `"correlation-cache"`: `correlation` with pre-processing. This trades
+#'   - `"correlation-preprocess"`: `correlation` with preprocessing. This trades
 #'   memory for a potential speed up during the distance calculation. It should
 #'   give the same results as `correlation`, give or take minor numerical
 #'   changes. Be aware that the distance between two identical items may not
@@ -119,14 +119,14 @@ brute_force_knn <- function(data,
 #'   - `"euclidean"`.
 #'   - `"l2sqr"` (squared Euclidean).
 #'   - `"cosine"`.
-#'   - `"cosine-cache"`: cosine with pre-processing: this trades memory for a
+#'   - `"cosine-preprocess"`: cosine with preprocessing: this trades memory for a
 #'   potential speed up during the distance calculation.It should give the
 #'   same results as `cosine`, give or take minor numerical changes. Be aware
 #'   that the distance between two identical items may not always give exactly
 #'   zero with this method.
 #'   - `"manhattan"`.
 #'   - `"correlation"` (1 minus the Pearson correlation).
-#'   - `"correlation-cache"`: `correlation` with pre-processing. This trades
+#'   - `"correlation-preprocess"`: `correlation` with preprocessing. This trades
 #'   memory for a potential speed up during the distance calculation. It should
 #'   give the same results as `correlation`, give or take minor numerical
 #'   changes. Be aware that the distance between two identical items may not
@@ -275,14 +275,14 @@ random_knn_impl <-
 #'   - `"euclidean"`.
 #'   - `"l2sqr"` (squared Euclidean).
 #'   - `"cosine"`.
-#'   - `"cosine-cache"`: cosine with pre-processing: this trades memory for a
+#'   - `"cosine-preprocess"`: cosine with preprocessing: this trades memory for a
 #'   potential speed up during the distance calculation.It should give the
 #'   same results as `cosine`, give or take minor numerical changes. Be aware
 #'   that the distance between two identical items may not always give exactly
 #'   zero with this method.
 #'   - `"manhattan"`.
 #'   - `"correlation"` (1 minus the Pearson correlation).
-#'   - `"correlation-cache"`: `correlation` with pre-processing. This trades
+#'   - `"correlation-preprocess"`: `correlation` with preprocessing. This trades
 #'   memory for a potential speed up during the distance calculation. It should
 #'   give the same results as `correlation`, give or take minor numerical
 #'   changes. Be aware that the distance between two identical items may not
@@ -515,14 +515,14 @@ nnd_knn <- function(data,
 #'   - `"euclidean"`.
 #'   - `"l2sqr"` (squared Euclidean).
 #'   - `"cosine"`.
-#'   - `"cosine-cache"`: cosine with pre-processing: this trades memory for a
+#'   - `"cosine-preprocess"`: cosine with preprocessing: this trades memory for a
 #'   potential speed up during the distance calculation.It should give the
 #'   same results as `cosine`, give or take minor numerical changes. Be aware
 #'   that the distance between two identical items may not always give exactly
 #'   zero with this method.
 #'   - `"manhattan"`.
 #'   - `"correlation"` (1 minus the Pearson correlation).
-#'   - `"correlation-cache"`: `correlation` with pre-processing. This trades
+#'   - `"correlation-preprocess"`: `correlation` with preprocessing. This trades
 #'   memory for a potential speed up during the distance calculation. It should
 #'   give the same results as `correlation`, give or take minor numerical
 #'   changes. Be aware that the distance between two identical items may not
@@ -636,14 +636,14 @@ brute_force_knn_query <- function(query,
 #'   - `"euclidean"`.
 #'   - `"l2sqr"` (squared Euclidean).
 #'   - `"cosine"`.
-#'   - `"cosine-cache"`: cosine with pre-processing: this trades memory for a
+#'   - `"cosine-preprocess"`: cosine with preprocessing: this trades memory for a
 #'   potential speed up during the distance calculation.It should give the
 #'   same results as `cosine`, give or take minor numerical changes. Be aware
 #'   that the distance between two identical items may not always give exactly
 #'   zero with this method.
 #'   - `"manhattan"`.
 #'   - `"correlation"` (1 minus the Pearson correlation).
-#'   - `"correlation-cache"`: `correlation` with pre-processing. This trades
+#'   - `"correlation-preprocess"`: `correlation` with preprocessing. This trades
 #'   memory for a potential speed up during the distance calculation. It should
 #'   give the same results as `correlation`, give or take minor numerical
 #'   changes. Be aware that the distance between two identical items may not
@@ -1020,14 +1020,14 @@ graph_knn_query <- function(query,
 #'   - `"euclidean"`.
 #'   - `"l2sqr"` (squared Euclidean).
 #'   - `"cosine"`.
-#'   - `"cosine-cache"`: cosine with pre-processing: this trades memory for a
+#'   - `"cosine-preprocess"`: cosine with preprocessing: this trades memory for a
 #'   potential speed up during the distance calculation.It should give the
 #'   same results as `cosine`, give or take minor numerical changes. Be aware
 #'   that the distance between two identical items may not always give exactly
 #'   zero with this method.
 #'   - `"manhattan"`.
 #'   - `"correlation"` (1 minus the Pearson correlation).
-#'   - `"correlation-cache"`: `correlation` with pre-processing. This trades
+#'   - `"correlation-preprocess"`: `correlation` with preprocessing. This trades
 #'   memory for a potential speed up during the distance calculation. It should
 #'   give the same results as `correlation`, give or take minor numerical
 #'   changes. Be aware that the distance between two identical items may not

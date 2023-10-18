@@ -70,7 +70,7 @@ public:
   std::size_t get_ny() const { return nx; }
 
 protected:
-  const std::vector<In> x;
+  mutable std::vector<In> x;
   std::size_t nx;
   std::size_t ndim;
 };
@@ -87,8 +87,12 @@ public:
   std::size_t get_ny() const { return ny; }
 
 protected:
-  const std::vector<In> x;
-  const std::vector<In> y;
+  // these are not const because for data which needs to be transformed
+  // (e.g. preprocessing versions of cosine and correlation) we need to do the
+  // operations in-place to avoid unnecessary allocations, which in turn
+  // requires work to be done in the constructor body on the x, y fields.
+  mutable std::vector<In> x;
+  mutable std::vector<In> y;
   std::size_t nx;
   std::size_t ny;
   std::size_t ndim;
@@ -256,12 +260,15 @@ public:
 
 // pre-calculates data for faster perf in calculate
 template <typename In, typename Out, typename Idx = uint32_t>
-class CosineCacheSelfDistance : public BaseDistance<Out, Idx>,
-                                public SelfDataMixin<In> {
+class CosinePreprocessSelfDistance : public BaseDistance<Out, Idx>,
+                                     public SelfDataMixin<In> {
 public:
   template <typename VecIn>
-  CosineCacheSelfDistance(VecIn &&data, std::size_t ndim)
-      : SelfDataMixin<In>(normalize(std::forward<VecIn>(data), ndim), ndim) {}
+  CosinePreprocessSelfDistance(VecIn &&data, std::size_t ndim)
+      : SelfDataMixin<In>(std::forward<VecIn>(data), ndim) {
+    // must cast away the constness temporarily to do in-place initialization
+    normalize(const_cast<std::vector<In> &>(this->x), this->ndim);
+  }
 
   Out calculate(Idx i, Idx j) const override {
     const std::size_t di = this->ndim * i;
@@ -277,13 +284,17 @@ public:
 
 // pre-calculates data for faster perf in calculate
 template <typename In, typename Out, typename Idx = uint32_t>
-class CosineCacheQueryDistance : public BaseDistance<Out, Idx>,
-                                 public QueryDataMixin<In> {
+class CosinePreprocessQueryDistance : public BaseDistance<Out, Idx>,
+                                      public QueryDataMixin<In> {
 public:
   template <typename VecIn>
-  CosineCacheQueryDistance(VecIn &&xdata, VecIn &&ydata, std::size_t ndim)
-      : QueryDataMixin<In>(normalize(std::forward<VecIn>(xdata), ndim),
-                           normalize(std::forward<VecIn>(ydata), ndim), ndim) {}
+  CosinePreprocessQueryDistance(VecIn &&xdata, VecIn &&ydata, std::size_t ndim)
+      : QueryDataMixin<In>(std::forward<VecIn>(xdata),
+                           std::forward<VecIn>(ydata), ndim) {
+    // must cast away the constness temporarily to do in-place initialization
+    normalize(const_cast<std::vector<In> &>(this->x), this->ndim);
+    normalize(const_cast<std::vector<In> &>(this->y), this->ndim);
+  }
 
   Out calculate(Idx i, Idx j) const override {
     const std::size_t di = this->ndim * i;
@@ -340,13 +351,16 @@ public:
 
 // pre-calculates data for faster perf in calculate
 template <typename In, typename Out, typename Idx = uint32_t>
-class CorrelationCacheSelfDistance : public BaseDistance<Out, Idx>,
-                                     public SelfDataMixin<In> {
+class CorrelationPreprocessSelfDistance : public BaseDistance<Out, Idx>,
+                                          public SelfDataMixin<In> {
 public:
   template <typename VecIn>
-  CorrelationCacheSelfDistance(VecIn &&data, std::size_t ndim)
-      : SelfDataMixin<In>(normalize_center(std::forward<VecIn>(data), ndim),
-                          ndim) {}
+  CorrelationPreprocessSelfDistance(VecIn &&data, std::size_t ndim)
+      : SelfDataMixin<In>(std::forward<VecIn>(data), ndim) {
+    // must cast away the constness temporarily to do in-place initialization
+    mean_center(const_cast<std::vector<In> &>(this->x), this->ndim);
+    normalize(const_cast<std::vector<In> &>(this->x), this->ndim);
+  }
 
   Out calculate(Idx i, Idx j) const override {
     const std::size_t di = this->ndim * i;
@@ -362,14 +376,21 @@ public:
 
 // pre-calculates data for faster perf in calculate
 template <typename In, typename Out, typename Idx = uint32_t>
-class CorrelationCacheQueryDistance : public BaseDistance<Out, Idx>,
-                                      public QueryDataMixin<In> {
+class CorrelationPreprocessQueryDistance : public BaseDistance<Out, Idx>,
+                                           public QueryDataMixin<In> {
 public:
   template <typename VecIn>
-  CorrelationCacheQueryDistance(VecIn &&xdata, VecIn &&ydata, std::size_t ndim)
-      : QueryDataMixin<In>(normalize_center(std::forward<VecIn>(xdata), ndim),
-                           normalize_center(std::forward<VecIn>(ydata), ndim),
-                           ndim) {}
+  CorrelationPreprocessQueryDistance(VecIn &&xdata, VecIn &&ydata,
+                                     std::size_t ndim)
+      : QueryDataMixin<In>(std::forward<VecIn>(xdata),
+                           std::forward<VecIn>(ydata), ndim) {
+    // must cast away the constness temporarily to do in-place initialization
+    mean_center(const_cast<std::vector<In> &>(this->x), this->ndim);
+    normalize(const_cast<std::vector<In> &>(this->x), this->ndim);
+
+    mean_center(const_cast<std::vector<In> &>(this->y), this->ndim);
+    normalize(const_cast<std::vector<In> &>(this->y), this->ndim);
+  }
 
   Out calculate(Idx i, Idx j) const override {
     const std::size_t di = this->ndim * i;

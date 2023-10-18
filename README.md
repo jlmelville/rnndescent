@@ -20,6 +20,13 @@ even on its own initialized from a random starting point.
 
 ## Current Status
 
+*18 October 2023* A long-postponed major internal refactoring means I might be 
+able to make a bit of progress on this package. For now, the `cosine` and
+`correlation` metrics have migrated to not preprocessing their data (these 
+versions are still available as `cosine-preprocess` and `correlation-preprocess`
+respectively). Also, I have exported the distance metrics as R functions (e.g.
+`cosine_distance`, `euclidean_distance`).
+
 *18 September 2021* The `"hamming"` metric now supports integer-valued (not just
 binary) inputs, thanks to a contribution from
 [Vitalie Spinu](https://github.com/vspinu). The older metric code path for

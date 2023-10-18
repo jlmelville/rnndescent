@@ -77,31 +77,31 @@ expect_equal(res$idx, cor_index, check.attributes = FALSE)
 expect_equal(res$dist, cor_dist, check.attributes = FALSE, tol = 1e-6)
 
 
-# correlation-cache -------------------------------------------------------
+# correlation-preprocess -------------------------------------------------------
 
-context("Correlation-Cache distance")
+context("Correlation-Preprocess distance")
 
-res <- brute_force_knn(uirism[1:10, ], k = 10, metric = "correlation-cache")
+res <- brute_force_knn(uirism[1:10, ], k = 10, metric = "correlation-preprocess")
 expect_equal(res$idx, cor_index, check.attributes = FALSE)
 expect_equal(res$dist, cor_dist, check.attributes = FALSE, tol = 1e-6)
 
-res <- random_knn(uirism[1:10, ], k = 10, metric = "correlation-cache")
+res <- random_knn(uirism[1:10, ], k = 10, metric = "correlation-preprocess")
 expect_equal(res$idx, cor_index, check.attributes = FALSE)
 expect_equal(res$dist, cor_dist, check.attributes = FALSE, tol = 1e-6)
 
-res <- nnd_knn(uirism[1:10, ], k = 10, metric = "correlation-cache")
+res <- nnd_knn(uirism[1:10, ], k = 10, metric = "correlation-preprocess")
 expect_equal(res$idx, cor_index, check.attributes = FALSE)
 expect_equal(res$dist, cor_dist, check.attributes = FALSE, tol = 1e-6)
 
-res <- graph_knn_query(reference = uirism[1:10, ], query = uirism[1:10, ], reference_graph = res, k = 10, metric = "correlation-cache")
+res <- graph_knn_query(reference = uirism[1:10, ], query = uirism[1:10, ], reference_graph = res, k = 10, metric = "correlation-preprocess")
 expect_equal(res$idx, cor_index, check.attributes = FALSE)
 expect_equal(res$dist, cor_dist, check.attributes = FALSE, tol = 1e-6)
 
-res <- brute_force_knn_query(reference = uirism[1:10, ], query = uirism[1:10, ], k = 10, metric = "correlation-cache")
+res <- brute_force_knn_query(reference = uirism[1:10, ], query = uirism[1:10, ], k = 10, metric = "correlation-preprocess")
 expect_equal(res$idx, cor_index, check.attributes = FALSE)
 expect_equal(res$dist, cor_dist, check.attributes = FALSE, tol = 1e-6)
 
-res <- random_knn_query(reference = uirism[1:10, ], query = uirism[1:10, ], k = 10, metric = "correlation-cache")
+res <- random_knn_query(reference = uirism[1:10, ], query = uirism[1:10, ], k = 10, metric = "correlation-preprocess")
 expect_equal(res$idx, cor_index, check.attributes = FALSE)
 expect_equal(res$dist, cor_dist, check.attributes = FALSE, tol = 1e-6)
 expect_equal(res$idx, cor_index, check.attributes = FALSE)

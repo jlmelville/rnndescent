@@ -2,9 +2,25 @@
 
 ## New features
 
+* A change to `metric`: `"cosine"` and `"correlation"` have been renamed
+`"cosine-preprocess"` and `"correlation-preprocess"` respectively. This
+reflects that they do some preprocessing of the data up front to make
+subsequent distance calculations faster. I have endeavored to avoid unnecessary
+allocations or copying in this preprocessing, but there is still a chance of
+more memory usage.
+* The `cosine` and `correlation` metrics are still available as an option, but 
+now use an implementation that doesn't do any preprocessing. The preprocessing
+and non-preprocessing version should give the same numerical results, give or
+take some minor numerical differences, but when the distance should be zero,
+the preprocessing versions may give values which are slightly different from 
+zero (e.g. 1e-7).
 * New functions: `correlation_distance`, `cosine_distance`,
 `euclidean_distance`, `hamming_distance`, `l2sqr_distance`, `manhattan_distance`
-for calculating the distance between two vectors.
+for calculating the distance between two vectors, which may be useful for 
+more arbitrary distance calculations than the nearest neighbor routines here,
+although they won't be as efficient (they do call the same C++ code, though).
+The cosine and correlation calculations here use the non-preprocessing
+implementations.
 * Generalize `hamming` metric to a standard definition. The old implementation
 of `hamming` metric which worked on binary data only was renamed into
 `bhamming`. (contributed by [Vitalie Spinu](https://github.com/vspinu))

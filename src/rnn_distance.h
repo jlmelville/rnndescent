@@ -65,17 +65,18 @@ create_query_distance(const Rcpp::NumericMatrix &reference,
     return std::make_unique<tdoann::CosineQueryDistance<In, Out, Idx>>(
         std::move(ref_vec), std::move(query_vec), ndim);
   }
-  if (metric == "cosine-cache") {
-    return std::make_unique<tdoann::CosineCacheQueryDistance<In, Out, Idx>>(
+  if (metric == "cosine-preprocess") {
+    return std::make_unique<
+        tdoann::CosinePreprocessQueryDistance<In, Out, Idx>>(
         std::move(ref_vec), std::move(query_vec), ndim);
   }
   if (metric == "correlation") {
     return std::make_unique<tdoann::CorrelationQueryDistance<In, Out, Idx>>(
         std::move(ref_vec), std::move(query_vec), ndim);
   }
-  if (metric == "correlation-cache") {
+  if (metric == "correlation-preprocess") {
     return std::make_unique<
-        tdoann::CorrelationCacheQueryDistance<In, Out, Idx>>(
+        tdoann::CorrelationPreprocessQueryDistance<In, Out, Idx>>(
         std::move(ref_vec), std::move(query_vec), ndim);
   }
   if (metric == "hamming") {
@@ -118,16 +119,17 @@ create_self_distance(const Rcpp::NumericMatrix &data,
     return std::make_unique<tdoann::CosineSelfDistance<In, Out, Idx>>(
         std::move(data_vec), ndim);
   }
-  if (metric == "cosine-cache") {
-    return std::make_unique<tdoann::CosineCacheSelfDistance<In, Out, Idx>>(
+  if (metric == "cosine-preprocess") {
+    return std::make_unique<tdoann::CosinePreprocessSelfDistance<In, Out, Idx>>(
         std::move(data_vec), ndim);
   }
   if (metric == "correlation") {
     return std::make_unique<tdoann::CorrelationSelfDistance<In, Out, Idx>>(
         std::move(data_vec), ndim);
   }
-  if (metric == "correlation-cache") {
-    return std::make_unique<tdoann::CorrelationCacheSelfDistance<In, Out, Idx>>(
+  if (metric == "correlation-preprocess") {
+    return std::make_unique<
+        tdoann::CorrelationPreprocessSelfDistance<In, Out, Idx>>(
         std::move(data_vec), ndim);
   }
   if (metric == "hamming") {
