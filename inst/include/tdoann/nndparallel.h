@@ -29,7 +29,6 @@
 
 #include <array>
 #include <mutex>
-#include <sstream>
 
 #include "distancebase.h"
 #include "heap.h"
@@ -40,6 +39,8 @@
 namespace tdoann {
 
 template <typename Out, typename Idx> class ParallelLocalJoin {
+  static constexpr auto npos = static_cast<Idx>(-1);
+
 public:
   using Update = std::tuple<Idx, Idx, Out>;
 
@@ -52,26 +53,30 @@ public:
   auto execute(const NNDHeap<Out, Idx> &current_graph,
                const NNHeap<Out, Idx> &new_nbrs, decltype(new_nbrs) &old_nbrs,
                std::size_t max_candidates, std::size_t begin, std::size_t end) {
-    for (auto i = begin, idx_offset = begin * max_candidates; i < end;
-         i++, idx_offset += max_candidates) {
+    for (auto i = begin, i_begin = begin * max_candidates; i < end;
+         i++, i_begin += max_candidates) {
       for (std::size_t j = 0; j < max_candidates; j++) {
-        auto item_p = new_nbrs.idx[idx_offset + j];
-        if (item_p == new_nbrs.npos()) {
+        auto new_j = new_nbrs.idx[i_begin + j];
+        if (new_j == npos) {
           continue;
         }
+
+        // (new, new) pairs: loop from j->max_candidates
         for (auto k = j; k < max_candidates; k++) {
-          auto item_new = new_nbrs.idx[idx_offset + k];
-          if (item_new == new_nbrs.npos()) {
+          auto new_k = new_nbrs.idx[i_begin + k];
+          if (new_k == npos) {
             continue;
           }
-          this->generate(current_graph, item_p, item_new, i);
+          this->generate(current_graph, new_j, new_k, i);
         }
+
+        // (new, old) pairs loop from 0->max_candidates
         for (std::size_t k = 0; k < max_candidates; k++) {
-          auto item_old = old_nbrs.idx[idx_offset + k];
-          if (item_old == old_nbrs.npos()) {
+          auto old_k = old_nbrs.idx[i_begin + k];
+          if (old_k == npos) {
             continue;
           }
-          this->generate(current_graph, item_p, item_old, i);
+          this->generate(current_graph, new_j, old_k, i);
         }
       }
     }
@@ -108,19 +113,19 @@ public:
   LowMemParallelLocalJoin(const BaseDistance<Out, Idx> &distance)
       : distance(distance), edge_updates(distance.get_ny()) {}
 
-  void generate(const NNDHeap<Out, Idx> &current_graph, Idx idx_p, Idx idx_q,
+  void generate(const NNDHeap<Out, Idx> &current_graph, Idx p, Idx q,
                 std::size_t key) override {
-    const auto dist_pq = distance.calculate(idx_p, idx_q);
-    if (current_graph.accepts_either(idx_p, idx_q, dist_pq)) {
-      edge_updates[key].emplace_back(idx_p, idx_q, dist_pq);
+    const auto d_pq = distance.calculate(p, q);
+    if (current_graph.accepts_either(p, q, d_pq)) {
+      edge_updates[key].emplace_back(p, q, d_pq);
     }
   }
 
   unsigned long apply(NNDHeap<Out, Idx> &current_graph) override {
     unsigned long num_updates = 0UL;
     for (auto &edge_set : edge_updates) {
-      for (auto &[idx_p, idx_q, dist_pq] : edge_set) {
-        num_updates += current_graph.checked_push_pair(idx_p, dist_pq, idx_q);
+      for (auto &[p, q, d_pq] : edge_set) {
+        num_updates += current_graph.checked_push_pair(p, d_pq, q);
       }
       edge_set.clear();
     }
@@ -217,27 +222,16 @@ public:
       nbrs.checked_push(item_j, dist_ij, item_i);
     }
   }
-  void add(NNHeap<Out, Idx> &nbrs, Idx item_i, Idx item_j, Out dist_ij,
-           Out dist_ji) {
-    {
-      std::lock_guard<std::mutex> guard(mutexes[item_i % n_mutexes]);
-      nbrs.checked_push(item_i, dist_ij, item_j);
-    }
-    if (item_i != item_j) {
-      std::lock_guard<std::mutex> guard(mutexes[item_j % n_mutexes]);
-      nbrs.checked_push(item_j, dist_ji, item_i);
-    }
-  }
 };
 
 template <typename Out, typename Idx>
 void build_candidates(const NNDHeap<Out, Idx> &nn_heap,
                       NNHeap<Out, Idx> &new_nbrs, decltype(new_nbrs) &old_nbrs,
                       ParallelRandomProvider &parallel_rand,
-                      LockingHeapAdder<Out, Idx> &heap_adder,
                       std::size_t n_threads, const Executor &executor) {
   constexpr auto npos = static_cast<Idx>(-1);
   const std::size_t n_nbrs = nn_heap.n_nbrs;
+  LockingHeapAdder<Out, Idx> heap_adder;
 
   parallel_rand.initialize();
   auto worker = [&](std::size_t begin, std::size_t end) {
@@ -245,12 +239,12 @@ void build_candidates(const NNDHeap<Out, Idx> &nn_heap,
 
     for (auto i = begin, idx_offset = begin * n_nbrs; i < end;
          i++, idx_offset += n_nbrs) {
-      for (std::size_t j = 0, idx_ij = idx_offset; j < n_nbrs; j++, idx_ij++) {
+      for (auto idx_ij = idx_offset; idx_ij < idx_offset + n_nbrs; idx_ij++) {
         auto nbr = nn_heap.idx[idx_ij];
-        auto &nbrs = nn_heap.flags[idx_ij] == 1 ? new_nbrs : old_nbrs;
         if (nbr == npos) {
           continue;
         }
+        auto &nbrs = nn_heap.flags[idx_ij] == 1 ? new_nbrs : old_nbrs;
         auto rand_weight = rand->unif();
         heap_adder.add(nbrs, i, nbr, rand_weight);
       }
@@ -264,7 +258,6 @@ void flag_new_candidates(NNDHeap<Out, Idx> &nn_heap,
                          const NNHeap<Out, Idx> &new_nbrs,
                          std::size_t n_threads, const Executor &executor) {
   auto worker = [&](std::size_t begin, std::size_t end) {
-    // shared with parallel code path
     flag_retained_new_candidates(nn_heap, new_nbrs, begin, end);
   };
   dispatch_work(worker, nn_heap.n_points, n_threads, executor);
@@ -277,24 +270,20 @@ void nnd_build(NNDHeap<Out, Idx> &nn_heap,
                NNDProgressBase &progress, ParallelRandomProvider &parallel_rand,
                std::size_t n_threads, const Executor &executor) {
   const std::size_t n_points = nn_heap.n_points;
-  const double tol = delta * nn_heap.n_nbrs * n_points;
-
-  LockingHeapAdder<Out, Idx> heap_adder;
 
   for (auto iter = 0U; iter < n_iters; iter++) {
     NNHeap<Out, Idx> new_nbrs(n_points, max_candidates);
     decltype(new_nbrs) old_nbrs(n_points, max_candidates);
 
-    build_candidates<Out, Idx>(nn_heap, new_nbrs, old_nbrs, parallel_rand,
-                               heap_adder, n_threads, executor);
+    build_candidates(nn_heap, new_nbrs, old_nbrs, parallel_rand, n_threads,
+                     executor);
 
-    flag_new_candidates<Out, Idx>(nn_heap, new_nbrs, n_threads, executor);
+    flag_new_candidates(nn_heap, new_nbrs, n_threads, executor);
 
     auto num_updates = local_join.execute(nn_heap, new_nbrs, old_nbrs, progress,
                                           n_threads, executor);
 
-    bool stop_early = nnd_should_stop(progress, nn_heap, num_updates, tol);
-    if (stop_early) {
+    if (nnd_should_stop(progress, nn_heap, num_updates, delta)) {
       break;
     }
   }

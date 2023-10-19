@@ -107,6 +107,8 @@ void pr(Progress &progress, const NeighborHeap &neighbor_heap) {
 template <typename Progress, typename NeighborHeap>
 void pr(Progress &progress, const NeighborHeap &neighbor_heap,
         const std::string &header) {
+  constexpr auto npos = static_cast<typename NeighborHeap::Index>(-1);
+
   typename NeighborHeap::Index n_points = neighbor_heap.n_points;
   std::size_t n_nbrs = neighbor_heap.n_nbrs;
 
@@ -117,7 +119,7 @@ void pr(Progress &progress, const NeighborHeap &neighbor_heap,
     os_out << i << ": ";
     for (std::size_t j = 0; j < n_nbrs; j++) {
       auto idx = neighbor_heap.idx[innbrs + j];
-      if (idx == neighbor_heap.npos()) {
+      if (idx == npos) {
         os_out << "-1 ";
       } else {
         os_out << neighbor_heap.idx[innbrs + j] << " ";
@@ -129,7 +131,7 @@ void pr(Progress &progress, const NeighborHeap &neighbor_heap,
     std::size_t innbrs = i * n_nbrs;
     os_out << i << ": ";
     for (std::size_t j = 0; j < n_nbrs; j++) {
-      if (neighbor_heap.idx[innbrs + j] == neighbor_heap.npos()) {
+      if (neighbor_heap.idx[innbrs + j] == npos) {
         os_out << "NA ";
       } else {
         os_out << neighbor_heap.dist[innbrs + j] << " ";
@@ -146,16 +148,18 @@ inline auto is_converged(unsigned long num_updates, double tol) -> bool {
 
 template <typename NbrHeap>
 auto nnd_should_stop(NNDProgressBase &progress, const NbrHeap &nn_heap,
-                     unsigned long num_updates, double tol) -> bool {
+                     unsigned long num_updates, double delta) -> bool {
   if (progress.check_interrupt()) {
     return true;
   }
   progress.iter_finished();
 
+  const double tol = delta * nn_heap.n_nbrs * nn_heap.n_points;
   if (progress.get_reporting_action() == ReportingAction::HeapSum) {
     double heap_sum_value = heap_sum(nn_heap);
     std::ostringstream oss;
-    oss << "heap sum = " << heap_sum_value;
+    oss << "heap sum = " << heap_sum_value << " num_updates = " << num_updates
+        << " tol = " << tol;
     progress.log(oss.str());
   }
 

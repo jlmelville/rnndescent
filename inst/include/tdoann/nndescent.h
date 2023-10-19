@@ -37,6 +37,8 @@
 namespace tdoann {
 
 template <typename Out, typename Idx> class SerialLocalJoin {
+  static constexpr auto npos = static_cast<Idx>(-1);
+
 public:
   virtual ~SerialLocalJoin() = default;
 
@@ -55,24 +57,26 @@ public:
     unsigned long num_updates = 0UL;
     for (Idx i = 0; i < n_points; i++) {
       for (Idx j = 0; j < max_candidates; j++) {
-        auto p_nbr = new_nbrs.index(i, j);
-        if (p_nbr == new_nbrs.npos()) {
+        // (new, new) pairs from j -> max_candidates
+        auto new_j = new_nbrs.index(i, j);
+        if (new_j == npos) {
           continue;
         }
         for (auto k = j; k < max_candidates; k++) {
-          auto new_nbr = new_nbrs.index(i, k);
-          if (new_nbr == new_nbrs.npos()) {
+          auto new_k = new_nbrs.index(i, k);
+          if (new_k == npos) {
             continue;
           }
-          num_updates += this->update(current_graph, p_nbr, new_nbr);
+          num_updates += this->update(current_graph, new_j, new_k);
         }
 
+        // (new, old) pairs from 0 -> max_candidates
         for (Idx k = 0; k < max_candidates; k++) {
-          auto old_nbr = old_nbrs.index(i, k);
-          if (old_nbr == old_nbrs.npos()) {
+          auto old_k = old_nbrs.index(i, k);
+          if (old_k == npos) {
             continue;
           }
-          num_updates += this->update(current_graph, p_nbr, old_nbr);
+          num_updates += this->update(current_graph, new_j, old_k);
         }
       }
       if (progress.check_interrupt()) {
@@ -155,7 +159,7 @@ public:
 // size of the final candidate list controlled by the maximum size of
 // the candidates neighbors lists.
 template <typename Out, typename Idx>
-void build_candidates(NNDHeap<Out, Idx> &current_graph,
+void build_candidates(const NNDHeap<Out, Idx> &current_graph,
                       NNHeap<Out, Idx> &new_nbrs, decltype(new_nbrs) &old_nbrs,
                       RandomGenerator &rand) {
   constexpr auto npos = static_cast<Idx>(-1);
@@ -164,15 +168,23 @@ void build_candidates(NNDHeap<Out, Idx> &current_graph,
 
   for (std::size_t i = 0, idx_offset = 0; i < n_points;
        i++, idx_offset += n_nbrs) {
-    for (std::size_t j = 0, idx_ij = idx_offset; j < n_nbrs; j++, idx_ij++) {
-      auto &nbrs = current_graph.flags[idx_ij] == 1 ? new_nbrs : old_nbrs;
+    for (auto idx_ij = idx_offset; idx_ij < idx_offset + n_nbrs; idx_ij++) {
       if (current_graph.idx[idx_ij] == npos) {
         continue;
       }
       auto rand_weight = rand.unif();
+      auto &nbrs = current_graph.flags[idx_ij] == 1 ? new_nbrs : old_nbrs;
       nbrs.checked_push_pair(i, rand_weight, current_graph.idx[idx_ij]);
     }
   }
+}
+
+template <typename Out, typename Idx>
+void flag_retained_new_candidates(NNDHeap<Out, Idx> &current_graph,
+                                  const NNHeap<Out, Idx> &new_nbrs) {
+  // shared with parallel code path
+  flag_retained_new_candidates(current_graph, new_nbrs, 0,
+                               current_graph.n_points);
 }
 
 // Pretty close to the NNDescentFull algorithm (#2 in the paper)
@@ -182,20 +194,18 @@ void nnd_build(NNDHeap<Out, Idx> &nn_heap,
                std::size_t max_candidates, unsigned int n_iters, double delta,
                RandomGenerator &rand, NNDProgressBase &progress) {
   const std::size_t n_points = nn_heap.n_points;
-  const double tol = delta * nn_heap.n_nbrs * n_points;
-
   for (auto iter = 0U; iter < n_iters; iter++) {
     NNHeap<Out, Idx> new_nbrs(n_points, max_candidates);
     decltype(new_nbrs) old_nbrs(n_points, max_candidates);
 
     build_candidates(nn_heap, new_nbrs, old_nbrs, rand);
-    // shared with parallel code path
-    flag_retained_new_candidates(nn_heap, new_nbrs, 0, nn_heap.n_points);
+
+    flag_retained_new_candidates(nn_heap, new_nbrs);
+
     auto num_updates =
         local_join.execute(nn_heap, new_nbrs, old_nbrs, progress);
 
-    bool stop_early = nnd_should_stop(progress, nn_heap, num_updates, tol);
-    if (stop_early) {
+    if (nnd_should_stop(progress, nn_heap, num_updates, delta)) {
       break;
     }
   }

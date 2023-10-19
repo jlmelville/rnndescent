@@ -60,6 +60,8 @@ void non_search_query(NNHeap<Out, Idx> &current_graph,
                       const BaseDistance<Out, Idx> &distance,
                       const SparseNNGraph<Out, Idx> &search_graph,
                       double epsilon, std::size_t begin, std::size_t end) {
+  constexpr auto npos = static_cast<Idx>(-1);
+
   const std::size_t n_nbrs = current_graph.n_nbrs;
   const double distance_scale = 1.0 + epsilon;
 
@@ -68,7 +70,7 @@ void non_search_query(NNHeap<Out, Idx> &current_graph,
     NbrQueue<Out, Idx> seed_set;
     for (std::size_t j = 0; j < n_nbrs; j++) {
       Idx candidate_idx = current_graph.index(query_idx, j);
-      if (candidate_idx == current_graph.npos()) {
+      if (candidate_idx == npos) {
         continue;
       }
       seed_set.emplace(current_graph.distance(query_idx, j), candidate_idx);
@@ -89,7 +91,7 @@ void non_search_query(NNHeap<Out, Idx> &current_graph,
       const std::size_t max_candidates = search_graph.n_nbrs(vertex_idx);
       for (std::size_t k = 0; k < max_candidates; k++) {
         auto candidate_idx = search_graph.index(vertex_idx, k);
-        if (candidate_idx == search_graph.npos() ||
+        if (candidate_idx == npos ||
             has_been_and_mark_visited(visited, candidate_idx)) {
           continue;
         }
