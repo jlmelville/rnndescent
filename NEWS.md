@@ -4,6 +4,8 @@
 
 * Progess report for `nnd_knn` with `n_threads > 0` was reporting double the
 actual number of iterations. This made the progress bar way too optimistic.
+* A bug with flagging neighbors in 0.0.10 made the nearest neighbor descent
+inefficient.
 
 # rnndescent 0.0.10
 
