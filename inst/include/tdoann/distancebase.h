@@ -45,7 +45,7 @@ public:
   using Output = Out;
   using Index = Idx;
   virtual ~BaseDistance() = default;
-  virtual Out calculate(Idx i, Idx j) const = 0;
+  virtual Out calculate(const Idx &i, const Idx &j) const = 0;
   virtual std::size_t get_nx() const = 0;
   virtual std::size_t get_ny() const = 0;
 };
@@ -53,7 +53,7 @@ public:
 template <typename T> struct DistanceTraits;
 
 template <typename Out, typename Idx>
-struct DistanceTraits<std::unique_ptr<tdoann::BaseDistance<Out, Idx>>> {
+struct DistanceTraits<std::unique_ptr<BaseDistance<Out, Idx>>> {
   using Output = Out;
   using Index = Idx;
 };
@@ -106,7 +106,7 @@ public:
   L2SqrSelfDistance(VecIn &&data, std::size_t ndim)
       : SelfDataMixin<In>(std::forward<VecIn>(data), ndim) {}
 
-  Out calculate(Idx i, Idx j) const override {
+  Out calculate(const Idx &i, const Idx &j) const override {
     const std::size_t di = this->ndim * i;
     return l2sqr<Out>(this->x.begin() + di, this->x.begin() + di + this->ndim,
                       this->x.begin() + this->ndim * j);
@@ -126,7 +126,7 @@ public:
       : QueryDataMixin<In>(std::forward<VecIn>(xdata),
                            std::forward<VecIn>(ydata), ndim) {}
 
-  Out calculate(Idx i, Idx j) const override {
+  Out calculate(const Idx &i, const Idx &j) const override {
     const std::size_t di = this->ndim * i;
     return l2sqr<Out>(this->x.begin() + di, this->x.begin() + di + this->ndim,
                       this->y.begin() + this->ndim * j);
@@ -145,7 +145,7 @@ public:
   EuclideanSelfDistance(VecIn &&data, std::size_t ndim)
       : SelfDataMixin<In>(std::forward<VecIn>(data), ndim) {}
 
-  Out calculate(Idx i, Idx j) const override {
+  Out calculate(const Idx &i, const Idx &j) const override {
     const std::size_t di = this->ndim * i;
     return euclidean<Out>(this->x.begin() + di,
                           this->x.begin() + di + this->ndim,
@@ -166,7 +166,7 @@ public:
       : QueryDataMixin<In>(std::forward<VecIn>(xdata),
                            std::forward<VecIn>(ydata), ndim) {}
 
-  Out calculate(Idx i, Idx j) const override {
+  Out calculate(const Idx &i, const Idx &j) const override {
     const std::size_t di = this->ndim * i;
     return euclidean<Out>(this->x.begin() + di,
                           this->x.begin() + di + this->ndim,
@@ -186,7 +186,7 @@ public:
   ManhattanSelfDistance(VecIn &&data, std::size_t ndim)
       : SelfDataMixin<In>(std::forward<VecIn>(data), ndim) {}
 
-  Out calculate(Idx i, Idx j) const override {
+  Out calculate(const Idx &i, const Idx &j) const override {
     const std::size_t di = this->ndim * i;
     return manhattan<Out>(this->x.begin() + di,
                           this->x.begin() + di + this->ndim,
@@ -207,7 +207,7 @@ public:
       : QueryDataMixin<In>(std::forward<VecIn>(xdata),
                            std::forward<VecIn>(ydata), ndim) {}
 
-  Out calculate(Idx i, Idx j) const override {
+  Out calculate(const Idx &i, const Idx &j) const override {
     const std::size_t di = this->ndim * i;
     return manhattan<Out>(this->x.begin() + di,
                           this->x.begin() + di + this->ndim,
@@ -227,7 +227,7 @@ public:
   CosineSelfDistance(VecIn &&data, std::size_t ndim)
       : SelfDataMixin<In>(std::forward<VecIn>(data), ndim) {}
 
-  Out calculate(Idx i, Idx j) const override {
+  Out calculate(const Idx &i, const Idx &j) const override {
     const std::size_t di = this->ndim * i;
     return cosine<Out>(this->x.begin() + di, this->x.begin() + di + this->ndim,
                        this->x.begin() + this->ndim * j);
@@ -247,7 +247,7 @@ public:
       : QueryDataMixin<In>(std::forward<VecIn>(xdata),
                            std::forward<VecIn>(ydata), ndim) {}
 
-  Out calculate(Idx i, Idx j) const override {
+  Out calculate(const Idx &i, const Idx &j) const override {
     const std::size_t di = this->ndim * i;
     return cosine<Out>(this->x.begin() + di, this->x.begin() + di + this->ndim,
                        this->y.begin() + this->ndim * j);
@@ -270,11 +270,11 @@ public:
     normalize(const_cast<std::vector<In> &>(this->x), this->ndim);
   }
 
-  Out calculate(Idx i, Idx j) const override {
+  Out calculate(const Idx &i, const Idx &j) const override {
     const std::size_t di = this->ndim * i;
-    return tdoann::inner_product<Out>(this->x.begin() + di,
-                                      this->x.begin() + di + this->ndim,
-                                      this->x.begin() + this->ndim * j);
+    return inner_product<Out>(this->x.begin() + di,
+                              this->x.begin() + di + this->ndim,
+                              this->x.begin() + this->ndim * j);
   }
 
   std::size_t get_nx() const override { return SelfDataMixin<In>::get_nx(); }
@@ -296,11 +296,11 @@ public:
     normalize(const_cast<std::vector<In> &>(this->y), this->ndim);
   }
 
-  Out calculate(Idx i, Idx j) const override {
+  Out calculate(const Idx &i, const Idx &j) const override {
     const std::size_t di = this->ndim * i;
-    return tdoann::inner_product<Out>(this->x.begin() + di,
-                                      this->x.begin() + di + this->ndim,
-                                      this->y.begin() + this->ndim * j);
+    return inner_product<Out>(this->x.begin() + di,
+                              this->x.begin() + di + this->ndim,
+                              this->y.begin() + this->ndim * j);
   }
 
   std::size_t get_nx() const override { return QueryDataMixin<In>::get_nx(); }
@@ -316,7 +316,7 @@ public:
   CorrelationSelfDistance(VecIn &&data, std::size_t ndim)
       : SelfDataMixin<In>(std::forward<VecIn>(data), ndim) {}
 
-  Out calculate(Idx i, Idx j) const override {
+  Out calculate(const Idx &i, const Idx &j) const override {
     const std::size_t di = this->ndim * i;
     return correlation<Out>(this->x.begin() + di,
                             this->x.begin() + di + this->ndim,
@@ -337,7 +337,7 @@ public:
       : QueryDataMixin<In>(std::forward<VecIn>(xdata),
                            std::forward<VecIn>(ydata), ndim) {}
 
-  Out calculate(Idx i, Idx j) const override {
+  Out calculate(const Idx &i, const Idx &j) const override {
     const std::size_t di = this->ndim * i;
     return correlation<Out>(this->x.begin() + di,
                             this->x.begin() + di + this->ndim,
@@ -362,11 +362,11 @@ public:
     normalize(const_cast<std::vector<In> &>(this->x), this->ndim);
   }
 
-  Out calculate(Idx i, Idx j) const override {
+  Out calculate(const Idx &i, const Idx &j) const override {
     const std::size_t di = this->ndim * i;
-    return tdoann::inner_product<Out>(this->x.begin() + di,
-                                      this->x.begin() + di + this->ndim,
-                                      this->x.begin() + this->ndim * j);
+    return inner_product<Out>(this->x.begin() + di,
+                              this->x.begin() + di + this->ndim,
+                              this->x.begin() + this->ndim * j);
   }
 
   std::size_t get_nx() const override { return SelfDataMixin<In>::get_nx(); }
@@ -392,11 +392,11 @@ public:
     normalize(const_cast<std::vector<In> &>(this->y), this->ndim);
   }
 
-  Out calculate(Idx i, Idx j) const override {
+  Out calculate(const Idx &i, const Idx &j) const override {
     const std::size_t di = this->ndim * i;
-    return tdoann::inner_product<Out>(this->x.begin() + di,
-                                      this->x.begin() + di + this->ndim,
-                                      this->y.begin() + this->ndim * j);
+    return inner_product<Out>(this->x.begin() + di,
+                              this->x.begin() + di + this->ndim,
+                              this->y.begin() + this->ndim * j);
   }
 
   std::size_t get_nx() const override { return QueryDataMixin<In>::get_nx(); }
@@ -412,7 +412,7 @@ public:
   HammingSelfDistance(VecIn &&data, std::size_t ndim)
       : SelfDataMixin<In>(std::forward<VecIn>(data), ndim) {}
 
-  Out calculate(Idx i, Idx j) const override {
+  Out calculate(const Idx &i, const Idx &j) const override {
     const std::size_t di = this->ndim * i;
     return hamming<Out>(this->x.begin() + di, this->x.begin() + di + this->ndim,
                         this->x.begin() + this->ndim * j);
@@ -432,7 +432,7 @@ public:
       : QueryDataMixin<In>(std::forward<VecIn>(xdata),
                            std::forward<VecIn>(ydata), ndim) {}
 
-  Out calculate(Idx i, Idx j) const override {
+  Out calculate(const Idx &i, const Idx &j) const override {
     const std::size_t di = this->ndim * i;
     return hamming<Out>(this->x.begin() + di, this->x.begin() + di + this->ndim,
                         this->y.begin() + this->ndim * j);
@@ -451,7 +451,7 @@ public:
       : vec_len(num_blocks_needed(ndim)), nx(data.size() / ndim), ny(nx),
         bdata(to_bitvec(std::forward<VecIn>(data), ndim)) {}
 
-  Out calculate(Idx i, Idx j) const override {
+  Out calculate(const Idx &i, const Idx &j) const override {
     return bhamming_impl<Out>(bdata, i, bdata, j, vec_len);
   }
   std::size_t get_nx() const override { return nx; }
@@ -474,7 +474,7 @@ public:
         ny(y.size() / ndim), bx(to_bitvec(std::forward<VecIn>(x), ndim)),
         by(to_bitvec(std::forward<VecIn>(y), ndim)) {}
 
-  Out calculate(Idx i, Idx j) const override {
+  Out calculate(const Idx &i, const Idx &j) const override {
     return bhamming_impl<Out>(bx, i, by, j, vec_len);
   }
 
