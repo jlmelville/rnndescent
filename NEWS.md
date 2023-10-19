@@ -1,3 +1,10 @@
+# rnndescent 0.0.11
+
+## Bug fixes and minor improvements
+
+* Progess report for `nnd_knn` with `n_threads > 0` was reporting double the
+actual number of iterations. This made the progress bar way too optimistic.
+
 # rnndescent 0.0.10
 
 ## New features
