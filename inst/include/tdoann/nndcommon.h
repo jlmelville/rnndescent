@@ -211,11 +211,12 @@ void flag_retained_new_candidates(NNDHeap<Out, Idx> &current_graph,
                                   const NNHeap<Out, Idx> &new_nbrs,
                                   std::size_t begin, std::size_t end) {
   const std::size_t n_nbrs = current_graph.n_nbrs;
-  for (std::size_t i = begin, idx_offset = 0; i < end;
-       i++, idx_offset += n_nbrs) {
-    for (std::size_t j = 0, idx_ij = idx_offset; j < n_nbrs; j++, idx_ij++) {
-      if (new_nbrs.contains(i, current_graph.idx[idx_ij])) {
-        current_graph.flags[idx_ij] = 0;
+  std::size_t ibegin = begin * n_nbrs;
+  std::size_t ij = ibegin;
+  for (auto i = begin; i < end; i++, ibegin += n_nbrs) {
+    for (std::size_t j = 0; j < n_nbrs; j++, ij++) {
+      if (new_nbrs.contains(i, current_graph.idx[ij])) {
+        current_graph.flags[ij] = 0;
       }
     }
   }
