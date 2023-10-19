@@ -293,11 +293,6 @@ void nnd_build(NNDHeap<Out, Idx> &nn_heap,
     auto num_updates = local_join.execute(nn_heap, new_nbrs, old_nbrs, progress,
                                           n_threads, executor);
 
-    if (progress.check_interrupt()) {
-      break;
-    }
-    progress.iter_finished();
-
     bool stop_early = nnd_should_stop(progress, nn_heap, num_updates, tol);
     if (stop_early) {
       break;
