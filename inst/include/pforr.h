@@ -32,18 +32,9 @@ namespace pforr {
 using IndexRange = std::pair<std::size_t, std::size_t>;
 
 template <typename Worker>
-void worker_thread(Worker &worker, const IndexRange &range) {
+auto worker_thread(Worker &worker, const IndexRange &range) -> void {
   try {
     worker(range.first, range.second);
-  } catch (...) {
-  }
-}
-
-template <typename Worker>
-void worker_thread_id(Worker &worker, const IndexRange &range,
-                      std::size_t thread_id) {
-  try {
-    worker(range.first, range.second, thread_id);
   } catch (...) {
   }
 }
@@ -51,51 +42,47 @@ void worker_thread_id(Worker &worker, const IndexRange &range,
 // Function to calculate the ranges for a given input
 inline auto split_input_range(const IndexRange &range, std::size_t n_threads,
                               std::size_t grain_size)
-    -> std::vector<IndexRange> {
-  // determine max number of threads
-  if (n_threads == 0) {
-    n_threads = std::thread::hardware_concurrency();
+  -> std::vector<IndexRange> {
+
+    // compute grain_size (including enforcing requested minimum)
+    std::size_t length = range.second - range.first;
+    if (n_threads == 1)
+      grain_size = length;
+    else if ((length % n_threads) == 0) // perfect division
+      grain_size = (std::max)(length / n_threads, grain_size);
+    else // imperfect division, divide by threads - 1
+      grain_size = (std::max)(length / (n_threads - 1), grain_size);
+
+    // allocate ranges
+    std::vector<IndexRange> ranges;
+    std::size_t begin = range.first;
+    while (begin < range.second) {
+      std::size_t end = (std::min)(begin + grain_size, range.second);
+      ranges.emplace_back(begin, end);
+      begin = end;
+    }
+
+    return ranges;
   }
 
-  // compute grain_size (including enforcing requested minimum)
-  std::size_t length = range.second - range.first;
-  if (n_threads == 1) {
-    grain_size = length;
-  } else if ((length % n_threads) == 0) { // perfect division
-    grain_size = (std::max)(length / n_threads, grain_size);
-  } else { // imperfect division, divide by threads - 1
-    grain_size = (std::max)(length / (n_threads - 1), grain_size);
-  }
-
-  // allocate ranges
-  std::vector<IndexRange> ranges;
-  for (std::size_t begin = range.first; begin < range.second;
-       begin += grain_size) {
-    auto end = std::min(begin + grain_size, range.second);
-    ranges.emplace_back(begin, end);
-  }
-
-  return ranges;
-}
-
-template <typename Worker, typename ThreadCreator>
-void dispatch_parallel(std::size_t begin, std::size_t end, Worker &worker,
-                       std::size_t n_threads, std::size_t grain_size,
-                       ThreadCreator &&thread_creator) {
+// Execute the Worker over the IndexRange in parallel
+template <typename Worker>
+inline void parallel_for(std::size_t begin, std::size_t end, Worker &worker,
+                         std::size_t n_threads, std::size_t grain_size = 1) {
   if (n_threads == 0) {
     worker(begin, end);
     return;
   }
-
   // split the work
   IndexRange input_range(begin, end);
   std::vector<IndexRange> ranges =
-      split_input_range(input_range, n_threads, grain_size);
+    split_input_range(input_range, n_threads, grain_size);
 
   std::vector<std::thread> threads;
   threads.reserve(ranges.size());
-  for (std::size_t i = 0; i < ranges.size(); ++i) {
-    threads.emplace_back(thread_creator(worker, ranges[i], i));
+  for (auto &range : ranges) {
+    threads.push_back(
+      std::thread(&worker_thread<Worker>, std::ref(worker), range));
   }
 
   for (auto &thread : threads) {
@@ -103,37 +90,6 @@ void dispatch_parallel(std::size_t begin, std::size_t end, Worker &worker,
   }
 
   return;
-}
-
-template <typename Worker>
-inline void parallel_for(std::size_t begin, std::size_t end, Worker &worker,
-                         std::size_t n_threads, std::size_t grain_size = 1) {
-  dispatch_parallel(begin, end, worker, n_threads, grain_size,
-                    [&](Worker &w, const IndexRange &r, std::size_t) {
-                      return std::thread([w, r] { worker_thread(w, r); });
-                    });
-}
-
-template <typename Worker>
-inline void pfor(std::size_t begin, std::size_t end, Worker &worker,
-                 std::size_t n_threads, std::size_t grain_size = 1) {
-  dispatch_parallel(begin, end, worker, n_threads, grain_size,
-                    [&](Worker &w, const IndexRange &r, std::size_t id) {
-                      return std::thread(
-                          [w, r, id] { worker_thread(w, r, id); });
-                    });
-}
-
-template <typename Worker>
-inline void parallel_for(std::size_t end, Worker &worker, std::size_t n_threads,
-                         std::size_t grain_size = 1) {
-  parallel_for(0, end, worker, n_threads, grain_size);
-}
-
-template <typename Worker>
-inline void pfor(std::size_t end, Worker &worker, std::size_t n_threads,
-                 std::size_t grain_size = 1) {
-  pfor(0, end, worker, n_threads, grain_size);
 }
 
 } // namespace pforr
