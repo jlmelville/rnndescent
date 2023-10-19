@@ -20,6 +20,10 @@ even on its own initialized from a random starting point.
 
 ## Current Status
 
+*19 October 2023* Inevitably 0.0.11 is here because of a bug in 0.0.10 where 
+nearest neighbor descent was not correctly flagging new/old neighbors which
+reduced performance (but not the actual result).
+
 *18 October 2023* A long-postponed major internal refactoring means I might be 
 able to make a bit of progress on this package. For now, the `cosine` and
 `correlation` metrics have migrated to not preprocessing their data (these 
