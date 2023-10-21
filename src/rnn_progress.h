@@ -112,7 +112,7 @@ struct RPProgress : public tdoann::ProgressBase {
 
   void log(const std::string &msg) const override {
     if (verbose) {
-      Rcpp::Rcerr << msg << std::endl;
+      ts(msg);
     }
   }
 

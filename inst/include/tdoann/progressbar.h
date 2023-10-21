@@ -44,6 +44,8 @@ private:
   bool verbose;
   unsigned previous_value;
   std::ostream *pout; // Using a pointer to allow for moving
+  // Delay showing the progress bar header until first update
+  bool initialized = false;
 
   unsigned calculate_stars(unsigned value) const {
     return static_cast<unsigned>((value * TOTAL_STEPS) / max + 0.5);
@@ -52,9 +54,7 @@ private:
 public:
   ProgressBar(unsigned max, bool verbose,
               std::ostream &os = TDOANN_PROGRESSBAR_OUTPUT_STREAM)
-      : max(max), verbose(verbose), previous_value(0), pout(&os) {
-    initialize();
-  }
+      : max(max), verbose(verbose), previous_value(0), pout(&os) {}
 
   ProgressBar(ProgressBar &&other) noexcept
       : max(std::exchange(other.max, 0)),
@@ -75,19 +75,23 @@ public:
 
   ~ProgressBar() { cleanup(); }
 
-  // Display the initial bar, separated out for clarity
   void initialize() {
-    if (verbose) {
+    if (verbose && !initialized) {
       (*pout) << "0%   10   20   30   40   50   60   70   80   90   100%"
               << std::endl;
       (*pout) << "[----|----|----|----|----|----|----|----|----|----]"
               << std::endl;
+      initialized = true;
     }
   }
 
   void update(unsigned value) {
-    if (!verbose)
+    if (!verbose) {
       return;
+    }
+    if (!initialized) {
+      initialize();
+    }
 
     // Ensure value does not exceed max
     value = std::min(value, max);

@@ -35,7 +35,7 @@ using Rcpp::List;
 using Rcpp::Rcerr;
 using Rcpp::stop;
 
-void print_time(bool print_date) {
+std::string timestamp(bool print_date) {
   auto now = std::chrono::system_clock::now();
   auto duration = now.time_since_epoch();
   auto secs =
@@ -49,8 +49,10 @@ void print_time(bool print_date) {
   if (dt_str.size() >= MAX_EXPECTED_FMT_LEN) {
     dt_str = dt_str.substr(0, dt_str.size() - MAX_EXPECTED_FMT_LEN);
   }
-  Rcerr << dt_str << " ";
+  return dt_str;
 }
+
+void print_time(bool print_date) { Rcerr << timestamp(print_date) << " "; }
 
 void ts(const std::string &msg) {
   print_time();

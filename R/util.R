@@ -40,7 +40,7 @@ set_thread_options <- function(n_threads) {
 thread_msg <- function(..., n_threads) {
   msg <- paste0(...)
   if (n_threads > 0) {
-    msg <- paste0(msg, " with ", n_threads, " threads")
+    msg <- paste0(msg, " using ", n_threads, " threads")
   }
   msg
 }

@@ -31,6 +31,7 @@ using RNN_DEFAULT_IDX = uint32_t;
 
 #define RNND_MAX_IDX (std::numeric_limits<int>::max)()
 
+std::string timestamp(bool print_date = false);
 void print_time(bool print_date = false);
 void ts(const std::string &);
 void zero_index(Rcpp::IntegerMatrix &, int max_idx = RNND_MAX_IDX,
