@@ -125,6 +125,16 @@ void dispatch_work(Worker &&worker, std::size_t n, std::size_t n_threads,
                 executor);
 }
 
+template <typename Worker>
+void dispatch_work(Worker &&worker, std::size_t n,
+                   const ExecutionParams &execution_params,
+                   ProgressBase &progress) {
+  SerialExecutor executor;
+  constexpr std::size_t n_threads = 0;
+  dispatch_work(std::forward<Worker>(worker), n, n_threads, execution_params,
+                progress, executor);
+}
+
 template <typename Worker, typename AfterWorker>
 void dispatch_work(Worker &&worker, AfterWorker &after_worker, std::size_t n,
                    std::size_t n_threads,

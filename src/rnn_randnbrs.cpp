@@ -19,6 +19,8 @@
 
 // NOLINTBEGIN(modernize-use-trailing-return-type)
 
+#include <optional>
+
 #include <Rcpp.h>
 
 #include "rnndescent/random.h"
@@ -39,16 +41,26 @@ List random_knn_cpp(const NumericMatrix &data, uint32_t nnbrs,
                     bool verbose = false) {
   auto distance_ptr = create_self_distance(data, metric);
   using Idx = typename tdoann::DistanceTraits<decltype(distance_ptr)>::Index;
+  using Out = typename tdoann::DistanceTraits<decltype(distance_ptr)>::Output;
 
-  rnndescent::DQIntSampler<Idx> sampler;
   RPProgress progress(verbose);
   RParallelExecutor executor;
 
-  auto nn_graph =
-      tdoann::random_build(*distance_ptr, nnbrs, sampler, order_by_distance,
-                           n_threads, progress, executor);
+  std::optional<tdoann::NNGraph<Out, Idx>> nn_graph;
 
-  return graph_to_r(nn_graph);
+  if (n_threads > 0) {
+    rnndescent::ParallelIntRNGAdapter<Idx, rnndescent::DQIntSampler>
+        sampler_provider;
+    nn_graph =
+        tdoann::random_build(*distance_ptr, nnbrs, sampler_provider,
+                             order_by_distance, n_threads, progress, executor);
+  } else {
+    rnndescent::DQIntSampler<Idx> sampler;
+    nn_graph = tdoann::random_build(*distance_ptr, nnbrs, sampler,
+                                    order_by_distance, progress);
+  }
+
+  return graph_to_r(*nn_graph);
 }
 
 // [[Rcpp::export]]
@@ -59,16 +71,26 @@ List random_knn_query_cpp(const NumericMatrix &reference,
                           std::size_t n_threads = 0, bool verbose = false) {
   auto distance_ptr = create_query_distance(reference, query, metric);
   using Idx = typename tdoann::DistanceTraits<decltype(distance_ptr)>::Index;
+  using Out = typename tdoann::DistanceTraits<decltype(distance_ptr)>::Output;
 
-  rnndescent::DQIntSampler<Idx> sampler;
   RPProgress progress(verbose);
   RParallelExecutor executor;
 
-  auto nn_graph =
-      tdoann::random_query(*distance_ptr, nnbrs, sampler, order_by_distance,
-                           n_threads, progress, executor);
+  std::optional<tdoann::NNGraph<Out, Idx>> nn_graph;
 
-  return graph_to_r(nn_graph);
+  if (n_threads > 0) {
+    rnndescent::ParallelIntRNGAdapter<Idx, rnndescent::DQIntSampler>
+        sampler_provider;
+    nn_graph =
+        tdoann::random_query(*distance_ptr, nnbrs, sampler_provider,
+                             order_by_distance, n_threads, progress, executor);
+  } else {
+    rnndescent::DQIntSampler<Idx> sampler;
+    nn_graph = tdoann::random_query(*distance_ptr, nnbrs, sampler,
+                                    order_by_distance, progress);
+  }
+
+  return graph_to_r(*nn_graph);
 }
 
 // NOLINTEND(modernize-use-trailing-return-type)

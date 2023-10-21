@@ -248,6 +248,18 @@ void sort_knn_graph(NbrGraph &nn_graph, std::size_t n_threads,
   heap_to_graph(heap, nn_graph);
 }
 
+template <typename NbrGraph>
+void sort_knn_graph(NbrGraph &nn_graph, ProgressBase &progress) {
+  auto heap = init_heap(nn_graph);
+  constexpr bool transpose = false;
+  constexpr std::size_t n_threads = 0;
+  SerialExecutor executor;
+  vec_to_knn_heap(heap, nn_graph.idx, nn_graph.n_points, nn_graph.dist,
+                  n_threads, transpose, progress, executor);
+  sort_heap(heap, n_threads, progress, executor);
+  heap_to_graph(heap, nn_graph);
+}
+
 // In a query graph sort, it's assumed the graph is bipartite, i.e. the
 // neighbors of i are not drawn from the same data as i. It's safe to run this
 // on a knn graph (where the neighbors of i *are* from the same data as i).
@@ -256,6 +268,18 @@ void sort_query_graph(NbrGraph &nn_graph, std::size_t n_threads,
                       ProgressBase &progress, const Executor &executor) {
   auto heap = init_heap(nn_graph);
   constexpr bool transpose = false;
+  vec_to_query_heap(heap, nn_graph.idx, nn_graph.n_points, nn_graph.dist,
+                    n_threads, transpose, progress, executor);
+  sort_heap(heap, n_threads, progress, executor);
+  heap_to_graph(heap, nn_graph);
+}
+
+template <typename NbrGraph>
+void sort_query_graph(NbrGraph &nn_graph, ProgressBase &progress) {
+  auto heap = init_heap(nn_graph);
+  constexpr bool transpose = false;
+  constexpr std::size_t n_threads = 0;
+  SerialExecutor executor;
   vec_to_query_heap(heap, nn_graph.idx, nn_graph.n_points, nn_graph.dist,
                     n_threads, transpose, progress, executor);
   sort_heap(heap, n_threads, progress, executor);

@@ -58,20 +58,23 @@ public:
   get_parallel_instance(uint64_t seed2) = 0;
 };
 
-// This is an interface that needs to be implemented by users of randnbrs.h to
-// allow for thread-safe random sampling of integers
-template <typename Int> class BaseIntSampler {
+// Needed for random sampling of integers
+template <typename Int = unsigned int> class RandomIntGenerator {
 public:
-  virtual ~BaseIntSampler() = default;
+  // Generates a random integer in range [0, n)
+  virtual Int rand_int(Int n) = 0;
 
-  // Generate samples
+  // Generates n_ints random integers in range [0, max_val)
   virtual std::vector<Int> sample(int max_val, int n_ints) = 0;
-  // Clone for thread-specific samplers
-  virtual std::unique_ptr<BaseIntSampler<Int>>
-  get_parallel_instance(uint64_t seed2) const = 0;
+};
 
-  // Initialize the seed from an external source (can be called outside threads)
+template <typename Int> class ParallelRandomIntProvider {
+public:
+  virtual ~ParallelRandomIntProvider() = default;
+
   virtual void initialize() = 0;
+  virtual std::unique_ptr<RandomIntGenerator<Int>>
+  get_parallel_instance(uint64_t seed2) = 0;
 };
 
 } // namespace tdoann
