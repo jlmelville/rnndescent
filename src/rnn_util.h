@@ -26,6 +26,7 @@
 
 #include "tdoann/nngraph.h"
 
+using RNN_DEFAULT_IN = float;
 using RNN_DEFAULT_DIST = float;
 using RNN_DEFAULT_IDX = uint32_t;
 
