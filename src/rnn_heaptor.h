@@ -35,12 +35,17 @@ void heap_to_r(const NbrHeap &heap, Rcpp::IntegerMatrix &nn_idx,
                Rcpp::NumericMatrix &nn_dist) {
   std::size_t n_points = heap.n_points;
   std::size_t n_nbrs = heap.n_nbrs;
+  constexpr auto missing = static_cast<typename NbrHeap::Index>(-1);
   for (std::size_t i = 0; i < n_points; i++) {
     std::size_t innbrs = i * n_nbrs;
     for (std::size_t j = 0; j < n_nbrs; j++) {
       std::size_t innbrsj = innbrs + j;
+      if (heap.idx[innbrsj] == missing) {
+        nn_dist(i, j) = NA_REAL;
+      } else {
+        nn_dist(i, j) = heap.dist[innbrsj];
+      }
       nn_idx(i, j) = heap.idx[innbrsj] + 1;
-      nn_dist(i, j) = heap.dist[innbrsj];
     }
   }
 }

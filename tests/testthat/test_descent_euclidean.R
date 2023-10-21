@@ -135,9 +135,9 @@ expect_equal(sum(iris_nnd$dist), ui_edsum, tol = 1e-3)
 # initialize from existing knn graph with missing data
 set.seed(1337)
 iris_nbrs_missing <- iris_nbrs
-iris_nbrs_missing$idx[1, ] <- rep(0, ncol(iris_nbrs_missing$idx))
+iris_nbrs_missing$idx[1,] <- rep(0, ncol(iris_nbrs_missing$idx))
 iris_nbrs_missing$dist[1, ] <-
-  rep(.Machine$double.xmax, ncol(iris_nbrs_missing$dist))
+  rep(NA, ncol(iris_nbrs_missing$dist))
 iris_nnd <- nnd_knn(uirism, init = iris_nbrs_missing)
 expect_equal(sum(iris_nnd$dist), ui_edsum, tol = 1e-3)
 

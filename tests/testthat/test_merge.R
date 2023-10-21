@@ -99,7 +99,7 @@ check_query_nbrs(nn = qnbrsml3, query = ui4, ref_range = 1:6, query_range = 7:10
 
 # missing indices
 ui10rnn2$idx[1, 2] <- 0
-ui10rnn2$dist[1, 2] <- .Machine$double.xmax
+ui10rnn2$dist[1, 2] <- NA
 ui10mergemissing <- merge_knn(ui10rnn1, ui10rnn2)
 expect_equal(range(ui10mergemissing$idx), c(1, 10))
 
