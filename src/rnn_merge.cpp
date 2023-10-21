@@ -52,9 +52,10 @@ void add_graph(NeighborHeap &heap, const IntegerMatrix &nn_idx,
   }
 }
 
-auto merge_nn_impl(const IntegerMatrix &nn_idx1, const NumericMatrix &nn_dist1,
-                   const IntegerMatrix &nn_idx2, const NumericMatrix &nn_dist2,
-                   bool is_query, std::size_t n_threads, bool verbose) -> List {
+// [[Rcpp::export]]
+List merge_nn(const IntegerMatrix &nn_idx1, const NumericMatrix &nn_dist1,
+              const IntegerMatrix &nn_idx2, const NumericMatrix &nn_dist2,
+              bool is_query, std::size_t n_threads, bool verbose) {
   tdoann::NNHeap<RNN_DEFAULT_DIST> nn_merged(nn_idx1.nrow(), nn_idx1.ncol());
 
   if (verbose) {
@@ -68,8 +69,9 @@ auto merge_nn_impl(const IntegerMatrix &nn_idx1, const NumericMatrix &nn_dist1,
   return heap_to_r(nn_merged, n_threads, progress, executor);
 }
 
-auto merge_nn_all_impl(const List &nn_graphs, bool is_query,
-                       std::size_t n_threads, bool verbose = false) -> List {
+// [[Rcpp::export]]
+List merge_nn_all(const List &nn_graphs, bool is_query, std::size_t n_threads,
+                  bool verbose) {
   const auto n_graphs = nn_graphs.size();
 
   RPProgress progress(static_cast<std::size_t>(n_graphs), verbose);
@@ -95,20 +97,6 @@ auto merge_nn_all_impl(const List &nn_graphs, bool is_query,
 
   RParallelExecutor executor;
   return heap_to_r(nn_merged, n_threads, progress, executor);
-}
-
-// [[Rcpp::export]]
-List merge_nn(const IntegerMatrix &nn_idx1, const NumericMatrix &nn_dist1,
-              const IntegerMatrix &nn_idx2, const NumericMatrix &nn_dist2,
-              bool is_query, std::size_t n_threads, bool verbose) {
-  return merge_nn_impl(nn_idx1, nn_dist1, nn_idx2, nn_dist2, is_query,
-                       n_threads, verbose);
-}
-
-// [[Rcpp::export]]
-List merge_nn_all(const List &nn_graphs, bool is_query, std::size_t n_threads,
-                  bool verbose) {
-  return merge_nn_all_impl(nn_graphs, is_query, n_threads, verbose);
 }
 
 // NOLINTEND(modernize-use-trailing-return-type)
