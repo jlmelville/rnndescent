@@ -43,12 +43,12 @@ List rp_tree_knn_cpp(const NumericMatrix &data, uint32_t nnbrs,
 
   auto data_vec = r_to_vec<In>(data);
 
+  bool angular = distance_ptr->is_angular();
   RParallelExecutor executor;
   rnndescent::ParallelIntRNGAdapter<Idx, rnndescent::DQIntSampler> rng_provider;
-  constexpr bool angular = false;
   if (verbose) {
-    tsmessage() << "Creating RP forest with " << n_trees << " trees"
-                << std::endl;
+    tsmessage() << "Creating" << (angular ? " angular " : "")
+                << "RP forest with " << n_trees << " trees" << std::endl;
   }
 
   RPProgress forest_progress(verbose);

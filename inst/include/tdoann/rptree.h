@@ -49,65 +49,48 @@ template <typename Idx, typename In> struct RPTree {
         leaf_size(max_size) {}
 };
 
-template <typename Idx, typename In>
-std::tuple<std::vector<Idx>, std::vector<Idx>, std::vector<In>, In>
-euclidean_random_projection_split(const std::vector<In> &data, size_t ndim,
-                                  const std::vector<Idx> &indices,
-                                  tdoann::RandomIntGenerator<Idx> &rng) {
-  constexpr In EPS = 1e-8;
-
+template <typename Idx>
+std::pair<Idx, Idx> select_random_points(const std::vector<Idx> &indices,
+                                         tdoann::RandomIntGenerator<Idx> &rng) {
   const std::size_t n_points = indices.size();
 
-  // pick two random (distinct) points
   Idx left_index = rng.rand_int(n_points);
   Idx right_index = rng.rand_int(n_points - 1);
   if (left_index == right_index) {
     ++right_index;
   }
+  right_index = right_index % n_points;
 
-  Idx left = indices[left_index] * ndim;
-  Idx right = indices[right_index] * ndim;
+  return {left_index, right_index};
+}
 
-  std::vector<In> hyperplane_vector(ndim);
-  In hyperplane_offset = 0.0;
-  for (size_t d = 0; d < ndim; ++d) {
-    hyperplane_vector[d] = data[left + d] - data[right + d];
-    hyperplane_offset -=
-        hyperplane_vector[d] * (data[left + d] + data[right + d]) / 2.0;
-  }
+template <typename Idx, typename In>
+void split_indices(const std::vector<In> &data, std::size_t ndim,
+                   const std::vector<Idx> &indices,
+                   const std::vector<In> &hyperplane_vector,
+                   In hyperplane_offset, std::vector<Idx> &indices_left,
+                   std::vector<Idx> &indices_right,
+                   tdoann::RandomIntGenerator<Idx> &rng) {
+  constexpr In EPS = 1e-8;
 
-  std::size_t n_left = 0;
-  std::size_t n_right = 0;
-  std::vector<Idx> indices_left;
-  std::vector<Idx> indices_right;
-
-  // Calculate margins and assign sides
   for (auto index : indices) {
     In margin =
         std::inner_product(hyperplane_vector.begin(), hyperplane_vector.end(),
                            data.begin() + index * ndim, hyperplane_offset);
 
-    // if effectively on the hyperplane, pick a side at random
     if (std::abs(margin) < EPS) {
       if (rng.rand_int(2) == 0) {
         indices_left.push_back(index);
-        ++n_left;
       } else {
         indices_right.push_back(index);
-        ++n_right;
       }
     } else if (margin > 0) {
-      // +ve on the left
       indices_left.push_back(index);
-      ++n_left;
     } else {
-      // -ve on the right
       indices_right.push_back(index);
-      ++n_right;
     }
   }
 
-  // If one side or the other is empty then assign to the sides randomly
   if (indices_left.empty() || indices_right.empty()) {
     indices_left.clear();
     indices_right.clear();
@@ -119,9 +102,89 @@ euclidean_random_projection_split(const std::vector<In> &data, size_t ndim,
       }
     }
   }
+}
+
+template <typename Idx, typename In>
+std::tuple<std::vector<Idx>, std::vector<Idx>, std::vector<In>, In>
+euclidean_random_projection_split(const std::vector<In> &data, std::size_t ndim,
+                                  const std::vector<Idx> &indices,
+                                  tdoann::RandomIntGenerator<Idx> &rng) {
+  auto [left_index, right_index] = select_random_points(indices, rng);
+
+  Idx left = indices[left_index] * ndim;
+  Idx right = indices[right_index] * ndim;
+
+  // Compute hyperplane vector and offset
+  std::vector<In> hyperplane_vector(ndim);
+  In hyperplane_offset = 0.0;
+  for (size_t d = 0; d < ndim; ++d) {
+    hyperplane_vector[d] = data[left + d] - data[right + d];
+    hyperplane_offset -=
+        hyperplane_vector[d] * (data[left + d] + data[right + d]) / 2.0;
+  }
+
+  // Split Indices
+  std::vector<Idx> indices_left;
+  std::vector<Idx> indices_right;
+  split_indices(data, ndim, indices, hyperplane_vector, hyperplane_offset,
+                indices_left, indices_right, rng);
 
   return std::make_tuple(indices_left, indices_right, hyperplane_vector,
                          hyperplane_offset);
+}
+
+template <typename Idx, typename In>
+std::tuple<std::vector<Idx>, std::vector<Idx>, std::vector<In>, In>
+angular_random_projection_split(const std::vector<In> &data, size_t ndim,
+                                const std::vector<Idx> &indices,
+                                tdoann::RandomIntGenerator<Idx> &rng) {
+  constexpr In EPS = 1e-8;
+
+  auto [left_index, right_index] = select_random_points(indices, rng);
+
+  Idx left = indices[left_index] * ndim;
+  Idx right = indices[right_index] * ndim;
+
+  // Compute normal vector to the hyperplane
+  In left_norm = 0.0;
+  In right_norm = 0.0;
+  for (size_t d = 0; d < ndim; ++d) {
+    left_norm += data[left + d] * data[left + d];
+    right_norm += data[right + d] * data[right + d];
+  }
+  left_norm = std::sqrt(left_norm);
+  right_norm = std::sqrt(right_norm);
+
+  if (std::abs(left_norm) < EPS) {
+    left_norm = 1.0;
+  }
+  if (std::abs(right_norm) < EPS) {
+    right_norm = 1.0;
+  }
+
+  std::vector<In> hyperplane_vector(ndim);
+  In hyperplane_norm = 0.0;
+  for (size_t d = 0; d < ndim; ++d) {
+    hyperplane_vector[d] =
+        (data[left + d] / left_norm) - (data[right + d] / right_norm);
+    hyperplane_norm += hyperplane_vector[d] * hyperplane_vector[d];
+  }
+  hyperplane_norm = std::sqrt(hyperplane_norm);
+  if (std::abs(hyperplane_norm) < EPS) {
+    hyperplane_norm = 1.0;
+  }
+
+  for (size_t d = 0; d < ndim; ++d) {
+    hyperplane_vector[d] /= hyperplane_norm;
+  }
+
+  // Split Indices
+  std::vector<Idx> indices_left;
+  std::vector<Idx> indices_right;
+  split_indices(data, ndim, indices, hyperplane_vector, In(0), indices_left,
+                indices_right, rng);
+
+  return std::make_tuple(indices_left, indices_right, hyperplane_vector, In(0));
 }
 
 template <typename Idx, typename In>
@@ -164,6 +227,46 @@ void make_euclidean_tree(const std::vector<In> &data, std::size_t ndim,
 }
 
 template <typename Idx, typename In>
+void make_angular_tree(const std::vector<In> &data, std::size_t ndim,
+                       const std::vector<Idx> &indices,
+                       std::vector<std::vector<In>> &hyperplanes,
+                       std::vector<In> &offsets,
+                       std::vector<std::pair<Idx, Idx>> &children,
+                       std::vector<std::vector<Idx>> &point_indices,
+                       tdoann::RandomIntGenerator<Idx> &rng,
+                       unsigned int leaf_size = 30,
+                       unsigned int max_depth = 100) {
+  constexpr Idx idx_sentinel = static_cast<Idx>(-1);
+  constexpr In minus_one = static_cast<In>(-1);
+  constexpr In minus_inf = -std::numeric_limits<In>::infinity();
+
+  if (indices.size() > leaf_size && max_depth > 0) {
+    auto [left_indices, right_indices, hyperplane, offset] =
+        angular_random_projection_split(data, ndim, indices, rng);
+
+    make_angular_tree(data, ndim, left_indices, hyperplanes, offsets, children,
+                      point_indices, rng, leaf_size, max_depth - 1);
+
+    Idx left_node_num = point_indices.size() - 1;
+
+    make_angular_tree(data, ndim, right_indices, hyperplanes, offsets, children,
+                      point_indices, rng, leaf_size, max_depth - 1);
+
+    Idx right_node_num = point_indices.size() - 1;
+
+    hyperplanes.push_back(hyperplane);
+    offsets.push_back(offset);
+    children.emplace_back(left_node_num, right_node_num);
+    point_indices.emplace_back(std::vector<Idx>(1, idx_sentinel));
+  } else {
+    hyperplanes.emplace_back(std::vector<In>(1, minus_one));
+    offsets.push_back(minus_inf);
+    children.emplace_back(idx_sentinel, idx_sentinel);
+    point_indices.push_back(indices);
+  }
+}
+
+template <typename Idx, typename In>
 RPTree<Idx, In> make_dense_tree(const std::vector<In> &data, std::size_t ndim,
                                 RandomIntGenerator<Idx> &rng,
                                 unsigned int leaf_size, bool angular) {
@@ -177,8 +280,8 @@ RPTree<Idx, In> make_dense_tree(const std::vector<In> &data, std::size_t ndim,
   std::vector<std::vector<Idx>> point_indices;
 
   if (angular) {
-    make_euclidean_tree(data, ndim, indices, hyperplanes, offsets, children,
-                        point_indices, rng, leaf_size);
+    make_angular_tree(data, ndim, indices, hyperplanes, offsets, children,
+                      point_indices, rng, leaf_size);
   } else {
     make_euclidean_tree(data, ndim, indices, hyperplanes, offsets, children,
                         point_indices, rng, leaf_size);
@@ -193,7 +296,6 @@ RPTree<Idx, In> make_dense_tree(const std::vector<In> &data, std::size_t ndim,
                          std::move(children), std::move(point_indices),
                          max_leaf_size);
 }
-
 template <typename Idx, typename In>
 std::vector<RPTree<Idx, In>>
 make_forest(const std::vector<In> &data, std::size_t ndim, unsigned int n_trees,

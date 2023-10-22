@@ -48,6 +48,14 @@ public:
   virtual Out calculate(const Idx &i, const Idx &j) const = 0;
   virtual std::size_t get_nx() const = 0;
   virtual std::size_t get_ny() const = 0;
+  // needed for RP Tree calculations
+  // https://github.com/lmcinnes/pynndescent/blob/db258cea34cce7e11e90a460c1f8a0bd8b69f1c1/pynndescent/pynndescent_.py#L764
+  // angular metrics currently are:
+  // "cosine", "dot", "correlation", "dice", "jaccard", "hellinger", "hamming",
+  // other metrics are considered to be euclidean. By default metrics are not
+  // considered angular so you only have to override this if the metric is
+  // angular
+  virtual bool is_angular() const { return false; }
 };
 
 template <typename T> struct DistanceTraits;
@@ -233,6 +241,8 @@ public:
                        this->x.begin() + this->ndim * j);
   }
 
+  bool is_angular() const override { return true; }
+
   std::size_t get_nx() const override { return SelfDataMixin<In>::get_nx(); }
 
   std::size_t get_ny() const override { return SelfDataMixin<In>::get_ny(); }
@@ -252,6 +262,8 @@ public:
     return cosine<Out>(this->x.begin() + di, this->x.begin() + di + this->ndim,
                        this->y.begin() + this->ndim * j);
   }
+
+  bool is_angular() const override { return true; }
 
   std::size_t get_nx() const override { return QueryDataMixin<In>::get_nx(); }
 
@@ -276,6 +288,8 @@ public:
                               this->x.begin() + di + this->ndim,
                               this->x.begin() + this->ndim * j);
   }
+
+  bool is_angular() const override { return true; }
 
   std::size_t get_nx() const override { return SelfDataMixin<In>::get_nx(); }
 
@@ -302,6 +316,7 @@ public:
                               this->x.begin() + di + this->ndim,
                               this->y.begin() + this->ndim * j);
   }
+  bool is_angular() const override { return true; }
 
   std::size_t get_nx() const override { return QueryDataMixin<In>::get_nx(); }
 
@@ -323,6 +338,8 @@ public:
                             this->x.begin() + this->ndim * j);
   }
 
+  bool is_angular() const override { return true; }
+
   std::size_t get_nx() const override { return SelfDataMixin<In>::get_nx(); }
 
   std::size_t get_ny() const override { return SelfDataMixin<In>::get_ny(); }
@@ -343,6 +360,7 @@ public:
                             this->x.begin() + di + this->ndim,
                             this->y.begin() + this->ndim * j);
   }
+  bool is_angular() const override { return true; }
 
   std::size_t get_nx() const override { return QueryDataMixin<In>::get_nx(); }
 
@@ -368,6 +386,7 @@ public:
                               this->x.begin() + di + this->ndim,
                               this->x.begin() + this->ndim * j);
   }
+  bool is_angular() const override { return true; }
 
   std::size_t get_nx() const override { return SelfDataMixin<In>::get_nx(); }
 
@@ -398,6 +417,7 @@ public:
                               this->x.begin() + di + this->ndim,
                               this->y.begin() + this->ndim * j);
   }
+  bool is_angular() const override { return true; }
 
   std::size_t get_nx() const override { return QueryDataMixin<In>::get_nx(); }
 
@@ -417,6 +437,7 @@ public:
     return hamming<Out>(this->x.begin() + di, this->x.begin() + di + this->ndim,
                         this->x.begin() + this->ndim * j);
   }
+  bool is_angular() const override { return true; }
 
   std::size_t get_nx() const override { return SelfDataMixin<In>::get_nx(); }
 
@@ -437,6 +458,7 @@ public:
     return hamming<Out>(this->x.begin() + di, this->x.begin() + di + this->ndim,
                         this->y.begin() + this->ndim * j);
   }
+  bool is_angular() const override { return true; }
 
   std::size_t get_nx() const override { return QueryDataMixin<In>::get_nx(); }
 
@@ -454,6 +476,8 @@ public:
   Out calculate(const Idx &i, const Idx &j) const override {
     return bhamming_impl<Out>(bdata, i, bdata, j, vec_len);
   }
+  bool is_angular() const override { return true; }
+
   std::size_t get_nx() const override { return nx; }
 
   std::size_t get_ny() const override { return nx; }
@@ -477,6 +501,8 @@ public:
   Out calculate(const Idx &i, const Idx &j) const override {
     return bhamming_impl<Out>(bx, i, by, j, vec_len);
   }
+
+  bool is_angular() const override { return true; }
 
   std::size_t get_nx() const override { return nx; }
 
