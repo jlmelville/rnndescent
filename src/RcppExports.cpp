@@ -301,19 +301,20 @@ BEGIN_RCPP
 END_RCPP
 }
 // rp_tree_knn_cpp
-List rp_tree_knn_cpp(const NumericMatrix& data, uint32_t nnbrs, const std::string& metric, unsigned int leaf_size, bool angular, std::size_t n_threads, bool verbose);
-RcppExport SEXP _rnndescent_rp_tree_knn_cpp(SEXP dataSEXP, SEXP nnbrsSEXP, SEXP metricSEXP, SEXP leaf_sizeSEXP, SEXP angularSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
+List rp_tree_knn_cpp(const NumericMatrix& data, uint32_t nnbrs, const std::string& metric, unsigned int n_trees, unsigned int leaf_size, bool include_self, std::size_t n_threads, bool verbose);
+RcppExport SEXP _rnndescent_rp_tree_knn_cpp(SEXP dataSEXP, SEXP nnbrsSEXP, SEXP metricSEXP, SEXP n_treesSEXP, SEXP leaf_sizeSEXP, SEXP include_selfSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const NumericMatrix& >::type data(dataSEXP);
     Rcpp::traits::input_parameter< uint32_t >::type nnbrs(nnbrsSEXP);
     Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_trees(n_treesSEXP);
     Rcpp::traits::input_parameter< unsigned int >::type leaf_size(leaf_sizeSEXP);
-    Rcpp::traits::input_parameter< bool >::type angular(angularSEXP);
+    Rcpp::traits::input_parameter< bool >::type include_self(include_selfSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type n_threads(n_threadsSEXP);
     Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
-    rcpp_result_gen = Rcpp::wrap(rp_tree_knn_cpp(data, nnbrs, metric, leaf_size, angular, n_threads, verbose));
+    rcpp_result_gen = Rcpp::wrap(rp_tree_knn_cpp(data, nnbrs, metric, n_trees, leaf_size, include_self, n_threads, verbose));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -358,7 +359,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_rnndescent_degree_prune_cpp", (DL_FUNC) &_rnndescent_degree_prune_cpp, 3},
     {"_rnndescent_random_knn_cpp", (DL_FUNC) &_rnndescent_random_knn_cpp, 6},
     {"_rnndescent_random_knn_query_cpp", (DL_FUNC) &_rnndescent_random_knn_query_cpp, 7},
-    {"_rnndescent_rp_tree_knn_cpp", (DL_FUNC) &_rnndescent_rp_tree_knn_cpp, 7},
+    {"_rnndescent_rp_tree_knn_cpp", (DL_FUNC) &_rnndescent_rp_tree_knn_cpp, 8},
     {"_rnndescent_nn_query", (DL_FUNC) &_rnndescent_nn_query, 9},
     {NULL, NULL, 0}
 };

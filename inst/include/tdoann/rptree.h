@@ -37,14 +37,16 @@ template <typename Idx, typename In> struct RPTree {
   std::vector<In> offsets;
   std::vector<std::pair<Idx, Idx>> children;
   std::vector<std::vector<Idx>> point_indices;
-  Idx max_leaf_size;
+  Idx leaf_size;
+
+  RPTree() = default; // Exists only so we can preallocate a vector
 
   RPTree(std::vector<std::vector<In>> hplanes, std::vector<In> offs,
          std::vector<std::pair<Idx, Idx>> chldrn,
          std::vector<std::vector<Idx>> p_indices, Idx max_size)
       : hyperplanes(std::move(hplanes)), offsets(std::move(offs)),
         children(std::move(chldrn)), point_indices(std::move(p_indices)),
-        max_leaf_size(max_size) {}
+        leaf_size(max_size) {}
 };
 
 template <typename Idx, typename In>
@@ -130,8 +132,7 @@ void make_euclidean_tree(const std::vector<In> &data, std::size_t ndim,
                          std::vector<std::pair<Idx, Idx>> &children,
                          std::vector<std::vector<Idx>> &point_indices,
                          tdoann::RandomIntGenerator<Idx> &rng,
-                         unsigned int leaf_size = 30,
-                         unsigned int max_depth = 100) {
+                         unsigned int leaf_size, unsigned int max_depth = 100) {
   constexpr Idx idx_sentinel = static_cast<Idx>(-1);
   constexpr In minus_one = static_cast<In>(-1);
   constexpr In minus_inf = -std::numeric_limits<In>::infinity();
@@ -164,8 +165,8 @@ void make_euclidean_tree(const std::vector<In> &data, std::size_t ndim,
 
 template <typename Idx, typename In>
 RPTree<Idx, In> make_dense_tree(const std::vector<In> &data, std::size_t ndim,
-                                tdoann::RandomIntGenerator<Idx> &rng,
-                                Idx leaf_size, bool angular) {
+                                RandomIntGenerator<Idx> &rng,
+                                unsigned int leaf_size, bool angular) {
 
   std::vector<Idx> indices(data.size() / ndim);
   std::iota(indices.begin(), indices.end(), 0);
@@ -194,7 +195,33 @@ RPTree<Idx, In> make_dense_tree(const std::vector<In> &data, std::size_t ndim,
 }
 
 template <typename Idx, typename In>
-std::vector<Idx> get_leaves_from_tree(const RPTree<Idx, In> &tree) {
+std::vector<RPTree<Idx, In>>
+make_forest(const std::vector<In> &data, std::size_t ndim, unsigned int n_trees,
+            unsigned int leaf_size,
+            ParallelRandomIntProvider<Idx> &parallel_rand, bool angular,
+            std::size_t n_threads, ProgressBase &progress,
+            const Executor &executor) {
+  std::vector<RPTree<Idx, In>> rp_forest(n_trees);
+
+  parallel_rand.initialize();
+
+  auto worker = [&](std::size_t begin, std::size_t end) {
+    auto rng = parallel_rand.get_parallel_instance(end);
+    for (auto i = begin; i < end; ++i) {
+      rp_forest[i] = make_dense_tree(data, ndim, *rng, leaf_size, angular);
+    }
+  };
+
+  progress.set_n_iters(1);
+  ExecutionParams exec_params{n_threads};
+  dispatch_work(worker, n_trees, n_threads, exec_params, progress, executor);
+
+  return rp_forest;
+}
+
+template <typename Idx, typename In>
+std::vector<Idx> get_leaves_from_tree(const RPTree<Idx, In> &tree,
+                                      Idx max_leaf_size) {
   constexpr Idx sentinel = static_cast<Idx>(-1);
 
   Idx n_leaves = 0;
@@ -205,16 +232,46 @@ std::vector<Idx> get_leaves_from_tree(const RPTree<Idx, In> &tree) {
   }
 
   std::vector<Idx> leaf_indices;
-  leaf_indices.reserve(n_leaves * tree.max_leaf_size);
+  leaf_indices.reserve(n_leaves * max_leaf_size);
 
   for (size_t i = 0; i < tree.point_indices.size(); ++i) {
     if (tree.children[i].first == sentinel ||
         tree.children[i].second == sentinel) {
       const auto &indices = tree.point_indices[i];
       leaf_indices.insert(leaf_indices.end(), indices.begin(), indices.end());
-      const std::size_t padding = tree.max_leaf_size - indices.size();
+      const std::size_t padding = max_leaf_size - indices.size();
       leaf_indices.insert(leaf_indices.end(), padding, sentinel);
     }
+  }
+
+  return leaf_indices;
+}
+
+template <typename Idx, typename In>
+std::vector<Idx>
+get_leaves_from_forest(const std::vector<RPTree<Idx, In>> &forest,
+                       Idx max_leaf_size) {
+  constexpr Idx sentinel = static_cast<Idx>(-1);
+
+  std::vector<Idx> leaf_indices;
+
+  // Calculate total number of leaves and reserve space
+  std::size_t total_leaves = 0;
+  for (const auto &tree : forest) {
+    for (const auto &child : tree.children) {
+      if (child.first == sentinel && child.second == sentinel) {
+        ++total_leaves;
+      }
+    }
+  }
+
+  leaf_indices.reserve(total_leaves * max_leaf_size);
+
+  // Concatenate leaves from each tree
+  for (const auto &tree : forest) {
+    auto tree_leaves = get_leaves_from_tree(tree, max_leaf_size);
+    leaf_indices.insert(leaf_indices.end(), tree_leaves.begin(),
+                        tree_leaves.end());
   }
 
   return leaf_indices;
@@ -226,7 +283,7 @@ void generate_leaf_updates(
     const NNHeap<Out, Idx> &current_graph, const std::vector<Idx> &leaves,
     std::size_t max_leaf_size,
     std::vector<std::vector<std::tuple<Idx, Idx, Out>>> &updates,
-    std::size_t begin, std::size_t end) {
+    std::size_t neighbor_begin, std::size_t begin, std::size_t end) {
   constexpr auto npos = static_cast<Idx>(-1);
 
   for (std::size_t n = begin; n < end; ++n) {
@@ -240,7 +297,10 @@ void generate_leaf_updates(
         break;
       }
 
-      for (auto j = i + 1; j != leaf_end; ++j) {
+      // if neighbor_begin == 0 then we consider an item to be a neighbor of
+      // itself, otherwise neighbor_begin = 1 and only non-degenerate pairs
+      // are considered
+      for (auto j = i + neighbor_begin; j != leaf_end; ++j) {
         Idx q = *j;
         if (q == npos) {
           break;
@@ -259,16 +319,19 @@ template <typename Idx, typename Out>
 void init_rp_tree(const BaseDistance<Out, Idx> &distance,
                   NNHeap<Out, Idx> &current_graph,
                   const std::vector<Idx> &leaves, std::size_t max_leaf_size,
-                  std::size_t n_threads, ProgressBase &progress,
-                  const Executor &executor) {
+                  bool include_self, std::size_t n_threads,
+                  ProgressBase &progress, const Executor &executor) {
 
   const std::size_t n_leaves = leaves.size() / max_leaf_size;
   std::vector<std::vector<std::tuple<Idx, Idx, Out>>> updates(n_leaves);
 
-  auto worker = [&distance, &current_graph, &leaves, &updates,
+  // if include_self = true, then an item can be a neighbor of itself
+  std::size_t neighbor_begin = include_self ? 0 : 1;
+
+  auto worker = [&distance, &current_graph, &leaves, &updates, neighbor_begin,
                  max_leaf_size](std::size_t begin, std::size_t end) {
     generate_leaf_updates(distance, current_graph, leaves, max_leaf_size,
-                          updates, begin, end);
+                          updates, neighbor_begin, begin, end);
   };
   auto after_worker = [&current_graph, &updates](std::size_t, std::size_t) {
     for (const auto &block_updates : updates) {
@@ -278,6 +341,7 @@ void init_rp_tree(const BaseDistance<Out, Idx> &distance,
     }
   };
   ExecutionParams exec_params{65536};
+  progress.set_n_iters(1);
   dispatch_work(worker, after_worker, n_leaves, n_threads, exec_params,
                 progress, executor);
 }
@@ -285,15 +349,13 @@ void init_rp_tree(const BaseDistance<Out, Idx> &distance,
 template <typename Idx, typename Out>
 auto init_rp_tree(const BaseDistance<Out, Idx> &distance,
                   const std::vector<Idx> &leaves, std::size_t max_leaf_size,
-                  unsigned int n_nbrs, std::size_t n_threads,
+                  unsigned int n_nbrs, bool include_self, std::size_t n_threads,
                   ProgressBase &progress, const Executor &executor)
     -> NNHeap<Out, Idx> {
-  progress.set_n_iters(1);
-
   NNHeap<Out, Idx> current_graph(distance.get_ny(), n_nbrs);
 
-  init_rp_tree(distance, current_graph, leaves, max_leaf_size, n_threads,
-               progress, executor);
+  init_rp_tree(distance, current_graph, leaves, max_leaf_size, include_self,
+               n_threads, progress, executor);
 
   return current_graph;
 }

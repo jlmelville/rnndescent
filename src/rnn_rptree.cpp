@@ -17,8 +17,6 @@
 //  You should have received a copy of the GNU General Public License
 //  along with rnndescent.  If not, see <http://www.gnu.org/licenses/>.
 
-#include <sstream>
-
 #include <Rcpp.h>
 
 #include "rnndescent/random.h"
@@ -32,43 +30,52 @@
 
 using Rcpp::List;
 using Rcpp::NumericMatrix;
+using Rcpp::Rcerr;
 
 // [[Rcpp::export]]
 List rp_tree_knn_cpp(const NumericMatrix &data, uint32_t nnbrs,
-                     const std::string &metric, unsigned int leaf_size = 30,
-                     bool angular = false, std::size_t n_threads = 0,
-                     bool verbose = false) {
+                     const std::string &metric, unsigned int n_trees,
+                     unsigned int leaf_size, bool include_self,
+                     std::size_t n_threads = 0, bool verbose = false) {
   auto distance_ptr = create_self_distance(data, metric);
   using Idx = typename tdoann::DistanceTraits<decltype(distance_ptr)>::Index;
   using In = RNN_DEFAULT_IN;
 
   auto data_vec = r_to_vec<In>(data);
 
-  RPProgress progress(verbose);
   RParallelExecutor executor;
-  rnndescent::DQIntSampler<Idx> rng;
-
-  constexpr unsigned int n_trees = 1;
+  rnndescent::ParallelIntRNGAdapter<Idx, rnndescent::DQIntSampler> rng_provider;
+  constexpr bool angular = false;
   if (verbose) {
-    std::ostringstream oss;
-    oss << "Creating RP forest with " << n_trees << " trees";
-    progress.log(oss.str());
-  }
-  tdoann::RPTree<Idx, In> rp_tree =
-      tdoann::make_dense_tree(data_vec, data.nrow(), rng, leaf_size, angular);
-
-  std::vector<Idx> leaf_array = get_leaves_from_tree(rp_tree);
-
-  if (verbose) {
-    std::ostringstream oss;
-    oss << "Creating knn using " << leaf_array.size() / rp_tree.max_leaf_size
-        << " leaves";
-    progress.log(oss.str());
+    tsmessage() << "Creating RP forest with " << n_trees << " trees"
+                << std::endl;
   }
 
+  RPProgress forest_progress(verbose);
+  std::vector<tdoann::RPTree<Idx, In>> rp_forest = tdoann::make_forest(
+      data_vec, data.nrow(), n_trees, leaf_size, rng_provider, angular,
+      n_threads, forest_progress, executor);
+  if (verbose) {
+    tsmessage() << "Extracting leaf array from forest" << std::endl;
+  }
+  // Find the largest leaf size in the forest
+  auto max_leaf_size_it =
+      std::max_element(rp_forest.begin(), rp_forest.end(),
+                       [](const tdoann::RPTree<Idx, In> &a, decltype(a) b) {
+                         return a.leaf_size < b.leaf_size;
+                       });
+  Idx max_leaf_size = max_leaf_size_it->leaf_size;
+  std::vector<Idx> leaf_array =
+      tdoann::get_leaves_from_forest(rp_forest, max_leaf_size);
+
+  if (verbose) {
+    tsmessage() << "Creating knn using " << leaf_array.size() / max_leaf_size
+                << " leaves" << std::endl;
+  }
+  RPProgress knn_progress(verbose);
   auto neighbor_heap =
-      init_rp_tree(*distance_ptr, leaf_array, rp_tree.max_leaf_size, nnbrs,
-                   n_threads, progress, executor);
+      tdoann::init_rp_tree(*distance_ptr, leaf_array, max_leaf_size, nnbrs,
+                           include_self, n_threads, knn_progress, executor);
 
-  return heap_to_r(neighbor_heap, n_threads, progress, executor);
+  return heap_to_r(neighbor_heap, n_threads, knn_progress, executor);
 }

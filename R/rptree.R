@@ -1,5 +1,8 @@
 #' Find Nearest Neighbors and Distances Using Random Projection Trees
 #'
+#' Find approximate nearest neighbors using the the Random Projection Trees
+#' method of Dasgupta and Freund (2008).
+#'
 #' @param data Matrix of `n` items to generate neighbors for, with observations
 #'   in the rows and features in the columns. Optionally, input can be passed
 #'   with observations in the columns, by setting `obs = "C"`, which should be
@@ -31,7 +34,21 @@
 #'   the only reason to set this to `FALSE` is if you suspect that some
 #'   sort of numeric issue is occurring with your data in the alternative code
 #'   path.
-#' @param leaf_size The maximum number of items that can appear in a leaf.
+#' @param n_trees The number of trees to use in the RP forest. A larger number
+#'   will give more accurate results at the cost of a longer computation time.
+#'   The default of `NULL` means that the number is chosen based on the number
+#'   of observations in `data`.
+#' @param leaf_size The maximum number of items that can appear in a leaf. The
+#'   default of `NULL` means that the number of leaves is chosen based on the
+#'   number of requested neighbors `k`.
+#' @param include_self If `TRUE` (the default) then an item is considered to
+#'   be a neighbor of itself. Hence the first nearest neighbor in the results
+#'   will be the item itself. This is a convention that many nearest neighbor
+#'   methods and software adopt, so if you want to use the resulting knn graph
+#'   from this function in downstream applications or compare with other
+#'   methods, you should probably keep this set to `TRUE`. However, if you are
+#'   planning on using the result of this as initialization to another nearest
+#'   neighbor method (e.g. [nnd_knn()]), then set this to `FALSE`.
 #' @param n_threads Number of threads to use.
 #' @param verbose If `TRUE`, log information to the console.
 #' @param obs set to `"C"` to indicate that the input `data` orientation stores
@@ -43,12 +60,21 @@
 #' @return the approximate nearest neighbor graph as a list containing:
 #'   * `idx` an n by k matrix containing the nearest neighbor indices.
 #'   * `dist` an n by k matrix containing the nearest neighbor distances.
-#'   `k` neighbors per observation are not guaranteed to be found. Missing data
-#'   is represented with an index of `0` and a distance of `NA`.
+#'
+#' `k` neighbors per observation are not guaranteed to be found. Missing data
+#' is represented with an index of `0` and a distance of `NA`.
 #' @examples
 #' # Find 4 (approximate) nearest neighbors using Euclidean distance
 #' # If you pass a data frame, non-numeric columns are removed
 #' iris_nn <- rp_tree_knn(iris, k = 4, metric = "euclidean", leaf_size = 3)
+#'
+#' # If you want to initialize another method (e.g. nearest neighbor descent)
+#' # with the result of the RP forest, then it's more efficient to skip
+#' # evaluating whether an item is a neighbor of itself by setting
+#' # `include_self = FALSE`:
+#' iris_rp <- rp_tree_knn(iris, k = 4, n_trees = 3, include_self = FALSE)
+#' # Use it with e.g. `nnd_knn` -- this should be better than a random start
+#' iris_nnd <- nnd_knn(iris, k = 4, init = iris_rp)
 #'
 #' @references
 #' Dasgupta, S., & Freund, Y. (2008, May).
@@ -61,8 +87,9 @@ rp_tree_knn <- function(data,
                         k,
                         metric = "euclidean",
                         use_alt_metric = TRUE,
-                        leaf_size = 30,
-                        angular = FALSE,
+                        n_trees = NULL,
+                        leaf_size = NULL,
+                        include_self = TRUE,
                         n_threads = 0,
                         verbose = FALSE,
                         obs = "R") {
@@ -72,6 +99,14 @@ rp_tree_knn <- function(data,
                   C = ncol,
                   stop("Unknown obs type")
   )
+
+  if (is.null(n_trees)) {
+    n_trees <- 5 + as.integer(round(nrow(data) ^ 0.25))
+    n_trees <- min(32, n_trees)
+  }
+  if (is.null(leaf_size)) {
+    leaf_size <- max(10, k)
+  }
 
   data <- x2m(data)
   check_k(k, n_obs(data))
@@ -98,8 +133,9 @@ rp_tree_knn <- function(data,
     rp_tree_knn_cpp(data,
                     k,
                     actual_metric,
+                    n_trees = n_trees,
                     leaf_size = leaf_size,
-                    angular = angular,
+                    include_self = include_self,
                     n_threads = n_threads,
                     verbose = verbose
     )
@@ -111,24 +147,3 @@ rp_tree_knn <- function(data,
   res
 }
 
-
-make_dense_tree <- function(data,
-                            leaf_size = 30,
-                            angular = FALSE,
-                            obs = "R") {
-
-  data <- x2m(data)
-
-  obs <- match.arg(toupper(obs), c("C", "R"))
-  n_obs <- switch(obs,
-                  R = nrow,
-                  C = ncol,
-                  stop("Unknown obs type")
-  )
-  if (obs == "R") {
-    data <- t(data)
-  }
-  tree <- make_dense_tree_cpp(data, leaf_size, angular)
-
-  tree
-}

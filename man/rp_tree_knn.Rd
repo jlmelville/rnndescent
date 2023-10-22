@@ -9,8 +9,9 @@ rp_tree_knn(
   k,
   metric = "euclidean",
   use_alt_metric = TRUE,
-  leaf_size = 30,
-  angular = FALSE,
+  n_trees = NULL,
+  leaf_size = NULL,
+  include_self = TRUE,
   n_threads = 0,
   verbose = FALSE,
   obs = "R"
@@ -54,7 +55,23 @@ the only reason to set this to \code{FALSE} is if you suspect that some
 sort of numeric issue is occurring with your data in the alternative code
 path.}
 
-\item{leaf_size}{The maximum number of items that can appear in a leaf.}
+\item{n_trees}{The number of trees to use in the RP forest. A larger number
+will give more accurate results at the cost of a longer computation time.
+The default of \code{NULL} means that the number is chosen based on the number
+of observations in \code{data}.}
+
+\item{leaf_size}{The maximum number of items that can appear in a leaf. The
+default of \code{NULL} means that the number of leaves is chosen based on the
+number of requested neighbors \code{k}.}
+
+\item{include_self}{If \code{TRUE} (the default) then an item is considered to
+be a neighbor of itself. Hence the first nearest neighbor in the results
+will be the item itself. This is a convention that many nearest neighbor
+methods and software adopt, so if you want to use the resulting knn graph
+from this function in downstream applications or compare with other
+methods, you should probably keep this set to \code{TRUE}. However, if you are
+planning on using the result of this as initialization to another nearest
+neighbor method (e.g. \code{\link[=nnd_knn]{nnd_knn()}}), then set this to \code{FALSE}.}
 
 \item{n_threads}{Number of threads to use.}
 
@@ -72,17 +89,27 @@ the approximate nearest neighbor graph as a list containing:
 \itemize{
 \item \code{idx} an n by k matrix containing the nearest neighbor indices.
 \item \code{dist} an n by k matrix containing the nearest neighbor distances.
+}
+
 \code{k} neighbors per observation are not guaranteed to be found. Missing data
 is represented with an index of \code{0} and a distance of \code{NA}.
 }
-}
 \description{
-Find Nearest Neighbors and Distances Using Random Projection Trees
+Find approximate nearest neighbors using the the Random Projection Trees
+method of Dasgupta and Freund (2008).
 }
 \examples{
 # Find 4 (approximate) nearest neighbors using Euclidean distance
 # If you pass a data frame, non-numeric columns are removed
 iris_nn <- rp_tree_knn(iris, k = 4, metric = "euclidean", leaf_size = 3)
+
+# If you want to initialize another method (e.g. nearest neighbor descent)
+# with the result of the RP forest, then it's more efficient to skip
+# evaluating whether an item is a neighbor of itself by setting
+# `include_self = FALSE`:
+iris_rp <- rp_tree_knn(iris, k = 4, n_trees = 3, include_self = FALSE)
+# Use it with e.g. `nnd_knn` -- this should be better than a random start
+iris_nnd <- nnd_knn(iris, k = 4, init = iris_rp)
 
 }
 \references{
