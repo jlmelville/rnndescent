@@ -72,34 +72,59 @@ void split_indices(const std::vector<In> &data, std::size_t ndim,
                    std::vector<Idx> &indices_right,
                    tdoann::RandomIntGenerator<Idx> &rng) {
   constexpr In EPS = 1e-8;
+  std::vector<uint8_t> side(indices.size(), 0);
+  std::size_t n_left = 0;
+  std::size_t n_right = 0;
 
-  for (auto index : indices) {
+  for (std::size_t i = 0; i < indices.size(); ++i) {
+    auto index = indices[i];
     In margin =
         std::inner_product(hyperplane_vector.begin(), hyperplane_vector.end(),
                            data.begin() + index * ndim, hyperplane_offset);
 
     if (std::abs(margin) < EPS) {
-      if (rng.rand_int(2) == 0) {
-        indices_left.push_back(index);
+      side[i] = rng.rand_int(2);
+      if (side[i] == 0) {
+        ++n_left;
       } else {
-        indices_right.push_back(index);
+        ++n_right;
       }
     } else if (margin > 0) {
-      indices_left.push_back(index);
+      side[i] = 0;
+      ++n_left;
     } else {
-      indices_right.push_back(index);
+      side[i] = 1;
+      ++n_right;
     }
   }
 
-  if (indices_left.empty() || indices_right.empty()) {
-    indices_left.clear();
-    indices_right.clear();
-    for (auto index : indices) {
-      if (rng.rand_int(2) == 0) {
-        indices_left.push_back(index);
+  // If either side is empty, reset counts and assign sides randomly.
+  if (n_left == 0 || n_right == 0) {
+    n_left = 0;
+    n_right = 0;
+    for (std::size_t i = 0; i < indices.size(); ++i) {
+      side[i] = rng.rand_int(2);
+      if (side[i] == 0) {
+        ++n_left;
       } else {
-        indices_right.push_back(index);
+        ++n_right;
       }
+    }
+  }
+
+  indices_left.resize(n_left);
+  indices_right.resize(n_right);
+
+  n_left = 0;
+  n_right = 0;
+  for (std::size_t i = 0; i < side.size(); ++i) {
+    auto index = indices[i];
+    if (side[i] == 0) {
+      indices_left[n_left] = index;
+      ++n_left;
+    } else {
+      indices_right[n_right] = index;
+      ++n_right;
     }
   }
 }
@@ -123,7 +148,6 @@ euclidean_random_projection_split(const std::vector<In> &data, std::size_t ndim,
         hyperplane_vector[d] * (data[left + d] + data[right + d]) / 2.0;
   }
 
-  // Split Indices
   std::vector<Idx> indices_left;
   std::vector<Idx> indices_right;
   split_indices(data, ndim, indices, hyperplane_vector, hyperplane_offset,
@@ -178,7 +202,6 @@ angular_random_projection_split(const std::vector<In> &data, size_t ndim,
     hyperplane_vector[d] /= hyperplane_norm;
   }
 
-  // Split Indices
   std::vector<Idx> indices_left;
   std::vector<Idx> indices_right;
   split_indices(data, ndim, indices, hyperplane_vector, In(0), indices_left,
