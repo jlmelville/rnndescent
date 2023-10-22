@@ -21,6 +21,7 @@
 #define RNN_UTIL_H
 
 #include <limits>
+#include <ostream>
 
 #include <Rcpp.h>
 
@@ -34,6 +35,7 @@ using RNN_DEFAULT_IDX = uint32_t;
 
 std::string timestamp(bool print_date = false);
 void print_time(bool print_date = false);
+std::ostream &tsmessage();
 void ts(const std::string &);
 void zero_index(Rcpp::IntegerMatrix &, int max_idx = RNND_MAX_IDX,
                 bool missing_ok = false);
