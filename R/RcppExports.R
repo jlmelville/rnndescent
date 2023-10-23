@@ -115,6 +115,14 @@ rp_tree_knn_cpp <- function(data, nnbrs, metric, n_trees, leaf_size, include_sel
     .Call(`_rnndescent_rp_tree_knn_cpp`, data, nnbrs, metric, n_trees, leaf_size, include_self, n_threads, verbose)
 }
 
+rnn_build_search_forest <- function(data, metric, n_trees, leaf_size, n_threads = 0L, verbose = FALSE) {
+    .Call(`_rnndescent_rnn_build_search_forest`, data, metric, n_trees, leaf_size, n_threads, verbose)
+}
+
+rnn_tree_search <- function(data, nnbrs, metric, idx, leaf_size = 30L, verbose = FALSE) {
+    .Call(`_rnndescent_rnn_tree_search`, data, nnbrs, metric, idx, leaf_size, verbose)
+}
+
 nn_query <- function(reference, reference_graph_list, query, nn_idx, nn_dist, metric = "euclidean", epsilon = 0.1, n_threads = 0L, verbose = FALSE) {
     .Call(`_rnndescent_nn_query`, reference, reference_graph_list, query, nn_idx, nn_dist, metric, epsilon, n_threads, verbose)
 }

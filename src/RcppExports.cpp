@@ -318,6 +318,38 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rnn_build_search_forest
+List rnn_build_search_forest(const NumericMatrix& data, const std::string& metric, unsigned int n_trees, unsigned int leaf_size, std::size_t n_threads, bool verbose);
+RcppExport SEXP _rnndescent_rnn_build_search_forest(SEXP dataSEXP, SEXP metricSEXP, SEXP n_treesSEXP, SEXP leaf_sizeSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_trees(n_treesSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type leaf_size(leaf_sizeSEXP);
+    Rcpp::traits::input_parameter< std::size_t >::type n_threads(n_threadsSEXP);
+    Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
+    rcpp_result_gen = Rcpp::wrap(rnn_build_search_forest(data, metric, n_trees, leaf_size, n_threads, verbose));
+    return rcpp_result_gen;
+END_RCPP
+}
+// rnn_tree_search
+List rnn_tree_search(const NumericMatrix& data, uint32_t nnbrs, const std::string& metric, unsigned int idx, unsigned int leaf_size, bool verbose);
+RcppExport SEXP _rnndescent_rnn_tree_search(SEXP dataSEXP, SEXP nnbrsSEXP, SEXP metricSEXP, SEXP idxSEXP, SEXP leaf_sizeSEXP, SEXP verboseSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< uint32_t >::type nnbrs(nnbrsSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type idx(idxSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type leaf_size(leaf_sizeSEXP);
+    Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
+    rcpp_result_gen = Rcpp::wrap(rnn_tree_search(data, nnbrs, metric, idx, leaf_size, verbose));
+    return rcpp_result_gen;
+END_RCPP
+}
 // nn_query
 List nn_query(const NumericMatrix& reference, const List& reference_graph_list, const NumericMatrix& query, const IntegerMatrix& nn_idx, const NumericMatrix& nn_dist, const std::string& metric, double epsilon, std::size_t n_threads, bool verbose);
 RcppExport SEXP _rnndescent_nn_query(SEXP referenceSEXP, SEXP reference_graph_listSEXP, SEXP querySEXP, SEXP nn_idxSEXP, SEXP nn_distSEXP, SEXP metricSEXP, SEXP epsilonSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
@@ -360,6 +392,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_rnndescent_random_knn_cpp", (DL_FUNC) &_rnndescent_random_knn_cpp, 6},
     {"_rnndescent_random_knn_query_cpp", (DL_FUNC) &_rnndescent_random_knn_query_cpp, 7},
     {"_rnndescent_rp_tree_knn_cpp", (DL_FUNC) &_rnndescent_rp_tree_knn_cpp, 8},
+    {"_rnndescent_rnn_build_search_forest", (DL_FUNC) &_rnndescent_rnn_build_search_forest, 6},
+    {"_rnndescent_rnn_tree_search", (DL_FUNC) &_rnndescent_rnn_tree_search, 6},
     {"_rnndescent_nn_query", (DL_FUNC) &_rnndescent_nn_query, 9},
     {NULL, NULL, 0}
 };
