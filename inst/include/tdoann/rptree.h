@@ -40,16 +40,16 @@ template <typename Idx, typename In> struct RPTree {
   std::vector<In> offsets;
   std::vector<std::pair<std::size_t, std::size_t>> children;
   std::vector<std::vector<Idx>> indices;
-  Idx leaf_size;
+  std::size_t leaf_size;
 
   RPTree() = default; // Exists only so we can pre-allocate a vector
 
   RPTree(std::vector<std::vector<In>> hplanes, std::vector<In> offs,
          std::vector<std::pair<std::size_t, std::size_t>> chldrn,
-         std::vector<std::vector<Idx>> p_indices, Idx max_size)
+         std::vector<std::vector<Idx>> p_indices, std::size_t leaf_siz)
       : hyperplanes(std::move(hplanes)), offsets(std::move(offs)),
         children(std::move(chldrn)), indices(std::move(p_indices)),
-        leaf_size(max_size) {}
+        leaf_size(leaf_siz) {}
 };
 
 template <typename Idx>
@@ -291,9 +291,9 @@ RPTree<Idx, In> make_dense_tree(const std::vector<In> &data, std::size_t ndim,
                         point_indices, rng, euclidean_splitter, leaf_size);
   }
 
-  Idx max_leaf_size = leaf_size;
+  std::size_t max_leaf_size = leaf_size;
   for (const auto &points : point_indices) {
-    max_leaf_size = std::max(max_leaf_size, static_cast<Idx>(points.size()));
+    max_leaf_size = std::max(max_leaf_size, points.size());
   }
 
   return RPTree<Idx, In>(std::move(hyperplanes), std::move(offsets),
@@ -328,9 +328,19 @@ make_forest(const std::vector<In> &data, std::size_t ndim, unsigned int n_trees,
 
 // KNN calculation
 
+// Find the largest leaf size in the forest
+template <typename Idx, typename In>
+std::size_t find_max_leaf_size(const std::vector<RPTree<Idx, In>> &rp_forest) {
+  auto it = std::max_element(rp_forest.begin(), rp_forest.end(),
+                             [](const RPTree<Idx, In> &a, decltype(a) b) {
+                               return a.leaf_size < b.leaf_size;
+                             });
+  return it->leaf_size;
+}
+
 template <typename Idx, typename In>
 std::vector<Idx> get_leaves_from_tree(const RPTree<Idx, In> &tree,
-                                      Idx max_leaf_size) {
+                                      std::size_t max_leaf_size) {
   constexpr auto sentinel = static_cast<std::size_t>(-1);
   constexpr auto idx_sentinel = static_cast<Idx>(-1);
 
@@ -360,7 +370,7 @@ std::vector<Idx> get_leaves_from_tree(const RPTree<Idx, In> &tree,
 template <typename Idx, typename In>
 std::vector<Idx>
 get_leaves_from_forest(const std::vector<RPTree<Idx, In>> &forest,
-                       Idx max_leaf_size) {
+                       std::size_t max_leaf_size) {
   constexpr auto sentinel = static_cast<std::size_t>(-1);
 
   std::vector<Idx> leaf_indices;
@@ -581,8 +591,9 @@ convert_rp_forest(const std::vector<RPTree<Idx, In>> &rp_forest,
 
 template <typename Idx, typename In>
 std::pair<std::size_t, std::size_t>
-tree_search(const SearchTree<Idx, In> &tree, const std::vector<In> &data_point,
-            RandomIntGenerator<Idx> &rng) {
+search_leaf_range(const SearchTree<Idx, In> &tree,
+                  typename std::vector<In>::const_iterator obs_it,
+                  RandomIntGenerator<Idx> &rng) {
   Idx current_node = 0;
 
   while (true) {
@@ -594,7 +605,7 @@ tree_search(const SearchTree<Idx, In> &tree, const std::vector<In> &data_point,
       return child_pair;
     }
 
-    auto side = select_side(data_point.begin(), tree.hyperplanes[current_node],
+    auto side = select_side(obs_it, tree.hyperplanes[current_node],
                             hyperplane_offset, rng);
     if (side == 0) {
       current_node = child_pair.first; // go left
@@ -603,6 +614,33 @@ tree_search(const SearchTree<Idx, In> &tree, const std::vector<In> &data_point,
     }
   }
 }
+
+template <typename Idx, typename In>
+std::vector<Idx> search_indices(const SearchTree<Idx, In> &tree,
+                                typename std::vector<In>::const_iterator obs_it,
+                                RandomIntGenerator<Idx> &rng) {
+  std::pair<std::size_t, std::size_t> range =
+      search_leaf_range(tree, obs_it, rng);
+  std::vector<Idx> leaf_indices(tree.indices.begin() + range.first,
+                                tree.indices.begin() + range.second);
+  return leaf_indices;
+}
+
+template <typename Idx, typename In, typename Out>
+// std::pair<std::vector<Idx>, std::vector<Out>>
+std::vector<Idx> search_tree(const SearchTree<Idx, In> &tree,
+                             const VectorDistance<In, Out, Idx> &distance,
+                             Idx i, RandomIntGenerator<Idx> &rng) {
+
+  return search_indices(tree, distance.get_y(i), rng);
+
+  // std::pair<std::size_t, std::size_t> range =
+  //     search_leaf_range(tree, data_point, rng);
+  // std::vector<Idx> leaf_indices(tree.indices.begin() + range.first,
+  //                               tree.indices.begin() + range.second);
+  // return leaf_indices;
+}
+
 } // namespace tdoann
 
 #endif // TDOANN_RPTREE_H

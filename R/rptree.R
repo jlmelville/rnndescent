@@ -147,3 +147,89 @@ rp_tree_knn <- function(data,
   res
 }
 
+rp_forest_build <- function(data,
+                            k = NULL,
+                            metric = "euclidean",
+                            n_trees = NULL,
+                            leaf_size = NULL,
+                            include_self = TRUE,
+                            n_threads = 0,
+                            verbose = FALSE,
+                            obs = "R") {
+  obs <- match.arg(toupper(obs), c("C", "R"))
+  n_obs <- switch(obs,
+                  R = nrow,
+                  C = ncol,
+                  stop("Unknown obs type"))
+
+  if (is.null(k) && is.null(leaf_size)) {
+    stop("Specify one of 'k' or 'leaf_size'")
+  }
+
+  if (is.null(n_trees)) {
+    n_trees <- 5 + as.integer(round(nrow(data) ^ 0.25))
+    n_trees <- min(32, n_trees)
+  }
+  if (is.null(leaf_size)) {
+    leaf_size <- max(10, k)
+  }
+
+  data <- x2m(data)
+  check_k(k, n_obs(data))
+
+  tsmessage(
+    thread_msg("Calculating rp tree k-nearest neighbors with k = ",
+               k,
+               n_threads = n_threads)
+  )
+
+  if (obs == "R") {
+    data <- t(data)
+  }
+
+  forest <- rnn_build_search_forest(
+    data,
+    metric,
+    n_trees = n_trees,
+    leaf_size = leaf_size,
+    n_threads = n_threads,
+    verbose = verbose
+  )
+  tsmessage("Finished")
+  forest
+}
+
+rp_forest_search <- function(query,
+                             reference,
+                             forest,
+                             k,
+                             metric = "euclidean",
+                             n_threads = 0,
+                             verbose = FALSE,
+                             obs = "R") {
+  obs <- match.arg(toupper(obs), c("C", "R"))
+  n_obs <- switch(obs,
+                  R = nrow,
+                  C = ncol,
+                  stop("Unknown obs type"))
+
+  reference <- x2m(reference)
+  query <- x2m(query)
+  check_k(k, n_obs(reference))
+
+
+  if (obs == "R") {
+    reference <- t(reference)
+    query <- t(query)
+  }
+
+  tsmessage(
+    thread_msg("Calculating rp tree k-nearest neighbors with k = ",
+               k,
+               n_threads = n_threads)
+  )
+
+  if (obs == "R") {
+    data <- t(data)
+  }
+}

@@ -335,18 +335,18 @@ BEGIN_RCPP
 END_RCPP
 }
 // rnn_tree_search
-List rnn_tree_search(const NumericMatrix& data, uint32_t nnbrs, const std::string& metric, unsigned int idx, unsigned int leaf_size, bool verbose);
-RcppExport SEXP _rnndescent_rnn_tree_search(SEXP dataSEXP, SEXP nnbrsSEXP, SEXP metricSEXP, SEXP idxSEXP, SEXP leaf_sizeSEXP, SEXP verboseSEXP) {
+List rnn_tree_search(const NumericMatrix& data, uint32_t nnbrs, const std::string& metric, unsigned int leaf_size, bool angular, bool verbose);
+RcppExport SEXP _rnndescent_rnn_tree_search(SEXP dataSEXP, SEXP nnbrsSEXP, SEXP metricSEXP, SEXP leaf_sizeSEXP, SEXP angularSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const NumericMatrix& >::type data(dataSEXP);
     Rcpp::traits::input_parameter< uint32_t >::type nnbrs(nnbrsSEXP);
     Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
-    Rcpp::traits::input_parameter< unsigned int >::type idx(idxSEXP);
     Rcpp::traits::input_parameter< unsigned int >::type leaf_size(leaf_sizeSEXP);
+    Rcpp::traits::input_parameter< bool >::type angular(angularSEXP);
     Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
-    rcpp_result_gen = Rcpp::wrap(rnn_tree_search(data, nnbrs, metric, idx, leaf_size, verbose));
+    rcpp_result_gen = Rcpp::wrap(rnn_tree_search(data, nnbrs, metric, leaf_size, angular, verbose));
     return rcpp_result_gen;
 END_RCPP
 }

@@ -79,7 +79,7 @@ rp_tree_index <- rnn_build_search_forest(t(ui10), "euclidean", 1, leaf_size = 4)
 expect_equal(rp_tree_index, expected_rp_tree_index, tol = 1e-7)
 
 set.seed(1337)
-tree_search_res <- rnn_tree_search(t(ui10), 4, "euclidean", idx=1, leaf_size = 4)
+tree_search_res <- rnn_tree_search(t(ui10), 4, "euclidean", leaf_size = 4, angular = FALSE)
 expected_tree_search_res <- list(
   c(1, 6, 10),
   c(2, 4, 7, 9),
