@@ -1,7 +1,7 @@
-#' Find Nearest Neighbors and Distances Using Random Projection Trees
+#' Find Nearest Neighbors and Distances Using A Random Projection Forest
 #'
-#' Find approximate nearest neighbors using the the Random Projection Trees
-#' method of Dasgupta and Freund (2008).
+#' Find approximate nearest neighbors using a "forest" of Random Projection
+#' Trees (Dasgupta and Freund, 2008).
 #'
 #' @param data Matrix of `n` items to generate neighbors for, with observations
 #'   in the rows and features in the columns. Optionally, input can be passed
@@ -66,13 +66,13 @@
 #' @examples
 #' # Find 4 (approximate) nearest neighbors using Euclidean distance
 #' # If you pass a data frame, non-numeric columns are removed
-#' iris_nn <- rp_tree_knn(iris, k = 4, metric = "euclidean", leaf_size = 3)
+#' iris_nn <- rpf_knn(iris, k = 4, metric = "euclidean", leaf_size = 3)
 #'
 #' # If you want to initialize another method (e.g. nearest neighbor descent)
 #' # with the result of the RP forest, then it's more efficient to skip
 #' # evaluating whether an item is a neighbor of itself by setting
 #' # `include_self = FALSE`:
-#' iris_rp <- rp_tree_knn(iris, k = 4, n_trees = 3, include_self = FALSE)
+#' iris_rp <- rpf_knn(iris, k = 4, n_trees = 3, include_self = FALSE)
 #' # Use it with e.g. `nnd_knn` -- this should be better than a random start
 #' iris_nnd <- nnd_knn(iris, k = 4, init = iris_rp)
 #'
@@ -83,7 +83,7 @@
 #' (pp. 537-546).
 #' <https://doi.org/10.1145/1374376.1374452>.
 #' @export
-rp_tree_knn <- function(data,
+rpf_knn <- function(data,
                         k,
                         metric = "euclidean",
                         use_alt_metric = TRUE,
@@ -147,7 +147,7 @@ rp_tree_knn <- function(data,
   res
 }
 
-rp_forest_build <- function(data,
+rpf_build <- function(data,
                             k = NULL,
                             metric = "euclidean",
                             n_trees = NULL,
@@ -187,7 +187,7 @@ rp_forest_build <- function(data,
     data <- t(data)
   }
 
-  forest <- rnn_build_search_forest(
+  forest <- rnn_rp_forest_build(
     data,
     metric,
     n_trees = n_trees,
@@ -199,14 +199,14 @@ rp_forest_build <- function(data,
   forest
 }
 
-rp_forest_search <- function(query,
-                             reference,
-                             forest,
-                             k,
-                             metric = "euclidean",
-                             n_threads = 0,
-                             verbose = FALSE,
-                             obs = "R") {
+rpf_knn_query <- function(query,
+                          reference,
+                          forest,
+                          k,
+                          metric = "euclidean",
+                          n_threads = 0,
+                          verbose = FALSE,
+                          obs = "R") {
   obs <- match.arg(toupper(obs), c("C", "R"))
   n_obs <- switch(obs,
                   R = nrow,
@@ -223,13 +223,12 @@ rp_forest_search <- function(query,
     query <- t(query)
   }
 
-  tsmessage(
-    thread_msg("Calculating rp tree k-nearest neighbors with k = ",
-               k,
-               n_threads = n_threads)
-  )
+  tsmessage(thread_msg("Querying rp forest for k = ",
+                       k,
+                       n_threads = n_threads))
 
-  if (obs == "R") {
-    data <- t(data)
-  }
+  nn <-
+    rnn_rp_forest_search(query, reference, forest, k, metric, n_threads, verbose)
+  tsmessage("Finished")
+  nn
 }

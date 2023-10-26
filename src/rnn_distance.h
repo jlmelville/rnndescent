@@ -36,25 +36,37 @@ inline bool is_angular_metric(const std::string &metric) {
           metric == "hamming" || metric == "bhamming");
 }
 
-template <typename Idx = RNN_DEFAULT_IDX>
-std::unique_ptr<tdoann::BaseDistance<RNN_DEFAULT_DIST, Idx>>
-create_query_distance(const Rcpp::NumericMatrix &reference,
-                      const Rcpp::NumericMatrix &query,
-                      const std::string &metric) {
-  using In = RNN_DEFAULT_DIST;
-  using Out = RNN_DEFAULT_DIST;
+// Using Traits to return a pointer to BaseDistance or VectorDistance
+// Functions can return a BaseDistance<Out, Idx> or VectorDistance<In, Out, Idx>
+// depending on the template. Different number of template parameters means
+// we must use variadic template arguments.
+template <typename... Args> struct FactoryTraits;
 
-  const auto ndim = reference.nrow();
+template <typename Out, typename Idx>
+struct FactoryTraits<tdoann::BaseDistance<Out, Idx>> {
+  using type = tdoann::BaseDistance<Out, Idx>;
+  using input_type = RNN_DEFAULT_IN;
+  using output_type = Out;
+  using index_type = Idx;
+};
 
-  if (metric == "bhamming") {
-    auto ref_bvec = r_to_vec<uint8_t>(reference);
-    auto query_bvec = r_to_vec<uint8_t>(query);
-    return std::make_unique<tdoann::BHammingQueryDistance<Out, Idx>>(
-        std::move(ref_bvec), std::move(query_bvec), ndim);
-  }
+template <typename In, typename Out, typename Idx>
+struct FactoryTraits<tdoann::VectorDistance<In, Out, Idx>> {
+  using type = tdoann::VectorDistance<In, Out, Idx>;
+  using input_type = In;
+  using output_type = Out;
+  using index_type = Idx;
+};
 
-  auto ref_vec = r_to_vec<In>(reference);
-  auto query_vec = r_to_vec<In>(query);
+template <typename... Args>
+std::unique_ptr<typename FactoryTraits<Args...>::type>
+create_query_distance_impl(
+    std::vector<typename FactoryTraits<Args...>::input_type> ref_vec,
+    std::vector<typename FactoryTraits<Args...>::input_type> query_vec,
+    std::size_t ndim, const std::string &metric) {
+  using In = typename FactoryTraits<Args...>::input_type;
+  using Out = typename FactoryTraits<Args...>::output_type;
+  using Idx = typename FactoryTraits<Args...>::index_type;
 
   if (metric == "euclidean") {
     return std::make_unique<tdoann::EuclideanQueryDistance<In, Out, Idx>>(
@@ -90,28 +102,62 @@ create_query_distance(const Rcpp::NumericMatrix &reference,
     return std::make_unique<tdoann::HammingQueryDistance<In, Out, Idx>>(
         std::move(ref_vec), std::move(query_vec), ndim);
   }
-
   Rcpp::stop("Bad metric");
 }
 
-template <typename... Args> struct FactoryTraits;
-
-template <typename Out, typename Idx>
-struct FactoryTraits<tdoann::BaseDistance<Out, Idx>> {
-  using type = tdoann::BaseDistance<Out, Idx>;
-};
-
-template <typename In, typename Out, typename Idx>
-struct FactoryTraits<tdoann::VectorDistance<In, Out, Idx>> {
-  using type = tdoann::VectorDistance<In, Out, Idx>;
-};
-
-template <typename In, typename... Args>
+template <typename... Args>
 std::unique_ptr<typename FactoryTraits<Args...>::type>
-create_self_distance_impl(std::vector<In> data_vec, std::size_t ndim,
-                          const std::string &metric) {
+create_query_distance_impl(const Rcpp::NumericMatrix &reference,
+                           const Rcpp::NumericMatrix &query,
+                           const std::string &metric) {
+  using In = typename FactoryTraits<Args...>::input_type;
+
+  const auto ndim = reference.nrow();
+  auto ref_vec = r_to_vec<In>(reference);
+  auto query_vec = r_to_vec<In>(query);
+
+  return create_query_distance_impl<Args...>(
+      std::move(ref_vec), std::move(query_vec), ndim, metric);
+}
+
+template <typename Idx = RNN_DEFAULT_IDX>
+std::unique_ptr<tdoann::BaseDistance<RNN_DEFAULT_DIST, Idx>>
+create_query_distance(const Rcpp::NumericMatrix &reference,
+                      const Rcpp::NumericMatrix &query,
+                      const std::string &metric) {
   using Out = RNN_DEFAULT_DIST;
-  using Idx = RNN_DEFAULT_IDX;
+
+  // handle binary first
+  if (metric == "bhamming") {
+    const auto ndim = reference.nrow();
+    auto ref_bvec = r_to_vec<uint8_t>(reference);
+    auto query_bvec = r_to_vec<uint8_t>(query);
+
+    return std::make_unique<tdoann::BHammingQueryDistance<Out, Idx>>(
+        std::move(ref_bvec), std::move(query_bvec), ndim);
+  }
+  return create_query_distance_impl<tdoann::BaseDistance<Out, Idx>>(
+      reference, query, metric);
+}
+
+template <typename Idx = RNN_DEFAULT_IDX>
+std::unique_ptr<tdoann::VectorDistance<RNN_DEFAULT_DIST, RNN_DEFAULT_DIST, Idx>>
+create_query_vector_distance(const Rcpp::NumericMatrix &reference,
+                             const Rcpp::NumericMatrix &query,
+                             const std::string &metric) {
+  return create_query_distance_impl<
+      tdoann::VectorDistance<RNN_DEFAULT_DIST, RNN_DEFAULT_DIST, Idx>>(
+      reference, query, metric);
+}
+
+template <typename... Args>
+std::unique_ptr<typename FactoryTraits<Args...>::type>
+create_self_distance_impl(
+    std::vector<typename FactoryTraits<Args...>::input_type> data_vec,
+    std::size_t ndim, const std::string &metric) {
+  using In = typename FactoryTraits<Args...>::input_type;
+  using Out = typename FactoryTraits<Args...>::output_type;
+  using Idx = typename FactoryTraits<Args...>::index_type;
 
   if (metric == "euclidean") {
     return std::make_unique<tdoann::EuclideanSelfDistance<In, Out, Idx>>(
@@ -149,24 +195,16 @@ create_self_distance_impl(std::vector<In> data_vec, std::size_t ndim,
   Rcpp::stop("Bad metric");
 }
 
-// Using Traits to return a pointer to BaseDistance or VectorDistance
-// This could return a BaseDistance<Out, Idx> or VectorDistance<In, Out, Idx>
-// depending on the template. Different number of template parameters means
-// we must use variadic template arguments.
 template <typename... Args>
 std::unique_ptr<typename FactoryTraits<Args...>::type>
 create_self_distance_impl(const Rcpp::NumericMatrix &data,
                           const std::string &metric) {
-  using In = RNN_DEFAULT_DIST;
-  // using Out = RNN_DEFAULT_DIST;
-  // using Idx = RNN_DEFAULT_IDX;
+  using In = typename FactoryTraits<Args...>::input_type;
 
   const auto ndim = data.nrow();
-
   auto data_vec = r_to_vec<In>(data);
 
-  return create_self_distance_impl<In, Args...>(std::move(data_vec), ndim,
-                                                metric);
+  return create_self_distance_impl<Args...>(std::move(data_vec), ndim, metric);
 }
 
 // Factory function to return a BaseDistance
@@ -180,6 +218,7 @@ create_self_distance(const Rcpp::NumericMatrix &data,
   if (metric == "bhamming") {
     const auto ndim = data.nrow();
     auto data_bvec = r_to_vec<uint8_t>(data);
+
     return std::make_unique<tdoann::BHammingSelfDistance<Out, Idx>>(
         std::move(data_bvec), ndim);
   }
@@ -192,8 +231,8 @@ std::unique_ptr<tdoann::VectorDistance<In, RNN_DEFAULT_DIST, Idx>>
 create_self_distance(std::vector<In> data_vec, std::size_t ndim,
                      const std::string &metric) {
   return create_self_distance_impl<
-      In, tdoann::VectorDistance<In, RNN_DEFAULT_DIST, Idx>>(
-      std::move(data_vec), ndim, metric);
+      tdoann::VectorDistance<In, RNN_DEFAULT_DIST, Idx>>(std::move(data_vec),
+                                                         ndim, metric);
 }
 
 // Factory function to return a VectorDistance

@@ -60,27 +60,33 @@ void print_rp_forest(const std::vector<tdoann::RPTree<Idx, In>> &rp_forest) {
 }
 
 template <typename Idx, typename In>
-void print_search_tree(const tdoann::SearchTree<Idx, In> &search_tree,
-                       std::size_t ndim) {
-  Rcerr << "Search Tree #nodes = " << search_tree.offsets.size() << std::endl;
-  for (std::size_t i = 0; i < search_tree.offsets.size(); ++i) {
-    Rcerr << i;
-    if (std::isnan(search_tree.offsets[i])) {
-      Rcerr << " leaf ptrs: [" << search_tree.children[i].first << ", "
-            << search_tree.children[i].second << "): ";
-      for (std::size_t j = search_tree.children[i].first;
-           j < search_tree.children[i].second; ++j) {
-        Rcerr << " " << search_tree.indices[j] + 1;
+void print_search_forest(
+    const std::vector<tdoann::SearchTree<Idx, In>> &search_forest,
+    std::size_t ndim) {
+  for (std::size_t j = 0; j < search_forest.size(); ++j) {
+    const auto &search_tree = search_forest[j];
+
+    Rcerr << "Search Tree " << j << "#nodes = " << search_tree.offsets.size()
+          << std::endl;
+    for (std::size_t i = 0; i < search_tree.offsets.size(); ++i) {
+      Rcerr << i;
+      if (std::isnan(search_tree.offsets[i])) {
+        Rcerr << " leaf ptrs: [" << search_tree.children[i].first << ", "
+              << search_tree.children[i].second << "): ";
+        for (std::size_t j = search_tree.children[i].first;
+             j < search_tree.children[i].second; ++j) {
+          Rcerr << " " << search_tree.indices[j] + 1;
+        }
+      } else {
+        Rcerr << "node-> " << search_tree.children[i].first << " "
+              << search_tree.children[i].second
+              << " off: " << search_tree.offsets[i] << " hyp:";
+        for (std::size_t j = 0; j < ndim; j++) {
+          Rcerr << " " << search_tree.hyperplanes[i][j];
+        }
       }
-    } else {
-      Rcerr << "node-> " << search_tree.children[i].first << " "
-            << search_tree.children[i].second
-            << " off: " << search_tree.offsets[i] << " hyp:";
-      for (std::size_t j = 0; j < ndim; j++) {
-        Rcerr << " " << search_tree.hyperplanes[i][j];
-      }
+      Rcerr << std::endl;
     }
-    Rcerr << std::endl;
   }
 }
 
@@ -138,16 +144,16 @@ tdoann::SearchTree<Idx, In> r_to_search_tree(List tree_list) {
   IntegerVector indices = tree_list["indices"];
   int leaf_size = tree_list["leaf_size"];
 
+  std::size_t n_nodes = hyperplanes.ncol();
   std::size_t n_rows = hyperplanes.nrow();
-  std::vector<std::vector<In>> cpp_hyperplanes(
-      n_rows, std::vector<In>(hyperplanes.ncol()));
+  std::vector<std::vector<In>> cpp_hyperplanes(n_rows,
+                                               std::vector<In>(n_nodes));
   std::vector<In> cpp_offsets(offsets.size());
   std::vector<std::pair<std::size_t, std::size_t>> cpp_children(
       children.nrow());
-  // std::vector<Idx> cpp_indices(indices.size());
 
   for (std::size_t i = 0; i < n_rows; ++i) {
-    for (std::size_t j = 0; j < hyperplanes.ncol(); ++j) {
+    for (std::size_t j = 0; j < n_nodes; ++j) {
       cpp_hyperplanes[i][j] = hyperplanes(i, j);
     }
     cpp_offsets[i] = offsets[i];
@@ -156,10 +162,6 @@ tdoann::SearchTree<Idx, In> r_to_search_tree(List tree_list) {
 
   std::vector<Idx> cpp_indices = Rcpp::as<std::vector<Idx>>(indices);
 
-  // for (std::size_t i = 0; i < indices.size(); ++i) {
-  //   cpp_indices[i] = indices[i];
-  // }
-
   return tdoann::SearchTree<Idx, In>(cpp_hyperplanes, cpp_offsets, cpp_children,
                                      cpp_indices, leaf_size);
 }
@@ -167,11 +169,11 @@ tdoann::SearchTree<Idx, In> r_to_search_tree(List tree_list) {
 template <typename Idx, typename In>
 std::vector<tdoann::SearchTree<Idx, In>> r_to_search_forest(List forest_list) {
   std::size_t n_trees = forest_list.size();
-  std::vector<tdoann::SearchTree<Idx, In>> search_forest(n_trees);
+  std::vector<tdoann::SearchTree<Idx, In>> search_forest;
+  search_forest.reserve(n_trees);
 
   for (std::size_t i = 0; i < n_trees; ++i) {
-    List tree_list = forest_list[i];
-    search_forest[i] = r_to_search_tree<Idx, In>(tree_list);
+    search_forest.push_back(r_to_search_tree<Idx, In>(forest_list[i]));
   }
 
   return search_forest;
@@ -196,8 +198,8 @@ List init_rp_tree_binary(const NumericMatrix &data, uint32_t nnbrs,
 template <typename Idx, typename In>
 std::vector<tdoann::RPTree<Idx, In>>
 build_rp_forest(const std::vector<In> &data_vec, std::size_t ndim,
-                const std::string &metric, unsigned int n_trees,
-                unsigned int leaf_size, std::size_t n_threads, bool verbose,
+                const std::string &metric, uint32_t n_trees, uint32_t leaf_size,
+                std::size_t n_threads, bool verbose,
                 const tdoann::Executor &executor) {
   bool angular = is_angular_metric(metric);
   RPProgress forest_progress(verbose);
@@ -212,8 +214,8 @@ build_rp_forest(const std::vector<In> &data_vec, std::size_t ndim,
 
 // [[Rcpp::export]]
 List rp_tree_knn_cpp(const NumericMatrix &data, uint32_t nnbrs,
-                     const std::string &metric, unsigned int n_trees,
-                     unsigned int leaf_size, bool include_self,
+                     const std::string &metric, uint32_t n_trees,
+                     uint32_t leaf_size, bool include_self,
                      std::size_t n_threads = 0, bool verbose = false) {
   using Idx = RNN_DEFAULT_IDX;
   using In = RNN_DEFAULT_IN;
@@ -252,10 +254,9 @@ List rp_tree_knn_cpp(const NumericMatrix &data, uint32_t nnbrs,
 }
 
 // [[Rcpp::export]]
-List rnn_build_search_forest(const NumericMatrix &data,
-                             const std::string &metric, unsigned int n_trees,
-                             unsigned int leaf_size, std::size_t n_threads = 0,
-                             bool verbose = false) {
+List rnn_rp_forest_build(const NumericMatrix &data, const std::string &metric,
+                         uint32_t n_trees, uint32_t leaf_size,
+                         std::size_t n_threads = 0, bool verbose = false) {
   using Idx = RNN_DEFAULT_IDX;
   using In = RNN_DEFAULT_IN;
 
@@ -272,10 +273,10 @@ List rnn_build_search_forest(const NumericMatrix &data,
 }
 
 // [[Rcpp::export]]
-List rnn_tree_search(const NumericMatrix &data, uint32_t nnbrs,
-                     const std::string &metric,
-                     unsigned int leaf_size, bool angular,
-                     bool verbose = false) {
+List rnn_tree_build_and_search(const NumericMatrix &data, uint32_t n_nbrs,
+                               const std::string &metric, uint32_t leaf_size,
+                               bool angular, std::size_t n_threads,
+                               bool verbose = false) {
   using Idx = RNN_DEFAULT_IDX;
   using In = RNN_DEFAULT_IN;
 
@@ -284,8 +285,7 @@ List rnn_tree_search(const NumericMatrix &data, uint32_t nnbrs,
   const std::size_t n_obs = data.ncol();
   const std::size_t ndim = data.nrow();
 
-  constexpr std::size_t n_threads = 0;
-  constexpr unsigned int n_trees = 1;
+  constexpr uint32_t n_trees = 1;
   RParallelExecutor executor;
   auto rp_forest = build_rp_forest<Idx>(
       data_vec, ndim, metric, n_trees, leaf_size, n_threads, verbose, executor);
@@ -293,25 +293,38 @@ List rnn_tree_search(const NumericMatrix &data, uint32_t nnbrs,
     print_rp_forest(rp_forest);
   }
 
-  tdoann::SearchTree<Idx, In> search_tree =
-      tdoann::convert_tree_format(rp_forest[0], n_obs, ndim);
+  auto search_forest = convert_rp_forest(rp_forest, n_obs, ndim);
   if (verbose) {
-    print_search_tree(search_tree, ndim);
+    print_search_forest(search_forest, ndim);
   }
 
   rnndescent::ParallelIntRNGAdapter<Idx, rnndescent::DQIntSampler> rng_provider;
-  auto rng_ptr = rng_provider.get_parallel_instance(data.ncol());
-  List search_list(n_obs);
-  for (std::size_t i = 0; i < n_obs; i++) {
-    std::vector<Idx> leaf_indices =
-        search_indices(search_tree, data_vec.begin() + i * ndim, *rng_ptr);
+  auto distance_ptr = create_self_distance(std::move(data_vec), ndim, metric);
+  RPProgress progress(verbose);
+  auto nn_heap =
+      tdoann::search_forest(search_forest, *distance_ptr, n_nbrs, rng_provider,
+                            n_threads, progress, executor);
 
-    std::transform(leaf_indices.begin(), leaf_indices.end(),
-                   leaf_indices.begin(), [](Idx value) { return value + 1; });
-    IntegerVector leaf_r(leaf_indices.begin(), leaf_indices.end());
+  return heap_to_r(nn_heap);
+}
 
-    search_list[i] = leaf_r;
-  }
+// [[Rcpp::export]]
+List rnn_rp_forest_search(const NumericMatrix &query,
+                          const NumericMatrix &reference, List search_forest,
+                          uint32_t n_nbrs, const std::string &metric,
+                          std::size_t n_threads, bool verbose = false) {
+  using Idx = RNN_DEFAULT_IDX;
+  using In = RNN_DEFAULT_IN;
 
-  return search_list;
+  auto search_forest_cpp = r_to_search_forest<Idx, In>(search_forest);
+  auto distance_ptr = create_query_vector_distance(reference, query, metric);
+
+  rnndescent::ParallelIntRNGAdapter<Idx, rnndescent::DQIntSampler> rng_provider;
+  RPProgress progress(verbose);
+  RParallelExecutor executor;
+  auto nn_heap =
+      tdoann::search_forest(search_forest_cpp, *distance_ptr, n_nbrs,
+                            rng_provider, n_threads, progress, executor);
+
+  return heap_to_r(nn_heap);
 }

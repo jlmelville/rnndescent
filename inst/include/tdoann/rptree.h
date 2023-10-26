@@ -21,6 +21,7 @@
 #define TDOANN_RPTREE_H
 
 #include <cmath>
+#include <cstdint>
 #include <limits>
 #include <numeric>
 #include <tuple>
@@ -222,8 +223,8 @@ void make_tree_recursive(
     std::vector<In> &offsets,
     std::vector<std::pair<std::size_t, std::size_t>> &children,
     std::vector<std::vector<Idx>> &point_indices, RandomIntGenerator<Idx> &rng,
-    SplitFunc split_function, unsigned int leaf_size = 30,
-    unsigned int max_depth = 100) {
+    SplitFunc split_function, uint32_t leaf_size = 30,
+    uint32_t max_depth = 100) {
   constexpr auto child_sentinel = static_cast<std::size_t>(-1);
   constexpr auto idx_sentinel = static_cast<Idx>(-1);
   constexpr auto minus_one = static_cast<In>(-1);
@@ -262,7 +263,7 @@ void make_tree_recursive(
 template <typename Idx, typename In>
 RPTree<Idx, In> make_dense_tree(const std::vector<In> &data, std::size_t ndim,
                                 RandomIntGenerator<Idx> &rng,
-                                unsigned int leaf_size, bool angular) {
+                                uint32_t leaf_size, bool angular) {
 
   std::vector<Idx> indices(data.size() / ndim);
   std::iota(indices.begin(), indices.end(), 0);
@@ -303,10 +304,9 @@ RPTree<Idx, In> make_dense_tree(const std::vector<In> &data, std::size_t ndim,
 
 template <typename Idx, typename In>
 std::vector<RPTree<Idx, In>>
-make_forest(const std::vector<In> &data, std::size_t ndim, unsigned int n_trees,
-            unsigned int leaf_size,
-            ParallelRandomIntProvider<Idx> &parallel_rand, bool angular,
-            std::size_t n_threads, ProgressBase &progress,
+make_forest(const std::vector<In> &data, std::size_t ndim, uint32_t n_trees,
+            uint32_t leaf_size, ParallelRandomIntProvider<Idx> &parallel_rand,
+            bool angular, std::size_t n_threads, ProgressBase &progress,
             const Executor &executor) {
   std::vector<RPTree<Idx, In>> rp_forest(n_trees);
 
@@ -469,7 +469,7 @@ void init_rp_tree(const BaseDistance<Out, Idx> &distance,
 template <typename Idx, typename Out>
 auto init_rp_tree(const BaseDistance<Out, Idx> &distance,
                   const std::vector<Idx> &leaves, std::size_t max_leaf_size,
-                  unsigned int n_nbrs, bool include_self, std::size_t n_threads,
+                  uint32_t n_nbrs, bool include_self, std::size_t n_threads,
                   ProgressBase &progress, const Executor &executor)
     -> NNHeap<Out, Idx> {
   NNHeap<Out, Idx> current_graph(distance.get_ny(), n_nbrs);
@@ -627,18 +627,69 @@ std::vector<Idx> search_indices(const SearchTree<Idx, In> &tree,
 }
 
 template <typename Idx, typename In, typename Out>
-// std::pair<std::vector<Idx>, std::vector<Out>>
-std::vector<Idx> search_tree(const SearchTree<Idx, In> &tree,
-                             const VectorDistance<In, Out, Idx> &distance,
-                             Idx i, RandomIntGenerator<Idx> &rng) {
+std::pair<std::vector<Idx>, std::vector<Out>>
+search_tree(const SearchTree<Idx, In> &tree,
+            const VectorDistance<In, Out, Idx> &distance, Idx i,
+            RandomIntGenerator<Idx> &rng) {
 
-  return search_indices(tree, distance.get_y(i), rng);
+  std::vector<Idx> leaf_indices = search_indices(tree, distance.get_y(i), rng);
+  std::vector<Out> distances;
+  distances.reserve(leaf_indices.size());
+  for (auto &idx : leaf_indices) {
+    distances.push_back(distance.calculate(idx, i));
+  }
 
-  // std::pair<std::size_t, std::size_t> range =
-  //     search_leaf_range(tree, data_point, rng);
-  // std::vector<Idx> leaf_indices(tree.indices.begin() + range.first,
-  //                               tree.indices.begin() + range.second);
-  // return leaf_indices;
+  return {leaf_indices, distances};
+}
+
+template <typename Idx, typename In, typename Out>
+void search_tree_heap(const SearchTree<Idx, In> &tree,
+                      const VectorDistance<In, Out, Idx> &distance, Idx i,
+                      RandomIntGenerator<Idx> &rng,
+                      NNHeap<Out, Idx> &current_graph) {
+
+  std::vector<Idx> leaf_indices = search_indices(tree, distance.get_y(i), rng);
+
+  for (auto &idx : leaf_indices) {
+    const auto d = distance.calculate(idx, i);
+    current_graph.checked_push(i, d, idx);
+  }
+}
+
+template <typename Idx, typename In, typename Out>
+void search_forest(const std::vector<SearchTree<Idx, In>> &forest,
+                   const VectorDistance<In, Out, Idx> &distance, Idx i,
+                   RandomIntGenerator<Idx> &rng,
+                   NNHeap<Out, Idx> &current_graph) {
+  for (const auto &tree : forest) {
+    search_tree_heap(tree, distance, i, rng, current_graph);
+  }
+}
+
+template <typename Idx, typename In, typename Out>
+NNHeap<Out, Idx> search_forest(const std::vector<SearchTree<Idx, In>> &forest,
+                               const VectorDistance<In, Out, Idx> &distance,
+                               uint32_t n_nbrs,
+                               ParallelRandomIntProvider<Idx> &rng_provider,
+                               std::size_t n_threads, ProgressBase &progress,
+                               const Executor &executor) {
+  const auto n_queries = distance.get_ny();
+  NNHeap<Out, Idx> current_graph(n_queries, n_nbrs);
+
+  rng_provider.initialize();
+  auto worker = [&](std::size_t begin, std::size_t end) {
+    auto rng_ptr = rng_provider.get_parallel_instance(end);
+    for (auto i = begin; i < end; ++i) {
+      search_forest(forest, distance, static_cast<Idx>(i), *rng_ptr,
+                    current_graph);
+    }
+  };
+
+  progress.set_n_iters(n_queries);
+  ExecutionParams exec_params{n_threads};
+  dispatch_work(worker, n_queries, n_threads, exec_params, progress, executor);
+
+  return current_graph;
 }
 
 } // namespace tdoann
