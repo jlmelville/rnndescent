@@ -78,4 +78,13 @@
   <url>
     <loc>https://jlmelville.github.io/rnndescent/reference/random_knn_query.html</loc>
   </url>
+  <url>
+    <loc>https://jlmelville.github.io/rnndescent/reference/rpf_build.html</loc>
+  </url>
+  <url>
+    <loc>https://jlmelville.github.io/rnndescent/reference/rpf_knn.html</loc>
+  </url>
+  <url>
+    <loc>https://jlmelville.github.io/rnndescent/reference/rpf_knn_query.html</loc>
+  </url>
 </urlset>

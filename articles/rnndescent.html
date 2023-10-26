@@ -193,7 +193,7 @@ neighbors.</p>
 <p>…and see how well it does:</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">nn_accuracy</span><span class="op">(</span><span class="va">g1000d_nnbf</span>, <span class="va">g1000d_nnd</span>, k <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 0.7856</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 0.7844667</span></span></code></pre></div>
 <p>Still OK, but not as good as we might like.</p>
 <div class="section level2">
 <h2 id="comparing-low--and-high-dimensional-nearest-neighbors">Comparing Low- and High-Dimensional Nearest Neighbors<a class="anchor" aria-label="anchor" href="#comparing-low--and-high-dimensional-nearest-neighbors"></a>
@@ -363,7 +363,7 @@ the 2D case is instructive:</p>
 <div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">g1000d_bfko</span><span class="op">)</span></span>
 <span><span class="co">#&gt;    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. </span></span>
-<span><span class="co">#&gt;    1.00    2.00    5.00   15.00   14.25  346.00</span></span></code></pre></div>
+<span><span class="co">#&gt;    1.00    2.00    5.00   15.00   14.25  345.00</span></span></code></pre></div>
 <p>Again, here’s a good reminder that the mean k-occurrence is of no
 value. The median k-occurrence immediately communicates the difference
 between the 2D case. We can also see that the maximum k-occurrence means
@@ -412,9 +412,9 @@ Next, the numerical summary:</p>
 <div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">g1000d_nndko</span><span class="op">)</span></span>
 <span><span class="co">#&gt;    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. </span></span>
-<span><span class="co">#&gt;       1       2       4      15      12     407</span></span>
+<span><span class="co">#&gt;       1       1       4      15      12     406</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">g1000d_nndko</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 249</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 254</span></span></code></pre></div>
 <p>Quantitatively, this also tracks the exact results: the median
 k-occurrence is much smaller than <span class="math inline">\(k\)</span>, there is a hub with a very large
 number of neighbors (larger than in the exact case but to a similar
@@ -441,7 +441,7 @@ distributed across the data. So let’s see how well the NND k-occurrences
 <p><img src="rnndescent_files/figure-html/approximate%20vs%20true%201000D%20k-occurrence-1.png" width="700"></p>
 <div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/cor.html" class="external-link">cor</a></span><span class="op">(</span><span class="va">g1000d_nndko</span>, <span class="va">g1000d_bfko</span>, method <span class="op">=</span> <span class="st">"pearson"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 0.9945236</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 0.9939508</span></span></code></pre></div>
 <p>The overall relationship seems strong. The line on the plot is x=y,
 so we can see that at high values of the k-occurrence the NND results
 tend to over-estimate the k-occurrence, but these are such large values
@@ -494,25 +494,25 @@ to predict poorly-predicted items. Let’s say that we wanted to get all
 the items where the neighborhood was less than 90% accurate:</p>
 <div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">g1000d_nnd_acc</span> <span class="op">&lt;</span> <span class="fl">0.9</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 768</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 767</span></span></code></pre></div>
 <p>That’s already quite a lot of items: about three-quarters of the
 entire dataset. What is the largest k-occurrence for an item in the
 dataset with that accuracy threshold?</p>
 <div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">g1000d_nndko</span><span class="op">[</span><span class="va">g1000d_nnd_acc</span> <span class="op">&lt;</span> <span class="fl">0.9</span><span class="op">]</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 66</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 48</span></span></code></pre></div>
 <p>Then, to guarantee that we had found all the items that might be
 poorly predicted, we would need to filter out every item that had a
 k-occurrence smaller than that value, even though we know that some of
 them are well-predicted:</p>
 <div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">g1000d_nndko</span> <span class="op">&lt;=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">g1000d_nndko</span><span class="op">[</span><span class="va">g1000d_nnd_acc</span> <span class="op">&lt;</span> <span class="fl">0.9</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 949</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 929</span></span></code></pre></div>
 <p>That’s most of the dataset. If we dropped the threshold to 80
 accuracy, does it help?</p>
 <div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">g1000d_nndko</span> <span class="op">&lt;=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">g1000d_nndko</span><span class="op">[</span><span class="va">g1000d_nnd_acc</span> <span class="op">&lt;</span> <span class="fl">0.8</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 867</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 860</span></span></code></pre></div>
 <p>A bit, but it’s still a substantial majority of the dataset. So
 whatever we decided to do with these items we wouldn’t be saving a huge
 amount of effort.</p>
@@ -541,7 +541,7 @@ the k-occurrences that result:</p>
 <p>How accurate are these results?</p>
 <div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">nn_accuracy</span><span class="op">(</span><span class="va">g1000d_nnbf</span>, <span class="va">g1000d_nnd_iter1</span>, k <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 0.3123333</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 0.3202</span></span></code></pre></div>
 <p>Ok, I think we can all agree we do <em>not</em> have an accurate
 neighbor graph. But let’s take a look at the k-occurrence
 distribution:</p>
@@ -560,9 +560,9 @@ a look at some numbers:</p>
 <div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">g1000d_nndkoi1</span><span class="op">)</span></span>
 <span><span class="co">#&gt;    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. </span></span>
-<span><span class="co">#&gt;       1       2       7      15      17     191</span></span>
+<span><span class="co">#&gt;       1       2       7      15      17     212</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">g1000d_nndkoi1</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 155</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 163</span></span></code></pre></div>
 <p>Compared to the converged (or exact) distribution, the median
 k-occurrence is not as low, the object with the largest k-occurrence,
 while large (<span class="math inline">\(&gt; 10k\)</span>, which seems
@@ -585,7 +585,7 @@ same procedure with the 2D dataset:</p>
 <span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">g2d_nndkoi1</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 4</span></span>
 <span><span class="fu">nn_accuracy</span><span class="op">(</span><span class="va">g2d_nnbf</span>, <span class="va">g2d_nnd_iter1</span>, k <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 0.3492667</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 0.3496667</span></span></code></pre></div>
 <p>We can see that the neighbor graph is also not very accurate after 1
 iteration in the 2D case, but the distribution of k-occurrences also
 qualitatively resembles the exact result. This time, compared to the
@@ -612,7 +612,7 @@ calculation. For example, double the number of neighbors to
 <div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">g1000d_nnd_k30</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/nnd_knn.html">nnd_knn</a></span><span class="op">(</span><span class="va">g1000d</span>, k <span class="op">=</span> <span class="fl">30</span>, metric <span class="op">=</span> <span class="st">"euclidean"</span><span class="op">)</span></span>
 <span><span class="fu">nn_accuracy</span><span class="op">(</span><span class="va">g1000d_nnbf</span>, <span class="va">g1000d_nnd_k30</span>, k <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 0.9736</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 0.9746667</span></span></code></pre></div>
 <p>That’s a big improvement, but increasing <code>k</code> in this way
 can be quite expensive in terms of run time.</p>
 </div>
@@ -628,7 +628,7 @@ like.</p>
 <div class="sourceCode" id="cb46"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">g1000d_nnd_rep</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/nnd_knn.html">nnd_knn</a></span><span class="op">(</span><span class="va">g1000d</span>, k <span class="op">=</span> <span class="fl">15</span>, metric <span class="op">=</span> <span class="st">"euclidean"</span><span class="op">)</span></span>
 <span><span class="fu">nn_accuracy</span><span class="op">(</span><span class="va">g1000d_nnbf</span>, <span class="va">g1000d_nnd_rep</span>, k <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 0.7818</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 0.7812</span></span></code></pre></div>
 <p>That’s similar to the first run. That’s re-assuring in the sense that
 the variance of the accuracy doesn’t seem to be that high between one
 run to the next. But hopefully that doesn’t also mean that NND is
@@ -637,7 +637,7 @@ them won’t be very helpful. Time to find out:</p>
 <div class="sourceCode" id="cb47"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">g1000d_nnd_merge</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/merge_knn.html">merge_knn</a></span><span class="op">(</span><span class="va">g1000d_nnd</span>, <span class="va">g1000d_nnd_rep</span><span class="op">)</span></span>
 <span><span class="fu">nn_accuracy</span><span class="op">(</span><span class="va">g1000d_nnbf</span>, <span class="va">g1000d_nnd_merge</span>, k <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 0.908</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 0.9078667</span></span></code></pre></div>
 <p>That’s a big improvement. So it does seem like there is some
 diversity in the results.</p>
 <div class="sourceCode" id="cb48"><pre class="downlit sourceCode r">
@@ -652,7 +652,7 @@ diversity in the results.</p>
 <p><img src="rnndescent_files/figure-html/NND%20100D%20compare%20accuracy-1.png" width="700"></p>
 <div class="sourceCode" id="cb49"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/cor.html" class="external-link">cor</a></span><span class="op">(</span><span class="va">g1000d_nnd_acc</span>, <span class="va">g1000d_nnd_rep_acc</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 0.467723</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 0.5265773</span></span></code></pre></div>
 <p>Despite the similar overall accuracies, there’s quite a large
 variance between runs in terms of which items have accurate
 neighborhoods.</p>
@@ -706,9 +706,9 @@ graph:</p>
 <div class="sourceCode" id="cb52"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">g1000d_sgko</span><span class="op">)</span></span>
 <span><span class="co">#&gt;    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. </span></span>
-<span><span class="co">#&gt;   1.000   2.250   4.000   7.629   9.000 106.000</span></span>
+<span><span class="co">#&gt;   1.000   2.000   4.000   7.548   8.000 112.000</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">g1000d_sgko</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 113</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 116</span></span></code></pre></div>
 <p>This is not <em>quite</em> as skewed as the neighbor graph, but there
 is still a lot of room for improvement.</p>
 <p>At any rate, with the search graph in hand, we can now search it
@@ -727,7 +727,7 @@ using our original data as a query:</p>
 <p>Are the results improved?</p>
 <div class="sourceCode" id="cb54"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">nn_accuracy</span><span class="op">(</span><span class="va">g1000d_nnbf</span>, <span class="va">g1000d_search</span>, k <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 0.9978667</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 0.9978</span></span></code></pre></div>
 <p>Yes, the accuracy is now nearly perfect. The disadvantages of the
 search graph approach for building a neighbor graph is that it is less
 efficient than NND: <code>graph_knn_query</code> must assume that the
@@ -754,7 +754,7 @@ else the same:</p>
 <span>    epsilon <span class="op">=</span> <span class="fl">0.1</span></span>
 <span>  <span class="op">)</span></span>
 <span><span class="fu">nn_accuracy</span><span class="op">(</span><span class="va">g1000d_nnbf</span>, <span class="va">g1000d_nnd_search</span>, k <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 0.9850667</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 0.9845333</span></span></code></pre></div>
 <p>Accuracies are nearly as good. You can save even more time by turning
 off back-tracking (<code>epsilon = 0</code>):</p>
 <div class="sourceCode" id="cb56"><pre class="downlit sourceCode r">
@@ -769,7 +769,7 @@ off back-tracking (<code>epsilon = 0</code>):</p>
 <span>    epsilon <span class="op">=</span> <span class="fl">0</span></span>
 <span>  <span class="op">)</span></span>
 <span><span class="fu">nn_accuracy</span><span class="op">(</span><span class="va">g1000d_nnbf</span>, <span class="va">g1000d_nnd_search0</span>, k <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 0.827</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 0.8286667</span></span></code></pre></div>
 <p>but accuracies are now noticeably less improved. Using the search
 graph without back-tracking gives slightly better accuracies:</p>
 <div class="sourceCode" id="cb57"><pre class="downlit sourceCode r">
@@ -784,7 +784,7 @@ graph without back-tracking gives slightly better accuracies:</p>
 <span>    epsilon <span class="op">=</span> <span class="fl">0</span></span>
 <span>  <span class="op">)</span></span>
 <span><span class="fu">nn_accuracy</span><span class="op">(</span><span class="va">g1000d_nnbf</span>, <span class="va">g1000d_search0</span>, k <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 0.8492667</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 0.8467333</span></span></code></pre></div>
 <p>but it seems like some sort of back-tracking is to be recommended
 with this approach.</p>
 </div>
@@ -861,7 +861,7 @@ graph?</p>
 <span><span class="co">#&gt;    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. </span></span>
 <span><span class="co">#&gt;       1       6      11      15      19     116</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">g1000d_lsko</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 32</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 34</span></span></code></pre></div>
 <p>This is a massive reduction in hubness over the 15NN graph, and
 nearly as good as the search graph generated from the 15NN graph. Can we
 see further improvements if we generate a search graph from the locally
@@ -882,9 +882,9 @@ scaled neighbors?</p>
 <div class="sourceCode" id="cb64"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">g1000d_lssgko</span><span class="op">)</span></span>
 <span><span class="co">#&gt;    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. </span></span>
-<span><span class="co">#&gt;    1.00    6.00    9.00   10.39   13.00   82.00</span></span>
+<span><span class="co">#&gt;    1.00    6.00    9.00   10.39   13.00   83.00</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">g1000d_lssgko</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 17</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 19</span></span></code></pre></div>
 <p>Here the hubness properties are further improved over using either
 local scaling or creating a search graph separately. While this is
 promising, does it translate into better search performance? Here are
@@ -902,7 +902,7 @@ backtracking:</p>
 <span>        epsilon <span class="op">=</span> <span class="fl">0</span></span>
 <span>    <span class="op">)</span></span>
 <span><span class="fu">nn_accuracy</span><span class="op">(</span><span class="va">g1000d_nnbf</span>, <span class="va">g1000dls_search0nnd</span>, k <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 0.9410667</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 0.9415333</span></span></code></pre></div>
 <p>Without having to do any back-tracking, we can get 94% accuracy, a
 nearly 10% improvement compared to the search graph generated from the
 15NN graph directly.</p>
@@ -916,7 +916,7 @@ section above, we already know that using NND with an increased value of
 with local scaling:</p>
 <div class="sourceCode" id="cb66"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">nn_accuracy</span><span class="op">(</span><span class="va">g1000d_nnbf</span>, <span class="va">g1000d_nnd65</span>, k <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 0.9998</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 0.9998667</span></span></code></pre></div>
 <p>Almost perfect. We also have the locally-scaled 15 nearest neighbor
 graph we can use for initialization:</p>
 <div class="sourceCode" id="cb67"><pre class="downlit sourceCode r">
@@ -931,7 +931,7 @@ graph we can use for initialization:</p>
 <span>        epsilon <span class="op">=</span> <span class="fl">0</span></span>
 <span>    <span class="op">)</span></span>
 <span><span class="fu">nn_accuracy</span><span class="op">(</span><span class="va">g1000d_nnbf</span>, <span class="va">g1000dls_search0</span>, k <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 0.8815333</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 0.8808</span></span></code></pre></div>
 <p>This is noticeably less good than initializing using the 15 NND
 results, but it’s still the best non-back-tracking result. If we do set
 <code>epsilon = 0.1</code>, then we get 100% accuracy using both the
