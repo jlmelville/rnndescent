@@ -643,6 +643,24 @@ search_tree(const SearchTree<In, Idx> &tree,
 }
 
 template <typename In, typename Out, typename Idx>
+void search_tree_heap_cache(const SearchTree<In, Idx> &tree,
+                            const VectorDistance<In, Out, Idx> &distance, Idx i,
+                            RandomIntGenerator<Idx> &rng,
+                            NNHeap<Out, Idx> &current_graph,
+                            std::unordered_set<Idx> &seen) {
+
+  std::vector<Idx> leaf_indices = search_indices(tree, distance.get_y(i), rng);
+
+  for (auto &idx : leaf_indices) {
+    if (seen.find(idx) == seen.end()) { // not-contains
+      const auto d = distance.calculate(idx, i);
+      current_graph.checked_push(i, d, idx);
+      seen.insert(idx);
+    }
+  }
+}
+
+template <typename In, typename Out, typename Idx>
 void search_tree_heap(const SearchTree<In, Idx> &tree,
                       const VectorDistance<In, Out, Idx> &distance, Idx i,
                       RandomIntGenerator<Idx> &rng,
@@ -657,6 +675,18 @@ void search_tree_heap(const SearchTree<In, Idx> &tree,
 }
 
 template <typename In, typename Out, typename Idx>
+void search_forest_cache(const std::vector<SearchTree<In, Idx>> &forest,
+                         const VectorDistance<In, Out, Idx> &distance, Idx i,
+                         RandomIntGenerator<Idx> &rng,
+                         NNHeap<Out, Idx> &current_graph) {
+  std::unordered_set<Idx> seen;
+
+  for (const auto &tree : forest) {
+    search_tree_heap_cache(tree, distance, i, rng, current_graph, seen);
+  }
+}
+
+template <typename In, typename Out, typename Idx>
 void search_forest(const std::vector<SearchTree<In, Idx>> &forest,
                    const VectorDistance<In, Out, Idx> &distance, Idx i,
                    RandomIntGenerator<Idx> &rng,
@@ -667,12 +697,12 @@ void search_forest(const std::vector<SearchTree<In, Idx>> &forest,
 }
 
 template <typename In, typename Out, typename Idx>
-NNHeap<Out, Idx> search_forest(const std::vector<SearchTree<In, Idx>> &forest,
-                               const VectorDistance<In, Out, Idx> &distance,
-                               uint32_t n_nbrs,
-                               ParallelRandomIntProvider<Idx> &rng_provider,
-                               std::size_t n_threads, ProgressBase &progress,
-                               const Executor &executor) {
+NNHeap<Out, Idx>
+search_forest(const std::vector<SearchTree<In, Idx>> &forest,
+              const VectorDistance<In, Out, Idx> &distance, uint32_t n_nbrs,
+              ParallelRandomIntProvider<Idx> &rng_provider, bool cache,
+              std::size_t n_threads, ProgressBase &progress,
+              const Executor &executor) {
   const auto n_queries = distance.get_ny();
   NNHeap<Out, Idx> current_graph(n_queries, n_nbrs);
 
@@ -680,8 +710,13 @@ NNHeap<Out, Idx> search_forest(const std::vector<SearchTree<In, Idx>> &forest,
   auto worker = [&](std::size_t begin, std::size_t end) {
     auto rng_ptr = rng_provider.get_parallel_instance(end);
     for (auto i = begin; i < end; ++i) {
-      search_forest(forest, distance, static_cast<Idx>(i), *rng_ptr,
-                    current_graph);
+      if (cache) {
+        search_forest_cache(forest, distance, static_cast<Idx>(i), *rng_ptr,
+                            current_graph);
+      } else {
+        search_forest(forest, distance, static_cast<Idx>(i), *rng_ptr,
+                      current_graph);
+      }
     }
   };
 

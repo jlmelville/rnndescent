@@ -148,39 +148,33 @@ rpf_knn <- function(data,
 }
 
 rpf_build <- function(data,
-                            k = NULL,
-                            metric = "euclidean",
-                            n_trees = NULL,
-                            leaf_size = NULL,
-                            include_self = TRUE,
-                            n_threads = 0,
-                            verbose = FALSE,
-                            obs = "R") {
+                      metric = "euclidean",
+                      n_trees = NULL,
+                      leaf_size = 10,
+                      n_threads = 0,
+                      verbose = FALSE,
+                      obs = "R") {
   obs <- match.arg(toupper(obs), c("C", "R"))
   n_obs <- switch(obs,
                   R = nrow,
                   C = ncol,
                   stop("Unknown obs type"))
 
-  if (is.null(k) && is.null(leaf_size)) {
-    stop("Specify one of 'k' or 'leaf_size'")
-  }
-
   if (is.null(n_trees)) {
     n_trees <- 5 + as.integer(round(nrow(data) ^ 0.25))
     n_trees <- min(32, n_trees)
   }
-  if (is.null(leaf_size)) {
-    leaf_size <- max(10, k)
-  }
 
   data <- x2m(data)
-  check_k(k, n_obs(data))
 
   tsmessage(
-    thread_msg("Calculating rp tree k-nearest neighbors with k = ",
-               k,
-               n_threads = n_threads)
+    thread_msg(
+      "Building RP forest with ",
+      n_trees,
+      " trees, leaf size=",
+      leaf_size,
+      n_threads = n_threads
+    )
   )
 
   if (obs == "R") {
@@ -204,6 +198,7 @@ rpf_knn_query <- function(query,
                           forest,
                           k,
                           metric = "euclidean",
+                          cache = TRUE,
                           n_threads = 0,
                           verbose = FALSE,
                           obs = "R") {
@@ -224,11 +219,11 @@ rpf_knn_query <- function(query,
   }
 
   tsmessage(thread_msg("Querying rp forest for k = ",
-                       k,
+                       k, ifelse(cache, " with caching", ""),
                        n_threads = n_threads))
 
   nn <-
-    rnn_rp_forest_search(query, reference, forest, k, metric, n_threads, verbose)
+    rnn_rp_forest_search(query, reference, forest, k, metric, cache, n_threads, verbose)
   tsmessage("Finished")
   nn
 }

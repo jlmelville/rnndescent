@@ -205,8 +205,8 @@ build_rp_forest(const std::vector<In> &data_vec, std::size_t ndim,
   RPProgress forest_progress(verbose);
   rnndescent::ParallelIntRNGAdapter<Idx, rnndescent::DQIntSampler> rng_provider;
   if (verbose) {
-    tsmessage() << "Creating" << (angular ? " angular " : "")
-                << " RP forest with " << n_trees << " trees" << std::endl;
+    tsmessage() << "Using" << (angular ? " angular " : " euclidean ")
+                << "margin calculation" << std::endl;
   }
   return tdoann::make_forest(data_vec, ndim, n_trees, leaf_size, rng_provider,
                              angular, n_threads, forest_progress, executor);
@@ -276,7 +276,8 @@ List rnn_rp_forest_build(const NumericMatrix &data, const std::string &metric,
 List rnn_rp_forest_search(const NumericMatrix &query,
                           const NumericMatrix &reference, List search_forest,
                           uint32_t n_nbrs, const std::string &metric,
-                          std::size_t n_threads, bool verbose = false) {
+                          bool cache, std::size_t n_threads,
+                          bool verbose = false) {
   using Idx = RNN_DEFAULT_IDX;
   using In = RNN_DEFAULT_IN;
 
@@ -288,7 +289,7 @@ List rnn_rp_forest_search(const NumericMatrix &query,
   RParallelExecutor executor;
   auto nn_heap =
       tdoann::search_forest(search_forest_cpp, *distance_ptr, n_nbrs,
-                            rng_provider, n_threads, progress, executor);
+                            rng_provider, cache, n_threads, progress, executor);
 
   return heap_to_r(nn_heap);
 }

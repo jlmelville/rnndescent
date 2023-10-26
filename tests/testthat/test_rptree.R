@@ -84,7 +84,6 @@ set.seed(1337)
 uiris_rnn <- rpf_knn(uirism, 15, metric = "cosine", n_trees = 40, n_threads = 2)
 expect_equal(sum(uiris_rnn$dist), 1.347357, tol = 1e-3)
 
-
 # R index
 expected_rpf_index <- list(
     list(
@@ -121,7 +120,22 @@ rpf_query_res <-
     rpf_index,
     k = 4,
     metric = "euclidean",
-    n_threads = 0
+    n_threads = 0,
+    cache = TRUE
   )
 
 expect_equal(rpf_query_res, expected_rpt_knn, tol = 1e-7)
+
+set.seed(1337)
+rpf_query_res <-
+  rpf_knn_query(
+    ui10,
+    ui10,
+    rpf_index,
+    k = 4,
+    metric = "euclidean",
+    n_threads = 0,
+    cache = FALSE
+  )
+expect_equal(rpf_query_res, expected_rpt_knn, tol = 1e-7)
+
