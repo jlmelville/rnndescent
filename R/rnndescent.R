@@ -214,55 +214,6 @@ random_knn <-
     )
   }
 
-# reference and query are column-oriented
-random_knn_impl <-
-  function(reference,
-           k,
-           metric,
-           use_alt_metric,
-           actual_metric,
-           order_by_distance,
-           n_threads,
-           verbose,
-           query = NULL,
-           zero_index = FALSE) {
-    if (is.null(query)) {
-      msg <- "Generating random k-nearest neighbor graph with k = "
-      fun <- random_knn_cpp
-      args <- list(data = reference)
-    } else {
-      msg <-
-        "Generating random k-nearest neighbor graph from reference with k = "
-      fun <- random_knn_query_cpp
-      args <- list(reference = reference, query = query)
-    }
-
-    args <- lmerge(
-      args,
-      list(
-        nnbrs = k,
-        metric = actual_metric,
-        order_by_distance = order_by_distance,
-        n_threads = n_threads,
-        verbose = verbose
-      )
-    )
-    tsmessage(thread_msg(msg,
-      k,
-      n_threads = n_threads
-    ))
-    res <- do.call(fun, args)
-
-    if (!zero_index) {
-      res$idx <- res$idx + 1
-    }
-    if (use_alt_metric) {
-      res$dist <- apply_alt_metric_correction(metric, res$dist)
-    }
-    tsmessage("Finished")
-    res
-  }
-
 #' Find Nearest Neighbors and Distances
 #'
 #' @param data Matrix of `n` items to generate neighbors for, with observations

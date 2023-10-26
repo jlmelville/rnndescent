@@ -201,3 +201,105 @@ validate_nn_graph_matrix <- function(nn, nr, nc, msg = "matrix") {
     stop(msg, " has ", nnc, " cols, should have ", nc)
   }
 }
+
+# called by rpf_knn and nnd_knn
+rpf_knn_impl <-
+  function(data,
+           k,
+           metric,
+           use_alt_metric,
+           actual_metric,
+           n_trees,
+           leaf_size,
+           include_self,
+           n_threads,
+           verbose,
+           zero_index = FALSE) {
+
+    if (is.null(n_trees)) {
+      # data is transposed at this point so n_obs is in the number of columns
+      n_trees <- 5 + as.integer(round(ncol(data) ^ 0.25))
+      n_trees <- min(32, n_trees)
+    }
+    if (is.null(leaf_size)) {
+      leaf_size <- max(10, k)
+    }
+
+    tsmessage(
+      thread_msg(
+        "Calculating rp tree k-nearest neighbors with k = ",
+        k,
+        " n_trees = ",
+        n_trees,
+        " max leaf size = ",
+        leaf_size,
+        n_threads = n_threads
+      )
+    )
+
+    res <- rp_tree_knn_cpp(
+      data,
+      k,
+      actual_metric,
+      n_trees = n_trees,
+      leaf_size = leaf_size,
+      include_self = include_self,
+      n_threads = n_threads,
+      verbose = verbose,
+      unzero = !zero_index
+    )
+    if (use_alt_metric) {
+      res$dist <- apply_alt_metric_correction(metric, res$dist)
+    }
+    tsmessage("Finished")
+    res
+  }
+
+# reference and query are column-oriented
+random_knn_impl <-
+  function(reference,
+           k,
+           metric,
+           use_alt_metric,
+           actual_metric,
+           order_by_distance,
+           n_threads,
+           verbose,
+           query = NULL,
+           zero_index = FALSE) {
+    if (is.null(query)) {
+      msg <- "Generating random k-nearest neighbor graph with k = "
+      fun <- random_knn_cpp
+      args <- list(data = reference)
+    } else {
+      msg <-
+        "Generating random k-nearest neighbor graph from reference with k = "
+      fun <- random_knn_query_cpp
+      args <- list(reference = reference, query = query)
+    }
+
+    args <- lmerge(
+      args,
+      list(
+        nnbrs = k,
+        metric = actual_metric,
+        order_by_distance = order_by_distance,
+        n_threads = n_threads,
+        verbose = verbose
+      )
+    )
+    tsmessage(thread_msg(msg,
+                         k,
+                         n_threads = n_threads
+    ))
+    res <- do.call(fun, args)
+
+    if (!zero_index) {
+      res$idx <- res$idx + 1
+    }
+    if (use_alt_metric) {
+      res$dist <- apply_alt_metric_correction(metric, res$dist)
+    }
+    tsmessage("Finished")
+    res
+  }
