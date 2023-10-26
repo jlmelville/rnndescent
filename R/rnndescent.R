@@ -290,13 +290,16 @@ random_knn_impl <-
 #'   - `"hamming"`.
 #'   - `"bhamming"` (hamming on binary data with bitset internal memory
 #'   optimization).
-#' @param init Initial `data` neighbor graph to optimize. If not provided, `k`
-#'   random neighbors are created. If provided, the input format should be a
-#'   list containing:
-#'
-#'   * `idx` an `n` by `k` matrix containing the nearest neighbor indices.
-#'   * `dist` (optional) an `n` by `k` matrix containing the nearest neighbor
-#'   distances.
+#' @param init Name of the initialization strategy or initial `data` neighbor
+#'   graph to optimize. One of:
+#'   - `"rand"` random initialization (the default).
+#'   - `"tree"` use the random projection tree method of Dasgupta and Freund
+#'   (2008).
+#'   - a pre-calculated neighbor graph. A list containing:
+#'       - `idx` an `n` by `k` matrix containing the nearest neighbor indices.
+#'       - `dist` (optional) an `n` by `k` matrix containing the nearest
+#'       neighbor distances. If the input distances are omitted, they will be
+#'       calculated for you.'
 #'
 #'   If `k` and `init` are specified as arguments to this function, and the
 #'   number of neighbors provided in `init` is not equal to `k` then:
@@ -308,7 +311,6 @@ random_knn_impl <-
 #'   than `k` neighbors may be chosen for some observations under these
 #'   circumstances.
 #'
-#'   If the input distances are omitted, they will be calculated for you.
 #' @param n_iters Number of iterations of nearest neighbor descent to carry out.
 #' @param max_candidates Maximum number of candidate neighbors to try for each
 #'   item in each iteration. Use relative to `k` to emulate the "rho"
@@ -393,6 +395,12 @@ random_knn_impl <-
 #' set.seed(1337)
 #' iris_nn <- nnd_knn(iris, k = 4, metric = "euclidean", low_memory = FALSE)
 #' @references
+#' Dasgupta, S., & Freund, Y. (2008, May).
+#' Random projection trees and low dimensional manifolds.
+#' In *Proceedings of the fortieth annual ACM symposium on Theory of computing*
+#' (pp. 537-546).
+#' <https://doi.org/10.1145/1374376.1374452>.
+#'
 #' Dong, W., Moses, C., & Li, K. (2011, March).
 #' Efficient k-nearest neighbor graph construction for generic similarity measures.
 #' In *Proceedings of the 20th international conference on World Wide Web*
@@ -403,7 +411,7 @@ random_knn_impl <-
 nnd_knn <- function(data,
                     k = NULL,
                     metric = "euclidean",
-                    init = NULL,
+                    init = "rand",
                     n_iters = 10,
                     max_candidates = NULL,
                     delta = 0.001,
@@ -418,7 +426,7 @@ nnd_knn <- function(data,
 
   if (use_alt_metric) {
     actual_metric <- find_alt_metric(metric)
-    if (!is.null(init) && !is.null(init$dist)) {
+    if (!is.null(init) && is.list(init) && !is.null(init$dist)) {
       init$dist <- apply_alt_metric_uncorrection(metric, init$dist)
     }
   } else {
@@ -431,21 +439,39 @@ nnd_knn <- function(data,
   }
 
   # data must be column-oriented at this point
-  if (is.null(init)) {
+  if (is.character(init)) {
     if (is.null(k)) {
       stop("Must provide k")
     }
     check_k(k, ncol(data))
-    tsmessage("Initializing from random neighbors")
-    init <- random_knn_impl(
-      reference = data,
-      k = k,
-      metric = actual_metric,
-      use_alt_metric = FALSE,
-      actual_metric = actual_metric,
-      order_by_distance = FALSE,
-      n_threads = n_threads,
-      verbose = verbose
+    init <- match.arg(tolower(init), c("rand", "tree"))
+
+    tsmessage("Initializing neighbors using '", init, "' method")
+    init <- switch(
+      init,
+      "rand" = random_knn_impl(
+        reference = data,
+        k = k,
+        metric = actual_metric,
+        use_alt_metric = FALSE,
+        actual_metric = actual_metric,
+        order_by_distance = FALSE,
+        n_threads = n_threads,
+        verbose = verbose
+      ),
+      "tree" = rpf_knn_impl(
+        data,
+        k = k,
+        metric = actual_metric,
+        use_alt_metric = FALSE,
+        actual_metric = actual_metric,
+        n_trees = NULL,
+        leaf_size = NULL,
+        include_self = FALSE,
+        n_threads = n_threads,
+        verbose = verbose,
+      ),
+      stop("Unknown initialization option '", init, "'")
     )
   } else {
     if (is.null(k)) {

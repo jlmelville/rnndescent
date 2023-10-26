@@ -85,12 +85,51 @@ side, I would advise building without a custom `Makevars`.
 Optimizing an initial set of approximate nearest neighbors:
 
 ```R
-# install.packages("RcppHNSW")
 library(rnndescent)
 
 # both hnsw_knn and nnd_knn will remove non-numeric columns from data-frames
 # for you, but to avoid confusion, these examples will use a matrix
 irism <- as.matrix(iris[, -5])
+
+
+# Generate a Random Projection knn (set n_threads for parallel search):
+iris_rp_nn <- rpf_knn(irism, k = 15)
+
+# nn descent improves results: set verbose = TRUE and progress = "dist", to 
+# track distance sum progress over iterations
+res <-
+  nnd_knn(irism,
+    metric = "euclidean",
+    init = iris_rp_nn,
+    verbose = TRUE,
+    progress = "dist"
+  )
+
+# search can be multi-threaded
+res <-
+  nnd_knn(
+    irism,
+    metric = "euclidean",
+    init = iris_rp_nn,
+    verbose = TRUE,
+    n_threads = 4
+  )
+
+# a (potentially) faster version of the algorithm is available that avoids some 
+# repeated distance calculations at the cost of using more memory. Currently off
+# by default.
+res <-
+  nnd_knn(
+    irism,
+    metric = "euclidean",
+    init = iris_rp_nn,
+    verbose = TRUE,
+    n_threads = 4,
+    low_memory = FALSE
+  )
+  
+# You can optimize results from other methods or packages too:  
+# install.packages("RcppHNSW")
 # Use settings that don't get perfect results straight away
 iris_hnsw_nn <-
   RcppHNSW::hnsw_knn(irism,
@@ -99,27 +138,6 @@ iris_hnsw_nn <-
     distance = "euclidean"
   )
 
-# nn descent improves results: set verbose = TRUE to track distance sum progress
-# over iterations
-res <-
-  nnd_knn(irism,
-    metric = "euclidean",
-    init = iris_hnsw_nn,
-    verbose = TRUE
-  )
-
-# search can be multi-threaded
-res <-
-  nnd_knn(
-    irism,
-    metric = "euclidean",
-    init = iris_hnsw_nn,
-    verbose = TRUE,
-    n_threads = 4
-  )
-
-# a faster version of the algorithm is available that avoids some repeated distance
-# calculations at the cost of using more memory. Currently off by default.
 res <-
   nnd_knn(
     irism,
@@ -180,10 +198,8 @@ change to control the trade off between speed and search accuracy.
 
 ## Initialization
 
-Currently, only the nearest neighbor descent part of PyNNDescent is implemented,
-not the random projection tree method to create the initial set of neighbors. If
-you really wish to avoid any dependencies from another library, then the search
-is initialized from a random set of neighbors:
+The default for `nnd_knn` is to initialize with random neighbors. Set
+`init = "tree"` to use the random partition tree initialization.
 
 ```R
 library(rnndescent)
@@ -204,12 +220,17 @@ iris_rand_nn <-
     metric = "euclidean",
     n_threads = 4
   )
+  
+# use RP tree initialization
+res <- nnd_knn(irism,
+  k = 15,
+  metric = "euclidean",
+  n_threads = 4,
+  init = "tree"
+)
 ```
 
-Although the initialization can also be multi-threaded (and at least has speed
-in its favor), the descent stage will take more iterations to get to a good
-result and may converge to a less optimal result. For initializing a knn query,
-there is also `random_knn_query`.
+For initializing a knn query, there is also `random_knn_query`.
 
 ## Brute Force
 

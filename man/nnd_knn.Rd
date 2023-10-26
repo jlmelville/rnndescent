@@ -8,7 +8,7 @@ nnd_knn(
   data,
   k = NULL,
   metric = "euclidean",
-  init = NULL,
+  init = "rand",
   n_iters = 10,
   max_candidates = NULL,
   delta = 0.001,
@@ -51,13 +51,19 @@ always give exactly zero with this method.
 optimization).
 }}
 
-\item{init}{Initial \code{data} neighbor graph to optimize. If not provided, \code{k}
-random neighbors are created. If provided, the input format should be a
-list containing:
+\item{init}{Name of the initialization strategy or initial \code{data} neighbor
+graph to optimize. One of:
+\itemize{
+\item \code{"rand"} random initialization (the default).
+\item \code{"tree"} use the random projection tree method of Dasgupta and Freund
+(2008).
+\item a pre-calculated neighbor graph. A list containing:
 \itemize{
 \item \code{idx} an \code{n} by \code{k} matrix containing the nearest neighbor indices.
-\item \code{dist} (optional) an \code{n} by \code{k} matrix containing the nearest neighbor
-distances.
+\item \code{dist} (optional) an \code{n} by \code{k} matrix containing the nearest
+neighbor distances. If the input distances are omitted, they will be
+calculated for you.'
+}
 }
 
 If \code{k} and \code{init} are specified as arguments to this function, and the
@@ -69,9 +75,7 @@ the size of \code{k}. Note that there is no checking if any of the random
 neighbors are duplicates of what is already in \code{init} so effectively fewer
 than \code{k} neighbors may be chosen for some observations under these
 circumstances.
-}
-
-If the input distances are omitted, they will be calculated for you.}
+}}
 
 \item{n_iters}{Number of iterations of nearest neighbor descent to carry out.}
 
@@ -176,6 +180,12 @@ set.seed(1337)
 iris_nn <- nnd_knn(iris, k = 4, metric = "euclidean", low_memory = FALSE)
 }
 \references{
+Dasgupta, S., & Freund, Y. (2008, May).
+Random projection trees and low dimensional manifolds.
+In \emph{Proceedings of the fortieth annual ACM symposium on Theory of computing}
+(pp. 537-546).
+\url{https://doi.org/10.1145/1374376.1374452}.
+
 Dong, W., Moses, C., & Li, K. (2011, March).
 Efficient k-nearest neighbor graph construction for generic similarity measures.
 In \emph{Proceedings of the 20th international conference on World Wide Web}

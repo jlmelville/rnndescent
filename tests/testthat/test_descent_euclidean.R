@@ -132,6 +132,11 @@ set.seed(1337)
 iris_nnd <- nnd_knn(uirism, init = iris_nbrs)
 expect_equal(sum(iris_nnd$dist), ui_edsum, tol = 1e-3)
 
+# initialize from rp forest
+set.seed(1337)
+iris_nnd <- nnd_knn(uirism, k = 15, init = "tree")
+expect_equal(sum(iris_nnd$dist), ui_edsum, tol = 1e-3)
+
 # initialize from existing knn graph with missing data
 set.seed(1337)
 iris_nbrs_missing <- iris_nbrs
