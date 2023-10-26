@@ -108,7 +108,7 @@ expected_rpf_index <- list(
 )
 
 set.seed(1337)
-rpf_index <- rnn_rp_forest_build(t(ui10), "euclidean", 1, leaf_size = 4)
+rpf_index <- rpf_build(ui10, "euclidean", 1, leaf_size = 4)
 expect_equal(rpf_index, expected_rpf_index, tol = 1e-7)
 
 # query data against itself to reproduce knn (just more slowly)

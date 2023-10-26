@@ -147,6 +147,77 @@ rpf_knn <- function(data,
   res
 }
 
+#' Create a Random Projection Forest
+#'
+#' Build a "forest" of Random Projection Trees (Dasgupta and Freund, 2008),
+#' which can later be searched to find approximate nearest neighbors.
+#'
+#' @param data Matrix of `n` items to generate the index for, with observations
+#'   in the rows and features in the columns. Optionally, input can be passed
+#'   with observations in the columns, by setting `obs = "C"`, which should be
+#'   more efficient.
+#' @param metric Type of distance calculation to use. One of:
+#'   - `"euclidean"`.
+#'   - `"l2sqr"` (squared Euclidean).
+#'   - `"cosine"`.
+#'   - `"cosine-preprocess"`: cosine with preprocessing: this trades memory for a
+#'   potential speed up during the distance calculation.It should give the
+#'   same results as `cosine`, give or take minor numerical changes. Be aware
+#'   that the distance between two identical items may not always give exactly
+#'   zero with this method.
+#'   - `"manhattan"`.
+#'   - `"correlation"` (1 minus the Pearson correlation).
+#'   - `"correlation-preprocess"`: `correlation` with preprocessing. This trades
+#'   memory for a potential speed up during the distance calculation. It should
+#'   give the same results as `correlation`, give or take minor numerical
+#'   changes. Be aware that the distance between two identical items may not
+#'   always give exactly zero with this method.
+#'   - `"hamming"`.
+#'
+#'   Note that the metric is only used to determine whether an "angular" or
+#'   "Euclidean" distance is used to measure the distance between split points
+#'   in the tree.
+#' @param n_trees The number of trees to use in the RP forest. A larger number
+#'   will give more accurate results at the cost of a longer computation time.
+#'   The default of `NULL` means that the number is chosen based on the number
+#'   of observations in `data`.
+#' @param leaf_size The maximum number of items that can appear in a leaf. This
+#'   value should be chosen to match the expected number of neighbors you will
+#'   want to retrieve when running queries (e.g. if you want find 50 nearest
+#'   neighbors set `leaf_size = 50`) and should not be set to a value smaller
+#'   than `10`.
+#' @param n_threads Number of threads to use.
+#' @param verbose If `TRUE`, log information to the console.
+#' @param obs set to `"C"` to indicate that the input `data` orientation stores
+#'   each observation as a column. The default `"R"` means that observations are
+#'   stored in each row. Storing the data by row is usually more convenient, but
+#'   internally your data will be converted to column storage. Passing it
+#'   already column-oriented will save some memory and (a small amount of) CPU
+#'   usage.
+#' @return a forest of random projection trees as a list. Each tree in the
+#' forest is a further list, but is not intended to be examined or manipulated
+#' by the user. As a normal R data type, it can be safely serialized and
+#' deserialized with [base::saveRDS()] and [base::readRDS()]. To use it for
+#' querying pass it as the `forest` parameter of [rpf_knn_query()]. The forest
+#' does not store any of the `data` passed into build the tree, so if you
+#' are going to search the forest, you will also need to store the `data` used
+#' to build it and provide it during the search.
+#' @references
+#' Dasgupta, S., & Freund, Y. (2008, May).
+#' Random projection trees and low dimensional manifolds.
+#' In *Proceedings of the fortieth annual ACM symposium on Theory of computing*
+#' (pp. 537-546).
+#' <https://doi.org/10.1145/1374376.1374452>.
+#' @seealso [rpf_knn_query()]
+#' @examples
+#' # Build a forest of 10 trees from the odd rows
+#' iris_odd <- iris[seq_len(nrow(iris)) %% 2 == 1, ]
+#' iris_odd_forest <- rpf_build(iris_odd, n_trees = 10)
+#'
+#' iris_even <- iris[seq_len(nrow(iris)) %% 2 == 0, ]
+#' iris_even_nn <- rpf_knn_query(query = iris_even, reference = iris_odd,
+#'                               forest = iris_odd_forest, k = 15)
+#' @export
 rpf_build <- function(data,
                       metric = "euclidean",
                       n_trees = NULL,
@@ -193,6 +264,86 @@ rpf_build <- function(data,
   forest
 }
 
+#' Search a Random Projection Forest
+#'
+#' Run queries against a "forest" of Random Projection Trees (Dasgupta and
+#' Freund, 2008), to return nearest neighbors from the reference data used
+#' to build the forest.
+#'
+#' @param query Matrix of `n` query items, with observations in the rows and
+#'   features in the columns. Optionally, the data may be passed with the
+#'   observations in the columns, by setting `obs = "C"`, which should be more
+#'   efficient. The `reference` data must be passed in the same orientation as
+#'   `query`.
+#' @param reference Matrix of `m` reference items, with observations in the rows
+#'   and features in the columns. The nearest neighbors to the queries are
+#'   calculated from this data and should be the same data used to build the
+#'   `forest`. Optionally, the data may be passed with the observations in the
+#'   columns, by setting `obs = "C"`, which should be more efficient. The
+#'   `query` data must be passed in the same orientation as `reference`.
+#' @param forest A random partition forest, created by [rpf_build()],
+#'   representing partitions of the data in `reference.`
+#' @param k Number of nearest neighbors to return. You are unlikely to get good
+#'   results if you choose a value substantially larger than the value of
+#'   `leaf_size` used to build the `forest`.
+#' @param metric Type of distance calculation to use. One of:
+#'   - `"euclidean"`.
+#'   - `"l2sqr"` (squared Euclidean).
+#'   - `"cosine"`.
+#'   - `"cosine-preprocess"`: cosine with preprocessing: this trades memory for a
+#'   potential speed up during the distance calculation.It should give the
+#'   same results as `cosine`, give or take minor numerical changes. Be aware
+#'   that the distance between two identical items may not always give exactly
+#'   zero with this method.
+#'   - `"manhattan"`.
+#'   - `"correlation"` (1 minus the Pearson correlation).
+#'   - `"correlation-preprocess"`: `correlation` with preprocessing. This trades
+#'   memory for a potential speed up during the distance calculation. It should
+#'   give the same results as `correlation`, give or take minor numerical
+#'   changes. Be aware that the distance between two identical items may not
+#'   always give exactly zero with this method.
+#'   - `"hamming"`.
+#'
+#'   Note that the metric is only used to determine whether an "angular" or
+#'   "Euclidean" distance is used to measure the distance between split points
+#'   in the tree.
+#' @param cache if `TRUE` (the default) then candidate indices found in the
+#'   leaves of the forest are cached to avoid recalculating the same distance
+#'   repeatedly. This incurs an extra memory cost which scales with `n_threads`.
+#'   Set this to `FALSE` to disable distance caching.
+#' @param n_threads Number of threads to use. Note that the parallelism in the
+#'   search is done over the observations in `query` not the trees in the
+#'   `forest`. Thus a single observation will not see any speed-up from
+#'   increasing `n_threads`.
+#' @param verbose If `TRUE`, log information to the console.
+#' @param obs set to `"C"` to indicate that the input `data` orientation stores
+#'   each observation as a column. The default `"R"` means that observations are
+#'   stored in each row. Storing the data by row is usually more convenient, but
+#'   internally your data will be converted to column storage. Passing it
+#'   already column-oriented will save some memory and (a small amount of) CPU
+#'   usage.
+#' @return the approximate nearest neighbor graph as a list containing:
+#'   * `idx` an n by k matrix containing the nearest neighbor indices.
+#'   * `dist` an n by k matrix containing the nearest neighbor distances.
+#'
+#' `k` neighbors per observation are not guaranteed to be found. Missing data
+#' is represented with an index of `0` and a distance of `NA`.
+#' @references
+#' Dasgupta, S., & Freund, Y. (2008, May).
+#' Random projection trees and low dimensional manifolds.
+#' In *Proceedings of the fortieth annual ACM symposium on Theory of computing*
+#' (pp. 537-546).
+#' <https://doi.org/10.1145/1374376.1374452>.
+#' @seealso [rpf_build()]
+#' @examples
+#' # Build a forest of 10 trees from the odd rows
+#' iris_odd <- iris[seq_len(nrow(iris)) %% 2 == 1, ]
+#' iris_odd_forest <- rpf_build(iris_odd, n_trees = 10)
+#'
+#' iris_even <- iris[seq_len(nrow(iris)) %% 2 == 0, ]
+#' iris_even_nn <- rpf_knn_query(query = iris_even, reference = iris_odd,
+#'                               forest = iris_odd_forest, k = 15)
+#' @export
 rpf_knn_query <- function(query,
                           reference,
                           forest,
