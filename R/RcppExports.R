@@ -111,8 +111,8 @@ random_knn_query_cpp <- function(reference, query, nnbrs, metric = "euclidean", 
     .Call(`_rnndescent_random_knn_query_cpp`, reference, query, nnbrs, metric, order_by_distance, n_threads, verbose)
 }
 
-rp_tree_knn_cpp <- function(data, nnbrs, metric, n_trees, leaf_size, include_self, n_threads = 0L, verbose = FALSE) {
-    .Call(`_rnndescent_rp_tree_knn_cpp`, data, nnbrs, metric, n_trees, leaf_size, include_self, n_threads, verbose)
+rp_tree_knn_cpp <- function(data, nnbrs, metric, n_trees, leaf_size, include_self, unzero = TRUE, n_threads = 0L, verbose = FALSE) {
+    .Call(`_rnndescent_rp_tree_knn_cpp`, data, nnbrs, metric, n_trees, leaf_size, include_self, unzero, n_threads, verbose)
 }
 
 rnn_rp_forest_build <- function(data, metric, n_trees, leaf_size, n_threads = 0L, verbose = FALSE) {
