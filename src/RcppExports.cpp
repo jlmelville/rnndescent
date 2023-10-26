@@ -334,23 +334,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// rnn_tree_build_and_search
-List rnn_tree_build_and_search(const NumericMatrix& data, uint32_t n_nbrs, const std::string& metric, uint32_t leaf_size, bool angular, std::size_t n_threads, bool verbose);
-RcppExport SEXP _rnndescent_rnn_tree_build_and_search(SEXP dataSEXP, SEXP n_nbrsSEXP, SEXP metricSEXP, SEXP leaf_sizeSEXP, SEXP angularSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const NumericMatrix& >::type data(dataSEXP);
-    Rcpp::traits::input_parameter< uint32_t >::type n_nbrs(n_nbrsSEXP);
-    Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
-    Rcpp::traits::input_parameter< uint32_t >::type leaf_size(leaf_sizeSEXP);
-    Rcpp::traits::input_parameter< bool >::type angular(angularSEXP);
-    Rcpp::traits::input_parameter< std::size_t >::type n_threads(n_threadsSEXP);
-    Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
-    rcpp_result_gen = Rcpp::wrap(rnn_tree_build_and_search(data, n_nbrs, metric, leaf_size, angular, n_threads, verbose));
-    return rcpp_result_gen;
-END_RCPP
-}
 // rnn_rp_forest_search
 List rnn_rp_forest_search(const NumericMatrix& query, const NumericMatrix& reference, List search_forest, uint32_t n_nbrs, const std::string& metric, std::size_t n_threads, bool verbose);
 RcppExport SEXP _rnndescent_rnn_rp_forest_search(SEXP querySEXP, SEXP referenceSEXP, SEXP search_forestSEXP, SEXP n_nbrsSEXP, SEXP metricSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
@@ -411,7 +394,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_rnndescent_random_knn_query_cpp", (DL_FUNC) &_rnndescent_random_knn_query_cpp, 7},
     {"_rnndescent_rp_tree_knn_cpp", (DL_FUNC) &_rnndescent_rp_tree_knn_cpp, 8},
     {"_rnndescent_rnn_rp_forest_build", (DL_FUNC) &_rnndescent_rnn_rp_forest_build, 6},
-    {"_rnndescent_rnn_tree_build_and_search", (DL_FUNC) &_rnndescent_rnn_tree_build_and_search, 7},
     {"_rnndescent_rnn_rp_forest_search", (DL_FUNC) &_rnndescent_rnn_rp_forest_search, 7},
     {"_rnndescent_nn_query", (DL_FUNC) &_rnndescent_nn_query, 9},
     {NULL, NULL, 0}

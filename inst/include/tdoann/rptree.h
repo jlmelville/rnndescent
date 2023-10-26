@@ -36,7 +36,7 @@ namespace tdoann {
 
 // Tree Building
 
-template <typename Idx, typename In> struct RPTree {
+template <typename In, typename Idx> struct RPTree {
   std::vector<std::vector<In>> hyperplanes;
   std::vector<In> offsets;
   std::vector<std::pair<std::size_t, std::size_t>> children;
@@ -68,7 +68,7 @@ std::pair<Idx, Idx> select_random_points(const std::vector<Idx> &indices,
   return {left_index, right_index};
 }
 
-template <typename Idx, typename In>
+template <typename In, typename Idx>
 uint8_t select_side(typename std::vector<In>::const_iterator data_it,
                     const std::vector<In> &hyperplane_vector,
                     In hyperplane_offset, RandomIntGenerator<Idx> &rng) {
@@ -83,7 +83,7 @@ uint8_t select_side(typename std::vector<In>::const_iterator data_it,
   return margin > 0 ? 0 : 1;
 }
 
-template <typename Idx, typename In>
+template <typename In, typename Idx>
 void split_indices(const std::vector<In> &data, std::size_t ndim,
                    const std::vector<Idx> &indices,
                    const std::vector<In> &hyperplane_vector,
@@ -135,7 +135,7 @@ void split_indices(const std::vector<In> &data, std::size_t ndim,
   }
 }
 
-template <typename Idx, typename In>
+template <typename In, typename Idx>
 std::tuple<std::vector<Idx>, std::vector<Idx>, std::vector<In>, In>
 euclidean_random_projection_split(const std::vector<In> &data, std::size_t ndim,
                                   const std::vector<Idx> &indices,
@@ -163,7 +163,7 @@ euclidean_random_projection_split(const std::vector<In> &data, std::size_t ndim,
                          hyperplane_offset);
 }
 
-template <typename Idx, typename In>
+template <typename In, typename Idx>
 std::tuple<std::vector<Idx>, std::vector<Idx>, std::vector<In>, In>
 angular_random_projection_split(const std::vector<In> &data, size_t ndim,
                                 const std::vector<Idx> &indices,
@@ -216,7 +216,7 @@ angular_random_projection_split(const std::vector<In> &data, size_t ndim,
   return std::make_tuple(indices_left, indices_right, hyperplane_vector, In(0));
 }
 
-template <typename Idx, typename In, typename SplitFunc>
+template <typename In, typename Idx, typename SplitFunc>
 void make_tree_recursive(
     const std::vector<In> &data, std::size_t ndim,
     const std::vector<Idx> &indices, std::vector<std::vector<In>> &hyperplanes,
@@ -260,8 +260,8 @@ void make_tree_recursive(
   }
 }
 
-template <typename Idx, typename In>
-RPTree<Idx, In> make_dense_tree(const std::vector<In> &data, std::size_t ndim,
+template <typename In, typename Idx>
+RPTree<In, Idx> make_dense_tree(const std::vector<In> &data, std::size_t ndim,
                                 RandomIntGenerator<Idx> &rng,
                                 uint32_t leaf_size, bool angular) {
 
@@ -297,18 +297,18 @@ RPTree<Idx, In> make_dense_tree(const std::vector<In> &data, std::size_t ndim,
     max_leaf_size = std::max(max_leaf_size, points.size());
   }
 
-  return RPTree<Idx, In>(std::move(hyperplanes), std::move(offsets),
+  return RPTree<In, Idx>(std::move(hyperplanes), std::move(offsets),
                          std::move(children), std::move(point_indices),
                          max_leaf_size);
 }
 
-template <typename Idx, typename In>
-std::vector<RPTree<Idx, In>>
+template <typename In, typename Idx>
+std::vector<RPTree<In, Idx>>
 make_forest(const std::vector<In> &data, std::size_t ndim, uint32_t n_trees,
             uint32_t leaf_size, ParallelRandomIntProvider<Idx> &parallel_rand,
             bool angular, std::size_t n_threads, ProgressBase &progress,
             const Executor &executor) {
-  std::vector<RPTree<Idx, In>> rp_forest(n_trees);
+  std::vector<RPTree<In, Idx>> rp_forest(n_trees);
 
   parallel_rand.initialize();
 
@@ -329,17 +329,17 @@ make_forest(const std::vector<In> &data, std::size_t ndim, uint32_t n_trees,
 // KNN calculation
 
 // Find the largest leaf size in the forest
-template <typename Idx, typename In>
-std::size_t find_max_leaf_size(const std::vector<RPTree<Idx, In>> &rp_forest) {
+template <typename In, typename Idx>
+std::size_t find_max_leaf_size(const std::vector<RPTree<In, Idx>> &rp_forest) {
   auto it = std::max_element(rp_forest.begin(), rp_forest.end(),
-                             [](const RPTree<Idx, In> &a, decltype(a) b) {
+                             [](const RPTree<In, Idx> &a, decltype(a) b) {
                                return a.leaf_size < b.leaf_size;
                              });
   return it->leaf_size;
 }
 
-template <typename Idx, typename In>
-std::vector<Idx> get_leaves_from_tree(const RPTree<Idx, In> &tree,
+template <typename In, typename Idx>
+std::vector<Idx> get_leaves_from_tree(const RPTree<In, Idx> &tree,
                                       std::size_t max_leaf_size) {
   constexpr auto sentinel = static_cast<std::size_t>(-1);
   constexpr auto idx_sentinel = static_cast<Idx>(-1);
@@ -367,9 +367,9 @@ std::vector<Idx> get_leaves_from_tree(const RPTree<Idx, In> &tree,
   return leaf_indices;
 }
 
-template <typename Idx, typename In>
+template <typename In, typename Idx>
 std::vector<Idx>
-get_leaves_from_forest(const std::vector<RPTree<Idx, In>> &forest,
+get_leaves_from_forest(const std::vector<RPTree<In, Idx>> &forest,
                        std::size_t max_leaf_size) {
   constexpr auto sentinel = static_cast<std::size_t>(-1);
 
@@ -397,7 +397,7 @@ get_leaves_from_forest(const std::vector<RPTree<Idx, In>> &forest,
   return leaf_indices;
 }
 
-template <typename Idx, typename Out>
+template <typename Out, typename Idx>
 void generate_leaf_updates(
     const BaseDistance<Out, Idx> &distance,
     const NNHeap<Out, Idx> &current_graph, const std::vector<Idx> &leaves,
@@ -435,7 +435,7 @@ void generate_leaf_updates(
   }
 }
 
-template <typename Idx, typename Out>
+template <typename Out, typename Idx>
 void init_rp_tree(const BaseDistance<Out, Idx> &distance,
                   NNHeap<Out, Idx> &current_graph,
                   const std::vector<Idx> &leaves, std::size_t max_leaf_size,
@@ -466,7 +466,7 @@ void init_rp_tree(const BaseDistance<Out, Idx> &distance,
                 progress, executor);
 }
 
-template <typename Idx, typename Out>
+template <typename Out, typename Idx>
 auto init_rp_tree(const BaseDistance<Out, Idx> &distance,
                   const std::vector<Idx> &leaves, std::size_t max_leaf_size,
                   uint32_t n_nbrs, bool include_self, std::size_t n_threads,
@@ -497,7 +497,7 @@ auto init_rp_tree(const BaseDistance<Out, Idx> &distance,
 //    search tree. The SearchTree orders nodes so children always have a higher
 //    index than the parent. This should result in better cache coherency during
 //    a search.
-template <typename Idx, typename In> struct SearchTree {
+template <typename In, typename Idx> struct SearchTree {
   std::vector<std::vector<In>> hyperplanes;
   std::vector<In> offsets;
   std::vector<std::pair<std::size_t, std::size_t>> children;
@@ -512,9 +512,9 @@ template <typename Idx, typename In> struct SearchTree {
         leaf_size(lsize) {}
 };
 
-template <typename Idx, typename In>
+template <typename In, typename Idx>
 std::pair<std::size_t, std::size_t>
-recursive_convert(const RPTree<Idx, In> &tree,
+recursive_convert(const RPTree<In, Idx> &tree,
                   std::vector<std::vector<In>> &hyperplanes,
                   std::vector<In> &offsets,
                   std::vector<std::pair<std::size_t, std::size_t>> &children,
@@ -547,8 +547,8 @@ recursive_convert(const RPTree<Idx, In> &tree,
   }
 }
 
-template <typename Idx, typename In>
-SearchTree<Idx, In> convert_tree_format(const RPTree<Idx, In> &tree,
+template <typename In, typename Idx>
+SearchTree<In, Idx> convert_tree_format(const RPTree<In, Idx> &tree,
                                         std::size_t n_points,
                                         std::size_t ndim) {
   constexpr auto idx_sentinel = static_cast<Idx>(-1);
@@ -573,15 +573,15 @@ SearchTree<Idx, In> convert_tree_format(const RPTree<Idx, In> &tree,
   recursive_convert(tree, hyperplanes, offsets, children, indices, node_num,
                     leaf_start, tree.children.size() - 1);
 
-  return SearchTree<Idx, In>(hyperplanes, offsets, children, indices,
+  return SearchTree<In, Idx>(hyperplanes, offsets, children, indices,
                              tree.leaf_size);
 }
 
-template <typename Idx, typename In>
-std::vector<SearchTree<Idx, In>>
-convert_rp_forest(const std::vector<RPTree<Idx, In>> &rp_forest,
+template <typename In, typename Idx>
+std::vector<SearchTree<In, Idx>>
+convert_rp_forest(const std::vector<RPTree<In, Idx>> &rp_forest,
                   std::size_t n_points, std::size_t ndim) {
-  std::vector<SearchTree<Idx, In>> search_forest;
+  std::vector<SearchTree<In, Idx>> search_forest;
   search_forest.reserve(rp_forest.size());
   for (const auto &rp_tree : rp_forest) {
     search_forest.push_back(convert_tree_format(rp_tree, n_points, ndim));
@@ -589,9 +589,9 @@ convert_rp_forest(const std::vector<RPTree<Idx, In>> &rp_forest,
   return search_forest;
 }
 
-template <typename Idx, typename In>
+template <typename In, typename Idx>
 std::pair<std::size_t, std::size_t>
-search_leaf_range(const SearchTree<Idx, In> &tree,
+search_leaf_range(const SearchTree<In, Idx> &tree,
                   typename std::vector<In>::const_iterator obs_it,
                   RandomIntGenerator<Idx> &rng) {
   Idx current_node = 0;
@@ -615,8 +615,8 @@ search_leaf_range(const SearchTree<Idx, In> &tree,
   }
 }
 
-template <typename Idx, typename In>
-std::vector<Idx> search_indices(const SearchTree<Idx, In> &tree,
+template <typename In, typename Idx>
+std::vector<Idx> search_indices(const SearchTree<In, Idx> &tree,
                                 typename std::vector<In>::const_iterator obs_it,
                                 RandomIntGenerator<Idx> &rng) {
   std::pair<std::size_t, std::size_t> range =
@@ -626,9 +626,9 @@ std::vector<Idx> search_indices(const SearchTree<Idx, In> &tree,
   return leaf_indices;
 }
 
-template <typename Idx, typename In, typename Out>
+template <typename In, typename Out, typename Idx>
 std::pair<std::vector<Idx>, std::vector<Out>>
-search_tree(const SearchTree<Idx, In> &tree,
+search_tree(const SearchTree<In, Idx> &tree,
             const VectorDistance<In, Out, Idx> &distance, Idx i,
             RandomIntGenerator<Idx> &rng) {
 
@@ -642,8 +642,8 @@ search_tree(const SearchTree<Idx, In> &tree,
   return {leaf_indices, distances};
 }
 
-template <typename Idx, typename In, typename Out>
-void search_tree_heap(const SearchTree<Idx, In> &tree,
+template <typename In, typename Out, typename Idx>
+void search_tree_heap(const SearchTree<In, Idx> &tree,
                       const VectorDistance<In, Out, Idx> &distance, Idx i,
                       RandomIntGenerator<Idx> &rng,
                       NNHeap<Out, Idx> &current_graph) {
@@ -656,8 +656,8 @@ void search_tree_heap(const SearchTree<Idx, In> &tree,
   }
 }
 
-template <typename Idx, typename In, typename Out>
-void search_forest(const std::vector<SearchTree<Idx, In>> &forest,
+template <typename In, typename Out, typename Idx>
+void search_forest(const std::vector<SearchTree<In, Idx>> &forest,
                    const VectorDistance<In, Out, Idx> &distance, Idx i,
                    RandomIntGenerator<Idx> &rng,
                    NNHeap<Out, Idx> &current_graph) {
@@ -666,8 +666,8 @@ void search_forest(const std::vector<SearchTree<Idx, In>> &forest,
   }
 }
 
-template <typename Idx, typename In, typename Out>
-NNHeap<Out, Idx> search_forest(const std::vector<SearchTree<Idx, In>> &forest,
+template <typename In, typename Out, typename Idx>
+NNHeap<Out, Idx> search_forest(const std::vector<SearchTree<In, Idx>> &forest,
                                const VectorDistance<In, Out, Idx> &distance,
                                uint32_t n_nbrs,
                                ParallelRandomIntProvider<Idx> &rng_provider,

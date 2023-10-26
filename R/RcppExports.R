@@ -119,10 +119,6 @@ rnn_rp_forest_build <- function(data, metric, n_trees, leaf_size, n_threads = 0L
     .Call(`_rnndescent_rnn_rp_forest_build`, data, metric, n_trees, leaf_size, n_threads, verbose)
 }
 
-rnn_tree_build_and_search <- function(data, n_nbrs, metric, leaf_size, angular, n_threads, verbose = FALSE) {
-    .Call(`_rnndescent_rnn_tree_build_and_search`, data, n_nbrs, metric, leaf_size, angular, n_threads, verbose)
-}
-
 rnn_rp_forest_search <- function(query, reference, search_forest, n_nbrs, metric, n_threads, verbose = FALSE) {
     .Call(`_rnndescent_rnn_rp_forest_search`, query, reference, search_forest, n_nbrs, metric, n_threads, verbose)
 }
