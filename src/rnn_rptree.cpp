@@ -202,12 +202,12 @@ build_rp_forest(const std::vector<In> &data_vec, std::size_t ndim,
                 std::size_t n_threads, bool verbose,
                 const tdoann::Executor &executor) {
   bool angular = is_angular_metric(metric);
-  RPProgress forest_progress(verbose);
   rnndescent::ParallelIntRNGAdapter<Idx, rnndescent::DQIntSampler> rng_provider;
   if (verbose) {
     tsmessage() << "Using" << (angular ? " angular " : " euclidean ")
                 << "margin calculation" << std::endl;
   }
+  RPProgress forest_progress(verbose);
   return tdoann::make_forest(data_vec, ndim, n_trees, leaf_size, rng_provider,
                              angular, n_threads, forest_progress, executor);
 }
@@ -215,7 +215,7 @@ build_rp_forest(const std::vector<In> &data_vec, std::size_t ndim,
 // [[Rcpp::export]]
 List rp_tree_knn_cpp(const NumericMatrix &data, uint32_t nnbrs,
                      const std::string &metric, uint32_t n_trees,
-                     uint32_t leaf_size, bool include_self,
+                     uint32_t leaf_size, bool include_self, bool unzero = true,
                      std::size_t n_threads = 0, bool verbose = false) {
   using Idx = RNN_DEFAULT_IDX;
   using In = RNN_DEFAULT_IN;
@@ -234,11 +234,11 @@ List rp_tree_knn_cpp(const NumericMatrix &data, uint32_t nnbrs,
   std::vector<Idx> leaf_array =
       tdoann::get_leaves_from_forest(rp_forest, max_leaf_size);
 
-  RPProgress knn_progress(verbose);
   if (verbose) {
     tsmessage() << "Creating knn using " << leaf_array.size() / max_leaf_size
                 << " leaves" << std::endl;
   }
+  RPProgress knn_progress(verbose);
   if (metric == "bhamming") {
     // unfortunately data_vec is still in scope even though we no longer
     // need it
@@ -250,7 +250,7 @@ List rp_tree_knn_cpp(const NumericMatrix &data, uint32_t nnbrs,
   auto neighbor_heap =
       tdoann::init_rp_tree(*distance_ptr, leaf_array, max_leaf_size, nnbrs,
                            include_self, n_threads, knn_progress, executor);
-  return heap_to_r(neighbor_heap, n_threads, knn_progress, executor);
+  return heap_to_r(neighbor_heap, n_threads, knn_progress, executor, unzero);
 }
 
 // [[Rcpp::export]]
