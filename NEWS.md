@@ -1,5 +1,13 @@
 # rnndescent 0.0.12
 
+## New features
+
+* New function: `rpf_knn`. Calculates the approximate k-nearest neighbors using
+a random partition forest.
+* New function: `rpf_build`. Builds a random partition forest.
+* New function: `rpf_knn_query`. Queries a random partition forest (built with
+`rpf_build` to find the approximate nearest neighbors for the query points.
+
 # rnndescent 0.0.11
 
 ## Bug fixes and minor improvements
