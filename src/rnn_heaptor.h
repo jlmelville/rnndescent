@@ -71,13 +71,13 @@ auto heap_to_r_impl(const NbrHeap &heap, bool unzero = true) -> Rcpp::List {
 template <typename NbrHeap>
 auto heap_to_r(NbrHeap &heap, std::size_t n_threads,
                tdoann::ProgressBase &progress, const tdoann::Executor &executor,
-               bool unzero = true)
-    -> Rcpp::List {
+               bool unzero = true) -> Rcpp::List {
   tdoann::sort_heap(heap, n_threads, progress, executor);
   return heap_to_r_impl(heap, unzero);
 }
 
-template <typename NbrHeap> auto heap_to_r(NbrHeap &heap, bool unzero = true) -> Rcpp::List {
+template <typename NbrHeap>
+auto heap_to_r(NbrHeap &heap, bool unzero = true) -> Rcpp::List {
   constexpr std::size_t n_threads = 0;
   RParallelExecutor executor;
   tdoann::NullProgress progress;
