@@ -52,7 +52,7 @@
 <span>  <span class="va">data</span>,</span>
 <span>  k <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  metric <span class="op">=</span> <span class="st">"euclidean"</span>,</span>
-<span>  init <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  init <span class="op">=</span> <span class="st">"rand"</span>,</span>
 <span>  n_iters <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>  max_candidates <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  delta <span class="op">=</span> <span class="fl">0.001</span>,</span>
@@ -102,11 +102,15 @@ optimization).</p></li>
 
 
 <dt>init</dt>
-<dd><p>Initial <code>data</code> neighbor graph to optimize. If not provided, <code>k</code>
-random neighbors are created. If provided, the input format should be a
-list containing:</p><ul><li><p><code>idx</code> an <code>n</code> by <code>k</code> matrix containing the nearest neighbor indices.</p></li>
-<li><p><code>dist</code> (optional) an <code>n</code> by <code>k</code> matrix containing the nearest neighbor
-distances.</p></li>
+<dd><p>Name of the initialization strategy or initial <code>data</code> neighbor
+graph to optimize. One of:</p><ul><li><p><code>"rand"</code> random initialization (the default).</p></li>
+<li><p><code>"tree"</code> use the random projection tree method of Dasgupta and Freund
+(2008).</p></li>
+<li><p>a pre-calculated neighbor graph. A list containing:</p><ul><li><p><code>idx</code> an <code>n</code> by <code>k</code> matrix containing the nearest neighbor indices.</p></li>
+<li><p><code>dist</code> (optional) an <code>n</code> by <code>k</code> matrix containing the nearest
+neighbor distances. If the input distances are omitted, they will be
+calculated for you.'</p></li>
+</ul></li>
 </ul><p>If <code>k</code> and <code>init</code> are specified as arguments to this function, and the
 number of neighbors provided in <code>init</code> is not equal to <code>k</code> then:</p><ul><li><p>if <code>k</code> is smaller, only the <code>k</code> closest values in <code>init</code> are retained.</p></li>
 <li><p>if <code>k</code> is larger, then random neighbors will be chosen to fill <code>init</code> to
@@ -114,7 +118,7 @@ the size of <code>k</code>. Note that there is no checking if any of the random
 neighbors are duplicates of what is already in <code>init</code> so effectively fewer
 than <code>k</code> neighbors may be chosen for some observations under these
 circumstances.</p></li>
-</ul><p>If the input distances are omitted, they will be calculated for you.</p></dd>
+</ul></dd>
 
 
 <dt>n_iters</dt>
@@ -187,7 +191,12 @@ usage.</p></dd>
 </ul></div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
-    <p>Dong, W., Moses, C., &amp; Li, K. (2011, March).
+    <p>Dasgupta, S., &amp; Freund, Y. (2008, May).
+Random projection trees and low dimensional manifolds.
+In <em>Proceedings of the fortieth annual ACM symposium on Theory of computing</em>
+(pp. 537-546).
+<a href="https://doi.org/10.1145/1374376.1374452" class="external-link">https://doi.org/10.1145/1374376.1374452</a>.</p>
+<p>Dong, W., Moses, C., &amp; Li, K. (2011, March).
 Efficient k-nearest neighbor graph construction for generic similarity measures.
 In <em>Proceedings of the 20th international conference on World Wide Web</em>
 (pp. 577-586).
@@ -210,11 +219,11 @@ ACM.
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Use verbose flag to see information about progress</span></span></span>
 <span class="r-in"><span><span class="va">iris_nn</span> <span class="op">&lt;-</span> <span class="fu">nnd_knn</span><span class="op">(</span><span class="va">iris</span>, k <span class="op">=</span> <span class="fl">4</span>, metric <span class="op">=</span> <span class="st">"euclidean"</span>, verbose <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 05:48:11 Initializing from random neighbors</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 05:48:11 Generating random k-nearest neighbor graph with k = 4</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 05:48:11 Finished</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 05:48:11 Running nearest neighbor descent for 10 iterations</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 05:48:11 Finished</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 18:22:36 Initializing neighbors using 'rand' method</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 18:22:36 Generating random k-nearest neighbor graph with k = 4</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 18:22:36 Finished</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 18:22:36 Running nearest neighbor descent for 10 iterations</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 18:22:36 Finished</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Nearest neighbor descent uses random initialization, but you can pass any</span></span></span>
 <span class="r-in"><span><span class="co"># approximation using the init argument (as long as the metrics used to</span></span></span>
@@ -222,8 +231,8 @@ ACM.
 <span class="r-in"><span><span class="co"># by nnd_knn).</span></span></span>
 <span class="r-in"><span><span class="va">iris_nn</span> <span class="op">&lt;-</span> <span class="fu"><a href="random_knn.html">random_knn</a></span><span class="op">(</span><span class="va">iris</span>, k <span class="op">=</span> <span class="fl">4</span>, metric <span class="op">=</span> <span class="st">"euclidean"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">iris_nn</span> <span class="op">&lt;-</span> <span class="fu">nnd_knn</span><span class="op">(</span><span class="va">iris</span>, init <span class="op">=</span> <span class="va">iris_nn</span>, metric <span class="op">=</span> <span class="st">"euclidean"</span>, verbose <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 05:48:11 Running nearest neighbor descent for 10 iterations</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 05:48:11 Finished</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 18:22:36 Running nearest neighbor descent for 10 iterations</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 18:22:36 Finished</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Number of iterations controls how much optimization is attempted. A smaller</span></span></span>
 <span class="r-in"><span><span class="co"># value will run faster but give poorer results</span></span></span>

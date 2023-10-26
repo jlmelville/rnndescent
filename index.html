@@ -95,12 +95,51 @@
 </h2>
 <p>Optimizing an initial set of approximate nearest neighbors:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># install.packages("RcppHNSW")</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://jlmelville.github.io/rnndescent/">rnndescent</a></span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://jlmelville.github.io/rnndescent/">rnndescent</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># both hnsw_knn and nnd_knn will remove non-numeric columns from data-frames</span></span>
 <span><span class="co"># for you, but to avoid confusion, these examples will use a matrix</span></span>
 <span><span class="va">irism</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">iris</span><span class="op">[</span>, <span class="op">-</span><span class="fl">5</span><span class="op">]</span><span class="op">)</span></span>
+<span></span>
+<span></span>
+<span><span class="co"># Generate a Random Projection knn (set n_threads for parallel search):</span></span>
+<span><span class="va">iris_rp_nn</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/rpf_knn.html">rpf_knn</a></span><span class="op">(</span><span class="va">irism</span>, k <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># nn descent improves results: set verbose = TRUE and progress = "dist", to </span></span>
+<span><span class="co"># track distance sum progress over iterations</span></span>
+<span><span class="va">res</span> <span class="op">&lt;-</span></span>
+<span>  <span class="fu"><a href="reference/nnd_knn.html">nnd_knn</a></span><span class="op">(</span><span class="va">irism</span>,</span>
+<span>    metric <span class="op">=</span> <span class="st">"euclidean"</span>,</span>
+<span>    init <span class="op">=</span> <span class="va">iris_rp_nn</span>,</span>
+<span>    verbose <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>    progress <span class="op">=</span> <span class="st">"dist"</span></span>
+<span>  <span class="op">)</span></span>
+<span></span>
+<span><span class="co"># search can be multi-threaded</span></span>
+<span><span class="va">res</span> <span class="op">&lt;-</span></span>
+<span>  <span class="fu"><a href="reference/nnd_knn.html">nnd_knn</a></span><span class="op">(</span></span>
+<span>    <span class="va">irism</span>,</span>
+<span>    metric <span class="op">=</span> <span class="st">"euclidean"</span>,</span>
+<span>    init <span class="op">=</span> <span class="va">iris_rp_nn</span>,</span>
+<span>    verbose <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>    n_threads <span class="op">=</span> <span class="fl">4</span></span>
+<span>  <span class="op">)</span></span>
+<span></span>
+<span><span class="co"># a (potentially) faster version of the algorithm is available that avoids some </span></span>
+<span><span class="co"># repeated distance calculations at the cost of using more memory. Currently off</span></span>
+<span><span class="co"># by default.</span></span>
+<span><span class="va">res</span> <span class="op">&lt;-</span></span>
+<span>  <span class="fu"><a href="reference/nnd_knn.html">nnd_knn</a></span><span class="op">(</span></span>
+<span>    <span class="va">irism</span>,</span>
+<span>    metric <span class="op">=</span> <span class="st">"euclidean"</span>,</span>
+<span>    init <span class="op">=</span> <span class="va">iris_rp_nn</span>,</span>
+<span>    verbose <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>    n_threads <span class="op">=</span> <span class="fl">4</span>,</span>
+<span>    low_memory <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  <span class="op">)</span></span>
+<span>  </span>
+<span><span class="co"># You can optimize results from other methods or packages too:  </span></span>
+<span><span class="co"># install.packages("RcppHNSW")</span></span>
 <span><span class="co"># Use settings that don't get perfect results straight away</span></span>
 <span><span class="va">iris_hnsw_nn</span> <span class="op">&lt;-</span></span>
 <span>  <span class="fu">RcppHNSW</span><span class="fu">::</span><span class="fu">hnsw_knn</span><span class="op">(</span><span class="va">irism</span>,</span>
@@ -109,27 +148,6 @@
 <span>    distance <span class="op">=</span> <span class="st">"euclidean"</span></span>
 <span>  <span class="op">)</span></span>
 <span></span>
-<span><span class="co"># nn descent improves results: set verbose = TRUE to track distance sum progress</span></span>
-<span><span class="co"># over iterations</span></span>
-<span><span class="va">res</span> <span class="op">&lt;-</span></span>
-<span>  <span class="fu"><a href="reference/nnd_knn.html">nnd_knn</a></span><span class="op">(</span><span class="va">irism</span>,</span>
-<span>    metric <span class="op">=</span> <span class="st">"euclidean"</span>,</span>
-<span>    init <span class="op">=</span> <span class="va">iris_hnsw_nn</span>,</span>
-<span>    verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
-<span>  <span class="op">)</span></span>
-<span></span>
-<span><span class="co"># search can be multi-threaded</span></span>
-<span><span class="va">res</span> <span class="op">&lt;-</span></span>
-<span>  <span class="fu"><a href="reference/nnd_knn.html">nnd_knn</a></span><span class="op">(</span></span>
-<span>    <span class="va">irism</span>,</span>
-<span>    metric <span class="op">=</span> <span class="st">"euclidean"</span>,</span>
-<span>    init <span class="op">=</span> <span class="va">iris_hnsw_nn</span>,</span>
-<span>    verbose <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>    n_threads <span class="op">=</span> <span class="fl">4</span></span>
-<span>  <span class="op">)</span></span>
-<span></span>
-<span><span class="co"># a faster version of the algorithm is available that avoids some repeated distance</span></span>
-<span><span class="co"># calculations at the cost of using more memory. Currently off by default.</span></span>
 <span><span class="va">res</span> <span class="op">&lt;-</span></span>
 <span>  <span class="fu"><a href="reference/nnd_knn.html">nnd_knn</a></span><span class="op">(</span></span>
 <span>    <span class="va">irism</span>,</span>
@@ -179,7 +197,7 @@
 <div class="section level2">
 <h2 id="initialization">Initialization<a class="anchor" aria-label="anchor" href="#initialization"></a>
 </h2>
-<p>Currently, only the nearest neighbor descent part of PyNNDescent is implemented, not the random projection tree method to create the initial set of neighbors. If you really wish to avoid any dependencies from another library, then the search is initialized from a random set of neighbors:</p>
+<p>The default for <code>nnd_knn</code> is to initialize with random neighbors. Set <code>init = "tree"</code> to use the random partition tree initialization.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://jlmelville.github.io/rnndescent/">rnndescent</a></span><span class="op">)</span></span>
 <span></span>
@@ -198,8 +216,16 @@
 <span>    k <span class="op">=</span> <span class="fl">15</span>,</span>
 <span>    metric <span class="op">=</span> <span class="st">"euclidean"</span>,</span>
 <span>    n_threads <span class="op">=</span> <span class="fl">4</span></span>
-<span>  <span class="op">)</span></span></code></pre></div>
-<p>Although the initialization can also be multi-threaded (and at least has speed in its favor), the descent stage will take more iterations to get to a good result and may converge to a less optimal result. For initializing a knn query, there is also <code>random_knn_query</code>.</p>
+<span>  <span class="op">)</span></span>
+<span>  </span>
+<span><span class="co"># use RP tree initialization</span></span>
+<span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/nnd_knn.html">nnd_knn</a></span><span class="op">(</span><span class="va">irism</span>,</span>
+<span>  k <span class="op">=</span> <span class="fl">15</span>,</span>
+<span>  metric <span class="op">=</span> <span class="st">"euclidean"</span>,</span>
+<span>  n_threads <span class="op">=</span> <span class="fl">4</span>,</span>
+<span>  init <span class="op">=</span> <span class="st">"tree"</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p>For initializing a knn query, there is also <code>random_knn_query</code>.</p>
 </div>
 <div class="section level2">
 <h2 id="brute-force">Brute Force<a class="anchor" aria-label="anchor" href="#brute-force"></a>
