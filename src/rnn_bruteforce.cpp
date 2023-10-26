@@ -42,7 +42,8 @@ List rnn_brute_force(const NumericMatrix &data, uint32_t nnbrs,
   auto nn_graph = tdoann::brute_force_build(*distance_ptr, nnbrs, n_threads,
                                             progress, executor);
 
-  return graph_to_r(nn_graph);
+  constexpr bool unzero = false;
+  return graph_to_r(nn_graph, unzero);
 }
 
 // [[Rcpp::export]]
@@ -56,8 +57,8 @@ List rnn_brute_force_query(const NumericMatrix &reference,
 
   auto nn_graph = tdoann::brute_force_query(*distance_ptr, nnbrs, n_threads,
                                             progress, executor);
-
-  return graph_to_r(nn_graph);
+  constexpr bool unzero = false;
+  return graph_to_r(nn_graph, unzero);
 }
 
 // NOLINTEND(modernize-use-trailing-return-type)

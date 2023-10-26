@@ -32,9 +32,10 @@
 // output idx R matrix is 1-indexed and untransposed
 template <typename NbrHeap>
 void heap_to_r(const NbrHeap &heap, Rcpp::IntegerMatrix &nn_idx,
-               Rcpp::NumericMatrix &nn_dist) {
+               Rcpp::NumericMatrix &nn_dist, bool unzero = true) {
   std::size_t n_points = heap.n_points;
   std::size_t n_nbrs = heap.n_nbrs;
+  int unz = unzero ? 1 : 0;
   constexpr auto missing = static_cast<typename NbrHeap::Index>(-1);
   for (std::size_t i = 0; i < n_points; i++) {
     std::size_t innbrs = i * n_nbrs;
@@ -45,20 +46,20 @@ void heap_to_r(const NbrHeap &heap, Rcpp::IntegerMatrix &nn_idx,
       } else {
         nn_dist(i, j) = heap.dist[innbrsj];
       }
-      nn_idx(i, j) = heap.idx[innbrsj] + 1;
+      nn_idx(i, j) = heap.idx[innbrsj] + unz;
     }
   }
 }
 
 template <typename NbrHeap>
-auto heap_to_r_impl(const NbrHeap &heap) -> Rcpp::List {
+auto heap_to_r_impl(const NbrHeap &heap, bool unzero = true) -> Rcpp::List {
   int n_points = heap.n_points;
   int n_nbrs = heap.n_nbrs;
 
   Rcpp::IntegerMatrix nn_idx(n_points, n_nbrs);
   Rcpp::NumericMatrix nn_dist(n_points, n_nbrs);
 
-  heap_to_r(heap, nn_idx, nn_dist);
+  heap_to_r(heap, nn_idx, nn_dist, unzero);
 
   return Rcpp::List::create(Rcpp::Named("idx") = nn_idx,
                             Rcpp::Named("dist") = nn_dist);
@@ -66,20 +67,22 @@ auto heap_to_r_impl(const NbrHeap &heap) -> Rcpp::List {
 
 // input heap index is 0-indexed
 // output idx R matrix is 1-indexed and untransposed
+//  (or 0-indexed if unzero=false)
 template <typename NbrHeap>
 auto heap_to_r(NbrHeap &heap, std::size_t n_threads,
-               tdoann::ProgressBase &progress, const tdoann::Executor &executor)
+               tdoann::ProgressBase &progress, const tdoann::Executor &executor,
+               bool unzero = true)
     -> Rcpp::List {
   tdoann::sort_heap(heap, n_threads, progress, executor);
-  return heap_to_r_impl(heap);
+  return heap_to_r_impl(heap, unzero);
 }
 
-template <typename NbrHeap> auto heap_to_r(NbrHeap &heap) -> Rcpp::List {
+template <typename NbrHeap> auto heap_to_r(NbrHeap &heap, bool unzero = true) -> Rcpp::List {
   constexpr std::size_t n_threads = 0;
   RParallelExecutor executor;
   tdoann::NullProgress progress;
   tdoann::sort_heap(heap, n_threads, progress, executor);
-  return heap_to_r_impl(heap);
+  return heap_to_r_impl(heap, unzero);
 }
 
 #endif // RNN_HEAPTOR_H

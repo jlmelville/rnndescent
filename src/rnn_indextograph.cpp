@@ -42,7 +42,8 @@ auto idx_to_graph_impl(const tdoann::BaseDistance<Out, Idx> &distance,
   RParallelExecutor executor;
   auto nn_graph =
       tdoann::idx_to_graph(distance, idx_vec, n_threads, progress, executor);
-  return graph_to_r(nn_graph, true);
+  constexpr bool unzero = true;
+  return graph_to_r(nn_graph, unzero);
 }
 
 // [[Rcpp::export]]

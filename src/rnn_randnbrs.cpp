@@ -59,8 +59,8 @@ List random_knn_cpp(const NumericMatrix &data, uint32_t nnbrs,
     nn_graph = tdoann::random_build(*distance_ptr, nnbrs, sampler,
                                     order_by_distance, progress);
   }
-
-  return graph_to_r(*nn_graph);
+  constexpr bool unzero = false;
+  return graph_to_r(*nn_graph, unzero);
 }
 
 // [[Rcpp::export]]
@@ -89,8 +89,8 @@ List random_knn_query_cpp(const NumericMatrix &reference,
     nn_graph = tdoann::random_query(*distance_ptr, nnbrs, sampler,
                                     order_by_distance, progress);
   }
-
-  return graph_to_r(*nn_graph);
+  constexpr bool unzero = false;
+  return graph_to_r(*nn_graph, unzero);
 }
 
 // NOLINTEND(modernize-use-trailing-return-type)

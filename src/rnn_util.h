@@ -40,6 +40,7 @@ void ts(const std::string &);
 void zero_index(Rcpp::IntegerMatrix &, int max_idx = RNND_MAX_IDX,
                 bool missing_ok = false);
 
+// by default we do NOT unzero unlike heap_to_r
 template <typename Out>
 auto graph_to_r(const tdoann::NNGraph<Out> &graph, bool unzero = false)
     -> Rcpp::List {
