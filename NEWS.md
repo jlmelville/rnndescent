@@ -7,6 +7,14 @@ a random partition forest.
 * New function: `rpf_build`. Builds a random partition forest.
 * New function: `rpf_knn_query`. Queries a random partition forest (built with
 `rpf_build` to find the approximate nearest neighbors for the query points.
+* New function: `rpf_filter`. Retains only the best "scoring" trees in a forest,
+where each tree is scored based on how well it reproduces a given knn.
+* New initialization method for `nnd_knn`: `init = "tree"`. Uses the RP Forest
+initialization method.
+* New parameter for `nnd_knn`: `ret_forest`. Returns the search forest used if
+`init = "tree"` so it can be used for future searching or filtering.
+* New parameter for `nnd_knn`: `init_opts`. Options that can be passed to the
+RP forest initialization (same as in `rpf_knn`).
 
 # rnndescent 0.0.11
 
