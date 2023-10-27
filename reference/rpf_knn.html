@@ -59,6 +59,7 @@ Trees (Dasgupta and Freund, 2008).</p>
 <span>  n_trees <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  leaf_size <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  include_self <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  ret_forest <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  n_threads <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  obs <span class="op">=</span> <span class="st">"R"</span></span>
@@ -134,6 +135,13 @@ planning on using the result of this as initialization to another nearest
 neighbor method (e.g. <code><a href="nnd_knn.html">nnd_knn()</a></code>), then set this to <code>FALSE</code>.</p></dd>
 
 
+<dt>ret_forest</dt>
+<dd><p>if <code>TRUE</code> also return a search forest which can be used
+for future querying (via <code><a href="rpf_knn_query.html">rpf_knn_query()</a></code>) and filtering
+(via <code><a href="rpf_filter.html">rpf_filter()</a></code>). By default this is <code>FALSE</code>. Setting this to <code>TRUE</code>
+will change the output list to be nested (see the <code>Value</code> section below).</p></dd>
+
+
 <dt>n_threads</dt>
 <dd><p>Number of threads to use.</p></dd>
 
@@ -157,6 +165,8 @@ usage.</p></dd>
 
 <p>the approximate nearest neighbor graph as a list containing:</p><ul><li><p><code>idx</code> an n by k matrix containing the nearest neighbor indices.</p></li>
 <li><p><code>dist</code> an n by k matrix containing the nearest neighbor distances.</p></li>
+<li><p><code>forest</code> (if <code>ret_forest = TRUE</code>) the RP forest that generated the
+neighbor graph, which can be used to query new data.</p></li>
 </ul><p><code>k</code> neighbors per observation are not guaranteed to be found. Missing data
 is represented with an index of <code>0</code> and a distance of <code>NA</code>.</p>
     </div>
@@ -167,6 +177,10 @@ Random projection trees and low dimensional manifolds.
 In <em>Proceedings of the fortieth annual ACM symposium on Theory of computing</em>
 (pp. 537-546).
 <a href="https://doi.org/10.1145/1374376.1374452" class="external-link">https://doi.org/10.1145/1374376.1374452</a>.</p>
+    </div>
+    <div class="section level2">
+    <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
+    <div class="dont-index"><p>rpf_filter, nnd_knn</p></div>
     </div>
 
     <div class="section level2">
@@ -182,7 +196,14 @@ In <em>Proceedings of the fortieth annual ACM symposium on Theory of computing</
 <span class="r-in"><span><span class="va">iris_rp</span> <span class="op">&lt;-</span> <span class="fu">rpf_knn</span><span class="op">(</span><span class="va">iris</span>, k <span class="op">=</span> <span class="fl">4</span>, n_trees <span class="op">=</span> <span class="fl">3</span>, include_self <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="co"># Use it with e.g. `nnd_knn` -- this should be better than a random start</span></span></span>
 <span class="r-in"><span><span class="va">iris_nnd</span> <span class="op">&lt;-</span> <span class="fu"><a href="nnd_knn.html">nnd_knn</a></span><span class="op">(</span><span class="va">iris</span>, k <span class="op">=</span> <span class="fl">4</span>, init <span class="op">=</span> <span class="va">iris_rp</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="co"># but note you can also run nnd_knn(iris, k = 4, init = "tree") to initialize</span></span></span>
+<span class="r-in"><span><span class="co"># from an RP forest directly</span></span></span>
 <span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># for future querying you may want to also return the RP forest:</span></span></span>
+<span class="r-in"><span><span class="va">iris_rpf</span> <span class="op">&lt;-</span> <span class="fu">rpf_knn</span><span class="op">(</span><span class="va">iris</span>, k <span class="op">=</span> <span class="fl">4</span>, n_trees <span class="op">=</span> <span class="fl">3</span>, include_self <span class="op">=</span> <span class="cn">FALSE</span>,</span></span>
+<span class="r-in"><span>                    ret_forest <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="co"># forest and nn data can be used to create a smaller forest for querying</span></span></span>
+<span class="r-in"><span><span class="co"># filtered_forest &lt;- rpf_filter(iris_rpf)</span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>

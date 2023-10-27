@@ -53,6 +53,7 @@
 <span>  k <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  metric <span class="op">=</span> <span class="st">"euclidean"</span>,</span>
 <span>  init <span class="op">=</span> <span class="st">"rand"</span>,</span>
+<span>  init_args <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  n_iters <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>  max_candidates <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  delta <span class="op">=</span> <span class="fl">0.001</span>,</span>
@@ -61,7 +62,8 @@
 <span>  n_threads <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  progress <span class="op">=</span> <span class="st">"bar"</span>,</span>
-<span>  obs <span class="op">=</span> <span class="st">"R"</span></span>
+<span>  obs <span class="op">=</span> <span class="st">"R"</span>,</span>
+<span>  ret_forest <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -119,6 +121,11 @@ neighbors are duplicates of what is already in <code>init</code> so effectively 
 than <code>k</code> neighbors may be chosen for some observations under these
 circumstances.</p></li>
 </ul></dd>
+
+
+<dt>init_args</dt>
+<dd><p>a list containing arguments to pass to the random partition
+forest initialization. See <code><a href="rpf_knn.html">rpf_knn()</a></code> for possible arguments.</p></dd>
 
 
 <dt>n_iters</dt>
@@ -181,6 +188,14 @@ internally your data will be converted to column storage. Passing it
 already column-oriented will save some memory and (a small amount of) CPU
 usage.</p></dd>
 
+
+<dt>ret_forest</dt>
+<dd><p>If <code>TRUE</code> and <code>init = "tree"</code> then the RP forest used to
+initialize the nearest neighbors will be returned with the nearest neighbor
+data. See the <code>Value</code> section for details. The returned forest can be used
+as part of initializing the search for new data: see <code><a href="rpf_knn_query.html">rpf_knn_query()</a></code> and
+<code><a href="rpf_filter.html">rpf_filter()</a></code> for more details.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -188,6 +203,8 @@ usage.</p></dd>
 
 <p>the approximate nearest neighbor graph as a list containing:</p><ul><li><p><code>idx</code> an n by k matrix containing the nearest neighbor indices.</p></li>
 <li><p><code>dist</code> an n by k matrix containing the nearest neighbor distances.</p></li>
+<li><p><code>forest</code> (if <code>init = "tree"</code> and <code>ret_forest = TRUE</code> only): the RP forest
+used to initialize the neighbor data.</p></li>
 </ul></div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
@@ -219,11 +236,11 @@ ACM.
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Use verbose flag to see information about progress</span></span></span>
 <span class="r-in"><span><span class="va">iris_nn</span> <span class="op">&lt;-</span> <span class="fu">nnd_knn</span><span class="op">(</span><span class="va">iris</span>, k <span class="op">=</span> <span class="fl">4</span>, metric <span class="op">=</span> <span class="st">"euclidean"</span>, verbose <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 18:22:36 Initializing neighbors using 'rand' method</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 18:22:36 Generating random k-nearest neighbor graph with k = 4</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 18:22:36 Finished</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 18:22:36 Running nearest neighbor descent for 10 iterations</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 18:22:36 Finished</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 23:38:14 Initializing neighbors using 'rand' method</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 23:38:14 Generating random k-nearest neighbor graph with k = 4</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 23:38:14 Finished</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 23:38:14 Running nearest neighbor descent for 10 iterations</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 23:38:14 Finished</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Nearest neighbor descent uses random initialization, but you can pass any</span></span></span>
 <span class="r-in"><span><span class="co"># approximation using the init argument (as long as the metrics used to</span></span></span>
@@ -231,8 +248,8 @@ ACM.
 <span class="r-in"><span><span class="co"># by nnd_knn).</span></span></span>
 <span class="r-in"><span><span class="va">iris_nn</span> <span class="op">&lt;-</span> <span class="fu"><a href="random_knn.html">random_knn</a></span><span class="op">(</span><span class="va">iris</span>, k <span class="op">=</span> <span class="fl">4</span>, metric <span class="op">=</span> <span class="st">"euclidean"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">iris_nn</span> <span class="op">&lt;-</span> <span class="fu">nnd_knn</span><span class="op">(</span><span class="va">iris</span>, init <span class="op">=</span> <span class="va">iris_nn</span>, metric <span class="op">=</span> <span class="st">"euclidean"</span>, verbose <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 18:22:36 Running nearest neighbor descent for 10 iterations</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 18:22:36 Finished</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 23:38:14 Running nearest neighbor descent for 10 iterations</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 23:38:14 Finished</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Number of iterations controls how much optimization is attempted. A smaller</span></span></span>
 <span class="r-in"><span><span class="co"># value will run faster but give poorer results</span></span></span>
@@ -258,6 +275,12 @@ ACM.
 <span class="r-in"><span><span class="co"># FALSE to try it.</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1337</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">iris_nn</span> <span class="op">&lt;-</span> <span class="fu">nnd_knn</span><span class="op">(</span><span class="va">iris</span>, k <span class="op">=</span> <span class="fl">4</span>, metric <span class="op">=</span> <span class="st">"euclidean"</span>, low_memory <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Using init = "tree" is usually more efficient than random initialization.</span></span></span>
+<span class="r-in"><span><span class="co"># arguments to the tree initialization method can be passed via the init_args</span></span></span>
+<span class="r-in"><span><span class="co"># list</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1337</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">iris_nn</span> <span class="op">&lt;-</span> <span class="fu">nnd_knn</span><span class="op">(</span><span class="va">iris</span>, k <span class="op">=</span> <span class="fl">4</span>, init <span class="op">=</span> <span class="st">"tree"</span>, init_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>n_trees <span class="op">=</span> <span class="fl">5</span><span class="op">)</span><span class="op">)</span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>

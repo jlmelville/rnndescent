@@ -48,6 +48,10 @@
 <ul><li>New function: <code>rpf_knn</code>. Calculates the approximate k-nearest neighbors using a random partition forest.</li>
 <li>New function: <code>rpf_build</code>. Builds a random partition forest.</li>
 <li>New function: <code>rpf_knn_query</code>. Queries a random partition forest (built with <code>rpf_build</code> to find the approximate nearest neighbors for the query points.</li>
+<li>New function: <code>rpf_filter</code>. Retains only the best “scoring” trees in a forest, where each tree is scored based on how well it reproduces a given knn.</li>
+<li>New initialization method for <code>nnd_knn</code>: <code>init = "tree"</code>. Uses the RP Forest initialization method.</li>
+<li>New parameter for <code>nnd_knn</code>: <code>ret_forest</code>. Returns the search forest used if <code>init = "tree"</code> so it can be used for future searching or filtering.</li>
+<li>New parameter for <code>nnd_knn</code>: <code>init_opts</code>. Options that can be passed to the RP forest initialization (same as in <code>rpf_knn</code>).</li>
 </ul></div>
 </div>
     <div class="section level2">
