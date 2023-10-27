@@ -31,7 +31,7 @@ columns, by setting \code{obs = "C"}, which should be more efficient. The
 \code{query} data must be passed in the same orientation as \code{reference}.}
 
 \item{forest}{A random partition forest, created by \code{\link[=rpf_build]{rpf_build()}},
-representing partitions of the data in \code{reference.}}
+representing partitions of the data in \code{reference}.}
 
 \item{k}{Number of nearest neighbors to return. You are unlikely to get good
 results if you choose a value substantially larger than the value of

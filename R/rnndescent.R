@@ -261,7 +261,8 @@ random_knn <-
 #'   neighbors are duplicates of what is already in `init` so effectively fewer
 #'   than `k` neighbors may be chosen for some observations under these
 #'   circumstances.
-#'
+#' @param init_args a list containing arguments to pass to the random partition
+#'   forest initialization. See [rpf_knn()] for possible arguments.
 #' @param n_iters Number of iterations of nearest neighbor descent to carry out.
 #' @param max_candidates Maximum number of candidate neighbors to try for each
 #'   item in each iteration. Use relative to `k` to emulate the "rho"
@@ -283,6 +284,11 @@ random_knn <-
 #'   the only reason to set this to `FALSE` is if you suspect that some
 #'   sort of numeric issue is occurring with your data in the alternative code
 #'   path.
+#' @param ret_forest If `TRUE` and `init = "tree"` then the RP forest used to
+#'   initialize the nearest neighbors will be returned with the nearest neighbor
+#'   data. See the `Value` section for details. The returned forest can be used
+#'   as part of initializing the search for new data: see [rpf_knn_query()] and
+#'   [rpf_filter()] for more details.
 #' @param n_threads Number of threads to use.
 #' @param verbose If `TRUE`, log information to the console.
 #' @param progress Determines the type of progress information logged if
@@ -299,6 +305,8 @@ random_knn <-
 #' @return the approximate nearest neighbor graph as a list containing:
 #'   * `idx` an n by k matrix containing the nearest neighbor indices.
 #'   * `dist` an n by k matrix containing the nearest neighbor distances.
+#'   * `forest` (if `init = "tree"` and `ret_forest = TRUE` only): the RP forest
+#'      used to initialize the neighbor data.
 #' @examples
 #' # Find 4 (approximate) nearest neighbors using Euclidean distance
 #' # If you pass a data frame, non-numeric columns are removed
@@ -345,6 +353,12 @@ random_knn <-
 #' # FALSE to try it.
 #' set.seed(1337)
 #' iris_nn <- nnd_knn(iris, k = 4, metric = "euclidean", low_memory = FALSE)
+#'
+#' # Using init = "tree" is usually more efficient than random initialization.
+#' # arguments to the tree initialization method can be passed via the init_args
+#' # list
+#' set.seed(1337)
+#' iris_nn <- nnd_knn(iris, k = 4, init = "tree", init_args = list(n_trees = 5))
 #' @references
 #' Dasgupta, S., & Freund, Y. (2008, May).
 #' Random projection trees and low dimensional manifolds.
@@ -363,6 +377,7 @@ nnd_knn <- function(data,
                     k = NULL,
                     metric = "euclidean",
                     init = "rand",
+                    init_args = NULL,
                     n_iters = 10,
                     max_candidates = NULL,
                     delta = 0.001,
@@ -371,7 +386,8 @@ nnd_knn <- function(data,
                     n_threads = 0,
                     verbose = FALSE,
                     progress = "bar",
-                    obs = "R") {
+                    obs = "R",
+                    ret_forest = FALSE) {
   stopifnot(tolower(progress) %in% c("bar", "dist"))
   obs <- match.arg(toupper(obs), c("C", "R"))
 
@@ -410,24 +426,34 @@ nnd_knn <- function(data,
         n_threads = n_threads,
         verbose = verbose
       ),
-      "tree" = rpf_knn_impl(
-        data,
-        k = k,
-        metric = actual_metric,
-        use_alt_metric = FALSE,
-        actual_metric = actual_metric,
-        n_trees = NULL,
-        leaf_size = NULL,
-        include_self = FALSE,
-        n_threads = n_threads,
-        verbose = verbose,
-      ),
+      "tree" = do.call(rpf_knn_impl, lmerge(
+        list(
+          data,
+          k = k,
+          metric = actual_metric,
+          use_alt_metric = FALSE,
+          actual_metric = actual_metric,
+          n_trees = NULL,
+          leaf_size = NULL,
+          include_self = FALSE,
+          ret_forest = ret_forest,
+          n_threads = n_threads,
+          verbose = verbose
+        ),
+        init_args
+      )),
       stop("Unknown initialization option '", init, "'")
     )
   } else {
     if (is.null(k)) {
       k <- ncol(init$idx)
     }
+  }
+
+  forest <- NULL
+  if (ret_forest && is.list(init) && !is.null(init$forest)) {
+    forest <- init$forest
+    init$forest <- NULL
   }
 
   init <-
@@ -468,6 +494,9 @@ nnd_knn <- function(data,
     res$dist <- apply_alt_metric_correction(metric, res$dist)
   }
   tsmessage("Finished")
+  if (!is.null(forest)) {
+    res$forest <- forest
+  }
   res
 }
 

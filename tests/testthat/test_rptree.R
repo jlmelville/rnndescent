@@ -108,7 +108,7 @@ expected_rpf_index <- list(
 )
 
 set.seed(1337)
-rpf_index <- rpf_build(ui10, "euclidean", 1, leaf_size = 4)
+rpf_index <- rpf_build(ui10, metric = "euclidean", n_trees = 1, leaf_size = 4)
 expect_equal(rpf_index, expected_rpf_index, tol = 1e-7)
 
 # query data against itself to reproduce knn (just more slowly)
@@ -139,3 +139,49 @@ rpf_query_res <-
   )
 expect_equal(rpf_query_res, expected_rpt_knn, tol = 1e-7)
 
+# return forest with knn
+set.seed(1337)
+rpf_knnf <-
+  rpf_knn(
+    ui10,
+    k = 4,
+    metric = "euclidean",
+    n_trees = 1,
+    ret_forest = TRUE,
+    leaf_size = 4
+  )
+expect_equal(rpf_knnf$forest, expected_rpf_index, tol = 1e-7)
+expect_equal(
+  list(idx = rpf_knnf$idx, dist = rpf_knnf$dist),
+  expected_rpt_knn,
+  check.attributes = FALSE,
+  tol = 1e-7
+)
+
+set.seed(1337)
+nnd_with_tree <-
+  nnd_knn(
+    ui10,
+    k = 4,
+    ret_forest = TRUE,
+    init = "tree",
+    init_args = list(n_trees = 1, leaf_size = 4)
+  )
+expect_equal(nnd_with_tree$forest, expected_rpf_index, tol = 1e-7)
+
+
+# filtering
+set.seed(1337)
+rpf_knnf3 <-
+  rpf_knn(
+    ui10,
+    k = 4,
+    metric = "euclidean",
+    n_trees = 3,
+    ret_forest = TRUE,
+    leaf_size = 4
+  )
+expect_equal(length(rpf_knnf3), 3)
+rpf_knnf3f <- rpf_filter(rpf_knnf3, n_trees = 1)
+expect_equal(length(rpf_knnf3f), 1)
+expect_equal(rpf_knnf3f[[1]], rpf_knnf3$forest[[2]])

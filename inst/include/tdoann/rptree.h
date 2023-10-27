@@ -504,6 +504,8 @@ template <typename In, typename Idx> struct SearchTree {
   std::vector<Idx> indices;
   Idx leaf_size;
 
+  SearchTree() = default;
+
   SearchTree(std::vector<std::vector<In>> hplanes, std::vector<In> offs,
              std::vector<std::pair<std::size_t, std::size_t>> chldrn,
              std::vector<Idx> inds, Idx lsize)
@@ -725,6 +727,99 @@ search_forest(const std::vector<SearchTree<In, Idx>> &forest,
   dispatch_work(worker, n_queries, n_threads, exec_params, progress, executor);
 
   return current_graph;
+}
+
+template <typename Idx>
+std::size_t compute_overlap(const std::unordered_set<Idx> &indices_set,
+                            const std::vector<Idx> &nn_indices,
+                            std::size_t n_neighbors) {
+  constexpr auto sentinel = static_cast<Idx>(-1);
+  std::size_t overlap = 0;
+
+  for (const auto &idx : indices_set) {
+    if (idx == sentinel) {
+      continue;
+    }
+
+    auto nn_start = nn_indices.begin() + idx * n_neighbors;
+    auto nn_end = nn_indices.begin() + (idx + 1) * n_neighbors;
+
+    for (auto it = nn_start; it != nn_end; ++it) {
+      auto nn_idx = *it;
+      if (nn_idx == sentinel) {
+        continue;
+      }
+
+      if (indices_set.find(nn_idx) != indices_set.end()) {
+        ++overlap;
+      }
+    }
+  }
+
+  return overlap;
+}
+
+template <typename Idx, typename In>
+double score_tree(const SearchTree<In, Idx> &tree,
+                  const std::vector<Idx> &nn_indices, uint32_t n_neighbors) {
+  std::size_t overlap_sum = 0;
+  for (std::size_t i = 0; i < tree.children.size(); ++i) {
+    auto [start, end] = tree.children[i];
+    if (std::isnan(tree.offsets[i])) {
+      auto leaf_start = tree.indices.begin() + start;
+      auto leaf_end = tree.indices.begin() + end;
+      std::unordered_set<Idx> indices_set(leaf_start, leaf_end);
+      overlap_sum += compute_overlap(indices_set, nn_indices, n_neighbors);
+    }
+  }
+  return overlap_sum / static_cast<double>(nn_indices.size() / n_neighbors);
+}
+
+template <typename Idx, typename In>
+std::vector<double> score_forest(const std::vector<SearchTree<In, Idx>> &forest,
+                                 const std::vector<Idx> &nn_indices,
+                                 uint32_t n_neighbors, std::size_t n_threads,
+                                 ProgressBase &progress,
+                                 const Executor &executor) {
+  const auto n_trees = forest.size();
+
+  std::vector<double> scores(n_trees);
+
+  auto worker = [&](std::size_t begin, std::size_t end) {
+    for (auto i = begin; i < end; ++i) {
+      scores[i] = score_tree(forest[i], nn_indices, n_neighbors);
+    }
+  };
+
+  progress.set_n_iters(1);
+  ExecutionParams exec_params{n_threads};
+  dispatch_work(worker, n_trees, n_threads, exec_params, progress, executor);
+
+  return scores;
+}
+
+// given the overlap scores for a search forest from score_forest, return the
+// top n best scoring
+template <typename Idx, typename In>
+std::vector<SearchTree<Idx, In>>
+filter_top_n_trees(const std::vector<SearchTree<Idx, In>> &forest,
+                   const std::vector<double> &scores, std::size_t n) {
+
+  // get the order of the scores
+  std::vector<std::size_t> order(forest.size());
+  std::iota(order.begin(), order.end(), 0);
+  std::partial_sort(order.begin(), order.begin() + n, order.end(),
+                    [&scores](std::size_t a, std::size_t b) {
+                      return scores[a] > scores[b];
+                    });
+  // return the top n trees given by the order
+  std::vector<SearchTree<Idx, In>> top_n_trees;
+  top_n_trees.reserve(n);
+  for (std::size_t i = 0; i < n; ++i) {
+    top_n_trees.push_back(forest[order[i]]);
+  }
+
+  return top_n_trees;
 }
 
 } // namespace tdoann

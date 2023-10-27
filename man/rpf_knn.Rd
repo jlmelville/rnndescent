@@ -12,6 +12,7 @@ rpf_knn(
   n_trees = NULL,
   leaf_size = NULL,
   include_self = TRUE,
+  ret_forest = FALSE,
   n_threads = 0,
   verbose = FALSE,
   obs = "R"
@@ -73,6 +74,11 @@ methods, you should probably keep this set to \code{TRUE}. However, if you are
 planning on using the result of this as initialization to another nearest
 neighbor method (e.g. \code{\link[=nnd_knn]{nnd_knn()}}), then set this to \code{FALSE}.}
 
+\item{ret_forest}{if \code{TRUE} also return a search forest which can be used
+for future querying (via \code{\link[=rpf_knn_query]{rpf_knn_query()}}) and filtering
+(via \code{\link[=rpf_filter]{rpf_filter()}}). By default this is \code{FALSE}. Setting this to \code{TRUE}
+will change the output list to be nested (see the \code{Value} section below).}
+
 \item{n_threads}{Number of threads to use.}
 
 \item{verbose}{If \code{TRUE}, log information to the console.}
@@ -89,6 +95,8 @@ the approximate nearest neighbor graph as a list containing:
 \itemize{
 \item \code{idx} an n by k matrix containing the nearest neighbor indices.
 \item \code{dist} an n by k matrix containing the nearest neighbor distances.
+\item \code{forest} (if \code{ret_forest = TRUE}) the RP forest that generated the
+neighbor graph, which can be used to query new data.
 }
 
 \code{k} neighbors per observation are not guaranteed to be found. Missing data
@@ -110,7 +118,14 @@ iris_nn <- rpf_knn(iris, k = 4, metric = "euclidean", leaf_size = 3)
 iris_rp <- rpf_knn(iris, k = 4, n_trees = 3, include_self = FALSE)
 # Use it with e.g. `nnd_knn` -- this should be better than a random start
 iris_nnd <- nnd_knn(iris, k = 4, init = iris_rp)
+# but note you can also run nnd_knn(iris, k = 4, init = "tree") to initialize
+# from an RP forest directly
 
+# for future querying you may want to also return the RP forest:
+iris_rpf <- rpf_knn(iris, k = 4, n_trees = 3, include_self = FALSE,
+                    ret_forest = TRUE)
+# forest and nn data can be used to create a smaller forest for querying
+# filtered_forest <- rpf_filter(iris_rpf)
 }
 \references{
 Dasgupta, S., & Freund, Y. (2008, May).
@@ -118,4 +133,7 @@ Random projection trees and low dimensional manifolds.
 In \emph{Proceedings of the fortieth annual ACM symposium on Theory of computing}
 (pp. 537-546).
 \url{https://doi.org/10.1145/1374376.1374452}.
+}
+\seealso{
+rpf_filter, nnd_knn
 }

@@ -9,6 +9,7 @@ nnd_knn(
   k = NULL,
   metric = "euclidean",
   init = "rand",
+  init_args = NULL,
   n_iters = 10,
   max_candidates = NULL,
   delta = 0.001,
@@ -17,7 +18,8 @@ nnd_knn(
   n_threads = 0,
   verbose = FALSE,
   progress = "bar",
-  obs = "R"
+  obs = "R",
+  ret_forest = FALSE
 )
 }
 \arguments{
@@ -77,6 +79,9 @@ than \code{k} neighbors may be chosen for some observations under these
 circumstances.
 }}
 
+\item{init_args}{a list containing arguments to pass to the random partition
+forest initialization. See \code{\link[=rpf_knn]{rpf_knn()}} for possible arguments.}
+
 \item{n_iters}{Number of iterations of nearest neighbor descent to carry out.}
 
 \item{max_candidates}{Maximum number of candidate neighbors to try for each
@@ -121,12 +126,20 @@ stored in each row. Storing the data by row is usually more convenient, but
 internally your data will be converted to column storage. Passing it
 already column-oriented will save some memory and (a small amount of) CPU
 usage.}
+
+\item{ret_forest}{If \code{TRUE} and \code{init = "tree"} then the RP forest used to
+initialize the nearest neighbors will be returned with the nearest neighbor
+data. See the \code{Value} section for details. The returned forest can be used
+as part of initializing the search for new data: see \code{\link[=rpf_knn_query]{rpf_knn_query()}} and
+\code{\link[=rpf_filter]{rpf_filter()}} for more details.}
 }
 \value{
 the approximate nearest neighbor graph as a list containing:
 \itemize{
 \item \code{idx} an n by k matrix containing the nearest neighbor indices.
 \item \code{dist} an n by k matrix containing the nearest neighbor distances.
+\item \code{forest} (if \code{init = "tree"} and \code{ret_forest = TRUE} only): the RP forest
+used to initialize the neighbor data.
 }
 }
 \description{
@@ -178,6 +191,12 @@ iris_nn <- nnd_knn(iris, k = 4, metric = "euclidean", n_iters = 5, delta = 0)
 # FALSE to try it.
 set.seed(1337)
 iris_nn <- nnd_knn(iris, k = 4, metric = "euclidean", low_memory = FALSE)
+
+# Using init = "tree" is usually more efficient than random initialization.
+# arguments to the tree initialization method can be passed via the init_args
+# list
+set.seed(1337)
+iris_nn <- nnd_knn(iris, k = 4, init = "tree", init_args = list(n_trees = 5))
 }
 \references{
 Dasgupta, S., & Freund, Y. (2008, May).

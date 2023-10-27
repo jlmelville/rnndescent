@@ -212,6 +212,7 @@ rpf_knn_impl <-
            n_trees,
            leaf_size,
            include_self,
+           ret_forest,
            n_threads,
            verbose,
            zero_index = FALSE) {
@@ -244,10 +245,12 @@ rpf_knn_impl <-
       n_trees = n_trees,
       leaf_size = leaf_size,
       include_self = include_self,
+      ret_forest = ret_forest,
+      unzero = !zero_index,
       n_threads = n_threads,
-      verbose = verbose,
-      unzero = !zero_index
+      verbose = verbose
     )
+
     if (use_alt_metric) {
       res$dist <- apply_alt_metric_correction(metric, res$dist)
     }

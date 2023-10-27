@@ -49,6 +49,10 @@
 #'   methods, you should probably keep this set to `TRUE`. However, if you are
 #'   planning on using the result of this as initialization to another nearest
 #'   neighbor method (e.g. [nnd_knn()]), then set this to `FALSE`.
+#' @param ret_forest if `TRUE` also return a search forest which can be used
+#'   for future querying (via [rpf_knn_query()]) and filtering
+#'   (via [rpf_filter()]). By default this is `FALSE`. Setting this to `TRUE`
+#'   will change the output list to be nested (see the `Value` section below).
 #' @param n_threads Number of threads to use.
 #' @param verbose If `TRUE`, log information to the console.
 #' @param obs set to `"C"` to indicate that the input `data` orientation stores
@@ -60,6 +64,8 @@
 #' @return the approximate nearest neighbor graph as a list containing:
 #'   * `idx` an n by k matrix containing the nearest neighbor indices.
 #'   * `dist` an n by k matrix containing the nearest neighbor distances.
+#'   * `forest` (if `ret_forest = TRUE`) the RP forest that generated the
+#'   neighbor graph, which can be used to query new data.
 #'
 #' `k` neighbors per observation are not guaranteed to be found. Missing data
 #' is represented with an index of `0` and a distance of `NA`.
@@ -75,13 +81,21 @@
 #' iris_rp <- rpf_knn(iris, k = 4, n_trees = 3, include_self = FALSE)
 #' # Use it with e.g. `nnd_knn` -- this should be better than a random start
 #' iris_nnd <- nnd_knn(iris, k = 4, init = iris_rp)
+#' # but note you can also run nnd_knn(iris, k = 4, init = "tree") to initialize
+#' # from an RP forest directly
 #'
+#' # for future querying you may want to also return the RP forest:
+#' iris_rpf <- rpf_knn(iris, k = 4, n_trees = 3, include_self = FALSE,
+#'                     ret_forest = TRUE)
+#' # forest and nn data can be used to create a smaller forest for querying
+#' # filtered_forest <- rpf_filter(iris_rpf)
 #' @references
 #' Dasgupta, S., & Freund, Y. (2008, May).
 #' Random projection trees and low dimensional manifolds.
 #' In *Proceedings of the fortieth annual ACM symposium on Theory of computing*
 #' (pp. 537-546).
 #' <https://doi.org/10.1145/1374376.1374452>.
+#' @seealso rpf_filter, nnd_knn
 #' @export
 rpf_knn <- function(data,
                     k,
@@ -90,6 +104,7 @@ rpf_knn <- function(data,
                     n_trees = NULL,
                     leaf_size = NULL,
                     include_self = TRUE,
+                    ret_forest = FALSE,
                     n_threads = 0,
                     verbose = FALSE,
                     obs = "R") {
@@ -111,20 +126,20 @@ rpf_knn <- function(data,
     data <- t(data)
   }
 
-  res <- rpf_knn_impl(data,
-             k,
-             metric,
-             use_alt_metric,
-             actual_metric,
-             n_trees,
-             leaf_size,
-             include_self,
-             n_threads,
-             verbose,
-             zero_index = FALSE)
-
-  tsmessage("Finished")
-  res
+  rpf_knn_impl(
+    data,
+    k = k,
+    metric = metric,
+    use_alt_metric = use_alt_metric,
+    actual_metric = actual_metric,
+    n_trees = n_trees,
+    leaf_size = leaf_size,
+    include_self = include_self,
+    ret_forest = ret_forest,
+    n_threads = n_threads,
+    verbose = verbose,
+    zero_index = FALSE
+  )
 }
 
 #' Create a Random Projection Forest
@@ -262,7 +277,7 @@ rpf_build <- function(data,
 #'   columns, by setting `obs = "C"`, which should be more efficient. The
 #'   `query` data must be passed in the same orientation as `reference`.
 #' @param forest A random partition forest, created by [rpf_build()],
-#'   representing partitions of the data in `reference.`
+#'   representing partitions of the data in `reference`.
 #' @param k Number of nearest neighbors to return. You are unlikely to get good
 #'   results if you choose a value substantially larger than the value of
 #'   `leaf_size` used to build the `forest`.
@@ -359,4 +374,76 @@ rpf_knn_query <- function(query,
   nn
 }
 
+#' Filter a Random Projection Forest
+#'
+#' Reduce the size of a random projection forest, by scoring each tree against
+#' a k-nearest neighbors graph. Only the top N trees will be retained which
+#' allows for a faster querying. Rather than rely on an RP Forest solely for
+#' approximate nearest neighbor querying, it is probably more cost-effective to
+#' use a small number of trees to initialize the search space and then use that
+#' as input to a search graph.
+#'
+#' Trees are scored based on how well each leaf reflects the neighbors as
+#' specified in the nearest neighbor data. It's best to use as accurate nearest
+#' neighbor data as you can and it does not need to come directly from
+#' searching the `forest`: for example, the nearest neighbor data from running
+#' [nnd_knn()] to optimize the neighbor data output from an RP Forest is a
+#' good choice.
+#'
+#' @param nn Nearest neighbor data in the dense list format. This should be
+#'   derived from the same data that was used to build the `forest`.
+#' @param forest A random partition forest, e.g. created by [rpf_build()],
+#'   representing partitions of the same underlying data reflected in `nn`.
+#'   As a convenient, this parameter is ignored if the `nn` list contains a
+#'   `forest` entry, e.g. from running [rpf_knn()] or [nnd_knn()] with
+#'   `ret_forest = TRUE`, and the forest value will be extracted from `nn`.
+#' @param n_trees The number of trees to retain. By default only the
+#'   best-scoring tree is retained.
+#' @param n_threads Number of threads to use.
+#' @param verbose If `TRUE`, log information to the console.
+#' @return A forest with the best scoring `n_trees` trees.
+#' @seealso [rpf_build()]
+#' @examples
+#' # Build a knn with a forest of 10 trees using the odd rows
+#' iris_odd <- iris[seq_len(nrow(iris)) %% 2 == 1, ]
+#' # also return the forest with the knn
+#' rfknn <- rpf_knn(iris_odd, k = 15, n_trees = 10, ret_forest = TRUE)
+#'
+#' # keep the best 2 trees:
+#' iris_odd_filtered_forest <- rpf_filter(rfknn)
+#'
+#' # get some new data to search
+#' iris_even <- iris[seq_len(nrow(iris)) %% 2 == 0, ]
+#'
+#' # search with the filtered forest
+#' iris_even_nn <- rpf_knn_query(query = iris_even, reference = iris_odd,
+#'                               forest = iris_odd_filtered_forest, k = 15)
+#' @export
+rpf_filter <-
+  function(nn,
+           forest = NULL,
+           n_trees = 1,
+           n_threads = 0,
+           verbose = FALSE) {
+    if (is.null(forest)) {
+      if (is.null(nn$forest)) {
+        stop("Must provide 'forest' parameter")
+      }
+      forest <- nn$forest
+    }
 
+
+    n_unfiltered_trees <- length(forest)
+    if (n_trees < 1 || n_trees > n_unfiltered_trees) {
+      stop("n_trees must be between 1 and ", n_unfiltered_trees)
+    }
+    tsmessage(thread_msg("Keeping ", n_trees, " best search trees",
+                         n_threads = n_threads))
+    rnn_score_forest(
+      nn$idx,
+      search_forest = forest,
+      n_trees = n_trees,
+      n_threads = n_threads,
+      verbose = verbose
+    )
+  }

@@ -167,14 +167,21 @@ tdoann::SearchTree<In, Idx> r_to_search_tree(List tree_list) {
 }
 
 template <typename In, typename Idx>
-std::vector<tdoann::SearchTree<In, Idx>> r_to_search_forest(List forest_list) {
-  std::size_t n_trees = forest_list.size();
-  std::vector<tdoann::SearchTree<In, Idx>> search_forest;
-  search_forest.reserve(n_trees);
+std::vector<tdoann::SearchTree<In, Idx>>
+r_to_search_forest(List forest_list, std::size_t n_threads) {
+  const auto n_trees = forest_list.size();
+  std::vector<tdoann::SearchTree<In, Idx>> search_forest(n_trees);
 
-  for (std::size_t i = 0; i < n_trees; ++i) {
-    search_forest.push_back(r_to_search_tree<In, Idx>(forest_list[i]));
-  }
+  auto worker = [&](std::size_t begin, std::size_t end) {
+    for (auto i = begin; i < end; ++i) {
+      search_forest[i] = r_to_search_tree<In, Idx>(forest_list[i]);
+    }
+  };
+
+  RParallelExecutor executor;
+  RPProgress progress(false);
+  tdoann::ExecutionParams exec_params{n_threads};
+  dispatch_work(worker, n_trees, n_threads, exec_params, progress, executor);
 
   return search_forest;
 }
@@ -216,7 +223,8 @@ build_rp_forest(const std::vector<In> &data_vec, std::size_t ndim,
 List rp_tree_knn_cpp(const NumericMatrix &data, uint32_t nnbrs,
                      const std::string &metric, uint32_t n_trees,
                      uint32_t leaf_size, bool include_self, bool unzero = true,
-                     std::size_t n_threads = 0, bool verbose = false) {
+                     bool ret_forest = false, std::size_t n_threads = 0,
+                     bool verbose = false) {
   using Idx = RNN_DEFAULT_IDX;
   using In = RNN_DEFAULT_IN;
 
@@ -242,15 +250,30 @@ List rp_tree_knn_cpp(const NumericMatrix &data, uint32_t nnbrs,
   if (metric == "bhamming") {
     // unfortunately data_vec is still in scope even though we no longer
     // need it
-    return init_rp_tree_binary(data, nnbrs, metric, include_self, leaf_array,
-                               max_leaf_size, n_threads, knn_progress,
-                               executor);
+    auto nn_list =
+        init_rp_tree_binary(data, nnbrs, metric, include_self, leaf_array,
+                            max_leaf_size, n_threads, knn_progress, executor);
+    if (ret_forest) {
+      auto search_forest =
+          tdoann::convert_rp_forest(rp_forest, data.ncol(), ndim);
+      List search_forest_r = search_forest_to_r(search_forest, ndim);
+      nn_list["forest"] = search_forest_r;
+    }
+    return nn_list;
   }
   auto distance_ptr = create_self_distance(std::move(data_vec), ndim, metric);
   auto neighbor_heap =
       tdoann::init_rp_tree(*distance_ptr, leaf_array, max_leaf_size, nnbrs,
                            include_self, n_threads, knn_progress, executor);
-  return heap_to_r(neighbor_heap, n_threads, knn_progress, executor, unzero);
+  auto nn_list =
+      heap_to_r(neighbor_heap, n_threads, knn_progress, executor, unzero);
+  if (ret_forest) {
+    auto search_forest =
+        tdoann::convert_rp_forest(rp_forest, data.ncol(), ndim);
+    List search_forest_r = search_forest_to_r(search_forest, ndim);
+    nn_list["forest"] = search_forest_r;
+  }
+  return nn_list;
 }
 
 // [[Rcpp::export]]
@@ -281,7 +304,8 @@ List rnn_rp_forest_search(const NumericMatrix &query,
   using Idx = RNN_DEFAULT_IDX;
   using In = RNN_DEFAULT_IN;
 
-  auto search_forest_cpp = r_to_search_forest<In, Idx>(search_forest);
+  auto search_forest_cpp =
+      r_to_search_forest<In, Idx>(search_forest, n_threads);
   auto distance_ptr = create_query_vector_distance(reference, query, metric);
 
   rnndescent::ParallelIntRNGAdapter<Idx, rnndescent::DQIntSampler> rng_provider;
@@ -292,4 +316,42 @@ List rnn_rp_forest_search(const NumericMatrix &query,
                             rng_provider, cache, n_threads, progress, executor);
 
   return heap_to_r(nn_heap);
+}
+
+// [[Rcpp::export]]
+List rnn_score_forest(const IntegerMatrix &idx, List search_forest,
+                      uint32_t n_trees, std::size_t n_threads,
+                      bool verbose = false) {
+  using Idx = RNN_DEFAULT_IDX;
+  using In = RNN_DEFAULT_IN;
+
+  auto search_forest_cpp =
+      r_to_search_forest<In, Idx>(search_forest, n_threads);
+
+  std::vector<Idx> idx_vec = r_to_idxt<Idx>(idx);
+
+  uint32_t k = idx.ncol();
+
+  RPProgress progress(verbose);
+  RParallelExecutor executor;
+  std::vector<double> scores = tdoann::score_forest(
+      search_forest_cpp, idx_vec, k, n_threads, progress, executor);
+
+  if (verbose) {
+    auto min_it = std::min_element(scores.begin(), scores.end());
+    auto max_it = std::max_element(scores.begin(), scores.end());
+
+    double total = std::accumulate(scores.begin(), scores.end(), 0.0);
+    double mean = total / scores.size();
+
+    Rcpp::Rcerr << "Min score: " << *min_it << '\n'
+                << "Max score: " << *max_it << '\n'
+                << "Mean score: " << mean << '\n';
+  }
+
+  auto filtered_forest =
+      tdoann::filter_top_n_trees(search_forest_cpp, scores, n_trees);
+
+  std::size_t ndim = filtered_forest[0].hyperplanes[0].size();
+  return search_forest_to_r(filtered_forest, ndim);
 }

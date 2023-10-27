@@ -111,8 +111,8 @@ random_knn_query_cpp <- function(reference, query, nnbrs, metric = "euclidean", 
     .Call(`_rnndescent_random_knn_query_cpp`, reference, query, nnbrs, metric, order_by_distance, n_threads, verbose)
 }
 
-rp_tree_knn_cpp <- function(data, nnbrs, metric, n_trees, leaf_size, include_self, unzero = TRUE, n_threads = 0L, verbose = FALSE) {
-    .Call(`_rnndescent_rp_tree_knn_cpp`, data, nnbrs, metric, n_trees, leaf_size, include_self, unzero, n_threads, verbose)
+rp_tree_knn_cpp <- function(data, nnbrs, metric, n_trees, leaf_size, include_self, unzero = TRUE, ret_forest = FALSE, n_threads = 0L, verbose = FALSE) {
+    .Call(`_rnndescent_rp_tree_knn_cpp`, data, nnbrs, metric, n_trees, leaf_size, include_self, unzero, ret_forest, n_threads, verbose)
 }
 
 rnn_rp_forest_build <- function(data, metric, n_trees, leaf_size, n_threads = 0L, verbose = FALSE) {
@@ -121,6 +121,10 @@ rnn_rp_forest_build <- function(data, metric, n_trees, leaf_size, n_threads = 0L
 
 rnn_rp_forest_search <- function(query, reference, search_forest, n_nbrs, metric, cache, n_threads, verbose = FALSE) {
     .Call(`_rnndescent_rnn_rp_forest_search`, query, reference, search_forest, n_nbrs, metric, cache, n_threads, verbose)
+}
+
+rnn_score_forest <- function(idx, search_forest, n_trees, n_threads, verbose = FALSE) {
+    .Call(`_rnndescent_rnn_score_forest`, idx, search_forest, n_trees, n_threads, verbose)
 }
 
 nn_query <- function(reference, reference_graph_list, query, nn_idx, nn_dist, metric = "euclidean", epsilon = 0.1, n_threads = 0L, verbose = FALSE) {
