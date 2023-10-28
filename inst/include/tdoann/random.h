@@ -61,6 +61,8 @@ public:
 // Needed for random sampling of integers
 template <typename Int = unsigned int> class RandomIntGenerator {
 public:
+  virtual ~RandomIntGenerator() = default;
+
   // Generates a random integer in range [0, n)
   virtual Int rand_int(Int n) = 0;
 
