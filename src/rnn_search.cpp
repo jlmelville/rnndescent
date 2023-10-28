@@ -25,6 +25,7 @@
 
 #include "rnn_distance.h"
 #include "rnn_heaptor.h"
+#include "rnn_init.h"
 #include "rnn_parallel.h"
 #include "rnn_progress.h"
 #include "rnn_rtoheap.h"
@@ -46,9 +47,13 @@ List nn_query(const NumericMatrix &reference, const List &reference_graph_list,
   const auto reference_graph =
       r_to_sparse_graph<Out, Idx>(reference_graph_list);
   auto nn_heap = r_to_query_heap<tdoann::NNHeap<Out, Idx>>(nn_idx, nn_dist);
-  RPProgress progress(verbose);
-  RParallelExecutor executor;
 
+  // replace missing data with randomly chosen neighbors so all points have
+  // k initial guesses
+  fill_random(nn_heap, *distance_ptr, n_threads, verbose);
+
+  RParallelExecutor executor;
+  RPProgress progress(verbose);
   tdoann::nn_query(reference_graph, nn_heap, *distance_ptr, epsilon, n_threads,
                    progress, executor);
 

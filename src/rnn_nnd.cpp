@@ -29,6 +29,7 @@
 
 #include "rnn_distance.h"
 #include "rnn_heaptor.h"
+#include "rnn_init.h"
 #include "rnn_progress.h"
 #include "rnn_rtoheap.h"
 
@@ -84,6 +85,9 @@ List nn_descent(const NumericMatrix &data, const IntegerMatrix &nn_idx,
 
   auto nnd_heap =
       r_to_knn_heap<tdoann::NNDHeap<Out, Idx>>(nn_idx, nn_dist, n_threads);
+
+  // fill any space in the heap with random neighbors
+  fill_random(nnd_heap, *distance_ptr, n_threads, verbose);
 
   auto nnd_progress_ptr = create_nnd_progress(progress_type, n_iters, verbose);
   RParallelExecutor executor;

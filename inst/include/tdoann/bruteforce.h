@@ -45,7 +45,7 @@ void nnbf_query_impl(NNHeap<Out, Idx> &neighbor_heap,
   const auto n_ref_points = distance.get_nx();
   for (std::size_t ref = 0; ref < n_ref_points; ref++) {
     for (auto query = begin; query < end; query++) {
-      auto dist_rq = distance.calculate(ref, query);
+      const auto dist_rq = distance.calculate(ref, query);
       if (neighbor_heap.accepts(query, dist_rq)) {
         neighbor_heap.unchecked_push(query, dist_rq, ref);
       }

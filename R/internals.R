@@ -108,20 +108,8 @@ prepare_init_graph <-
     }
 
     n_aug_nbrs <- k - ncol(nn$idx)
-    tsmessage("Augmenting input graph with ", n_aug_nbrs, " random neighbors")
-    nn_aug <- random_knn_impl(
-        query = query,
-        reference = data,
-        k = n_aug_nbrs,
-        metric = metric,
-        use_alt_metric = FALSE,
-        actual_metric = metric,
-        order_by_distance = FALSE,
-        n_threads = n_threads,
-        verbose = verbose
-      )
-    nn$idx <- cbind(nn$idx, nn_aug$idx)
-    nn$dist <- cbind(nn$dist, nn_aug$dist)
+    nn$idx <- cbind(nn$idx, matrix(0, nrow(nn$idx), ncol = n_aug_nbrs))
+    nn$dist <- cbind(nn$dist, matrix(NA, nrow(nn$idx), ncol = n_aug_nbrs))
 
     if (ncol(nn$idx) == k && ncol(nn$dist) == k) {
       return(nn)

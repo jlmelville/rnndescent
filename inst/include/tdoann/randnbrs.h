@@ -30,11 +30,55 @@
 #include <vector>
 
 #include "distancebase.h"
+#include "heap.h"
 #include "nngraph.h"
 #include "parallel.h"
 #include "random.h"
 
 namespace tdoann {
+template <typename NbrHeap>
+auto fill_random(NbrHeap &current_graph,
+                 const BaseDistance<typename NbrHeap::DistanceOut,
+                                    typename NbrHeap::Index> &distance,
+                 RandomIntGenerator<typename NbrHeap::Index> &rng,
+                 typename NbrHeap::Index query,
+                 typename NbrHeap::Index n_ref_points) {
+  const std::size_t max_samples = current_graph.n_nbrs;
+  for (std::size_t j = 0; j < max_samples; j++) {
+    if (current_graph.is_full(query)) {
+      return;
+    }
+    typename NbrHeap::Index ref = rng.rand_int(n_ref_points);
+    const auto dist_rq = distance.calculate(ref, query);
+    current_graph.checked_push(query, dist_rq, ref);
+  }
+}
+
+// fill any "missing" data with random neighbors
+template <typename NbrHeap>
+auto fill_random(
+    NbrHeap &current_graph,
+    const BaseDistance<typename NbrHeap::DistanceOut, typename NbrHeap::Index>
+        &distance,
+    ParallelRandomIntProvider<typename NbrHeap::Index> &rng_provider,
+    std::size_t n_threads, ProgressBase &progress, const Executor &executor) {
+  using Idx = typename NbrHeap::Index;
+
+  Idx n_ref_points = distance.get_nx();
+  rng_provider.initialize();
+  auto worker = [&](std::size_t begin, std::size_t end) {
+    auto rng_ptr = rng_provider.get_parallel_instance(end);
+    for (auto query = begin; query < end; ++query) {
+      fill_random(current_graph, distance, *rng_ptr, static_cast<Idx>(query),
+                  n_ref_points);
+    }
+  };
+
+  progress.set_n_iters(1);
+  ExecutionParams exec_params{};
+  dispatch_work(worker, current_graph.n_points, n_threads, exec_params,
+                progress, executor);
+}
 
 template <typename Out, typename Idx>
 auto sample_neighbors(const BaseDistance<Out, Idx> &distance, Idx n_nbrs,

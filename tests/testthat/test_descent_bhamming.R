@@ -43,13 +43,14 @@ expect_equal(sum(bitdata), 790)
 # vs the same code in the console: currently code doesn't rely on RNG as much,
 # but if issues return, possibly max_candidates needs to be increased.
 set.seed(1337)
-bit_rnn <- nnd_knn(bitdata, 4, metric = "bhamming")
+bit_rnn <- nnd_knn(bitdata, 4, metric = "bhamming", max_candidates = 10)
 expect_equal(bit_rnn$idx, expected_hamm_idx, check.attributes = FALSE)
 expect_equal(bit_rnn$dist, expected_hamm_dist, check.attributes = FALSE)
 
 # high memory
 set.seed(1337)
-bit_rnn <- nnd_knn(bitdata, 4, low_memory = FALSE, metric = "bhamming")
+bit_rnn <- nnd_knn(bitdata, 4, low_memory = FALSE, metric = "bhamming",
+                   max_candidates = 10)
 expect_equal(bit_rnn$idx, expected_hamm_idx, check.attributes = FALSE)
 expect_equal(bit_rnn$dist, expected_hamm_dist, check.attributes = FALSE)
 
