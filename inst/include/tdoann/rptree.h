@@ -37,20 +37,65 @@ namespace tdoann {
 // Tree Building
 
 template <typename In, typename Idx> struct RPTree {
-  std::vector<std::vector<In>> hyperplanes;
-  std::vector<In> offsets;
-  std::vector<std::pair<std::size_t, std::size_t>> children;
-  std::vector<std::vector<Idx>> indices;
-  std::size_t leaf_size;
+  std::vector<std::vector<In>> hyperplanes = {};
+  std::vector<In> offsets = {};
+  std::vector<std::pair<std::size_t, std::size_t>> children = {};
+  std::vector<std::vector<Idx>> indices = {};
+  std::size_t leaf_size = 0;
+  std::size_t ndim = 0;
 
-  RPTree() = default; // Exists only so we can pre-allocate a vector
+  RPTree() = default;
 
-  RPTree(std::vector<std::vector<In>> hplanes, std::vector<In> offs,
-         std::vector<std::pair<std::size_t, std::size_t>> chldrn,
-         std::vector<std::vector<Idx>> p_indices, std::size_t leaf_siz)
-      : hyperplanes(std::move(hplanes)), offsets(std::move(offs)),
-        children(std::move(chldrn)), indices(std::move(p_indices)),
-        leaf_size(leaf_siz) {}
+  // Pre-allocate memory based on a rough best-case lower bound of nodes
+  // (balanced tree)
+  RPTree(std::size_t num_indices, std::size_t leaf_size, std::size_t ndim)
+      : ndim(ndim) {
+    // expression takes advantage of shifting the dividend by one so the
+    // division truncation towards zero effectively rounds up to the nearest
+    // integer. Avoids the cast and ceil in the equivalent (and clearer):
+    // std::ceil(static_cast<double>(N) / L);
+    // also need to safe guard if all indices can fit in one node
+    std::size_t min_nodes =
+        num_indices <= leaf_size ? 1 : (num_indices / (2 * leaf_size) + 1) - 1;
+
+    hyperplanes.reserve(min_nodes);
+    offsets.reserve(min_nodes);
+    children.reserve(min_nodes);
+    indices.reserve(min_nodes);
+  }
+
+  void add_node(const std::vector<In> &hyperplane, In offset,
+                std::size_t left_node_num, std::size_t right_node_num) {
+    // indices is never read from
+    static const std::vector<Idx> dummy_indices =
+        std::vector<Idx>(0, static_cast<Idx>(-1));
+    indices.push_back(dummy_indices);
+
+    // children is checked during leaf array construction
+    // hyperplanes, offsets and children are used in SearchTree conversion
+    hyperplanes.push_back(hyperplane);
+    offsets.push_back(offset);
+    children.emplace_back(left_node_num, right_node_num);
+  }
+
+  void add_leaf(const std::vector<Idx> &indices_) {
+    // hyperplane and offset are never read anywhere
+    static const std::vector<In> dummy_hyperplane =
+        std::vector<In>(0, static_cast<In>(-1));
+    static const In dummy_offset = std::numeric_limits<In>::quiet_NaN();
+    hyperplanes.push_back(dummy_hyperplane);
+    offsets.push_back(dummy_offset);
+
+    // get_leaves_from_tree and recursive_convert looks for .first == sentinel
+    // .second is ignored
+    static const std::pair<std::size_t, std::size_t> dummy_child = {
+        static_cast<std::size_t>(-1), static_cast<std::size_t>(-1)};
+    children.push_back(dummy_child);
+
+    // used in leaf array, conversion, search tree
+    indices.push_back(indices_);
+    leaf_size = std::max(leaf_size, indices_.size());
+  }
 };
 
 template <typename Idx>
@@ -63,7 +108,6 @@ std::pair<Idx, Idx> select_random_points(const std::vector<Idx> &indices,
   if (left_index == right_index) {
     ++right_index;
   }
-  right_index = right_index % n_points;
 
   return {left_index, right_index};
 }
@@ -120,17 +164,13 @@ void split_indices(const std::vector<In> &data, std::size_t ndim,
 
   indices_left.resize(n_left);
   indices_right.resize(n_right);
-
   n_left = 0;
   n_right = 0;
   for (std::size_t i = 0; i < side.size(); ++i) {
-    auto index = indices[i];
     if (side[i] == 0) {
-      indices_left[n_left] = index;
-      ++n_left;
+      indices_left[n_left++] = indices[i];
     } else {
-      indices_right[n_right] = index;
-      ++n_right;
+      indices_right[n_right++] = indices[i];
     }
   }
 }
@@ -147,20 +187,23 @@ euclidean_random_projection_split(const std::vector<In> &data, std::size_t ndim,
 
   // Compute hyperplane vector and offset
   std::vector<In> hyperplane_vector(ndim);
+
   In hyperplane_offset = 0.0;
-  for (size_t d = 0; d < ndim; ++d) {
+  In sum = 0.0; // aux variable to avoid repeated division inside the loop
+  for (std::size_t d = 0; d < ndim; ++d) {
     hyperplane_vector[d] = data[left + d] - data[right + d];
-    hyperplane_offset -=
-        hyperplane_vector[d] * (data[left + d] + data[right + d]) / 2.0;
+    sum += hyperplane_vector[d] * (data[left + d] + data[right + d]);
   }
+  hyperplane_offset -= sum / 2.0;
 
   std::vector<Idx> indices_left;
   std::vector<Idx> indices_right;
   split_indices(data, ndim, indices, hyperplane_vector, hyperplane_offset,
                 indices_left, indices_right, rng);
 
-  return std::make_tuple(indices_left, indices_right, hyperplane_vector,
-                         hyperplane_offset);
+  return std::make_tuple(std::move(indices_left), std::move(indices_right),
+                         std::move(hyperplane_vector),
+                         std::move(hyperplane_offset));
 }
 
 template <typename In, typename Idx>
@@ -213,50 +256,34 @@ angular_random_projection_split(const std::vector<In> &data, size_t ndim,
   split_indices(data, ndim, indices, hyperplane_vector, In(0), indices_left,
                 indices_right, rng);
 
-  return std::make_tuple(indices_left, indices_right, hyperplane_vector, In(0));
+  return std::make_tuple(std::move(indices_left), std::move(indices_right),
+                         std::move(hyperplane_vector), In(0));
 }
 
 template <typename In, typename Idx, typename SplitFunc>
-void make_tree_recursive(
-    const std::vector<In> &data, std::size_t ndim,
-    const std::vector<Idx> &indices, std::vector<std::vector<In>> &hyperplanes,
-    std::vector<In> &offsets,
-    std::vector<std::pair<std::size_t, std::size_t>> &children,
-    std::vector<std::vector<Idx>> &point_indices, RandomIntGenerator<Idx> &rng,
-    SplitFunc split_function, uint32_t leaf_size = 30,
-    uint32_t max_depth = 100) {
-  constexpr auto child_sentinel = static_cast<std::size_t>(-1);
-  constexpr auto idx_sentinel = static_cast<Idx>(-1);
-  constexpr auto minus_one = static_cast<In>(-1);
-  const auto qnan = std::numeric_limits<In>::quiet_NaN();
-
+void make_tree_recursive(const std::vector<In> &data, std::size_t ndim,
+                         const std::vector<Idx> &indices, RPTree<In, Idx> &tree,
+                         RandomIntGenerator<Idx> &rng, SplitFunc split_function,
+                         uint32_t leaf_size, uint32_t max_depth) {
   if (indices.size() > leaf_size && max_depth > 0) {
 
     auto [left_indices, right_indices, hyperplane, offset] =
         split_function(data, ndim, indices, rng);
 
-    make_tree_recursive(data, ndim, left_indices, hyperplanes, offsets,
-                        children, point_indices, rng, split_function, leaf_size,
-                        max_depth - 1);
+    make_tree_recursive(data, ndim, left_indices, tree, rng, split_function,
+                        leaf_size, max_depth - 1);
 
-    std::size_t left_node_num = point_indices.size() - 1;
+    std::size_t left_node_num = tree.indices.size() - 1;
 
-    make_tree_recursive(data, ndim, right_indices, hyperplanes, offsets,
-                        children, point_indices, rng, split_function, leaf_size,
-                        max_depth - 1);
+    make_tree_recursive(data, ndim, right_indices, tree, rng, split_function,
+                        leaf_size, max_depth - 1);
 
-    std::size_t right_node_num = point_indices.size() - 1;
+    std::size_t right_node_num = tree.indices.size() - 1;
 
-    hyperplanes.push_back(hyperplane);
-    offsets.push_back(offset);
-    children.emplace_back(left_node_num, right_node_num);
-    point_indices.emplace_back(std::vector<Idx>(1, idx_sentinel));
+    tree.add_node(hyperplane, offset, left_node_num, right_node_num);
   } else {
     // leaf node
-    hyperplanes.emplace_back(std::vector<In>(1, minus_one));
-    offsets.push_back(qnan);
-    children.emplace_back(child_sentinel, child_sentinel);
-    point_indices.push_back(indices);
+    tree.add_leaf(indices);
   }
 }
 
@@ -264,15 +291,11 @@ template <typename In, typename Idx>
 RPTree<In, Idx> make_dense_tree(const std::vector<In> &data, std::size_t ndim,
                                 RandomIntGenerator<Idx> &rng,
                                 uint32_t leaf_size, bool angular) {
-
   std::vector<Idx> indices(data.size() / ndim);
   std::iota(indices.begin(), indices.end(), 0);
 
-  std::vector<std::vector<In>> hyperplanes;
-  std::vector<In> offsets;
-  std::vector<std::pair<std::size_t, std::size_t>> children;
-  std::vector<std::vector<Idx>> point_indices;
-
+  RPTree<In, Idx> tree(indices.size(), leaf_size, ndim);
+  constexpr uint32_t max_depth = 100;
   if (angular) {
 
     auto angular_splitter = [](const auto &data, auto ndim, const auto &indices,
@@ -280,26 +303,18 @@ RPTree<In, Idx> make_dense_tree(const std::vector<In> &data, std::size_t ndim,
       return angular_random_projection_split(data, ndim, indices, rng);
     };
 
-    make_tree_recursive(data, ndim, indices, hyperplanes, offsets, children,
-                        point_indices, rng, angular_splitter, leaf_size);
+    make_tree_recursive(data, ndim, indices, tree, rng, angular_splitter,
+                        leaf_size, max_depth);
   } else {
     auto euclidean_splitter = [](const auto &data, auto ndim,
                                  const auto &indices, auto &rng) {
       return euclidean_random_projection_split(data, ndim, indices, rng);
     };
 
-    make_tree_recursive(data, ndim, indices, hyperplanes, offsets, children,
-                        point_indices, rng, euclidean_splitter, leaf_size);
+    make_tree_recursive(data, ndim, indices, tree, rng, euclidean_splitter,
+                        leaf_size, max_depth);
   }
-
-  std::size_t max_leaf_size = leaf_size;
-  for (const auto &points : point_indices) {
-    max_leaf_size = std::max(max_leaf_size, points.size());
-  }
-
-  return RPTree<In, Idx>(std::move(hyperplanes), std::move(offsets),
-                         std::move(children), std::move(point_indices),
-                         max_leaf_size);
+  return tree;
 }
 
 template <typename In, typename Idx>
@@ -320,7 +335,7 @@ make_forest(const std::vector<In> &data, std::size_t ndim, uint32_t n_trees,
   };
 
   progress.set_n_iters(1);
-  ExecutionParams exec_params{n_threads};
+  ExecutionParams exec_params{};
   dispatch_work(worker, n_trees, n_threads, exec_params, progress, executor);
 
   return rp_forest;
@@ -526,12 +541,14 @@ recursive_convert(const RPTree<In, Idx> &tree,
   constexpr auto leaf_sentinel = static_cast<std::size_t>(-1);
 
   if (tree.children[tree_node].first == leaf_sentinel) {
+    // leaf: read from tree.indices, tree.children (in if statement above)
     std::size_t leaf_end = leaf_start + tree.indices[tree_node].size();
     children[node_num] = std::make_pair(leaf_start, leaf_end);
     std::copy(tree.indices[tree_node].begin(), tree.indices[tree_node].end(),
               indices.begin() + leaf_start);
     return {node_num, leaf_end};
   } else {
+    // node: read from tree.hyperplanes, tree.offsets, tree.children
     hyperplanes[node_num] = tree.hyperplanes[tree_node];
     offsets[node_num] = tree.offsets[tree_node];
     children[node_num].first = node_num + 1;
@@ -601,6 +618,7 @@ search_leaf_range(const SearchTree<In, Idx> &tree,
       return child_pair;
     }
 
+    // it's a node, find the child to go to
     auto side = select_side(obs_it, tree.hyperplanes[current_node],
                             hyperplane_offset, rng);
     if (side == 0) {
@@ -717,7 +735,7 @@ search_forest(const std::vector<SearchTree<In, Idx>> &forest,
   };
 
   progress.set_n_iters(n_queries);
-  ExecutionParams exec_params{n_threads};
+  ExecutionParams exec_params{};
   dispatch_work(worker, n_queries, n_threads, exec_params, progress, executor);
 
   return current_graph;
@@ -786,7 +804,7 @@ std::vector<double> score_forest(const std::vector<SearchTree<In, Idx>> &forest,
   };
 
   progress.set_n_iters(1);
-  ExecutionParams exec_params{n_threads};
+  ExecutionParams exec_params{};
   dispatch_work(worker, n_trees, n_threads, exec_params, progress, executor);
 
   return scores;
