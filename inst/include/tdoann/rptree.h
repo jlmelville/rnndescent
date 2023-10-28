@@ -557,12 +557,6 @@ SearchTree<In, Idx> convert_tree_format(const RPTree<In, Idx> &tree,
   constexpr auto leaf_sentinel = static_cast<std::size_t>(-1);
 
   std::size_t n_nodes = tree.children.size();
-  std::size_t n_leaves = 0;
-  for (const auto &child_pair : tree.children) {
-    if (child_pair.first == leaf_sentinel) {
-      n_leaves++;
-    }
-  }
 
   std::vector<std::vector<In>> hyperplanes(n_nodes, std::vector<In>(ndim));
   std::vector<In> offsets(n_nodes, std::numeric_limits<In>::quiet_NaN());
