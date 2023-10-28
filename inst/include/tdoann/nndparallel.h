@@ -177,7 +177,7 @@ public:
           continue;
         }
 
-        unsigned int local_c = 0;
+        uint32_t local_c = 0;
         if (!bad_pd) {
           current_graph.unchecked_push(idx_p, dist_pq, idx_q);
           local_c++;
@@ -266,7 +266,7 @@ void flag_new_candidates(NNDHeap<Out, Idx> &nn_heap,
 template <typename Out, typename Idx>
 void nnd_build(NNDHeap<Out, Idx> &nn_heap,
                ParallelLocalJoin<Out, Idx> &local_join,
-               std::size_t max_candidates, unsigned int n_iters, double delta,
+               std::size_t max_candidates, uint32_t n_iters, double delta,
                NNDProgressBase &progress, ParallelRandomProvider &parallel_rand,
                std::size_t n_threads, const Executor &executor) {
   const std::size_t n_points = nn_heap.n_points;

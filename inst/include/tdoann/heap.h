@@ -233,8 +233,8 @@ public:
   }
 
   auto checked_push_pair(Idx row, const Out &weight, Idx idx, uint8_t flag = 1)
-      -> unsigned int {
-    unsigned int num_updates = checked_push(row, weight, idx, flag);
+      -> uint32_t {
+    uint32_t num_updates = checked_push(row, weight, idx, flag);
     if (row != idx) {
       // NOLINTNEXTLINE(readability-suspicious-call-argument)
       num_updates += checked_push(idx, weight, row, flag);
@@ -243,7 +243,7 @@ public:
   }
 
   auto checked_push(Idx row, const Out &weight, Idx idx, uint8_t flag = 1)
-      -> unsigned int {
+      -> uint32_t {
     if (!accepts(row, weight) || contains(row, idx)) {
       return 0U;
     }
@@ -354,8 +354,8 @@ struct NNHeap {
   }
 
   auto checked_push_pair(std::size_t row, const Out &weight, Idx idx)
-      -> unsigned int {
-    unsigned int n_updates = checked_push(row, weight, idx);
+      -> uint32_t {
+    uint32_t n_updates = checked_push(row, weight, idx);
     if (row != idx) {
       // NOLINTNEXTLINE(readability-suspicious-call-argument)
       n_updates += checked_push(idx, weight, row);
@@ -363,7 +363,7 @@ struct NNHeap {
     return n_updates;
   }
 
-  auto checked_push(Idx row, const Out &weight, Idx idx) -> unsigned int {
+  auto checked_push(Idx row, const Out &weight, Idx idx) -> uint32_t {
     if (!accepts(row, weight) || contains(row, idx)) {
       return 0U;
     }

@@ -32,8 +32,8 @@
 #include <vector>
 
 namespace tdoann {
-static constexpr unsigned int BITVEC_BIT_WIDTH = 64;
-template <unsigned int n> using BitSet = std::bitset<n>;
+static constexpr uint32_t BITVEC_BIT_WIDTH = 64;
+template <uint32_t n> using BitSet = std::bitset<n>;
 using BitVec = std::vector<BitSet<BITVEC_BIT_WIDTH>>;
 
 // Calculate the number of bitsets of size BITVEC_BIT_WIDTH required to account

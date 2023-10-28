@@ -191,7 +191,7 @@ void flag_retained_new_candidates(NNDHeap<Out, Idx> &current_graph,
 template <typename Out, typename Idx>
 void nnd_build(NNDHeap<Out, Idx> &nn_heap,
                SerialLocalJoin<Out, Idx> &local_join,
-               std::size_t max_candidates, unsigned int n_iters, double delta,
+               std::size_t max_candidates, uint32_t n_iters, double delta,
                RandomGenerator &rand, NNDProgressBase &progress) {
   const std::size_t n_points = nn_heap.n_points;
   for (auto iter = 0U; iter < n_iters; iter++) {

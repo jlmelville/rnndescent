@@ -38,7 +38,7 @@ using Rcpp::List;
 using Rcpp::NumericMatrix;
 
 std::unique_ptr<tdoann::NNDProgressBase>
-create_nnd_progress(const std::string &progress_type, unsigned int n_iters,
+create_nnd_progress(const std::string &progress_type, uint32_t n_iters,
                     bool verbose) {
   if (progress_type == "bar") {
     return std::make_unique<tdoann::NNDProgress>(
@@ -76,7 +76,7 @@ create_serial_local_join(const tdoann::NNDHeap<Out, Idx> &nn_heap,
 // [[Rcpp::export]]
 List nn_descent(const NumericMatrix &data, const IntegerMatrix &nn_idx,
                 const NumericMatrix &nn_dist, const std::string &metric,
-                std::size_t max_candidates, unsigned int n_iters, double delta,
+                std::size_t max_candidates, uint32_t n_iters, double delta,
                 bool low_memory, std::size_t n_threads, bool verbose,
                 const std::string &progress_type) {
   auto distance_ptr = create_self_distance(data, metric);

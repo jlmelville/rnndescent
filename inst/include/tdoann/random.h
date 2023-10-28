@@ -59,7 +59,7 @@ public:
 };
 
 // Needed for random sampling of integers
-template <typename Int = unsigned int> class RandomIntGenerator {
+template <typename Int = uint32_t> class RandomIntGenerator {
 public:
   virtual ~RandomIntGenerator() = default;
 
