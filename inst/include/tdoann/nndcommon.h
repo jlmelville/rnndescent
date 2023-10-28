@@ -113,7 +113,7 @@ void pr(Progress &progress, const NeighborHeap &neighbor_heap,
   std::size_t n_nbrs = neighbor_heap.n_nbrs;
 
   std::ostringstream os_out;
-  os_out << header << std::endl;
+  os_out << header << "\n";
   for (typename NeighborHeap::Index i = 0; i < n_points; i++) {
     std::size_t innbrs = i * n_nbrs;
     os_out << i << ": ";
@@ -125,7 +125,7 @@ void pr(Progress &progress, const NeighborHeap &neighbor_heap,
         os_out << neighbor_heap.idx[innbrs + j] << " ";
       }
     }
-    os_out << std::endl;
+    os_out << "\n";
   }
   for (typename NeighborHeap::Index i = 0; i < n_points; i++) {
     std::size_t innbrs = i * n_nbrs;
@@ -137,7 +137,7 @@ void pr(Progress &progress, const NeighborHeap &neighbor_heap,
         os_out << neighbor_heap.dist[innbrs + j] << " ";
       }
     }
-    os_out << std::endl;
+    os_out << "\n";
   }
   progress.log(os_out.str());
 }

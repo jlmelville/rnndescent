@@ -56,7 +56,7 @@ void print_time(bool print_date) { Rcerr << timestamp(print_date) << " "; }
 
 void ts(const std::string &msg) {
   print_time();
-  Rcerr << msg << std::endl;
+  Rcerr << msg << "\n";
 }
 
 std::ostream &tsmessage() {

@@ -41,7 +41,7 @@ using Rcpp::Rcerr;
 template <typename In, typename Idx>
 void print_rp_forest(const std::vector<tdoann::RPTree<In, Idx>> &rp_forest) {
   for (const auto &tree : rp_forest) {
-    Rcerr << "RP Tree #nodes = " << tree.offsets.size() << std::endl;
+    Rcerr << "RP Tree #nodes = " << tree.offsets.size() << "\n";
     for (std::size_t i = 0; i < tree.offsets.size(); ++i) {
       Rcerr << i;
       if (tree.children[i].first == static_cast<std::size_t>(-1)) {
@@ -54,7 +54,7 @@ void print_rp_forest(const std::vector<tdoann::RPTree<In, Idx>> &rp_forest) {
               << " children: " << tree.children[i].first << " "
               << tree.children[i].second;
       }
-      Rcerr << std::endl;
+      Rcerr << "\n";
     }
   }
 }
@@ -67,7 +67,7 @@ void print_search_forest(
     const auto &search_tree = search_forest[j];
 
     Rcerr << "Search Tree " << j << "#nodes = " << search_tree.offsets.size()
-          << std::endl;
+          << "\n";
     for (std::size_t i = 0; i < search_tree.offsets.size(); ++i) {
       Rcerr << i;
       if (std::isnan(search_tree.offsets[i])) {
@@ -85,7 +85,7 @@ void print_search_forest(
           Rcerr << " " << search_tree.hyperplanes[i][j];
         }
       }
-      Rcerr << std::endl;
+      Rcerr << "\n";
     }
   }
 }
@@ -212,7 +212,7 @@ build_rp_forest(const std::vector<In> &data_vec, std::size_t ndim,
   rnndescent::ParallelIntRNGAdapter<Idx, rnndescent::DQIntSampler> rng_provider;
   if (verbose) {
     tsmessage() << "Using" << (angular ? " angular " : " euclidean ")
-                << "margin calculation" << std::endl;
+                << "margin calculation\n";
   }
   RPProgress forest_progress(verbose);
   return tdoann::make_forest(data_vec, ndim, n_trees, leaf_size, rng_provider,
@@ -236,7 +236,7 @@ List rp_tree_knn_cpp(const NumericMatrix &data, uint32_t nnbrs,
       data_vec, ndim, metric, n_trees, leaf_size, n_threads, verbose, executor);
 
   if (verbose) {
-    tsmessage() << "Extracting leaf array from forest" << std::endl;
+    tsmessage() << "Extracting leaf array from forest\n";
   }
   const std::size_t max_leaf_size = tdoann::find_max_leaf_size(rp_forest);
   std::vector<Idx> leaf_array =
@@ -244,7 +244,7 @@ List rp_tree_knn_cpp(const NumericMatrix &data, uint32_t nnbrs,
 
   if (verbose) {
     tsmessage() << "Creating knn using " << leaf_array.size() / max_leaf_size
-                << " leaves" << std::endl;
+                << " leaves\n";
   }
   RPProgress knn_progress(verbose);
   if (metric == "bhamming") {

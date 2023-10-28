@@ -78,9 +78,9 @@ public:
   void initialize() {
     if (verbose) {
       (*pout) << "0%   10   20   30   40   50   60   70   80   90   100%"
-              << std::endl;
+              << "\n";
       (*pout) << "[----|----|----|----|----|----|----|----|----|----]"
-              << std::endl;
+              << "\n";
       pout->flush();
     }
   }
@@ -104,7 +104,7 @@ public:
     }
 
     if (value == max) {
-      (*pout) << std::endl;
+      (*pout) << "\n";
     }
     pout->flush();
 
