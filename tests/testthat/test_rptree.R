@@ -185,3 +185,41 @@ expect_equal(length(rpf_knnf3), 3)
 rpf_knnf3f <- rpf_filter(rpf_knnf3, n_trees = 1)
 expect_equal(length(rpf_knnf3f), 1)
 expect_equal(rpf_knnf3f[[1]], rpf_knnf3$forest[[2]])
+
+# hyperplane-free tree
+set.seed(1337)
+hyper_knn <- rpf_knn(uirism[1:20, ], k = 4, verbose = FALSE, n_threads = 0, n_trees = 2, hyperplaneless = TRUE)
+set.seed(1337)
+twod_knn <- rpf_knn(uirism[1:20, ], k = 4, verbose = FALSE, n_threads = 0, n_trees = 2, hyperplaneless = FALSE)
+expect_equal(hyper_knn, twod_knn)
+
+expected_rpf2dist_index <- list(
+  list(
+    normal_indices = matrix(c(
+      4, 0,
+      3, 0,
+     -1,-1,
+     -1,-1,
+     -1,-1
+    ), nrow = 5, byrow = TRUE),
+    children = matrix(c(
+      1, 4,
+      2, 3,
+      0, 3,
+      3, 7,
+      7, 10
+    ), nrow = 5, byrow = TRUE),
+    indices = c(2, 4, 7, 1, 3, 6, 8, 0, 5, 9),
+    leaf_size = 4
+  )
+)
+set.seed(1337)
+expect_equal(rpf_knn(
+  ui10,
+  k = 4,
+  metric = "euclidean",
+  n_trees = 1,
+  ret_forest = TRUE,
+  leaf_size = 4,
+  hyperplaneless = TRUE
+)$forest, expected_rpf2dist_index)

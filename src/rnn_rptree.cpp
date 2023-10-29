@@ -23,6 +23,7 @@
 
 #include "rnndescent/random.h"
 #include "tdoann/rptree.h"
+#include "tdoann/rptree2.h"
 
 #include "rnn_distance.h"
 #include "rnn_heaptor.h"
@@ -136,6 +137,47 @@ List search_forest_to_r(
   return forest_list;
 }
 
+template <typename Idx>
+List search_tree2_to_r(const tdoann::SearchTree2<Idx> &search_tree,
+                      std::size_t ndim) {
+
+  std::size_t n_nodes = search_tree.children.size();
+
+  IntegerMatrix children(n_nodes, 2);
+  IntegerMatrix normal_indices(n_nodes, 2);
+  for (std::size_t i = 0; i < n_nodes; ++i) {
+    children(i, 0) = search_tree.children[i].first;
+    children(i, 1) = search_tree.children[i].second;
+
+    normal_indices(i, 0) = search_tree.normal_indices[i].first;
+    normal_indices(i, 1) = search_tree.normal_indices[i].second;
+  }
+
+  IntegerVector indices(search_tree.indices.size());
+  for (std::size_t i = 0; i < search_tree.indices.size(); ++i) {
+    indices[i] = search_tree.indices[i];
+  }
+
+  return List::create(_("normal_indices") = normal_indices,
+                      _("children") = children, _("indices") = indices,
+                      _("leaf_size") = search_tree.leaf_size);
+}
+
+template <typename Idx>
+List search_forest2_to_r(
+    const std::vector<tdoann::SearchTree2<Idx>> &search_forest,
+    std::size_t ndim) {
+  std::size_t n_trees = search_forest.size();
+  List forest_list(n_trees);
+
+  for (std::size_t i = 0; i < n_trees; ++i) {
+    List tree_list = search_tree2_to_r(search_forest[i], ndim);
+    forest_list[i] = tree_list;
+  }
+
+  return forest_list;
+}
+
 template <typename In, typename Idx>
 tdoann::SearchTree<In, Idx> r_to_search_tree(List tree_list) {
   NumericMatrix hyperplanes = tree_list["hyperplanes"];
@@ -217,6 +259,56 @@ build_rp_forest(const std::vector<In> &data_vec, std::size_t ndim,
   RPProgress forest_progress(verbose);
   return tdoann::make_forest(data_vec, ndim, n_trees, leaf_size, rng_provider,
                              angular, n_threads, forest_progress, executor);
+}
+
+// [[Rcpp::export]]
+List rp_tree_knn_cpp2(const NumericMatrix &data, uint32_t nnbrs,
+                      const std::string &metric, uint32_t n_trees,
+                      uint32_t leaf_size, bool include_self, bool unzero = true,
+                      bool ret_forest = false,
+                      std::size_t n_threads = 0, bool verbose = false) {
+  const std::size_t ndim = data.nrow();
+
+  auto distance_ptr = create_self_distance(data, metric);
+  using Idx = typename tdoann::DistanceTraits<decltype(distance_ptr)>::Index;
+
+  if (verbose) {
+    tsmessage() << "Using two-distance (hyperplaneless) calculation\n";
+  }
+  RParallelExecutor executor;
+  rnndescent::ParallelIntRNGAdapter<Idx, rnndescent::DQIntSampler> rng_provider;
+  RPProgress forest_progress(verbose);
+  auto rp_forest =
+      tdoann::make_forest(*distance_ptr, ndim, n_trees, leaf_size, rng_provider,
+                          n_threads, forest_progress, executor);
+
+  if (verbose) {
+    tsmessage() << "Extracting leaf array from forest\n";
+  }
+  const std::size_t max_leaf_size = tdoann::find_max_leaf_size(rp_forest);
+  std::vector<Idx> leaf_array =
+      tdoann::get_leaves_from_forest(rp_forest, max_leaf_size);
+
+  if (verbose) {
+    tsmessage() << "Creating knn using " << leaf_array.size() / max_leaf_size
+                << " leaves\n";
+  }
+  RPProgress knn_progress(verbose);
+
+  auto neighbor_heap =
+      tdoann::init_rp_tree(*distance_ptr, leaf_array, max_leaf_size, nnbrs,
+                           include_self, n_threads, knn_progress, executor);
+
+  auto nn_list =
+    heap_to_r(neighbor_heap, n_threads, knn_progress, executor, unzero);
+
+  if (ret_forest) {
+    auto search_forest =
+      tdoann::convert_rp_forest(rp_forest, data.ncol(), ndim);
+    List search_forest_r = search_forest2_to_r(search_forest, ndim);
+    nn_list["forest"] = search_forest_r;
+  }
+  return nn_list;
 }
 
 // [[Rcpp::export]]

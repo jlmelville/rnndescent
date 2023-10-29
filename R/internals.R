@@ -201,6 +201,7 @@ rpf_knn_impl <-
            leaf_size,
            include_self,
            ret_forest,
+           hyperplaneless,
            n_threads,
            verbose,
            zero_index = FALSE) {
@@ -226,18 +227,34 @@ rpf_knn_impl <-
       )
     )
 
-    res <- rp_tree_knn_cpp(
-      data,
-      k,
-      actual_metric,
-      n_trees = n_trees,
-      leaf_size = leaf_size,
-      include_self = include_self,
-      ret_forest = ret_forest,
-      unzero = !zero_index,
-      n_threads = n_threads,
-      verbose = verbose
-    )
+    if (hyperplaneless) {
+      res <- rp_tree_knn_cpp2(
+        data,
+        k,
+        actual_metric,
+        n_trees = n_trees,
+        leaf_size = leaf_size,
+        include_self = include_self,
+        ret_forest = ret_forest,
+        unzero = !zero_index,
+        n_threads = n_threads,
+        verbose = verbose
+      )
+    }
+    else {
+      res <- rp_tree_knn_cpp(
+        data,
+        k,
+        actual_metric,
+        n_trees = n_trees,
+        leaf_size = leaf_size,
+        include_self = include_self,
+        ret_forest = ret_forest,
+        unzero = !zero_index,
+        n_threads = n_threads,
+        verbose = verbose
+      )
+    }
 
     if (use_alt_metric) {
       res$dist <- apply_alt_metric_correction(metric, res$dist)
