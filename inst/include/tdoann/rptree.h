@@ -591,7 +591,7 @@ SearchTree<In, Idx> convert_tree_format(const RPTree<In, Idx> &tree,
   std::size_t node_num = 0;
   std::size_t leaf_start = 0;
   recursive_convert(tree, hyperplanes, offsets, children, indices, node_num,
-                    leaf_start, tree.children.size() - 1);
+                    leaf_start, n_nodes - 1);
 
   return SearchTree<In, Idx>(hyperplanes, offsets, children, indices,
                              tree.leaf_size);
