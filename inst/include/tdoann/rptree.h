@@ -44,6 +44,8 @@ namespace tdoann {
 // Tree Building
 
 template <typename In, typename Idx> struct RPTree {
+  using Index = Idx;
+
   std::vector<std::vector<In>> hyperplanes = {};
   std::vector<In> offsets = {};
   std::vector<std::pair<std::size_t, std::size_t>> children = {};
@@ -102,6 +104,10 @@ template <typename In, typename Idx> struct RPTree {
     // used in leaf array, conversion, search tree
     indices.push_back(indices_);
     leaf_size = std::max(leaf_size, indices_.size());
+  }
+
+  bool is_leaf(std::size_t i) const {
+    return children[i].first == static_cast<std::size_t>(-1);
   }
 };
 
@@ -351,62 +357,59 @@ make_forest(const std::vector<In> &data, std::size_t ndim, uint32_t n_trees,
 // KNN calculation
 
 // Find the largest leaf size in the forest
-template <typename In, typename Idx>
-std::size_t find_max_leaf_size(const std::vector<RPTree<In, Idx>> &rp_forest) {
-  auto it = std::max_element(rp_forest.begin(), rp_forest.end(),
-                             [](const RPTree<In, Idx> &a, decltype(a) b) {
-                               return a.leaf_size < b.leaf_size;
-                             });
+template <typename Forest>
+std::size_t find_max_leaf_size(const Forest &rp_forest) {
+  auto it = std::max_element(
+      rp_forest.begin(), rp_forest.end(),
+      [](const auto &a, const auto &b) { return a.leaf_size < b.leaf_size; });
   return it->leaf_size;
 }
 
-template <typename In, typename Idx>
-std::vector<Idx> get_leaves_from_tree(const RPTree<In, Idx> &tree,
-                                      std::size_t max_leaf_size) {
-  constexpr auto sentinel = static_cast<std::size_t>(-1);
-  constexpr auto idx_sentinel = static_cast<Idx>(-1);
+template <typename Tree>
+std::vector<typename Tree::Index>
+get_leaves_from_tree(const Tree &tree, std::size_t max_leaf_size) {
+  using Idx = typename Tree::Index;
 
   std::size_t n_leaves = 0;
-  for (const auto &child : tree.children) {
-    // child pairs contain either both sentinels or neither so we only need to
-    // check one of the pair to detect a leaf
-    if (child.first == sentinel) {
+  for (std::size_t i = 0; i < tree.children.size(); ++i) {
+    if (tree.is_leaf(i)) {
       ++n_leaves;
     }
   }
 
-  std::vector<Idx> leaf_indices;
-  leaf_indices.reserve(n_leaves * max_leaf_size);
+  constexpr auto idx_sentinel = static_cast<Idx>(-1);
+
+  std::vector<Idx> leaf_indices(n_leaves * max_leaf_size, idx_sentinel);
+  std::size_t insert_position = 0;
   for (std::size_t i = 0; i < tree.children.size(); ++i) {
-    if (tree.children[i].first == sentinel) {
+    if (tree.is_leaf(i)) {
       const auto &indices = tree.indices[i];
-      leaf_indices.insert(leaf_indices.end(), indices.begin(), indices.end());
-      const std::size_t padding = max_leaf_size - indices.size();
-      leaf_indices.insert(leaf_indices.end(), padding, idx_sentinel);
+      std::copy(indices.begin(), indices.end(),
+                leaf_indices.begin() + insert_position);
+      insert_position += max_leaf_size;
     }
   }
 
   return leaf_indices;
 }
 
-template <typename In, typename Idx>
-std::vector<Idx>
-get_leaves_from_forest(const std::vector<RPTree<In, Idx>> &forest,
+template <typename Tree>
+std::vector<typename Tree::Index>
+get_leaves_from_forest(const std::vector<Tree> &forest,
                        std::size_t max_leaf_size) {
-  constexpr auto sentinel = static_cast<std::size_t>(-1);
-
-  std::vector<Idx> leaf_indices;
+  using Idx = typename Tree::Index;
 
   // Calculate total number of leaves and reserve space
   std::size_t total_leaves = 0;
   for (const auto &tree : forest) {
-    for (const auto &child : tree.children) {
-      if (child.first == sentinel) {
+    for (std::size_t i = 0; i < tree.children.size(); ++i) {
+      if (tree.is_leaf(i)) {
         ++total_leaves;
       }
     }
   }
 
+  std::vector<Idx> leaf_indices;
   leaf_indices.reserve(total_leaves * max_leaf_size);
 
   // Concatenate leaves from each tree
@@ -520,6 +523,8 @@ auto init_rp_tree(const BaseDistance<Out, Idx> &distance,
 //    index than the parent. This should result in better cache coherency during
 //    a search.
 template <typename In, typename Idx> struct SearchTree {
+  using Index = Idx;
+
   std::vector<std::vector<In>> hyperplanes;
   std::vector<In> offsets;
   std::vector<std::pair<std::size_t, std::size_t>> children;
@@ -528,47 +533,52 @@ template <typename In, typename Idx> struct SearchTree {
 
   SearchTree() = default;
 
+  SearchTree(std::size_t n_nodes, std::size_t n_points, std::size_t ndim,
+             Idx lsize)
+      : hyperplanes(n_nodes, std::vector<In>(ndim)),
+        offsets(n_nodes, std::numeric_limits<In>::quiet_NaN()),
+        children(n_nodes, std::make_pair(static_cast<std::size_t>(-1),
+                                         static_cast<std::size_t>(-1))),
+        indices(n_points, static_cast<Idx>(-1)), leaf_size(lsize) {}
+
+  // transfer in data from e.g. R
   SearchTree(std::vector<std::vector<In>> hplanes, std::vector<In> offs,
              std::vector<std::pair<std::size_t, std::size_t>> chldrn,
              std::vector<Idx> inds, Idx lsize)
       : hyperplanes(std::move(hplanes)), offsets(std::move(offs)),
         children(std::move(chldrn)), indices(std::move(inds)),
         leaf_size(lsize) {}
+
+  bool is_leaf(std::size_t i) const { return std::isnan(offsets[i]); }
 };
 
 template <typename In, typename Idx>
 std::pair<std::size_t, std::size_t>
-recursive_convert(const RPTree<In, Idx> &tree,
-                  std::vector<std::vector<In>> &hyperplanes,
-                  std::vector<In> &offsets,
-                  std::vector<std::pair<std::size_t, std::size_t>> &children,
-                  std::vector<Idx> &indices, std::size_t node_num,
-                  std::size_t leaf_start, std::size_t tree_node) {
+recursive_convert(const RPTree<In, Idx> &tree, SearchTree<In, Idx> &search_tree,
+                  std::size_t node_num, std::size_t leaf_start,
+                  std::size_t tree_node) {
 
-  constexpr auto leaf_sentinel = static_cast<std::size_t>(-1);
-
-  if (tree.children[tree_node].first == leaf_sentinel) {
+  if (tree.is_leaf(tree_node)) {
     // leaf: read from tree.indices, tree.children (in if statement above)
-    std::size_t leaf_end = leaf_start + tree.indices[tree_node].size();
-    children[node_num] = std::make_pair(leaf_start, leaf_end);
+    auto leaf_end = leaf_start + tree.indices[tree_node].size();
+    search_tree.children[node_num] = std::make_pair(leaf_start, leaf_end);
     std::copy(tree.indices[tree_node].begin(), tree.indices[tree_node].end(),
-              indices.begin() + leaf_start);
-    return {node_num, leaf_end};
+              search_tree.indices.begin() + leaf_start);
+    return {node_num + 1, leaf_end};
   } else {
     // node: read from tree.hyperplanes, tree.offsets, tree.children
-    hyperplanes[node_num] = tree.hyperplanes[tree_node];
-    offsets[node_num] = tree.offsets[tree_node];
-    children[node_num].first = node_num + 1;
-    std::size_t old_node_num = node_num;
+    search_tree.hyperplanes[node_num] = tree.hyperplanes[tree_node];
+    search_tree.offsets[node_num] = tree.offsets[tree_node];
+    search_tree.children[node_num].first = node_num + 1;
+    auto old_node_num = node_num;
 
-    std::tie(node_num, leaf_start) = recursive_convert(
-        tree, hyperplanes, offsets, children, indices, node_num + 1, leaf_start,
-        tree.children[tree_node].first);
+    auto [new_node_num, new_leaf_start] =
+        recursive_convert(tree, search_tree, node_num + 1, leaf_start,
+                          tree.children[tree_node].first);
 
-    children[old_node_num].second = node_num + 1;
+    search_tree.children[old_node_num].second = new_node_num;
 
-    return recursive_convert(tree, hyperplanes, offsets, children, indices,
-                             node_num + 1, leaf_start,
+    return recursive_convert(tree, search_tree, new_node_num, new_leaf_start,
                              tree.children[tree_node].second);
   }
 }
@@ -577,24 +587,14 @@ template <typename In, typename Idx>
 SearchTree<In, Idx> convert_tree_format(const RPTree<In, Idx> &tree,
                                         std::size_t n_points,
                                         std::size_t ndim) {
-  constexpr auto idx_sentinel = static_cast<Idx>(-1);
-  constexpr auto leaf_sentinel = static_cast<std::size_t>(-1);
-
-  std::size_t n_nodes = tree.children.size();
-
-  std::vector<std::vector<In>> hyperplanes(n_nodes, std::vector<In>(ndim));
-  std::vector<In> offsets(n_nodes, std::numeric_limits<In>::quiet_NaN());
-  std::vector<std::pair<std::size_t, std::size_t>> children(
-      n_nodes, std::make_pair(leaf_sentinel, leaf_sentinel));
-  std::vector<Idx> indices(n_points, idx_sentinel);
+  const auto n_nodes = tree.children.size();
+  SearchTree<In, Idx> search_tree(n_nodes, n_points, ndim, tree.leaf_size);
 
   std::size_t node_num = 0;
   std::size_t leaf_start = 0;
-  recursive_convert(tree, hyperplanes, offsets, children, indices, node_num,
-                    leaf_start, n_nodes - 1);
+  recursive_convert(tree, search_tree, node_num, leaf_start, n_nodes - 1);
 
-  return SearchTree<In, Idx>(hyperplanes, offsets, children, indices,
-                             tree.leaf_size);
+  return search_tree;
 }
 
 template <typename In, typename Idx>
@@ -609,6 +609,8 @@ convert_rp_forest(const std::vector<RPTree<In, Idx>> &rp_forest,
   return search_forest;
 }
 
+// Searching
+
 template <typename In, typename Idx>
 std::pair<std::size_t, std::size_t>
 search_leaf_range(const SearchTree<In, Idx> &tree,
@@ -618,16 +620,15 @@ search_leaf_range(const SearchTree<In, Idx> &tree,
 
   while (true) {
     auto child_pair = tree.children[current_node];
-    const auto &hyperplane_offset = tree.offsets[current_node];
 
     // it's a leaf: child_pair contains pointers into the indices
-    if (std::isnan(hyperplane_offset)) {
+    if (tree.is_leaf(current_node)) {
       return child_pair;
     }
 
     // it's a node, find the child to go to
     auto side = select_side(obs_it, tree.hyperplanes[current_node],
-                            hyperplane_offset, rng);
+                            tree.offsets[current_node], rng);
     if (side == 0) {
       current_node = child_pair.first; // go left
     } else {
@@ -648,28 +649,11 @@ std::vector<Idx> search_indices(const SearchTree<In, Idx> &tree,
 }
 
 template <typename In, typename Out, typename Idx>
-std::pair<std::vector<Idx>, std::vector<Out>>
-search_tree(const SearchTree<In, Idx> &tree,
-            const VectorDistance<In, Out, Idx> &distance, Idx i,
-            RandomIntGenerator<Idx> &rng) {
-
-  std::vector<Idx> leaf_indices = search_indices(tree, distance.get_y(i), rng);
-  std::vector<Out> distances;
-  distances.reserve(leaf_indices.size());
-  for (auto &idx : leaf_indices) {
-    distances.push_back(distance.calculate(idx, i));
-  }
-
-  return {leaf_indices, distances};
-}
-
-template <typename In, typename Out, typename Idx>
 void search_tree_heap_cache(const SearchTree<In, Idx> &tree,
                             const VectorDistance<In, Out, Idx> &distance, Idx i,
                             RandomIntGenerator<Idx> &rng,
                             NNHeap<Out, Idx> &current_graph,
                             std::unordered_set<Idx> &seen) {
-
   std::vector<Idx> leaf_indices = search_indices(tree, distance.get_y(i), rng);
 
   for (auto &idx : leaf_indices) {
@@ -686,7 +670,6 @@ void search_tree_heap(const SearchTree<In, Idx> &tree,
                       const VectorDistance<In, Out, Idx> &distance, Idx i,
                       RandomIntGenerator<Idx> &rng,
                       NNHeap<Out, Idx> &current_graph) {
-
   std::vector<Idx> leaf_indices = search_indices(tree, distance.get_y(i), rng);
 
   for (auto &idx : leaf_indices) {
@@ -748,6 +731,8 @@ search_forest(const std::vector<SearchTree<In, Idx>> &forest,
   return current_graph;
 }
 
+// Search Tree scoring/filtering
+
 template <typename Idx>
 std::size_t compute_overlap(const std::unordered_set<Idx> &indices_set,
                             const std::vector<Idx> &nn_indices,
@@ -778,28 +763,30 @@ std::size_t compute_overlap(const std::unordered_set<Idx> &indices_set,
   return overlap;
 }
 
-template <typename Idx, typename In>
-double score_tree(const SearchTree<In, Idx> &tree,
-                  const std::vector<Idx> &nn_indices, uint32_t n_neighbors) {
+template <typename Tree>
+double score_tree(const Tree &tree,
+                  const std::vector<typename Tree::Index> &nn_indices,
+                  uint32_t n_neighbors) {
   std::size_t overlap_sum = 0;
   for (std::size_t i = 0; i < tree.children.size(); ++i) {
-    auto [start, end] = tree.children[i];
-    if (std::isnan(tree.offsets[i])) {
+    if (tree.is_leaf(i)) {
+      auto [start, end] = tree.children[i];
       auto leaf_start = tree.indices.begin() + start;
       auto leaf_end = tree.indices.begin() + end;
-      std::unordered_set<Idx> indices_set(leaf_start, leaf_end);
+      std::unordered_set<typename Tree::Index> indices_set(leaf_start,
+                                                           leaf_end);
       overlap_sum += compute_overlap(indices_set, nn_indices, n_neighbors);
     }
   }
   return overlap_sum / static_cast<double>(nn_indices.size() / n_neighbors);
 }
 
-template <typename Idx, typename In>
-std::vector<double> score_forest(const std::vector<SearchTree<In, Idx>> &forest,
-                                 const std::vector<Idx> &nn_indices,
-                                 uint32_t n_neighbors, std::size_t n_threads,
-                                 ProgressBase &progress,
-                                 const Executor &executor) {
+template <typename Tree>
+std::vector<double>
+score_forest(const std::vector<Tree> &forest,
+             const std::vector<typename Tree::Index> &nn_indices,
+             uint32_t n_neighbors, std::size_t n_threads,
+             ProgressBase &progress, const Executor &executor) {
   const auto n_trees = forest.size();
 
   std::vector<double> scores(n_trees);
@@ -819,11 +806,10 @@ std::vector<double> score_forest(const std::vector<SearchTree<In, Idx>> &forest,
 
 // given the overlap scores for a search forest from score_forest, return the
 // top n best scoring
-template <typename Idx, typename In>
-std::vector<SearchTree<Idx, In>>
-filter_top_n_trees(const std::vector<SearchTree<Idx, In>> &forest,
-                   const std::vector<double> &scores, std::size_t n) {
-
+template <typename Tree>
+std::vector<Tree> filter_top_n_trees(const std::vector<Tree> &forest,
+                                     const std::vector<double> &scores,
+                                     std::size_t n) {
   // get the order of the scores
   std::vector<std::size_t> order(forest.size());
   std::iota(order.begin(), order.end(), 0);
@@ -832,7 +818,7 @@ filter_top_n_trees(const std::vector<SearchTree<Idx, In>> &forest,
                       return scores[a] > scores[b];
                     });
   // return the top n trees given by the order
-  std::vector<SearchTree<Idx, In>> top_n_trees;
+  std::vector<Tree> top_n_trees;
   top_n_trees.reserve(n);
   for (std::size_t i = 0; i < n; ++i) {
     top_n_trees.push_back(forest[order[i]]);
