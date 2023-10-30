@@ -270,3 +270,55 @@ expect_equal(
   rpf_build(ui10, metric = "euclidean", leaf_size = 4, margin = "implicit", n_threads = 0),
   rpf_index_ls4i, tol = 1e-7
 )
+
+# cosine test
+set.seed(1337)
+uiriscos <-
+  rpf_knn(
+    uirism,
+    k = 15,
+    metric = "cosine",
+    n_threads = 0,
+    verbose = TRUE,
+    ret_forest = TRUE,
+    n_trees = 1
+  )
+set.seed(1337)
+uiriscosq <-
+  rpf_knn_query(
+    uirism,
+    uirism,
+    uiriscos$forest,
+    k = 15,
+    metric = "cosine",
+    n_threads = 0,
+    verbose = TRUE
+  )
+# handle ties where indices swap places
+expect_equal(sum(uiriscos$idx - uiriscosq$idx), 0)
+
+set.seed(1337)
+uiriscosi <-
+  rpf_knn(
+    uirism,
+    k = 15,
+    metric = "cosine",
+    n_threads = 0,
+    verbose = TRUE,
+    ret_forest = TRUE,
+    margin = "implicit",
+    n_trees = 1
+  )
+set.seed(1337)
+uiriscosiq <-
+  rpf_knn_query(
+    uirism,
+    uirism,
+    uiriscosi$forest,
+    k = 15,
+    metric = "cosine",
+    n_threads = 0,
+    verbose = TRUE
+  )
+expect_equal(sum(uiriscosi$idx - uiriscosq$idx), 0)
+expect_equal(sum(uiriscosi$idx - uiriscosiq$idx), 0)
