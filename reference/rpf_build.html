@@ -56,6 +56,7 @@ which can later be searched to find approximate nearest neighbors.</p>
 <span>  metric <span class="op">=</span> <span class="st">"euclidean"</span>,</span>
 <span>  n_trees <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  leaf_size <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>  margin <span class="op">=</span> <span class="st">"auto"</span>,</span>
 <span>  n_threads <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  obs <span class="op">=</span> <span class="st">"R"</span></span>
@@ -106,6 +107,26 @@ value should be chosen to match the expected number of neighbors you will
 want to retrieve when running queries (e.g. if you want find 50 nearest
 neighbors set <code>leaf_size = 50</code>) and should not be set to a value smaller
 than <code>10</code>.</p></dd>
+
+
+<dt>margin</dt>
+<dd><p>A character string specifying the method used to  assign points
+to one side of the hyperplane or the other. Possible values are:</p><ul><li><p><code>"explicit"</code> categorizes all distance metrics as either Euclidean or
+Angular (Euclidean after normalization), explicitly calculates a hyperplane
+and offset, and then calculates the margin based on the dot product with
+the hyperplane.</p></li>
+<li><p><code>"implicit"</code> calculates the distance from a point to each of the
+points defining the normal vector. The margin is calculated by comparing the
+two distances: the point is assigned to the side of the hyperplane that
+the normal vector point with the closest distance belongs to.</p></li>
+<li><p><code>"auto"</code> (the default) picks the margin method depending on whether a
+binary-specific <code>metric</code> such as <code>"bhammming"</code> is chosen, in which case
+<code>"implicit"</code> is used, and <code>"explicit"</code> otherwise: binary-specific metrics
+involve storing the data in a way that isn't very efficient for the
+<code>"explicit"</code> method and the binary-specific metric is usually a lot faster
+than the generic equivalent such that the cost of two distance calculations
+for the margin method is still faster.</p></li>
+</ul></dd>
 
 
 <dt>n_threads</dt>
