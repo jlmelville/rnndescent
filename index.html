@@ -72,6 +72,12 @@
 <div class="section level2">
 <h2 id="current-status">Current Status<a class="anchor" aria-label="anchor" href="#current-status"></a>
 </h2>
+<p>Compared to pynndescent, the major missing features are:</p>
+<ul>
+<li>more dense distance functions</li>
+<li>any sparse distance functions</li>
+</ul>
+<p><em>30 October 2023</em> At last, a workable random partition forest implementation has been added. This can be used standalone (e.g. <code>rpf_knn</code>, <code>rpf_build</code>, <code>rpt_knn_query</code>) or as initialization to nearest neighbor descent (<code>nnd_knn(init = "tree", ...)</code>). The forest itself can be serialized with <code>saveRDS</code> but you will pay a price for that convenience by having to pass it back and forth from the R to C++ layer when querying. For now there is no access to the underlying C++ class via R like in RcppHNSW and RcppAnnoy so it may not be suitable for some use cases.</p>
 <p><em>19 October 2023</em> Inevitably 0.0.11 is here because of a bug in 0.0.10 where nearest neighbor descent was not correctly flagging new/old neighbors which reduced performance (but not the actual result).</p>
 <p><em>18 October 2023</em> A long-postponed major internal refactoring means I might be able to make a bit of progress on this package. For now, the <code>cosine</code> and <code>correlation</code> metrics have migrated to not preprocessing their data (these versions are still available as <code>cosine-preprocess</code> and <code>correlation-preprocess</code> respectively). Also, I have exported the distance metrics as R functions (e.g. <code>cosine_distance</code>, <code>euclidean_distance</code>).</p>
 <p><em>18 September 2021</em> The <code>"hamming"</code> metric now supports integer-valued (not just binary) inputs, thanks to a contribution from <a href="https://github.com/vspinu" class="external-link">Vitalie Spinu</a>. The older metric code path for binary data only is supported via <code>metric = "bhamming"</code>.</p>
