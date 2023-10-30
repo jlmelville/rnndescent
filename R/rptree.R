@@ -360,6 +360,12 @@ rpf_knn_query <- function(query,
   query <- x2m(query)
   check_k(k, n_obs(reference))
 
+  if (!is.list(forest)) {
+    stop("Bad forest format")
+  }
+  if (is.null(forest$type)) {
+    stop("Bad forest format")
+  }
 
   if (obs == "R") {
     reference <- t(reference)

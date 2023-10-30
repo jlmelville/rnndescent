@@ -457,28 +457,50 @@ List rnn_rp_forest_search(const NumericMatrix &query,
                           uint32_t n_nbrs, const std::string &metric,
                           bool cache, std::size_t n_threads,
                           bool verbose = false) {
-  using Idx = RNN_DEFAULT_IDX;
-  using In = RNN_DEFAULT_IN;
-
-  auto search_forest_cpp =
-      r_to_search_forest<In, Idx>(search_forest, n_threads);
-  auto distance_ptr = create_query_vector_distance(reference, query, metric);
-
-  rnndescent::ParallelIntRNGAdapter<Idx, rnndescent::DQIntSampler> rng_provider;
-  RPProgress progress(verbose);
   RParallelExecutor executor;
-  auto nn_heap =
-      tdoann::search_forest(search_forest_cpp, *distance_ptr, n_nbrs,
-                            rng_provider, cache, n_threads, progress, executor);
+  std::string forest_type = search_forest["type"];
 
-  return heap_to_r(nn_heap);
+  if (forest_type == RNN_FOREST_TYPE_HYPERPLANE) {
+
+    auto distance_ptr = create_query_vector_distance(reference, query, metric);
+
+    using In = typename tdoann::DistanceTraits<decltype(distance_ptr)>::Input;
+    using Idx = typename tdoann::DistanceTraits<decltype(distance_ptr)>::Index;
+
+    auto search_forest_cpp =
+        r_to_search_forest<In, Idx>(search_forest, n_threads);
+
+    rnndescent::ParallelIntRNGAdapter<Idx, rnndescent::DQIntSampler>
+        rng_provider;
+    RPProgress progress(verbose);
+    auto nn_heap = tdoann::search_forest(search_forest_cpp, *distance_ptr,
+                                         n_nbrs, rng_provider, cache, n_threads,
+                                         progress, executor);
+    return heap_to_r(nn_heap);
+  } else if (forest_type == RNN_FOREST_TYPE_TWODIST) {
+
+    auto distance_ptr = create_query_distance(reference, query, metric);
+    using Idx = typename tdoann::DistanceTraits<decltype(distance_ptr)>::Index;
+
+    auto search_forest_cpp = r_to_search_forest2<Idx>(search_forest, n_threads);
+
+    rnndescent::ParallelIntRNGAdapter<Idx, rnndescent::DQIntSampler>
+        rng_provider;
+    RPProgress progress(verbose);
+    auto nn_heap = tdoann::search_forest(search_forest_cpp, *distance_ptr,
+                                         n_nbrs, rng_provider, cache, n_threads,
+                                         progress, executor);
+    return heap_to_r(nn_heap);
+  } else {
+    Rcpp::stop("Bad search forest type ", forest_type);
+  }
 }
 
 template <typename Tree>
 std::vector<Tree> rnn_score_forest_impl(const IntegerMatrix &idx,
-                           const std::vector<Tree> &search_forest,
-                           uint32_t n_trees, std::size_t n_threads,
-                           bool verbose = false) {
+                                        const std::vector<Tree> &search_forest,
+                                        uint32_t n_trees, std::size_t n_threads,
+                                        bool verbose = false) {
   using Idx = typename Tree::Index;
 
   std::vector<Idx> idx_vec = r_to_idxt<Idx>(idx);
@@ -525,8 +547,7 @@ List rnn_score_forest(const IntegerMatrix &idx, List search_forest,
 
     return search_forest_to_r(filtered_forest);
   } else if (forest_type == RNN_FOREST_TYPE_TWODIST) {
-    auto search_forest_cpp =
-        r_to_search_forest2<Idx>(search_forest, n_threads);
+    auto search_forest_cpp = r_to_search_forest2<Idx>(search_forest, n_threads);
 
     auto filtered_forest = rnn_score_forest_impl(idx, search_forest_cpp,
                                                  n_trees, n_threads, verbose);

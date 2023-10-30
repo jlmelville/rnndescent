@@ -71,7 +71,7 @@ template <typename Idx> struct RPTree2 {
     indices.reserve(min_nodes);
   }
 
-  void add_node(Idx rpi, Idx rpj, std::size_t left_node_num,
+  void add_node(Idx left, Idx right, std::size_t left_node_num,
                 std::size_t right_node_num) {
     // indices is never read from
     static const std::vector<Idx> dummy_indices =
@@ -79,7 +79,7 @@ template <typename Idx> struct RPTree2 {
     indices.push_back(dummy_indices);
 
     // children is checked during leaf array construction
-    normal_indices.emplace_back(rpi, rpj);
+    normal_indices.emplace_back(left, right);
     children.emplace_back(left_node_num, right_node_num);
   }
 
@@ -184,7 +184,7 @@ distance_random_projection_split(const BaseDistance<Out, Idx> &distance,
                 indices_right, rng);
 
   return std::make_tuple(std::move(indices_left), std::move(indices_right),
-                         left_index, right_index);
+                         indices[left_index], indices[right_index]);
 }
 
 template <typename Out, typename Idx>
@@ -194,7 +194,7 @@ void make_tree_recursive(const BaseDistance<Out, Idx> &distance,
                          uint32_t max_depth) {
   if (indices.size() > leaf_size && max_depth > 0) {
 
-    auto [left_indices, right_indices, rpi, rpj] =
+    auto [left_indices, right_indices, left, right] =
         distance_random_projection_split(distance, indices, rng);
 
     make_tree_recursive(distance, left_indices, tree, rng, leaf_size,
@@ -207,7 +207,7 @@ void make_tree_recursive(const BaseDistance<Out, Idx> &distance,
 
     std::size_t right_node_num = tree.indices.size() - 1;
 
-    tree.add_node(rpi, rpj, left_node_num, right_node_num);
+    tree.add_node(left, right, left_node_num, right_node_num);
   } else {
     // leaf node
     tree.add_leaf(indices);
@@ -334,6 +334,129 @@ convert_rp_forest(const std::vector<RPTree2<Idx>> &rp_forest,
     search_forest.push_back(convert_tree_format(rp_tree, n_points, ndim));
   }
   return search_forest;
+}
+
+// Searching
+
+template <typename Out, typename Idx>
+std::pair<std::size_t, std::size_t>
+search_leaf_range(const SearchTree2<Idx> &tree, Idx i,
+                  const BaseDistance<Out, Idx> &distance,
+                  RandomIntGenerator<Idx> &rng) {
+  Idx current_node = 0;
+  while (true) {
+    auto child_pair = tree.children[current_node];
+
+    // it's a leaf: child_pair contains pointers into the indices
+    if (tree.is_leaf(current_node)) {
+      return child_pair;
+    }
+
+    // it's a node, work out which way to go
+    auto side =
+        select_side(i, distance, tree.normal_indices[current_node].first,
+                    tree.normal_indices[current_node].second, rng);
+    if (side == 0) {
+      current_node = child_pair.first; // go left
+    } else {
+      current_node = child_pair.second; // go right
+    }
+  }
+}
+
+template <typename Out, typename Idx>
+std::vector<Idx> search_indices(const SearchTree2<Idx> &tree, Idx i,
+                                const BaseDistance<Out, Idx> &distance,
+                                RandomIntGenerator<Idx> &rng) {
+  std::pair<std::size_t, std::size_t> range =
+      search_leaf_range(tree, i, distance, rng);
+  std::vector<Idx> leaf_indices(tree.indices.begin() + range.first,
+                                tree.indices.begin() + range.second);
+
+  return leaf_indices;
+}
+
+template <typename Out, typename Idx>
+void search_tree_heap_cache(const SearchTree2<Idx> &tree,
+                            const BaseDistance<Out, Idx> &distance, Idx i,
+                            RandomIntGenerator<Idx> &rng,
+                            NNHeap<Out, Idx> &current_graph,
+                            std::unordered_set<Idx> &seen) {
+  std::vector<Idx> leaf_indices = search_indices(tree, i, distance, rng);
+
+  for (auto &idx : leaf_indices) {
+    if (seen.find(idx) == seen.end()) { // not-contains
+      const auto d = distance.calculate(idx, i);
+      current_graph.checked_push(i, d, idx);
+      seen.insert(idx);
+    }
+  }
+}
+
+template <typename Out, typename Idx>
+void search_tree_heap(const SearchTree2<Idx> &tree,
+                      const BaseDistance<Out, Idx> &distance, Idx i,
+                      RandomIntGenerator<Idx> &rng,
+                      NNHeap<Out, Idx> &current_graph) {
+  std::vector<Idx> leaf_indices = search_indices(tree, i, distance, rng);
+
+  for (auto &idx : leaf_indices) {
+    const auto d = distance.calculate(idx, i);
+    current_graph.checked_push(i, d, idx);
+  }
+}
+
+template <typename Out, typename Idx>
+void search_forest_cache(const std::vector<SearchTree2<Idx>> &forest,
+                         const BaseDistance<Out, Idx> &distance, Idx i,
+                         RandomIntGenerator<Idx> &rng,
+                         NNHeap<Out, Idx> &current_graph) {
+  std::unordered_set<Idx> seen;
+
+  for (const auto &tree : forest) {
+    search_tree_heap_cache(tree, distance, i, rng, current_graph, seen);
+  }
+}
+
+template <typename Out, typename Idx>
+void search_forest(const std::vector<SearchTree2<Idx>> &forest,
+                   const BaseDistance<Out, Idx> &distance, Idx i,
+                   RandomIntGenerator<Idx> &rng,
+                   NNHeap<Out, Idx> &current_graph) {
+  for (const auto &tree : forest) {
+    search_tree_heap(tree, distance, i, rng, current_graph);
+  }
+}
+
+template <typename Out, typename Idx>
+NNHeap<Out, Idx>
+search_forest(const std::vector<SearchTree2<Idx>> &forest,
+              const BaseDistance<Out, Idx> &distance, uint32_t n_nbrs,
+              ParallelRandomIntProvider<Idx> &rng_provider, bool cache,
+              std::size_t n_threads, ProgressBase &progress,
+              const Executor &executor) {
+  const auto n_queries = distance.get_ny();
+  NNHeap<Out, Idx> current_graph(n_queries, n_nbrs);
+
+  rng_provider.initialize();
+  auto worker = [&](std::size_t begin, std::size_t end) {
+    auto rng_ptr = rng_provider.get_parallel_instance(end);
+    for (auto i = begin; i < end; ++i) {
+      if (cache) {
+        search_forest_cache(forest, distance, static_cast<Idx>(i), *rng_ptr,
+                            current_graph);
+      } else {
+        search_forest(forest, distance, static_cast<Idx>(i), *rng_ptr,
+                      current_graph);
+      }
+    }
+  };
+
+  progress.set_n_iters(n_queries);
+  ExecutionParams exec_params{};
+  dispatch_work(worker, n_queries, n_threads, exec_params, progress, executor);
+
+  return current_graph;
 }
 
 } // namespace tdoann

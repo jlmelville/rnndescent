@@ -127,7 +127,6 @@ rpf_query_res <-
     n_threads = 0,
     cache = TRUE
   )
-
 expect_equal(rpf_query_res, expected_rpt_knn, tol = 1e-7)
 
 set.seed(1337)
@@ -207,7 +206,7 @@ expected_rpf2dist_index <- list(
   list(
     normal_indices = matrix(c(
       4, 0,
-      3, 0,
+      4, 1,
      -1,-1,
      -1,-1,
      -1,-1
@@ -224,7 +223,7 @@ expected_rpf2dist_index <- list(
   )
 )
 set.seed(1337)
-expect_equal(rpf_knn(
+rpf_knn2df <- rpf_knn(
   ui10,
   k = 4,
   metric = "euclidean",
@@ -232,7 +231,22 @@ expect_equal(rpf_knn(
   ret_forest = TRUE,
   leaf_size = 4,
   hyperplaneless = TRUE
-)$forest$trees, expected_rpf2dist_index)
+)
+expect_equal(list(idx = rpf_knn2df$idx, dist = rpf_knn2df$dist), expected_rpt_knn, tol = 1e-7)
+expect_equal(rpf_knn2df$forest$trees, expected_rpf2dist_index)
+
+set.seed(1337)
+rpf2d_query_res <-
+  rpf_knn_query(
+    ui10,
+    ui10,
+    rpf_knn2df$forest,
+    k = 4,
+    metric = "euclidean",
+    n_threads = 0,
+    cache = TRUE
+  )
+expect_equal(rpf2d_query_res, expected_rpt_knn, tol = 1e-7)
 
 
 set.seed(1337)
