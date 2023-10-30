@@ -191,8 +191,8 @@ expect_equal(rpf_f3f$trees[[1]], rpf_knnf3$forest$trees[[2]])
 
 set.seed(1337)
 expect_equal(
-  rpf_build(ui10, metric = "euclidean", leaf_size = 4),
-  readRDS(file = "rpf_index.rds")
+  rpf_build(ui10, metric = "euclidean", leaf_size = 4, n_threads = 0),
+  rpf_index_ls4
 )
 
 # hyperplane-free tree

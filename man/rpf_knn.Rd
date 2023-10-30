@@ -13,6 +13,7 @@ rpf_knn(
   leaf_size = NULL,
   include_self = TRUE,
   ret_forest = FALSE,
+  hyperplaneless = FALSE,
   n_threads = 0,
   verbose = FALSE,
   obs = "R"
