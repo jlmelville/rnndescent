@@ -285,7 +285,7 @@ template <typename Idx> struct SearchTreeImplicit {
 
 template <typename Idx>
 std::pair<std::size_t, std::size_t>
-recursive_convert(const RPTreeImplicit<Idx> &tree,
+recursive_convert(RPTreeImplicit<Idx> &tree,
                   SearchTreeImplicit<Idx> &search_tree, std::size_t node_num,
                   std::size_t leaf_start, std::size_t tree_node) {
 
@@ -298,7 +298,8 @@ recursive_convert(const RPTreeImplicit<Idx> &tree,
     return {node_num + 1, leaf_end};
   } else {
     // node: read from tree.hyperplanes, tree.offsets, tree.children
-    search_tree.normal_indices[node_num] = tree.normal_indices[tree_node];
+    search_tree.normal_indices[node_num] =
+        std::move(tree.normal_indices[tree_node]);
     search_tree.children[node_num].first = node_num + 1;
     auto old_node_num = node_num;
 
@@ -313,8 +314,17 @@ recursive_convert(const RPTreeImplicit<Idx> &tree,
   }
 }
 
+// move into this function, afterwards recursive calls pass by value
 template <typename Idx>
-SearchTreeImplicit<Idx> convert_tree_format(const RPTreeImplicit<Idx> &tree,
+void convert_tree(RPTreeImplicit<Idx> tree,
+                  SearchTreeImplicit<Idx> &search_tree, std::size_t node_num,
+                  std::size_t leaf_start, std::size_t tree_node) {
+  // purposely ignore return value here
+  recursive_convert(tree, search_tree, node_num, leaf_start, tree_node);
+}
+
+template <typename Idx>
+SearchTreeImplicit<Idx> convert_tree_format(RPTreeImplicit<Idx> &&tree,
                                             std::size_t n_points,
                                             std::size_t ndim) {
   const auto n_nodes = tree.children.size();
@@ -322,19 +332,20 @@ SearchTreeImplicit<Idx> convert_tree_format(const RPTreeImplicit<Idx> &tree,
 
   std::size_t node_num = 0;
   std::size_t leaf_start = 0;
-  recursive_convert(tree, search_tree, node_num, leaf_start, n_nodes - 1);
+  convert_tree(std::move(tree), search_tree, node_num, leaf_start, n_nodes - 1);
 
   return search_tree;
 }
 
 template <typename Idx>
 std::vector<SearchTreeImplicit<Idx>>
-convert_rp_forest(const std::vector<RPTreeImplicit<Idx>> &rp_forest,
+convert_rp_forest(std::vector<RPTreeImplicit<Idx>> &&rp_forest,
                   std::size_t n_points, std::size_t ndim) {
   std::vector<SearchTreeImplicit<Idx>> search_forest;
   search_forest.reserve(rp_forest.size());
-  for (const auto &rp_tree : rp_forest) {
-    search_forest.push_back(convert_tree_format(rp_tree, n_points, ndim));
+  for (auto &rp_tree : rp_forest) {
+    search_forest.push_back(
+        convert_tree_format(std::move(rp_tree), n_points, ndim));
   }
   return search_forest;
 }

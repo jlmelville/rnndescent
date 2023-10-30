@@ -372,7 +372,7 @@ List rp_tree_knn_cpp(const NumericMatrix &data, uint32_t nnbrs,
                             max_leaf_size, n_threads, knn_progress, executor);
     if (ret_forest) {
       auto search_forest =
-          tdoann::convert_rp_forest(rp_forest, data.ncol(), ndim);
+          tdoann::convert_rp_forest(std::move(rp_forest), data.ncol(), ndim);
       List search_forest_r = search_forest_to_r(search_forest);
       nn_list["forest"] = search_forest_r;
     }
@@ -386,7 +386,7 @@ List rp_tree_knn_cpp(const NumericMatrix &data, uint32_t nnbrs,
       heap_to_r(neighbor_heap, n_threads, knn_progress, executor, unzero);
   if (ret_forest) {
     auto search_forest =
-        tdoann::convert_rp_forest(rp_forest, data.ncol(), ndim);
+        tdoann::convert_rp_forest(std::move(rp_forest), data.ncol(), ndim);
     List search_forest_r = search_forest_to_r(search_forest);
     nn_list["forest"] = search_forest_r;
   }
@@ -433,7 +433,7 @@ List rp_tree_knn_cpp2(const NumericMatrix &data, uint32_t nnbrs,
 
   if (ret_forest) {
     auto search_forest =
-        tdoann::convert_rp_forest(rp_forest, data.ncol(), ndim);
+        tdoann::convert_rp_forest(std::move(rp_forest), data.ncol(), ndim);
     List search_forest_r = search_forest2_to_r(search_forest);
     nn_list["forest"] = search_forest_r;
   }
@@ -454,7 +454,8 @@ List rnn_rp_forest_build(const NumericMatrix &data, const std::string &metric,
   auto rp_forest = build_rp_forest<In, Idx>(
       data_vec, ndim, metric, n_trees, leaf_size, n_threads, verbose, executor);
 
-  auto search_forest = tdoann::convert_rp_forest(rp_forest, data.ncol(), ndim);
+  auto search_forest =
+      tdoann::convert_rp_forest(std::move(rp_forest), data.ncol(), ndim);
 
   return search_forest_to_r(search_forest);
 }
@@ -475,7 +476,8 @@ List rnn_rp_forest_implicit_build(const NumericMatrix &data,
   auto rp_forest =
       tdoann::make_forest(*distance_ptr, ndim, n_trees, leaf_size, rng_provider,
                           n_threads, forest_progress, executor);
-  auto search_forest = tdoann::convert_rp_forest(rp_forest, data.ncol(), ndim);
+  auto search_forest =
+      tdoann::convert_rp_forest(std::move(rp_forest), data.ncol(), ndim);
   List search_forest_r = search_forest2_to_r(search_forest);
 
   return search_forest2_to_r(search_forest);
