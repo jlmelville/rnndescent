@@ -234,3 +234,19 @@ expect_equal(rpf_knn(
   hyperplaneless = TRUE
 )$forest$trees, expected_rpf2dist_index)
 
+
+set.seed(1337)
+rpf_knnf2d3 <-
+  rpf_knn(
+    ui10,
+    k = 4,
+    metric = "euclidean",
+    n_trees = 3,
+    ret_forest = TRUE,
+    leaf_size = 4,
+    hyperplaneless = TRUE
+  )
+expect_equal(length(rpf_knnf2d3$forest$trees), 3)
+rpf_f2d3f <- rpf_filter(rpf_knnf2d3, n_trees = 1)
+expect_equal(length(rpf_f2d3f$trees), 1)
+expect_equal(rpf_f2d3f$trees[[1]], rpf_knnf2d3$forest$trees[[2]])

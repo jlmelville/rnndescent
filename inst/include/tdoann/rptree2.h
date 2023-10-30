@@ -263,13 +263,12 @@ template <typename Idx> struct SearchTree2 {
   SearchTree2() = default;
 
   SearchTree2(std::size_t n_nodes, std::size_t n_points, std::size_t ndim,
-             Idx lsize)
-    :
-      normal_indices(n_nodes, std::make_pair(static_cast<Idx>(-1),
-                                             static_cast<Idx>(-1))),
-      children(n_nodes, std::make_pair(static_cast<std::size_t>(-1),
-                                       static_cast<std::size_t>(-1))),
-      indices(n_points, static_cast<Idx>(-1)), leaf_size(lsize) {}
+              Idx lsize)
+      : normal_indices(n_nodes, std::make_pair(static_cast<Idx>(-1),
+                                               static_cast<Idx>(-1))),
+        children(n_nodes, std::make_pair(static_cast<std::size_t>(-1),
+                                         static_cast<std::size_t>(-1))),
+        indices(n_points, static_cast<Idx>(-1)), leaf_size(lsize) {}
 
   SearchTree2(std::vector<std::pair<Idx, Idx>> norm_idxs,
               std::vector<std::pair<std::size_t, std::size_t>> chldrn,
@@ -277,7 +276,9 @@ template <typename Idx> struct SearchTree2 {
       : normal_indices(std::move(norm_idxs)), children(std::move(chldrn)),
         indices(std::move(inds)), leaf_size(lsize) {}
 
-  bool is_leaf(std::size_t i) const { return normal_indices[i].first == static_cast<Idx>(-1); }
+  bool is_leaf(std::size_t i) const {
+    return normal_indices[i].first == static_cast<Idx>(-1);
+  }
 };
 
 template <typename Idx>
@@ -300,8 +301,8 @@ recursive_convert(const RPTree2<Idx> &tree, SearchTree2<Idx> &search_tree,
     auto old_node_num = node_num;
 
     auto [new_node_num, new_leaf_start] =
-      recursive_convert(tree, search_tree, node_num + 1, leaf_start,
-                        tree.children[tree_node].first);
+        recursive_convert(tree, search_tree, node_num + 1, leaf_start,
+                          tree.children[tree_node].first);
 
     search_tree.children[old_node_num].second = new_node_num;
 
@@ -312,8 +313,7 @@ recursive_convert(const RPTree2<Idx> &tree, SearchTree2<Idx> &search_tree,
 
 template <typename Idx>
 SearchTree2<Idx> convert_tree_format(const RPTree2<Idx> &tree,
-                                        std::size_t n_points,
-                                        std::size_t ndim) {
+                                     std::size_t n_points, std::size_t ndim) {
   const auto n_nodes = tree.children.size();
   SearchTree2<Idx> search_tree(n_nodes, n_points, ndim, tree.leaf_size);
 
