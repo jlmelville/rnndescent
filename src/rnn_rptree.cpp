@@ -134,7 +134,8 @@ List search_forest_to_r(
     forest_list[i] = tree_list;
   }
 
-  return forest_list;
+  return List::create(_("trees") = forest_list,
+                      _("type") = "hyperplane", _("version") = "0.0.12");
 }
 
 template <typename Idx>
@@ -175,7 +176,8 @@ List search_forest2_to_r(
     forest_list[i] = tree_list;
   }
 
-  return forest_list;
+  return List::create(_("trees") = forest_list,
+                      _("type") = "twodist", _("version") = "0.0.12");
 }
 
 template <typename In, typename Idx>
@@ -211,12 +213,21 @@ tdoann::SearchTree<In, Idx> r_to_search_tree(List tree_list) {
 template <typename In, typename Idx>
 std::vector<tdoann::SearchTree<In, Idx>>
 r_to_search_forest(List forest_list, std::size_t n_threads) {
-  const auto n_trees = forest_list.size();
+  if (not forest_list.containsElementNamed("type")) {
+    Rcpp::stop("Bad forest object passed");
+  }
+  const auto forest_type = Rcpp::as<std::string>(forest_list["type"]);
+  if (forest_type != "hyperplane") {
+    Rcpp::stop("Unsupported forest type: ", forest_type);
+  }
+
+  const auto &trees = Rcpp::as<Rcpp::List>(forest_list["trees"]);
+  const auto n_trees = trees.size();
   std::vector<tdoann::SearchTree<In, Idx>> search_forest(n_trees);
 
   auto worker = [&](std::size_t begin, std::size_t end) {
     for (auto i = begin; i < end; ++i) {
-      search_forest[i] = r_to_search_tree<In, Idx>(forest_list[i]);
+      search_forest[i] = r_to_search_tree<In, Idx>(trees[i]);
     }
   };
 

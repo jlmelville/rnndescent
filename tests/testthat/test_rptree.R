@@ -86,25 +86,29 @@ expect_equal(sum(uiris_rnn$dist), 1.347357, tol = 1e-3)
 
 # R index
 expected_rpf_index <- list(
-    list(
-    hyperplanes = matrix(c(
-      -0.5000000, -0.8000002, -0.2, -0.3,
-      0.3000002, -0.3000002,  0.1, -0.2,
-      0.0000000,  0.0000000,  0.0,  0.0,
-      0.0000000,  0.0000000,  0.0,  0.0,
-      0.0000000,  0.0000000,  0.0,  0.0
-    ), nrow = 5, byrow = TRUE),
-    offsets = c(5.7700009, -0.5550003, NA, NA, NA),
-    children = matrix(c(
-      1, 4,
-      2, 3,
-      0, 3,
-      3, 7,
-      7, 10
-    ), nrow = 5, byrow = TRUE),
-    indices = c(2, 4, 7, 1, 3, 6, 8, 0, 5, 9),
-    leaf_size = 4
-  )
+    trees = list(
+      list(
+        hyperplanes = matrix(c(
+          -0.5000000, -0.8000002, -0.2, -0.3,
+          0.3000002, -0.3000002,  0.1, -0.2,
+          0.0000000,  0.0000000,  0.0,  0.0,
+          0.0000000,  0.0000000,  0.0,  0.0,
+          0.0000000,  0.0000000,  0.0,  0.0
+        ), nrow = 5, byrow = TRUE),
+        offsets = c(5.7700009, -0.5550003, NA, NA, NA),
+        children = matrix(c(
+          1, 4,
+          2, 3,
+          0, 3,
+          3, 7,
+          7, 10
+        ), nrow = 5, byrow = TRUE),
+        indices = c(2, 4, 7, 1, 3, 6, 8, 0, 5, 9),
+        leaf_size = 4
+      )
+    ),
+  type = "hyperplane",
+  version = "0.0.12"
 )
 
 set.seed(1337)
@@ -181,10 +185,16 @@ rpf_knnf3 <-
     ret_forest = TRUE,
     leaf_size = 4
   )
-expect_equal(length(rpf_knnf3), 3)
-rpf_knnf3f <- rpf_filter(rpf_knnf3, n_trees = 1)
-expect_equal(length(rpf_knnf3f), 1)
-expect_equal(rpf_knnf3f[[1]], rpf_knnf3$forest[[2]])
+expect_equal(length(rpf_knnf3$forest$trees), 3)
+rpf_f3f <- rpf_filter(rpf_knnf3, n_trees = 1)
+expect_equal(length(rpf_f3f$trees), 1)
+expect_equal(rpf_f3f$trees[[1]], rpf_knnf3$forest$trees[[2]])
+
+set.seed(1337)
+expect_equal(
+  rpf_build(ui10, metric = "euclidean", leaf_size = 4),
+  readRDS(file = "rpf_index.rds")
+)
 
 # hyperplane-free tree
 set.seed(1337)
@@ -222,4 +232,5 @@ expect_equal(rpf_knn(
   ret_forest = TRUE,
   leaf_size = 4,
   hyperplaneless = TRUE
-)$forest, expected_rpf2dist_index)
+)$forest$trees, expected_rpf2dist_index)
+
