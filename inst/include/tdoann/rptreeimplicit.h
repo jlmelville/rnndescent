@@ -339,7 +339,7 @@ SearchTreeImplicit<Idx> convert_tree_format(RPTreeImplicit<Idx> &&tree,
 
 template <typename Idx>
 std::vector<SearchTreeImplicit<Idx>>
-convert_rp_forest(std::vector<RPTreeImplicit<Idx>> &&rp_forest,
+convert_rp_forest(std::vector<RPTreeImplicit<Idx>> &rp_forest,
                   std::size_t n_points, std::size_t ndim) {
   std::vector<SearchTreeImplicit<Idx>> search_forest;
   search_forest.reserve(rp_forest.size());

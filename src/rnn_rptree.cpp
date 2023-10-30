@@ -105,7 +105,7 @@ void print_search_forest(
 }
 
 template <typename In, typename Idx>
-List search_tree_to_r(const tdoann::SearchTree<In, Idx> &search_tree) {
+List search_tree_to_r(tdoann::SearchTree<In, Idx> &&search_tree) {
 
   std::size_t n_nodes = search_tree.hyperplanes.size();
   NumericVector offsets(search_tree.offsets.size());
@@ -133,12 +133,12 @@ List search_tree_to_r(const tdoann::SearchTree<In, Idx> &search_tree) {
 
 template <typename In, typename Idx>
 List search_forest_to_r(
-    const std::vector<tdoann::SearchTree<In, Idx>> &search_forest) {
+    std::vector<tdoann::SearchTree<In, Idx>> &search_forest) {
   const auto n_trees = search_forest.size();
   List forest_list(n_trees);
 
   for (std::size_t i = 0; i < n_trees; ++i) {
-    List tree_list = search_tree_to_r(search_forest[i]);
+    List tree_list = search_tree_to_r(std::move(search_forest[i]));
     forest_list[i] = tree_list;
   }
   return List::create(_("trees") = forest_list,
@@ -147,8 +147,7 @@ List search_forest_to_r(
 }
 
 template <typename Idx>
-List search_tree_implicit_to_r(
-    const tdoann::SearchTreeImplicit<Idx> &search_tree) {
+List search_tree_implicit_to_r(tdoann::SearchTreeImplicit<Idx> &&search_tree) {
   const auto n_nodes = search_tree.children.size();
 
   IntegerMatrix children(n_nodes, 2);
@@ -170,12 +169,12 @@ List search_tree_implicit_to_r(
 
 template <typename Idx>
 List search_forest_implicit_to_r(
-    const std::vector<tdoann::SearchTreeImplicit<Idx>> &search_forest) {
+    std::vector<tdoann::SearchTreeImplicit<Idx>> &search_forest) {
   const auto n_trees = search_forest.size();
   List forest_list(n_trees);
 
   for (std::size_t i = 0; i < n_trees; ++i) {
-    List tree_list = search_tree_implicit_to_r(search_forest[i]);
+    List tree_list = search_tree_implicit_to_r(std::move(search_forest[i]));
     forest_list[i] = tree_list;
   }
 
@@ -373,7 +372,7 @@ List rp_tree_knn_cpp(const NumericMatrix &data, uint32_t nnbrs,
                             max_leaf_size, n_threads, knn_progress, executor);
     if (ret_forest) {
       auto search_forest =
-          tdoann::convert_rp_forest(std::move(rp_forest), data.ncol(), ndim);
+          tdoann::convert_rp_forest(rp_forest, data.ncol(), ndim);
       List search_forest_r = search_forest_to_r(search_forest);
       nn_list["forest"] = search_forest_r;
     }
@@ -387,7 +386,7 @@ List rp_tree_knn_cpp(const NumericMatrix &data, uint32_t nnbrs,
       heap_to_r(neighbor_heap, n_threads, knn_progress, executor, unzero);
   if (ret_forest) {
     auto search_forest =
-        tdoann::convert_rp_forest(std::move(rp_forest), data.ncol(), ndim);
+        tdoann::convert_rp_forest(rp_forest, data.ncol(), ndim);
     List search_forest_r = search_forest_to_r(search_forest);
     nn_list["forest"] = search_forest_r;
   }
@@ -434,7 +433,7 @@ List rp_tree_knn_cpp2(const NumericMatrix &data, uint32_t nnbrs,
 
   if (ret_forest) {
     auto search_forest =
-        tdoann::convert_rp_forest(std::move(rp_forest), data.ncol(), ndim);
+        tdoann::convert_rp_forest(rp_forest, data.ncol(), ndim);
     List search_forest_r = search_forest_implicit_to_r(search_forest);
     nn_list["forest"] = search_forest_r;
   }
@@ -456,7 +455,7 @@ List rnn_rp_forest_build(const NumericMatrix &data, const std::string &metric,
       data_vec, ndim, metric, n_trees, leaf_size, n_threads, verbose, executor);
 
   auto search_forest =
-      tdoann::convert_rp_forest(std::move(rp_forest), data.ncol(), ndim);
+      tdoann::convert_rp_forest(rp_forest, data.ncol(), ndim);
 
   return search_forest_to_r(search_forest);
 }
@@ -478,7 +477,7 @@ List rnn_rp_forest_implicit_build(const NumericMatrix &data,
       tdoann::make_forest(*distance_ptr, ndim, n_trees, leaf_size, rng_provider,
                           n_threads, forest_progress, executor);
   auto search_forest =
-      tdoann::convert_rp_forest(std::move(rp_forest), data.ncol(), ndim);
+      tdoann::convert_rp_forest(rp_forest, data.ncol(), ndim);
   List search_forest_r = search_forest_implicit_to_r(search_forest);
 
   return search_forest_implicit_to_r(search_forest);
@@ -513,7 +512,8 @@ List rnn_rp_forest_search(const NumericMatrix &query,
     auto distance_ptr = create_query_distance(reference, query, metric);
     using Idx = typename tdoann::DistanceTraits<decltype(distance_ptr)>::Index;
 
-    auto search_forest_cpp = r_to_search_forest_implicit<Idx>(search_forest, n_threads);
+    auto search_forest_cpp =
+        r_to_search_forest_implicit<Idx>(search_forest, n_threads);
 
     rnndescent::ParallelIntRNGAdapter<Idx, rnndescent::DQIntSampler>
         rng_provider;
@@ -578,7 +578,8 @@ List rnn_score_forest(const IntegerMatrix &idx, List search_forest,
 
     return search_forest_to_r(filtered_forest);
   } else if (margin_type == margin_type_to_string(MarginType::IMPLICIT)) {
-    auto search_forest_cpp = r_to_search_forest_implicit<Idx>(search_forest, n_threads);
+    auto search_forest_cpp =
+        r_to_search_forest_implicit<Idx>(search_forest, n_threads);
 
     auto filtered_forest = rnn_score_forest_impl(idx, search_forest_cpp,
                                                  n_trees, n_threads, verbose);
