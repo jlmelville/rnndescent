@@ -20,6 +20,20 @@ even on its own initialized from a random starting point.
 
 ## Current Status
 
+Compared to pynndescent, the major missing features are:
+
+* more dense distance functions
+* any sparse distance functions
+
+*30 October 2023* At last, a workable random partition forest implementation
+has been added. This can be used standalone (e.g. `rpf_knn`, 
+`rpf_build`, `rpt_knn_query`) or as initialization to nearest neighbor descent
+(`nnd_knn(init = "tree", ...)`). The forest itself can be serialized with 
+`saveRDS` but you will pay a price for that convenience by having to pass it 
+back and forth from the R to C++ layer when querying. For now there is no 
+access to the underlying C++ class via R like in RcppHNSW and RcppAnnoy so it
+may not be suitable for some use cases.
+
 *19 October 2023* Inevitably 0.0.11 is here because of a bug in 0.0.10 where 
 nearest neighbor descent was not correctly flagging new/old neighbors which
 reduced performance (but not the actual result).
