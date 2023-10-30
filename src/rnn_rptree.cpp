@@ -124,10 +124,7 @@ List search_tree_to_r(const tdoann::SearchTree<In, Idx> &search_tree) {
     }
   }
 
-  IntegerVector indices(search_tree.indices.size());
-  for (std::size_t i = 0; i < search_tree.indices.size(); ++i) {
-    indices[i] = search_tree.indices[i];
-  }
+  IntegerVector indices(search_tree.indices.begin(), search_tree.indices.end());
 
   return List::create(_("hyperplanes") = hyperplanes, _("offsets") = offsets,
                       _("children") = children, _("indices") = indices,
@@ -137,7 +134,7 @@ List search_tree_to_r(const tdoann::SearchTree<In, Idx> &search_tree) {
 template <typename In, typename Idx>
 List search_forest_to_r(
     const std::vector<tdoann::SearchTree<In, Idx>> &search_forest) {
-  std::size_t n_trees = search_forest.size();
+  const auto n_trees = search_forest.size();
   List forest_list(n_trees);
 
   for (std::size_t i = 0; i < n_trees; ++i) {
@@ -152,7 +149,7 @@ List search_forest_to_r(
 template <typename Idx>
 List search_tree_implicit_to_r(
     const tdoann::SearchTreeImplicit<Idx> &search_tree) {
-  std::size_t n_nodes = search_tree.children.size();
+  const auto n_nodes = search_tree.children.size();
 
   IntegerMatrix children(n_nodes, 2);
   IntegerMatrix normal_indices(n_nodes, 2);
@@ -164,10 +161,7 @@ List search_tree_implicit_to_r(
     normal_indices(i, 1) = search_tree.normal_indices[i].second;
   }
 
-  IntegerVector indices(search_tree.indices.size());
-  for (std::size_t i = 0; i < search_tree.indices.size(); ++i) {
-    indices[i] = search_tree.indices[i];
-  }
+  IntegerVector indices(search_tree.indices.begin(), search_tree.indices.end());
 
   return List::create(_("normal_indices") = normal_indices,
                       _("children") = children, _("indices") = indices,
@@ -175,9 +169,9 @@ List search_tree_implicit_to_r(
 }
 
 template <typename Idx>
-List search_forest2_to_r(
+List search_forest_implicit_to_r(
     const std::vector<tdoann::SearchTreeImplicit<Idx>> &search_forest) {
-  std::size_t n_trees = search_forest.size();
+  const auto n_trees = search_forest.size();
   List forest_list(n_trees);
 
   for (std::size_t i = 0; i < n_trees; ++i) {
@@ -192,42 +186,48 @@ List search_forest2_to_r(
 
 template <typename In, typename Idx>
 tdoann::SearchTree<In, Idx> r_to_search_tree(List tree_list) {
+  // n_nodes x ndim
   NumericMatrix hyperplanes = tree_list["hyperplanes"];
+  // n_nodes
   NumericVector offsets = tree_list["offsets"];
+  // n_nodes x 2
   IntegerMatrix children = tree_list["children"];
+  // n_obs
   IntegerVector indices = tree_list["indices"];
   int leaf_size = tree_list["leaf_size"];
 
-  std::size_t n_nodes = hyperplanes.ncol();
-  std::size_t n_rows = hyperplanes.nrow();
-  std::vector<std::vector<In>> cpp_hyperplanes(n_rows,
-                                               std::vector<In>(n_nodes));
-  std::vector<In> cpp_offsets(offsets.size());
-  std::vector<std::pair<std::size_t, std::size_t>> cpp_children(
-      children.nrow());
+  const std::size_t ndim = hyperplanes.ncol();
+  const std::size_t n_nodes = hyperplanes.nrow();
+  std::vector<std::vector<In>> cpp_hyperplanes(n_nodes, std::vector<In>(ndim));
+  std::vector<In> cpp_offsets(n_nodes);
+  std::vector<std::pair<std::size_t, std::size_t>> cpp_children(n_nodes);
 
-  for (std::size_t i = 0; i < n_rows; ++i) {
-    for (std::size_t j = 0; j < n_nodes; ++j) {
+  for (std::size_t i = 0; i < n_nodes; ++i) {
+    for (std::size_t j = 0; j < ndim; ++j) {
       cpp_hyperplanes[i][j] = hyperplanes(i, j);
     }
     cpp_offsets[i] = offsets[i];
     cpp_children[i] = std::make_pair(children(i, 0), children(i, 1));
   }
 
-  std::vector<Idx> cpp_indices = Rcpp::as<std::vector<Idx>>(indices);
+  auto cpp_indices = Rcpp::as<std::vector<Idx>>(indices);
 
-  return tdoann::SearchTree<In, Idx>(cpp_hyperplanes, cpp_offsets, cpp_children,
-                                     cpp_indices, leaf_size);
+  return tdoann::SearchTree<In, Idx>(
+      std::move(cpp_hyperplanes), std::move(cpp_offsets),
+      std::move(cpp_children), std::move(cpp_indices), leaf_size);
 }
 
 template <typename Idx>
 tdoann::SearchTreeImplicit<Idx> r_to_search_tree_implicit(List tree_list) {
+  // n_nodes x 2
   IntegerMatrix normal_indices = tree_list["normal_indices"];
+  // n_nodes x 2
   IntegerMatrix children = tree_list["children"];
+  // n_obs
   IntegerVector indices = tree_list["indices"];
-  int leaf_size = tree_list["leaf_size"];
+  Idx leaf_size = tree_list["leaf_size"];
 
-  std::size_t n_nodes = children.nrow();
+  const std::size_t n_nodes = children.nrow();
 
   std::vector<std::pair<Idx, Idx>> cpp_normal_indices(n_nodes);
   std::vector<std::pair<std::size_t, std::size_t>> cpp_children(n_nodes);
@@ -238,10 +238,11 @@ tdoann::SearchTreeImplicit<Idx> r_to_search_tree_implicit(List tree_list) {
     cpp_children[i] = std::make_pair(children(i, 0), children(i, 1));
   }
 
-  std::vector<Idx> cpp_indices = Rcpp::as<std::vector<Idx>>(indices);
+  auto cpp_indices = Rcpp::as<std::vector<Idx>>(indices);
 
-  return tdoann::SearchTreeImplicit<Idx>(cpp_normal_indices, cpp_children,
-                                         cpp_indices, leaf_size);
+  return tdoann::SearchTreeImplicit<Idx>(std::move(cpp_normal_indices),
+                                         std::move(cpp_children),
+                                         std::move(cpp_indices), leaf_size);
 }
 
 template <typename In, typename Idx>
@@ -275,7 +276,7 @@ r_to_search_forest(List forest_list, std::size_t n_threads) {
 
 template <typename Idx>
 std::vector<tdoann::SearchTreeImplicit<Idx>>
-r_to_search_forest2(List forest_list, std::size_t n_threads) {
+r_to_search_forest_implicit(List forest_list, std::size_t n_threads) {
   if (not forest_list.containsElementNamed("margin")) {
     Rcpp::stop("Bad forest object passed");
   }
@@ -434,7 +435,7 @@ List rp_tree_knn_cpp2(const NumericMatrix &data, uint32_t nnbrs,
   if (ret_forest) {
     auto search_forest =
         tdoann::convert_rp_forest(std::move(rp_forest), data.ncol(), ndim);
-    List search_forest_r = search_forest2_to_r(search_forest);
+    List search_forest_r = search_forest_implicit_to_r(search_forest);
     nn_list["forest"] = search_forest_r;
   }
   return nn_list;
@@ -478,9 +479,9 @@ List rnn_rp_forest_implicit_build(const NumericMatrix &data,
                           n_threads, forest_progress, executor);
   auto search_forest =
       tdoann::convert_rp_forest(std::move(rp_forest), data.ncol(), ndim);
-  List search_forest_r = search_forest2_to_r(search_forest);
+  List search_forest_r = search_forest_implicit_to_r(search_forest);
 
-  return search_forest2_to_r(search_forest);
+  return search_forest_implicit_to_r(search_forest);
 }
 
 // [[Rcpp::export]]
@@ -512,7 +513,7 @@ List rnn_rp_forest_search(const NumericMatrix &query,
     auto distance_ptr = create_query_distance(reference, query, metric);
     using Idx = typename tdoann::DistanceTraits<decltype(distance_ptr)>::Index;
 
-    auto search_forest_cpp = r_to_search_forest2<Idx>(search_forest, n_threads);
+    auto search_forest_cpp = r_to_search_forest_implicit<Idx>(search_forest, n_threads);
 
     rnndescent::ParallelIntRNGAdapter<Idx, rnndescent::DQIntSampler>
         rng_provider;
@@ -577,12 +578,12 @@ List rnn_score_forest(const IntegerMatrix &idx, List search_forest,
 
     return search_forest_to_r(filtered_forest);
   } else if (margin_type == margin_type_to_string(MarginType::IMPLICIT)) {
-    auto search_forest_cpp = r_to_search_forest2<Idx>(search_forest, n_threads);
+    auto search_forest_cpp = r_to_search_forest_implicit<Idx>(search_forest, n_threads);
 
     auto filtered_forest = rnn_score_forest_impl(idx, search_forest_cpp,
                                                  n_trees, n_threads, verbose);
 
-    return search_forest2_to_r(filtered_forest);
+    return search_forest_implicit_to_r(filtered_forest);
   } else {
     Rcpp::stop("Unknown forest type: ", margin_type);
   }

@@ -203,7 +203,7 @@ rpe_knn <- rpf_knn(uirism[1:20, ], k = 4, verbose = FALSE, n_threads = 0, n_tree
 expect_equal(rpe_knn, rpi_knn)
 
 expected_rpfi_index <- list(
-  list(
+  trees = list(list(
     normal_indices = matrix(c(
       4, 0,
       4, 1,
@@ -220,7 +220,9 @@ expected_rpfi_index <- list(
     ), nrow = 5, byrow = TRUE),
     indices = c(2, 4, 7, 1, 3, 6, 8, 0, 5, 9),
     leaf_size = 4
-  )
+  )),
+  margin = "implicit",
+  version = "0.0.12"
 )
 set.seed(1337)
 rpf_knn2df <- rpf_knn(
@@ -233,7 +235,7 @@ rpf_knn2df <- rpf_knn(
   margin = "implicit"
 )
 expect_equal(list(idx = rpf_knn2df$idx, dist = rpf_knn2df$dist), expected_rpt_knn, tol = 1e-7)
-expect_equal(rpf_knn2df$forest$trees, expected_rpfi_index)
+expect_equal(rpf_knn2df$forest, expected_rpfi_index)
 
 set.seed(1337)
 rpfi_query_res <-
