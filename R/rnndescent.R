@@ -437,7 +437,6 @@ nnd_knn <- function(data,
           leaf_size = NULL,
           include_self = FALSE,
           ret_forest = ret_forest,
-          hyperplaneless = FALSE,
           n_threads = n_threads,
           verbose = verbose
         ),

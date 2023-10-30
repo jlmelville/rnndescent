@@ -9,6 +9,7 @@ rpf_build(
   metric = "euclidean",
   n_trees = NULL,
   leaf_size = 10,
+  margin = "auto",
   n_threads = 0,
   verbose = FALSE,
   obs = "R"
@@ -54,6 +55,26 @@ value should be chosen to match the expected number of neighbors you will
 want to retrieve when running queries (e.g. if you want find 50 nearest
 neighbors set \code{leaf_size = 50}) and should not be set to a value smaller
 than \code{10}.}
+
+\item{margin}{A character string specifying the method used to  assign points
+to one side of the hyperplane or the other. Possible values are:
+\itemize{
+\item \code{"explicit"} categorizes all distance metrics as either Euclidean or
+Angular (Euclidean after normalization), explicitly calculates a hyperplane
+and offset, and then calculates the margin based on the dot product with
+the hyperplane.
+\item \code{"implicit"} calculates the distance from a point to each of the
+points defining the normal vector. The margin is calculated by comparing the
+two distances: the point is assigned to the side of the hyperplane that
+the normal vector point with the closest distance belongs to.
+\item \code{"auto"} (the default) picks the margin method depending on whether a
+binary-specific \code{metric} such as \code{"bhammming"} is chosen, in which case
+\code{"implicit"} is used, and \code{"explicit"} otherwise: binary-specific metrics
+involve storing the data in a way that isn't very efficient for the
+\code{"explicit"} method and the binary-specific metric is usually a lot faster
+than the generic equivalent such that the cost of two distance calculations
+for the margin method is still faster.
+}}
 
 \item{n_threads}{Number of threads to use.}
 

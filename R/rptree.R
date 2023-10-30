@@ -49,10 +49,27 @@
 #'   methods, you should probably keep this set to `TRUE`. However, if you are
 #'   planning on using the result of this as initialization to another nearest
 #'   neighbor method (e.g. [nnd_knn()]), then set this to `FALSE`.
-#' @param ret_forest if `TRUE` also return a search forest which can be used
+#' @param ret_forest If `TRUE` also return a search forest which can be used
 #'   for future querying (via [rpf_knn_query()]) and filtering
 #'   (via [rpf_filter()]). By default this is `FALSE`. Setting this to `TRUE`
 #'   will change the output list to be nested (see the `Value` section below).
+#' @param margin A character string specifying the method used to  assign points
+#'   to one side of the hyperplane or the other. Possible values are:
+#'   - `"explicit"` categorizes all distance metrics as either Euclidean or
+#'   Angular (Euclidean after normalization), explicitly calculates a hyperplane
+#'   and offset, and then calculates the margin based on the dot product with
+#'   the hyperplane.
+#'   - `"implicit"` calculates the distance from a point to each of the
+#'   points defining the normal vector. The margin is calculated by comparing the
+#'   two distances: the point is assigned to the side of the hyperplane that
+#'   the normal vector point with the closest distance belongs to.
+#'   - `"auto"` (the default) picks the margin method depending on whether a
+#'   binary-specific `metric` such as `"bhammming"` is chosen, in which case
+#'   `"implicit"` is used, and `"explicit"` otherwise: binary-specific metrics
+#'   involve storing the data in a way that isn't very efficient for the
+#'   `"explicit"` method and the binary-specific metric is usually a lot faster
+#'   than the generic equivalent such that the cost of two distance calculations
+#'   for the margin method is still faster.
 #' @param n_threads Number of threads to use.
 #' @param verbose If `TRUE`, log information to the console.
 #' @param obs set to `"C"` to indicate that the input `data` orientation stores
@@ -105,7 +122,7 @@ rpf_knn <- function(data,
                     leaf_size = NULL,
                     include_self = TRUE,
                     ret_forest = FALSE,
-                    hyperplaneless = FALSE,
+                    margin = "auto",
                     n_threads = 0,
                     verbose = FALSE,
                     obs = "R") {
@@ -137,7 +154,7 @@ rpf_knn <- function(data,
     leaf_size = leaf_size,
     include_self = include_self,
     ret_forest = ret_forest,
-    hyperplaneless = hyperplaneless,
+    margin = margin,
     n_threads = n_threads,
     verbose = verbose,
     zero_index = FALSE
@@ -183,6 +200,23 @@ rpf_knn <- function(data,
 #'   want to retrieve when running queries (e.g. if you want find 50 nearest
 #'   neighbors set `leaf_size = 50`) and should not be set to a value smaller
 #'   than `10`.
+#' @param margin A character string specifying the method used to  assign points
+#'   to one side of the hyperplane or the other. Possible values are:
+#'   - `"explicit"` categorizes all distance metrics as either Euclidean or
+#'   Angular (Euclidean after normalization), explicitly calculates a hyperplane
+#'   and offset, and then calculates the margin based on the dot product with
+#'   the hyperplane.
+#'   - `"implicit"` calculates the distance from a point to each of the
+#'   points defining the normal vector. The margin is calculated by comparing the
+#'   two distances: the point is assigned to the side of the hyperplane that
+#'   the normal vector point with the closest distance belongs to.
+#'   - `"auto"` (the default) picks the margin method depending on whether a
+#'   binary-specific `metric` such as `"bhammming"` is chosen, in which case
+#'   `"implicit"` is used, and `"explicit"` otherwise: binary-specific metrics
+#'   involve storing the data in a way that isn't very efficient for the
+#'   `"explicit"` method and the binary-specific metric is usually a lot faster
+#'   than the generic equivalent such that the cost of two distance calculations
+#'   for the margin method is still faster.
 #' @param n_threads Number of threads to use.
 #' @param verbose If `TRUE`, log information to the console.
 #' @param obs set to `"C"` to indicate that the input `data` orientation stores
@@ -219,6 +253,7 @@ rpf_build <- function(data,
                       metric = "euclidean",
                       n_trees = NULL,
                       leaf_size = 10,
+                      margin = "auto",
                       n_threads = 0,
                       verbose = FALSE,
                       obs = "R") {
@@ -235,12 +270,15 @@ rpf_build <- function(data,
 
   data <- x2m(data)
 
+  margin <- find_margin_method(margin, metric)
+
   tsmessage(
     thread_msg(
-      "Building RP forest with ",
+      "Building RP forest with n_trees = ",
       n_trees,
-      " trees, leaf size=",
+      " max leaf size = ",
       leaf_size,
+      " margin = '", margin, "'",
       n_threads = n_threads
     )
   )
@@ -249,14 +287,26 @@ rpf_build <- function(data,
     data <- t(data)
   }
 
-  forest <- rnn_rp_forest_build(
-    data,
-    metric,
-    n_trees = n_trees,
-    leaf_size = leaf_size,
-    n_threads = n_threads,
-    verbose = verbose
-  )
+  if (margin == "implicit") {
+    forest <- rnn_rp_forest_implicit_build(
+      data,
+      metric,
+      n_trees = n_trees,
+      leaf_size = leaf_size,
+      n_threads = n_threads,
+      verbose = verbose
+    )
+  }
+  else {
+    forest <- rnn_rp_forest_build(
+      data,
+      metric,
+      n_trees = n_trees,
+      leaf_size = leaf_size,
+      n_threads = n_threads,
+      verbose = verbose
+    )
+  }
   tsmessage("Finished")
   forest
 }
@@ -361,10 +411,10 @@ rpf_knn_query <- function(query,
   check_k(k, n_obs(reference))
 
   if (!is.list(forest)) {
-    stop("Bad forest format")
+    stop("Bad forest format: not a list")
   }
-  if (is.null(forest$type)) {
-    stop("Bad forest format")
+  if (is.null(forest$margin)) {
+    stop("Bad forest format: no 'margin' specified")
   }
 
   if (obs == "R") {

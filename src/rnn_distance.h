@@ -36,6 +36,10 @@ inline bool is_angular_metric(const std::string &metric) {
           metric == "hamming" || metric == "bhamming");
 }
 
+inline bool is_binary_metric(const std::string &metric) {
+  return metric == "bhamming";
+}
+
 // Using Traits to return a pointer to BaseDistance or VectorDistance
 // Functions can return a BaseDistance<Out, Idx> or VectorDistance<In, Out, Idx>
 // depending on the template. Different number of template parameters means

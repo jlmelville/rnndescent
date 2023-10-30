@@ -23,7 +23,7 @@
 
 #include "rnndescent/random.h"
 #include "tdoann/rptree.h"
-#include "tdoann/rptree2.h"
+#include "tdoann/rptreeimplicit.h"
 
 #include "rnn_distance.h"
 #include "rnn_heaptor.h"
@@ -39,8 +39,19 @@ using Rcpp::NumericMatrix;
 using Rcpp::NumericVector;
 using Rcpp::Rcerr;
 
-static const std::string RNN_FOREST_TYPE_HYPERPLANE = "hyperplane";
-static const std::string RNN_FOREST_TYPE_TWODIST = "twodist";
+enum class MarginType {
+  EXPLICIT,
+  IMPLICIT
+};
+
+// Function to convert MarginType to a string
+std::string margin_type_to_string(MarginType margin_type) {
+  switch (margin_type) {
+  case MarginType::EXPLICIT: return "explicit";
+  case MarginType::IMPLICIT: return "implicit";
+  }
+  return "";
+}
 
 template <typename In, typename Idx>
 void print_rp_forest(const std::vector<tdoann::RPTree<In, Idx>> &rp_forest) {
@@ -134,14 +145,13 @@ List search_forest_to_r(
     List tree_list = search_tree_to_r(search_forest[i]);
     forest_list[i] = tree_list;
   }
-
   return List::create(_("trees") = forest_list,
-                      _("type") = RNN_FOREST_TYPE_HYPERPLANE,
+                      _("margin") = margin_type_to_string(MarginType::EXPLICIT),
                       _("version") = "0.0.12");
 }
 
 template <typename Idx>
-List search_tree2_to_r(const tdoann::SearchTree2<Idx> &search_tree) {
+List search_tree_implicit_to_r(const tdoann::SearchTreeImplicit<Idx> &search_tree) {
   std::size_t n_nodes = search_tree.children.size();
 
   IntegerMatrix children(n_nodes, 2);
@@ -166,17 +176,17 @@ List search_tree2_to_r(const tdoann::SearchTree2<Idx> &search_tree) {
 
 template <typename Idx>
 List search_forest2_to_r(
-    const std::vector<tdoann::SearchTree2<Idx>> &search_forest) {
+    const std::vector<tdoann::SearchTreeImplicit<Idx>> &search_forest) {
   std::size_t n_trees = search_forest.size();
   List forest_list(n_trees);
 
   for (std::size_t i = 0; i < n_trees; ++i) {
-    List tree_list = search_tree2_to_r(search_forest[i]);
+    List tree_list = search_tree_implicit_to_r(search_forest[i]);
     forest_list[i] = tree_list;
   }
 
   return List::create(_("trees") = forest_list,
-                      _("type") = RNN_FOREST_TYPE_TWODIST,
+                      _("margin") = margin_type_to_string(MarginType::IMPLICIT),
                       _("version") = "0.0.12");
 }
 
@@ -211,7 +221,7 @@ tdoann::SearchTree<In, Idx> r_to_search_tree(List tree_list) {
 }
 
 template <typename Idx>
-tdoann::SearchTree2<Idx> r_to_search_tree2(List tree_list) {
+tdoann::SearchTreeImplicit<Idx> r_to_search_tree_implicit(List tree_list) {
   IntegerMatrix normal_indices = tree_list["normal_indices"];
   IntegerMatrix children = tree_list["children"];
   IntegerVector indices = tree_list["indices"];
@@ -230,19 +240,19 @@ tdoann::SearchTree2<Idx> r_to_search_tree2(List tree_list) {
 
   std::vector<Idx> cpp_indices = Rcpp::as<std::vector<Idx>>(indices);
 
-  return tdoann::SearchTree2<Idx>(cpp_normal_indices, cpp_children, cpp_indices,
+  return tdoann::SearchTreeImplicit<Idx>(cpp_normal_indices, cpp_children, cpp_indices,
                                   leaf_size);
 }
 
 template <typename In, typename Idx>
 std::vector<tdoann::SearchTree<In, Idx>>
 r_to_search_forest(List forest_list, std::size_t n_threads) {
-  if (not forest_list.containsElementNamed("type")) {
+  if (not forest_list.containsElementNamed("margin")) {
     Rcpp::stop("Bad forest object passed");
   }
-  const std::string &forest_type = forest_list["type"];
-  if (forest_type != RNN_FOREST_TYPE_HYPERPLANE) {
-    Rcpp::stop("Unsupported forest type: ", forest_type);
+  const std::string &margin_type = forest_list["margin"];
+  if (margin_type != margin_type_to_string(MarginType::EXPLICIT)) {
+    Rcpp::stop("Unsupported margin type: ", margin_type);
   }
 
   const List &trees = forest_list["trees"];
@@ -264,23 +274,23 @@ r_to_search_forest(List forest_list, std::size_t n_threads) {
 }
 
 template <typename Idx>
-std::vector<tdoann::SearchTree2<Idx>>
+std::vector<tdoann::SearchTreeImplicit<Idx>>
 r_to_search_forest2(List forest_list, std::size_t n_threads) {
-  if (not forest_list.containsElementNamed("type")) {
+  if (not forest_list.containsElementNamed("margin")) {
     Rcpp::stop("Bad forest object passed");
   }
-  const std::string forest_type = forest_list["type"];
-  if (forest_type != RNN_FOREST_TYPE_TWODIST) {
-    Rcpp::stop("Unsupported forest type: ", forest_type);
+  const std::string margin_type = forest_list["margin"];
+  if (margin_type != margin_type_to_string(MarginType::IMPLICIT)) {
+    Rcpp::stop("Unsupported forest type: ", margin_type);
   }
 
   const List &trees = forest_list["trees"];
   const auto n_trees = trees.size();
-  std::vector<tdoann::SearchTree2<Idx>> search_forest(n_trees);
+  std::vector<tdoann::SearchTreeImplicit<Idx>> search_forest(n_trees);
 
   auto worker = [&](std::size_t begin, std::size_t end) {
     for (auto i = begin; i < end; ++i) {
-      search_forest[i] = r_to_search_tree2<Idx>(trees[i]);
+      search_forest[i] = r_to_search_tree_implicit<Idx>(trees[i]);
     }
   };
 
@@ -312,6 +322,7 @@ template <typename In, typename Idx>
 std::vector<tdoann::RPTree<In, Idx>>
 build_rp_forest(const std::vector<In> &data_vec, std::size_t ndim,
                 const std::string &metric, uint32_t n_trees, uint32_t leaf_size,
+
                 std::size_t n_threads, bool verbose,
                 const tdoann::Executor &executor) {
   bool angular = is_angular_metric(metric);
@@ -323,56 +334,6 @@ build_rp_forest(const std::vector<In> &data_vec, std::size_t ndim,
   RPProgress forest_progress(verbose);
   return tdoann::make_forest(data_vec, ndim, n_trees, leaf_size, rng_provider,
                              angular, n_threads, forest_progress, executor);
-}
-
-// [[Rcpp::export]]
-List rp_tree_knn_cpp2(const NumericMatrix &data, uint32_t nnbrs,
-                      const std::string &metric, uint32_t n_trees,
-                      uint32_t leaf_size, bool include_self, bool unzero = true,
-                      bool ret_forest = false, std::size_t n_threads = 0,
-                      bool verbose = false) {
-  const std::size_t ndim = data.nrow();
-
-  auto distance_ptr = create_self_distance(data, metric);
-  using Idx = typename tdoann::DistanceTraits<decltype(distance_ptr)>::Index;
-
-  if (verbose) {
-    tsmessage() << "Using two-distance (hyperplaneless) calculation\n";
-  }
-  RParallelExecutor executor;
-  rnndescent::ParallelIntRNGAdapter<Idx, rnndescent::DQIntSampler> rng_provider;
-  RPProgress forest_progress(verbose);
-  auto rp_forest =
-      tdoann::make_forest(*distance_ptr, ndim, n_trees, leaf_size, rng_provider,
-                          n_threads, forest_progress, executor);
-
-  if (verbose) {
-    tsmessage() << "Extracting leaf array from forest\n";
-  }
-  const std::size_t max_leaf_size = tdoann::find_max_leaf_size(rp_forest);
-  std::vector<Idx> leaf_array =
-      tdoann::get_leaves_from_forest(rp_forest, max_leaf_size);
-
-  if (verbose) {
-    tsmessage() << "Creating knn using " << leaf_array.size() / max_leaf_size
-                << " leaves\n";
-  }
-  RPProgress knn_progress(verbose);
-
-  auto neighbor_heap =
-      tdoann::init_rp_tree(*distance_ptr, leaf_array, max_leaf_size, nnbrs,
-                           include_self, n_threads, knn_progress, executor);
-
-  auto nn_list =
-      heap_to_r(neighbor_heap, n_threads, knn_progress, executor, unzero);
-
-  if (ret_forest) {
-    auto search_forest =
-        tdoann::convert_rp_forest(rp_forest, data.ncol(), ndim);
-    List search_forest_r = search_forest2_to_r(search_forest);
-    nn_list["forest"] = search_forest_r;
-  }
-  return nn_list;
 }
 
 // [[Rcpp::export]]
@@ -403,7 +364,7 @@ List rp_tree_knn_cpp(const NumericMatrix &data, uint32_t nnbrs,
                 << " leaves\n";
   }
   RPProgress knn_progress(verbose);
-  if (metric == "bhamming") {
+  if (is_binary_metric(metric)) {
     // unfortunately data_vec is still in scope even though we no longer
     // need it
     auto nn_list =
@@ -433,6 +394,53 @@ List rp_tree_knn_cpp(const NumericMatrix &data, uint32_t nnbrs,
 }
 
 // [[Rcpp::export]]
+List rp_tree_knn_cpp2(const NumericMatrix &data, uint32_t nnbrs,
+                      const std::string &metric, uint32_t n_trees,
+                      uint32_t leaf_size, bool include_self, bool unzero = true,
+                      bool ret_forest = false, std::size_t n_threads = 0,
+                      bool verbose = false) {
+  const std::size_t ndim = data.nrow();
+
+  auto distance_ptr = create_self_distance(data, metric);
+  using Idx = typename tdoann::DistanceTraits<decltype(distance_ptr)>::Index;
+
+  RParallelExecutor executor;
+  rnndescent::ParallelIntRNGAdapter<Idx, rnndescent::DQIntSampler> rng_provider;
+  RPProgress forest_progress(verbose);
+  auto rp_forest =
+    tdoann::make_forest(*distance_ptr, ndim, n_trees, leaf_size, rng_provider,
+                        n_threads, forest_progress, executor);
+
+  if (verbose) {
+    tsmessage() << "Extracting leaf array from forest\n";
+  }
+  const std::size_t max_leaf_size = tdoann::find_max_leaf_size(rp_forest);
+  std::vector<Idx> leaf_array =
+    tdoann::get_leaves_from_forest(rp_forest, max_leaf_size);
+
+  if (verbose) {
+    tsmessage() << "Creating knn using " << leaf_array.size() / max_leaf_size
+                << " leaves\n";
+  }
+  RPProgress knn_progress(verbose);
+
+  auto neighbor_heap =
+    tdoann::init_rp_tree(*distance_ptr, leaf_array, max_leaf_size, nnbrs,
+                         include_self, n_threads, knn_progress, executor);
+
+  auto nn_list =
+    heap_to_r(neighbor_heap, n_threads, knn_progress, executor, unzero);
+
+  if (ret_forest) {
+    auto search_forest =
+      tdoann::convert_rp_forest(rp_forest, data.ncol(), ndim);
+    List search_forest_r = search_forest2_to_r(search_forest);
+    nn_list["forest"] = search_forest_r;
+  }
+  return nn_list;
+}
+
+// [[Rcpp::export]]
 List rnn_rp_forest_build(const NumericMatrix &data, const std::string &metric,
                          uint32_t n_trees, uint32_t leaf_size,
                          std::size_t n_threads = 0, bool verbose = false) {
@@ -452,16 +460,37 @@ List rnn_rp_forest_build(const NumericMatrix &data, const std::string &metric,
 }
 
 // [[Rcpp::export]]
+List rnn_rp_forest_implicit_build(const NumericMatrix &data, const std::string &metric,
+                         uint32_t n_trees, uint32_t leaf_size,
+                         std::size_t n_threads = 0, bool verbose = false) {
+  const std::size_t ndim = data.nrow();
+
+  auto distance_ptr = create_self_distance(data, metric);
+  using Idx = typename tdoann::DistanceTraits<decltype(distance_ptr)>::Index;
+
+  RParallelExecutor executor;
+  rnndescent::ParallelIntRNGAdapter<Idx, rnndescent::DQIntSampler> rng_provider;
+  RPProgress forest_progress(verbose);
+  auto rp_forest =
+    tdoann::make_forest(*distance_ptr, ndim, n_trees, leaf_size, rng_provider,
+                        n_threads, forest_progress, executor);
+  auto search_forest =
+    tdoann::convert_rp_forest(rp_forest, data.ncol(), ndim);
+  List search_forest_r = search_forest2_to_r(search_forest);
+
+  return search_forest2_to_r(search_forest);
+}
+
+// [[Rcpp::export]]
 List rnn_rp_forest_search(const NumericMatrix &query,
                           const NumericMatrix &reference, List search_forest,
                           uint32_t n_nbrs, const std::string &metric,
                           bool cache, std::size_t n_threads,
                           bool verbose = false) {
   RParallelExecutor executor;
-  std::string forest_type = search_forest["type"];
+  std::string margin_type = search_forest["margin"];
 
-  if (forest_type == RNN_FOREST_TYPE_HYPERPLANE) {
-
+  if (margin_type == margin_type_to_string(MarginType::EXPLICIT)) {
     auto distance_ptr = create_query_vector_distance(reference, query, metric);
 
     using In = typename tdoann::DistanceTraits<decltype(distance_ptr)>::Input;
@@ -477,8 +506,7 @@ List rnn_rp_forest_search(const NumericMatrix &query,
                                          n_nbrs, rng_provider, cache, n_threads,
                                          progress, executor);
     return heap_to_r(nn_heap);
-  } else if (forest_type == RNN_FOREST_TYPE_TWODIST) {
-
+  } else if (margin_type == margin_type_to_string(MarginType::IMPLICIT)) {
     auto distance_ptr = create_query_distance(reference, query, metric);
     using Idx = typename tdoann::DistanceTraits<decltype(distance_ptr)>::Index;
 
@@ -492,7 +520,7 @@ List rnn_rp_forest_search(const NumericMatrix &query,
                                          progress, executor);
     return heap_to_r(nn_heap);
   } else {
-    Rcpp::stop("Bad search forest type ", forest_type);
+    Rcpp::stop("Bad search forest type ", margin_type);
   }
 }
 
@@ -534,11 +562,11 @@ List rnn_score_forest(const IntegerMatrix &idx, List search_forest,
   using Idx = RNN_DEFAULT_IDX;
   using In = RNN_DEFAULT_IN;
 
-  if (not search_forest.containsElementNamed("type")) {
+  if (not search_forest.containsElementNamed("margin")) {
     Rcpp::stop("Bad forest object passed");
   }
-  const std::string forest_type = search_forest["type"];
-  if (forest_type == RNN_FOREST_TYPE_HYPERPLANE) {
+  const std::string margin_type = search_forest["margin"];
+  if (margin_type == margin_type_to_string(MarginType::EXPLICIT)) {
     auto search_forest_cpp =
         r_to_search_forest<In, Idx>(search_forest, n_threads);
 
@@ -546,7 +574,7 @@ List rnn_score_forest(const IntegerMatrix &idx, List search_forest,
                                                  n_trees, n_threads, verbose);
 
     return search_forest_to_r(filtered_forest);
-  } else if (forest_type == RNN_FOREST_TYPE_TWODIST) {
+  } else if (margin_type == margin_type_to_string(MarginType::IMPLICIT)) {
     auto search_forest_cpp = r_to_search_forest2<Idx>(search_forest, n_threads);
 
     auto filtered_forest = rnn_score_forest_impl(idx, search_forest_cpp,
@@ -554,6 +582,6 @@ List rnn_score_forest(const IntegerMatrix &idx, List search_forest,
 
     return search_forest2_to_r(filtered_forest);
   } else {
-    Rcpp::stop("Unknown forest type: ", forest_type);
+    Rcpp::stop("Unknown forest type: ", margin_type);
   }
 }

@@ -13,7 +13,7 @@ rpf_knn(
   leaf_size = NULL,
   include_self = TRUE,
   ret_forest = FALSE,
-  hyperplaneless = FALSE,
+  margin = "auto",
   n_threads = 0,
   verbose = FALSE,
   obs = "R"
@@ -75,10 +75,30 @@ methods, you should probably keep this set to \code{TRUE}. However, if you are
 planning on using the result of this as initialization to another nearest
 neighbor method (e.g. \code{\link[=nnd_knn]{nnd_knn()}}), then set this to \code{FALSE}.}
 
-\item{ret_forest}{if \code{TRUE} also return a search forest which can be used
+\item{ret_forest}{If \code{TRUE} also return a search forest which can be used
 for future querying (via \code{\link[=rpf_knn_query]{rpf_knn_query()}}) and filtering
 (via \code{\link[=rpf_filter]{rpf_filter()}}). By default this is \code{FALSE}. Setting this to \code{TRUE}
 will change the output list to be nested (see the \code{Value} section below).}
+
+\item{margin}{A character string specifying the method used to  assign points
+to one side of the hyperplane or the other. Possible values are:
+\itemize{
+\item \code{"explicit"} categorizes all distance metrics as either Euclidean or
+Angular (Euclidean after normalization), explicitly calculates a hyperplane
+and offset, and then calculates the margin based on the dot product with
+the hyperplane.
+\item \code{"implicit"} calculates the distance from a point to each of the
+points defining the normal vector. The margin is calculated by comparing the
+two distances: the point is assigned to the side of the hyperplane that
+the normal vector point with the closest distance belongs to.
+\item \code{"auto"} (the default) picks the margin method depending on whether a
+binary-specific \code{metric} such as \code{"bhammming"} is chosen, in which case
+\code{"implicit"} is used, and \code{"explicit"} otherwise: binary-specific metrics
+involve storing the data in a way that isn't very efficient for the
+\code{"explicit"} method and the binary-specific metric is usually a lot faster
+than the generic equivalent such that the cost of two distance calculations
+for the margin method is still faster.
+}}
 
 \item{n_threads}{Number of threads to use.}
 

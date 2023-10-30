@@ -107,7 +107,7 @@ expected_rpf_index <- list(
         leaf_size = 4
       )
     ),
-  type = "hyperplane",
+  margin = "explicit",
   version = "0.0.12"
 )
 
@@ -192,17 +192,17 @@ expect_equal(rpf_f3f$trees[[1]], rpf_knnf3$forest$trees[[2]])
 set.seed(1337)
 expect_equal(
   rpf_build(ui10, metric = "euclidean", leaf_size = 4, n_threads = 0),
-  rpf_index_ls4, tol = 1e-7
+  rpf_index_ls4e, tol = 1e-7
 )
 
-# hyperplane-free tree
+# implicit margin
 set.seed(1337)
-hyper_knn <- rpf_knn(uirism[1:20, ], k = 4, verbose = FALSE, n_threads = 0, n_trees = 2, hyperplaneless = TRUE)
+rpi_knn <- rpf_knn(uirism[1:20, ], k = 4, verbose = FALSE, n_threads = 0, n_trees = 2, margin = "implicit")
 set.seed(1337)
-twod_knn <- rpf_knn(uirism[1:20, ], k = 4, verbose = FALSE, n_threads = 0, n_trees = 2, hyperplaneless = FALSE)
-expect_equal(hyper_knn, twod_knn)
+rpe_knn <- rpf_knn(uirism[1:20, ], k = 4, verbose = FALSE, n_threads = 0, n_trees = 2, margin = "explicit")
+expect_equal(rpe_knn, rpi_knn)
 
-expected_rpf2dist_index <- list(
+expected_rpfi_index <- list(
   list(
     normal_indices = matrix(c(
       4, 0,
@@ -230,13 +230,13 @@ rpf_knn2df <- rpf_knn(
   n_trees = 1,
   ret_forest = TRUE,
   leaf_size = 4,
-  hyperplaneless = TRUE
+  margin = "implicit"
 )
 expect_equal(list(idx = rpf_knn2df$idx, dist = rpf_knn2df$dist), expected_rpt_knn, tol = 1e-7)
-expect_equal(rpf_knn2df$forest$trees, expected_rpf2dist_index)
+expect_equal(rpf_knn2df$forest$trees, expected_rpfi_index)
 
 set.seed(1337)
-rpf2d_query_res <-
+rpfi_query_res <-
   rpf_knn_query(
     ui10,
     ui10,
@@ -246,11 +246,11 @@ rpf2d_query_res <-
     n_threads = 0,
     cache = TRUE
   )
-expect_equal(rpf2d_query_res, expected_rpt_knn, tol = 1e-7)
+expect_equal(rpfi_query_res, expected_rpt_knn, tol = 1e-7)
 
 
 set.seed(1337)
-rpf_knnf2d3 <-
+rpf_knnfi3 <-
   rpf_knn(
     ui10,
     k = 4,
@@ -258,9 +258,15 @@ rpf_knnf2d3 <-
     n_trees = 3,
     ret_forest = TRUE,
     leaf_size = 4,
-    hyperplaneless = TRUE
+    margin = "implicit"
   )
-expect_equal(length(rpf_knnf2d3$forest$trees), 3)
-rpf_f2d3f <- rpf_filter(rpf_knnf2d3, n_trees = 1)
-expect_equal(length(rpf_f2d3f$trees), 1)
-expect_equal(rpf_f2d3f$trees[[1]], rpf_knnf2d3$forest$trees[[2]])
+expect_equal(length(rpf_knnfi3$forest$trees), 3)
+rpf_fi3f <- rpf_filter(rpf_knnfi3, n_trees = 1)
+expect_equal(length(rpf_fi3f$trees), 1)
+expect_equal(rpf_fi3f$trees[[1]], rpf_knnfi3$forest$trees[[2]])
+
+set.seed(1337)
+expect_equal(
+  rpf_build(ui10, metric = "euclidean", leaf_size = 4, margin = "implicit", n_threads = 0),
+  rpf_index_ls4i, tol = 1e-7
+)

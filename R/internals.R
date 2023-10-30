@@ -121,6 +121,16 @@ get_reference_graph_k <- function(reference_graph) {
   ncol(reference_graph$idx)
 }
 
+find_margin_method <- function(margin, metric) {
+  margin <- match.arg(tolower(margin), c("auto", "explicit", "implicit"))
+  if (margin %in% c("explicit", "implicit")) {
+    return(margin)
+  }
+  switch(metric,
+         bhamming = "implicit",
+         "explicit")
+}
+
 find_alt_metric <- function(metric) {
   switch(metric,
     euclidean = "l2sqr",
@@ -201,9 +211,9 @@ rpf_knn_impl <-
            leaf_size,
            include_self,
            ret_forest,
-           hyperplaneless,
-           n_threads,
-           verbose,
+           margin = "auto",
+           n_threads = 0,
+           verbose = FALSE,
            zero_index = FALSE) {
 
     if (is.null(n_trees)) {
@@ -215,6 +225,8 @@ rpf_knn_impl <-
       leaf_size <- max(10, k)
     }
 
+    margin <- find_margin_method(margin, metric)
+
     tsmessage(
       thread_msg(
         "Calculating rp tree k-nearest neighbors with k = ",
@@ -223,11 +235,12 @@ rpf_knn_impl <-
         n_trees,
         " max leaf size = ",
         leaf_size,
+        " margin = '", margin, "'",
         n_threads = n_threads
       )
     )
 
-    if (hyperplaneless) {
+    if (margin == "implicit") {
       res <- rp_tree_knn_cpp2(
         data,
         k,
