@@ -279,7 +279,6 @@ uiriscos <-
     k = 15,
     metric = "cosine",
     n_threads = 0,
-    verbose = TRUE,
     ret_forest = TRUE,
     n_trees = 1
   )
@@ -292,7 +291,6 @@ uiriscosq <-
     k = 15,
     metric = "cosine",
     n_threads = 0,
-    verbose = TRUE
   )
 # handle ties where indices swap places
 expect_equal(sum(uiriscos$idx - uiriscosq$idx), 0)
@@ -304,7 +302,6 @@ uiriscosi <-
     k = 15,
     metric = "cosine",
     n_threads = 0,
-    verbose = TRUE,
     ret_forest = TRUE,
     margin = "implicit",
     n_trees = 1
@@ -318,7 +315,6 @@ uiriscosiq <-
     k = 15,
     metric = "cosine",
     n_threads = 0,
-    verbose = TRUE
   )
 expect_equal(sum(uiriscosi$idx - uiriscosq$idx), 0)
 expect_equal(sum(uiriscosi$idx - uiriscosiq$idx), 0)
