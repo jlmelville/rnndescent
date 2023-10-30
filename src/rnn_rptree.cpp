@@ -39,16 +39,15 @@ using Rcpp::NumericMatrix;
 using Rcpp::NumericVector;
 using Rcpp::Rcerr;
 
-enum class MarginType {
-  EXPLICIT,
-  IMPLICIT
-};
+enum class MarginType { EXPLICIT, IMPLICIT };
 
 // Function to convert MarginType to a string
 std::string margin_type_to_string(MarginType margin_type) {
   switch (margin_type) {
-  case MarginType::EXPLICIT: return "explicit";
-  case MarginType::IMPLICIT: return "implicit";
+  case MarginType::EXPLICIT:
+    return "explicit";
+  case MarginType::IMPLICIT:
+    return "implicit";
   }
   return "";
 }
@@ -151,7 +150,8 @@ List search_forest_to_r(
 }
 
 template <typename Idx>
-List search_tree_implicit_to_r(const tdoann::SearchTreeImplicit<Idx> &search_tree) {
+List search_tree_implicit_to_r(
+    const tdoann::SearchTreeImplicit<Idx> &search_tree) {
   std::size_t n_nodes = search_tree.children.size();
 
   IntegerMatrix children(n_nodes, 2);
@@ -240,8 +240,8 @@ tdoann::SearchTreeImplicit<Idx> r_to_search_tree_implicit(List tree_list) {
 
   std::vector<Idx> cpp_indices = Rcpp::as<std::vector<Idx>>(indices);
 
-  return tdoann::SearchTreeImplicit<Idx>(cpp_normal_indices, cpp_children, cpp_indices,
-                                  leaf_size);
+  return tdoann::SearchTreeImplicit<Idx>(cpp_normal_indices, cpp_children,
+                                         cpp_indices, leaf_size);
 }
 
 template <typename In, typename Idx>
@@ -408,15 +408,15 @@ List rp_tree_knn_cpp2(const NumericMatrix &data, uint32_t nnbrs,
   rnndescent::ParallelIntRNGAdapter<Idx, rnndescent::DQIntSampler> rng_provider;
   RPProgress forest_progress(verbose);
   auto rp_forest =
-    tdoann::make_forest(*distance_ptr, ndim, n_trees, leaf_size, rng_provider,
-                        n_threads, forest_progress, executor);
+      tdoann::make_forest(*distance_ptr, ndim, n_trees, leaf_size, rng_provider,
+                          n_threads, forest_progress, executor);
 
   if (verbose) {
     tsmessage() << "Extracting leaf array from forest\n";
   }
   const std::size_t max_leaf_size = tdoann::find_max_leaf_size(rp_forest);
   std::vector<Idx> leaf_array =
-    tdoann::get_leaves_from_forest(rp_forest, max_leaf_size);
+      tdoann::get_leaves_from_forest(rp_forest, max_leaf_size);
 
   if (verbose) {
     tsmessage() << "Creating knn using " << leaf_array.size() / max_leaf_size
@@ -425,15 +425,15 @@ List rp_tree_knn_cpp2(const NumericMatrix &data, uint32_t nnbrs,
   RPProgress knn_progress(verbose);
 
   auto neighbor_heap =
-    tdoann::init_rp_tree(*distance_ptr, leaf_array, max_leaf_size, nnbrs,
-                         include_self, n_threads, knn_progress, executor);
+      tdoann::init_rp_tree(*distance_ptr, leaf_array, max_leaf_size, nnbrs,
+                           include_self, n_threads, knn_progress, executor);
 
   auto nn_list =
-    heap_to_r(neighbor_heap, n_threads, knn_progress, executor, unzero);
+      heap_to_r(neighbor_heap, n_threads, knn_progress, executor, unzero);
 
   if (ret_forest) {
     auto search_forest =
-      tdoann::convert_rp_forest(rp_forest, data.ncol(), ndim);
+        tdoann::convert_rp_forest(rp_forest, data.ncol(), ndim);
     List search_forest_r = search_forest2_to_r(search_forest);
     nn_list["forest"] = search_forest_r;
   }
@@ -460,9 +460,10 @@ List rnn_rp_forest_build(const NumericMatrix &data, const std::string &metric,
 }
 
 // [[Rcpp::export]]
-List rnn_rp_forest_implicit_build(const NumericMatrix &data, const std::string &metric,
-                         uint32_t n_trees, uint32_t leaf_size,
-                         std::size_t n_threads = 0, bool verbose = false) {
+List rnn_rp_forest_implicit_build(const NumericMatrix &data,
+                                  const std::string &metric, uint32_t n_trees,
+                                  uint32_t leaf_size, std::size_t n_threads = 0,
+                                  bool verbose = false) {
   const std::size_t ndim = data.nrow();
 
   auto distance_ptr = create_self_distance(data, metric);
@@ -472,10 +473,9 @@ List rnn_rp_forest_implicit_build(const NumericMatrix &data, const std::string &
   rnndescent::ParallelIntRNGAdapter<Idx, rnndescent::DQIntSampler> rng_provider;
   RPProgress forest_progress(verbose);
   auto rp_forest =
-    tdoann::make_forest(*distance_ptr, ndim, n_trees, leaf_size, rng_provider,
-                        n_threads, forest_progress, executor);
-  auto search_forest =
-    tdoann::convert_rp_forest(rp_forest, data.ncol(), ndim);
+      tdoann::make_forest(*distance_ptr, ndim, n_trees, leaf_size, rng_provider,
+                          n_threads, forest_progress, executor);
+  auto search_forest = tdoann::convert_rp_forest(rp_forest, data.ncol(), ndim);
   List search_forest_r = search_forest2_to_r(search_forest);
 
   return search_forest2_to_r(search_forest);

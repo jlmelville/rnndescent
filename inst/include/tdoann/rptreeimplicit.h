@@ -56,7 +56,8 @@ template <typename Idx> struct RPTreeImplicit {
 
   // Pre-allocate memory based on a rough best-case lower bound of nodes
   // (balanced tree)
-  RPTreeImplicit(std::size_t num_indices, std::size_t leaf_size, std::size_t ndim)
+  RPTreeImplicit(std::size_t num_indices, std::size_t leaf_size,
+                 std::size_t ndim)
       : ndim(ndim) {
     // expression takes advantage of shifting the dividend by one so the
     // division truncation towards zero effectively rounds up to the nearest
@@ -189,7 +190,8 @@ distance_random_projection_split(const BaseDistance<Out, Idx> &distance,
 
 template <typename Out, typename Idx>
 void make_tree_recursive(const BaseDistance<Out, Idx> &distance,
-                         const std::vector<Idx> &indices, RPTreeImplicit<Idx> &tree,
+                         const std::vector<Idx> &indices,
+                         RPTreeImplicit<Idx> &tree,
                          RandomIntGenerator<Idx> &rng, uint32_t leaf_size,
                          uint32_t max_depth) {
   if (indices.size() > leaf_size && max_depth > 0) {
@@ -215,9 +217,9 @@ void make_tree_recursive(const BaseDistance<Out, Idx> &distance,
 }
 
 template <typename Out, typename Idx>
-RPTreeImplicit<Idx> make_dense_tree(const BaseDistance<Out, Idx> &distance,
-                             std::size_t ndim, RandomIntGenerator<Idx> &rng,
-                             uint32_t leaf_size) {
+RPTreeImplicit<Idx>
+make_dense_tree(const BaseDistance<Out, Idx> &distance, std::size_t ndim,
+                RandomIntGenerator<Idx> &rng, uint32_t leaf_size) {
   std::vector<Idx> indices(distance.get_ny());
   std::iota(indices.begin(), indices.end(), 0);
 
@@ -262,8 +264,8 @@ template <typename Idx> struct SearchTreeImplicit {
 
   SearchTreeImplicit() = default;
 
-  SearchTreeImplicit(std::size_t n_nodes, std::size_t n_points, std::size_t ndim,
-              Idx lsize)
+  SearchTreeImplicit(std::size_t n_nodes, std::size_t n_points,
+                     std::size_t ndim, Idx lsize)
       : normal_indices(n_nodes, std::make_pair(static_cast<Idx>(-1),
                                                static_cast<Idx>(-1))),
         children(n_nodes, std::make_pair(static_cast<std::size_t>(-1),
@@ -271,8 +273,8 @@ template <typename Idx> struct SearchTreeImplicit {
         indices(n_points, static_cast<Idx>(-1)), leaf_size(lsize) {}
 
   SearchTreeImplicit(std::vector<std::pair<Idx, Idx>> norm_idxs,
-              std::vector<std::pair<std::size_t, std::size_t>> chldrn,
-              std::vector<Idx> inds, Idx lsize)
+                     std::vector<std::pair<std::size_t, std::size_t>> chldrn,
+                     std::vector<Idx> inds, Idx lsize)
       : normal_indices(std::move(norm_idxs)), children(std::move(chldrn)),
         indices(std::move(inds)), leaf_size(lsize) {}
 
@@ -283,9 +285,9 @@ template <typename Idx> struct SearchTreeImplicit {
 
 template <typename Idx>
 std::pair<std::size_t, std::size_t>
-recursive_convert(const RPTreeImplicit<Idx> &tree, SearchTreeImplicit<Idx> &search_tree,
-                  std::size_t node_num, std::size_t leaf_start,
-                  std::size_t tree_node) {
+recursive_convert(const RPTreeImplicit<Idx> &tree,
+                  SearchTreeImplicit<Idx> &search_tree, std::size_t node_num,
+                  std::size_t leaf_start, std::size_t tree_node) {
 
   if (tree.is_leaf(tree_node)) {
     // leaf: read from tree.indices, tree.children (in if statement above)
@@ -313,7 +315,8 @@ recursive_convert(const RPTreeImplicit<Idx> &tree, SearchTreeImplicit<Idx> &sear
 
 template <typename Idx>
 SearchTreeImplicit<Idx> convert_tree_format(const RPTreeImplicit<Idx> &tree,
-                                     std::size_t n_points, std::size_t ndim) {
+                                            std::size_t n_points,
+                                            std::size_t ndim) {
   const auto n_nodes = tree.children.size();
   SearchTreeImplicit<Idx> search_tree(n_nodes, n_points, ndim, tree.leaf_size);
 
