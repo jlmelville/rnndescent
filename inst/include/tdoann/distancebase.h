@@ -49,15 +49,6 @@ public:
   virtual Out calculate(const Idx &i, const Idx &j) const = 0;
   virtual std::size_t get_nx() const = 0;
   virtual std::size_t get_ny() const = 0;
-
-  // needed for RP Tree calculations
-  // https://github.com/lmcinnes/pynndescent/blob/db258cea34cce7e11e90a460c1f8a0bd8b69f1c1/pynndescent/pynndescent_.py#L764
-  // angular metrics currently are:
-  // "cosine", "dot", "correlation", "dice", "jaccard", "hellinger", "hamming",
-  // other metrics are considered to be euclidean. By default metrics are not
-  // considered angular so you only have to override this if the metric is
-  // angular
-  virtual bool is_angular() const { return false; }
 };
 
 // Distance calculators which can return an iterator pointing to a contiguous
@@ -312,8 +303,6 @@ public:
                        this->x.begin() + this->ndim * j);
   }
 
-  bool is_angular() const override { return true; }
-
   std::size_t get_nx() const override { return Mixin::get_nx(); }
   std::size_t get_ny() const override { return Mixin::get_ny(); }
   Iterator get_x(Idx i) const override { return Mixin::get_x(i); }
@@ -337,8 +326,6 @@ public:
     return cosine<Out>(this->x.begin() + di, this->x.begin() + di + this->ndim,
                        this->y.begin() + this->ndim * j);
   }
-
-  bool is_angular() const override { return true; }
 
   std::size_t get_nx() const override { return Mixin::get_nx(); }
   std::size_t get_ny() const override { return Mixin::get_ny(); }
@@ -367,8 +354,6 @@ public:
                               this->x.begin() + di + this->ndim,
                               this->x.begin() + this->ndim * j);
   }
-
-  bool is_angular() const override { return true; }
 
   std::size_t get_nx() const override { return Mixin::get_nx(); }
   std::size_t get_ny() const override { return Mixin::get_ny(); }
@@ -399,7 +384,6 @@ public:
                               this->x.begin() + di + this->ndim,
                               this->y.begin() + this->ndim * j);
   }
-  bool is_angular() const override { return true; }
 
   std::size_t get_nx() const override { return Mixin::get_nx(); }
   std::size_t get_ny() const override { return Mixin::get_ny(); }
@@ -425,8 +409,6 @@ public:
                             this->x.begin() + this->ndim * j);
   }
 
-  bool is_angular() const override { return true; }
-
   std::size_t get_nx() const override { return Mixin::get_nx(); }
   std::size_t get_ny() const override { return Mixin::get_ny(); }
   Iterator get_x(Idx i) const override { return Mixin::get_x(i); }
@@ -451,7 +433,6 @@ public:
                             this->x.begin() + di + this->ndim,
                             this->y.begin() + this->ndim * j);
   }
-  bool is_angular() const override { return true; }
 
   std::size_t get_nx() const override { return Mixin::get_nx(); }
   std::size_t get_ny() const override { return Mixin::get_ny(); }
@@ -481,7 +462,6 @@ public:
                               this->x.begin() + di + this->ndim,
                               this->x.begin() + this->ndim * j);
   }
-  bool is_angular() const override { return true; }
 
   std::size_t get_nx() const override { return Mixin::get_nx(); }
   std::size_t get_ny() const override { return Mixin::get_ny(); }
@@ -516,7 +496,6 @@ public:
                               this->x.begin() + di + this->ndim,
                               this->y.begin() + this->ndim * j);
   }
-  bool is_angular() const override { return true; }
 
   std::size_t get_nx() const override { return Mixin::get_nx(); }
   std::size_t get_ny() const override { return Mixin::get_ny(); }
@@ -540,7 +519,6 @@ public:
     return hamming<Out>(this->x.begin() + di, this->x.begin() + di + this->ndim,
                         this->x.begin() + this->ndim * j);
   }
-  bool is_angular() const override { return true; }
 
   std::size_t get_nx() const override { return Mixin::get_nx(); }
   std::size_t get_ny() const override { return Mixin::get_ny(); }
@@ -565,7 +543,6 @@ public:
     return hamming<Out>(this->x.begin() + di, this->x.begin() + di + this->ndim,
                         this->y.begin() + this->ndim * j);
   }
-  bool is_angular() const override { return true; }
 
   std::size_t get_nx() const override { return Mixin::get_nx(); }
   std::size_t get_ny() const override { return Mixin::get_ny(); }
@@ -578,13 +555,12 @@ class BHammingSelfDistance : public BaseDistance<Out, Idx> {
 public:
   template <typename VecIn>
   BHammingSelfDistance(VecIn &&data, std::size_t ndim)
-      : vec_len(num_blocks_needed(ndim)), nx(data.size() / ndim), ny(nx),
+      : vec_len(num_blocks_needed(ndim)), nx(data.size() / ndim),
         bdata(to_bitvec(std::forward<VecIn>(data), ndim)) {}
 
   Out calculate(const Idx &i, const Idx &j) const override {
     return bhamming_impl<Out>(bdata, i, bdata, j, vec_len);
   }
-  bool is_angular() const override { return true; }
 
   std::size_t get_nx() const override { return nx; }
   std::size_t get_ny() const override { return nx; }
@@ -592,7 +568,6 @@ public:
 private:
   std::size_t vec_len;
   std::size_t nx;
-  std::size_t ny;
   const BitVec bdata;
 };
 
@@ -608,8 +583,6 @@ public:
   Out calculate(const Idx &i, const Idx &j) const override {
     return bhamming_impl<Out>(bx, i, by, j, vec_len);
   }
-
-  bool is_angular() const override { return true; }
 
   std::size_t get_nx() const override { return nx; }
   std::size_t get_ny() const override { return ny; }

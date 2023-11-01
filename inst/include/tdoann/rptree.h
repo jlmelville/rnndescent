@@ -608,8 +608,8 @@ SearchTree<In, Idx> convert_tree_format(RPTree<In, Idx> &&tree,
 
 template <typename In, typename Idx>
 std::vector<SearchTree<In, Idx>>
-convert_rp_forest(std::vector<RPTree<In, Idx>> &rp_forest,
-                  std::size_t n_points, std::size_t ndim) {
+convert_rp_forest(std::vector<RPTree<In, Idx>> &rp_forest, std::size_t n_points,
+                  std::size_t ndim) {
   std::vector<SearchTree<In, Idx>> search_forest;
   search_forest.reserve(rp_forest.size());
   for (auto &rp_tree : rp_forest) {

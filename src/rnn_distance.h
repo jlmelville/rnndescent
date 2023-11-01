@@ -29,6 +29,11 @@
 
 #include "rnn_util.h"
 
+// needed for RP Tree calculations
+// https://github.com/lmcinnes/pynndescent/blob/db258cea34cce7e11e90a460c1f8a0bd8b69f1c1/pynndescent/pynndescent_.py#L764
+// angular metrics currently are:
+// "cosine", "dot", "correlation", "dice", "jaccard", "hellinger", "hamming",
+// other metrics are considered to be euclidean.
 // for consistency with pynndescent should these get implemented other angular
 // metrics are "dot", "dice", "jaccard", "hellinger"
 inline bool is_angular_metric(const std::string &metric) {
