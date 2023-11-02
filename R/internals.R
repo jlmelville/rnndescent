@@ -131,11 +131,29 @@ find_margin_method <- function(margin, metric) {
          "explicit")
 }
 
-find_alt_metric <- function(metric) {
+
+find_sparse_alt_metric <- function(metric) {
   switch(metric,
-    euclidean = "l2sqr",
-    metric
+         euclidean = "l2sqr",
+         cosine = "alternative-cosine",
+         metric
   )
+}
+
+find_dense_alt_metric <- function(metric) {
+  switch(metric,
+         euclidean = "l2sqr",
+         metric
+  )
+}
+
+find_alt_metric <- function(metric, is_sparse = FALSE) {
+  if (is_sparse) {
+    find_sparse_alt_metric(metric)
+  }
+  else {
+    find_dense_alt_metric(metric)
+  }
 }
 
 apply_alt_metric_uncorrection <- function(metric, dist) {
@@ -145,11 +163,43 @@ apply_alt_metric_uncorrection <- function(metric, dist) {
   )
 }
 
-apply_alt_metric_correction <- function(metric, dist) {
+apply_dense_alt_metric_correction <- function(metric, dist) {
+  switch(metric,
+         euclidean = sqrt(dist),
+         dist
+  )
+}
+
+apply_sparse_alt_metric_correction <- function(metric, dist) {
   switch(metric,
     euclidean = sqrt(dist),
+    cosine = apply(dist, c(1, 2), sparse_correct_alternative_cosine),
     dist
   )
+}
+
+apply_alt_metric_correction <- function(metric, dist, is_sparse = FALSE) {
+  if (is_sparse) {
+    apply_sparse_alt_metric_correction(metric, dist)
+  }
+  else {
+    apply_dense_alt_metric_correction(metric, dist)
+  }
+}
+
+
+isclose <- function(a, b, rtol = 1.0e-5, atol = 1.0e-8) {
+  diff <- abs(a - b)
+  diff <= (atol + rtol * abs(b))
+}
+
+sparse_correct_alternative_cosine <- function(dist) {
+  if (isclose(0.0, abs(dist), atol = 1e-7) || dist < 0.0) {
+    0.0
+  }
+  else {
+    1.0 - (2.0 ^ -dist)
+  }
 }
 
 
@@ -270,7 +320,8 @@ rpf_knn_impl <-
     }
 
     if (use_alt_metric) {
-      res$dist <- apply_alt_metric_correction(metric, res$dist)
+      res$dist <-
+        apply_alt_metric_correction(metric, res$dist, methods::is(data, "sparseMatrix"))
     }
     tsmessage("Finished")
     res
@@ -318,8 +369,10 @@ random_knn_impl <-
     if (!zero_index) {
       res$idx <- res$idx + 1
     }
+
     if (use_alt_metric) {
-      res$dist <- apply_alt_metric_correction(metric, res$dist)
+      res$dist <-
+        apply_alt_metric_correction(metric, res$dist, methods::is(reference, "sparseMatrix"))
     }
     tsmessage("Finished")
     res

@@ -190,7 +190,25 @@ expect_equal(
     Matrix::drop0(bitdata),
     k = 4,
     n_threads = 0,
+    metric = "cosine",
+    use_alt_metric = FALSE
+  ),
+  tol = 1e-6
+)
+
+expect_equal(
+  brute_force_knn(
+    bitdata,
+    k = 4,
+    n_threads = 0,
     metric = "cosine"
+  ),
+  brute_force_knn(
+    Matrix::drop0(bitdata),
+    k = 4,
+    n_threads = 0,
+    metric = "cosine",
+    use_alt_metric = TRUE
   ),
   tol = 1e-6
 )

@@ -287,6 +287,12 @@ create_sparse_self_distance_impl(
         std::move(ind_vec), std::move(ptr_vec), std::move(data_vec), ndim,
         nobs);
   }
+  if (metric == "alternative-cosine") {
+    return std::make_unique<
+        tdoann::SparseAlternativeCosineSelfDistance<In, Out, Idx>>(
+        std::move(ind_vec), std::move(ptr_vec), std::move(data_vec), ndim,
+        nobs);
+  }
   if (metric == "correlation") {
     return std::make_unique<
         tdoann::SparseCorrelationSelfDistance<In, Out, Idx>>(

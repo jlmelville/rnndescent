@@ -76,7 +76,7 @@ brute_force_knn <- function(data,
   check_k(k, n_obs(data))
 
   if (use_alt_metric) {
-    actual_metric <- find_alt_metric(metric)
+    actual_metric <- find_alt_metric(metric, methods::is(data, "sparseMatrix"))
   } else {
     actual_metric <- metric
   }
@@ -113,7 +113,8 @@ brute_force_knn <- function(data,
   res$idx <- res$idx + 1
 
   if (use_alt_metric) {
-    res$dist <- apply_alt_metric_correction(metric, res$dist)
+    res$dist <-
+      apply_alt_metric_correction(metric, res$dist, methods::is(data, "sparseMatrix"))
   }
   tsmessage("Finished")
   res
@@ -501,8 +502,10 @@ nnd_knn <- function(data,
     verbose = verbose,
     progress_type = progress
   )
+
   if (use_alt_metric) {
-    res$dist <- apply_alt_metric_correction(metric, res$dist)
+    res$dist <-
+      apply_alt_metric_correction(metric, res$dist, methods::is(data, "sparseMatrix"))
   }
   tsmessage("Finished")
   if (!is.null(forest)) {
@@ -628,7 +631,8 @@ brute_force_knn_query <- function(query,
   res$idx <- res$idx + 1
 
   if (use_alt_metric) {
-    res$dist <- apply_alt_metric_correction(metric, res$dist)
+    res$dist <-
+      apply_alt_metric_correction(metric, res$dist, methods::is(reference, "sparseMatrix"))
   }
   tsmessage("Finished")
 
@@ -977,7 +981,8 @@ graph_knn_query <- function(query,
       verbose = verbose
     )
   if (use_alt_metric) {
-    res$dist <- apply_alt_metric_correction(metric, res$dist)
+    res$dist <-
+      apply_alt_metric_correction(metric, res$dist, methods::is(reference, "sparseMatrix"))
   }
   tsmessage("Finished")
   res

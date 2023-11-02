@@ -30,8 +30,8 @@
 #include <algorithm>
 #include <cmath>
 #include <iterator>
-#include <vector>
 #include <unordered_set>
+#include <vector>
 
 #include "distancebase.h"
 
@@ -292,6 +292,53 @@ Out sparse_cosine(typename std::vector<std::size_t>::const_iterator ind1_start,
 }
 
 template <typename Out, typename DataIt>
+Out sparse_alternative_cosine(
+    typename std::vector<std::size_t>::const_iterator ind1_start,
+    std::size_t ind1_size, DataIt data1_start,
+    typename std::vector<std::size_t>::const_iterator ind2_start,
+    std::size_t ind2_size, DataIt data2_start) {
+
+  const Out FLOAT32_MAX = std::numeric_limits<float>::max();
+
+  auto sparse_mul_result = sparse_mul<Out>(ind1_start, ind1_size, data1_start,
+                                           ind2_start, ind2_size, data2_start);
+  auto &aux_data = sparse_mul_result.second;
+
+  Out result{0};
+  Out norm_x{0};
+  Out norm_y{0};
+  std::size_t dim = aux_data.size();
+
+  for (std::size_t i = 0; i < ind1_size; ++i) {
+    Out val = static_cast<Out>(*(data1_start + i));
+    norm_x += val * val;
+  }
+
+  for (std::size_t i = 0; i < ind2_size; ++i) {
+    Out val = static_cast<Out>(*(data2_start + i));
+    norm_y += val * val;
+  }
+
+  norm_x = std::sqrt(norm_x);
+  norm_y = std::sqrt(norm_y);
+
+  for (std::size_t i = 0; i < dim; ++i) {
+    result += aux_data[i];
+  }
+
+  if (norm_x == 0.0 && norm_y == 0.0) {
+    return Out(0);
+  } else if (norm_x == 0.0 || norm_y == 0.0) {
+    return FLOAT32_MAX;
+  } else if (result <= 0.0) {
+    return FLOAT32_MAX;
+  } else {
+    result = (norm_x * norm_y) / result;
+    return std::log2(result);
+  }
+}
+
+template <typename Out, typename DataIt>
 Out sparse_correlation(
     typename std::vector<std::size_t>::const_iterator ind1_start,
     std::size_t ind1_size, DataIt data1_start,
@@ -514,6 +561,37 @@ public:
                               this->x_data.begin() + di,
                               this->x_ind.begin() + dj, this->x_ptr[j + 1] - dj,
                               this->x_data.begin() + dj);
+  }
+
+  std::size_t get_nx() const override { return nx; }
+  std::size_t get_ny() const override { return nx; }
+
+private:
+  std::vector<std::size_t> x_ind;
+  std::vector<std::size_t> x_ptr;
+  std::vector<In> x_data;
+  std::size_t nx;
+  std::size_t ndim;
+};
+
+template <typename In, typename Out, typename Idx = uint32_t>
+class SparseAlternativeCosineSelfDistance : public BaseDistance<Out, Idx> {
+public:
+  SparseAlternativeCosineSelfDistance(std::vector<std::size_t> &&x_ind,
+                                      std::vector<std::size_t> &&x_ptr,
+                                      std::vector<In> &&x_data,
+                                      std::size_t ndim, std::size_t nx)
+      : x_ind(std::move(x_ind)), x_ptr(std::move(x_ptr)),
+        x_data(std::move(x_data)), nx(nx), ndim(ndim) {}
+
+  Out calculate(const Idx &i, const Idx &j) const override {
+    const std::size_t di = this->x_ptr[i];
+    const std::size_t dj = this->x_ptr[j];
+
+    return sparse_alternative_cosine<Out>(
+        this->x_ind.begin() + di, this->x_ptr[i + 1] - di,
+        this->x_data.begin() + di, this->x_ind.begin() + dj,
+        this->x_ptr[j + 1] - dj, this->x_data.begin() + dj);
   }
 
   std::size_t get_nx() const override { return nx; }
