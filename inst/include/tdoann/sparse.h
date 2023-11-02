@@ -31,6 +31,7 @@
 #include <cmath>
 #include <iterator>
 #include <vector>
+#include <unordered_set>
 
 #include "distancebase.h"
 
@@ -416,10 +417,10 @@ public:
     const std::size_t di = this->x_ptr[i];
     const std::size_t dj = this->x_ptr[j];
 
-    return sparse_l2sqr<Out>(this->x_ind.begin() + di, this->x_ptr[i + 1] - di,
-                             this->x_data.begin() + di,
-                             this->x_ind.begin() + dj, this->x_ptr[j + 1] - dj,
-                             this->x_data.begin() + dj);
+    return sparse_euclidean<Out>(
+        this->x_ind.begin() + di, this->x_ptr[i + 1] - di,
+        this->x_data.begin() + di, this->x_ind.begin() + dj,
+        this->x_ptr[j + 1] - dj, this->x_data.begin() + dj);
   }
 
   std::size_t get_nx() const override { return nx; }
