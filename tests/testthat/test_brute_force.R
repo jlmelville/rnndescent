@@ -136,6 +136,23 @@ expect_equal(
     ui10sp,
     k = 4,
     n_threads = 0,
+    metric = "euclidean",
+    use_alt_metric = FALSE
+  ),
+  brute_force_knn(
+    ui10z,
+    k = 4,
+    n_threads = 0,
+    metric = "euclidean",
+    use_alt_metric = FALSE
+  )
+)
+
+expect_equal(
+  brute_force_knn(
+    ui10sp,
+    k = 4,
+    n_threads = 0,
     metric = "manhattan"
   ),
   brute_force_knn(
