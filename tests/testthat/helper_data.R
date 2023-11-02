@@ -5,6 +5,7 @@ ui10 <- uirism[6:15, ]
 
 ui10sp_full <- Matrix::drop0(ui10)
 
+set.seed(1337)
 ui10z <- ui10
 ui10z[sample(prod(dim(ui10z)), 10)] <- 0
 ui10sp <- Matrix::drop0(ui10z)
