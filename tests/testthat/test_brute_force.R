@@ -130,3 +130,66 @@ check_nbrs(rnbrs, ui10_eucd, tol = 1e-6)
 nbrs_zdense <- brute_force_knn(ui10z, k = 4, n_threads = 0)
 nbrs_zsparse <- brute_force_knn(ui10sp, k = 4, n_threads = 0)
 expect_equal(nbrs_zsparse, nbrs_zdense)
+
+expect_equal(
+  brute_force_knn(
+    ui10sp,
+    k = 4,
+    n_threads = 0,
+    metric = "manhattan"
+  ),
+  brute_force_knn(
+    ui10z,
+    k = 4,
+    n_threads = 0,
+    metric = "manhattan"
+  )
+)
+
+
+expect_equal(
+  brute_force_knn(
+    bitdata,
+    k = 4,
+    n_threads = 0,
+    metric = "hamming"
+  ),
+  brute_force_knn(
+    Matrix::drop0(bitdata),
+    k = 4,
+    n_threads = 0,
+    metric = "hamming"
+  )
+)
+
+expect_equal(
+  brute_force_knn(
+    bitdata,
+    k = 4,
+    n_threads = 0,
+    metric = "cosine"
+  ),
+  brute_force_knn(
+    Matrix::drop0(bitdata),
+    k = 4,
+    n_threads = 0,
+    metric = "cosine"
+  ),
+  tol = 1e-6
+)
+
+expect_equal(
+  brute_force_knn(
+    ui10sp,
+    k = 4,
+    n_threads = 0,
+    metric = "correlation"
+  ),
+  brute_force_knn(
+    ui10z,
+    k = 4,
+    n_threads = 0,
+    metric = "correlation"
+  ),
+  tol = 1e-6
+)
