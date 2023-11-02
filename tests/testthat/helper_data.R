@@ -3,6 +3,8 @@ uiris <- unique(iris)
 uirism <- as.matrix(uiris[, -5])
 ui10 <- uirism[6:15, ]
 
+ui10sp <- Matrix::drop0(ui10)
+
 # treat sum of distances an objective function
 # expected sum from sum(FNN::get.knn(uirism, 14)$nn.dist)
 ui_edsum <- 1016.834

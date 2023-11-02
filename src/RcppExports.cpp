@@ -25,6 +25,25 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rnn_brute_force_sparse
+List rnn_brute_force_sparse(const NumericVector& data, const IntegerVector& ind, const IntegerVector& ptr, std::size_t nobs, std::size_t ndim, uint32_t nnbrs, const std::string& metric, std::size_t n_threads, bool verbose);
+RcppExport SEXP _rnndescent_rnn_brute_force_sparse(SEXP dataSEXP, SEXP indSEXP, SEXP ptrSEXP, SEXP nobsSEXP, SEXP ndimSEXP, SEXP nnbrsSEXP, SEXP metricSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericVector& >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type ind(indSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type ptr(ptrSEXP);
+    Rcpp::traits::input_parameter< std::size_t >::type nobs(nobsSEXP);
+    Rcpp::traits::input_parameter< std::size_t >::type ndim(ndimSEXP);
+    Rcpp::traits::input_parameter< uint32_t >::type nnbrs(nnbrsSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
+    Rcpp::traits::input_parameter< std::size_t >::type n_threads(n_threadsSEXP);
+    Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
+    rcpp_result_gen = Rcpp::wrap(rnn_brute_force_sparse(data, ind, ptr, nobs, ndim, nnbrs, metric, n_threads, verbose));
+    return rcpp_result_gen;
+END_RCPP
+}
 // rnn_brute_force_query
 List rnn_brute_force_query(const NumericMatrix& reference, const NumericMatrix& query, uint32_t nnbrs, const std::string& metric, std::size_t n_threads, bool verbose);
 RcppExport SEXP _rnndescent_rnn_brute_force_query(SEXP referenceSEXP, SEXP querySEXP, SEXP nnbrsSEXP, SEXP metricSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
@@ -427,6 +446,7 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_rnndescent_rnn_brute_force", (DL_FUNC) &_rnndescent_rnn_brute_force, 5},
+    {"_rnndescent_rnn_brute_force_sparse", (DL_FUNC) &_rnndescent_rnn_brute_force_sparse, 9},
     {"_rnndescent_rnn_brute_force_query", (DL_FUNC) &_rnndescent_rnn_brute_force_query, 6},
     {"_rnndescent_euclidean_distance", (DL_FUNC) &_rnndescent_euclidean_distance, 2},
     {"_rnndescent_l2sqr_distance", (DL_FUNC) &_rnndescent_l2sqr_distance, 2},

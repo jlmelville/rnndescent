@@ -5,6 +5,10 @@ rnn_brute_force <- function(data, nnbrs, metric = "euclidean", n_threads = 0L, v
     .Call(`_rnndescent_rnn_brute_force`, data, nnbrs, metric, n_threads, verbose)
 }
 
+rnn_brute_force_sparse <- function(data, ind, ptr, nobs, ndim, nnbrs, metric = "euclidean", n_threads = 0L, verbose = FALSE) {
+    .Call(`_rnndescent_rnn_brute_force_sparse`, data, ind, ptr, nobs, ndim, nnbrs, metric, n_threads, verbose)
+}
+
 rnn_brute_force_query <- function(reference, query, nnbrs, metric = "euclidean", n_threads = 0L, verbose = FALSE) {
     .Call(`_rnndescent_rnn_brute_force_query`, reference, query, nnbrs, metric, n_threads, verbose)
 }

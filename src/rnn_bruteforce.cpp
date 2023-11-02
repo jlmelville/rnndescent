@@ -28,22 +28,41 @@
 #include "rnn_progress.h"
 #include "rnn_util.h"
 
+using Rcpp::IntegerVector;
 using Rcpp::List;
 using Rcpp::NumericMatrix;
+using Rcpp::NumericVector;
+
+template <typename Out, typename Idx>
+List rnn_brute_force_impl(const tdoann::BaseDistance<Out, Idx> &distance,
+                          uint32_t nnbrs, std::size_t n_threads = 0,
+                          bool verbose = false) {
+  RPProgress progress(verbose);
+  RParallelExecutor executor;
+
+  auto nn_graph =
+      tdoann::brute_force_build(distance, nnbrs, n_threads, progress, executor);
+  constexpr bool unzero = false;
+  return graph_to_r(nn_graph, unzero);
+}
 
 // [[Rcpp::export]]
 List rnn_brute_force(const NumericMatrix &data, uint32_t nnbrs,
                      const std::string &metric = "euclidean",
                      std::size_t n_threads = 0, bool verbose = false) {
   auto distance_ptr = create_self_distance(data, metric);
-  RPProgress progress(verbose);
-  RParallelExecutor executor;
+  return rnn_brute_force_impl(*distance_ptr, nnbrs, n_threads, verbose);
+}
 
-  auto nn_graph = tdoann::brute_force_build(*distance_ptr, nnbrs, n_threads,
-                                            progress, executor);
-
-  constexpr bool unzero = false;
-  return graph_to_r(nn_graph, unzero);
+// [[Rcpp::export]]
+List rnn_brute_force_sparse(const NumericVector &data, const IntegerVector &ind,
+                            const IntegerVector &ptr, std::size_t nobs,
+                            std::size_t ndim, uint32_t nnbrs,
+                            const std::string &metric = "euclidean",
+                            std::size_t n_threads = 0, bool verbose = false) {
+  auto distance_ptr =
+      create_sparse_self_distance(data, ind, ptr, nobs, ndim, metric);
+  return rnn_brute_force_impl(*distance_ptr, nnbrs, n_threads, verbose);
 }
 
 // [[Rcpp::export]]

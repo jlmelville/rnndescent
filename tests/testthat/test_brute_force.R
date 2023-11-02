@@ -122,3 +122,7 @@ check_nbrs(rnbrs, ui10_eucd, tol = 1e-6)
 qnbrs6 <- brute_force_knn_query(t(int6), t(int4), k = 4, metric = "hamming", n_threads = 2, obs = "C")
 check_query_nbrs_idx(qnbrs6$idx, nref = nrow(int6))
 expect_equal(qnbrs6$dist, h64d)
+
+# sparse
+rnbrs <- brute_force_knn(ui10sp, k = 4, n_threads = 0)
+check_nbrs(rnbrs, ui10_eucd, tol = 1e-6)

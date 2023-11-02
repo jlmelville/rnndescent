@@ -53,6 +53,11 @@ auto graph_to_r(const tdoann::NNGraph<Out> &graph, bool unzero = false)
 }
 
 template <typename T>
+auto r_to_vec(const Rcpp::IntegerVector &data) -> std::vector<T> {
+  return Rcpp::as<std::vector<T>>(data);
+}
+
+template <typename T>
 auto r_to_vec(const Rcpp::NumericVector &data) -> std::vector<T> {
   return Rcpp::as<std::vector<T>>(data);
 }

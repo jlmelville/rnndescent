@@ -26,6 +26,7 @@
 #include <Rcpp.h>
 
 #include "tdoann/distancebase.h"
+#include "tdoann/sparse.h"
 
 #include "rnn_util.h"
 
@@ -252,6 +253,62 @@ create_self_vector_distance(const Rcpp::NumericMatrix &data,
   return create_self_distance_impl<
       tdoann::VectorDistance<RNN_DEFAULT_DIST, RNN_DEFAULT_DIST, Idx>>(data,
                                                                        metric);
+}
+
+// Sparse distances
+
+template <typename... Args>
+std::unique_ptr<typename FactoryTraits<Args...>::type>
+create_sparse_self_distance_impl(
+    std::vector<typename FactoryTraits<Args...>::input_type> data_vec,
+    std::vector<std::size_t> ind_vec, std::size_t nobs, std::size_t ndim,
+    const std::string &metric) {
+  using In = typename FactoryTraits<Args...>::input_type;
+  using Out = typename FactoryTraits<Args...>::output_type;
+  using Idx = typename FactoryTraits<Args...>::index_type;
+
+  if (metric == "l2sqr") {
+    return std::make_unique<tdoann::SparseL2SqrSelfDistance<In, Out, Idx>>(
+        std::move(ind_vec), std::move(data_vec), ndim, nobs);
+  }
+  if (metric == "euclidean") {
+    return std::make_unique<tdoann::SparseEuclideanSelfDistance<In, Out, Idx>>(
+        std::move(ind_vec), std::move(data_vec), ndim, nobs);
+  }
+  Rcpp::stop("Bad metric");
+}
+
+template <typename... Args>
+std::unique_ptr<typename FactoryTraits<Args...>::type>
+create_sparse_self_distance_impl(const Rcpp::NumericVector &data,
+                                 const Rcpp::IntegerVector &ind,
+                                 const Rcpp::IntegerVector &ptr,
+                                 std::size_t nobs, std::size_t ndim,
+                                 const std::string &metric) {
+  using In = typename FactoryTraits<Args...>::input_type;
+  using Out = typename FactoryTraits<Args...>::output_type;
+  using Idx = typename FactoryTraits<Args...>::index_type;
+
+  auto data_vec = r_to_vec<In>(data);
+  auto ind_vec = r_to_vec<std::size_t>(ind);
+
+  return create_sparse_self_distance_impl<tdoann::BaseDistance<Out, Idx>>(
+      std::move(data_vec), std::move(ind_vec), nobs, ndim, metric);
+}
+
+// Factory function to return a BaseDistance
+template <typename Idx = RNN_DEFAULT_IDX>
+std::unique_ptr<tdoann::BaseDistance<RNN_DEFAULT_DIST, Idx>>
+create_sparse_self_distance(const Rcpp::NumericVector &data,
+                            const Rcpp::IntegerVector &ind,
+                            const Rcpp::IntegerVector &ptr, std::size_t nobs,
+                            std::size_t ndim, const std::string &metric) {
+  using Out = RNN_DEFAULT_DIST;
+
+  // handle special case (e.g. binary) if needed here
+
+  return create_sparse_self_distance_impl<tdoann::BaseDistance<Out, Idx>>(
+      data, ind, ptr, nobs, ndim, metric);
 }
 
 #endif // RNN_DISTANCE_H

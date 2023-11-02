@@ -88,17 +88,28 @@ brute_force_knn <- function(data,
       n_threads = n_threads
     )
   )
-
   if (obs == "R") {
-    data <- t(data)
+    data <- Matrix::t(data)
   }
-  res <-
-    rnn_brute_force(data,
-      k,
-      actual_metric,
-      n_threads = n_threads,
-      verbose = verbose
-    )
+  if (methods::is(data, "sparseMatrix")) {
+    res <-
+      rnn_brute_force_sparse(data@x, data@i, data@p,
+                             ncol(data), nrow(data),
+                      k,
+                      actual_metric,
+                      n_threads = n_threads,
+                      verbose = verbose
+      )
+  }
+  else {
+    res <-
+      rnn_brute_force(data,
+        k,
+        actual_metric,
+        n_threads = n_threads,
+        verbose = verbose
+      )
+  }
   res$idx <- res$idx + 1
 
   if (use_alt_metric) {
