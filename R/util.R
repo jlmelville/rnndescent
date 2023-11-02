@@ -25,7 +25,7 @@ tsmessage <-
 
 # convert data frame to matrix using numeric columns
 x2m <- function(X) {
-  if (methods::is(X, "sparseMatrix")) {
+  if (is_sparse(X)) {
     return(X)
   }
   if (!methods::is(X, "matrix")) {

@@ -31,18 +31,15 @@
 #include "rnn_progress.h"
 #include "rnn_util.h"
 
+using Rcpp::IntegerVector;
 using Rcpp::List;
 using Rcpp::NumericMatrix;
+using Rcpp::NumericVector;
 
-// [[Rcpp::export]]
-List random_knn_cpp(const NumericMatrix &data, uint32_t nnbrs,
-                    const std::string &metric = "euclidean",
-                    bool order_by_distance = true, std::size_t n_threads = 0,
-                    bool verbose = false) {
-  auto distance_ptr = create_self_distance(data, metric);
-  using Idx = typename tdoann::DistanceTraits<decltype(distance_ptr)>::Index;
-  using Out = typename tdoann::DistanceTraits<decltype(distance_ptr)>::Output;
-
+template <typename Out, typename Idx>
+List random_knn_cpp_impl(const tdoann::BaseDistance<Out, Idx> &distance,
+                         uint32_t nnbrs, bool order_by_distance = true,
+                         std::size_t n_threads = 0, bool verbose = false) {
   RPProgress progress(verbose);
   RParallelExecutor executor;
 
@@ -52,15 +49,38 @@ List random_knn_cpp(const NumericMatrix &data, uint32_t nnbrs,
     rnndescent::ParallelIntRNGAdapter<Idx, rnndescent::DQIntSampler>
         sampler_provider;
     nn_graph =
-        tdoann::random_build(*distance_ptr, nnbrs, sampler_provider,
+        tdoann::random_build(distance, nnbrs, sampler_provider,
                              order_by_distance, n_threads, progress, executor);
   } else {
     rnndescent::DQIntSampler<Idx> sampler;
-    nn_graph = tdoann::random_build(*distance_ptr, nnbrs, sampler,
-                                    order_by_distance, progress);
+    nn_graph = tdoann::random_build(distance, nnbrs, sampler, order_by_distance,
+                                    progress);
   }
   constexpr bool unzero = false;
   return graph_to_r(*nn_graph, unzero);
+}
+
+// [[Rcpp::export]]
+List random_knn_sparse(const NumericVector &data, const IntegerVector &ind,
+                       const IntegerVector &ptr, std::size_t nobs,
+                       std::size_t ndim, uint32_t nnbrs,
+                       const std::string &metric = "euclidean",
+                       bool order_by_distance = true, std::size_t n_threads = 0,
+                       bool verbose = false) {
+  auto distance_ptr =
+      create_sparse_self_distance(data, ind, ptr, nobs, ndim, metric);
+  return random_knn_cpp_impl(*distance_ptr, nnbrs, order_by_distance, n_threads,
+                             verbose);
+}
+
+// [[Rcpp::export]]
+List random_knn_cpp(const NumericMatrix &data, uint32_t nnbrs,
+                    const std::string &metric = "euclidean",
+                    bool order_by_distance = true, std::size_t n_threads = 0,
+                    bool verbose = false) {
+  auto distance_ptr = create_self_distance(data, metric);
+  return random_knn_cpp_impl(*distance_ptr, nnbrs, order_by_distance, n_threads,
+                             verbose);
 }
 
 // [[Rcpp::export]]

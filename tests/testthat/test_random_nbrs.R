@@ -124,3 +124,25 @@ test_that("one neighbor code path is ok", {
 
   expect_in(rnbrs1$idx, 1:10)
 })
+
+test_that("sparse euclidean", {
+  set.seed(1337)
+  dzrnbrs <- random_knn(ui10z, k = 4, n_threads = 0, use_alt_metric = FALSE, metric = "euclidean")
+  set.seed(1337)
+  sprnbrs <- random_knn(ui10sp, k = 4, n_threads = 0, use_alt_metric = FALSE, metric = "euclidean")
+  expect_equal(dzrnbrs, sprnbrs)
+  set.seed(1337)
+  sprnbrs <- random_knn(ui10sp, k = 4, n_threads = 0, use_alt_metric = TRUE, metric = "euclidean")
+  expect_equal(dzrnbrs, sprnbrs, tol = 1e-7)
+})
+
+test_that("sparse cosine", {
+  set.seed(1337)
+  dzrnbrs <- random_knn(ui10z, k = 4, n_threads = 0, use_alt_metric = FALSE, metric = "cosine")
+  set.seed(1337)
+  sprnbrs <- random_knn(ui10sp, k = 4, n_threads = 0, use_alt_metric = FALSE, metric = "cosine")
+  expect_equal(dzrnbrs, sprnbrs, tol = 1e-6)
+  set.seed(1337)
+  sprnbrs <- random_knn(ui10sp, k = 4, n_threads = 0, use_alt_metric = TRUE, metric = "cosine")
+  expect_equal(dzrnbrs, sprnbrs, tol = 1e-6)
+})

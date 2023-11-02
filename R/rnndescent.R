@@ -76,7 +76,7 @@ brute_force_knn <- function(data,
   check_k(k, n_obs(data))
 
   if (use_alt_metric) {
-    actual_metric <- find_alt_metric(metric, methods::is(data, "sparseMatrix"))
+    actual_metric <- find_alt_metric(metric, is_sparse(data))
   } else {
     actual_metric <- metric
   }
@@ -91,7 +91,7 @@ brute_force_knn <- function(data,
   if (obs == "R") {
     data <- Matrix::t(data)
   }
-  if (methods::is(data, "sparseMatrix")) {
+  if (is_sparse(data)) {
     res <-
       rnn_brute_force_sparse(data@x, data@i, data@p,
                              ncol(data), nrow(data),
@@ -114,7 +114,7 @@ brute_force_knn <- function(data,
 
   if (use_alt_metric) {
     res$dist <-
-      apply_alt_metric_correction(metric, res$dist, methods::is(data, "sparseMatrix"))
+      apply_alt_metric_correction(metric, res$dist, is_sparse(data))
   }
   tsmessage("Finished")
   res
@@ -206,13 +206,13 @@ random_knn <-
     check_k(k, n_obs(data))
 
     if (use_alt_metric) {
-      actual_metric <- find_alt_metric(metric)
+      actual_metric <- find_alt_metric(metric, is_sparse(data))
     } else {
       actual_metric <- metric
     }
 
     if (obs == "R") {
-      data <- t(data)
+      data <- Matrix::t(data)
     }
     random_knn_impl(
       reference = data,
@@ -505,7 +505,7 @@ nnd_knn <- function(data,
 
   if (use_alt_metric) {
     res$dist <-
-      apply_alt_metric_correction(metric, res$dist, methods::is(data, "sparseMatrix"))
+      apply_alt_metric_correction(metric, res$dist, is_sparse(data))
   }
   tsmessage("Finished")
   if (!is.null(forest)) {
@@ -632,7 +632,7 @@ brute_force_knn_query <- function(query,
 
   if (use_alt_metric) {
     res$dist <-
-      apply_alt_metric_correction(metric, res$dist, methods::is(reference, "sparseMatrix"))
+      apply_alt_metric_correction(metric, res$dist, is_sparse(reference))
   }
   tsmessage("Finished")
 
@@ -982,7 +982,7 @@ graph_knn_query <- function(query,
     )
   if (use_alt_metric) {
     res$dist <-
-      apply_alt_metric_correction(metric, res$dist, methods::is(reference, "sparseMatrix"))
+      apply_alt_metric_correction(metric, res$dist, is_sparse(reference))
   }
   tsmessage("Finished")
   res

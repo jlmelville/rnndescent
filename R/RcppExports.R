@@ -107,6 +107,10 @@ degree_prune_cpp <- function(graph_list, max_degree, n_threads) {
     .Call(`_rnndescent_degree_prune_cpp`, graph_list, max_degree, n_threads)
 }
 
+random_knn_sparse <- function(data, ind, ptr, nobs, ndim, nnbrs, metric = "euclidean", order_by_distance = TRUE, n_threads = 0L, verbose = FALSE) {
+    .Call(`_rnndescent_random_knn_sparse`, data, ind, ptr, nobs, ndim, nnbrs, metric, order_by_distance, n_threads, verbose)
+}
+
 random_knn_cpp <- function(data, nnbrs, metric = "euclidean", order_by_distance = TRUE, n_threads = 0L, verbose = FALSE) {
     .Call(`_rnndescent_random_knn_cpp`, data, nnbrs, metric, order_by_distance, n_threads, verbose)
 }

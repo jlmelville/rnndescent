@@ -132,6 +132,10 @@ find_margin_method <- function(margin, metric) {
 }
 
 
+is_sparse <- function(x) {
+  methods::is(x, "sparseMatrix")
+}
+
 find_sparse_alt_metric <- function(metric) {
   switch(metric,
          euclidean = "l2sqr",
@@ -186,7 +190,6 @@ apply_alt_metric_correction <- function(metric, dist, is_sparse = FALSE) {
     apply_dense_alt_metric_correction(metric, dist)
   }
 }
-
 
 isclose <- function(a, b, rtol = 1.0e-5, atol = 1.0e-8) {
   diff <- abs(a - b)
@@ -341,8 +344,15 @@ random_knn_impl <-
            zero_index = FALSE) {
     if (is.null(query)) {
       msg <- "Generating random k-nearest neighbor graph with k = "
-      fun <- random_knn_cpp
-      args <- list(data = reference)
+      if (methods::is(reference, "sparseMatrix")) {
+        fun <- random_knn_sparse
+        args <- list(data = reference@x, ind = reference@i, ptr = reference@p,
+                     nobs = ncol(reference), ndim = nrow(reference))
+      }
+      else {
+        fun <- random_knn_cpp
+        args <- list(data = reference)
+      }
     } else {
       msg <-
         "Generating random k-nearest neighbor graph from reference with k = "
