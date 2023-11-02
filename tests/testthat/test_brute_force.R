@@ -124,5 +124,9 @@ check_query_nbrs_idx(qnbrs6$idx, nref = nrow(int6))
 expect_equal(qnbrs6$dist, h64d)
 
 # sparse
-rnbrs <- brute_force_knn(ui10sp, k = 4, n_threads = 0)
+rnbrs <- brute_force_knn(ui10sp_full, k = 4, n_threads = 0)
 check_nbrs(rnbrs, ui10_eucd, tol = 1e-6)
+
+nbrs_zdense <- brute_force_knn(ui10z, k = 4, n_threads = 0)
+nbrs_zsparse <- brute_force_knn(ui10sp, k = 4, n_threads = 0)
+expect_equal(nbrs_zsparse, nbrs_zdense)

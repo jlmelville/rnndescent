@@ -261,7 +261,9 @@ template <typename... Args>
 std::unique_ptr<typename FactoryTraits<Args...>::type>
 create_sparse_self_distance_impl(
     std::vector<typename FactoryTraits<Args...>::input_type> data_vec,
-    std::vector<std::size_t> ind_vec, std::size_t nobs, std::size_t ndim,
+    std::vector<std::size_t> ind_vec,
+    std::vector<std::size_t> ptr_vec,
+    std::size_t nobs, std::size_t ndim,
     const std::string &metric) {
   using In = typename FactoryTraits<Args...>::input_type;
   using Out = typename FactoryTraits<Args...>::output_type;
@@ -269,11 +271,11 @@ create_sparse_self_distance_impl(
 
   if (metric == "l2sqr") {
     return std::make_unique<tdoann::SparseL2SqrSelfDistance<In, Out, Idx>>(
-        std::move(ind_vec), std::move(data_vec), ndim, nobs);
+        std::move(ind_vec), std::move(ptr_vec), std::move(data_vec), ndim, nobs);
   }
   if (metric == "euclidean") {
     return std::make_unique<tdoann::SparseEuclideanSelfDistance<In, Out, Idx>>(
-        std::move(ind_vec), std::move(data_vec), ndim, nobs);
+        std::move(ind_vec), std::move(ptr_vec), std::move(data_vec), ndim, nobs);
   }
   Rcpp::stop("Bad metric");
 }
@@ -291,9 +293,10 @@ create_sparse_self_distance_impl(const Rcpp::NumericVector &data,
 
   auto data_vec = r_to_vec<In>(data);
   auto ind_vec = r_to_vec<std::size_t>(ind);
+  auto ptr_vec = r_to_vec<std::size_t>(ptr);
 
   return create_sparse_self_distance_impl<tdoann::BaseDistance<Out, Idx>>(
-      std::move(data_vec), std::move(ind_vec), nobs, ndim, metric);
+      std::move(data_vec), std::move(ind_vec), std::move(ptr_vec), nobs, ndim, metric);
 }
 
 // Factory function to return a BaseDistance
