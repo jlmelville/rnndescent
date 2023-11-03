@@ -112,4 +112,13 @@ test_that("sparse", {
   expect_equal(dznbrs, spnbrs, tol = 1e-5)
   set.seed(1337); spnbrs <- nnd_knn(ui10sp, k = 4, n_threads = 0, metric = "cosine", use_alt_metric = FALSE)
   expect_equal(dznbrs, spnbrs, tol = 1e-5)
+
+  # make sure uncorrection is triggered: nnd with incorrect distances will not converge
+  bfz <- brute_force_knn(ui10z, k = 4, metric = "cosine")
+  set.seed(1337); cosrz <- random_knn(ui10z, k = 4, metric = "cosine")
+  set.seed(1337); spannd <- nnd_knn(ui10sp, k = 4, metric = "cosine", init = cosrz, use_alt_metric = TRUE)
+  set.seed(1337); spcnnd <- nnd_knn(ui10sp, k = 4, metric = "cosine", init = cosrz, use_alt_metric = FALSE)
+
+  expect_equal(spannd, bfz, tol = 1e-6)
+  expect_equal(spcnnd, bfz, tol = 1e-5)
 })
