@@ -1161,9 +1161,8 @@ prepare_search_graph <- function(data,
   sp <- preserve_zeros(sp)
 
   data <- x2m(data)
-
   if (obs == "R") {
-    data <- t(data)
+    data <- Matrix::t(data)
   }
 
   if (!is.null(diversify_prob) && diversify_prob > 0) {
@@ -1251,13 +1250,28 @@ diversify <- function(data,
   stopifnot(methods::is(graph, "sparseMatrix"))
   gl <- csparse_to_list(graph)
 
-  gl_div <- diversify_cpp(
-    data = x2m(data),
-    graph_list = gl,
-    metric = metric,
-    prune_probability = prune_probability,
-    n_threads = n_threads
-  )
+  if (is_sparse(data)) {
+    gl_div <- diversify_sparse_cpp(
+      data = data@x,
+      ind = data@i,
+      ptr = data@p,
+      nobs = ncol(data),
+      ndim = nrow(data),
+      graph_list = gl,
+      metric = metric,
+      prune_probability = prune_probability,
+      n_threads = n_threads
+    )
+  }
+  else {
+    gl_div <- diversify_cpp(
+      data = data,
+      graph_list = gl,
+      metric = metric,
+      prune_probability = prune_probability,
+      n_threads = n_threads
+    )
+  }
   res <- list_to_sparse(gl_div)
   nnz_after <- Matrix::nnzero(res)
   tsmessage(

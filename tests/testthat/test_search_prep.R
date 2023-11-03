@@ -279,3 +279,27 @@ test_that("column orientation", {
   )
   expect_equal(sg_occ_trunc@p, c(0, 1, 2, 5, 7, 9, 11, 13, 15, 16, 16))
 })
+
+test_that("sparse data prep same as dense", {
+  ui10dz_bf <- brute_force_knn(ui10z, k = 4)
+
+  set.seed(1337)
+  sgdz <-
+    prepare_search_graph(
+      data = ui10z,
+      graph = ui10dz_bf,
+      diversify_prob = 1,
+      pruning_degree_multiplier = 0.5,
+    )
+
+  set.seed(1337)
+  sgsp <-
+    prepare_search_graph(
+      data = ui10sp,
+      graph = ui10dz_bf,
+      diversify_prob = 1,
+      pruning_degree_multiplier = 0.5,
+    )
+
+  expect_equal(sgsp, sgdz)
+})

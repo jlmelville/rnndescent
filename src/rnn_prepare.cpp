@@ -29,25 +29,43 @@
 #include "rnn_parallel.h"
 #include "rnn_progress.h"
 
+using Rcpp::IntegerVector;
 using Rcpp::List;
 using Rcpp::NumericMatrix;
+using Rcpp::NumericVector;
 
 template <typename Out, typename Idx>
-auto diversify_impl(const tdoann::SparseNNGraph<Out, Idx> &graph,
-                    const tdoann::BaseDistance<Out, Idx> &distance,
-                    double prune_probability, std::size_t n_threads)
-    -> tdoann::SparseNNGraph<Out, Idx> {
+List diversify_impl(const tdoann::BaseDistance<Out, Idx> &distance,
+                    List graph_list, double prune_probability,
+                    std::size_t n_threads) {
+  const auto graph = r_to_sparse_graph<Out, Idx>(graph_list);
+
+  std::optional<tdoann::SparseNNGraph<Out, Idx>> diversified;
   if (n_threads == 0) {
     rnndescent::RRand rand;
-    return tdoann::remove_long_edges(graph, distance, rand, prune_probability);
+    diversified =
+        tdoann::remove_long_edges(graph, distance, rand, prune_probability);
+  } else {
+    RParallelExecutor executor;
+    RPProgress progress(1, false);
+    rnndescent::ParallelRNGAdapter<rnndescent::PcgRand> parallel_rand;
+    diversified = tdoann::remove_long_edges(graph, distance, parallel_rand,
+                                            prune_probability, n_threads,
+                                            progress, executor);
   }
+  return sparse_graph_to_r(*diversified);
+}
 
-  RParallelExecutor executor;
-  RPProgress progress(1, false);
-  rnndescent::ParallelRNGAdapter<rnndescent::PcgRand> parallel_rand;
-  return tdoann::remove_long_edges(graph, distance, parallel_rand,
-                                   prune_probability, n_threads, progress,
-                                   executor);
+// [[Rcpp::export]]
+List diversify_sparse_cpp(const NumericVector &data, const IntegerVector &ind,
+                          const IntegerVector &ptr, std::size_t nobs,
+                          std::size_t ndim, const List &graph_list,
+                          const std::string &metric, double prune_probability,
+                          std::size_t n_threads) {
+  auto distance_ptr =
+      create_sparse_self_distance(data, ind, ptr, nobs, ndim, metric);
+  return diversify_impl(*distance_ptr, graph_list, prune_probability,
+                        n_threads);
 }
 
 // [[Rcpp::export]]
@@ -55,14 +73,8 @@ List diversify_cpp(const NumericMatrix &data, const List &graph_list,
                    const std::string &metric, double prune_probability,
                    std::size_t n_threads) {
   auto distance_ptr = create_self_distance(data, metric);
-  using Out = typename tdoann::DistanceTraits<decltype(distance_ptr)>::Output;
-  using Idx = typename tdoann::DistanceTraits<decltype(distance_ptr)>::Index;
-  const auto graph = r_to_sparse_graph<Out, Idx>(graph_list);
-
-  auto diversified =
-      diversify_impl(graph, *distance_ptr, prune_probability, n_threads);
-
-  return sparse_graph_to_r(diversified);
+  return diversify_impl(*distance_ptr, graph_list, prune_probability,
+                        n_threads);
 }
 
 // [[Rcpp::export]]
