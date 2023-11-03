@@ -81,6 +81,7 @@ prepare_init_graph <-
     if (is.null(nn$dist) || recalculate_distances) {
       tsmessage("Generating distances for initial indices")
       if (!is.null(query)) {
+        # FIXME: sparse
         nn <-
           rnn_idx_to_graph_query(
             reference = data,
@@ -91,14 +92,30 @@ prepare_init_graph <-
             verbose = verbose
           )
       } else {
-        nn <-
-          rnn_idx_to_graph_self(
-            data = data,
-            idx = nn$idx,
-            metric = metric,
-            n_threads = n_threads,
-            verbose = verbose
-          )
+        if (is_sparse(data)) {
+          nn <-
+            rnn_idx_to_graph_sparse_self(
+              data = data@x,
+              ind = data@i,
+              ptr = data@p,
+              nobs = ncol(data),
+              ndim = nrow(data),
+              idx = nn$idx,
+              metric = metric,
+              n_threads = n_threads,
+              verbose = verbose
+            )
+        }
+        else {
+          nn <-
+            rnn_idx_to_graph_self(
+              data = data,
+              idx = nn$idx,
+              metric = metric,
+              n_threads = n_threads,
+              verbose = verbose
+            )
+        }
       }
     }
 

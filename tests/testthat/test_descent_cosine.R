@@ -121,4 +121,12 @@ test_that("sparse", {
 
   expect_equal(spannd, bfz, tol = 1e-6)
   expect_equal(spcnnd, bfz, tol = 1e-5)
+
+  # make sure init graph can be prepared from sparse
+  cosrz$dist <- NULL
+  set.seed(1337); spannd <- nnd_knn(ui10sp, k = 4, metric = "cosine", init = cosrz, use_alt_metric = TRUE)
+  set.seed(1337); spcnnd <- nnd_knn(ui10sp, k = 4, metric = "cosine", init = cosrz, use_alt_metric = FALSE)
+
+  expect_equal(spannd, bfz, tol = 1e-5)
+  expect_equal(spcnnd, bfz, tol = 1e-5)
 })

@@ -30,8 +30,10 @@
 #include "rnn_rtoheap.h"
 
 using Rcpp::IntegerMatrix;
+using Rcpp::IntegerVector;
 using Rcpp::List;
 using Rcpp::NumericMatrix;
+using Rcpp::NumericVector;
 
 template <typename Out, typename Idx>
 auto idx_to_graph_impl(const tdoann::BaseDistance<Out, Idx> &distance,
@@ -44,6 +46,19 @@ auto idx_to_graph_impl(const tdoann::BaseDistance<Out, Idx> &distance,
       tdoann::idx_to_graph(distance, idx_vec, n_threads, progress, executor);
   constexpr bool unzero = true;
   return graph_to_r(nn_graph, unzero);
+}
+
+// [[Rcpp::export]]
+List rnn_idx_to_graph_sparse_self(const NumericVector &data,
+                                  const IntegerVector &ind,
+                                  const IntegerVector &ptr, std::size_t nobs,
+                                  std::size_t ndim, const IntegerMatrix &idx,
+                                  const std::string &metric = "euclidean",
+                                  std::size_t n_threads = 0,
+                                  bool verbose = false) {
+  auto distance_ptr =
+      create_sparse_self_distance(data, ind, ptr, nobs, ndim, metric);
+  return idx_to_graph_impl(*distance_ptr, idx, n_threads, verbose);
 }
 
 // [[Rcpp::export]]

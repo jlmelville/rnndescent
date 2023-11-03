@@ -71,6 +71,10 @@ reverse_nbr_size_impl <- function(nn_idx, nnbrs, len, include_self = FALSE) {
     .Call(`_rnndescent_reverse_nbr_size_impl`, nn_idx, nnbrs, len, include_self)
 }
 
+rnn_idx_to_graph_sparse_self <- function(data, ind, ptr, nobs, ndim, idx, metric = "euclidean", n_threads = 0L, verbose = FALSE) {
+    .Call(`_rnndescent_rnn_idx_to_graph_sparse_self`, data, ind, ptr, nobs, ndim, idx, metric, n_threads, verbose)
+}
+
 rnn_idx_to_graph_self <- function(data, idx, metric = "euclidean", n_threads = 0L, verbose = FALSE) {
     .Call(`_rnndescent_rnn_idx_to_graph_self`, data, idx, metric, n_threads, verbose)
 }
