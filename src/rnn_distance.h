@@ -259,6 +259,110 @@ create_self_vector_distance(const Rcpp::NumericMatrix &data,
 
 template <typename... Args>
 std::unique_ptr<typename FactoryTraits<Args...>::type>
+create_sparse_query_distance_impl(
+    std::vector<typename FactoryTraits<Args...>::input_type> ref_data,
+    std::vector<std::size_t> ref_ind, std::vector<std::size_t> ref_ptr,
+    std::size_t nref,
+    std::vector<typename FactoryTraits<Args...>::input_type> query_data,
+    std::vector<std::size_t> query_ind, std::vector<std::size_t> query_ptr,
+    std::size_t nquery, std::size_t ndim, const std::string &metric) {
+  using In = typename FactoryTraits<Args...>::input_type;
+  using Out = typename FactoryTraits<Args...>::output_type;
+  using Idx = typename FactoryTraits<Args...>::index_type;
+
+  if (metric == "l2sqr") {
+    return std::make_unique<tdoann::SparseL2SqrQueryDistance<In, Out, Idx>>(
+        std::move(ref_ind), std::move(ref_ptr), std::move(ref_data), nref,
+        std::move(query_ind), std::move(query_ptr), std::move(query_data),
+        nquery, ndim);
+  }
+  if (metric == "euclidean") {
+    return std::make_unique<tdoann::SparseEuclideanQueryDistance<In, Out, Idx>>(
+        std::move(ref_ind), std::move(ref_ptr), std::move(ref_data), nref,
+        std::move(query_ind), std::move(query_ptr), std::move(query_data),
+        nquery, ndim);
+  }
+  if (metric == "manhattan") {
+    return std::make_unique<tdoann::SparseManhattanQueryDistance<In, Out, Idx>>(
+        std::move(ref_ind), std::move(ref_ptr), std::move(ref_data), nref,
+        std::move(query_ind), std::move(query_ptr), std::move(query_data),
+        nquery, ndim);
+  }
+  if (metric == "cosine") {
+    return std::make_unique<tdoann::SparseCosineQueryDistance<In, Out, Idx>>(
+        std::move(ref_ind), std::move(ref_ptr), std::move(ref_data), nref,
+        std::move(query_ind), std::move(query_ptr), std::move(query_data),
+        nquery, ndim);
+  }
+  if (metric == "alternative-cosine") {
+    return std::make_unique<
+        tdoann::SparseAlternativeCosineQueryDistance<In, Out, Idx>>(
+        std::move(ref_ind), std::move(ref_ptr), std::move(ref_data), nref,
+        std::move(query_ind), std::move(query_ptr), std::move(query_data),
+        nquery, ndim);
+  }
+  if (metric == "correlation") {
+    return std::make_unique<
+        tdoann::SparseCorrelationQueryDistance<In, Out, Idx>>(
+        std::move(ref_ind), std::move(ref_ptr), std::move(ref_data), nref,
+        std::move(query_ind), std::move(query_ptr), std::move(query_data),
+        nquery, ndim);
+  }
+  if (metric == "hamming") {
+    return std::make_unique<tdoann::SparseHammingQueryDistance<In, Out, Idx>>(
+        std::move(ref_ind), std::move(ref_ptr), std::move(ref_data), nref,
+        std::move(query_ind), std::move(query_ptr), std::move(query_data),
+        nquery, ndim);
+  }
+  Rcpp::stop("Bad metric");
+}
+
+template <typename... Args>
+std::unique_ptr<typename FactoryTraits<Args...>::type>
+create_sparse_query_distance_impl(
+    const Rcpp::NumericVector &ref_data, const Rcpp::IntegerVector &ref_ind,
+    const Rcpp::IntegerVector &ref_ptr, std::size_t nref,
+    const Rcpp::NumericVector &query_data, const Rcpp::IntegerVector &query_ind,
+    const Rcpp::IntegerVector &query_ptr, std::size_t nquery, std::size_t ndim,
+    const std::string &metric) {
+  using In = typename FactoryTraits<Args...>::input_type;
+  using Out = typename FactoryTraits<Args...>::output_type;
+  using Idx = typename FactoryTraits<Args...>::index_type;
+
+  auto ref_data_cpp = r_to_vec<In>(ref_data);
+  auto ref_ind_cpp = r_to_vec<std::size_t>(ref_ind);
+  auto ref_ptr_cpp = r_to_vec<std::size_t>(ref_ptr);
+
+  auto query_data_cpp = r_to_vec<In>(query_data);
+  auto query_ind_cpp = r_to_vec<std::size_t>(query_ind);
+  auto query_ptr_cpp = r_to_vec<std::size_t>(query_ptr);
+
+  return create_sparse_query_distance_impl<tdoann::BaseDistance<Out, Idx>>(
+      std::move(ref_data_cpp), std::move(ref_ind_cpp), std::move(ref_ptr_cpp),
+      nref, std::move(query_data_cpp), std::move(query_ind_cpp),
+      std::move(query_ptr_cpp), nquery, ndim, metric);
+}
+
+// Factory function to return a BaseDistance
+template <typename Idx = RNN_DEFAULT_IDX>
+std::unique_ptr<tdoann::BaseDistance<RNN_DEFAULT_DIST, Idx>>
+create_sparse_query_distance(
+    const Rcpp::NumericVector &ref_data, const Rcpp::IntegerVector &ref_ind,
+    const Rcpp::IntegerVector &ref_ptr, std::size_t nref,
+    const Rcpp::NumericVector &query_data, const Rcpp::IntegerVector &query_ind,
+    const Rcpp::IntegerVector &query_ptr, std::size_t nquery, std::size_t ndim,
+    const std::string &metric) {
+  using Out = RNN_DEFAULT_DIST;
+
+  // handle special case (e.g. binary) if needed here
+
+  return create_sparse_query_distance_impl<tdoann::BaseDistance<Out, Idx>>(
+      ref_data, ref_ind, ref_ptr, nref, query_data, query_ind, query_ptr,
+      nquery, ndim, metric);
+}
+
+template <typename... Args>
+std::unique_ptr<typename FactoryTraits<Args...>::type>
 create_sparse_self_distance_impl(
     std::vector<typename FactoryTraits<Args...>::input_type> data_vec,
     std::vector<std::size_t> ind_vec, std::vector<std::size_t> ptr_vec,
@@ -269,34 +373,40 @@ create_sparse_self_distance_impl(
 
   if (metric == "l2sqr") {
     return std::make_unique<tdoann::SparseL2SqrSelfDistance<In, Out, Idx>>(
-        std::move(ind_vec), std::move(ptr_vec), std::move(data_vec),
-        nobs, ndim);
+        std::move(ind_vec), std::move(ptr_vec), std::move(data_vec), nobs,
+        ndim);
   }
   if (metric == "euclidean") {
     return std::make_unique<tdoann::SparseEuclideanSelfDistance<In, Out, Idx>>(
-        std::move(ind_vec), std::move(ptr_vec), std::move(data_vec), nobs, ndim);
+        std::move(ind_vec), std::move(ptr_vec), std::move(data_vec), nobs,
+        ndim);
   }
   if (metric == "manhattan") {
     return std::make_unique<tdoann::SparseManhattanSelfDistance<In, Out, Idx>>(
-        std::move(ind_vec), std::move(ptr_vec), std::move(data_vec), nobs, ndim);
+        std::move(ind_vec), std::move(ptr_vec), std::move(data_vec), nobs,
+        ndim);
   }
   if (metric == "cosine") {
     return std::make_unique<tdoann::SparseCosineSelfDistance<In, Out, Idx>>(
-        std::move(ind_vec), std::move(ptr_vec), std::move(data_vec), nobs, ndim);
+        std::move(ind_vec), std::move(ptr_vec), std::move(data_vec), nobs,
+        ndim);
   }
   if (metric == "alternative-cosine") {
     return std::make_unique<
         tdoann::SparseAlternativeCosineSelfDistance<In, Out, Idx>>(
-        std::move(ind_vec), std::move(ptr_vec), std::move(data_vec), nobs, ndim);
+        std::move(ind_vec), std::move(ptr_vec), std::move(data_vec), nobs,
+        ndim);
   }
   if (metric == "correlation") {
     return std::make_unique<
         tdoann::SparseCorrelationSelfDistance<In, Out, Idx>>(
-        std::move(ind_vec), std::move(ptr_vec), std::move(data_vec), nobs, ndim);
+        std::move(ind_vec), std::move(ptr_vec), std::move(data_vec), nobs,
+        ndim);
   }
   if (metric == "hamming") {
     return std::make_unique<tdoann::SparseHammingSelfDistance<In, Out, Idx>>(
-        std::move(ind_vec), std::move(ptr_vec), std::move(data_vec), nobs, ndim);
+        std::move(ind_vec), std::move(ptr_vec), std::move(data_vec), nobs,
+        ndim);
   }
   Rcpp::stop("Bad metric");
 }

@@ -620,11 +620,21 @@ brute_force_knn_query <- function(query,
     actual_metric <- metric
   }
 
+  n_sparse_input <- 0
+  if (is_sparse(reference)) {
+    n_sparse_input <- n_sparse_input + 1
+  }
+  if (is_sparse(query)) {
+    n_sparse_input <- n_sparse_input + 1
+  }
+  if (n_sparse_input == 1) {
+    stop("Either both or none of query and reference can be sparse")
+  }
   reference <- x2m(reference)
   query <- x2m(query)
   if (obs == "R") {
-    reference <- t(reference)
-    query <- t(query)
+    reference <- Matrix::t(reference)
+    query <- Matrix::t(query)
   }
   check_k(k, ncol(reference))
 
@@ -635,13 +645,32 @@ brute_force_knn_query <- function(query,
       n_threads = n_threads
     )
   )
-  res <- rnn_brute_force_query(reference,
-    query,
-    k,
-    actual_metric,
-    n_threads = n_threads,
-    verbose = verbose
-  )
+
+  if (is_sparse(reference)) {
+    res <- rnn_brute_force_query_sparse(
+      reference@x,
+      reference@i,
+      reference@p,
+      ncol(reference),
+      query@x,
+      query@i,
+      query@p,
+      ncol(query),
+      nrow(query),
+      k,
+      actual_metric,
+      n_threads = n_threads,
+      verbose = verbose
+    )
+  }
+  else {
+    res <- rnn_brute_force_query(reference,
+                                 query,
+                                 k,
+                                 actual_metric,
+                                 n_threads = n_threads,
+                                 verbose = verbose)
+  }
   res$idx <- res$idx + 1
 
   if (use_alt_metric) {

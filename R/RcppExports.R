@@ -13,6 +13,10 @@ rnn_brute_force_query <- function(reference, query, nnbrs, metric = "euclidean",
     .Call(`_rnndescent_rnn_brute_force_query`, reference, query, nnbrs, metric, n_threads, verbose)
 }
 
+rnn_brute_force_query_sparse <- function(ref_data, ref_ind, ref_ptr, nref, query_data, query_ind, query_ptr, nquery, ndim, nnbrs, metric = "euclidean", n_threads = 0L, verbose = FALSE) {
+    .Call(`_rnndescent_rnn_brute_force_query_sparse`, ref_data, ref_ind, ref_ptr, nref, query_data, query_ind, query_ptr, nquery, ndim, nnbrs, metric, n_threads, verbose)
+}
+
 #' Find the Euclidean (L2) distance between two vectors
 #'
 #' @param x A numeric vector.

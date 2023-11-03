@@ -228,3 +228,7 @@ expect_equal(
   ),
   tol = 1e-5
 )
+
+# sparse queries
+
+expect_equal(brute_force_knn_query(ui10sp, ui10sp, k = 4), brute_force_knn(ui10sp, k = 4))

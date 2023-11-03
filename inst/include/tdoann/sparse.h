@@ -636,6 +636,283 @@ private:
   std::size_t ndim;
 };
 
+template <typename In, typename Out, typename Idx = uint32_t>
+class SparseL2SqrQueryDistance : public BaseDistance<Out, Idx> {
+public:
+  SparseL2SqrQueryDistance(std::vector<std::size_t> &&x_ind,
+                           std::vector<std::size_t> &&x_ptr,
+                           std::vector<In> &&x_data, std::size_t nx,
+                           std::vector<std::size_t> &&y_ind,
+                           std::vector<std::size_t> &&y_ptr,
+                           std::vector<In> &&y_data, std::size_t ny,
+                           std::size_t ndim)
+      : x_ind(std::move(x_ind)), x_ptr(std::move(x_ptr)),
+        x_data(std::move(x_data)), nx(nx), y_ind(std::move(y_ind)),
+        y_ptr(std::move(y_ptr)), y_data(std::move(y_data)), ny(ny), ndim(ndim) {
+  }
+
+  Out calculate(const Idx &i, const Idx &j) const override {
+    const std::size_t di = this->x_ptr[i];
+    const std::size_t dj = this->y_ptr[j];
+
+    return sparse_l2sqr<Out>(this->x_ind.begin() + di, this->x_ptr[i + 1] - di,
+                             this->x_data.begin() + di,
+                             this->y_ind.begin() + dj, this->y_ptr[j + 1] - dj,
+                             this->y_data.begin() + dj);
+  }
+
+  std::size_t get_nx() const override { return nx; }
+  std::size_t get_ny() const override { return ny; }
+
+private:
+  std::vector<std::size_t> x_ind;
+  std::vector<std::size_t> x_ptr;
+  std::vector<In> x_data;
+  std::size_t nx;
+  std::vector<std::size_t> y_ind;
+  std::vector<std::size_t> y_ptr;
+  std::vector<In> y_data;
+  std::size_t ny;
+  std::size_t ndim;
+};
+
+template <typename In, typename Out, typename Idx = uint32_t>
+class SparseEuclideanQueryDistance : public BaseDistance<Out, Idx> {
+public:
+  SparseEuclideanQueryDistance(std::vector<std::size_t> &&x_ind,
+                           std::vector<std::size_t> &&x_ptr,
+                           std::vector<In> &&x_data, std::size_t nx,
+                           std::vector<std::size_t> &&y_ind,
+                           std::vector<std::size_t> &&y_ptr,
+                           std::vector<In> &&y_data, std::size_t ny,
+                           std::size_t ndim)
+    : x_ind(std::move(x_ind)), x_ptr(std::move(x_ptr)),
+      x_data(std::move(x_data)), nx(nx), y_ind(std::move(y_ind)),
+      y_ptr(std::move(y_ptr)), y_data(std::move(y_data)), ny(ny), ndim(ndim) {
+  }
+
+  Out calculate(const Idx &i, const Idx &j) const override {
+    const std::size_t di = this->x_ptr[i];
+    const std::size_t dj = this->y_ptr[j];
+
+    return sparse_euclidean<Out>(this->x_ind.begin() + di, this->x_ptr[i + 1] - di,
+                             this->x_data.begin() + di,
+                             this->y_ind.begin() + dj, this->y_ptr[j + 1] - dj,
+                             this->y_data.begin() + dj);
+  }
+
+  std::size_t get_nx() const override { return nx; }
+  std::size_t get_ny() const override { return ny; }
+
+private:
+  std::vector<std::size_t> x_ind;
+  std::vector<std::size_t> x_ptr;
+  std::vector<In> x_data;
+  std::size_t nx;
+  std::vector<std::size_t> y_ind;
+  std::vector<std::size_t> y_ptr;
+  std::vector<In> y_data;
+  std::size_t ny;
+  std::size_t ndim;
+};
+
+template <typename In, typename Out, typename Idx = uint32_t>
+class SparseManhattanQueryDistance : public BaseDistance<Out, Idx> {
+public:
+  SparseManhattanQueryDistance(std::vector<std::size_t> &&x_ind,
+                           std::vector<std::size_t> &&x_ptr,
+                           std::vector<In> &&x_data, std::size_t nx,
+                           std::vector<std::size_t> &&y_ind,
+                           std::vector<std::size_t> &&y_ptr,
+                           std::vector<In> &&y_data, std::size_t ny,
+                           std::size_t ndim)
+    : x_ind(std::move(x_ind)), x_ptr(std::move(x_ptr)),
+      x_data(std::move(x_data)), nx(nx), y_ind(std::move(y_ind)),
+      y_ptr(std::move(y_ptr)), y_data(std::move(y_data)), ny(ny), ndim(ndim) {
+  }
+
+  Out calculate(const Idx &i, const Idx &j) const override {
+    const std::size_t di = this->x_ptr[i];
+    const std::size_t dj = this->y_ptr[j];
+
+    return sparse_manhattan<Out>(this->x_ind.begin() + di, this->x_ptr[i + 1] - di,
+                             this->x_data.begin() + di,
+                             this->y_ind.begin() + dj, this->y_ptr[j + 1] - dj,
+                             this->y_data.begin() + dj);
+  }
+
+  std::size_t get_nx() const override { return nx; }
+  std::size_t get_ny() const override { return ny; }
+
+private:
+  std::vector<std::size_t> x_ind;
+  std::vector<std::size_t> x_ptr;
+  std::vector<In> x_data;
+  std::size_t nx;
+  std::vector<std::size_t> y_ind;
+  std::vector<std::size_t> y_ptr;
+  std::vector<In> y_data;
+  std::size_t ny;
+  std::size_t ndim;
+};
+
+template <typename In, typename Out, typename Idx = uint32_t>
+class SparseHammingQueryDistance : public BaseDistance<Out, Idx> {
+public:
+  SparseHammingQueryDistance(std::vector<std::size_t> &&x_ind,
+                           std::vector<std::size_t> &&x_ptr,
+                           std::vector<In> &&x_data, std::size_t nx,
+                           std::vector<std::size_t> &&y_ind,
+                           std::vector<std::size_t> &&y_ptr,
+                           std::vector<In> &&y_data, std::size_t ny,
+                           std::size_t ndim)
+    : x_ind(std::move(x_ind)), x_ptr(std::move(x_ptr)),
+      x_data(std::move(x_data)), nx(nx), y_ind(std::move(y_ind)),
+      y_ptr(std::move(y_ptr)), y_data(std::move(y_data)), ny(ny), ndim(ndim) {
+  }
+
+  Out calculate(const Idx &i, const Idx &j) const override {
+    const std::size_t di = this->x_ptr[i];
+    const std::size_t dj = this->y_ptr[j];
+
+    return sparse_hamming<Out>(this->x_ind.begin() + di, this->x_ptr[i + 1] - di,
+                             this->x_data.begin() + di,
+                             this->y_ind.begin() + dj, this->y_ptr[j + 1] - dj,
+                             this->y_data.begin() + dj);
+  }
+
+  std::size_t get_nx() const override { return nx; }
+  std::size_t get_ny() const override { return ny; }
+
+private:
+  std::vector<std::size_t> x_ind;
+  std::vector<std::size_t> x_ptr;
+  std::vector<In> x_data;
+  std::size_t nx;
+  std::vector<std::size_t> y_ind;
+  std::vector<std::size_t> y_ptr;
+  std::vector<In> y_data;
+  std::size_t ny;
+  std::size_t ndim;
+};
+template <typename In, typename Out, typename Idx = uint32_t>
+class SparseCosineQueryDistance : public BaseDistance<Out, Idx> {
+public:
+  SparseCosineQueryDistance(std::vector<std::size_t> &&x_ind,
+                           std::vector<std::size_t> &&x_ptr,
+                           std::vector<In> &&x_data, std::size_t nx,
+                           std::vector<std::size_t> &&y_ind,
+                           std::vector<std::size_t> &&y_ptr,
+                           std::vector<In> &&y_data, std::size_t ny,
+                           std::size_t ndim)
+    : x_ind(std::move(x_ind)), x_ptr(std::move(x_ptr)),
+      x_data(std::move(x_data)), nx(nx), y_ind(std::move(y_ind)),
+      y_ptr(std::move(y_ptr)), y_data(std::move(y_data)), ny(ny), ndim(ndim) {
+  }
+
+  Out calculate(const Idx &i, const Idx &j) const override {
+    const std::size_t di = this->x_ptr[i];
+    const std::size_t dj = this->y_ptr[j];
+
+    return sparse_cosine<Out>(this->x_ind.begin() + di, this->x_ptr[i + 1] - di,
+                             this->x_data.begin() + di,
+                             this->y_ind.begin() + dj, this->y_ptr[j + 1] - dj,
+                             this->y_data.begin() + dj);
+  }
+
+  std::size_t get_nx() const override { return nx; }
+  std::size_t get_ny() const override { return ny; }
+
+private:
+  std::vector<std::size_t> x_ind;
+  std::vector<std::size_t> x_ptr;
+  std::vector<In> x_data;
+  std::size_t nx;
+  std::vector<std::size_t> y_ind;
+  std::vector<std::size_t> y_ptr;
+  std::vector<In> y_data;
+  std::size_t ny;
+  std::size_t ndim;
+};
+template <typename In, typename Out, typename Idx = uint32_t>
+class SparseAlternativeCosineQueryDistance : public BaseDistance<Out, Idx> {
+public:
+  SparseAlternativeCosineQueryDistance(std::vector<std::size_t> &&x_ind,
+                           std::vector<std::size_t> &&x_ptr,
+                           std::vector<In> &&x_data, std::size_t nx,
+                           std::vector<std::size_t> &&y_ind,
+                           std::vector<std::size_t> &&y_ptr,
+                           std::vector<In> &&y_data, std::size_t ny,
+                           std::size_t ndim)
+    : x_ind(std::move(x_ind)), x_ptr(std::move(x_ptr)),
+      x_data(std::move(x_data)), nx(nx), y_ind(std::move(y_ind)),
+      y_ptr(std::move(y_ptr)), y_data(std::move(y_data)), ny(ny), ndim(ndim) {
+  }
+
+  Out calculate(const Idx &i, const Idx &j) const override {
+    const std::size_t di = this->x_ptr[i];
+    const std::size_t dj = this->y_ptr[j];
+
+    return sparse_alternative_cosine<Out>(this->x_ind.begin() + di, this->x_ptr[i + 1] - di,
+                             this->x_data.begin() + di,
+                             this->y_ind.begin() + dj, this->y_ptr[j + 1] - dj,
+                             this->y_data.begin() + dj);
+  }
+
+  std::size_t get_nx() const override { return nx; }
+  std::size_t get_ny() const override { return ny; }
+
+private:
+  std::vector<std::size_t> x_ind;
+  std::vector<std::size_t> x_ptr;
+  std::vector<In> x_data;
+  std::size_t nx;
+  std::vector<std::size_t> y_ind;
+  std::vector<std::size_t> y_ptr;
+  std::vector<In> y_data;
+  std::size_t ny;
+  std::size_t ndim;
+};
+template <typename In, typename Out, typename Idx = uint32_t>
+class SparseCorrelationQueryDistance : public BaseDistance<Out, Idx> {
+public:
+  SparseCorrelationQueryDistance(std::vector<std::size_t> &&x_ind,
+                           std::vector<std::size_t> &&x_ptr,
+                           std::vector<In> &&x_data, std::size_t nx,
+                           std::vector<std::size_t> &&y_ind,
+                           std::vector<std::size_t> &&y_ptr,
+                           std::vector<In> &&y_data, std::size_t ny,
+                           std::size_t ndim)
+    : x_ind(std::move(x_ind)), x_ptr(std::move(x_ptr)),
+      x_data(std::move(x_data)), nx(nx), y_ind(std::move(y_ind)),
+      y_ptr(std::move(y_ptr)), y_data(std::move(y_data)), ny(ny), ndim(ndim) {
+  }
+
+  Out calculate(const Idx &i, const Idx &j) const override {
+    const std::size_t di = this->x_ptr[i];
+    const std::size_t dj = this->y_ptr[j];
+
+    return sparse_correlation<Out>(this->x_ind.begin() + di, this->x_ptr[i + 1] - di,
+                             this->x_data.begin() + di,
+                             this->y_ind.begin() + dj, this->y_ptr[j + 1] - dj,
+                             this->y_data.begin() + dj, this->ndim);
+  }
+
+  std::size_t get_nx() const override { return nx; }
+  std::size_t get_ny() const override { return ny; }
+
+private:
+  std::vector<std::size_t> x_ind;
+  std::vector<std::size_t> x_ptr;
+  std::vector<In> x_data;
+  std::size_t nx;
+  std::vector<std::size_t> y_ind;
+  std::vector<std::size_t> y_ptr;
+  std::vector<In> y_data;
+  std::size_t ny;
+  std::size_t ndim;
+};
+
 } // namespace tdoann
 
 #endif // TDOANN_SPARSE_H

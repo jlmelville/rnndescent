@@ -60,6 +60,29 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rnn_brute_force_query_sparse
+List rnn_brute_force_query_sparse(const NumericVector& ref_data, const IntegerVector& ref_ind, const IntegerVector& ref_ptr, std::size_t nref, const NumericVector& query_data, const IntegerVector& query_ind, const IntegerVector& query_ptr, std::size_t nquery, std::size_t ndim, uint32_t nnbrs, const std::string& metric, std::size_t n_threads, bool verbose);
+RcppExport SEXP _rnndescent_rnn_brute_force_query_sparse(SEXP ref_dataSEXP, SEXP ref_indSEXP, SEXP ref_ptrSEXP, SEXP nrefSEXP, SEXP query_dataSEXP, SEXP query_indSEXP, SEXP query_ptrSEXP, SEXP nquerySEXP, SEXP ndimSEXP, SEXP nnbrsSEXP, SEXP metricSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericVector& >::type ref_data(ref_dataSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type ref_ind(ref_indSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type ref_ptr(ref_ptrSEXP);
+    Rcpp::traits::input_parameter< std::size_t >::type nref(nrefSEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type query_data(query_dataSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type query_ind(query_indSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type query_ptr(query_ptrSEXP);
+    Rcpp::traits::input_parameter< std::size_t >::type nquery(nquerySEXP);
+    Rcpp::traits::input_parameter< std::size_t >::type ndim(ndimSEXP);
+    Rcpp::traits::input_parameter< uint32_t >::type nnbrs(nnbrsSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
+    Rcpp::traits::input_parameter< std::size_t >::type n_threads(n_threadsSEXP);
+    Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
+    rcpp_result_gen = Rcpp::wrap(rnn_brute_force_query_sparse(ref_data, ref_ind, ref_ptr, nref, query_data, query_ind, query_ptr, nquery, ndim, nnbrs, metric, n_threads, verbose));
+    return rcpp_result_gen;
+END_RCPP
+}
 // euclidean_distance
 float euclidean_distance(const NumericVector& x, const NumericVector& y);
 RcppExport SEXP _rnndescent_euclidean_distance(SEXP xSEXP, SEXP ySEXP) {
@@ -531,6 +554,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_rnndescent_rnn_brute_force", (DL_FUNC) &_rnndescent_rnn_brute_force, 5},
     {"_rnndescent_rnn_brute_force_sparse", (DL_FUNC) &_rnndescent_rnn_brute_force_sparse, 9},
     {"_rnndescent_rnn_brute_force_query", (DL_FUNC) &_rnndescent_rnn_brute_force_query, 6},
+    {"_rnndescent_rnn_brute_force_query_sparse", (DL_FUNC) &_rnndescent_rnn_brute_force_query_sparse, 13},
     {"_rnndescent_euclidean_distance", (DL_FUNC) &_rnndescent_euclidean_distance, 2},
     {"_rnndescent_l2sqr_distance", (DL_FUNC) &_rnndescent_l2sqr_distance, 2},
     {"_rnndescent_cosine_distance", (DL_FUNC) &_rnndescent_cosine_distance, 2},
