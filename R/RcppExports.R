@@ -87,6 +87,10 @@ rnn_idx_to_graph_query <- function(reference, query, idx, metric = "euclidean", 
     .Call(`_rnndescent_rnn_idx_to_graph_query`, reference, query, idx, metric, n_threads, verbose)
 }
 
+rnn_idx_to_graph_query_sparse <- function(ref_data, ref_ind, ref_ptr, nref, query_data, query_ind, query_ptr, nquery, ndim, idx, metric = "euclidean", n_threads = 0L, verbose = FALSE) {
+    .Call(`_rnndescent_rnn_idx_to_graph_query_sparse`, ref_data, ref_ind, ref_ptr, nref, query_data, query_ind, query_ptr, nquery, ndim, idx, metric, n_threads, verbose)
+}
+
 local_scaled_nbrs <- function(idx, dist, n_scaled_nbrs, k_begin, k_end, ret_scales = FALSE, n_threads = 0L) {
     .Call(`_rnndescent_local_scaled_nbrs`, idx, dist, n_scaled_nbrs, k_begin, k_end, ret_scales, n_threads)
 }

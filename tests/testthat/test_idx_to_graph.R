@@ -56,3 +56,11 @@ testthat::test_that("convert reference + query graph", {
   expect_equal(i2g$dist, qnbrs4$dist, tol = 1e-7)
   expect_equal(i2g$idx, qnbrs4$idx)
 })
+
+test_that("sparse", {
+  set.seed(1337); dz6_4 <- random_knn_query(query = ui10z6, reference = ui10z4, k = 4, metric = "cosine")
+  i2g <- prepare_init_graph(query = Matrix::t(ui10sp6), data = Matrix::t(ui10sp4),
+                            nn = dz6_4$idx, k = 4, metric = "cosine")
+  expect_equal(i2g$dist, dz6_4$dist, tol= 1e-6)
+  expect_equal(i2g$idx, dz6_4$idx)
+})
