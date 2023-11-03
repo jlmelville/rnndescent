@@ -395,15 +395,12 @@ nnd_knn <- function(data,
   stopifnot(tolower(progress) %in% c("bar", "dist"))
   obs <- match.arg(toupper(obs), c("C", "R"))
 
-  # FIXME: log actual metric
-  if (use_alt_metric) {
-    actual_metric <- find_alt_metric(metric, is_sparse(data))
-    if (!is.null(init) && is.list(init) && !is.null(init$dist)) {
-      init$dist <-
-        apply_alt_metric_uncorrection(metric, init$dist, is_sparse(data))
-    }
-  } else {
-    actual_metric <- metric
+  actual_metric <-
+    get_actual_metric(use_alt_metric, metric, data, verbose)
+  if (use_alt_metric &&
+      !is.null(init) && is.list(init) && !is.null(init$dist)) {
+    init$dist <-
+      apply_alt_metric_uncorrection(metric, init$dist, is_sparse(data))
   }
 
   data <- x2m(data)
@@ -761,7 +758,8 @@ random_knn_query <-
     query <- x2m(query)
     check_k(k, n_obs(reference))
 
-    actual_metric <- get_actual_metric(use_alt_metric, metric, reference, verbose)
+    actual_metric <-
+      get_actual_metric(use_alt_metric, metric, reference, verbose)
 
     if (obs == "R") {
       reference <- Matrix::t(reference)
@@ -898,22 +896,19 @@ graph_knn_query <- function(query,
                             obs = "R") {
   obs <- match.arg(toupper(obs), c("C", "R"))
 
-  # FIXME: log alt metric
-  if (use_alt_metric) {
-    actual_metric <- find_alt_metric(metric)
-    if (!is.null(init) && !is.null(init$dist)) {
-      # FIXME: sparse
-      init$dist <- apply_alt_metric_uncorrection(metric, init$dist)
-    }
-  } else {
-    actual_metric <- metric
+  check_sparse(reference, query)
+
+  actual_metric <-
+    get_actual_metric(use_alt_metric, metric, reference, verbose)
+  if (use_alt_metric && !is.null(init) && !is.null(init$dist)) {
+    init$dist <- apply_alt_metric_uncorrection(metric, init$dist, is_sparse(reference))
   }
 
   reference <- x2m(reference)
   query <- x2m(query)
   if (obs == "R") {
-    reference <- t(reference)
-    query <- t(query)
+    reference <- Matrix::t(reference)
+    query <- Matrix::t(query)
   }
 
   # reference and query must be column-oriented at this point
@@ -946,7 +941,6 @@ graph_knn_query <- function(query,
     }
   }
 
-  # FIXME sparse
   init <-
     prepare_init_graph(
       nn = init,
@@ -958,7 +952,11 @@ graph_knn_query <- function(query,
       verbose = verbose
     )
 
-  stopifnot(!is.null(query), methods::is(query, "matrix"))
+  stopifnot(!is.null(query),
+            (
+              methods::is(query, "matrix") ||
+                methods::is(query, "sparseMatrix")
+            ))
   stopifnot(
     !is.null(init$idx),
     methods::is(init$idx, "matrix"),
@@ -975,7 +973,10 @@ graph_knn_query <- function(query,
   if (is.list(reference_graph)) {
     reference_dist <- reference_graph$dist
     reference_idx <- reference_graph$idx
-    stopifnot(!is.null(reference), methods::is(reference, "matrix"))
+    stopifnot(!is.null(reference), (
+      methods::is(reference, "matrix") ||
+        methods::is(reference, "sparseMatrix")
+    ))
     stopifnot(
       !is.null(reference_idx),
       methods::is(reference_idx, "matrix"),
@@ -994,19 +995,41 @@ graph_knn_query <- function(query,
 
   tsmessage(thread_msg("Searching nearest neighbor graph", n_threads = n_threads))
 
-  # FIXME: sparse
-  res <-
-    nn_query(
-      reference = reference,
-      reference_graph_list = reference_graph_list,
-      query = query,
-      nn_idx = init$idx,
-      nn_dist = init$dist,
-      metric = actual_metric,
-      epsilon = epsilon,
-      n_threads = n_threads,
-      verbose = verbose
-    )
+  if (is_sparse(reference)) {
+    res <-
+      nn_query_sparse(
+        ref_data = reference@x,
+        ref_ind = reference@i,
+        ref_ptr = reference@p,
+        nref = ncol(reference),
+        query_data = query@x,
+        query_ind = query@i,
+        query_ptr = query@p,
+        nquery = ncol(query),
+        ndim = nrow(reference),
+        reference_graph_list = reference_graph_list,
+        nn_idx = init$idx,
+        nn_dist = init$dist,
+        metric = actual_metric,
+        epsilon = epsilon,
+        n_threads = n_threads,
+        verbose = verbose
+      )
+  }
+  else {
+    res <-
+      nn_query(
+        reference = reference,
+        reference_graph_list = reference_graph_list,
+        query = query,
+        nn_idx = init$idx,
+        nn_dist = init$dist,
+        metric = actual_metric,
+        epsilon = epsilon,
+        n_threads = n_threads,
+        verbose = verbose
+      )
+  }
   if (use_alt_metric) {
     res$dist <-
       apply_alt_metric_correction(metric, res$dist, is_sparse(reference))

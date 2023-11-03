@@ -171,3 +171,7 @@ nn_query <- function(reference, reference_graph_list, query, nn_idx, nn_dist, me
     .Call(`_rnndescent_nn_query`, reference, reference_graph_list, query, nn_idx, nn_dist, metric, epsilon, n_threads, verbose)
 }
 
+nn_query_sparse <- function(ref_data, ref_ind, ref_ptr, nref, query_data, query_ind, query_ptr, nquery, ndim, reference_graph_list, nn_idx, nn_dist, metric = "euclidean", epsilon = 0.1, n_threads = 0L, verbose = FALSE) {
+    .Call(`_rnndescent_nn_query_sparse`, ref_data, ref_ind, ref_ptr, nref, query_data, query_ind, query_ptr, nquery, ndim, reference_graph_list, nn_idx, nn_dist, metric, epsilon, n_threads, verbose)
+}
+

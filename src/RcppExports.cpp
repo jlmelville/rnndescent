@@ -596,6 +596,32 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// nn_query_sparse
+List nn_query_sparse(const NumericVector& ref_data, const IntegerVector& ref_ind, const IntegerVector& ref_ptr, std::size_t nref, const NumericVector& query_data, const IntegerVector& query_ind, const IntegerVector& query_ptr, std::size_t nquery, std::size_t ndim, const List& reference_graph_list, const IntegerMatrix& nn_idx, const NumericMatrix& nn_dist, const std::string& metric, double epsilon, std::size_t n_threads, bool verbose);
+RcppExport SEXP _rnndescent_nn_query_sparse(SEXP ref_dataSEXP, SEXP ref_indSEXP, SEXP ref_ptrSEXP, SEXP nrefSEXP, SEXP query_dataSEXP, SEXP query_indSEXP, SEXP query_ptrSEXP, SEXP nquerySEXP, SEXP ndimSEXP, SEXP reference_graph_listSEXP, SEXP nn_idxSEXP, SEXP nn_distSEXP, SEXP metricSEXP, SEXP epsilonSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericVector& >::type ref_data(ref_dataSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type ref_ind(ref_indSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type ref_ptr(ref_ptrSEXP);
+    Rcpp::traits::input_parameter< std::size_t >::type nref(nrefSEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type query_data(query_dataSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type query_ind(query_indSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type query_ptr(query_ptrSEXP);
+    Rcpp::traits::input_parameter< std::size_t >::type nquery(nquerySEXP);
+    Rcpp::traits::input_parameter< std::size_t >::type ndim(ndimSEXP);
+    Rcpp::traits::input_parameter< const List& >::type reference_graph_list(reference_graph_listSEXP);
+    Rcpp::traits::input_parameter< const IntegerMatrix& >::type nn_idx(nn_idxSEXP);
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type nn_dist(nn_distSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
+    Rcpp::traits::input_parameter< double >::type epsilon(epsilonSEXP);
+    Rcpp::traits::input_parameter< std::size_t >::type n_threads(n_threadsSEXP);
+    Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
+    rcpp_result_gen = Rcpp::wrap(nn_query_sparse(ref_data, ref_ind, ref_ptr, nref, query_data, query_ind, query_ptr, nquery, ndim, reference_graph_list, nn_idx, nn_dist, metric, epsilon, n_threads, verbose));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_rnndescent_rnn_brute_force", (DL_FUNC) &_rnndescent_rnn_brute_force, 5},
@@ -633,6 +659,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_rnndescent_rnn_rp_forest_search", (DL_FUNC) &_rnndescent_rnn_rp_forest_search, 8},
     {"_rnndescent_rnn_score_forest", (DL_FUNC) &_rnndescent_rnn_score_forest, 5},
     {"_rnndescent_nn_query", (DL_FUNC) &_rnndescent_nn_query, 9},
+    {"_rnndescent_nn_query_sparse", (DL_FUNC) &_rnndescent_nn_query_sparse, 16},
     {NULL, NULL, 0}
 };
 
