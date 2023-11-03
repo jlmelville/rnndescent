@@ -425,6 +425,30 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// random_knn_query_sparse
+List random_knn_query_sparse(const NumericVector& ref_data, const IntegerVector& ref_ind, const IntegerVector& ref_ptr, std::size_t nref, const NumericVector& query_data, const IntegerVector& query_ind, const IntegerVector& query_ptr, std::size_t nquery, std::size_t ndim, uint32_t nnbrs, const std::string& metric, bool order_by_distance, std::size_t n_threads, bool verbose);
+RcppExport SEXP _rnndescent_random_knn_query_sparse(SEXP ref_dataSEXP, SEXP ref_indSEXP, SEXP ref_ptrSEXP, SEXP nrefSEXP, SEXP query_dataSEXP, SEXP query_indSEXP, SEXP query_ptrSEXP, SEXP nquerySEXP, SEXP ndimSEXP, SEXP nnbrsSEXP, SEXP metricSEXP, SEXP order_by_distanceSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericVector& >::type ref_data(ref_dataSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type ref_ind(ref_indSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type ref_ptr(ref_ptrSEXP);
+    Rcpp::traits::input_parameter< std::size_t >::type nref(nrefSEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type query_data(query_dataSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type query_ind(query_indSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type query_ptr(query_ptrSEXP);
+    Rcpp::traits::input_parameter< std::size_t >::type nquery(nquerySEXP);
+    Rcpp::traits::input_parameter< std::size_t >::type ndim(ndimSEXP);
+    Rcpp::traits::input_parameter< uint32_t >::type nnbrs(nnbrsSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
+    Rcpp::traits::input_parameter< bool >::type order_by_distance(order_by_distanceSEXP);
+    Rcpp::traits::input_parameter< std::size_t >::type n_threads(n_threadsSEXP);
+    Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
+    rcpp_result_gen = Rcpp::wrap(random_knn_query_sparse(ref_data, ref_ind, ref_ptr, nref, query_data, query_ind, query_ptr, nquery, ndim, nnbrs, metric, order_by_distance, n_threads, verbose));
+    return rcpp_result_gen;
+END_RCPP
+}
 // rp_tree_knn_cpp
 List rp_tree_knn_cpp(const NumericMatrix& data, uint32_t nnbrs, const std::string& metric, uint32_t n_trees, uint32_t leaf_size, bool include_self, bool unzero, bool ret_forest, std::size_t n_threads, bool verbose);
 RcppExport SEXP _rnndescent_rp_tree_knn_cpp(SEXP dataSEXP, SEXP nnbrsSEXP, SEXP metricSEXP, SEXP n_treesSEXP, SEXP leaf_sizeSEXP, SEXP include_selfSEXP, SEXP unzeroSEXP, SEXP ret_forestSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
@@ -577,6 +601,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_rnndescent_random_knn_sparse", (DL_FUNC) &_rnndescent_random_knn_sparse, 10},
     {"_rnndescent_random_knn_cpp", (DL_FUNC) &_rnndescent_random_knn_cpp, 6},
     {"_rnndescent_random_knn_query_cpp", (DL_FUNC) &_rnndescent_random_knn_query_cpp, 7},
+    {"_rnndescent_random_knn_query_sparse", (DL_FUNC) &_rnndescent_random_knn_query_sparse, 14},
     {"_rnndescent_rp_tree_knn_cpp", (DL_FUNC) &_rnndescent_rp_tree_knn_cpp, 10},
     {"_rnndescent_rp_tree_knn_cpp2", (DL_FUNC) &_rnndescent_rp_tree_knn_cpp2, 10},
     {"_rnndescent_rnn_rp_forest_build", (DL_FUNC) &_rnndescent_rnn_rp_forest_build, 6},

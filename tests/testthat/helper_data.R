@@ -10,6 +10,11 @@ ui10z <- ui10
 ui10z[sample(prod(dim(ui10z)), 10)] <- 0
 ui10sp <- Matrix::drop0(ui10z)
 
+ui10z6 <- head(ui10z, 6)
+ui10z4 <- tail(ui10z, 4)
+
+ui10sp6 <- head(ui10sp, 6)
+ui10sp4 <- tail(ui10sp, 4)
 
 # treat sum of distances an objective function
 # expected sum from sum(FNN::get.knn(uirism, 14)$nn.dist)

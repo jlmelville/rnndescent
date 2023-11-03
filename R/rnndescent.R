@@ -75,11 +75,7 @@ brute_force_knn <- function(data,
   data <- x2m(data)
   check_k(k, n_obs(data))
 
-  if (use_alt_metric) {
-    actual_metric <- find_alt_metric(metric, is_sparse(data))
-  } else {
-    actual_metric <- metric
-  }
+  actual_metric <- get_actual_metric(use_alt_metric, metric, data, verbose)
 
   tsmessage(
     thread_msg(
@@ -205,11 +201,7 @@ random_knn <-
     data <- x2m(data)
     check_k(k, n_obs(data))
 
-    if (use_alt_metric) {
-      actual_metric <- find_alt_metric(metric, is_sparse(data))
-    } else {
-      actual_metric <- metric
-    }
+    actual_metric <- get_actual_metric(use_alt_metric, metric, data, verbose)
 
     if (obs == "R") {
       data <- Matrix::t(data)
@@ -403,6 +395,7 @@ nnd_knn <- function(data,
   stopifnot(tolower(progress) %in% c("bar", "dist"))
   obs <- match.arg(toupper(obs), c("C", "R"))
 
+  # FIXME: log actual metric
   if (use_alt_metric) {
     actual_metric <- find_alt_metric(metric, is_sparse(data))
     if (!is.null(init) && is.list(init) && !is.null(init$dist)) {
@@ -614,22 +607,9 @@ brute_force_knn_query <- function(query,
                                   obs = "R") {
   obs <- match.arg(toupper(obs), c("C", "R"))
 
-  if (use_alt_metric) {
-    actual_metric <- find_alt_metric(metric)
-  } else {
-    actual_metric <- metric
-  }
+  actual_metric <- get_actual_metric(use_alt_metric, metric, reference, verbose)
 
-  n_sparse_input <- 0
-  if (is_sparse(reference)) {
-    n_sparse_input <- n_sparse_input + 1
-  }
-  if (is_sparse(query)) {
-    n_sparse_input <- n_sparse_input + 1
-  }
-  if (n_sparse_input == 1) {
-    stop("Either both or none of query and reference can be sparse")
-  }
+  check_sparse(reference, query)
   reference <- x2m(reference)
   query <- x2m(query)
   if (obs == "R") {
@@ -774,19 +754,18 @@ random_knn_query <-
       C = ncol,
       stop("Unknown obs type")
     )
+
+    check_sparse(reference, query)
+
     reference <- x2m(reference)
     query <- x2m(query)
     check_k(k, n_obs(reference))
 
-    if (use_alt_metric) {
-      actual_metric <- find_alt_metric(metric)
-    } else {
-      actual_metric <- metric
-    }
+    actual_metric <- get_actual_metric(use_alt_metric, metric, reference, verbose)
 
     if (obs == "R") {
-      reference <- t(reference)
-      query <- t(query)
+      reference <- Matrix::t(reference)
+      query <- Matrix::t(query)
     }
 
     random_knn_impl(
@@ -919,6 +898,7 @@ graph_knn_query <- function(query,
                             obs = "R") {
   obs <- match.arg(toupper(obs), c("C", "R"))
 
+  # FIXME: log alt metric
   if (use_alt_metric) {
     actual_metric <- find_alt_metric(metric)
     if (!is.null(init) && !is.null(init$dist)) {

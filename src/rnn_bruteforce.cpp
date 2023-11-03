@@ -93,7 +93,6 @@ List rnn_brute_force_query_sparse(
     const IntegerVector &ref_ptr, std::size_t nref,
     const NumericVector &query_data, const IntegerVector &query_ind,
     const IntegerVector &query_ptr, std::size_t nquery, std::size_t ndim,
-
     uint32_t nnbrs, const std::string &metric = "euclidean",
     std::size_t n_threads = 0, bool verbose = false) {
   auto distance_ptr =

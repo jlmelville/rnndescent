@@ -83,16 +83,10 @@ List random_knn_cpp(const NumericMatrix &data, uint32_t nnbrs,
                              verbose);
 }
 
-// [[Rcpp::export]]
-List random_knn_query_cpp(const NumericMatrix &reference,
-                          const NumericMatrix &query, uint32_t nnbrs,
-                          const std::string &metric = "euclidean",
-                          bool order_by_distance = true,
-                          std::size_t n_threads = 0, bool verbose = false) {
-  auto distance_ptr = create_query_distance(reference, query, metric);
-  using Idx = typename tdoann::DistanceTraits<decltype(distance_ptr)>::Index;
-  using Out = typename tdoann::DistanceTraits<decltype(distance_ptr)>::Output;
-
+template <typename Out, typename Idx>
+List random_knn_query_impl(const tdoann::BaseDistance<Out, Idx> &distance,
+                           uint32_t nnbrs, bool order_by_distance = true,
+                           std::size_t n_threads = 0, bool verbose = false) {
   RPProgress progress(verbose);
   RParallelExecutor executor;
 
@@ -102,15 +96,44 @@ List random_knn_query_cpp(const NumericMatrix &reference,
     rnndescent::ParallelIntRNGAdapter<Idx, rnndescent::DQIntSampler>
         sampler_provider;
     nn_graph =
-        tdoann::random_query(*distance_ptr, nnbrs, sampler_provider,
+        tdoann::random_query(distance, nnbrs, sampler_provider,
                              order_by_distance, n_threads, progress, executor);
   } else {
     rnndescent::DQIntSampler<Idx> sampler;
-    nn_graph = tdoann::random_query(*distance_ptr, nnbrs, sampler,
-                                    order_by_distance, progress);
+    nn_graph = tdoann::random_query(distance, nnbrs, sampler, order_by_distance,
+                                    progress);
   }
   constexpr bool unzero = false;
   return graph_to_r(*nn_graph, unzero);
+}
+
+// [[Rcpp::export]]
+List random_knn_query_cpp(const NumericMatrix &reference,
+                          const NumericMatrix &query, uint32_t nnbrs,
+                          const std::string &metric = "euclidean",
+                          bool order_by_distance = true,
+                          std::size_t n_threads = 0, bool verbose = false) {
+  auto distance_ptr = create_query_distance(reference, query, metric);
+  return random_knn_query_impl(*distance_ptr, nnbrs, order_by_distance,
+                               n_threads, verbose);
+}
+
+// [[Rcpp::export]]
+List random_knn_query_sparse(const NumericVector &ref_data,
+                             const IntegerVector &ref_ind,
+                             const IntegerVector &ref_ptr, std::size_t nref,
+                             const NumericVector &query_data,
+                             const IntegerVector &query_ind,
+                             const IntegerVector &query_ptr, std::size_t nquery,
+                             std::size_t ndim, uint32_t nnbrs,
+                             const std::string &metric = "euclidean",
+                             bool order_by_distance = true,
+                             std::size_t n_threads = 0, bool verbose = false) {
+  auto distance_ptr =
+      create_sparse_query_distance(ref_data, ref_ind, ref_ptr, nref, query_data,
+                                   query_ind, query_ptr, nquery, ndim, metric);
+  return random_knn_query_impl(*distance_ptr, nnbrs, order_by_distance,
+                               n_threads, verbose);
 }
 
 // NOLINTEND(modernize-use-trailing-return-type)

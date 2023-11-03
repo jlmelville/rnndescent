@@ -148,6 +148,19 @@ find_margin_method <- function(margin, metric) {
          "explicit")
 }
 
+check_sparse <- function(reference, query) {
+  n_sparse_input <- 0
+  if (is_sparse(reference)) {
+    n_sparse_input <- n_sparse_input + 1
+  }
+  if (is_sparse(query)) {
+    n_sparse_input <- n_sparse_input + 1
+  }
+  if (n_sparse_input == 1) {
+    stop("Either both or none of query and reference can be sparse")
+  }
+}
+
 
 is_sparse <- function(x) {
   methods::is(x, "sparseMatrix")
@@ -228,6 +241,18 @@ apply_alt_metric_correction <- function(metric, dist, is_sparse = FALSE) {
   else {
     apply_dense_alt_metric_correction(metric, dist)
   }
+}
+
+get_actual_metric <- function(use_alt_metric, metric, data, verbose) {
+  if (use_alt_metric) {
+    actual_metric <- find_alt_metric(metric, is_sparse(data))
+    if (actual_metric != metric) {
+      tsmessage("Using alt metric '", actual_metric, "' for '", metric, "'")
+    }
+  } else {
+    actual_metric <- metric
+  }
+  actual_metric
 }
 
 isclose <- function(a, b, rtol = 1.0e-5, atol = 1.0e-8) {
@@ -387,10 +412,17 @@ random_knn_impl <-
            zero_index = FALSE) {
     if (is.null(query)) {
       msg <- "Generating random k-nearest neighbor graph with k = "
-      if (methods::is(reference, "sparseMatrix")) {
+
+      if (is_sparse(reference)) {
         fun <- random_knn_sparse
-        args <- list(data = reference@x, ind = reference@i, ptr = reference@p,
-                     nobs = ncol(reference), ndim = nrow(reference))
+        args <-
+          list(
+            data = reference@x,
+            ind = reference@i,
+            ptr = reference@p,
+            nobs = ncol(reference),
+            ndim = nrow(reference)
+          )
       }
       else {
         fun <- random_knn_cpp
@@ -399,8 +431,26 @@ random_knn_impl <-
     } else {
       msg <-
         "Generating random k-nearest neighbor graph from reference with k = "
-      fun <- random_knn_query_cpp
-      args <- list(reference = reference, query = query)
+
+      if (is_sparse(reference)) {
+        fun <- random_knn_query_sparse
+        args <-
+          list(
+            ref_data = reference@x,
+            ref_ind = reference@i,
+            ref_ptr = reference@p,
+            nref = ncol(reference),
+            query_data = query@x,
+            query_ind = query@i,
+            query_ptr = query@p,
+            nquery = ncol(query),
+            ndim = nrow(reference)
+          )
+      }
+      else {
+        fun <- random_knn_query_cpp
+        args <- list(reference = reference, query = query)
+      }
     }
 
     args <- lmerge(
@@ -425,7 +475,7 @@ random_knn_impl <-
 
     if (use_alt_metric) {
       res$dist <-
-        apply_alt_metric_correction(metric, res$dist, methods::is(reference, "sparseMatrix"))
+        apply_alt_metric_correction(metric, res$dist, is_sparse(reference))
     }
     tsmessage("Finished")
     res

@@ -230,5 +230,6 @@ expect_equal(
 )
 
 # sparse queries
-
 expect_equal(brute_force_knn_query(ui10sp, ui10sp, k = 4), brute_force_knn(ui10sp, k = 4))
+expect_equal(brute_force_knn_query(ui10sp6, ui10sp4, k = 4), brute_force_knn_query(ui10z6, ui10z4, k = 4))
+expect_equal(brute_force_knn_query(ui10sp4, ui10sp6, k = 4), brute_force_knn_query(ui10z4, ui10z6, k = 4))
