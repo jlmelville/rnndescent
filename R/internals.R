@@ -94,7 +94,7 @@ prepare_init_graph <-
       } else {
         if (is_sparse(data)) {
           nn <-
-            rnn_idx_to_graph_sparse_self(
+            rnn_idx_to_graph_self_sparse(
               data = data@x,
               ind = data@i,
               ptr = data@p,

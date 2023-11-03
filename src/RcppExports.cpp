@@ -169,9 +169,9 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// rnn_idx_to_graph_sparse_self
-List rnn_idx_to_graph_sparse_self(const NumericVector& data, const IntegerVector& ind, const IntegerVector& ptr, std::size_t nobs, std::size_t ndim, const IntegerMatrix& idx, const std::string& metric, std::size_t n_threads, bool verbose);
-RcppExport SEXP _rnndescent_rnn_idx_to_graph_sparse_self(SEXP dataSEXP, SEXP indSEXP, SEXP ptrSEXP, SEXP nobsSEXP, SEXP ndimSEXP, SEXP idxSEXP, SEXP metricSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
+// rnn_idx_to_graph_self_sparse
+List rnn_idx_to_graph_self_sparse(const NumericVector& data, const IntegerVector& ind, const IntegerVector& ptr, std::size_t nobs, std::size_t ndim, const IntegerMatrix& idx, const std::string& metric, std::size_t n_threads, bool verbose);
+RcppExport SEXP _rnndescent_rnn_idx_to_graph_self_sparse(SEXP dataSEXP, SEXP indSEXP, SEXP ptrSEXP, SEXP nobsSEXP, SEXP ndimSEXP, SEXP idxSEXP, SEXP metricSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -184,7 +184,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type n_threads(n_threadsSEXP);
     Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
-    rcpp_result_gen = Rcpp::wrap(rnn_idx_to_graph_sparse_self(data, ind, ptr, nobs, ndim, idx, metric, n_threads, verbose));
+    rcpp_result_gen = Rcpp::wrap(rnn_idx_to_graph_self_sparse(data, ind, ptr, nobs, ndim, idx, metric, n_threads, verbose));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -586,7 +586,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_rnndescent_hamming_distance", (DL_FUNC) &_rnndescent_hamming_distance, 2},
     {"_rnndescent_correlation_distance", (DL_FUNC) &_rnndescent_correlation_distance, 2},
     {"_rnndescent_reverse_nbr_size_impl", (DL_FUNC) &_rnndescent_reverse_nbr_size_impl, 4},
-    {"_rnndescent_rnn_idx_to_graph_sparse_self", (DL_FUNC) &_rnndescent_rnn_idx_to_graph_sparse_self, 9},
+    {"_rnndescent_rnn_idx_to_graph_self_sparse", (DL_FUNC) &_rnndescent_rnn_idx_to_graph_self_sparse, 9},
     {"_rnndescent_rnn_idx_to_graph_self", (DL_FUNC) &_rnndescent_rnn_idx_to_graph_self, 5},
     {"_rnndescent_rnn_idx_to_graph_query", (DL_FUNC) &_rnndescent_rnn_idx_to_graph_query, 6},
     {"_rnndescent_local_scaled_nbrs", (DL_FUNC) &_rnndescent_local_scaled_nbrs, 7},
