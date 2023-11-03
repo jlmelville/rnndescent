@@ -246,6 +246,31 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// nn_descent_sparse
+List nn_descent_sparse(const NumericVector& data, const IntegerVector& ind, const IntegerVector& ptr, std::size_t nobs, std::size_t ndim, const IntegerMatrix& nn_idx, const NumericMatrix& nn_dist, const std::string& metric, std::size_t max_candidates, uint32_t n_iters, double delta, bool low_memory, std::size_t n_threads, bool verbose, const std::string& progress_type);
+RcppExport SEXP _rnndescent_nn_descent_sparse(SEXP dataSEXP, SEXP indSEXP, SEXP ptrSEXP, SEXP nobsSEXP, SEXP ndimSEXP, SEXP nn_idxSEXP, SEXP nn_distSEXP, SEXP metricSEXP, SEXP max_candidatesSEXP, SEXP n_itersSEXP, SEXP deltaSEXP, SEXP low_memorySEXP, SEXP n_threadsSEXP, SEXP verboseSEXP, SEXP progress_typeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericVector& >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type ind(indSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type ptr(ptrSEXP);
+    Rcpp::traits::input_parameter< std::size_t >::type nobs(nobsSEXP);
+    Rcpp::traits::input_parameter< std::size_t >::type ndim(ndimSEXP);
+    Rcpp::traits::input_parameter< const IntegerMatrix& >::type nn_idx(nn_idxSEXP);
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type nn_dist(nn_distSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
+    Rcpp::traits::input_parameter< std::size_t >::type max_candidates(max_candidatesSEXP);
+    Rcpp::traits::input_parameter< uint32_t >::type n_iters(n_itersSEXP);
+    Rcpp::traits::input_parameter< double >::type delta(deltaSEXP);
+    Rcpp::traits::input_parameter< bool >::type low_memory(low_memorySEXP);
+    Rcpp::traits::input_parameter< std::size_t >::type n_threads(n_threadsSEXP);
+    Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type progress_type(progress_typeSEXP);
+    rcpp_result_gen = Rcpp::wrap(nn_descent_sparse(data, ind, ptr, nobs, ndim, nn_idx, nn_dist, metric, max_candidates, n_iters, delta, low_memory, n_threads, verbose, progress_type));
+    return rcpp_result_gen;
+END_RCPP
+}
 // diversify_cpp
 List diversify_cpp(const NumericMatrix& data, const List& graph_list, const std::string& metric, double prune_probability, std::size_t n_threads);
 RcppExport SEXP _rnndescent_diversify_cpp(SEXP dataSEXP, SEXP graph_listSEXP, SEXP metricSEXP, SEXP prune_probabilitySEXP, SEXP n_threadsSEXP) {
@@ -481,6 +506,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_rnndescent_merge_nn", (DL_FUNC) &_rnndescent_merge_nn, 7},
     {"_rnndescent_merge_nn_all", (DL_FUNC) &_rnndescent_merge_nn_all, 4},
     {"_rnndescent_nn_descent", (DL_FUNC) &_rnndescent_nn_descent, 11},
+    {"_rnndescent_nn_descent_sparse", (DL_FUNC) &_rnndescent_nn_descent_sparse, 15},
     {"_rnndescent_diversify_cpp", (DL_FUNC) &_rnndescent_diversify_cpp, 5},
     {"_rnndescent_merge_graph_lists_cpp", (DL_FUNC) &_rnndescent_merge_graph_lists_cpp, 2},
     {"_rnndescent_degree_prune_cpp", (DL_FUNC) &_rnndescent_degree_prune_cpp, 3},

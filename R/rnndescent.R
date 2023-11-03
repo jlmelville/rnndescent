@@ -404,9 +404,10 @@ nnd_knn <- function(data,
   obs <- match.arg(toupper(obs), c("C", "R"))
 
   if (use_alt_metric) {
-    actual_metric <- find_alt_metric(metric)
+    actual_metric <- find_alt_metric(metric, is_sparse(data))
     if (!is.null(init) && is.list(init) && !is.null(init$dist)) {
-      init$dist <- apply_alt_metric_uncorrection(metric, init$dist)
+      init$dist <-
+        apply_alt_metric_uncorrection(metric, init$dist, is_sparse(data))
     }
   } else {
     actual_metric <- metric
@@ -414,7 +415,7 @@ nnd_knn <- function(data,
 
   data <- x2m(data)
   if (obs == "R") {
-    data <- t(data)
+    data <- Matrix::t(data)
   }
 
   # data must be column-oriented at this point
@@ -489,10 +490,10 @@ nnd_knn <- function(data,
       n_threads = n_threads
     )
   )
-  res <- nn_descent(
-    data,
-    init$idx,
-    init$dist,
+
+  nnd_args <- list(
+    nn_idx = init$idx,
+    nn_dist = init$dist,
     metric = actual_metric,
     n_iters = n_iters,
     max_candidates = max_candidates,
@@ -502,6 +503,19 @@ nnd_knn <- function(data,
     verbose = verbose,
     progress_type = progress
   )
+  if (is_sparse(data)) {
+    nnd_fun <- nn_descent_sparse
+    nnd_args$data <- data@x
+    nnd_args$ind <- data@i
+    nnd_args$ptr <- data@p
+    nnd_args$nobs <- ncol(data)
+    nnd_args$ndim <- nrow(data)
+  }
+  else {
+    nnd_fun <- nn_descent
+    nnd_args$data <- data
+  }
+  res <- do.call(nnd_fun, nnd_args)
 
   if (use_alt_metric) {
     res$dist <-
@@ -879,6 +893,7 @@ graph_knn_query <- function(query,
   if (use_alt_metric) {
     actual_metric <- find_alt_metric(metric)
     if (!is.null(init) && !is.null(init$dist)) {
+      # FIXME: sparse
       init$dist <- apply_alt_metric_uncorrection(metric, init$dist)
     }
   } else {
@@ -922,6 +937,7 @@ graph_knn_query <- function(query,
     }
   }
 
+  # FIXME sparse
   init <-
     prepare_init_graph(
       nn = init,
@@ -968,6 +984,8 @@ graph_knn_query <- function(query,
   }
 
   tsmessage(thread_msg("Searching nearest neighbor graph", n_threads = n_threads))
+
+  # FIXME: sparse
   res <-
     nn_query(
       reference = reference,

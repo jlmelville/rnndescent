@@ -34,8 +34,10 @@
 #include "rnn_rtoheap.h"
 
 using Rcpp::IntegerMatrix;
+using Rcpp::IntegerVector;
 using Rcpp::List;
 using Rcpp::NumericMatrix;
+using Rcpp::NumericVector;
 
 std::unique_ptr<tdoann::NNDProgressBase>
 create_nnd_progress(const std::string &progress_type, uint32_t n_iters,
@@ -73,34 +75,30 @@ create_serial_local_join(const tdoann::NNDHeap<Out, Idx> &nn_heap,
                                                                   distance);
 }
 
-// [[Rcpp::export]]
-List nn_descent(const NumericMatrix &data, const IntegerMatrix &nn_idx,
-                const NumericMatrix &nn_dist, const std::string &metric,
-                std::size_t max_candidates, uint32_t n_iters, double delta,
-                bool low_memory, std::size_t n_threads, bool verbose,
-                const std::string &progress_type) {
-  auto distance_ptr = create_self_distance(data, metric);
-  using Out = typename tdoann::DistanceTraits<decltype(distance_ptr)>::Output;
-  using Idx = typename tdoann::DistanceTraits<decltype(distance_ptr)>::Index;
-
+template <typename Out, typename Idx>
+List nn_descent_impl(const tdoann::BaseDistance<Out, Idx> &distance,
+                     const IntegerMatrix &nn_idx, const NumericMatrix &nn_dist,
+                     std::size_t max_candidates, uint32_t n_iters, double delta,
+                     bool low_memory, std::size_t n_threads, bool verbose,
+                     const std::string &progress_type) {
   auto nnd_heap =
       r_to_knn_heap<tdoann::NNDHeap<Out, Idx>>(nn_idx, nn_dist, n_threads);
 
   // fill any space in the heap with random neighbors
-  fill_random(nnd_heap, *distance_ptr, n_threads, verbose);
+  fill_random(nnd_heap, distance, n_threads, verbose);
 
   auto nnd_progress_ptr = create_nnd_progress(progress_type, n_iters, verbose);
   RParallelExecutor executor;
 
   if (n_threads > 0) {
     auto local_join_ptr =
-        create_parallel_local_join(nnd_heap, *distance_ptr, low_memory);
+        create_parallel_local_join(nnd_heap, distance, low_memory);
     rnndescent::ParallelRNGAdapter<rnndescent::PcgRand> parallel_rand;
     tdoann::nnd_build(nnd_heap, *local_join_ptr, max_candidates, n_iters, delta,
                       *nnd_progress_ptr, parallel_rand, n_threads, executor);
   } else {
     auto local_join_ptr =
-        create_serial_local_join(nnd_heap, *distance_ptr, low_memory);
+        create_serial_local_join(nnd_heap, distance, low_memory);
     rnndescent::RRand rand;
     tdoann::nnd_build(nnd_heap, *local_join_ptr, max_candidates, n_iters, delta,
                       rand, *nnd_progress_ptr);
@@ -108,6 +106,32 @@ List nn_descent(const NumericMatrix &data, const IntegerMatrix &nn_idx,
 
   return heap_to_r(nnd_heap, n_threads, nnd_progress_ptr->get_base_progress(),
                    executor);
+}
+
+// [[Rcpp::export]]
+List nn_descent(const NumericMatrix &data, const IntegerMatrix &nn_idx,
+                const NumericMatrix &nn_dist, const std::string &metric,
+                std::size_t max_candidates, uint32_t n_iters, double delta,
+                bool low_memory, std::size_t n_threads, bool verbose,
+                const std::string &progress_type) {
+  auto distance_ptr = create_self_distance(data, metric);
+  return nn_descent_impl(*distance_ptr, nn_idx, nn_dist, max_candidates,
+                         n_iters, delta, low_memory, n_threads, verbose,
+                         progress_type);
+}
+// [[Rcpp::export]]
+List nn_descent_sparse(const NumericVector &data, const IntegerVector &ind,
+                       const IntegerVector &ptr, std::size_t nobs,
+                       std::size_t ndim, const IntegerMatrix &nn_idx,
+                       const NumericMatrix &nn_dist, const std::string &metric,
+                       std::size_t max_candidates, uint32_t n_iters,
+                       double delta, bool low_memory, std::size_t n_threads,
+                       bool verbose, const std::string &progress_type) {
+  auto distance_ptr =
+      create_sparse_self_distance(data, ind, ptr, nobs, ndim, metric);
+  return nn_descent_impl(*distance_ptr, nn_idx, nn_dist, max_candidates,
+                         n_iters, delta, low_memory, n_threads, verbose,
+                         progress_type);
 }
 
 // NOLINTEND(modernize-use-trailing-return-type)

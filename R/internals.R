@@ -160,9 +160,31 @@ find_alt_metric <- function(metric, is_sparse = FALSE) {
   }
 }
 
-apply_alt_metric_uncorrection <- function(metric, dist) {
+# needed for any method which can take a pre-calculate `init` parameter *and*
+# also `use_alt_metric = TRUE`, e.g. if we are actually going to be working on
+# squared Euclidean distances, we need to transform initial Euclidean distances
+# accordingly
+apply_alt_metric_uncorrection <- function(metric, dist, is_sparse = FALSE) {
+  if (is_sparse) {
+    apply_sparse_alt_metric_uncorrection(metric, dist)
+  }
+  else {
+    apply_dense_alt_metric_uncorrection(metric, dist)
+  }
+}
+
+apply_dense_alt_metric_uncorrection <- function(metric, dist) {
   switch(metric,
+         euclidean = dist * dist,
+         dist
+  )
+}
+
+apply_sparse_alt_metric_uncorrection <- function(metric, dist) {
+  switch(
+    metric,
     euclidean = dist * dist,
+    cosine = apply(dist, c(1, 2), sparse_uncorrect_alternative_cosine),
     dist
   )
 }
@@ -203,6 +225,10 @@ sparse_correct_alternative_cosine <- function(dist) {
   else {
     1.0 - (2.0 ^ -dist)
   }
+}
+
+sparse_uncorrect_alternative_cosine <- function(dist) {
+  ifelse(dist >= (1.0 - 1.e-10), 0.0, -log2(1.0 - dist))
 }
 
 

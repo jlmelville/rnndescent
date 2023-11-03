@@ -95,6 +95,10 @@ nn_descent <- function(data, nn_idx, nn_dist, metric, max_candidates, n_iters, d
     .Call(`_rnndescent_nn_descent`, data, nn_idx, nn_dist, metric, max_candidates, n_iters, delta, low_memory, n_threads, verbose, progress_type)
 }
 
+nn_descent_sparse <- function(data, ind, ptr, nobs, ndim, nn_idx, nn_dist, metric, max_candidates, n_iters, delta, low_memory, n_threads, verbose, progress_type) {
+    .Call(`_rnndescent_nn_descent_sparse`, data, ind, ptr, nobs, ndim, nn_idx, nn_dist, metric, max_candidates, n_iters, delta, low_memory, n_threads, verbose, progress_type)
+}
+
 diversify_cpp <- function(data, graph_list, metric, prune_probability, n_threads) {
     .Call(`_rnndescent_diversify_cpp`, data, graph_list, metric, prune_probability, n_threads)
 }

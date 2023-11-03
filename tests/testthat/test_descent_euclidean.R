@@ -315,3 +315,11 @@ test_that("column oriented", {
   check_query_nbrs(nn = qnbrs6, query = ui6, ref_range = 7:10, query_range = 1:6, k = 4, expected_dist = ui10_eucd, tol = 1e-6)
   expect_equal(sum(qnbrs6$dist), ui6q_edsum, tol = 1e-6)
 })
+
+test_that("sparse", {
+  set.seed(1337); dznbrs <- nnd_knn(ui10z, k = 4, n_threads = 0, metric = "euclidean")
+  set.seed(1337); spnbrs <- nnd_knn(ui10sp, k = 4, n_threads = 0, metric = "euclidean", use_alt_metric = TRUE)
+  expect_equal(dznbrs, spnbrs)
+  set.seed(1337); spnbrs <- nnd_knn(ui10sp, k = 4, n_threads = 0, metric = "euclidean", use_alt_metric = FALSE)
+  expect_equal(dznbrs, spnbrs, tol = 1e-7)
+})
