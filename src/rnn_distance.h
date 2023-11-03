@@ -269,40 +269,34 @@ create_sparse_self_distance_impl(
 
   if (metric == "l2sqr") {
     return std::make_unique<tdoann::SparseL2SqrSelfDistance<In, Out, Idx>>(
-        std::move(ind_vec), std::move(ptr_vec), std::move(data_vec), ndim,
-        nobs);
+        std::move(ind_vec), std::move(ptr_vec), std::move(data_vec),
+        nobs, ndim);
   }
   if (metric == "euclidean") {
     return std::make_unique<tdoann::SparseEuclideanSelfDistance<In, Out, Idx>>(
-        std::move(ind_vec), std::move(ptr_vec), std::move(data_vec), ndim,
-        nobs);
+        std::move(ind_vec), std::move(ptr_vec), std::move(data_vec), nobs, ndim);
   }
   if (metric == "manhattan") {
     return std::make_unique<tdoann::SparseManhattanSelfDistance<In, Out, Idx>>(
-        std::move(ind_vec), std::move(ptr_vec), std::move(data_vec), ndim,
-        nobs);
+        std::move(ind_vec), std::move(ptr_vec), std::move(data_vec), nobs, ndim);
   }
   if (metric == "cosine") {
     return std::make_unique<tdoann::SparseCosineSelfDistance<In, Out, Idx>>(
-        std::move(ind_vec), std::move(ptr_vec), std::move(data_vec), ndim,
-        nobs);
+        std::move(ind_vec), std::move(ptr_vec), std::move(data_vec), nobs, ndim);
   }
   if (metric == "alternative-cosine") {
     return std::make_unique<
         tdoann::SparseAlternativeCosineSelfDistance<In, Out, Idx>>(
-        std::move(ind_vec), std::move(ptr_vec), std::move(data_vec), ndim,
-        nobs);
+        std::move(ind_vec), std::move(ptr_vec), std::move(data_vec), nobs, ndim);
   }
   if (metric == "correlation") {
     return std::make_unique<
         tdoann::SparseCorrelationSelfDistance<In, Out, Idx>>(
-        std::move(ind_vec), std::move(ptr_vec), std::move(data_vec), ndim,
-        nobs);
+        std::move(ind_vec), std::move(ptr_vec), std::move(data_vec), nobs, ndim);
   }
   if (metric == "hamming") {
     return std::make_unique<tdoann::SparseHammingSelfDistance<In, Out, Idx>>(
-        std::move(ind_vec), std::move(ptr_vec), std::move(data_vec), ndim,
-        nobs);
+        std::move(ind_vec), std::move(ptr_vec), std::move(data_vec), nobs, ndim);
   }
   Rcpp::stop("Bad metric");
 }

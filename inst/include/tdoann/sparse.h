@@ -424,8 +424,8 @@ class SparseL2SqrSelfDistance : public BaseDistance<Out, Idx> {
 public:
   SparseL2SqrSelfDistance(std::vector<std::size_t> &&x_ind,
                           std::vector<std::size_t> &&x_ptr,
-                          std::vector<In> &&x_data, std::size_t ndim,
-                          std::size_t nx)
+                          std::vector<In> &&x_data, std::size_t nx,
+                          std::size_t ndim)
       : x_ind(std::move(x_ind)), x_ptr(std::move(x_ptr)),
         x_data(std::move(x_data)), nx(nx), ndim(ndim) {}
 
@@ -455,8 +455,8 @@ class SparseEuclideanSelfDistance : public BaseDistance<Out, Idx> {
 public:
   SparseEuclideanSelfDistance(std::vector<std::size_t> &&x_ind,
                               std::vector<std::size_t> &&x_ptr,
-                              std::vector<In> &&x_data, std::size_t ndim,
-                              std::size_t nx)
+                              std::vector<In> &&x_data, std::size_t nx,
+                              std::size_t ndim)
       : x_ind(std::move(x_ind)), x_ptr(std::move(x_ptr)),
         x_data(std::move(x_data)), nx(nx), ndim(ndim) {}
 
@@ -486,8 +486,8 @@ class SparseManhattanSelfDistance : public BaseDistance<Out, Idx> {
 public:
   SparseManhattanSelfDistance(std::vector<std::size_t> &&x_ind,
                               std::vector<std::size_t> &&x_ptr,
-                              std::vector<In> &&x_data, std::size_t ndim,
-                              std::size_t nx)
+                              std::vector<In> &&x_data, std::size_t nx,
+                              std::size_t ndim)
       : x_ind(std::move(x_ind)), x_ptr(std::move(x_ptr)),
         x_data(std::move(x_data)), nx(nx), ndim(ndim) {}
 
@@ -517,8 +517,8 @@ class SparseHammingSelfDistance : public BaseDistance<Out, Idx> {
 public:
   SparseHammingSelfDistance(std::vector<std::size_t> &&x_ind,
                             std::vector<std::size_t> &&x_ptr,
-                            std::vector<In> &&x_data, std::size_t ndim,
-                            std::size_t nx)
+                            std::vector<In> &&x_data, std::size_t nx,
+                            std::size_t ndim)
       : x_ind(std::move(x_ind)), x_ptr(std::move(x_ptr)),
         x_data(std::move(x_data)), nx(nx), ndim(ndim) {}
 
@@ -548,8 +548,8 @@ class SparseCosineSelfDistance : public BaseDistance<Out, Idx> {
 public:
   SparseCosineSelfDistance(std::vector<std::size_t> &&x_ind,
                            std::vector<std::size_t> &&x_ptr,
-                           std::vector<In> &&x_data, std::size_t ndim,
-                           std::size_t nx)
+                           std::vector<In> &&x_data, std::size_t nx,
+                           std::size_t ndim)
       : x_ind(std::move(x_ind)), x_ptr(std::move(x_ptr)),
         x_data(std::move(x_data)), nx(nx), ndim(ndim) {}
 
@@ -579,8 +579,8 @@ class SparseAlternativeCosineSelfDistance : public BaseDistance<Out, Idx> {
 public:
   SparseAlternativeCosineSelfDistance(std::vector<std::size_t> &&x_ind,
                                       std::vector<std::size_t> &&x_ptr,
-                                      std::vector<In> &&x_data,
-                                      std::size_t ndim, std::size_t nx)
+                                      std::vector<In> &&x_data, std::size_t nx,
+                                      std::size_t ndim)
       : x_ind(std::move(x_ind)), x_ptr(std::move(x_ptr)),
         x_data(std::move(x_data)), nx(nx), ndim(ndim) {}
 
@@ -610,8 +610,8 @@ class SparseCorrelationSelfDistance : public BaseDistance<Out, Idx> {
 public:
   SparseCorrelationSelfDistance(std::vector<std::size_t> &&x_ind,
                                 std::vector<std::size_t> &&x_ptr,
-                                std::vector<In> &&x_data, std::size_t ndim,
-                                std::size_t nx)
+                                std::vector<In> &&x_data, std::size_t nx,
+                                std::size_t ndim)
       : x_ind(std::move(x_ind)), x_ptr(std::move(x_ptr)),
         x_data(std::move(x_data)), nx(nx), ndim(ndim) {}
 
