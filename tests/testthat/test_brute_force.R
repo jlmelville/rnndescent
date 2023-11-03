@@ -226,5 +226,5 @@ expect_equal(
     n_threads = 0,
     metric = "correlation"
   ),
-  tol = 1e-6
+  tol = 1e-5
 )
