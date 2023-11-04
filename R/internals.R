@@ -380,7 +380,7 @@ rpf_knn_impl <-
     )
 
     if (margin == "implicit") {
-      res <- rp_tree_knn_cpp2(
+      res <- rp_tree_knn_implicit(
         data,
         k,
         actual_metric,
@@ -394,7 +394,7 @@ rpf_knn_impl <-
       )
     }
     else {
-      res <- rp_tree_knn_cpp(
+      res <- rp_tree_knn_explicit(
         data,
         k,
         actual_metric,

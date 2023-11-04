@@ -143,12 +143,12 @@ random_knn_query_sparse <- function(ref_data, ref_ind, ref_ptr, nref, query_data
     .Call(`_rnndescent_random_knn_query_sparse`, ref_data, ref_ind, ref_ptr, nref, query_data, query_ind, query_ptr, nquery, ndim, nnbrs, metric, order_by_distance, n_threads, verbose)
 }
 
-rp_tree_knn_cpp <- function(data, nnbrs, metric, n_trees, leaf_size, include_self, unzero = TRUE, ret_forest = FALSE, n_threads = 0L, verbose = FALSE) {
-    .Call(`_rnndescent_rp_tree_knn_cpp`, data, nnbrs, metric, n_trees, leaf_size, include_self, unzero, ret_forest, n_threads, verbose)
+rp_tree_knn_explicit <- function(data, nnbrs, metric, n_trees, leaf_size, include_self, unzero = TRUE, ret_forest = FALSE, n_threads = 0L, verbose = FALSE) {
+    .Call(`_rnndescent_rp_tree_knn_explicit`, data, nnbrs, metric, n_trees, leaf_size, include_self, unzero, ret_forest, n_threads, verbose)
 }
 
-rp_tree_knn_cpp2 <- function(data, nnbrs, metric, n_trees, leaf_size, include_self, unzero = TRUE, ret_forest = FALSE, n_threads = 0L, verbose = FALSE) {
-    .Call(`_rnndescent_rp_tree_knn_cpp2`, data, nnbrs, metric, n_trees, leaf_size, include_self, unzero, ret_forest, n_threads, verbose)
+rp_tree_knn_implicit <- function(data, nnbrs, metric, n_trees, leaf_size, include_self, unzero = TRUE, ret_forest = FALSE, n_threads = 0L, verbose = FALSE) {
+    .Call(`_rnndescent_rp_tree_knn_implicit`, data, nnbrs, metric, n_trees, leaf_size, include_self, unzero, ret_forest, n_threads, verbose)
 }
 
 rnn_rp_forest_build <- function(data, metric, n_trees, leaf_size, n_threads = 0L, verbose = FALSE) {

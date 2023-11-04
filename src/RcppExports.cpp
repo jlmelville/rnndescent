@@ -472,9 +472,9 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// rp_tree_knn_cpp
-List rp_tree_knn_cpp(const NumericMatrix& data, uint32_t nnbrs, const std::string& metric, uint32_t n_trees, uint32_t leaf_size, bool include_self, bool unzero, bool ret_forest, std::size_t n_threads, bool verbose);
-RcppExport SEXP _rnndescent_rp_tree_knn_cpp(SEXP dataSEXP, SEXP nnbrsSEXP, SEXP metricSEXP, SEXP n_treesSEXP, SEXP leaf_sizeSEXP, SEXP include_selfSEXP, SEXP unzeroSEXP, SEXP ret_forestSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
+// rp_tree_knn_explicit
+List rp_tree_knn_explicit(const NumericMatrix& data, uint32_t nnbrs, const std::string& metric, uint32_t n_trees, uint32_t leaf_size, bool include_self, bool unzero, bool ret_forest, std::size_t n_threads, bool verbose);
+RcppExport SEXP _rnndescent_rp_tree_knn_explicit(SEXP dataSEXP, SEXP nnbrsSEXP, SEXP metricSEXP, SEXP n_treesSEXP, SEXP leaf_sizeSEXP, SEXP include_selfSEXP, SEXP unzeroSEXP, SEXP ret_forestSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -488,13 +488,13 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< bool >::type ret_forest(ret_forestSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type n_threads(n_threadsSEXP);
     Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
-    rcpp_result_gen = Rcpp::wrap(rp_tree_knn_cpp(data, nnbrs, metric, n_trees, leaf_size, include_self, unzero, ret_forest, n_threads, verbose));
+    rcpp_result_gen = Rcpp::wrap(rp_tree_knn_explicit(data, nnbrs, metric, n_trees, leaf_size, include_self, unzero, ret_forest, n_threads, verbose));
     return rcpp_result_gen;
 END_RCPP
 }
-// rp_tree_knn_cpp2
-List rp_tree_knn_cpp2(const NumericMatrix& data, uint32_t nnbrs, const std::string& metric, uint32_t n_trees, uint32_t leaf_size, bool include_self, bool unzero, bool ret_forest, std::size_t n_threads, bool verbose);
-RcppExport SEXP _rnndescent_rp_tree_knn_cpp2(SEXP dataSEXP, SEXP nnbrsSEXP, SEXP metricSEXP, SEXP n_treesSEXP, SEXP leaf_sizeSEXP, SEXP include_selfSEXP, SEXP unzeroSEXP, SEXP ret_forestSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
+// rp_tree_knn_implicit
+List rp_tree_knn_implicit(const NumericMatrix& data, uint32_t nnbrs, const std::string& metric, uint32_t n_trees, uint32_t leaf_size, bool include_self, bool unzero, bool ret_forest, std::size_t n_threads, bool verbose);
+RcppExport SEXP _rnndescent_rp_tree_knn_implicit(SEXP dataSEXP, SEXP nnbrsSEXP, SEXP metricSEXP, SEXP n_treesSEXP, SEXP leaf_sizeSEXP, SEXP include_selfSEXP, SEXP unzeroSEXP, SEXP ret_forestSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -508,7 +508,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< bool >::type ret_forest(ret_forestSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type n_threads(n_threadsSEXP);
     Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
-    rcpp_result_gen = Rcpp::wrap(rp_tree_knn_cpp2(data, nnbrs, metric, n_trees, leaf_size, include_self, unzero, ret_forest, n_threads, verbose));
+    rcpp_result_gen = Rcpp::wrap(rp_tree_knn_implicit(data, nnbrs, metric, n_trees, leaf_size, include_self, unzero, ret_forest, n_threads, verbose));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -652,8 +652,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_rnndescent_random_knn_cpp", (DL_FUNC) &_rnndescent_random_knn_cpp, 6},
     {"_rnndescent_random_knn_query_cpp", (DL_FUNC) &_rnndescent_random_knn_query_cpp, 7},
     {"_rnndescent_random_knn_query_sparse", (DL_FUNC) &_rnndescent_random_knn_query_sparse, 14},
-    {"_rnndescent_rp_tree_knn_cpp", (DL_FUNC) &_rnndescent_rp_tree_knn_cpp, 10},
-    {"_rnndescent_rp_tree_knn_cpp2", (DL_FUNC) &_rnndescent_rp_tree_knn_cpp2, 10},
+    {"_rnndescent_rp_tree_knn_explicit", (DL_FUNC) &_rnndescent_rp_tree_knn_explicit, 10},
+    {"_rnndescent_rp_tree_knn_implicit", (DL_FUNC) &_rnndescent_rp_tree_knn_implicit, 10},
     {"_rnndescent_rnn_rp_forest_build", (DL_FUNC) &_rnndescent_rnn_rp_forest_build, 6},
     {"_rnndescent_rnn_rp_forest_implicit_build", (DL_FUNC) &_rnndescent_rnn_rp_forest_implicit_build, 6},
     {"_rnndescent_rnn_rp_forest_search", (DL_FUNC) &_rnndescent_rnn_rp_forest_search, 8},

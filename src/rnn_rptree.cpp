@@ -337,11 +337,11 @@ build_rp_forest(const std::vector<In> &data_vec, std::size_t ndim,
 }
 
 // [[Rcpp::export]]
-List rp_tree_knn_cpp(const NumericMatrix &data, uint32_t nnbrs,
-                     const std::string &metric, uint32_t n_trees,
-                     uint32_t leaf_size, bool include_self, bool unzero = true,
-                     bool ret_forest = false, std::size_t n_threads = 0,
-                     bool verbose = false) {
+List rp_tree_knn_explicit(const NumericMatrix &data, uint32_t nnbrs,
+                          const std::string &metric, uint32_t n_trees,
+                          uint32_t leaf_size, bool include_self,
+                          bool unzero = true, bool ret_forest = false,
+                          std::size_t n_threads = 0, bool verbose = false) {
   using Idx = RNN_DEFAULT_IDX;
   using In = RNN_DEFAULT_IN;
 
@@ -394,11 +394,11 @@ List rp_tree_knn_cpp(const NumericMatrix &data, uint32_t nnbrs,
 }
 
 // [[Rcpp::export]]
-List rp_tree_knn_cpp2(const NumericMatrix &data, uint32_t nnbrs,
-                      const std::string &metric, uint32_t n_trees,
-                      uint32_t leaf_size, bool include_self, bool unzero = true,
-                      bool ret_forest = false, std::size_t n_threads = 0,
-                      bool verbose = false) {
+List rp_tree_knn_implicit(const NumericMatrix &data, uint32_t nnbrs,
+                          const std::string &metric, uint32_t n_trees,
+                          uint32_t leaf_size, bool include_self,
+                          bool unzero = true, bool ret_forest = false,
+                          std::size_t n_threads = 0, bool verbose = false) {
   const std::size_t ndim = data.nrow();
 
   auto distance_ptr = create_self_distance(data, metric);
