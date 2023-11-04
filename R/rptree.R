@@ -134,14 +134,10 @@ rpf_knn <- function(data,
   data <- x2m(data)
   check_k(k, n_obs(data))
 
-  if (use_alt_metric) {
-    actual_metric <- find_alt_metric(metric)
-  } else {
-    actual_metric <- metric
-  }
+  actual_metric <- get_actual_metric(use_alt_metric, metric, data, verbose)
 
   if (obs == "R") {
-    data <- t(data)
+    data <- Matrix::t(data)
   }
 
   rpf_knn_impl(

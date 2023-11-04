@@ -147,6 +147,10 @@ rp_tree_knn_explicit <- function(data, nnbrs, metric, n_trees, leaf_size, includ
     .Call(`_rnndescent_rp_tree_knn_explicit`, data, nnbrs, metric, n_trees, leaf_size, include_self, unzero, ret_forest, n_threads, verbose)
 }
 
+rp_tree_knn_implicit_sparse <- function(data, ind, ptr, nobs, ndim, nnbrs, metric, n_trees, leaf_size, include_self, unzero = TRUE, ret_forest = FALSE, n_threads = 0L, verbose = FALSE) {
+    .Call(`_rnndescent_rp_tree_knn_implicit_sparse`, data, ind, ptr, nobs, ndim, nnbrs, metric, n_trees, leaf_size, include_self, unzero, ret_forest, n_threads, verbose)
+}
+
 rp_tree_knn_implicit <- function(data, nnbrs, metric, n_trees, leaf_size, include_self, unzero = TRUE, ret_forest = FALSE, n_threads = 0L, verbose = FALSE) {
     .Call(`_rnndescent_rp_tree_knn_implicit`, data, nnbrs, metric, n_trees, leaf_size, include_self, unzero, ret_forest, n_threads, verbose)
 }

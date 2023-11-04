@@ -320,3 +320,13 @@ uiriscosiq <-
   )
 expect_equal(sum(uiriscosi$idx - uiriscosq$idx), 0)
 expect_equal(sum(uiriscosi$idx - uiriscosiq$idx), 0)
+
+# sparse
+set.seed(1337); dknn <- rpf_knn(ui10z, k = 4, leaf_size = 3, n_trees = 2, margin = "implicit")
+set.seed(1337); sknn <- rpf_knn(ui10sp, k = 4, leaf_size = 3, n_trees = 2,margin = "implicit")
+expect_equal(sknn, dknn)
+
+set.seed(1337); dknn <- rpf_knn(ui10z, k = 4, leaf_size = 3, n_trees = 2, margin = "implicit", ret_forest = TRUE)
+set.seed(1337); sknn <- rpf_knn(ui10sp, k = 4, leaf_size = 3, n_trees = 2, margin = "implicit", ret_forest = TRUE)
+expect_equal(list(idx = sknn$idx, dist = sknn$dist), list(idx = dknn$idx, dist = dknn$dist))
+expect_equal(sknn$forest, dknn$forest)

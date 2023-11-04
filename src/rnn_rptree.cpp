@@ -393,22 +393,17 @@ List rp_tree_knn_explicit(const NumericMatrix &data, uint32_t nnbrs,
   return nn_list;
 }
 
-// [[Rcpp::export]]
-List rp_tree_knn_implicit(const NumericMatrix &data, uint32_t nnbrs,
-                          const std::string &metric, uint32_t n_trees,
-                          uint32_t leaf_size, bool include_self,
-                          bool unzero = true, bool ret_forest = false,
-                          std::size_t n_threads = 0, bool verbose = false) {
-  const std::size_t ndim = data.nrow();
-
-  auto distance_ptr = create_self_distance(data, metric);
-  using Idx = typename tdoann::DistanceTraits<decltype(distance_ptr)>::Index;
-
+template <typename Out, typename Idx>
+List rp_tree_knn_implicit_impl(
+    const tdoann::BaseDistance<Out, Idx> &distance, std::size_t nobs,
+    std::size_t ndim, uint32_t nnbrs, const std::string &metric,
+    uint32_t n_trees, uint32_t leaf_size, bool include_self, bool unzero = true,
+    bool ret_forest = false, std::size_t n_threads = 0, bool verbose = false) {
   RParallelExecutor executor;
   rnndescent::ParallelIntRNGAdapter<Idx, rnndescent::DQIntSampler> rng_provider;
   RPProgress forest_progress(verbose);
   auto rp_forest =
-      tdoann::make_forest(*distance_ptr, ndim, n_trees, leaf_size, rng_provider,
+      tdoann::make_forest(distance, ndim, n_trees, leaf_size, rng_provider,
                           n_threads, forest_progress, executor);
 
   if (verbose) {
@@ -425,19 +420,44 @@ List rp_tree_knn_implicit(const NumericMatrix &data, uint32_t nnbrs,
   RPProgress knn_progress(verbose);
 
   auto neighbor_heap =
-      tdoann::init_rp_tree(*distance_ptr, leaf_array, max_leaf_size, nnbrs,
+      tdoann::init_rp_tree(distance, leaf_array, max_leaf_size, nnbrs,
                            include_self, n_threads, knn_progress, executor);
 
   auto nn_list =
       heap_to_r(neighbor_heap, n_threads, knn_progress, executor, unzero);
 
   if (ret_forest) {
-    auto search_forest =
-        tdoann::convert_rp_forest(rp_forest, data.ncol(), ndim);
+    auto search_forest = tdoann::convert_rp_forest(rp_forest, nobs, ndim);
     List search_forest_r = search_forest_implicit_to_r(search_forest);
     nn_list["forest"] = search_forest_r;
   }
   return nn_list;
+}
+
+// [[Rcpp::export]]
+List rp_tree_knn_implicit_sparse(
+    const NumericVector &data, const IntegerVector &ind,
+    const IntegerVector &ptr, std::size_t nobs, std::size_t ndim,
+    uint32_t nnbrs, const std::string &metric, uint32_t n_trees,
+    uint32_t leaf_size, bool include_self, bool unzero = true,
+    bool ret_forest = false, std::size_t n_threads = 0, bool verbose = false) {
+  auto distance_ptr =
+      create_sparse_self_distance(data, ind, ptr, nobs, ndim, metric);
+  return rp_tree_knn_implicit_impl(*distance_ptr, nobs, ndim, nnbrs, metric,
+                                   n_trees, leaf_size, include_self, unzero,
+                                   ret_forest, n_threads, verbose);
+}
+
+// [[Rcpp::export]]
+List rp_tree_knn_implicit(const NumericMatrix &data, uint32_t nnbrs,
+                          const std::string &metric, uint32_t n_trees,
+                          uint32_t leaf_size, bool include_self,
+                          bool unzero = true, bool ret_forest = false,
+                          std::size_t n_threads = 0, bool verbose = false) {
+  auto distance_ptr = create_self_distance(data, metric);
+  return rp_tree_knn_implicit_impl(
+      *distance_ptr, data.ncol(), data.nrow(), nnbrs, metric, n_trees,
+      leaf_size, include_self, unzero, ret_forest, n_threads, verbose);
 }
 
 // [[Rcpp::export]]

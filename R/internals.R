@@ -380,32 +380,58 @@ rpf_knn_impl <-
     )
 
     if (margin == "implicit") {
-      res <- rp_tree_knn_implicit(
-        data,
-        k,
-        actual_metric,
-        n_trees = n_trees,
-        leaf_size = leaf_size,
-        include_self = include_self,
-        ret_forest = ret_forest,
-        unzero = !zero_index,
-        n_threads = n_threads,
-        verbose = verbose
-      )
+      if (is_sparse(data)) {
+        res <- rp_tree_knn_implicit_sparse(
+          data = data@x,
+          ind = data@i,
+          ptr = data@p,
+          nobs = ncol(data),
+          ndim = nrow(data),
+          nnbrs = k,
+          metric = actual_metric,
+          n_trees = n_trees,
+          leaf_size = leaf_size,
+          include_self = include_self,
+          ret_forest = ret_forest,
+          unzero = !zero_index,
+          n_threads = n_threads,
+          verbose = verbose
+        )
+      }
+      else {
+        res <- rp_tree_knn_implicit(
+          data,
+          k,
+          actual_metric,
+          n_trees = n_trees,
+          leaf_size = leaf_size,
+          include_self = include_self,
+          ret_forest = ret_forest,
+          unzero = !zero_index,
+          n_threads = n_threads,
+          verbose = verbose
+        )
+      }
     }
     else {
-      res <- rp_tree_knn_explicit(
-        data,
-        k,
-        actual_metric,
-        n_trees = n_trees,
-        leaf_size = leaf_size,
-        include_self = include_self,
-        ret_forest = ret_forest,
-        unzero = !zero_index,
-        n_threads = n_threads,
-        verbose = verbose
-      )
+      if (is_sparse(data)) {
+        # TODO: sparse
+        stop("Explicit margin tree-building not supported for sparse data")
+      }
+      else {
+        res <- rp_tree_knn_explicit(
+          data,
+          k,
+          actual_metric,
+          n_trees = n_trees,
+          leaf_size = leaf_size,
+          include_self = include_self,
+          ret_forest = ret_forest,
+          unzero = !zero_index,
+          n_threads = n_threads,
+          verbose = verbose
+        )
+      }
     }
 
     if (use_alt_metric) {
