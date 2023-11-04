@@ -7,6 +7,7 @@
 rpf_build(
   data,
   metric = "euclidean",
+  use_alt_metric = TRUE,
   n_trees = NULL,
   leaf_size = 10,
   margin = "auto",
@@ -44,6 +45,13 @@ always give exactly zero with this method.
 Note that the metric is only used to determine whether an "angular" or
 "Euclidean" distance is used to measure the distance between split points
 in the tree.}
+
+\item{use_alt_metric}{If \code{TRUE}, use faster metrics that maintain the
+ordering of distances internally (e.g. squared Euclidean distances if using
+\code{metric = "euclidean"}). Probably the only reason to set this to \code{FALSE} is
+if you suspect that some sort of numeric issue is occurring with your data
+in the alternative code path. Only applies if the implicit \code{margin} method
+is used.}
 
 \item{n_trees}{The number of trees to use in the RP forest. A larger number
 will give more accurate results at the cost of a longer computation time.

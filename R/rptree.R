@@ -187,6 +187,12 @@ rpf_knn <- function(data,
 #'   Note that the metric is only used to determine whether an "angular" or
 #'   "Euclidean" distance is used to measure the distance between split points
 #'   in the tree.
+#' @param use_alt_metric If `TRUE`, use faster metrics that maintain the
+#'   ordering of distances internally (e.g. squared Euclidean distances if using
+#'   `metric = "euclidean"`). Probably the only reason to set this to `FALSE` is
+#'   if you suspect that some sort of numeric issue is occurring with your data
+#'   in the alternative code path. Only applies if the implicit `margin` method
+#'   is used.
 #' @param n_trees The number of trees to use in the RP forest. A larger number
 #'   will give more accurate results at the cost of a longer computation time.
 #'   The default of `NULL` means that the number is chosen based on the number
@@ -247,6 +253,7 @@ rpf_knn <- function(data,
 #' @export
 rpf_build <- function(data,
                       metric = "euclidean",
+                      use_alt_metric = TRUE,
                       n_trees = NULL,
                       leaf_size = 10,
                       margin = "auto",
@@ -268,6 +275,13 @@ rpf_build <- function(data,
 
   margin <- find_margin_method(margin, metric)
 
+  if (margin == "implicit") {
+    actual_metric <- get_actual_metric(use_alt_metric, metric, data, verbose)
+  }
+  else {
+    actual_metric <- metric
+  }
+
   tsmessage(
     thread_msg(
       "Building RP forest with n_trees = ",
@@ -286,7 +300,7 @@ rpf_build <- function(data,
   if (margin == "implicit") {
     forest <- rnn_rp_forest_implicit_build(
       data,
-      metric,
+      actual_metric,
       n_trees = n_trees,
       leaf_size = leaf_size,
       n_threads = n_threads,
@@ -296,7 +310,7 @@ rpf_build <- function(data,
   else {
     forest <- rnn_rp_forest_build(
       data,
-      metric,
+      actual_metric,
       n_trees = n_trees,
       leaf_size = leaf_size,
       n_threads = n_threads,

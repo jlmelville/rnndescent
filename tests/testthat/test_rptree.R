@@ -273,6 +273,12 @@ expect_equal(
   rpf_index_ls4i, tol = 1e-7
 )
 
+set.seed(1337)
+expect_equal(
+  rpf_build(ui10, metric = "euclidean", use_alt_metric = FALSE, leaf_size = 4, margin = "implicit", n_threads = 0),
+  rpf_index_ls4i, tol = 1e-7
+)
+
 # cosine test
 set.seed(1337)
 uiriscos <-
