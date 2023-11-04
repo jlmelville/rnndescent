@@ -279,6 +279,9 @@ isclose <- function(a, b, rtol = 1.0e-5, atol = 1.0e-8) {
 }
 
 sparse_correct_alternative_cosine <- function(dist) {
+  if (is.na(dist)) {
+    return(NA)
+  }
   if (isclose(0.0, abs(dist), atol = 1e-7) || dist < 0.0) {
     0.0
   }
