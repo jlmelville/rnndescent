@@ -434,11 +434,8 @@ rpf_knn_impl <-
       }
     }
 
-    # FIXME
     if (ret_forest) {
-      if (res$forest$margin == "explicit") {
-        res$forest <- store_metric(res$forest, use_alt_metric, metric)
-      }
+      res$forest <- store_metric(res$forest, use_alt_metric, metric)
     }
 
     # can't apply uncorrection here as we are not necessarily finishing the

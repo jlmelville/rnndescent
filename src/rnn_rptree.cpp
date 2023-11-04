@@ -169,7 +169,8 @@ List search_tree_implicit_to_r(tdoann::SearchTreeImplicit<Idx> &&search_tree) {
 
 template <typename Idx>
 List search_forest_implicit_to_r(
-    std::vector<tdoann::SearchTreeImplicit<Idx>> &search_forest) {
+    std::vector<tdoann::SearchTreeImplicit<Idx>> &search_forest,
+    const std::string &metric) {
   const auto n_trees = search_forest.size();
   List forest_list(n_trees);
 
@@ -180,7 +181,7 @@ List search_forest_implicit_to_r(
 
   return List::create(_("trees") = forest_list,
                       _("margin") = margin_type_to_string(MarginType::IMPLICIT),
-                      _("version") = "0.0.12");
+                      _("actual_metric") = metric, _("version") = "0.0.12");
 }
 
 template <typename In, typename Idx>
@@ -428,7 +429,7 @@ List rp_tree_knn_implicit_impl(
 
   if (ret_forest) {
     auto search_forest = tdoann::convert_rp_forest(rp_forest, nobs, ndim);
-    List search_forest_r = search_forest_implicit_to_r(search_forest);
+    List search_forest_r = search_forest_implicit_to_r(search_forest, metric);
     nn_list["forest"] = search_forest_r;
   }
   return nn_list;
@@ -481,8 +482,8 @@ List rnn_rp_forest_build(const NumericMatrix &data, const std::string &metric,
 
 template <typename Out, typename Idx>
 List rnn_rp_forest_implicit_build_impl(
-    const tdoann::BaseDistance<Out, Idx> &distance, std::size_t nobs,
-    std::size_t ndim, uint32_t n_trees, uint32_t leaf_size,
+    const tdoann::BaseDistance<Out, Idx> &distance, const std::string &metric,
+    std::size_t nobs, std::size_t ndim, uint32_t n_trees, uint32_t leaf_size,
     std::size_t n_threads, bool verbose) {
 
   RParallelExecutor executor;
@@ -492,9 +493,8 @@ List rnn_rp_forest_implicit_build_impl(
       tdoann::make_forest(distance, ndim, n_trees, leaf_size, rng_provider,
                           n_threads, forest_progress, executor);
   auto search_forest = tdoann::convert_rp_forest(rp_forest, nobs, ndim);
-  List search_forest_r = search_forest_implicit_to_r(search_forest);
 
-  return search_forest_implicit_to_r(search_forest);
+  return search_forest_implicit_to_r(search_forest, metric);
 }
 
 // [[Rcpp::export]]
@@ -506,8 +506,9 @@ List rnn_rp_forest_implicit_build(const NumericMatrix &data,
   const std::size_t nobs = data.ncol();
   auto distance_ptr = create_self_distance(data, metric);
 
-  return rnn_rp_forest_implicit_build_impl(*distance_ptr, nobs, ndim, n_trees,
-                                           leaf_size, n_threads, verbose);
+  return rnn_rp_forest_implicit_build_impl(*distance_ptr, metric, nobs, ndim,
+                                           n_trees, leaf_size, n_threads,
+                                           verbose);
 }
 
 // [[Rcpp::export]]
@@ -519,8 +520,9 @@ List rnn_rp_forest_implicit_build_sparse(
   auto distance_ptr =
       create_sparse_self_distance(data, ind, ptr, nobs, ndim, metric);
 
-  return rnn_rp_forest_implicit_build_impl(*distance_ptr, nobs, ndim, n_trees,
-                                           leaf_size, n_threads, verbose);
+  return rnn_rp_forest_implicit_build_impl(*distance_ptr, metric, nobs, ndim,
+                                           n_trees, leaf_size, n_threads,
+                                           verbose);
 }
 
 template <typename Out, typename Idx>
@@ -656,8 +658,9 @@ List rnn_score_forest(const IntegerMatrix &idx, List search_forest,
     Rcpp::stop("Bad forest object passed");
   }
   const std::string margin_type = search_forest["margin"];
+  const std::string actual_metric = search_forest["actual_metric"];
+
   if (margin_type == margin_type_to_string(MarginType::EXPLICIT)) {
-    const std::string actual_metric = search_forest["actual_metric"];
 
     auto search_forest_cpp =
         r_to_search_forest<In, Idx>(search_forest, n_threads);
@@ -673,7 +676,7 @@ List rnn_score_forest(const IntegerMatrix &idx, List search_forest,
     auto filtered_forest = rnn_score_forest_impl(idx, search_forest_cpp,
                                                  n_trees, n_threads, verbose);
 
-    return search_forest_implicit_to_r(filtered_forest);
+    return search_forest_implicit_to_r(filtered_forest, actual_metric);
   } else {
     Rcpp::stop("Unknown forest type: ", margin_type);
   }

@@ -241,7 +241,10 @@ expected_rpfi_index <- list(
     leaf_size = 4
   )),
   margin = "implicit",
-  version = "0.0.12"
+  actual_metric = "l2sqr",
+  version = "0.0.12",
+  use_alt_metric = TRUE,
+  original_metric = "euclidean"
 )
 set.seed(1337)
 rpf_knn2df <- rpf_knn(
@@ -285,6 +288,12 @@ expect_equal(length(rpf_knnfi3$forest$trees), 3)
 rpf_fi3f <- rpf_filter(rpf_knnfi3, n_trees = 1)
 expect_equal(length(rpf_fi3f$trees), 1)
 expect_equal(rpf_fi3f$trees[[1]], rpf_knnfi3$forest$trees[[2]])
+expect_equal(rpf_fi3f$margin, rpf_knnfi3$forest$margin)
+expect_equal(rpf_fi3f$actual_metric, rpf_knnfi3$forest$actual_metric)
+expect_equal(rpf_fi3f$version, rpf_knnfi3$forest$version)
+expect_equal(rpf_fi3f$use_alt_metric, rpf_knnfi3$forest$use_alt_metric)
+expect_equal(rpf_fi3f$original_metric, rpf_knnfi3$forest$original_metric)
+
 
 set.seed(1337)
 rpf_knnff3 <-
@@ -314,9 +323,13 @@ expect_equal(
 )
 
 set.seed(1337)
+rpf_index_ls4i_no_alt <- rpf_index_ls4i
+rpf_index_ls4i_no_alt$use_alt_metric <- FALSE
+rpf_index_ls4i_no_alt$actual_metric <- "euclidean"
+
 expect_equal(
   rpf_build(ui10, metric = "euclidean", use_alt_metric = FALSE, leaf_size = 4, margin = "implicit", n_threads = 0),
-  rpf_index_ls4i, tol = 1e-7
+  rpf_index_ls4i_no_alt, tol = 1e-7
 )
 
 # cosine test
@@ -379,6 +392,8 @@ expect_equal(sknn$forest, dknn$forest)
 
 set.seed(1337); dforest <- rpf_build(ui10z, leaf_size = 3, n_trees = 2, margin = "implicit", metric = "cosine")
 set.seed(1337); sforest <- rpf_build(ui10sp, leaf_size = 3, n_trees = 2, margin = "implicit", metric = "cosine")
+expect_equal(sforest$actual_metric, "alternative-cosine")
+sforest$actual_metric <- "cosine"
 expect_equal(sforest, dforest)
 
 set.seed(1337); dforest6 <- rpf_build(ui10z6, leaf_size = 3, n_trees = 2, margin = "implicit", metric = "cosine")

@@ -341,10 +341,7 @@ rpf_build <- function(data,
       )
     }
   }
-
-  if (forest$margin == "explicit") {
-    forest <- store_metric(forest, use_alt_metric, metric)
-  }
+  forest <- store_metric(forest, use_alt_metric, metric)
 
   tsmessage("Finished")
   forest
@@ -587,13 +584,10 @@ rpf_filter <-
       verbose = verbose
     )
 
-    # FIXME: implicit
-    if (filtered_forest$margin == "explicit") {
-      filtered_forest <-
-        store_metric(filtered_forest,
-                     forest$use_alt_metric,
-                     forest$original_metric)
-    }
+    filtered_forest <-
+      store_metric(filtered_forest,
+                   forest$use_alt_metric,
+                   forest$original_metric)
 
     filtered_forest
   }
