@@ -415,7 +415,7 @@ rpf_knn_impl <-
     }
     else {
       if (is_sparse(data)) {
-        # TODO: sparse
+        # FIXME: sparse
         stop("Explicit margin tree-building not supported for sparse data")
       }
       else {

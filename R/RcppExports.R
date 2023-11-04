@@ -163,6 +163,10 @@ rnn_rp_forest_implicit_build <- function(data, metric, n_trees, leaf_size, n_thr
     .Call(`_rnndescent_rnn_rp_forest_implicit_build`, data, metric, n_trees, leaf_size, n_threads, verbose)
 }
 
+rnn_rp_forest_implicit_build_sparse <- function(data, ind, ptr, nobs, ndim, metric, n_trees, leaf_size, n_threads = 0L, verbose = FALSE) {
+    .Call(`_rnndescent_rnn_rp_forest_implicit_build_sparse`, data, ind, ptr, nobs, ndim, metric, n_trees, leaf_size, n_threads, verbose)
+}
+
 rnn_rp_forest_search <- function(query, reference, search_forest, n_nbrs, metric, cache, n_threads, verbose = FALSE) {
     .Call(`_rnndescent_rnn_rp_forest_search`, query, reference, search_forest, n_nbrs, metric, cache, n_threads, verbose)
 }

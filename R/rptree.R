@@ -294,28 +294,50 @@ rpf_build <- function(data,
   )
 
   if (obs == "R") {
-    data <- t(data)
+    data <- Matrix::t(data)
   }
 
   if (margin == "implicit") {
-    forest <- rnn_rp_forest_implicit_build(
-      data,
-      actual_metric,
-      n_trees = n_trees,
-      leaf_size = leaf_size,
-      n_threads = n_threads,
-      verbose = verbose
-    )
+    if (is_sparse(data)) {
+      forest <- rnn_rp_forest_implicit_build_sparse(
+        data = data@x,
+        ind = data@i,
+        ptr = data@p,
+        nobs = ncol(data),
+        ndim = nrow(data),
+        metric = actual_metric,
+        n_trees = n_trees,
+        leaf_size = leaf_size,
+        n_threads = n_threads,
+        verbose = verbose
+      )
+    }
+    else {
+      forest <- rnn_rp_forest_implicit_build(
+        data,
+        actual_metric,
+        n_trees = n_trees,
+        leaf_size = leaf_size,
+        n_threads = n_threads,
+        verbose = verbose
+      )
+    }
   }
   else {
-    forest <- rnn_rp_forest_build(
-      data,
-      actual_metric,
-      n_trees = n_trees,
-      leaf_size = leaf_size,
-      n_threads = n_threads,
-      verbose = verbose
-    )
+    if (is_sparse(data)) {
+      # FIXME: sparse
+      stop("Explicit margin tree-building not supported for sparse data")
+    }
+    else {
+      forest <- rnn_rp_forest_build(
+        data,
+        actual_metric,
+        n_trees = n_trees,
+        leaf_size = leaf_size,
+        n_threads = n_threads,
+        verbose = verbose
+      )
+    }
   }
   tsmessage("Finished")
   forest
