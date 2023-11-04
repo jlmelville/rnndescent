@@ -341,7 +341,7 @@ rpf_build <- function(data,
       )
     }
   }
-  forest <- store_metric(forest, use_alt_metric, metric)
+  forest <- set_forest_data(forest, use_alt_metric, metric, is_sparse(data))
 
   tsmessage("Finished")
   forest
@@ -432,6 +432,12 @@ rpf_knn_query <- function(query,
   if (is.null(forest$margin)) {
     stop("Bad forest format: no 'margin' specified")
   }
+  if (is_sparse(reference) && !forest$sparse) {
+    stop("Incompatible sparse forest used with dense input data")
+  }
+  if (!is_sparse(reference) && forest$sparse) {
+    stop("Incompatible dense forest used with sparse input data")
+  }
 
   if (obs == "R") {
     reference <- Matrix::t(reference)
@@ -443,7 +449,6 @@ rpf_knn_query <- function(query,
                        n_threads = n_threads))
 
   metric <- forest$actual_metric
-
   if (is_sparse(reference)) {
     res <-
       rnn_rp_forest_search_sparse(
@@ -469,10 +474,7 @@ rpf_knn_query <- function(query,
       rnn_rp_forest_search(query, reference, forest, k, metric, cache, n_threads, verbose)
   }
 
-  # extra check on metrics is only necessary where e.g. a forest was built using
-  # dense cosine then used to predict on sparse, where we need to prevent the
-  # sparse cosine correction occurring
-  if (forest$use_alt_metric && forest$actual_metric != forest$original_metric) {
+  if (forest$use_alt_metric) {
     res$dist <-
       apply_alt_metric_correction(forest$original_metric, res$dist, is_sparse(reference))
   }
@@ -553,9 +555,10 @@ rpf_filter <-
     )
 
     filtered_forest <-
-      store_metric(filtered_forest,
+      set_forest_data(filtered_forest,
                    forest$use_alt_metric,
-                   forest$original_metric)
+                   forest$original_metric,
+                   forest$is_sparse)
 
     filtered_forest
   }

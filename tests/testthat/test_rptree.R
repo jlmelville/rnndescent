@@ -111,7 +111,8 @@ expected_rpf_index <- list(
   actual_metric = "l2sqr",
   version = "0.0.12",
   use_alt_metric = TRUE,
-  original_metric = "euclidean"
+  original_metric = "euclidean",
+  sparse = FALSE
 )
 
 set.seed(1337)
@@ -242,7 +243,8 @@ expected_rpfi_index <- list(
   actual_metric = "l2sqr",
   version = "0.0.12",
   use_alt_metric = TRUE,
-  original_metric = "euclidean"
+  original_metric = "euclidean",
+  sparse = FALSE
 )
 set.seed(1337)
 rpf_knn2df <- rpf_knn(
@@ -383,16 +385,27 @@ expect_equal(sknn, dknn)
 set.seed(1337); dknn <- rpf_knn(ui10z, k = 4, leaf_size = 3, n_trees = 2, margin = "implicit", ret_forest = TRUE)
 set.seed(1337); sknn <- rpf_knn(ui10sp, k = 4, leaf_size = 3, n_trees = 2, margin = "implicit", ret_forest = TRUE)
 expect_equal(list(idx = sknn$idx, dist = sknn$dist), list(idx = dknn$idx, dist = dknn$dist))
+dknn$forest$sparse <- TRUE
 expect_equal(sknn$forest, dknn$forest)
 
 set.seed(1337); dforest <- rpf_build(ui10z, leaf_size = 3, n_trees = 2, margin = "implicit", metric = "cosine")
 set.seed(1337); sforest <- rpf_build(ui10sp, leaf_size = 3, n_trees = 2, margin = "implicit", metric = "cosine")
 expect_equal(sforest$actual_metric, "alternative-cosine")
 sforest$actual_metric <- "cosine"
+expect_true(sforest$sparse)
+sforest$sparse <- FALSE
 expect_equal(sforest, dforest)
 
 set.seed(1337); dforest6 <- rpf_build(ui10z6, leaf_size = 3, n_trees = 2, margin = "implicit", metric = "cosine")
 set.seed(1337); dquery4 <- rpf_knn_query(query = ui10z4, reference = ui10z6, forest = dforest6, k = 4)
+expect_error(squery4 <- rpf_knn_query(query = ui10sp4, reference = ui10sp6, forest = dforest6, k = 4), "sparse forest")
+# hack the forest to force it to work with sparse
+dforest6$sparse <- TRUE
+# avoid triggering the sparse cosine correction which doesn't exist in the dense version
+dforest6$use_alt_metric <- FALSE
 set.seed(1337); squery4 <- rpf_knn_query(query = ui10sp4, reference = ui10sp6, forest = dforest6, k = 4)
 expect_equal(squery4, dquery4, tol = 1e-5)
 
+set.seed(1337); sforest6 <- rpf_build(ui10sp6, leaf_size = 3, n_trees = 2, margin = "implicit", metric = "cosine")
+set.seed(1337); squery4b <- rpf_knn_query(query = ui10sp4, reference = ui10sp6, forest = sforest6, k = 4)
+expect_equal(squery4b, squery4, tol = 1e-5)

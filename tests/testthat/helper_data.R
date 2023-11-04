@@ -480,7 +480,8 @@ rpf_index_ls4e <-
     actual_metric = "l2sqr",
     version = "0.0.12",
     use_alt_metric = TRUE,
-    original_metric = "euclidean"
+    original_metric = "euclidean",
+    sparse = FALSE
   )
 
 # set.seed(1337)
@@ -579,5 +580,6 @@ rpf_index_ls4i <-
     actual_metric = "l2sqr",
     version = "0.0.12",
     use_alt_metric = TRUE,
-    original_metric = "euclidean"
+    original_metric = "euclidean",
+    sparse = FALSE
   )

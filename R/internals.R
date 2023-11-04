@@ -438,7 +438,8 @@ rpf_knn_impl <-
     }
 
     if (ret_forest) {
-      res$forest <- store_metric(res$forest, use_alt_metric, metric)
+      res$forest <-
+        set_forest_data(res$forest, use_alt_metric, metric, is_sparse(data))
     }
 
     # can't apply uncorrection here as we are not necessarily finishing the
@@ -446,9 +447,10 @@ rpf_knn_impl <-
     res
   }
 
-store_metric <- function(forest, use_alt_metric, metric) {
+set_forest_data <- function(forest, use_alt_metric, metric, is_sparse) {
   forest$use_alt_metric <- use_alt_metric
   forest$original_metric <- metric
+  forest$sparse <- is_sparse
   forest
 }
 
