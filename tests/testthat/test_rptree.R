@@ -126,7 +126,6 @@ rpf_query_res <-
     ui10,
     rpf_index,
     k = 4,
-    metric = "euclidean",
     n_threads = 0,
     cache = TRUE
   )
@@ -139,7 +138,6 @@ rpf_query_res <-
     ui10,
     rpf_index,
     k = 4,
-    metric = "euclidean",
     n_threads = 0,
     cache = FALSE
   )
@@ -266,7 +264,6 @@ rpfi_query_res <-
     ui10,
     rpf_knn2df$forest,
     k = 4,
-    metric = "euclidean",
     n_threads = 0,
     cache = TRUE
   )
@@ -350,7 +347,6 @@ uiriscosq <-
     uirism,
     uiriscos$forest,
     k = 15,
-    metric = "cosine",
     n_threads = 0,
   )
 # handle ties where indices swap places
@@ -374,7 +370,6 @@ uiriscosiq <-
     uirism,
     uiriscosi$forest,
     k = 15,
-    metric = "cosine",
     n_threads = 0,
   )
 expect_equal(sum(uiriscosi$idx - uiriscosq$idx), 0)
@@ -397,7 +392,7 @@ sforest$actual_metric <- "cosine"
 expect_equal(sforest, dforest)
 
 set.seed(1337); dforest6 <- rpf_build(ui10z6, leaf_size = 3, n_trees = 2, margin = "implicit", metric = "cosine")
-set.seed(1337); dquery4 <- rpf_knn_query(query = ui10z4, reference = ui10z6, forest = dforest6, metric = "cosine", k = 4)
-set.seed(1337); squery4 <- rpf_knn_query(query = ui10sp4, reference = ui10sp6, forest = dforest6, metric = "cosine", k = 4)
+set.seed(1337); dquery4 <- rpf_knn_query(query = ui10z4, reference = ui10z6, forest = dforest6, k = 4)
+set.seed(1337); squery4 <- rpf_knn_query(query = ui10sp4, reference = ui10sp6, forest = dforest6, k = 4)
 expect_equal(squery4, dquery4, tol = 1e-5)
 

@@ -369,27 +369,6 @@ rpf_build <- function(data,
 #' @param k Number of nearest neighbors to return. You are unlikely to get good
 #'   results if you choose a value substantially larger than the value of
 #'   `leaf_size` used to build the `forest`.
-#' @param metric Type of distance calculation to use. One of:
-#'   - `"euclidean"`.
-#'   - `"l2sqr"` (squared Euclidean).
-#'   - `"cosine"`.
-#'   - `"cosine-preprocess"`: cosine with preprocessing: this trades memory for a
-#'   potential speed up during the distance calculation.It should give the
-#'   same results as `cosine`, give or take minor numerical changes. Be aware
-#'   that the distance between two identical items may not always give exactly
-#'   zero with this method.
-#'   - `"manhattan"`.
-#'   - `"correlation"` (1 minus the Pearson correlation).
-#'   - `"correlation-preprocess"`: `correlation` with preprocessing. This trades
-#'   memory for a potential speed up during the distance calculation. It should
-#'   give the same results as `correlation`, give or take minor numerical
-#'   changes. Be aware that the distance between two identical items may not
-#'   always give exactly zero with this method.
-#'   - `"hamming"`.
-#'
-#'   Note that the metric is only used to determine whether an "angular" or
-#'   "Euclidean" distance is used to measure the distance between split points
-#'   in the tree.
 #' @param cache if `TRUE` (the default) then candidate indices found in the
 #'   leaves of the forest are cached to avoid recalculating the same distance
 #'   repeatedly. This incurs an extra memory cost which scales with `n_threads`.
@@ -431,7 +410,6 @@ rpf_knn_query <- function(query,
                           reference,
                           forest,
                           k,
-                          metric = "euclidean",
                           cache = TRUE,
                           n_threads = 0,
                           verbose = FALSE,
@@ -464,13 +442,7 @@ rpf_knn_query <- function(query,
                        k, ifelse(cache, " with caching", ""),
                        n_threads = n_threads))
 
-  # FIXME implict margin metric
-  if (forest$margin == "explicit") {
-    metric <- forest$actual_metric
-    if (is.null(metric)) {
-      stop("Explicit margin forest must provide metric")
-    }
-  }
+  metric <- forest$actual_metric
 
   if (is_sparse(reference)) {
     res <-
@@ -497,16 +469,12 @@ rpf_knn_query <- function(query,
       rnn_rp_forest_search(query, reference, forest, k, metric, cache, n_threads, verbose)
   }
 
-  # FIXME: must use alt_metric uncorrection
-  if (forest$margin == "explicit") {
-    use_alt_metric <- forest$use_alt_metric
-    if (is.null(use_alt_metric)) {
-      stop("Explicit margin forest must provide use_alt_metric")
-    }
-    if (use_alt_metric) {
-      res$dist <-
-        apply_alt_metric_correction(forest$original_metric, res$dist, is_sparse(reference))
-    }
+  # extra check on metrics is only necessary where e.g. a forest was built using
+  # dense cosine then used to predict on sparse, where we need to prevent the
+  # sparse cosine correction occurring
+  if (forest$use_alt_metric && forest$actual_metric != forest$original_metric) {
+    res$dist <-
+      apply_alt_metric_correction(forest$original_metric, res$dist, is_sparse(reference))
   }
   tsmessage("Finished")
   res

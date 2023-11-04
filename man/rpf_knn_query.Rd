@@ -9,7 +9,6 @@ rpf_knn_query(
   reference,
   forest,
   k,
-  metric = "euclidean",
   cache = TRUE,
   n_threads = 0,
   verbose = FALSE,
@@ -36,30 +35,6 @@ representing partitions of the data in \code{reference}.}
 \item{k}{Number of nearest neighbors to return. You are unlikely to get good
 results if you choose a value substantially larger than the value of
 \code{leaf_size} used to build the \code{forest}.}
-
-\item{metric}{Type of distance calculation to use. One of:
-\itemize{
-\item \code{"euclidean"}.
-\item \code{"l2sqr"} (squared Euclidean).
-\item \code{"cosine"}.
-\item \code{"cosine-preprocess"}: cosine with preprocessing: this trades memory for a
-potential speed up during the distance calculation.It should give the
-same results as \code{cosine}, give or take minor numerical changes. Be aware
-that the distance between two identical items may not always give exactly
-zero with this method.
-\item \code{"manhattan"}.
-\item \code{"correlation"} (1 minus the Pearson correlation).
-\item \code{"correlation-preprocess"}: \code{correlation} with preprocessing. This trades
-memory for a potential speed up during the distance calculation. It should
-give the same results as \code{correlation}, give or take minor numerical
-changes. Be aware that the distance between two identical items may not
-always give exactly zero with this method.
-\item \code{"hamming"}.
-}
-
-Note that the metric is only used to determine whether an "angular" or
-"Euclidean" distance is used to measure the distance between split points
-in the tree.}
 
 \item{cache}{if \code{TRUE} (the default) then candidate indices found in the
 leaves of the forest are cached to avoid recalculating the same distance
