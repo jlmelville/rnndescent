@@ -523,6 +523,22 @@ List rnn_rp_forest_implicit_build_sparse(
                                            leaf_size, n_threads, verbose);
 }
 
+template <typename Out, typename Idx>
+List rnn_rp_forest_search_impl(const tdoann::BaseDistance<Out, Idx> &distance,
+                               List search_forest, uint32_t n_nbrs, bool cache,
+                               std::size_t n_threads, bool verbose) {
+  auto search_forest_cpp =
+      r_to_search_forest_implicit<Idx>(search_forest, n_threads);
+
+  rnndescent::ParallelIntRNGAdapter<Idx, rnndescent::DQIntSampler> rng_provider;
+  RParallelExecutor executor;
+  RPProgress progress(verbose);
+  auto nn_heap =
+      tdoann::search_forest(search_forest_cpp, distance, n_nbrs, rng_provider,
+                            cache, n_threads, progress, executor);
+  return heap_to_r(nn_heap);
+}
+
 // [[Rcpp::export]]
 List rnn_rp_forest_search(const NumericMatrix &query,
                           const NumericMatrix &reference, List search_forest,
@@ -550,18 +566,49 @@ List rnn_rp_forest_search(const NumericMatrix &query,
     return heap_to_r(nn_heap);
   } else if (margin_type == margin_type_to_string(MarginType::IMPLICIT)) {
     auto distance_ptr = create_query_distance(reference, query, metric);
-    using Idx = typename tdoann::DistanceTraits<decltype(distance_ptr)>::Index;
+    return rnn_rp_forest_search_impl(*distance_ptr, search_forest, n_nbrs,
+                                     cache, n_threads, verbose);
+  } else {
+    Rcpp::stop("Bad search forest type ", margin_type);
+  }
+}
 
-    auto search_forest_cpp =
-        r_to_search_forest_implicit<Idx>(search_forest, n_threads);
+// [[Rcpp::export]]
+List rnn_rp_forest_search_sparse(
+    const NumericVector &ref_data, const IntegerVector &ref_ind,
+    const IntegerVector &ref_ptr, std::size_t nref,
+    const NumericVector &query_data, const IntegerVector &query_ind,
+    const IntegerVector &query_ptr, std::size_t nquery, std::size_t ndim,
+    List search_forest, uint32_t n_nbrs, const std::string &metric, bool cache,
+    std::size_t n_threads, bool verbose = false) {
+  RParallelExecutor executor;
+  std::string margin_type = search_forest["margin"];
 
-    rnndescent::ParallelIntRNGAdapter<Idx, rnndescent::DQIntSampler>
-        rng_provider;
-    RPProgress progress(verbose);
-    auto nn_heap = tdoann::search_forest(search_forest_cpp, *distance_ptr,
-                                         n_nbrs, rng_provider, cache, n_threads,
-                                         progress, executor);
-    return heap_to_r(nn_heap);
+  if (margin_type == margin_type_to_string(MarginType::EXPLICIT)) {
+    Rcpp::stop("explicit margin forest search not implemented for sparse data");
+    // auto distance_ptr = create_query_vector_distance(reference, query,
+    // metric);
+    //
+    // using In = typename
+    // tdoann::DistanceTraits<decltype(distance_ptr)>::Input; using Idx =
+    // typename tdoann::DistanceTraits<decltype(distance_ptr)>::Index;
+    //
+    // auto search_forest_cpp =
+    //   r_to_search_forest<In, Idx>(search_forest, n_threads);
+    //
+    // rnndescent::ParallelIntRNGAdapter<Idx, rnndescent::DQIntSampler>
+    //   rng_provider;
+    // RPProgress progress(verbose);
+    // auto nn_heap = tdoann::search_forest(search_forest_cpp, *distance_ptr,
+    //                                      n_nbrs, rng_provider, cache,
+    //                                      n_threads, progress, executor);
+    // return heap_to_r(nn_heap);
+  } else if (margin_type == margin_type_to_string(MarginType::IMPLICIT)) {
+    auto distance_ptr = create_sparse_query_distance(
+        ref_data, ref_ind, ref_ptr, nref, query_data, query_ind, query_ptr,
+        nquery, ndim, metric);
+    return rnn_rp_forest_search_impl(*distance_ptr, search_forest, n_nbrs,
+                                     cache, n_threads, verbose);
   } else {
     Rcpp::stop("Bad search forest type ", margin_type);
   }

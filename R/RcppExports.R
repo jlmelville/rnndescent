@@ -171,6 +171,10 @@ rnn_rp_forest_search <- function(query, reference, search_forest, n_nbrs, metric
     .Call(`_rnndescent_rnn_rp_forest_search`, query, reference, search_forest, n_nbrs, metric, cache, n_threads, verbose)
 }
 
+rnn_rp_forest_search_sparse <- function(ref_data, ref_ind, ref_ptr, nref, query_data, query_ind, query_ptr, nquery, ndim, search_forest, n_nbrs, metric, cache, n_threads, verbose = FALSE) {
+    .Call(`_rnndescent_rnn_rp_forest_search_sparse`, ref_data, ref_ind, ref_ptr, nref, query_data, query_ind, query_ptr, nquery, ndim, search_forest, n_nbrs, metric, cache, n_threads, verbose)
+}
+
 rnn_score_forest <- function(idx, search_forest, n_trees, n_threads, verbose = FALSE) {
     .Call(`_rnndescent_rnn_score_forest`, idx, search_forest, n_trees, n_threads, verbose)
 }

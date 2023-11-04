@@ -340,3 +340,9 @@ expect_equal(sknn$forest, dknn$forest)
 set.seed(1337); dforest <- rpf_build(ui10z, leaf_size = 3, n_trees = 2, margin = "implicit", metric = "cosine")
 set.seed(1337); sforest <- rpf_build(ui10sp, leaf_size = 3, n_trees = 2, margin = "implicit", metric = "cosine")
 expect_equal(sforest, dforest)
+
+set.seed(1337); dforest6 <- rpf_build(ui10z6, leaf_size = 3, n_trees = 2, margin = "implicit", metric = "cosine")
+set.seed(1337); dquery4 <- rpf_knn_query(query = ui10z4, reference = ui10z6, forest = dforest6, metric = "cosine", k = 4)
+set.seed(1337); squery4 <- rpf_knn_query(query = ui10sp4, reference = ui10sp6, forest = dforest6, metric = "cosine", k = 4)
+expect_equal(squery4, dquery4, tol = 1e-5)
+

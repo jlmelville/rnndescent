@@ -438,6 +438,8 @@ rpf_knn_query <- function(query,
                   C = ncol,
                   stop("Unknown obs type"))
 
+  check_sparse(reference, query)
+
   reference <- x2m(reference)
   query <- x2m(query)
   check_k(k, n_obs(reference))
@@ -450,16 +452,38 @@ rpf_knn_query <- function(query,
   }
 
   if (obs == "R") {
-    reference <- t(reference)
-    query <- t(query)
+    reference <- Matrix::t(reference)
+    query <- Matrix::t(query)
   }
 
   tsmessage(thread_msg("Querying rp forest for k = ",
                        k, ifelse(cache, " with caching", ""),
                        n_threads = n_threads))
 
-  nn <-
-    rnn_rp_forest_search(query, reference, forest, k, metric, cache, n_threads, verbose)
+  if (is_sparse(reference)) {
+    nn <-
+      rnn_rp_forest_search_sparse(
+        ref_data = reference@x,
+        ref_ind = reference@i,
+        ref_ptr = reference@p,
+        nref = ncol(reference),
+        query_data = query@x,
+        query_ind = query@i,
+        query_ptr = query@p,
+        nquery = ncol(query),
+        ndim = nrow(reference),
+        search_forest = forest,
+        n_nbrs = k,
+        metric = metric,
+        cache = cache,
+        n_threads = n_threads,
+        verbose = verbose
+      )
+  }
+  else {
+    nn <-
+      rnn_rp_forest_search(query, reference, forest, k, metric, cache, n_threads, verbose)
+  }
   tsmessage("Finished")
   nn
 }
