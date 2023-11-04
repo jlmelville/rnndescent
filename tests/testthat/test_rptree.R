@@ -108,7 +108,10 @@ expected_rpf_index <- list(
       )
     ),
   margin = "explicit",
-  version = "0.0.12"
+  actual_metric = "l2sqr",
+  version = "0.0.12",
+  use_alt_metric = TRUE,
+  original_metric = "euclidean"
 )
 
 set.seed(1337)
@@ -171,6 +174,22 @@ nnd_with_tree <-
     init_args = list(n_trees = 1, leaf_size = 4)
   )
 expect_equal(nnd_with_tree$forest, expected_rpf_index, tol = 1e-7)
+
+# handle alt metric
+set.seed(1337)
+nnd_with_tree <-
+  nnd_knn(
+    ui10,
+    k = 4,
+    ret_forest = TRUE,
+    init = "tree",
+    use_alt_metric = FALSE,
+    init_args = list(n_trees = 1, leaf_size = 4)
+  )
+rpf_index_no_alt <- expected_rpf_index
+rpf_index_no_alt$use_alt_metric <- FALSE
+rpf_index_no_alt$actual_metric <- "euclidean"
+expect_equal(nnd_with_tree$forest, rpf_index_no_alt, tol = 1e-7)
 
 
 # filtering

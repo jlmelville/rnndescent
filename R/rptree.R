@@ -140,7 +140,7 @@ rpf_knn <- function(data,
     data <- Matrix::t(data)
   }
 
-  rpf_knn_impl(
+  res <- rpf_knn_impl(
     data,
     k = k,
     metric = metric,
@@ -153,8 +153,15 @@ rpf_knn <- function(data,
     margin = margin,
     n_threads = n_threads,
     verbose = verbose,
-    zero_index = FALSE
+    unzero = TRUE
   )
+
+  if (use_alt_metric) {
+    res$dist <-
+      apply_alt_metric_correction(metric, res$dist, is_sparse(data))
+  }
+  tsmessage("Finished")
+  res
 }
 
 #' Create a Random Projection Forest
@@ -275,12 +282,7 @@ rpf_build <- function(data,
 
   margin <- find_margin_method(margin, metric)
 
-  if (margin == "implicit") {
-    actual_metric <- get_actual_metric(use_alt_metric, metric, data, verbose)
-  }
-  else {
-    actual_metric <- metric
-  }
+  actual_metric <- get_actual_metric(use_alt_metric, metric, data, verbose)
 
   tsmessage(
     thread_msg(
@@ -339,6 +341,11 @@ rpf_build <- function(data,
       )
     }
   }
+
+  if (forest$margin == "explicit") {
+    forest <- store_metric(forest, use_alt_metric, metric)
+  }
+
   tsmessage("Finished")
   forest
 }
@@ -460,8 +467,16 @@ rpf_knn_query <- function(query,
                        k, ifelse(cache, " with caching", ""),
                        n_threads = n_threads))
 
+  # FIXME implict margin metric
+  if (forest$margin == "explicit") {
+    metric <- forest$actual_metric
+    if (is.null(metric)) {
+      stop("Explicit margin forest must provide metric")
+    }
+  }
+
   if (is_sparse(reference)) {
-    nn <-
+    res <-
       rnn_rp_forest_search_sparse(
         ref_data = reference@x,
         ref_ind = reference@i,
@@ -481,11 +496,23 @@ rpf_knn_query <- function(query,
       )
   }
   else {
-    nn <-
+    res <-
       rnn_rp_forest_search(query, reference, forest, k, metric, cache, n_threads, verbose)
   }
+
+  # FIXME: must use alt_metric uncorrection
+  if (forest$margin == "explicit") {
+    use_alt_metric <- forest$use_alt_metric
+    if (is.null(use_alt_metric)) {
+      stop("Explicit margin forest must provide use_alt_metric")
+    }
+    if (use_alt_metric) {
+      res$dist <-
+        apply_alt_metric_correction(forest$original_metric, res$dist, is_sparse(reference))
+    }
+  }
   tsmessage("Finished")
-  nn
+  res
 }
 
 #' Filter a Random Projection Forest

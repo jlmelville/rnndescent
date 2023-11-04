@@ -132,8 +132,8 @@ List search_tree_to_r(tdoann::SearchTree<In, Idx> &&search_tree) {
 }
 
 template <typename In, typename Idx>
-List search_forest_to_r(
-    std::vector<tdoann::SearchTree<In, Idx>> &search_forest) {
+List search_forest_to_r(std::vector<tdoann::SearchTree<In, Idx>> &search_forest,
+                        const std::string &metric) {
   const auto n_trees = search_forest.size();
   List forest_list(n_trees);
 
@@ -143,7 +143,7 @@ List search_forest_to_r(
   }
   return List::create(_("trees") = forest_list,
                       _("margin") = margin_type_to_string(MarginType::EXPLICIT),
-                      _("version") = "0.0.12");
+                      _("actual_metric") = metric, _("version") = "0.0.12");
 }
 
 template <typename Idx>
@@ -373,7 +373,7 @@ List rp_tree_knn_explicit(const NumericMatrix &data, uint32_t nnbrs,
     if (ret_forest) {
       auto search_forest =
           tdoann::convert_rp_forest(rp_forest, data.ncol(), ndim);
-      List search_forest_r = search_forest_to_r(search_forest);
+      List search_forest_r = search_forest_to_r(search_forest, metric);
       nn_list["forest"] = search_forest_r;
     }
     return nn_list;
@@ -387,7 +387,7 @@ List rp_tree_knn_explicit(const NumericMatrix &data, uint32_t nnbrs,
   if (ret_forest) {
     auto search_forest =
         tdoann::convert_rp_forest(rp_forest, data.ncol(), ndim);
-    List search_forest_r = search_forest_to_r(search_forest);
+    List search_forest_r = search_forest_to_r(search_forest, metric);
     nn_list["forest"] = search_forest_r;
   }
   return nn_list;
@@ -476,7 +476,7 @@ List rnn_rp_forest_build(const NumericMatrix &data, const std::string &metric,
 
   auto search_forest = tdoann::convert_rp_forest(rp_forest, data.ncol(), ndim);
 
-  return search_forest_to_r(search_forest);
+  return search_forest_to_r(search_forest, metric);
 }
 
 template <typename Out, typename Idx>
@@ -657,13 +657,15 @@ List rnn_score_forest(const IntegerMatrix &idx, List search_forest,
   }
   const std::string margin_type = search_forest["margin"];
   if (margin_type == margin_type_to_string(MarginType::EXPLICIT)) {
+    const std::string actual_metric = search_forest["actual_metric"];
+
     auto search_forest_cpp =
         r_to_search_forest<In, Idx>(search_forest, n_threads);
 
     auto filtered_forest = rnn_score_forest_impl(idx, search_forest_cpp,
                                                  n_trees, n_threads, verbose);
 
-    return search_forest_to_r(filtered_forest);
+    return search_forest_to_r(filtered_forest, actual_metric);
   } else if (margin_type == margin_type_to_string(MarginType::IMPLICIT)) {
     auto search_forest_cpp =
         r_to_search_forest_implicit<Idx>(search_forest, n_threads);

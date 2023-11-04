@@ -477,7 +477,10 @@ rpf_index_ls4e <-
       )
     ),
     margin = "explicit",
-    version = "0.0.12"
+    actual_metric = "l2sqr",
+    version = "0.0.12",
+    use_alt_metric = TRUE,
+    original_metric = "euclidean"
   )
 
 # set.seed(1337)

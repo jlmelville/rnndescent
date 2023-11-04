@@ -353,7 +353,7 @@ rpf_knn_impl <-
            margin = "auto",
            n_threads = 0,
            verbose = FALSE,
-           zero_index = FALSE) {
+           unzero = TRUE) {
 
     if (is.null(n_trees)) {
       # data is transposed at this point so n_obs is in the number of columns
@@ -393,7 +393,7 @@ rpf_knn_impl <-
           leaf_size = leaf_size,
           include_self = include_self,
           ret_forest = ret_forest,
-          unzero = !zero_index,
+          unzero = unzero,
           n_threads = n_threads,
           verbose = verbose
         )
@@ -407,7 +407,7 @@ rpf_knn_impl <-
           leaf_size = leaf_size,
           include_self = include_self,
           ret_forest = ret_forest,
-          unzero = !zero_index,
+          unzero = unzero,
           n_threads = n_threads,
           verbose = verbose
         )
@@ -427,33 +427,41 @@ rpf_knn_impl <-
           leaf_size = leaf_size,
           include_self = include_self,
           ret_forest = ret_forest,
-          unzero = !zero_index,
+          unzero = unzero,
           n_threads = n_threads,
           verbose = verbose
         )
       }
     }
 
-    if (use_alt_metric) {
-      res$dist <-
-        apply_alt_metric_correction(metric, res$dist, is_sparse(data))
+    # FIXME
+    if (ret_forest) {
+      if (res$forest$margin == "explicit") {
+        res$forest <- store_metric(res$forest, use_alt_metric, metric)
+      }
     }
-    tsmessage("Finished")
+
+    # can't apply uncorrection here as we are not necessarily finishing the
+    # search at this point (could be e.g. initializing NND)
     res
   }
+
+store_metric <- function(forest, use_alt_metric, metric) {
+  forest$use_alt_metric <- use_alt_metric
+  forest$original_metric <- metric
+  forest
+}
 
 # reference and query are column-oriented
 random_knn_impl <-
   function(reference,
            k,
-           metric,
-           use_alt_metric,
            actual_metric,
            order_by_distance,
            n_threads,
            verbose,
-           query = NULL,
-           zero_index = FALSE) {
+           query = NULL
+           ) {
     if (is.null(query)) {
       msg <- "Generating random k-nearest neighbor graph with k = "
 
@@ -512,15 +520,5 @@ random_knn_impl <-
                          n_threads = n_threads
     ))
     res <- do.call(fun, args)
-
-    if (!zero_index) {
-      res$idx <- res$idx + 1
-    }
-
-    if (use_alt_metric) {
-      res$dist <-
-        apply_alt_metric_correction(metric, res$dist, is_sparse(reference))
-    }
-    tsmessage("Finished")
     res
   }

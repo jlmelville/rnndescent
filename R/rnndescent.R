@@ -206,16 +206,25 @@ random_knn <-
     if (obs == "R") {
       data <- Matrix::t(data)
     }
-    random_knn_impl(
+    res <- random_knn_impl(
       reference = data,
       k = k,
-      metric = metric,
-      use_alt_metric = use_alt_metric,
+      # metric = metric,
+      # use_alt_metric = use_alt_metric,
       actual_metric = actual_metric,
       order_by_distance = order_by_distance,
       n_threads = n_threads,
       verbose = verbose
     )
+    res$idx <- res$idx + 1
+
+    if (use_alt_metric) {
+      res$dist <-
+        apply_alt_metric_correction(metric, res$dist, is_sparse(data))
+    }
+    tsmessage("Finished")
+    res
+
   }
 
 #' Find Nearest Neighbors and Distances
@@ -266,7 +275,10 @@ random_knn <-
 #'   than `k` neighbors may be chosen for some observations under these
 #'   circumstances.
 #' @param init_args a list containing arguments to pass to the random partition
-#'   forest initialization. See [rpf_knn()] for possible arguments.
+#'   forest initialization. See [rpf_knn()] for possible arguments. To avoid
+#'   inconsistences with the tree calculation and subsequent nearest neighbor
+#'   descent optimization, if you attempt to provide a `metric` or
+#'   `use_alt_metric` option in this list it will be ignored.
 #' @param n_iters Number of iterations of nearest neighbor descent to carry out.
 #' @param max_candidates Maximum number of candidate neighbors to try for each
 #'   item in each iteration. Use relative to `k` to emulate the "rho"
@@ -397,11 +409,6 @@ nnd_knn <- function(data,
 
   actual_metric <-
     get_actual_metric(use_alt_metric, metric, data, verbose)
-  if (use_alt_metric &&
-      !is.null(init) && is.list(init) && !is.null(init$dist)) {
-    init$dist <-
-      apply_alt_metric_uncorrection(metric, init$dist, is_sparse(data))
-  }
 
   data <- x2m(data)
   if (obs == "R") {
@@ -416,30 +423,46 @@ nnd_knn <- function(data,
     check_k(k, ncol(data))
     init <- match.arg(tolower(init), c("rand", "tree"))
 
+    # if the use provided tree init args that could clash with nnd args
+    # ignore them
+    if (init == "tree" && is.list(init_args)) {
+      if ("use_alt_metric" %in% init_args) {
+        init_args$use_alt_metric <- use_alt_metric
+      }
+      if ("metric" %in% init_args) {
+        init_args$metric <- metric
+      }
+    }
+
     tsmessage("Initializing neighbors using '", init, "' method")
     init <- switch(
       init,
       "rand" = random_knn_impl(
         reference = data,
         k = k,
-        metric = actual_metric,
-        use_alt_metric = FALSE,
+        # metric = actual_metric,
+        # use_alt_metric = use_alt_metric,
         actual_metric = actual_metric,
         order_by_distance = FALSE,
         n_threads = n_threads,
         verbose = verbose
       ),
+      # FIXME: don't allow init_args to change anything shared with nnd
+      # (i.e. use_alt_metric, metric etc)
       "tree" = do.call(rpf_knn_impl, lmerge(
+        # defaults we have no reason to change should match rpf_knn or rpf_build
         list(
           data,
           k = k,
-          metric = actual_metric,
-          use_alt_metric = FALSE,
+          metric = metric,
+          use_alt_metric = use_alt_metric,
           actual_metric = actual_metric,
           n_trees = NULL,
           leaf_size = NULL,
-          include_self = FALSE,
+          include_self = FALSE, # this is changed from default on purpose
           ret_forest = ret_forest,
+          margin = "auto",
+          unzero = FALSE,
           n_threads = n_threads,
           verbose = verbose
         ),
@@ -447,12 +470,20 @@ nnd_knn <- function(data,
       )),
       stop("Unknown initialization option '", init, "'")
     )
+    # FIXME: can we just turn off unzero in tree and random return?
+    init$idx <- init$idx + 1
   } else {
+    # user-supplied input may need to be transformed to the actual metric
+    if (use_alt_metric &&
+        !is.null(init) && is.list(init) && !is.null(init$dist)) {
+      init$dist <-
+        apply_alt_metric_uncorrection(metric, init$dist, is_sparse(data))
+    }
+
     if (is.null(k)) {
       k <- ncol(init$idx)
     }
   }
-
   forest <- NULL
   if (ret_forest && is.list(init) && !is.null(init$forest)) {
     forest <- init$forest
@@ -766,17 +797,26 @@ random_knn_query <-
       query <- Matrix::t(query)
     }
 
-    random_knn_impl(
+    res <- random_knn_impl(
       reference = reference,
       query = query,
       k = k,
-      metric = metric,
-      use_alt_metric = use_alt_metric,
+      # metric = metric,
+      # use_alt_metric = use_alt_metric,
       actual_metric = actual_metric,
       order_by_distance = order_by_distance,
       n_threads = n_threads,
       verbose = verbose
     )
+    res$idx <- res$idx + 1
+
+    if (use_alt_metric) {
+      res$dist <-
+        apply_alt_metric_correction(metric, res$dist, is_sparse(reference))
+    }
+
+    tsmessage("Finished")
+    res
   }
 
 #' Find Nearest Neighbors and Distances
@@ -895,21 +935,16 @@ graph_knn_query <- function(query,
                             verbose = FALSE,
                             obs = "R") {
   obs <- match.arg(toupper(obs), c("C", "R"))
-
   check_sparse(reference, query)
-
-  actual_metric <-
-    get_actual_metric(use_alt_metric, metric, reference, verbose)
-  if (use_alt_metric && !is.null(init) && !is.null(init$dist)) {
-    init$dist <- apply_alt_metric_uncorrection(metric, init$dist, is_sparse(reference))
-  }
-
   reference <- x2m(reference)
   query <- x2m(query)
   if (obs == "R") {
     reference <- Matrix::t(reference)
     query <- Matrix::t(query)
   }
+
+  actual_metric <-
+    get_actual_metric(use_alt_metric, metric, reference, verbose)
 
   # reference and query must be column-oriented at this point
   if (is.null(init)) {
@@ -923,18 +958,25 @@ graph_knn_query <- function(query,
     }
     check_k(k, ncol(reference))
     tsmessage("Initializing from random neighbors")
+    # FIXME: init from forest option? This will override alt_metric choices
     init <- random_knn_impl(
       query = query,
       reference = reference,
       k = k,
-      metric = actual_metric,
-      use_alt_metric = FALSE,
       actual_metric = actual_metric,
       order_by_distance = FALSE,
       n_threads = n_threads,
       verbose = verbose
     )
+    # FIXME: can we just do the unzeroing inside the init?
+    init$idx <- init$idx + 1
   } else {
+    # user-supplied distances may need to be transformed to the actual metric
+    if (use_alt_metric && !is.null(init) && !is.null(init$dist)) {
+      init$dist <-
+        apply_alt_metric_uncorrection(metric, init$dist, is_sparse(reference))
+    }
+
     if (is.null(k)) {
       k <- ncol(init$idx)
       tsmessage("Using k = ", k, " from initial graph")
