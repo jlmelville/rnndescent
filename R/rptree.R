@@ -573,18 +573,27 @@ rpf_filter <-
       forest <- nn$forest
     }
 
-
     n_unfiltered_trees <- length(forest)
     if (n_trees < 1 || n_trees > n_unfiltered_trees) {
       stop("n_trees must be between 1 and ", n_unfiltered_trees)
     }
     tsmessage(thread_msg("Keeping ", n_trees, " best search trees",
                          n_threads = n_threads))
-    rnn_score_forest(
+    filtered_forest <- rnn_score_forest(
       nn$idx,
       search_forest = forest,
       n_trees = n_trees,
       n_threads = n_threads,
       verbose = verbose
     )
+
+    # FIXME: implicit
+    if (filtered_forest$margin == "explicit") {
+      filtered_forest <-
+        store_metric(filtered_forest,
+                     forest$use_alt_metric,
+                     forest$original_metric)
+    }
+
+    filtered_forest
   }

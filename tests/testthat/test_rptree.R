@@ -287,6 +287,27 @@ expect_equal(length(rpf_fi3f$trees), 1)
 expect_equal(rpf_fi3f$trees[[1]], rpf_knnfi3$forest$trees[[2]])
 
 set.seed(1337)
+rpf_knnff3 <-
+  rpf_knn(
+    ui10,
+    k = 4,
+    metric = "euclidean",
+    n_trees = 3,
+    ret_forest = TRUE,
+    leaf_size = 4,
+    margin = "explicit"
+  )
+expect_equal(length(rpf_knnff3$forest$trees), 3)
+rpf_ff3f <- rpf_filter(rpf_knnff3, n_trees = 1)
+expect_equal(length(rpf_ff3f$trees), 1)
+expect_equal(rpf_ff3f$trees[[1]], rpf_knnff3$forest$trees[[2]])
+expect_equal(rpf_ff3f$margin, rpf_knnff3$forest$margin)
+expect_equal(rpf_ff3f$actual_metric, rpf_knnff3$forest$actual_metric)
+expect_equal(rpf_ff3f$version, rpf_knnff3$forest$version)
+expect_equal(rpf_ff3f$use_alt_metric, rpf_knnff3$forest$use_alt_metric)
+expect_equal(rpf_ff3f$original_metric, rpf_knnff3$forest$original_metric)
+
+set.seed(1337)
 expect_equal(
   rpf_build(ui10, metric = "euclidean", leaf_size = 4, margin = "implicit", n_threads = 0),
   rpf_index_ls4i, tol = 1e-7

@@ -80,7 +80,10 @@ circumstances.
 }}
 
 \item{init_args}{a list containing arguments to pass to the random partition
-forest initialization. See \code{\link[=rpf_knn]{rpf_knn()}} for possible arguments.}
+forest initialization. See \code{\link[=rpf_knn]{rpf_knn()}} for possible arguments. To avoid
+inconsistences with the tree calculation and subsequent nearest neighbor
+descent optimization, if you attempt to provide a \code{metric} or
+\code{use_alt_metric} option in this list it will be ignored.}
 
 \item{n_iters}{Number of iterations of nearest neighbor descent to carry out.}
 
