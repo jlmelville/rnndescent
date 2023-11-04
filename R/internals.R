@@ -436,7 +436,7 @@ rpf_knn_impl <-
 
     if (use_alt_metric) {
       res$dist <-
-        apply_alt_metric_correction(metric, res$dist, methods::is(data, "sparseMatrix"))
+        apply_alt_metric_correction(metric, res$dist, is_sparse(data))
     }
     tsmessage("Finished")
     res
