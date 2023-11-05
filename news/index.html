@@ -43,6 +43,14 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.0.13" id="rnndescent-0013">rnndescent 0.0.13<a class="anchor" aria-label="anchor" href="#rnndescent-0013"></a></h2>
+<div class="section level3">
+<h3 id="new-features-0-0-13">New features<a class="anchor" aria-label="anchor" href="#new-features-0-0-13"></a></h3>
+<ul><li>A new <code>init</code> option for <code>graph_knn_query</code>: you can now pass an RP forest and initialize with that, e.g. from <code>rpf_build</code>, or by setting <code>ret_forest = TRUE</code> on <code>nnd_knn</code> or <code>rpf_knn</code>. You may want to cut down the size of the forest used for initialization with <code>rpf_filter</code> first, though (a single tree may be enough).</li>
+</ul></div>
+<div class="section level3">
+<h3 id="bug-fixes-and-minor-improvements-0-0-13">Bug fixes and minor improvements<a class="anchor" aria-label="anchor" href="#bug-fixes-and-minor-improvements-0-0-13"></a></h3>
+<ul><li>If the knn graph you pass to <code>prepare_search_graph</code> or to <code>graph_knn_query</code> contains missing data, this will no longer cause an error (it still might not be the best idea though).</li>
+</ul></div>
 </div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.0.12" id="rnndescent-0012">rnndescent 0.0.12<a class="anchor" aria-label="anchor" href="#rnndescent-0012"></a></h2>

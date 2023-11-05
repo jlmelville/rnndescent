@@ -59,7 +59,6 @@ to build the forest.</p>
 <span>  <span class="va">reference</span>,</span>
 <span>  <span class="va">forest</span>,</span>
 <span>  <span class="va">k</span>,</span>
-<span>  metric <span class="op">=</span> <span class="st">"euclidean"</span>,</span>
 <span>  cache <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  n_threads <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">FALSE</span>,</span>
@@ -95,28 +94,6 @@ representing partitions of the data in <code>reference</code>.</p></dd>
 <dd><p>Number of nearest neighbors to return. You are unlikely to get good
 results if you choose a value substantially larger than the value of
 <code>leaf_size</code> used to build the <code>forest</code>.</p></dd>
-
-
-<dt>metric</dt>
-<dd><p>Type of distance calculation to use. One of:</p><ul><li><p><code>"euclidean"</code>.</p></li>
-<li><p><code>"l2sqr"</code> (squared Euclidean).</p></li>
-<li><p><code>"cosine"</code>.</p></li>
-<li><p><code>"cosine-preprocess"</code>: cosine with preprocessing: this trades memory for a
-potential speed up during the distance calculation.It should give the
-same results as <code>cosine</code>, give or take minor numerical changes. Be aware
-that the distance between two identical items may not always give exactly
-zero with this method.</p></li>
-<li><p><code>"manhattan"</code>.</p></li>
-<li><p><code>"correlation"</code> (1 minus the Pearson correlation).</p></li>
-<li><p><code>"correlation-preprocess"</code>: <code>correlation</code> with preprocessing. This trades
-memory for a potential speed up during the distance calculation. It should
-give the same results as <code>correlation</code>, give or take minor numerical
-changes. Be aware that the distance between two identical items may not
-always give exactly zero with this method.</p></li>
-<li><p><code>"hamming"</code>.</p></li>
-</ul><p>Note that the metric is only used to determine whether an "angular" or
-"Euclidean" distance is used to measure the distance between split points
-in the tree.</p></dd>
 
 
 <dt>cache</dt>

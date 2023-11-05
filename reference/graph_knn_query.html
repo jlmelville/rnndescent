@@ -103,8 +103,7 @@ on binary data with bitset internal memory optimization).</p></dd>
 
 <dt>init</dt>
 <dd><p>Initial <code>query</code> neighbor graph to optimize. If not provided, <code>k</code>
-random neighbors are created. If provided, the input format should be a
-list containing:</p><ul><li><p><code>idx</code> an <code>n</code> by <code>k</code> matrix containing the nearest neighbor indices.</p></li>
+random neighbors are created. If provided, the input format must be one of:</p><ol><li><p>A list containing:</p><ul><li><p><code>idx</code> an <code>n</code> by <code>k</code> matrix containing the nearest neighbor indices.</p></li>
 <li><p><code>dist</code> (optional) an <code>n</code> by <code>k</code> matrix containing the nearest neighbor
 distances.</p></li>
 </ul><p>If <code>k</code> and <code>init</code> are specified as arguments to this function, and the
@@ -114,7 +113,10 @@ the size of <code>k</code>. Note that there is no checking if any of the random
 neighbors are duplicates of what is already in <code>init</code> so effectively fewer
 than <code>k</code> neighbors may be chosen for some observations under these
 circumstances.</p></li>
-</ul><p>If the input distances are omitted, they will be calculated for you.</p></dd>
+</ul><p>If the input distances are omitted, they will be calculated for you.</p></li>
+<li><p>A random projection forest, such as that returned from <code><a href="rpf_build.html">rpf_build()</a></code> or
+<code><a href="rpf_knn.html">rpf_knn()</a></code> with <code>ret_forest = TRUE</code>.</p></li>
+</ol></dd>
 
 
 <dt>epsilon</dt>
@@ -198,12 +200,24 @@ search in high-dimensional data.
 <span class="r-in"><span><span class="va">iris_query_nn</span> <span class="op">&lt;-</span> <span class="fu">graph_knn_query</span><span class="op">(</span><span class="va">iris_query</span>, <span class="va">iris_ref</span>, <span class="va">iris_ref_graph</span>,</span></span>
 <span class="r-in"><span>  k <span class="op">=</span> <span class="fl">4</span>, metric <span class="op">=</span> <span class="st">"euclidean"</span>, verbose <span class="op">=</span> <span class="cn">TRUE</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 03:12:54 Using alt metric 'l2sqr' for 'euclidean'</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 03:12:54 Initializing from random neighbors</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 03:12:54 Generating random k-nearest neighbor graph from reference with k = 4</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 03:12:54 Finished</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 03:12:54 Searching nearest neighbor graph</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 03:12:54 Finished</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 01:06:04 Using alt metric 'l2sqr' for 'euclidean'</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 01:06:04 Initializing from random neighbors</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 01:06:04 Generating random k-nearest neighbor graph from reference with k = 4</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 01:06:05 Searching nearest neighbor graph</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 01:06:05 Finished</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># A more complete example, converting the initial knn into a search graph</span></span></span>
+<span class="r-in"><span><span class="co"># and using a filtered random projection forest to initialize the search</span></span></span>
+<span class="r-in"><span><span class="co"># create initial knn and forest</span></span></span>
+<span class="r-in"><span><span class="va">iris_ref_graph</span> <span class="op">&lt;-</span> <span class="fu"><a href="nnd_knn.html">nnd_knn</a></span><span class="op">(</span><span class="va">iris_ref</span>, k <span class="op">=</span> <span class="fl">4</span>, init <span class="op">=</span> <span class="st">"tree"</span>, ret_forest <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="co"># keep the best tree in the forest</span></span></span>
+<span class="r-in"><span><span class="va">forest</span> <span class="op">&lt;-</span> <span class="fu"><a href="rpf_filter.html">rpf_filter</a></span><span class="op">(</span><span class="va">iris_ref_graph</span>, n_trees <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="co"># expand the knn into a search graph</span></span></span>
+<span class="r-in"><span><span class="va">iris_ref_search_graph</span> <span class="op">&lt;-</span> <span class="fu"><a href="prepare_search_graph.html">prepare_search_graph</a></span><span class="op">(</span><span class="va">iris_ref</span>, <span class="va">iris_ref_graph</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="co"># run the query with the improved graph and initialization</span></span></span>
+<span class="r-in"><span><span class="va">iris_query_nn</span> <span class="op">&lt;-</span> <span class="fu">graph_knn_query</span><span class="op">(</span><span class="va">iris_query</span>, <span class="va">iris_ref</span>, <span class="va">iris_ref_search_graph</span>,</span></span>
+<span class="r-in"><span>                                 init <span class="op">=</span> <span class="va">forest</span>, k <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
