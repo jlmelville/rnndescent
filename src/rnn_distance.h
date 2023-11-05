@@ -446,4 +446,16 @@ create_sparse_self_distance(const Rcpp::NumericVector &data,
       data, ind, ptr, nobs, ndim, metric);
 }
 
+template <typename In = RNN_DEFAULT_DIST, typename Idx = RNN_DEFAULT_IDX>
+std::unique_ptr<tdoann::BaseDistance<RNN_DEFAULT_DIST, Idx>>
+create_sparse_self_distance(std::vector<In> data_vec,
+                            std::vector<std::size_t> ind_vec,
+                            std::vector<std::size_t> ptr_vec, std::size_t nobs,
+                            std::size_t ndim, const std::string &metric) {
+  return create_sparse_self_distance_impl<
+      tdoann::BaseDistance<RNN_DEFAULT_DIST, Idx>>(
+      std::move(data_vec), std::move(ind_vec), std::move(ptr_vec), nobs, ndim,
+      metric);
+}
+
 #endif // RNN_DISTANCE_H

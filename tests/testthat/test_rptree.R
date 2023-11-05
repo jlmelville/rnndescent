@@ -389,7 +389,7 @@ ui6f <- rpf_knn(
 qnbrs4 <- graph_knn_query(reference = ui6, reference_graph = ui6f, query = ui4, init = ui6f$forest, k = 4)
 expect_equal(sum(qnbrs4$dist), ui4q_edsum)
 
-# sparse
+test_that("sparse implicit margin", {
 set.seed(1337); dknn <- rpf_knn(ui10z, k = 4, leaf_size = 3, n_trees = 2, margin = "implicit")
 set.seed(1337); sknn <- rpf_knn(ui10sp, k = 4, leaf_size = 3, n_trees = 2,margin = "implicit")
 expect_equal(sknn, dknn)
@@ -421,3 +421,11 @@ expect_equal(squery4, dquery4, tol = 1e-5)
 set.seed(1337); sforest6 <- rpf_build(ui10sp6, leaf_size = 3, n_trees = 2, margin = "implicit", metric = "cosine")
 set.seed(1337); squery4b <- rpf_knn_query(query = ui10sp4, reference = ui10sp6, forest = sforest6, k = 4)
 expect_equal(squery4b, squery4, tol = 1e-5)
+})
+
+
+test_that("sparse explicit margin", {
+  set.seed(1337); dknn <- rpf_knn(ui10z, k = 4, leaf_size = 3, n_trees = 2, margin = "explicit")
+  set.seed(1337); sknn <- rpf_knn(ui10sp, k = 4, leaf_size = 3, n_trees = 2,margin = "explicit")
+  expect_equal(sknn, dknn)
+})

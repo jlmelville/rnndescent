@@ -56,6 +56,149 @@ inline std::vector<std::size_t> arr_union(const std::vector<std::size_t> &ar1,
 
 template <typename Out, typename DataIt>
 std::pair<std::vector<std::size_t>, std::vector<Out>>
+sparse_sum(typename std::vector<std::size_t>::const_iterator ind1_start,
+           std::size_t ind1_size, DataIt data1_start,
+           typename std::vector<std::size_t>::const_iterator ind2_start,
+           std::size_t ind2_size, DataIt data2_start) {
+
+  std::vector<std::size_t> result_ind;
+  result_ind.reserve(ind1_size + ind2_size);
+
+  std::vector<Out> result_data;
+  result_data.reserve(ind1_size + ind2_size);
+
+  std::size_t i1 = 0;
+  std::size_t i2 = 0;
+
+  constexpr Out zero(0);
+
+  // Pass through both index lists
+  while (i1 < ind1_size && i2 < ind2_size) {
+    auto j1 = *(ind1_start + i1);
+    auto j2 = *(ind2_start + i2);
+
+    if (j1 == j2) {
+      auto val = *(data1_start + i1) + *(data2_start + i2);
+      if (val != zero) {
+        result_ind.push_back(j1);
+        result_data.push_back(val);
+      }
+      ++i1;
+      ++i2;
+    } else if (j1 < j2) {
+      auto val = *(data1_start + i1);
+      if (val != zero) {
+        result_ind.push_back(j1);
+        result_data.push_back(val);
+      }
+      ++i1;
+    } else {
+      auto val = *(data2_start + i2);
+      if (val != zero) {
+        result_ind.push_back(j2);
+        result_data.push_back(val);
+      }
+      ++i2;
+    }
+  }
+
+  // tails
+  while (i1 < ind1_size) {
+    auto j1 = *(ind1_start + i1);
+    auto val = *(data1_start + i1);
+    if (val != zero) {
+      result_ind.push_back(j1);
+      result_data.push_back(val);
+    }
+    ++i1;
+  }
+
+  while (i2 < ind2_size) {
+    auto j2 = *(ind2_start + i2);
+    auto val = *(data2_start + i2);
+    if (val != zero) {
+      result_ind.push_back(j2);
+      result_data.push_back(val);
+    }
+    ++i2;
+  }
+
+  return {result_ind, result_data};
+}
+
+template <typename Out, typename DataIt>
+std::pair<std::vector<std::size_t>, std::vector<Out>>
+sparse_diff(typename std::vector<std::size_t>::const_iterator ind1_start,
+            std::size_t ind1_size, DataIt data1_start,
+            typename std::vector<std::size_t>::const_iterator ind2_start,
+            std::size_t ind2_size, DataIt data2_start) {
+
+  std::vector<std::size_t> result_ind;
+  result_ind.reserve(ind1_size + ind2_size);
+
+  std::vector<Out> result_data;
+  result_data.reserve(ind1_size + ind2_size);
+
+  std::size_t i1 = 0;
+  std::size_t i2 = 0;
+
+  constexpr Out zero(0);
+
+  while (i1 < ind1_size && i2 < ind2_size) {
+    auto j1 = *(ind1_start + i1);
+    auto j2 = *(ind2_start + i2);
+
+    if (j1 == j2) {
+      auto val = *(data1_start + i1) - *(data2_start + i2);
+      if (val != zero) {
+        result_ind.push_back(j1);
+        result_data.push_back(val);
+      }
+      ++i1;
+      ++i2;
+    } else if (j1 < j2) {
+      auto val = *(data1_start + i1);
+      if (val != zero) {
+        result_ind.push_back(j1);
+        result_data.push_back(val);
+      }
+      ++i1;
+    } else {
+      auto val = -*(data2_start + i2); // negation
+      if (val != zero) {
+        result_ind.push_back(j2);
+        result_data.push_back(val);
+      }
+      ++i2;
+    }
+  }
+
+  // tails
+  while (i1 < ind1_size) {
+    auto j1 = *(ind1_start + i1);
+    auto val = *(data1_start + i1);
+    if (val != zero) {
+      result_ind.push_back(j1);
+      result_data.push_back(val);
+    }
+    ++i1;
+  }
+
+  while (i2 < ind2_size) {
+    auto j2 = *(ind2_start + i2);
+    auto val = -*(data2_start + i2); // negation
+    if (val != zero) {
+      result_ind.push_back(j2);
+      result_data.push_back(val);
+    }
+    ++i2;
+  }
+
+  return {result_ind, result_data};
+}
+
+template <typename Out, typename DataIt>
+std::pair<std::vector<std::size_t>, std::vector<Out>>
 sparse_mul(typename std::vector<std::size_t>::const_iterator ind1_start,
            std::size_t ind1_size, DataIt data1_start,
            typename std::vector<std::size_t>::const_iterator ind2_start,

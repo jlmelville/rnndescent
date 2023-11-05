@@ -323,7 +323,6 @@ template <typename In, typename Idx>
 std::vector<tdoann::RPTree<In, Idx>>
 build_rp_forest(const std::vector<In> &data_vec, std::size_t ndim,
                 const std::string &metric, uint32_t n_trees, uint32_t leaf_size,
-
                 std::size_t n_threads, bool verbose,
                 const tdoann::Executor &executor) {
   bool angular = is_angular_metric(metric);
@@ -335,6 +334,26 @@ build_rp_forest(const std::vector<In> &data_vec, std::size_t ndim,
   RPProgress forest_progress(verbose);
   return tdoann::make_forest(data_vec, ndim, n_trees, leaf_size, rng_provider,
                              angular, n_threads, forest_progress, executor);
+}
+
+template <typename In, typename Idx>
+std::vector<tdoann::SparseRPTree<In, Idx>> build_sparse_rp_forest(
+    const std::vector<In> &data_vec, const std::vector<std::size_t> &ind_vec,
+    const std::vector<std::size_t> &ptr_vec, std::size_t ndim,
+    const std::string &metric, uint32_t n_trees, uint32_t leaf_size,
+    std::size_t n_threads, bool verbose, const tdoann::Executor &executor) {
+  // FIXME: angular
+  // bool angular = is_angular_metric(metric);
+  bool angular = false;
+  rnndescent::ParallelIntRNGAdapter<Idx, rnndescent::DQIntSampler> rng_provider;
+  if (verbose) {
+    tsmessage() << "Using" << (angular ? " angular " : " euclidean ")
+                << "margin calculation\n";
+  }
+  RPProgress forest_progress(verbose);
+  return tdoann::make_sparse_forest(ind_vec, ptr_vec, data_vec, ndim, n_trees,
+                                    leaf_size, rng_provider, angular, n_threads,
+                                    forest_progress, executor);
 }
 
 // [[Rcpp::export]]
@@ -391,6 +410,53 @@ List rp_tree_knn_explicit(const NumericMatrix &data, uint32_t nnbrs,
     List search_forest_r = search_forest_to_r(search_forest, metric);
     nn_list["forest"] = search_forest_r;
   }
+  return nn_list;
+}
+
+// [[Rcpp::export]]
+List rp_tree_knn_explicit_sparse(
+    const NumericVector &data, const IntegerVector &ind,
+    const IntegerVector &ptr, std::size_t nobs, std::size_t ndim,
+    uint32_t nnbrs, const std::string &metric, uint32_t n_trees,
+    uint32_t leaf_size, bool include_self, bool unzero = true,
+    bool ret_forest = false, std::size_t n_threads = 0, bool verbose = false) {
+  using Idx = RNN_DEFAULT_IDX;
+  using In = RNN_DEFAULT_IN;
+
+  auto data_vec = r_to_vec<In>(data);
+  auto ind_vec = r_to_vec<std::size_t>(ind);
+  auto ptr_vec = r_to_vec<std::size_t>(ptr);
+
+  RParallelExecutor executor;
+  auto rp_forest = build_sparse_rp_forest<In, Idx>(
+      data_vec, ind_vec, ptr_vec, ndim, metric, n_trees, leaf_size, n_threads,
+      verbose, executor);
+
+  if (verbose) {
+    tsmessage() << "Extracting leaf array from forest\n";
+  }
+  const std::size_t max_leaf_size = tdoann::find_max_leaf_size(rp_forest);
+  std::vector<Idx> leaf_array =
+      tdoann::get_leaves_from_forest(rp_forest, max_leaf_size);
+
+  if (verbose) {
+    tsmessage() << "Creating knn using " << leaf_array.size() / max_leaf_size
+                << " leaves\n";
+  }
+  RPProgress knn_progress(verbose);
+  auto distance_ptr =
+      create_sparse_self_distance(std::move(data_vec), std::move(ind_vec),
+                                  std::move(ptr_vec), nobs, ndim, metric);
+  auto neighbor_heap =
+      tdoann::init_rp_tree(*distance_ptr, leaf_array, max_leaf_size, nnbrs,
+                           include_self, n_threads, knn_progress, executor);
+  auto nn_list =
+      heap_to_r(neighbor_heap, n_threads, knn_progress, executor, unzero);
+
+  if (ret_forest) {
+    tsmessage() << "FIXME\n";
+  }
+
   return nn_list;
 }
 

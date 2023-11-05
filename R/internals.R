@@ -417,8 +417,23 @@ rpf_knn_impl <-
     }
     else {
       if (is_sparse(data)) {
-        # FIXME: sparse
-        stop("Explicit margin tree-building not supported for sparse data")
+        # FIXME: ret_forest
+        res <- rp_tree_knn_explicit_sparse(
+          data = data@x,
+          ind = data@i,
+          ptr = data@p,
+          nobs = ncol(data),
+          ndim = nrow(data),
+          nnbrs = k,
+          metric = actual_metric,
+          n_trees = n_trees,
+          leaf_size = leaf_size,
+          include_self = include_self,
+          ret_forest = ret_forest,
+          unzero = unzero,
+          n_threads = n_threads,
+          verbose = verbose
+        )
       }
       else {
         res <- rp_tree_knn_explicit(
