@@ -481,7 +481,8 @@ rpf_index_ls4e <-
     version = "0.0.12",
     use_alt_metric = TRUE,
     original_metric = "euclidean",
-    sparse = FALSE
+    sparse = FALSE,
+    type = "rnndescent:rpforest"
   )
 
 # set.seed(1337)
@@ -581,5 +582,6 @@ rpf_index_ls4i <-
     version = "0.0.12",
     use_alt_metric = TRUE,
     original_metric = "euclidean",
-    sparse = FALSE
+    sparse = FALSE,
+    type = "rnndescent:rpforest"
   )

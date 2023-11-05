@@ -43,11 +43,18 @@ graph_to_sparse <- function(graph, repr, drop0 = FALSE, transpose = FALSE) {
     i <- rep(1:n_row, times = n_nbrs)
     j <- as.vector(idx)
   }
+  x <- as.vector(dist)
+
+  # filter out missing data
+  keep_indices <- !is.na(x)
+  i <- i[keep_indices]
+  j <- j[keep_indices]
+  x <- x[keep_indices]
 
   res <- Matrix::sparseMatrix(
     i = i,
     j = j,
-    x = as.vector(dist),
+    x = x,
     dims = c(n_row, n_ref),
     repr = repr
   )

@@ -843,24 +843,26 @@ random_knn_query <-
 #'   sort of numeric issue is occurring with your data in the alternative code
 #'   path.
 #' @param init Initial `query` neighbor graph to optimize. If not provided, `k`
-#'   random neighbors are created. If provided, the input format should be a
-#'   list containing:
+#'   random neighbors are created. If provided, the input format must be one of:
+#'   1. A list containing:
 #'
-#'   * `idx` an `n` by `k` matrix containing the nearest neighbor indices.
-#'   * `dist` (optional) an `n` by `k` matrix containing the nearest neighbor
-#'   distances.
+#'       * `idx` an `n` by `k` matrix containing the nearest neighbor indices.
+#'       * `dist` (optional) an `n` by `k` matrix containing the nearest neighbor
+#'       distances.
 #'
-#'   If `k` and `init` are specified as arguments to this function, and the
-#'   number of neighbors provided in `init` is not equal to `k` then:
+#'       If `k` and `init` are specified as arguments to this function, and the
+#'       number of neighbors provided in `init` is not equal to `k` then:
 #'
-#'   * if `k` is smaller, only the `k` closest values in `init` are retained.
-#'   * if `k` is larger, then random neighbors will be chosen to fill `init` to
-#'   the size of `k`. Note that there is no checking if any of the random
-#'   neighbors are duplicates of what is already in `init` so effectively fewer
-#'   than `k` neighbors may be chosen for some observations under these
-#'   circumstances.
+#'       * if `k` is smaller, only the `k` closest values in `init` are retained.
+#'       * if `k` is larger, then random neighbors will be chosen to fill `init` to
+#'       the size of `k`. Note that there is no checking if any of the random
+#'       neighbors are duplicates of what is already in `init` so effectively fewer
+#'       than `k` neighbors may be chosen for some observations under these
+#'       circumstances.
 #'
-#'   If the input distances are omitted, they will be calculated for you.
+#'       If the input distances are omitted, they will be calculated for you.
+#'  1. A random projection forest, such as that returned from [rpf_build()] or
+#'     [rpf_knn()] with `ret_forest = TRUE`.
 #' @param epsilon Controls trade-off between accuracy and search cost, by
 #'   specifying a distance tolerance on whether to explore the neighbors of
 #'   candidate points. The larger the value, the more neighbors will be
@@ -901,6 +903,19 @@ random_knn_query <-
 #' iris_query_nn <- graph_knn_query(iris_query, iris_ref, iris_ref_graph,
 #'   k = 4, metric = "euclidean", verbose = TRUE
 #' )
+#'
+#' # A more complete example, converting the initial knn into a search graph
+#' # and using a filtered random projection forest to initialize the search
+#' # create initial knn and forest
+#' iris_ref_graph <- nnd_knn(iris_ref, k = 4, init = "tree", ret_forest = TRUE)
+#' # keep the best tree in the forest
+#' forest <- rpf_filter(iris_ref_graph, n_trees = 1)
+#' # expand the knn into a search graph
+#' iris_ref_search_graph <- prepare_search_graph(iris_ref, iris_ref_graph)
+#' # run the query with the improved graph and initialization
+#' iris_query_nn <- graph_knn_query(iris_query, iris_ref, iris_ref_search_graph,
+#'                                  init = forest, k = 4)
+#'
 #' @references
 #' Hajebi, K., Abbasi-Yadkori, Y., Shahbazi, H., & Zhang, H. (2011, June).
 #' Fast approximate nearest-neighbor search with k-nearest neighbor graph.
@@ -964,9 +979,24 @@ graph_knn_query <- function(query,
     )
     # FIXME: can we just do the unzeroing inside the init?
     init$idx <- init$idx + 1
-  } else {
+  }
+  else if (is.list(init) && is_rpforest(init)) {
+    init <- rpf_knn_query(query = query,
+                  reference = reference,
+                  forest = init,
+                  k = k,
+                  cache = TRUE,
+                  n_threads = n_threads,
+                  verbose = verbose,
+                  obs = "C")
+    if (use_alt_metric) {
+      init$dist <-
+        apply_alt_metric_uncorrection(metric, init$dist, is_sparse(reference))
+    }
+  }
+  else if (is.list(init) && !is.null(init$idx)) {
     # user-supplied distances may need to be transformed to the actual metric
-    if (use_alt_metric && !is.null(init) && !is.null(init$dist)) {
+    if (use_alt_metric && !is.null(init$dist)) {
       init$dist <-
         apply_alt_metric_uncorrection(metric, init$dist, is_sparse(reference))
     }
@@ -975,6 +1005,9 @@ graph_knn_query <- function(query,
       k <- ncol(init$idx)
       tsmessage("Using k = ", k, " from initial graph")
     }
+  }
+  else {
+    stop("Unsupported type of 'init'")
   }
 
   init <-
@@ -987,6 +1020,10 @@ graph_knn_query <- function(query,
       n_threads = n_threads,
       verbose = verbose
     )
+
+  if (is.list(reference_graph) && any(reference_graph$idx == 0)) {
+    tsmessage("Warning: reference knn graph contains missing data")
+  }
 
   stopifnot(!is.null(query),
             (
@@ -1005,7 +1042,6 @@ graph_knn_query <- function(query,
     ncol(init$dist) == k,
     nrow(init$dist) == ncol(query)
   )
-
   if (is.list(reference_graph)) {
     reference_dist <- reference_graph$dist
     reference_idx <- reference_graph$idx

@@ -46,8 +46,9 @@ specified.}
 on binary data with bitset internal memory optimization).}
 
 \item{init}{Initial \code{query} neighbor graph to optimize. If not provided, \code{k}
-random neighbors are created. If provided, the input format should be a
-list containing:
+random neighbors are created. If provided, the input format must be one of:
+\enumerate{
+\item A list containing:
 \itemize{
 \item \code{idx} an \code{n} by \code{k} matrix containing the nearest neighbor indices.
 \item \code{dist} (optional) an \code{n} by \code{k} matrix containing the nearest neighbor
@@ -65,7 +66,10 @@ than \code{k} neighbors may be chosen for some observations under these
 circumstances.
 }
 
-If the input distances are omitted, they will be calculated for you.}
+If the input distances are omitted, they will be calculated for you.
+\item A random projection forest, such as that returned from \code{\link[=rpf_build]{rpf_build()}} or
+\code{\link[=rpf_knn]{rpf_knn()}} with \code{ret_forest = TRUE}.
+}}
 
 \item{epsilon}{Controls trade-off between accuracy and search cost, by
 specifying a distance tolerance on whether to explore the neighbors of
@@ -125,6 +129,19 @@ iris_ref_graph <- nnd_knn(iris_ref, k = 4)
 iris_query_nn <- graph_knn_query(iris_query, iris_ref, iris_ref_graph,
   k = 4, metric = "euclidean", verbose = TRUE
 )
+
+# A more complete example, converting the initial knn into a search graph
+# and using a filtered random projection forest to initialize the search
+# create initial knn and forest
+iris_ref_graph <- nnd_knn(iris_ref, k = 4, init = "tree", ret_forest = TRUE)
+# keep the best tree in the forest
+forest <- rpf_filter(iris_ref_graph, n_trees = 1)
+# expand the knn into a search graph
+iris_ref_search_graph <- prepare_search_graph(iris_ref, iris_ref_graph)
+# run the query with the improved graph and initialization
+iris_query_nn <- graph_knn_query(iris_query, iris_ref, iris_ref_search_graph,
+                                 init = forest, k = 4)
+
 }
 \references{
 Hajebi, K., Abbasi-Yadkori, Y., Shahbazi, H., & Zhang, H. (2011, June).

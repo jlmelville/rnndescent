@@ -112,7 +112,8 @@ expected_rpf_index <- list(
   version = "0.0.12",
   use_alt_metric = TRUE,
   original_metric = "euclidean",
-  sparse = FALSE
+  sparse = FALSE,
+  type = "rnndescent:rpforest"
 )
 
 set.seed(1337)
@@ -244,7 +245,8 @@ expected_rpfi_index <- list(
   version = "0.0.12",
   use_alt_metric = TRUE,
   original_metric = "euclidean",
-  sparse = FALSE
+  sparse = FALSE,
+  type = "rnndescent:rpforest"
 )
 set.seed(1337)
 rpf_knn2df <- rpf_knn(
@@ -376,6 +378,16 @@ uiriscosiq <-
   )
 expect_equal(sum(uiriscosi$idx - uiriscosq$idx), 0)
 expect_equal(sum(uiriscosi$idx - uiriscosiq$idx), 0)
+
+set.seed(1337)
+ui6f <- rpf_knn(
+  ui6,
+  k = 4,
+  leaf_size = 3,
+  ret_forest = TRUE
+)
+qnbrs4 <- graph_knn_query(reference = ui6, reference_graph = ui6f, query = ui4, init = ui6f$forest, k = 4)
+expect_equal(sum(qnbrs4$dist), ui4q_edsum)
 
 # sparse
 set.seed(1337); dknn <- rpf_knn(ui10z, k = 4, leaf_size = 3, n_trees = 2, margin = "implicit")

@@ -179,7 +179,6 @@ check_sparse <- function(reference, query) {
   }
 }
 
-
 is_sparse <- function(x) {
   methods::is(x, "sparseMatrix")
 }
@@ -451,7 +450,12 @@ set_forest_data <- function(forest, use_alt_metric, metric, is_sparse) {
   forest$use_alt_metric <- use_alt_metric
   forest$original_metric <- metric
   forest$sparse <- is_sparse
+  forest$type <- "rnndescent:rpforest"
   forest
+}
+
+is_rpforest <- function(forest) {
+  !is.null(forest$type) && forest$type == "rnndescent:rpforest"
 }
 
 # reference and query are column-oriented

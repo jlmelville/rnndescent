@@ -558,7 +558,7 @@ rpf_filter <-
       set_forest_data(filtered_forest,
                    forest$use_alt_metric,
                    forest$original_metric,
-                   forest$is_sparse)
+                   forest$sparse)
 
     filtered_forest
   }

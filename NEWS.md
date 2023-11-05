@@ -1,5 +1,19 @@
 # rnndescent 0.0.13
 
+## New features
+
+* A new `init` option for `graph_knn_query`: you can now pass an RP forest and
+initialize with that, e.g. from `rpf_build`, or by setting `ret_forest = TRUE`
+on `nnd_knn` or `rpf_knn`. You may want to cut down the size of the forest
+used for initialization with `rpf_filter` first, though (a single tree may be
+enough).
+
+## Bug fixes and minor improvements
+
+* If the knn graph you pass to `prepare_search_graph` or to `graph_knn_query` 
+contains missing data, this will no longer cause an error (it still might not be
+the best idea though).
+
 # rnndescent 0.0.12
 
 ## New features

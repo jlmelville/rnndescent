@@ -328,3 +328,24 @@ test_that("sparse", {
   set.seed(1337); sq4 <- graph_knn_query(reference = ui10sp6, query = ui10sp4, reference_graph = g6, k = 4)
   expect_equal(sq4, dq4)
 })
+
+
+test_that("full workflow", {
+  iris_ref <- iris[iris$Species %in% c("setosa", "versicolor"), ]
+  iris_query <- iris[iris$Species == "versicolor", ]
+
+  set.seed(1337)
+  iris_ref_graph <- nnd_knn(iris_ref, k = 4, init = "tree", ret_forest = TRUE)
+  # keep the 5 best trees in the forest
+  forest <- rpf_filter(iris_ref_graph, n_trees = 5)
+  # expand the knn into a search graph
+  iris_ref_search_graph <- prepare_search_graph(iris_ref, iris_ref_graph)
+  # run the query with the improved graph and initialization
+  iris_query_nn <- graph_knn_query(iris_query, iris_ref, iris_ref_search_graph,
+                                   init = forest, k = 4, epsilon = 1.1)
+
+  iris_qbf <- brute_force_knn_query(iris_query, iris_ref, k = 4)
+
+  # there can be ties, so just check distances
+  expect_equal(iris_query_nn$dist, iris_qbf$dist)
+})
