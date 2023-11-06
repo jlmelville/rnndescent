@@ -38,7 +38,6 @@
 #include "heap.h"
 #include "parallel.h"
 #include "random.h"
-#include "sparse.h"
 
 namespace tdoann {
 
@@ -112,66 +111,6 @@ template <typename In, typename Idx> struct RPTree {
   }
 };
 
-template <typename In, typename Idx> struct SparseRPTree {
-  using Index = Idx;
-
-  std::vector<std::vector<std::size_t>> hyperplanes_ind = {};
-  std::vector<std::vector<In>> hyperplanes_data = {};
-  std::vector<In> offsets = {};
-  std::vector<std::pair<std::size_t, std::size_t>> children = {};
-  std::vector<std::vector<Idx>> indices = {};
-  std::size_t leaf_size = 0;
-  std::size_t ndim = 0;
-
-  SparseRPTree() = default;
-
-  SparseRPTree(std::size_t num_indices, std::size_t leaf_size, std::size_t ndim)
-      : ndim(ndim) {
-    std::size_t min_nodes =
-        num_indices <= leaf_size ? 1 : (num_indices / (2 * leaf_size) + 1) - 1;
-    hyperplanes_ind.reserve(min_nodes);
-    hyperplanes_data.reserve(min_nodes);
-    offsets.reserve(min_nodes);
-    children.reserve(min_nodes);
-    indices.reserve(min_nodes);
-  }
-
-  void add_node(const std::vector<std::size_t> &hyperplane_ind,
-                const std::vector<In> &hyperplane_data, In offset,
-                std::size_t left_node_num, std::size_t right_node_num) {
-    static const std::vector<Idx> dummy_indices =
-        std::vector<Idx>(0, static_cast<Idx>(-1));
-    indices.push_back(dummy_indices);
-
-    hyperplanes_ind.push_back(hyperplane_ind);
-    hyperplanes_data.push_back(hyperplane_data);
-    offsets.push_back(offset);
-    children.emplace_back(left_node_num, right_node_num);
-  }
-
-  void add_leaf(const std::vector<Idx> &indices_) {
-    static const std::vector<std::size_t> dummy_hyperplane_ind;
-    hyperplanes_ind.push_back(dummy_hyperplane_ind);
-
-    static const std::vector<In> dummy_hyperplane_data;
-    hyperplanes_data.push_back(dummy_hyperplane_data);
-
-    static const In dummy_offset = std::numeric_limits<In>::quiet_NaN();
-    offsets.push_back(dummy_offset);
-
-    static const std::pair<std::size_t, std::size_t> dummy_child = {
-        static_cast<std::size_t>(-1), static_cast<std::size_t>(-1)};
-    children.push_back(dummy_child);
-
-    indices.push_back(indices_);
-    leaf_size = std::max(leaf_size, indices_.size());
-  }
-
-  bool is_leaf(std::size_t i) const {
-    return children[i].first == static_cast<std::size_t>(-1);
-  }
-};
-
 template <typename Idx>
 std::pair<Idx, Idx> select_random_points(const std::vector<Idx> &indices,
                                          RandomIntGenerator<Idx> &rng) {
@@ -195,31 +134,6 @@ uint8_t select_side(typename std::vector<In>::const_iterator data_it,
   In margin =
       std::inner_product(hyperplane_vector.begin(), hyperplane_vector.end(),
                          data_it, hyperplane_offset);
-  if (std::abs(margin) < EPS) {
-    return rng.rand_int(2);
-  }
-  return margin > 0 ? 0 : 1;
-}
-
-template <typename In, typename Idx>
-uint8_t
-select_side_sparse(typename std::vector<std::size_t>::const_iterator ind_start,
-                   std::size_t ind_size,
-                   typename std::vector<In>::const_iterator data_start,
-                   const std::vector<std::size_t> &hyperplane_ind,
-                   const std::vector<In> &hyperplane_data, In hyperplane_offset,
-                   RandomIntGenerator<Idx> &rng) {
-  constexpr In EPS = 1e-8;
-
-  auto [_, mul_data] =
-      sparse_mul<In>(hyperplane_ind.begin(), hyperplane_ind.size(),
-                     hyperplane_data.begin(), ind_start, ind_size, data_start);
-
-  In margin = hyperplane_offset;
-  for (auto val : mul_data) {
-    margin += val;
-  }
-
   if (std::abs(margin) < EPS) {
     return rng.rand_int(2);
   }
@@ -272,116 +186,6 @@ void split_indices(const std::vector<In> &data, std::size_t ndim,
       indices_right[n_right++] = indices[i];
     }
   }
-}
-
-template <typename In, typename Idx>
-void split_indices_sparse(const std::vector<std::size_t> &ind,
-                          const std::vector<std::size_t> &ptr,
-                          const std::vector<In> &data,
-                          const std::vector<Idx> &indices,
-                          const std::vector<std::size_t> &hyperplane_ind,
-                          const std::vector<In> &hyperplane_data,
-                          In hyperplane_offset, std::vector<Idx> &indices_left,
-                          std::vector<Idx> &indices_right,
-                          RandomIntGenerator<Idx> &rng) {
-  std::vector<uint8_t> side(indices.size(), 0);
-  std::size_t n_left = 0;
-  std::size_t n_right = 0;
-
-  for (std::size_t i = 0; i < indices.size(); ++i) {
-    Idx idx = indices[i];
-    auto range_start = ptr[idx];
-    auto range_end = ptr[idx + 1];
-    side[i] =
-        select_side_sparse(ind.begin() + range_start, range_end - range_start,
-                           data.begin() + range_start, hyperplane_ind,
-                           hyperplane_data, hyperplane_offset, rng);
-    if (side[i] == 0) {
-      ++n_left;
-    } else {
-      ++n_right;
-    }
-  }
-
-  // If either side is empty, reset counts and assign sides randomly.
-  if (n_left == 0 || n_right == 0) {
-    n_left = 0;
-    n_right = 0;
-    for (std::size_t i = 0; i < indices.size(); ++i) {
-      side[i] = rng.rand_int(2);
-      if (side[i] == 0) {
-        ++n_left;
-      } else {
-        ++n_right;
-      }
-    }
-  }
-
-  indices_left.resize(n_left);
-  indices_right.resize(n_right);
-  n_left = 0;
-  n_right = 0;
-  for (std::size_t i = 0; i < side.size(); ++i) {
-    if (side[i] == 0) {
-      indices_left[n_left++] = indices[i];
-    } else {
-      indices_right[n_right++] = indices[i];
-    }
-  }
-}
-
-template <typename In, typename Idx>
-std::tuple<std::vector<Idx>, std::vector<Idx>, std::vector<std::size_t>,
-           std::vector<In>, In>
-sparse_euclidean_random_projection_split(const std::vector<std::size_t> &ind,
-                                         const std::vector<std::size_t> &ptr,
-                                         const std::vector<In> &data,
-                                         const std::vector<Idx> &indices,
-                                         RandomIntGenerator<Idx> &rng) {
-  auto [left_index, right_index] = select_random_points(indices, rng);
-
-  Idx left = indices[left_index];
-  Idx right = indices[right_index];
-
-  const auto left_range_start = ptr[left];
-  const auto left_range_end = ptr[left + 1];
-  const auto left_size = left_range_end - left_range_start;
-  const auto right_range_start = ptr[right];
-  const auto right_range_end = ptr[right + 1];
-  const auto right_size = right_range_end - right_range_start;
-
-  const auto left_ind = ind.begin() + left_range_start;
-  const auto left_data = data.begin() + left_range_start;
-  const auto right_ind = ind.begin() + right_range_start;
-  const auto right_data = data.begin() + right_range_start;
-
-  auto [hyperplane_ind, hyperplane_data] = sparse_diff<In>(
-      left_ind, left_size, left_data, right_ind, right_size, right_data);
-
-  auto [offset_ind, offset_data] = sparse_sum<In>(
-      left_ind, left_size, left_data, right_ind, right_size, right_data);
-
-  for (auto &val : offset_data) {
-    val /= 2.0;
-  }
-
-  auto [_, mul_data] = sparse_mul<In>(
-      hyperplane_ind.begin(), hyperplane_ind.size(), hyperplane_data.begin(),
-      offset_ind.begin(), offset_ind.size(), offset_data.begin());
-
-  In hyperplane_offset = 0.0;
-  for (auto val : mul_data) {
-    hyperplane_offset -= val;
-  }
-
-  std::vector<Idx> indices_left;
-  std::vector<Idx> indices_right;
-  split_indices_sparse(ind, ptr, data, indices, hyperplane_ind, hyperplane_data,
-                       hyperplane_offset, indices_left, indices_right, rng);
-
-  return std::make_tuple(std::move(indices_left), std::move(indices_right),
-                         std::move(hyperplane_ind), std::move(hyperplane_data),
-                         std::move(hyperplane_offset));
 }
 
 template <typename In, typename Idx>
@@ -496,35 +300,6 @@ void make_tree_recursive(const std::vector<In> &data, std::size_t ndim,
   }
 }
 
-template <typename In, typename Idx, typename SplitFunc>
-void make_sparse_tree_recursive(
-    const std::vector<std::size_t> &ind, const std::vector<std::size_t> &ptr,
-    const std::vector<In> &data, const std::vector<Idx> &indices,
-    SparseRPTree<In, Idx> &tree, RandomIntGenerator<Idx> &rng,
-    SplitFunc split_function, uint32_t leaf_size, uint32_t max_depth) {
-
-  if (indices.size() > leaf_size && max_depth > 0) {
-    auto [left_indices, right_indices, hyperplane_ind, hyperplane_data,
-          offset] = split_function(ind, ptr, data, indices, rng);
-
-    make_sparse_tree_recursive(ind, ptr, data, left_indices, tree, rng,
-                               split_function, leaf_size, max_depth - 1);
-
-    std::size_t left_node_num = tree.indices.size() - 1;
-
-    make_sparse_tree_recursive(ind, ptr, data, right_indices, tree, rng,
-                               split_function, leaf_size, max_depth - 1);
-
-    std::size_t right_node_num = tree.indices.size() - 1;
-
-    tree.add_node(hyperplane_ind, hyperplane_data, offset, left_node_num,
-                  right_node_num);
-  } else {
-    // leaf node
-    tree.add_leaf(indices);
-  }
-}
-
 template <typename In, typename Idx>
 RPTree<In, Idx> make_dense_tree(const std::vector<In> &data, std::size_t ndim,
                                 RandomIntGenerator<Idx> &rng,
@@ -556,30 +331,6 @@ RPTree<In, Idx> make_dense_tree(const std::vector<In> &data, std::size_t ndim,
 }
 
 template <typename In, typename Idx>
-SparseRPTree<In, Idx>
-make_sparse_tree(const std::vector<std::size_t> &ind,
-                 const std::vector<std::size_t> &ptr,
-                 const std::vector<In> &data, std::size_t ndim,
-                 RandomIntGenerator<Idx> &rng, uint32_t leaf_size) {
-  std::vector<Idx> indices(ptr.size() - 1);
-  std::iota(indices.begin(), indices.end(), 0);
-
-  SparseRPTree<In, Idx> tree(indices.size(), leaf_size, ndim);
-  constexpr uint32_t max_depth = 100;
-
-  auto sparse_splitter = [](const auto &ind, const auto &ptr, const auto &data,
-                            auto &indices, auto &rng) {
-    return sparse_euclidean_random_projection_split(ind, ptr, data, indices,
-                                                    rng);
-  };
-
-  make_sparse_tree_recursive(ind, ptr, data, indices, tree, rng,
-                             sparse_splitter, leaf_size, max_depth);
-
-  return tree;
-}
-
-template <typename In, typename Idx>
 std::vector<RPTree<In, Idx>>
 make_forest(const std::vector<In> &data, std::size_t ndim, uint32_t n_trees,
             uint32_t leaf_size, ParallelRandomIntProvider<Idx> &parallel_rand,
@@ -593,34 +344,6 @@ make_forest(const std::vector<In> &data, std::size_t ndim, uint32_t n_trees,
     auto rng = parallel_rand.get_parallel_instance(end);
     for (auto i = begin; i < end; ++i) {
       rp_forest[i] = make_dense_tree(data, ndim, *rng, leaf_size, angular);
-    }
-  };
-
-  progress.set_n_iters(1);
-  ExecutionParams exec_params{};
-  dispatch_work(worker, n_trees, n_threads, exec_params, progress, executor);
-
-  return rp_forest;
-}
-
-template <typename In, typename Idx>
-std::vector<SparseRPTree<In, Idx>> make_sparse_forest(
-
-    const std::vector<std::size_t> &inds,
-    const std::vector<std::size_t> &indptr, const std::vector<In> &data,
-
-    std::size_t ndim, uint32_t n_trees, uint32_t leaf_size,
-    ParallelRandomIntProvider<Idx> &parallel_rand, bool angular,
-    std::size_t n_threads, ProgressBase &progress, const Executor &executor) {
-  std::vector<SparseRPTree<In, Idx>> rp_forest(n_trees);
-
-  parallel_rand.initialize();
-
-  auto worker = [&](std::size_t begin, std::size_t end) {
-    auto rng = parallel_rand.get_parallel_instance(end);
-    for (auto i = begin; i < end; ++i) {
-      rp_forest[i] =
-          make_sparse_tree(inds, indptr, data, ndim, *rng, leaf_size);
     }
   };
 

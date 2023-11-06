@@ -426,6 +426,16 @@ expect_equal(squery4b, squery4, tol = 1e-5)
 
 test_that("sparse explicit margin", {
   set.seed(1337); dknn <- rpf_knn(ui10z, k = 4, leaf_size = 3, n_trees = 2, margin = "explicit")
-  set.seed(1337); sknn <- rpf_knn(ui10sp, k = 4, leaf_size = 3, n_trees = 2,margin = "explicit")
+  set.seed(1337); sknn <- rpf_knn(ui10sp, k = 4, leaf_size = 3, n_trees = 2, margin = "explicit")
   expect_equal(sknn, dknn)
+
+  set.seed(1337); sknn6 <- rpf_knn(ui10sp6, k = 4, leaf_size = 2, n_trees = 2, ret_forest = TRUE)
+  set.seed(1337); sforest6 <- rpf_build(ui10sp6, leaf_size = 2, n_trees = 2)
+  expect_equal(sforest6$margin, "explicit")
+  expect_equal(sknn6$forest$margin, "explicit")
+  expect_equal(sforest6, sknn6$forest)
+
+  s6_ff <- rpf_filter(sknn6)
+  expect_equal(length(s6_ff$trees), 1)
+  expect_equal(s6_ff$trees[[1]], sknn6$forest$trees[[2]])
 })

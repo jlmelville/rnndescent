@@ -327,8 +327,18 @@ rpf_build <- function(data,
   }
   else {
     if (is_sparse(data)) {
-      # FIXME: sparse
-      stop("Explicit margin tree-building not supported for sparse data")
+      forest <- rnn_rp_forest_build_sparse(
+        data = data@x,
+        ind = data@i,
+        ptr = data@p,
+        nobs = ncol(data),
+        ndim = nrow(data),
+        metric = actual_metric,
+        n_trees = n_trees,
+        leaf_size = leaf_size,
+        n_threads = n_threads,
+        verbose = verbose
+      )
     }
     else {
       forest <- rnn_rp_forest_build(
@@ -341,7 +351,8 @@ rpf_build <- function(data,
       )
     }
   }
-  forest <- set_forest_data(forest, use_alt_metric, metric, is_sparse(data))
+  forest <-
+    set_forest_data(forest, use_alt_metric, metric, is_sparse(data))
 
   tsmessage("Finished")
   forest

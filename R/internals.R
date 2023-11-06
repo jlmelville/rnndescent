@@ -417,7 +417,6 @@ rpf_knn_impl <-
     }
     else {
       if (is_sparse(data)) {
-        # FIXME: ret_forest
         res <- rp_tree_knn_explicit_sparse(
           data = data@x,
           ind = data@i,

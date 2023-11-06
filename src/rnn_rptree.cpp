@@ -24,6 +24,7 @@
 #include "rnndescent/random.h"
 #include "tdoann/rptree.h"
 #include "tdoann/rptreeimplicit.h"
+#include "tdoann/rptreesparse.h"
 
 #include "rnn_distance.h"
 #include "rnn_heaptor.h"
@@ -185,6 +186,66 @@ List search_forest_implicit_to_r(
 }
 
 template <typename In, typename Idx>
+List sparse_search_tree_to_r(tdoann::SparseSearchTree<In, Idx> &&search_tree) {
+  const std::size_t n_nodes = search_tree.hyperplanes_ind.size();
+
+  // Determine total size for hyperplanes_data and hyperplanes_ind
+  std::size_t total_size = 0;
+  for (std::size_t i = 0; i < n_nodes; ++i) {
+    total_size += search_tree.hyperplanes_ind[i].size();
+  }
+
+  NumericVector hyperplanes_data(total_size);
+  IntegerVector hyperplanes_ind(total_size);
+  IntegerVector hyperplanes_ptr(n_nodes + 1);
+
+  NumericVector offsets(n_nodes);
+  IntegerMatrix children(n_nodes, 2);
+
+  std::size_t current_index = 0;
+  for (std::size_t i = 0; i < n_nodes; ++i) {
+    hyperplanes_ptr[i] = current_index;
+    std::copy(search_tree.hyperplanes_ind[i].begin(),
+              search_tree.hyperplanes_ind[i].end(),
+              hyperplanes_ind.begin() + current_index);
+    std::copy(search_tree.hyperplanes_data[i].begin(),
+              search_tree.hyperplanes_data[i].end(),
+              hyperplanes_data.begin() + current_index);
+    current_index += search_tree.hyperplanes_ind[i].size();
+
+    children(i, 0) = search_tree.children[i].first;
+    children(i, 1) = search_tree.children[i].second;
+    offsets[i] = search_tree.offsets[i];
+  }
+  hyperplanes_ptr[n_nodes] = current_index;
+
+  IntegerVector indices(search_tree.indices.begin(), search_tree.indices.end());
+
+  return List::create(_("hyperplanes_ind") = hyperplanes_ind,
+                      _("hyperplanes_data") = hyperplanes_data,
+                      _("hyperplanes_ptr") = hyperplanes_ptr,
+                      _("offsets") = offsets, _("children") = children,
+                      _("indices") = indices,
+                      _("leaf_size") = search_tree.leaf_size);
+}
+
+template <typename In, typename Idx>
+List sparse_search_forest_to_r(
+    std::vector<tdoann::SparseSearchTree<In, Idx>> &search_forest,
+    const std::string &metric) {
+  const auto n_trees = search_forest.size();
+  List forest_list(n_trees);
+
+  for (std::size_t i = 0; i < n_trees; ++i) {
+    List tree_list = sparse_search_tree_to_r(std::move(search_forest[i]));
+    forest_list[i] = tree_list;
+  }
+  return List::create(_("trees") = forest_list,
+                      _("margin") = margin_type_to_string(MarginType::EXPLICIT),
+                      _("actual_metric") = metric, _("version") = "0.0.12");
+}
+
+template <typename In, typename Idx>
 tdoann::SearchTree<In, Idx> r_to_search_tree(List tree_list) {
   // n_nodes x ndim
   NumericMatrix hyperplanes = tree_list["hyperplanes"];
@@ -292,6 +353,78 @@ r_to_search_forest_implicit(List forest_list, std::size_t n_threads) {
   auto worker = [&](std::size_t begin, std::size_t end) {
     for (auto i = begin; i < end; ++i) {
       search_forest[i] = r_to_search_tree_implicit<Idx>(trees[i]);
+    }
+  };
+
+  RParallelExecutor executor;
+  RPProgress progress(false);
+  tdoann::ExecutionParams exec_params{n_threads};
+  dispatch_work(worker, n_trees, n_threads, exec_params, progress, executor);
+
+  return search_forest;
+}
+
+template <typename In, typename Idx>
+tdoann::SparseSearchTree<In, Idx> r_to_sparse_search_tree(List tree_list) {
+  NumericVector hyperplanes_data = tree_list["hyperplanes_data"];
+  IntegerVector hyperplanes_ind = tree_list["hyperplanes_ind"];
+  IntegerVector hyperplanes_ptr = tree_list["hyperplanes_ptr"];
+  NumericVector offsets = tree_list["offsets"];
+  IntegerMatrix children = tree_list["children"];
+  IntegerVector indices = tree_list["indices"];
+  int leaf_size = tree_list["leaf_size"];
+
+  const std::size_t n_nodes = offsets.size();
+
+  std::vector<In> hyperplanes_data_cpp(hyperplanes_data.begin(),
+                                       hyperplanes_data.end());
+  std::vector<std::size_t> hyperplanes_ind_cpp(hyperplanes_ind.begin(),
+                                               hyperplanes_ind.end());
+  std::vector<std::size_t> hyperplanes_ptr_cpp(hyperplanes_ptr.begin(),
+                                               hyperplanes_ptr.end());
+  std::vector<In> offsets_cpp(offsets.begin(), offsets.end());
+  std::vector<std::pair<std::size_t, std::size_t>> children_cpp(n_nodes);
+  for (std::size_t i = 0; i < n_nodes; ++i) {
+    children_cpp[i] = {static_cast<std::size_t>(children(i, 0)),
+                       static_cast<std::size_t>(children(i, 1))};
+  }
+  std::vector<Idx> indices_cpp(indices.begin(), indices.end());
+
+  std::vector<std::vector<std::size_t>> hyperplanes_ind_nested(n_nodes);
+  std::vector<std::vector<In>> hyperplanes_data_nested(n_nodes);
+  for (std::size_t i = 0; i < n_nodes; ++i) {
+    auto start_idx = hyperplanes_ptr_cpp[i];
+    auto end_idx = hyperplanes_ptr_cpp[i + 1];
+    hyperplanes_ind_nested[i].assign(hyperplanes_ind_cpp.begin() + start_idx,
+                                     hyperplanes_ind_cpp.begin() + end_idx);
+    hyperplanes_data_nested[i].assign(hyperplanes_data_cpp.begin() + start_idx,
+                                      hyperplanes_data_cpp.begin() + end_idx);
+  }
+
+  return tdoann::SparseSearchTree<In, Idx>(
+      std::move(hyperplanes_ind_nested), std::move(hyperplanes_data_nested),
+      std::move(offsets_cpp), std::move(children_cpp), std::move(indices_cpp),
+      leaf_size);
+}
+
+template <typename In, typename Idx>
+std::vector<tdoann::SparseSearchTree<In, Idx>>
+r_to_sparse_search_forest(List forest_list, std::size_t n_threads) {
+  if (not forest_list.containsElementNamed("margin")) {
+    Rcpp::stop("Bad forest object passed");
+  }
+  const std::string &margin_type = forest_list["margin"];
+  if (margin_type != margin_type_to_string(MarginType::EXPLICIT)) {
+    Rcpp::stop("Unsupported margin type: ", margin_type);
+  }
+
+  const List &trees = forest_list["trees"];
+  const auto n_trees = trees.size();
+  std::vector<tdoann::SparseSearchTree<In, Idx>> search_forest(n_trees);
+
+  auto worker = [&](std::size_t begin, std::size_t end) {
+    for (auto i = begin; i < end; ++i) {
+      search_forest[i] = r_to_sparse_search_tree<In, Idx>(trees[i]);
     }
   };
 
@@ -454,7 +587,9 @@ List rp_tree_knn_explicit_sparse(
       heap_to_r(neighbor_heap, n_threads, knn_progress, executor, unzero);
 
   if (ret_forest) {
-    tsmessage() << "FIXME\n";
+    auto search_forest = tdoann::convert_rp_forest(rp_forest, nobs, ndim);
+    List search_forest_r = sparse_search_forest_to_r(search_forest, metric);
+    nn_list["forest"] = search_forest_r;
   }
 
   return nn_list;
@@ -545,6 +680,30 @@ List rnn_rp_forest_build(const NumericMatrix &data, const std::string &metric,
 
   return search_forest_to_r(search_forest, metric);
 }
+
+// [[Rcpp::export]]
+List rnn_rp_forest_build_sparse(const NumericVector &data, const IntegerVector &ind,
+                                const IntegerVector &ptr, std::size_t nobs, std::size_t ndim,
+    const std::string &metric,
+                         uint32_t n_trees, uint32_t leaf_size,
+                         std::size_t n_threads = 0, bool verbose = false) {
+  using Idx = RNN_DEFAULT_IDX;
+  using In = RNN_DEFAULT_IN;
+
+  auto data_vec = r_to_vec<In>(data);
+  auto ind_vec = r_to_vec<std::size_t>(ind);
+  auto ptr_vec = r_to_vec<std::size_t>(ptr);
+
+  RParallelExecutor executor;
+  auto rp_forest = build_sparse_rp_forest<In, Idx>(
+    data_vec, ind_vec, ptr_vec, ndim, metric, n_trees, leaf_size, n_threads,
+    verbose, executor);
+
+  auto search_forest = tdoann::convert_rp_forest(rp_forest, nobs, ndim);
+  return sparse_search_forest_to_r(search_forest, metric);
+}
+
+
 
 template <typename Out, typename Idx>
 List rnn_rp_forest_implicit_build_impl(
@@ -653,6 +812,12 @@ List rnn_rp_forest_search_sparse(
   std::string margin_type = search_forest["margin"];
 
   if (margin_type == margin_type_to_string(MarginType::EXPLICIT)) {
+    using In = RNN_DEFAULT_IN;
+    using Idx = RNN_DEFAULT_IDX;
+    auto search_forest_cpp =
+      r_to_sparse_search_forest<In, Idx>(search_forest, n_threads);
+
+
     Rcpp::stop("explicit margin forest search not implemented for sparse data");
     // auto distance_ptr = create_query_vector_distance(reference, query,
     // metric);
@@ -727,13 +892,20 @@ List rnn_score_forest(const IntegerMatrix &idx, List search_forest,
   const std::string actual_metric = search_forest["actual_metric"];
 
   if (margin_type == margin_type_to_string(MarginType::EXPLICIT)) {
+    const bool is_sparse = search_forest["sparse"];
+    if (is_sparse) {
+      auto search_forest_cpp =
+        r_to_sparse_search_forest<In, Idx>(search_forest, n_threads);
+
+      auto filtered_forest = rnn_score_forest_impl(idx, search_forest_cpp,
+                                                   n_trees, n_threads, verbose);
+      return sparse_search_forest_to_r(filtered_forest, actual_metric);
+    }
 
     auto search_forest_cpp =
         r_to_search_forest<In, Idx>(search_forest, n_threads);
-
     auto filtered_forest = rnn_score_forest_impl(idx, search_forest_cpp,
                                                  n_trees, n_threads, verbose);
-
     return search_forest_to_r(filtered_forest, actual_metric);
   } else if (margin_type == margin_type_to_string(MarginType::IMPLICIT)) {
     auto search_forest_cpp =

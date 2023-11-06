@@ -443,8 +443,6 @@ nnd_knn <- function(data,
         n_threads = n_threads,
         verbose = verbose
       ),
-      # FIXME: don't allow init_args to change anything shared with nnd
-      # (i.e. use_alt_metric, metric etc)
       "tree" = do.call(rpf_knn_impl, lmerge(
         # defaults we have no reason to change should match rpf_knn or rpf_build
         list(
@@ -952,6 +950,8 @@ graph_knn_query <- function(query,
     query <- Matrix::t(query)
   }
 
+  # FIXME: move order of initialization so rp-forest comes first.
+  # if rpforest is used then it shoulld override metric and use_alt_metric
   actual_metric <-
     get_actual_metric(use_alt_metric, metric, reference, verbose)
 
@@ -967,7 +967,6 @@ graph_knn_query <- function(query,
     }
     check_k(k, ncol(reference))
     tsmessage("Initializing from random neighbors")
-    # FIXME: init from forest option? This will override alt_metric choices
     init <- random_knn_impl(
       query = query,
       reference = reference,
