@@ -438,4 +438,12 @@ test_that("sparse explicit margin", {
   s6_ff <- rpf_filter(sknn6)
   expect_equal(length(s6_ff$trees), 1)
   expect_equal(s6_ff$trees[[1]], sknn6$forest$trees[[2]])
+
+  set.seed(1337); res_forest <- rpf_knn_query(ui10sp4, ui10sp6, forest = sforest6, k = 4)
+  set.seed(1337); res_knnforest <- rpf_knn_query(ui10sp4, ui10sp6, forest = sknn6$forest, k = 4)
+  expect_equal(res_forest, res_knnforest)
+
+  set.seed(1337); dknn6 <- rpf_knn(ui10z6, k = 4, leaf_size = 2, n_trees = 2, margin = "explicit", ret_forest = TRUE)
+  set.seed(1337); res_dknn <- rpf_knn_query(ui10z4, ui10z6, forest = dknn6$forest, k = 4)
+  expect_equal(res_forest, res_dknn)
 })

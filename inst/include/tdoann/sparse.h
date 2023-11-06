@@ -563,225 +563,304 @@ Out sparse_correlation(
 }
 
 template <typename In, typename Out, typename Idx = uint32_t>
-class SparseL2SqrSelfDistance : public BaseDistance<Out, Idx> {
+class SparseVectorDistance : public BaseDistance<Out, Idx> {
+public:
+  using SizeTypeIterator = typename std::vector<std::size_t>::const_iterator;
+  using DataIterator = typename std::vector<In>::const_iterator;
+  using SparseObs = std::tuple<SizeTypeIterator, std::size_t, DataIterator>;
+
+  virtual ~SparseVectorDistance() = default;
+
+  // return data pointing at the ith data point
+  virtual std::tuple<SizeTypeIterator, std::size_t, DataIterator>
+  get_x(Idx i) const = 0;
+  virtual std::tuple<SizeTypeIterator, std::size_t, DataIterator>
+  get_y(Idx i) const = 0;
+};
+
+template <typename In, typename Out, typename Idx>
+struct DistanceTraits<std::unique_ptr<SparseVectorDistance<In, Out, Idx>>> {
+  using Input = In;
+  using Output = Out;
+  using Index = Idx;
+};
+
+template <typename In, typename Idx> class SparseSelfVectorMixin {
+protected:
+  std::vector<std::size_t> x_ind;
+  std::vector<std::size_t> x_ptr;
+  std::vector<In> x_data;
+  std::size_t nx;
+  std::size_t ndim;
+
+public:
+  SparseSelfVectorMixin(std::vector<std::size_t> &&ind,
+                        std::vector<std::size_t> &&ptr, std::vector<In> &&data,
+                        std::size_t num_x, std::size_t dimensions)
+      : x_ind(std::move(ind)), x_ptr(std::move(ptr)), x_data(std::move(data)),
+        nx(num_x), ndim(dimensions) {}
+
+  auto get_x(Idx i) const {
+    auto ind_start = x_ind.cbegin() + x_ptr[i];
+    auto ind_end = x_ind.cbegin() + x_ptr[i + 1];
+    auto data_start = x_data.cbegin() + x_ptr[i];
+    auto ind_size = ind_end - ind_start;
+
+    return std::make_tuple(ind_start, ind_size, data_start);
+  }
+
+  auto get_y(Idx i) const { return get_x(i); }
+
+  std::size_t get_nx() const { return nx; }
+  std::size_t get_ny() const { return nx; }
+};
+
+template <typename In, typename Out, typename Idx = uint32_t>
+class SparseL2SqrSelfDistance : public SparseVectorDistance<In, Out, Idx>,
+                                private SparseSelfVectorMixin<In, Idx> {
 public:
   SparseL2SqrSelfDistance(std::vector<std::size_t> &&x_ind,
                           std::vector<std::size_t> &&x_ptr,
                           std::vector<In> &&x_data, std::size_t nx,
                           std::size_t ndim)
-      : x_ind(std::move(x_ind)), x_ptr(std::move(x_ptr)),
-        x_data(std::move(x_data)), nx(nx), ndim(ndim) {}
+      : SparseSelfVectorMixin<In, Idx>(std::move(x_ind), std::move(x_ptr),
+                                       std::move(x_data), nx, ndim) {}
+  using Mixin = SparseSelfVectorMixin<In, Idx>;
+  using SparseObs = typename SparseVectorDistance<In, Out, Idx>::SparseObs;
+
+  SparseObs get_x(Idx i) const override { return Mixin::get_x(i); }
+  SparseObs get_y(Idx i) const override { return Mixin::get_y(i); }
+  std::size_t get_nx() const override { return Mixin::get_nx(); }
+  std::size_t get_ny() const override { return Mixin::get_ny(); }
 
   Out calculate(const Idx &i, const Idx &j) const override {
-    const std::size_t di = this->x_ptr[i];
-    const std::size_t dj = this->x_ptr[j];
+    auto [ind1_start, ind1_size, data1_start] = this->get_x(i);
+    auto [ind2_start, ind2_size, data2_start] = this->get_x(j);
 
-    return sparse_l2sqr<Out>(this->x_ind.begin() + di, this->x_ptr[i + 1] - di,
-                             this->x_data.begin() + di,
-                             this->x_ind.begin() + dj, this->x_ptr[j + 1] - dj,
-                             this->x_data.begin() + dj);
+    return sparse_l2sqr<Out>(ind1_start, ind1_size, data1_start, ind2_start,
+                             ind2_size, data2_start);
   }
-
-  std::size_t get_nx() const override { return nx; }
-  std::size_t get_ny() const override { return nx; }
-
-private:
-  std::vector<std::size_t> x_ind;
-  std::vector<std::size_t> x_ptr;
-  std::vector<In> x_data;
-  std::size_t nx;
-  std::size_t ndim;
 };
 
 template <typename In, typename Out, typename Idx = uint32_t>
-class SparseEuclideanSelfDistance : public BaseDistance<Out, Idx> {
+class SparseEuclideanSelfDistance : public SparseVectorDistance<In, Out, Idx>,
+                                    private SparseSelfVectorMixin<In, Idx> {
 public:
   SparseEuclideanSelfDistance(std::vector<std::size_t> &&x_ind,
                               std::vector<std::size_t> &&x_ptr,
                               std::vector<In> &&x_data, std::size_t nx,
                               std::size_t ndim)
-      : x_ind(std::move(x_ind)), x_ptr(std::move(x_ptr)),
-        x_data(std::move(x_data)), nx(nx), ndim(ndim) {}
+      : SparseSelfVectorMixin<In, Idx>(std::move(x_ind), std::move(x_ptr),
+                                       std::move(x_data), nx, ndim) {}
+  using Mixin = SparseSelfVectorMixin<In, Idx>;
+  using SparseObs = typename SparseVectorDistance<In, Out, Idx>::SparseObs;
+
+  SparseObs get_x(Idx i) const override { return Mixin::get_x(i); }
+  SparseObs get_y(Idx i) const override { return Mixin::get_y(i); }
+  std::size_t get_nx() const override { return Mixin::get_nx(); }
+  std::size_t get_ny() const override { return Mixin::get_ny(); }
 
   Out calculate(const Idx &i, const Idx &j) const override {
-    const std::size_t di = this->x_ptr[i];
-    const std::size_t dj = this->x_ptr[j];
+    auto [ind1_start, ind1_size, data1_start] = this->get_x(i);
+    auto [ind2_start, ind2_size, data2_start] = this->get_x(j);
 
-    return sparse_euclidean<Out>(
-        this->x_ind.begin() + di, this->x_ptr[i + 1] - di,
-        this->x_data.begin() + di, this->x_ind.begin() + dj,
-        this->x_ptr[j + 1] - dj, this->x_data.begin() + dj);
+    return sparse_euclidean<Out>(ind1_start, ind1_size, data1_start, ind2_start,
+                                 ind2_size, data2_start);
   }
-
-  std::size_t get_nx() const override { return nx; }
-  std::size_t get_ny() const override { return nx; }
-
-private:
-  std::vector<std::size_t> x_ind;
-  std::vector<std::size_t> x_ptr;
-  std::vector<In> x_data;
-  std::size_t nx;
-  std::size_t ndim;
 };
 
 template <typename In, typename Out, typename Idx = uint32_t>
-class SparseManhattanSelfDistance : public BaseDistance<Out, Idx> {
+class SparseManhattanSelfDistance : public SparseVectorDistance<In, Out, Idx>,
+                                    private SparseSelfVectorMixin<In, Idx> {
 public:
   SparseManhattanSelfDistance(std::vector<std::size_t> &&x_ind,
                               std::vector<std::size_t> &&x_ptr,
                               std::vector<In> &&x_data, std::size_t nx,
                               std::size_t ndim)
-      : x_ind(std::move(x_ind)), x_ptr(std::move(x_ptr)),
-        x_data(std::move(x_data)), nx(nx), ndim(ndim) {}
+      : SparseSelfVectorMixin<In, Idx>(std::move(x_ind), std::move(x_ptr),
+                                       std::move(x_data), nx, ndim) {}
+  using Mixin = SparseSelfVectorMixin<In, Idx>;
+  using SparseObs = typename SparseVectorDistance<In, Out, Idx>::SparseObs;
+
+  SparseObs get_x(Idx i) const override { return Mixin::get_x(i); }
+  SparseObs get_y(Idx i) const override { return Mixin::get_y(i); }
+  std::size_t get_nx() const override { return Mixin::get_nx(); }
+  std::size_t get_ny() const override { return Mixin::get_ny(); }
 
   Out calculate(const Idx &i, const Idx &j) const override {
-    const std::size_t di = this->x_ptr[i];
-    const std::size_t dj = this->x_ptr[j];
+    auto [ind1_start, ind1_size, data1_start] = this->get_x(i);
+    auto [ind2_start, ind2_size, data2_start] = this->get_x(j);
 
-    return sparse_manhattan<Out>(
-        this->x_ind.begin() + di, this->x_ptr[i + 1] - di,
-        this->x_data.begin() + di, this->x_ind.begin() + dj,
-        this->x_ptr[j + 1] - dj, this->x_data.begin() + dj);
+    return sparse_manhattan<Out>(ind1_start, ind1_size, data1_start, ind2_start,
+                                 ind2_size, data2_start);
   }
-
-  std::size_t get_nx() const override { return nx; }
-  std::size_t get_ny() const override { return nx; }
-
-private:
-  std::vector<std::size_t> x_ind;
-  std::vector<std::size_t> x_ptr;
-  std::vector<In> x_data;
-  std::size_t nx;
-  std::size_t ndim;
 };
 
 template <typename In, typename Out, typename Idx = uint32_t>
-class SparseHammingSelfDistance : public BaseDistance<Out, Idx> {
+class SparseHammingSelfDistance : public SparseVectorDistance<In, Out, Idx>,
+                                  private SparseSelfVectorMixin<In, Idx> {
 public:
   SparseHammingSelfDistance(std::vector<std::size_t> &&x_ind,
                             std::vector<std::size_t> &&x_ptr,
                             std::vector<In> &&x_data, std::size_t nx,
                             std::size_t ndim)
-      : x_ind(std::move(x_ind)), x_ptr(std::move(x_ptr)),
-        x_data(std::move(x_data)), nx(nx), ndim(ndim) {}
+      : SparseSelfVectorMixin<In, Idx>(std::move(x_ind), std::move(x_ptr),
+                                       std::move(x_data), nx, ndim) {}
+  using Mixin = SparseSelfVectorMixin<In, Idx>;
+  using SparseObs = typename SparseVectorDistance<In, Out, Idx>::SparseObs;
+
+  SparseObs get_x(Idx i) const override { return Mixin::get_x(i); }
+  SparseObs get_y(Idx i) const override { return Mixin::get_y(i); }
+  std::size_t get_nx() const override { return Mixin::get_nx(); }
+  std::size_t get_ny() const override { return Mixin::get_ny(); }
 
   Out calculate(const Idx &i, const Idx &j) const override {
-    const std::size_t di = this->x_ptr[i];
-    const std::size_t dj = this->x_ptr[j];
+    auto [ind1_start, ind1_size, data1_start] = this->get_x(i);
+    auto [ind2_start, ind2_size, data2_start] = this->get_x(j);
 
-    return sparse_hamming<Out>(
-        this->x_ind.begin() + di, this->x_ptr[i + 1] - di,
-        this->x_data.begin() + di, this->x_ind.begin() + dj,
-        this->x_ptr[j + 1] - dj, this->x_data.begin() + dj);
+    return sparse_hamming<Out>(ind1_start, ind1_size, data1_start, ind2_start,
+                               ind2_size, data2_start);
   }
-
-  std::size_t get_nx() const override { return nx; }
-  std::size_t get_ny() const override { return nx; }
-
-private:
-  std::vector<std::size_t> x_ind;
-  std::vector<std::size_t> x_ptr;
-  std::vector<In> x_data;
-  std::size_t nx;
-  std::size_t ndim;
 };
 
 template <typename In, typename Out, typename Idx = uint32_t>
-class SparseCosineSelfDistance : public BaseDistance<Out, Idx> {
+class SparseCosineSelfDistance : public SparseVectorDistance<In, Out, Idx>,
+                                 private SparseSelfVectorMixin<In, Idx> {
 public:
   SparseCosineSelfDistance(std::vector<std::size_t> &&x_ind,
                            std::vector<std::size_t> &&x_ptr,
                            std::vector<In> &&x_data, std::size_t nx,
                            std::size_t ndim)
-      : x_ind(std::move(x_ind)), x_ptr(std::move(x_ptr)),
-        x_data(std::move(x_data)), nx(nx), ndim(ndim) {}
+      : SparseSelfVectorMixin<In, Idx>(std::move(x_ind), std::move(x_ptr),
+                                       std::move(x_data), nx, ndim) {}
+  using Mixin = SparseSelfVectorMixin<In, Idx>;
+  using SparseObs = typename SparseVectorDistance<In, Out, Idx>::SparseObs;
+
+  SparseObs get_x(Idx i) const override { return Mixin::get_x(i); }
+  SparseObs get_y(Idx i) const override { return Mixin::get_y(i); }
+  std::size_t get_nx() const override { return Mixin::get_nx(); }
+  std::size_t get_ny() const override { return Mixin::get_ny(); }
 
   Out calculate(const Idx &i, const Idx &j) const override {
-    const std::size_t di = this->x_ptr[i];
-    const std::size_t dj = this->x_ptr[j];
+    auto [ind1_start, ind1_size, data1_start] = this->get_x(i);
+    auto [ind2_start, ind2_size, data2_start] = this->get_x(j);
 
-    return sparse_cosine<Out>(this->x_ind.begin() + di, this->x_ptr[i + 1] - di,
-                              this->x_data.begin() + di,
-                              this->x_ind.begin() + dj, this->x_ptr[j + 1] - dj,
-                              this->x_data.begin() + dj);
+    return sparse_cosine<Out>(ind1_start, ind1_size, data1_start, ind2_start,
+                              ind2_size, data2_start);
   }
-
-  std::size_t get_nx() const override { return nx; }
-  std::size_t get_ny() const override { return nx; }
-
-private:
-  std::vector<std::size_t> x_ind;
-  std::vector<std::size_t> x_ptr;
-  std::vector<In> x_data;
-  std::size_t nx;
-  std::size_t ndim;
 };
 
 template <typename In, typename Out, typename Idx = uint32_t>
-class SparseAlternativeCosineSelfDistance : public BaseDistance<Out, Idx> {
+class SparseAlternativeCosineSelfDistance
+    : public SparseVectorDistance<In, Out, Idx>,
+      private SparseSelfVectorMixin<In, Idx> {
 public:
   SparseAlternativeCosineSelfDistance(std::vector<std::size_t> &&x_ind,
                                       std::vector<std::size_t> &&x_ptr,
                                       std::vector<In> &&x_data, std::size_t nx,
                                       std::size_t ndim)
-      : x_ind(std::move(x_ind)), x_ptr(std::move(x_ptr)),
-        x_data(std::move(x_data)), nx(nx), ndim(ndim) {}
+      : SparseSelfVectorMixin<In, Idx>(std::move(x_ind), std::move(x_ptr),
+                                       std::move(x_data), nx, ndim) {}
+  using Mixin = SparseSelfVectorMixin<In, Idx>;
+  using SparseObs = typename SparseVectorDistance<In, Out, Idx>::SparseObs;
+
+  SparseObs get_x(Idx i) const override { return Mixin::get_x(i); }
+  SparseObs get_y(Idx i) const override { return Mixin::get_y(i); }
+  std::size_t get_nx() const override { return Mixin::get_nx(); }
+  std::size_t get_ny() const override { return Mixin::get_ny(); }
 
   Out calculate(const Idx &i, const Idx &j) const override {
-    const std::size_t di = this->x_ptr[i];
-    const std::size_t dj = this->x_ptr[j];
+    auto [ind1_start, ind1_size, data1_start] = this->get_x(i);
+    auto [ind2_start, ind2_size, data2_start] = this->get_x(j);
 
-    return sparse_alternative_cosine<Out>(
-        this->x_ind.begin() + di, this->x_ptr[i + 1] - di,
-        this->x_data.begin() + di, this->x_ind.begin() + dj,
-        this->x_ptr[j + 1] - dj, this->x_data.begin() + dj);
+    return sparse_alternative_cosine<Out>(ind1_start, ind1_size, data1_start,
+                                          ind2_start, ind2_size, data2_start);
   }
-
-  std::size_t get_nx() const override { return nx; }
-  std::size_t get_ny() const override { return nx; }
-
-private:
-  std::vector<std::size_t> x_ind;
-  std::vector<std::size_t> x_ptr;
-  std::vector<In> x_data;
-  std::size_t nx;
-  std::size_t ndim;
 };
 
 template <typename In, typename Out, typename Idx = uint32_t>
-class SparseCorrelationSelfDistance : public BaseDistance<Out, Idx> {
+class SparseCorrelationSelfDistance : public SparseVectorDistance<In, Out, Idx>,
+                                      private SparseSelfVectorMixin<In, Idx> {
 public:
   SparseCorrelationSelfDistance(std::vector<std::size_t> &&x_ind,
                                 std::vector<std::size_t> &&x_ptr,
                                 std::vector<In> &&x_data, std::size_t nx,
                                 std::size_t ndim)
-      : x_ind(std::move(x_ind)), x_ptr(std::move(x_ptr)),
-        x_data(std::move(x_data)), nx(nx), ndim(ndim) {}
+      : SparseSelfVectorMixin<In, Idx>(std::move(x_ind), std::move(x_ptr),
+                                       std::move(x_data), nx, ndim) {}
+  using Mixin = SparseSelfVectorMixin<In, Idx>;
+  using SparseObs = typename SparseVectorDistance<In, Out, Idx>::SparseObs;
+
+  SparseObs get_x(Idx i) const override { return Mixin::get_x(i); }
+  SparseObs get_y(Idx i) const override { return Mixin::get_y(i); }
+  std::size_t get_nx() const override { return Mixin::get_nx(); }
+  std::size_t get_ny() const override { return Mixin::get_ny(); }
 
   Out calculate(const Idx &i, const Idx &j) const override {
-    const std::size_t di = this->x_ptr[i];
-    const std::size_t dj = this->x_ptr[j];
+    auto [ind1_start, ind1_size, data1_start] = this->get_x(i);
+    auto [ind2_start, ind2_size, data2_start] = this->get_x(j);
 
-    return sparse_correlation<Out>(
-        this->x_ind.begin() + di, this->x_ptr[i + 1] - di,
-        this->x_data.begin() + di, this->x_ind.begin() + dj,
-        this->x_ptr[j + 1] - dj, this->x_data.begin() + dj, this->ndim);
+    return sparse_correlation<Out>(ind1_start, ind1_size, data1_start,
+                                   ind2_start, ind2_size, data2_start,
+                                   this->ndim);
   }
+};
 
-  std::size_t get_nx() const override { return nx; }
-  std::size_t get_ny() const override { return nx; }
-
-private:
+template <typename In, typename Idx> class SparseQueryVectorMixin {
+protected:
   std::vector<std::size_t> x_ind;
   std::vector<std::size_t> x_ptr;
   std::vector<In> x_data;
   std::size_t nx;
+
+  std::vector<std::size_t> y_ind;
+  std::vector<std::size_t> y_ptr;
+  std::vector<In> y_data;
+  std::size_t ny;
+
   std::size_t ndim;
+
+public:
+  SparseQueryVectorMixin(std::vector<std::size_t> &&x_ind,
+                         std::vector<std::size_t> &&x_ptr,
+                         std::vector<In> &&x_data, std::size_t nx,
+                         std::vector<std::size_t> &&y_ind,
+                         std::vector<std::size_t> &&y_ptr,
+                         std::vector<In> &&y_data, std::size_t ny,
+                         std::size_t ndim)
+      : x_ind(std::move(x_ind)), x_ptr(std::move(x_ptr)),
+        x_data(std::move(x_data)), nx(nx), y_ind(std::move(y_ind)),
+        y_ptr(std::move(y_ptr)), y_data(std::move(y_data)), ny(ny), ndim(ndim) {
+  }
+
+  auto get_x(Idx i) const {
+    auto ind_start = x_ind.cbegin() + x_ptr[i];
+    auto ind_end = x_ind.cbegin() + x_ptr[i + 1];
+    auto data_start = x_data.cbegin() + x_ptr[i];
+    auto ind_size = ind_end - ind_start;
+    return std::make_tuple(ind_start, ind_size, data_start);
+  }
+
+  auto get_y(Idx j) const {
+    auto ind_start = y_ind.cbegin() + y_ptr[j];
+    auto ind_end = y_ind.cbegin() + y_ptr[j + 1];
+    auto data_start = y_data.cbegin() + y_ptr[j];
+    auto ind_size = ind_end - ind_start;
+    return std::make_tuple(ind_start, ind_size, data_start);
+  }
+
+  std::size_t get_nx() const { return nx; }
+  std::size_t get_ny() const { return ny; }
 };
 
 template <typename In, typename Out, typename Idx = uint32_t>
-class SparseL2SqrQueryDistance : public BaseDistance<Out, Idx> {
+class SparseL2SqrQueryDistance : public SparseVectorDistance<In, Out, Idx>,
+                                 private SparseQueryVectorMixin<In, Idx> {
 public:
+  using Mixin = SparseQueryVectorMixin<In, Idx>;
+  using Base = SparseVectorDistance<In, Out, Idx>;
+  using SparseObs = typename Base::SparseObs;
+
   SparseL2SqrQueryDistance(std::vector<std::size_t> &&x_ind,
                            std::vector<std::size_t> &&x_ptr,
                            std::vector<In> &&x_data, std::size_t nx,
@@ -789,39 +868,31 @@ public:
                            std::vector<std::size_t> &&y_ptr,
                            std::vector<In> &&y_data, std::size_t ny,
                            std::size_t ndim)
-      : x_ind(std::move(x_ind)), x_ptr(std::move(x_ptr)),
-        x_data(std::move(x_data)), nx(nx), y_ind(std::move(y_ind)),
-        y_ptr(std::move(y_ptr)), y_data(std::move(y_data)), ny(ny), ndim(ndim) {
+      : Mixin(std::move(x_ind), std::move(x_ptr), std::move(x_data), nx,
+              std::move(y_ind), std::move(y_ptr), std::move(y_data), ny, ndim) {
   }
+
+  SparseObs get_x(Idx i) const override { return Mixin::get_x(i); }
+  SparseObs get_y(Idx j) const override { return Mixin::get_y(j); }
+  std::size_t get_nx() const override { return Mixin::get_nx(); }
+  std::size_t get_ny() const override { return Mixin::get_ny(); }
 
   Out calculate(const Idx &i, const Idx &j) const override {
-    const std::size_t di = this->x_ptr[i];
-    const std::size_t dj = this->y_ptr[j];
-
-    return sparse_l2sqr<Out>(this->x_ind.begin() + di, this->x_ptr[i + 1] - di,
-                             this->x_data.begin() + di,
-                             this->y_ind.begin() + dj, this->y_ptr[j + 1] - dj,
-                             this->y_data.begin() + dj);
+    auto [ind1_start, ind1_size, data1_start] = this->get_x(i);
+    auto [ind2_start, ind2_size, data2_start] = this->get_y(j);
+    return sparse_l2sqr<Out>(ind1_start, ind1_size, data1_start, ind2_start,
+                             ind2_size, data2_start);
   }
-
-  std::size_t get_nx() const override { return nx; }
-  std::size_t get_ny() const override { return ny; }
-
-private:
-  std::vector<std::size_t> x_ind;
-  std::vector<std::size_t> x_ptr;
-  std::vector<In> x_data;
-  std::size_t nx;
-  std::vector<std::size_t> y_ind;
-  std::vector<std::size_t> y_ptr;
-  std::vector<In> y_data;
-  std::size_t ny;
-  std::size_t ndim;
 };
 
 template <typename In, typename Out, typename Idx = uint32_t>
-class SparseEuclideanQueryDistance : public BaseDistance<Out, Idx> {
+class SparseEuclideanQueryDistance : public SparseVectorDistance<In, Out, Idx>,
+                                     private SparseQueryVectorMixin<In, Idx> {
 public:
+  using Mixin = SparseQueryVectorMixin<In, Idx>;
+  using Base = SparseVectorDistance<In, Out, Idx>;
+  using SparseObs = typename Base::SparseObs;
+
   SparseEuclideanQueryDistance(std::vector<std::size_t> &&x_ind,
                                std::vector<std::size_t> &&x_ptr,
                                std::vector<In> &&x_data, std::size_t nx,
@@ -829,39 +900,31 @@ public:
                                std::vector<std::size_t> &&y_ptr,
                                std::vector<In> &&y_data, std::size_t ny,
                                std::size_t ndim)
-      : x_ind(std::move(x_ind)), x_ptr(std::move(x_ptr)),
-        x_data(std::move(x_data)), nx(nx), y_ind(std::move(y_ind)),
-        y_ptr(std::move(y_ptr)), y_data(std::move(y_data)), ny(ny), ndim(ndim) {
+      : Mixin(std::move(x_ind), std::move(x_ptr), std::move(x_data), nx,
+              std::move(y_ind), std::move(y_ptr), std::move(y_data), ny, ndim) {
   }
+
+  SparseObs get_x(Idx i) const override { return Mixin::get_x(i); }
+  SparseObs get_y(Idx j) const override { return Mixin::get_y(j); }
+  std::size_t get_nx() const override { return Mixin::get_nx(); }
+  std::size_t get_ny() const override { return Mixin::get_ny(); }
 
   Out calculate(const Idx &i, const Idx &j) const override {
-    const std::size_t di = this->x_ptr[i];
-    const std::size_t dj = this->y_ptr[j];
-
-    return sparse_euclidean<Out>(
-        this->x_ind.begin() + di, this->x_ptr[i + 1] - di,
-        this->x_data.begin() + di, this->y_ind.begin() + dj,
-        this->y_ptr[j + 1] - dj, this->y_data.begin() + dj);
+    auto [ind1_start, ind1_size, data1_start] = this->get_x(i);
+    auto [ind2_start, ind2_size, data2_start] = this->get_y(j);
+    return sparse_euclidean<Out>(ind1_start, ind1_size, data1_start, ind2_start,
+                                 ind2_size, data2_start);
   }
-
-  std::size_t get_nx() const override { return nx; }
-  std::size_t get_ny() const override { return ny; }
-
-private:
-  std::vector<std::size_t> x_ind;
-  std::vector<std::size_t> x_ptr;
-  std::vector<In> x_data;
-  std::size_t nx;
-  std::vector<std::size_t> y_ind;
-  std::vector<std::size_t> y_ptr;
-  std::vector<In> y_data;
-  std::size_t ny;
-  std::size_t ndim;
 };
 
 template <typename In, typename Out, typename Idx = uint32_t>
-class SparseManhattanQueryDistance : public BaseDistance<Out, Idx> {
+class SparseManhattanQueryDistance : public SparseVectorDistance<In, Out, Idx>,
+                                     private SparseQueryVectorMixin<In, Idx> {
 public:
+  using Mixin = SparseQueryVectorMixin<In, Idx>;
+  using Base = SparseVectorDistance<In, Out, Idx>;
+  using SparseObs = typename Base::SparseObs;
+
   SparseManhattanQueryDistance(std::vector<std::size_t> &&x_ind,
                                std::vector<std::size_t> &&x_ptr,
                                std::vector<In> &&x_data, std::size_t nx,
@@ -869,39 +932,31 @@ public:
                                std::vector<std::size_t> &&y_ptr,
                                std::vector<In> &&y_data, std::size_t ny,
                                std::size_t ndim)
-      : x_ind(std::move(x_ind)), x_ptr(std::move(x_ptr)),
-        x_data(std::move(x_data)), nx(nx), y_ind(std::move(y_ind)),
-        y_ptr(std::move(y_ptr)), y_data(std::move(y_data)), ny(ny), ndim(ndim) {
+      : Mixin(std::move(x_ind), std::move(x_ptr), std::move(x_data), nx,
+              std::move(y_ind), std::move(y_ptr), std::move(y_data), ny, ndim) {
   }
+
+  SparseObs get_x(Idx i) const override { return Mixin::get_x(i); }
+  SparseObs get_y(Idx j) const override { return Mixin::get_y(j); }
+  std::size_t get_nx() const override { return Mixin::get_nx(); }
+  std::size_t get_ny() const override { return Mixin::get_ny(); }
 
   Out calculate(const Idx &i, const Idx &j) const override {
-    const std::size_t di = this->x_ptr[i];
-    const std::size_t dj = this->y_ptr[j];
-
-    return sparse_manhattan<Out>(
-        this->x_ind.begin() + di, this->x_ptr[i + 1] - di,
-        this->x_data.begin() + di, this->y_ind.begin() + dj,
-        this->y_ptr[j + 1] - dj, this->y_data.begin() + dj);
+    auto [ind1_start, ind1_size, data1_start] = this->get_x(i);
+    auto [ind2_start, ind2_size, data2_start] = this->get_y(j);
+    return sparse_manhattan<Out>(ind1_start, ind1_size, data1_start, ind2_start,
+                                 ind2_size, data2_start);
   }
-
-  std::size_t get_nx() const override { return nx; }
-  std::size_t get_ny() const override { return ny; }
-
-private:
-  std::vector<std::size_t> x_ind;
-  std::vector<std::size_t> x_ptr;
-  std::vector<In> x_data;
-  std::size_t nx;
-  std::vector<std::size_t> y_ind;
-  std::vector<std::size_t> y_ptr;
-  std::vector<In> y_data;
-  std::size_t ny;
-  std::size_t ndim;
 };
 
 template <typename In, typename Out, typename Idx = uint32_t>
-class SparseHammingQueryDistance : public BaseDistance<Out, Idx> {
+class SparseHammingQueryDistance : public SparseVectorDistance<In, Out, Idx>,
+                                   private SparseQueryVectorMixin<In, Idx> {
 public:
+  using Mixin = SparseQueryVectorMixin<In, Idx>;
+  using Base = SparseVectorDistance<In, Out, Idx>;
+  using SparseObs = typename Base::SparseObs;
+
   SparseHammingQueryDistance(std::vector<std::size_t> &&x_ind,
                              std::vector<std::size_t> &&x_ptr,
                              std::vector<In> &&x_data, std::size_t nx,
@@ -909,38 +964,31 @@ public:
                              std::vector<std::size_t> &&y_ptr,
                              std::vector<In> &&y_data, std::size_t ny,
                              std::size_t ndim)
-      : x_ind(std::move(x_ind)), x_ptr(std::move(x_ptr)),
-        x_data(std::move(x_data)), nx(nx), y_ind(std::move(y_ind)),
-        y_ptr(std::move(y_ptr)), y_data(std::move(y_data)), ny(ny), ndim(ndim) {
+      : Mixin(std::move(x_ind), std::move(x_ptr), std::move(x_data), nx,
+              std::move(y_ind), std::move(y_ptr), std::move(y_data), ny, ndim) {
   }
+
+  SparseObs get_x(Idx i) const override { return Mixin::get_x(i); }
+  SparseObs get_y(Idx j) const override { return Mixin::get_y(j); }
+  std::size_t get_nx() const override { return Mixin::get_nx(); }
+  std::size_t get_ny() const override { return Mixin::get_ny(); }
 
   Out calculate(const Idx &i, const Idx &j) const override {
-    const std::size_t di = this->x_ptr[i];
-    const std::size_t dj = this->y_ptr[j];
-
-    return sparse_hamming<Out>(
-        this->x_ind.begin() + di, this->x_ptr[i + 1] - di,
-        this->x_data.begin() + di, this->y_ind.begin() + dj,
-        this->y_ptr[j + 1] - dj, this->y_data.begin() + dj);
+    auto [ind1_start, ind1_size, data1_start] = this->get_x(i);
+    auto [ind2_start, ind2_size, data2_start] = this->get_y(j);
+    return sparse_hamming<Out>(ind1_start, ind1_size, data1_start, ind2_start,
+                               ind2_size, data2_start);
   }
-
-  std::size_t get_nx() const override { return nx; }
-  std::size_t get_ny() const override { return ny; }
-
-private:
-  std::vector<std::size_t> x_ind;
-  std::vector<std::size_t> x_ptr;
-  std::vector<In> x_data;
-  std::size_t nx;
-  std::vector<std::size_t> y_ind;
-  std::vector<std::size_t> y_ptr;
-  std::vector<In> y_data;
-  std::size_t ny;
-  std::size_t ndim;
 };
+
 template <typename In, typename Out, typename Idx = uint32_t>
-class SparseCosineQueryDistance : public BaseDistance<Out, Idx> {
+class SparseCosineQueryDistance : public SparseVectorDistance<In, Out, Idx>,
+                                  private SparseQueryVectorMixin<In, Idx> {
 public:
+  using Mixin = SparseQueryVectorMixin<In, Idx>;
+  using Base = SparseVectorDistance<In, Out, Idx>;
+  using SparseObs = typename Base::SparseObs;
+
   SparseCosineQueryDistance(std::vector<std::size_t> &&x_ind,
                             std::vector<std::size_t> &&x_ptr,
                             std::vector<In> &&x_data, std::size_t nx,
@@ -948,38 +996,32 @@ public:
                             std::vector<std::size_t> &&y_ptr,
                             std::vector<In> &&y_data, std::size_t ny,
                             std::size_t ndim)
-      : x_ind(std::move(x_ind)), x_ptr(std::move(x_ptr)),
-        x_data(std::move(x_data)), nx(nx), y_ind(std::move(y_ind)),
-        y_ptr(std::move(y_ptr)), y_data(std::move(y_data)), ny(ny), ndim(ndim) {
+      : Mixin(std::move(x_ind), std::move(x_ptr), std::move(x_data), nx,
+              std::move(y_ind), std::move(y_ptr), std::move(y_data), ny, ndim) {
   }
+
+  SparseObs get_x(Idx i) const override { return Mixin::get_x(i); }
+  SparseObs get_y(Idx j) const override { return Mixin::get_y(j); }
+  std::size_t get_nx() const override { return Mixin::get_nx(); }
+  std::size_t get_ny() const override { return Mixin::get_ny(); }
 
   Out calculate(const Idx &i, const Idx &j) const override {
-    const std::size_t di = this->x_ptr[i];
-    const std::size_t dj = this->y_ptr[j];
-
-    return sparse_cosine<Out>(this->x_ind.begin() + di, this->x_ptr[i + 1] - di,
-                              this->x_data.begin() + di,
-                              this->y_ind.begin() + dj, this->y_ptr[j + 1] - dj,
-                              this->y_data.begin() + dj);
+    auto [ind1_start, ind1_size, data1_start] = this->get_x(i);
+    auto [ind2_start, ind2_size, data2_start] = this->get_y(j);
+    return sparse_cosine<Out>(ind1_start, ind1_size, data1_start, ind2_start,
+                              ind2_size, data2_start);
   }
-
-  std::size_t get_nx() const override { return nx; }
-  std::size_t get_ny() const override { return ny; }
-
-private:
-  std::vector<std::size_t> x_ind;
-  std::vector<std::size_t> x_ptr;
-  std::vector<In> x_data;
-  std::size_t nx;
-  std::vector<std::size_t> y_ind;
-  std::vector<std::size_t> y_ptr;
-  std::vector<In> y_data;
-  std::size_t ny;
-  std::size_t ndim;
 };
+
 template <typename In, typename Out, typename Idx = uint32_t>
-class SparseAlternativeCosineQueryDistance : public BaseDistance<Out, Idx> {
+class SparseAlternativeCosineQueryDistance
+    : public SparseVectorDistance<In, Out, Idx>,
+      private SparseQueryVectorMixin<In, Idx> {
 public:
+  using Mixin = SparseQueryVectorMixin<In, Idx>;
+  using Base = SparseVectorDistance<In, Out, Idx>;
+  using SparseObs = typename Base::SparseObs;
+
   SparseAlternativeCosineQueryDistance(std::vector<std::size_t> &&x_ind,
                                        std::vector<std::size_t> &&x_ptr,
                                        std::vector<In> &&x_data, std::size_t nx,
@@ -987,38 +1029,32 @@ public:
                                        std::vector<std::size_t> &&y_ptr,
                                        std::vector<In> &&y_data, std::size_t ny,
                                        std::size_t ndim)
-      : x_ind(std::move(x_ind)), x_ptr(std::move(x_ptr)),
-        x_data(std::move(x_data)), nx(nx), y_ind(std::move(y_ind)),
-        y_ptr(std::move(y_ptr)), y_data(std::move(y_data)), ny(ny), ndim(ndim) {
+      : Mixin(std::move(x_ind), std::move(x_ptr), std::move(x_data), nx,
+              std::move(y_ind), std::move(y_ptr), std::move(y_data), ny, ndim) {
   }
+
+  SparseObs get_x(Idx i) const override { return Mixin::get_x(i); }
+  SparseObs get_y(Idx j) const override { return Mixin::get_y(j); }
+  std::size_t get_nx() const override { return Mixin::get_nx(); }
+  std::size_t get_ny() const override { return Mixin::get_ny(); }
 
   Out calculate(const Idx &i, const Idx &j) const override {
-    const std::size_t di = this->x_ptr[i];
-    const std::size_t dj = this->y_ptr[j];
-
-    return sparse_alternative_cosine<Out>(
-        this->x_ind.begin() + di, this->x_ptr[i + 1] - di,
-        this->x_data.begin() + di, this->y_ind.begin() + dj,
-        this->y_ptr[j + 1] - dj, this->y_data.begin() + dj);
+    auto [ind1_start, ind1_size, data1_start] = this->get_x(i);
+    auto [ind2_start, ind2_size, data2_start] = this->get_y(j);
+    return sparse_alternative_cosine<Out>(ind1_start, ind1_size, data1_start,
+                                          ind2_start, ind2_size, data2_start);
   }
-
-  std::size_t get_nx() const override { return nx; }
-  std::size_t get_ny() const override { return ny; }
-
-private:
-  std::vector<std::size_t> x_ind;
-  std::vector<std::size_t> x_ptr;
-  std::vector<In> x_data;
-  std::size_t nx;
-  std::vector<std::size_t> y_ind;
-  std::vector<std::size_t> y_ptr;
-  std::vector<In> y_data;
-  std::size_t ny;
-  std::size_t ndim;
 };
+
 template <typename In, typename Out, typename Idx = uint32_t>
-class SparseCorrelationQueryDistance : public BaseDistance<Out, Idx> {
+class SparseCorrelationQueryDistance
+    : public SparseVectorDistance<In, Out, Idx>,
+      private SparseQueryVectorMixin<In, Idx> {
 public:
+  using Mixin = SparseQueryVectorMixin<In, Idx>;
+  using Base = SparseVectorDistance<In, Out, Idx>;
+  using SparseObs = typename Base::SparseObs;
+
   SparseCorrelationQueryDistance(std::vector<std::size_t> &&x_ind,
                                  std::vector<std::size_t> &&x_ptr,
                                  std::vector<In> &&x_data, std::size_t nx,
@@ -1026,34 +1062,22 @@ public:
                                  std::vector<std::size_t> &&y_ptr,
                                  std::vector<In> &&y_data, std::size_t ny,
                                  std::size_t ndim)
-      : x_ind(std::move(x_ind)), x_ptr(std::move(x_ptr)),
-        x_data(std::move(x_data)), nx(nx), y_ind(std::move(y_ind)),
-        y_ptr(std::move(y_ptr)), y_data(std::move(y_data)), ny(ny), ndim(ndim) {
+      : Mixin(std::move(x_ind), std::move(x_ptr), std::move(x_data), nx,
+              std::move(y_ind), std::move(y_ptr), std::move(y_data), ny, ndim) {
   }
+
+  SparseObs get_x(Idx i) const override { return Mixin::get_x(i); }
+  SparseObs get_y(Idx j) const override { return Mixin::get_y(j); }
+  std::size_t get_nx() const override { return Mixin::get_nx(); }
+  std::size_t get_ny() const override { return Mixin::get_ny(); }
 
   Out calculate(const Idx &i, const Idx &j) const override {
-    const std::size_t di = this->x_ptr[i];
-    const std::size_t dj = this->y_ptr[j];
-
-    return sparse_correlation<Out>(
-        this->x_ind.begin() + di, this->x_ptr[i + 1] - di,
-        this->x_data.begin() + di, this->y_ind.begin() + dj,
-        this->y_ptr[j + 1] - dj, this->y_data.begin() + dj, this->ndim);
+    auto [ind1_start, ind1_size, data1_start] = this->get_x(i);
+    auto [ind2_start, ind2_size, data2_start] = this->get_y(j);
+    return sparse_correlation<Out>(ind1_start, ind1_size, data1_start,
+                                   ind2_start, ind2_size, data2_start,
+                                   this->ndim);
   }
-
-  std::size_t get_nx() const override { return nx; }
-  std::size_t get_ny() const override { return ny; }
-
-private:
-  std::vector<std::size_t> x_ind;
-  std::vector<std::size_t> x_ptr;
-  std::vector<In> x_data;
-  std::size_t nx;
-  std::vector<std::size_t> y_ind;
-  std::vector<std::size_t> y_ptr;
-  std::vector<In> y_data;
-  std::size_t ny;
-  std::size_t ndim;
 };
 
 } // namespace tdoann

@@ -428,6 +428,139 @@ convert_rp_forest(std::vector<SparseRPTree<In, Idx>> &rp_forest,
   return search_forest;
 }
 
+// Searching
+
+template <typename In, typename Idx>
+std::pair<std::size_t, std::size_t>
+search_leaf_range(const SparseSearchTree<In, Idx> &tree,
+                  typename std::vector<std::size_t>::const_iterator ind_start,
+                  std::size_t ind_size,
+                  typename std::vector<In>::const_iterator data_start,
+                  RandomIntGenerator<Idx> &rng) {
+  Idx current_node = 0;
+
+  while (true) {
+    auto child_pair = tree.children[current_node];
+
+    // it's a leaf: child_pair contains pointers into the indices
+    if (tree.is_leaf(current_node)) {
+      return child_pair;
+    }
+
+    // it's a node, find the child to go to
+    auto side = select_side_sparse(
+        ind_start, ind_size, data_start, tree.hyperplanes_ind[current_node],
+        tree.hyperplanes_data[current_node], tree.offsets[current_node], rng);
+    if (side == 0) {
+      current_node = child_pair.first; // go left
+    } else {
+      current_node = child_pair.second; // go right
+    }
+  }
+}
+
+template <typename In, typename Idx>
+std::vector<Idx>
+search_indices(const SparseSearchTree<In, Idx> &tree,
+               typename std::vector<std::size_t>::const_iterator ind_start,
+               std::size_t ind_size,
+               typename std::vector<In>::const_iterator data_start,
+               RandomIntGenerator<Idx> &rng) {
+  std::pair<std::size_t, std::size_t> range =
+      search_leaf_range(tree, ind_start, ind_size, data_start, rng);
+  std::vector<Idx> leaf_indices(tree.indices.begin() + range.first,
+                                tree.indices.begin() + range.second);
+  return leaf_indices;
+}
+
+template <typename In, typename Out, typename Idx>
+void search_tree_heap_cache(const SparseSearchTree<In, Idx> &tree,
+                            const SparseVectorDistance<In, Out, Idx> &distance,
+                            Idx i, RandomIntGenerator<Idx> &rng,
+                            NNHeap<Out, Idx> &current_graph,
+                            std::unordered_set<Idx> &seen) {
+  auto [ind_start, ind_size, data_start] = distance.get_y(i);
+
+  std::vector<Idx> leaf_indices =
+      search_indices(tree, ind_start, ind_size, data_start, rng);
+
+  for (auto &idx : leaf_indices) {
+    if (seen.find(idx) == seen.end()) { // not-contains
+      const auto d = distance.calculate(idx, i);
+      current_graph.checked_push(i, d, idx);
+      seen.insert(idx);
+    }
+  }
+}
+
+template <typename In, typename Out, typename Idx>
+void search_tree_heap(const SparseSearchTree<In, Idx> &tree,
+                      const SparseVectorDistance<In, Out, Idx> &distance, Idx i,
+                      RandomIntGenerator<Idx> &rng,
+                      NNHeap<Out, Idx> &current_graph) {
+  auto [ind_start, ind_size, data_start] = distance.get_y(i);
+
+  std::vector<Idx> leaf_indices =
+      search_indices(tree, ind_start, ind_size, data_start, rng);
+
+  for (auto &idx : leaf_indices) {
+    const auto d = distance.calculate(idx, i);
+    current_graph.checked_push(i, d, idx);
+  }
+}
+
+template <typename In, typename Out, typename Idx>
+void search_forest_cache(const std::vector<SparseSearchTree<In, Idx>> &forest,
+                         const SparseVectorDistance<In, Out, Idx> &distance,
+                         Idx i, RandomIntGenerator<Idx> &rng,
+                         NNHeap<Out, Idx> &current_graph) {
+  std::unordered_set<Idx> seen;
+
+  for (const auto &tree : forest) {
+    search_tree_heap_cache(tree, distance, i, rng, current_graph, seen);
+  }
+}
+
+template <typename In, typename Out, typename Idx>
+void search_forest(const std::vector<SparseSearchTree<In, Idx>> &forest,
+                   const SparseVectorDistance<In, Out, Idx> &distance, Idx i,
+                   RandomIntGenerator<Idx> &rng,
+                   NNHeap<Out, Idx> &current_graph) {
+  for (const auto &tree : forest) {
+    search_tree_heap(tree, distance, i, rng, current_graph);
+  }
+}
+
+template <typename In, typename Out, typename Idx>
+NNHeap<Out, Idx>
+search_forest(const std::vector<SparseSearchTree<In, Idx>> &forest,
+              const SparseVectorDistance<In, Out, Idx> &distance,
+              uint32_t n_nbrs, ParallelRandomIntProvider<Idx> &rng_provider,
+              bool cache, std::size_t n_threads, ProgressBase &progress,
+              const Executor &executor) {
+  const auto n_queries = distance.get_ny();
+  NNHeap<Out, Idx> current_graph(n_queries, n_nbrs);
+
+  rng_provider.initialize();
+  auto worker = [&](std::size_t begin, std::size_t end) {
+    auto rng_ptr = rng_provider.get_parallel_instance(end);
+    for (auto i = begin; i < end; ++i) {
+      if (cache) {
+        search_forest_cache(forest, distance, static_cast<Idx>(i), *rng_ptr,
+                            current_graph);
+      } else {
+        search_forest(forest, distance, static_cast<Idx>(i), *rng_ptr,
+                      current_graph);
+      }
+    }
+  };
+
+  progress.set_n_iters(n_queries);
+  ExecutionParams exec_params{};
+  dispatch_work(worker, n_queries, n_threads, exec_params, progress, executor);
+
+  return current_graph;
+}
 } // namespace tdoann
 
 #endif // TDOANN_RPTREESPARSE_H

@@ -682,11 +682,13 @@ List rnn_rp_forest_build(const NumericMatrix &data, const std::string &metric,
 }
 
 // [[Rcpp::export]]
-List rnn_rp_forest_build_sparse(const NumericVector &data, const IntegerVector &ind,
-                                const IntegerVector &ptr, std::size_t nobs, std::size_t ndim,
-    const std::string &metric,
-                         uint32_t n_trees, uint32_t leaf_size,
-                         std::size_t n_threads = 0, bool verbose = false) {
+List rnn_rp_forest_build_sparse(const NumericVector &data,
+                                const IntegerVector &ind,
+                                const IntegerVector &ptr, std::size_t nobs,
+                                std::size_t ndim, const std::string &metric,
+                                uint32_t n_trees, uint32_t leaf_size,
+                                std::size_t n_threads = 0,
+                                bool verbose = false) {
   using Idx = RNN_DEFAULT_IDX;
   using In = RNN_DEFAULT_IN;
 
@@ -696,14 +698,12 @@ List rnn_rp_forest_build_sparse(const NumericVector &data, const IntegerVector &
 
   RParallelExecutor executor;
   auto rp_forest = build_sparse_rp_forest<In, Idx>(
-    data_vec, ind_vec, ptr_vec, ndim, metric, n_trees, leaf_size, n_threads,
-    verbose, executor);
+      data_vec, ind_vec, ptr_vec, ndim, metric, n_trees, leaf_size, n_threads,
+      verbose, executor);
 
   auto search_forest = tdoann::convert_rp_forest(rp_forest, nobs, ndim);
   return sparse_search_forest_to_r(search_forest, metric);
 }
-
-
 
 template <typename Out, typename Idx>
 List rnn_rp_forest_implicit_build_impl(
@@ -812,30 +812,23 @@ List rnn_rp_forest_search_sparse(
   std::string margin_type = search_forest["margin"];
 
   if (margin_type == margin_type_to_string(MarginType::EXPLICIT)) {
-    using In = RNN_DEFAULT_IN;
-    using Idx = RNN_DEFAULT_IDX;
+    auto distance_ptr = create_sparse_query_vector_distance(
+        ref_data, ref_ind, ref_ptr, nref, query_data, query_ind, query_ptr,
+        nquery, ndim, metric);
+
+    using In = typename tdoann::DistanceTraits<decltype(distance_ptr)>::Input;
+    using Idx = typename tdoann::DistanceTraits<decltype(distance_ptr)>::Index;
+
     auto search_forest_cpp =
-      r_to_sparse_search_forest<In, Idx>(search_forest, n_threads);
+        r_to_sparse_search_forest<In, Idx>(search_forest, n_threads);
 
-
-    Rcpp::stop("explicit margin forest search not implemented for sparse data");
-    // auto distance_ptr = create_query_vector_distance(reference, query,
-    // metric);
-    //
-    // using In = typename
-    // tdoann::DistanceTraits<decltype(distance_ptr)>::Input; using Idx =
-    // typename tdoann::DistanceTraits<decltype(distance_ptr)>::Index;
-    //
-    // auto search_forest_cpp =
-    //   r_to_search_forest<In, Idx>(search_forest, n_threads);
-    //
-    // rnndescent::ParallelIntRNGAdapter<Idx, rnndescent::DQIntSampler>
-    //   rng_provider;
-    // RPProgress progress(verbose);
-    // auto nn_heap = tdoann::search_forest(search_forest_cpp, *distance_ptr,
-    //                                      n_nbrs, rng_provider, cache,
-    //                                      n_threads, progress, executor);
-    // return heap_to_r(nn_heap);
+    rnndescent::ParallelIntRNGAdapter<Idx, rnndescent::DQIntSampler>
+        rng_provider;
+    RPProgress progress(verbose);
+    auto nn_heap = tdoann::search_forest(search_forest_cpp, *distance_ptr,
+                                         n_nbrs, rng_provider, cache, n_threads,
+                                         progress, executor);
+    return heap_to_r(nn_heap);
   } else if (margin_type == margin_type_to_string(MarginType::IMPLICIT)) {
     auto distance_ptr = create_sparse_query_distance(
         ref_data, ref_ind, ref_ptr, nref, query_data, query_ind, query_ptr,
@@ -895,7 +888,7 @@ List rnn_score_forest(const IntegerMatrix &idx, List search_forest,
     const bool is_sparse = search_forest["sparse"];
     if (is_sparse) {
       auto search_forest_cpp =
-        r_to_sparse_search_forest<In, Idx>(search_forest, n_threads);
+          r_to_sparse_search_forest<In, Idx>(search_forest, n_threads);
 
       auto filtered_forest = rnn_score_forest_impl(idx, search_forest_cpp,
                                                    n_trees, n_threads, verbose);
