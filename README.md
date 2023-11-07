@@ -51,7 +51,7 @@ No CRAN release, so you must install from this repo:
 
 ```r
 # install.packages("pak")
-pak::pak("jlmelville/rnndescent")
+pak::pkg_install("jlmelville/rnndescent")
 ```
 
 This packages makes use of C++ code which must be compiled. You may have to
