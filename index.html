@@ -96,7 +96,7 @@
 <p>No CRAN release, so you must install from this repo:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># install.packages("pak")</span></span>
-<span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"jlmelville/rnndescent"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pkg_install.html" class="external-link">pkg_install</a></span><span class="op">(</span><span class="st">"jlmelville/rnndescent"</span><span class="op">)</span></span></code></pre></div>
 <p>This packages makes use of C++ code which must be compiled. You may have to carry out a few extra steps before being able to build:</p>
 <p><strong>Windows</strong>: install <a href="https://cran.r-project.org/bin/windows/Rtools/" class="external-link">Rtools</a> and ensure <code>C:\Rtools\bin</code> is on your path.</p>
 <p><strong>Mac OS X</strong>: using a custom <code>~/.R/Makevars</code> <a href="https://github.com/jlmelville/uwot/issues/1" class="external-link">may cause linking errors</a>. This sort of thing is a potential problem on all platforms but seems to bite Mac owners more. <a href="https://cran.r-project.org/bin/macosx/RMacOSX-FAQ.html#Installation-of-source-packages" class="external-link">The R for Mac OS X FAQ</a> may be helpful here to work out what you can get away with. To be on the safe side, I would advise building without a custom <code>Makevars</code>.</p>
