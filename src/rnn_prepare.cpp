@@ -58,12 +58,10 @@ List diversify_impl(const tdoann::BaseDistance<Out, Idx> &distance,
 
 // [[Rcpp::export]]
 List diversify_sparse_cpp(const NumericVector &data, const IntegerVector &ind,
-                          const IntegerVector &ptr, std::size_t nobs,
-                          std::size_t ndim, const List &graph_list,
-                          const std::string &metric, double prune_probability,
-                          std::size_t n_threads) {
-  auto distance_ptr =
-      create_sparse_self_distance(data, ind, ptr, nobs, ndim, metric);
+                          const IntegerVector &ptr, std::size_t ndim,
+                          const List &graph_list, const std::string &metric,
+                          double prune_probability, std::size_t n_threads) {
+  auto distance_ptr = create_sparse_self_distance(data, ind, ptr, ndim, metric);
   return diversify_impl(*distance_ptr, graph_list, prune_probability,
                         n_threads);
 }

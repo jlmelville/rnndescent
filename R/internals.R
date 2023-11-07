@@ -86,11 +86,9 @@ prepare_init_graph <-
             ref_data = data@x,
             ref_ind = data@i,
             ref_ptr = data@p,
-            nref = ncol(data),
             query_data = query@x,
             query_ind = query@i,
             query_ptr = query@p,
-            nquery = ncol(query),
             ndim = nrow(data),
             idx = nn$idx,
             metric = metric,
@@ -116,7 +114,6 @@ prepare_init_graph <-
               data = data@x,
               ind = data@i,
               ptr = data@p,
-              nobs = ncol(data),
               ndim = nrow(data),
               idx = nn$idx,
               metric = metric,
@@ -387,7 +384,6 @@ rpf_knn_impl <-
           data = data@x,
           ind = data@i,
           ptr = data@p,
-          nobs = ncol(data),
           ndim = nrow(data),
           nnbrs = k,
           metric = actual_metric,
@@ -421,7 +417,6 @@ rpf_knn_impl <-
           data = data@x,
           ind = data@i,
           ptr = data@p,
-          nobs = ncol(data),
           ndim = nrow(data),
           nnbrs = k,
           metric = actual_metric,
@@ -492,7 +487,6 @@ random_knn_impl <-
             data = reference@x,
             ind = reference@i,
             ptr = reference@p,
-            nobs = ncol(reference),
             ndim = nrow(reference)
           )
       }
@@ -511,11 +505,9 @@ random_knn_impl <-
             ref_data = reference@x,
             ref_ind = reference@i,
             ref_ptr = reference@p,
-            nref = ncol(reference),
             query_data = query@x,
             query_ind = query@i,
             query_ptr = query@p,
-            nquery = ncol(query),
             ndim = nrow(reference)
           )
       }

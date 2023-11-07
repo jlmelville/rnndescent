@@ -596,9 +596,9 @@ protected:
 public:
   SparseSelfVectorMixin(std::vector<std::size_t> &&ind,
                         std::vector<std::size_t> &&ptr, std::vector<In> &&data,
-                        std::size_t num_x, std::size_t dimensions)
+                        std::size_t ndim)
       : x_ind(std::move(ind)), x_ptr(std::move(ptr)), x_data(std::move(data)),
-        nx(num_x), ndim(dimensions) {}
+        nx(x_ptr.size() - 1), ndim(ndim) {}
 
   auto get_x(Idx i) const {
     auto ind_start = x_ind.cbegin() + x_ptr[i];
@@ -621,10 +621,9 @@ class SparseL2SqrSelfDistance : public SparseVectorDistance<In, Out, Idx>,
 public:
   SparseL2SqrSelfDistance(std::vector<std::size_t> &&x_ind,
                           std::vector<std::size_t> &&x_ptr,
-                          std::vector<In> &&x_data, std::size_t nx,
-                          std::size_t ndim)
+                          std::vector<In> &&x_data, std::size_t ndim)
       : SparseSelfVectorMixin<In, Idx>(std::move(x_ind), std::move(x_ptr),
-                                       std::move(x_data), nx, ndim) {}
+                                       std::move(x_data), ndim) {}
   using Mixin = SparseSelfVectorMixin<In, Idx>;
   using SparseObs = typename SparseVectorDistance<In, Out, Idx>::SparseObs;
 
@@ -648,10 +647,9 @@ class SparseEuclideanSelfDistance : public SparseVectorDistance<In, Out, Idx>,
 public:
   SparseEuclideanSelfDistance(std::vector<std::size_t> &&x_ind,
                               std::vector<std::size_t> &&x_ptr,
-                              std::vector<In> &&x_data, std::size_t nx,
-                              std::size_t ndim)
+                              std::vector<In> &&x_data, std::size_t ndim)
       : SparseSelfVectorMixin<In, Idx>(std::move(x_ind), std::move(x_ptr),
-                                       std::move(x_data), nx, ndim) {}
+                                       std::move(x_data), ndim) {}
   using Mixin = SparseSelfVectorMixin<In, Idx>;
   using SparseObs = typename SparseVectorDistance<In, Out, Idx>::SparseObs;
 
@@ -675,10 +673,9 @@ class SparseManhattanSelfDistance : public SparseVectorDistance<In, Out, Idx>,
 public:
   SparseManhattanSelfDistance(std::vector<std::size_t> &&x_ind,
                               std::vector<std::size_t> &&x_ptr,
-                              std::vector<In> &&x_data, std::size_t nx,
-                              std::size_t ndim)
+                              std::vector<In> &&x_data, std::size_t ndim)
       : SparseSelfVectorMixin<In, Idx>(std::move(x_ind), std::move(x_ptr),
-                                       std::move(x_data), nx, ndim) {}
+                                       std::move(x_data), ndim) {}
   using Mixin = SparseSelfVectorMixin<In, Idx>;
   using SparseObs = typename SparseVectorDistance<In, Out, Idx>::SparseObs;
 
@@ -702,10 +699,9 @@ class SparseHammingSelfDistance : public SparseVectorDistance<In, Out, Idx>,
 public:
   SparseHammingSelfDistance(std::vector<std::size_t> &&x_ind,
                             std::vector<std::size_t> &&x_ptr,
-                            std::vector<In> &&x_data, std::size_t nx,
-                            std::size_t ndim)
+                            std::vector<In> &&x_data, std::size_t ndim)
       : SparseSelfVectorMixin<In, Idx>(std::move(x_ind), std::move(x_ptr),
-                                       std::move(x_data), nx, ndim) {}
+                                       std::move(x_data), ndim) {}
   using Mixin = SparseSelfVectorMixin<In, Idx>;
   using SparseObs = typename SparseVectorDistance<In, Out, Idx>::SparseObs;
 
@@ -729,10 +725,9 @@ class SparseCosineSelfDistance : public SparseVectorDistance<In, Out, Idx>,
 public:
   SparseCosineSelfDistance(std::vector<std::size_t> &&x_ind,
                            std::vector<std::size_t> &&x_ptr,
-                           std::vector<In> &&x_data, std::size_t nx,
-                           std::size_t ndim)
+                           std::vector<In> &&x_data, std::size_t ndim)
       : SparseSelfVectorMixin<In, Idx>(std::move(x_ind), std::move(x_ptr),
-                                       std::move(x_data), nx, ndim) {}
+                                       std::move(x_data), ndim) {}
   using Mixin = SparseSelfVectorMixin<In, Idx>;
   using SparseObs = typename SparseVectorDistance<In, Out, Idx>::SparseObs;
 
@@ -757,10 +752,10 @@ class SparseAlternativeCosineSelfDistance
 public:
   SparseAlternativeCosineSelfDistance(std::vector<std::size_t> &&x_ind,
                                       std::vector<std::size_t> &&x_ptr,
-                                      std::vector<In> &&x_data, std::size_t nx,
+                                      std::vector<In> &&x_data,
                                       std::size_t ndim)
       : SparseSelfVectorMixin<In, Idx>(std::move(x_ind), std::move(x_ptr),
-                                       std::move(x_data), nx, ndim) {}
+                                       std::move(x_data), ndim) {}
   using Mixin = SparseSelfVectorMixin<In, Idx>;
   using SparseObs = typename SparseVectorDistance<In, Out, Idx>::SparseObs;
 
@@ -784,10 +779,9 @@ class SparseCorrelationSelfDistance : public SparseVectorDistance<In, Out, Idx>,
 public:
   SparseCorrelationSelfDistance(std::vector<std::size_t> &&x_ind,
                                 std::vector<std::size_t> &&x_ptr,
-                                std::vector<In> &&x_data, std::size_t nx,
-                                std::size_t ndim)
+                                std::vector<In> &&x_data, std::size_t ndim)
       : SparseSelfVectorMixin<In, Idx>(std::move(x_ind), std::move(x_ptr),
-                                       std::move(x_data), nx, ndim) {}
+                                       std::move(x_data), ndim) {}
   using Mixin = SparseSelfVectorMixin<In, Idx>;
   using SparseObs = typename SparseVectorDistance<In, Out, Idx>::SparseObs;
 
@@ -823,15 +817,14 @@ protected:
 public:
   SparseQueryVectorMixin(std::vector<std::size_t> &&x_ind,
                          std::vector<std::size_t> &&x_ptr,
-                         std::vector<In> &&x_data, std::size_t nx,
+                         std::vector<In> &&x_data,
                          std::vector<std::size_t> &&y_ind,
                          std::vector<std::size_t> &&y_ptr,
-                         std::vector<In> &&y_data, std::size_t ny,
-                         std::size_t ndim)
+                         std::vector<In> &&y_data, std::size_t ndim)
       : x_ind(std::move(x_ind)), x_ptr(std::move(x_ptr)),
-        x_data(std::move(x_data)), nx(nx), y_ind(std::move(y_ind)),
-        y_ptr(std::move(y_ptr)), y_data(std::move(y_data)), ny(ny), ndim(ndim) {
-  }
+        x_data(std::move(x_data)), nx(this->x_ptr.size() - 1),
+        y_ind(std::move(y_ind)), y_ptr(std::move(y_ptr)),
+        y_data(std::move(y_data)), ny(this->y_ptr.size() - 1), ndim(ndim) {}
 
   auto get_x(Idx i) const {
     auto ind_start = x_ind.cbegin() + x_ptr[i];
@@ -863,14 +856,12 @@ public:
 
   SparseL2SqrQueryDistance(std::vector<std::size_t> &&x_ind,
                            std::vector<std::size_t> &&x_ptr,
-                           std::vector<In> &&x_data, std::size_t nx,
+                           std::vector<In> &&x_data,
                            std::vector<std::size_t> &&y_ind,
                            std::vector<std::size_t> &&y_ptr,
-                           std::vector<In> &&y_data, std::size_t ny,
-                           std::size_t ndim)
-      : Mixin(std::move(x_ind), std::move(x_ptr), std::move(x_data), nx,
-              std::move(y_ind), std::move(y_ptr), std::move(y_data), ny, ndim) {
-  }
+                           std::vector<In> &&y_data, std::size_t ndim)
+      : Mixin(std::move(x_ind), std::move(x_ptr), std::move(x_data),
+              std::move(y_ind), std::move(y_ptr), std::move(y_data), ndim) {}
 
   SparseObs get_x(Idx i) const override { return Mixin::get_x(i); }
   SparseObs get_y(Idx j) const override { return Mixin::get_y(j); }
@@ -895,14 +886,12 @@ public:
 
   SparseEuclideanQueryDistance(std::vector<std::size_t> &&x_ind,
                                std::vector<std::size_t> &&x_ptr,
-                               std::vector<In> &&x_data, std::size_t nx,
+                               std::vector<In> &&x_data,
                                std::vector<std::size_t> &&y_ind,
                                std::vector<std::size_t> &&y_ptr,
-                               std::vector<In> &&y_data, std::size_t ny,
-                               std::size_t ndim)
-      : Mixin(std::move(x_ind), std::move(x_ptr), std::move(x_data), nx,
-              std::move(y_ind), std::move(y_ptr), std::move(y_data), ny, ndim) {
-  }
+                               std::vector<In> &&y_data, std::size_t ndim)
+      : Mixin(std::move(x_ind), std::move(x_ptr), std::move(x_data),
+              std::move(y_ind), std::move(y_ptr), std::move(y_data), ndim) {}
 
   SparseObs get_x(Idx i) const override { return Mixin::get_x(i); }
   SparseObs get_y(Idx j) const override { return Mixin::get_y(j); }
@@ -927,14 +916,12 @@ public:
 
   SparseManhattanQueryDistance(std::vector<std::size_t> &&x_ind,
                                std::vector<std::size_t> &&x_ptr,
-                               std::vector<In> &&x_data, std::size_t nx,
+                               std::vector<In> &&x_data,
                                std::vector<std::size_t> &&y_ind,
                                std::vector<std::size_t> &&y_ptr,
-                               std::vector<In> &&y_data, std::size_t ny,
-                               std::size_t ndim)
-      : Mixin(std::move(x_ind), std::move(x_ptr), std::move(x_data), nx,
-              std::move(y_ind), std::move(y_ptr), std::move(y_data), ny, ndim) {
-  }
+                               std::vector<In> &&y_data, std::size_t ndim)
+      : Mixin(std::move(x_ind), std::move(x_ptr), std::move(x_data),
+              std::move(y_ind), std::move(y_ptr), std::move(y_data), ndim) {}
 
   SparseObs get_x(Idx i) const override { return Mixin::get_x(i); }
   SparseObs get_y(Idx j) const override { return Mixin::get_y(j); }
@@ -959,14 +946,12 @@ public:
 
   SparseHammingQueryDistance(std::vector<std::size_t> &&x_ind,
                              std::vector<std::size_t> &&x_ptr,
-                             std::vector<In> &&x_data, std::size_t nx,
+                             std::vector<In> &&x_data,
                              std::vector<std::size_t> &&y_ind,
                              std::vector<std::size_t> &&y_ptr,
-                             std::vector<In> &&y_data, std::size_t ny,
-                             std::size_t ndim)
-      : Mixin(std::move(x_ind), std::move(x_ptr), std::move(x_data), nx,
-              std::move(y_ind), std::move(y_ptr), std::move(y_data), ny, ndim) {
-  }
+                             std::vector<In> &&y_data, std::size_t ndim)
+      : Mixin(std::move(x_ind), std::move(x_ptr), std::move(x_data),
+              std::move(y_ind), std::move(y_ptr), std::move(y_data), ndim) {}
 
   SparseObs get_x(Idx i) const override { return Mixin::get_x(i); }
   SparseObs get_y(Idx j) const override { return Mixin::get_y(j); }
@@ -991,14 +976,12 @@ public:
 
   SparseCosineQueryDistance(std::vector<std::size_t> &&x_ind,
                             std::vector<std::size_t> &&x_ptr,
-                            std::vector<In> &&x_data, std::size_t nx,
+                            std::vector<In> &&x_data,
                             std::vector<std::size_t> &&y_ind,
                             std::vector<std::size_t> &&y_ptr,
-                            std::vector<In> &&y_data, std::size_t ny,
-                            std::size_t ndim)
-      : Mixin(std::move(x_ind), std::move(x_ptr), std::move(x_data), nx,
-              std::move(y_ind), std::move(y_ptr), std::move(y_data), ny, ndim) {
-  }
+                            std::vector<In> &&y_data, std::size_t ndim)
+      : Mixin(std::move(x_ind), std::move(x_ptr), std::move(x_data),
+              std::move(y_ind), std::move(y_ptr), std::move(y_data), ndim) {}
 
   SparseObs get_x(Idx i) const override { return Mixin::get_x(i); }
   SparseObs get_y(Idx j) const override { return Mixin::get_y(j); }
@@ -1024,14 +1007,13 @@ public:
 
   SparseAlternativeCosineQueryDistance(std::vector<std::size_t> &&x_ind,
                                        std::vector<std::size_t> &&x_ptr,
-                                       std::vector<In> &&x_data, std::size_t nx,
+                                       std::vector<In> &&x_data,
                                        std::vector<std::size_t> &&y_ind,
                                        std::vector<std::size_t> &&y_ptr,
-                                       std::vector<In> &&y_data, std::size_t ny,
+                                       std::vector<In> &&y_data,
                                        std::size_t ndim)
-      : Mixin(std::move(x_ind), std::move(x_ptr), std::move(x_data), nx,
-              std::move(y_ind), std::move(y_ptr), std::move(y_data), ny, ndim) {
-  }
+      : Mixin(std::move(x_ind), std::move(x_ptr), std::move(x_data),
+              std::move(y_ind), std::move(y_ptr), std::move(y_data), ndim) {}
 
   SparseObs get_x(Idx i) const override { return Mixin::get_x(i); }
   SparseObs get_y(Idx j) const override { return Mixin::get_y(j); }
@@ -1057,14 +1039,12 @@ public:
 
   SparseCorrelationQueryDistance(std::vector<std::size_t> &&x_ind,
                                  std::vector<std::size_t> &&x_ptr,
-                                 std::vector<In> &&x_data, std::size_t nx,
+                                 std::vector<In> &&x_data,
                                  std::vector<std::size_t> &&y_ind,
                                  std::vector<std::size_t> &&y_ptr,
-                                 std::vector<In> &&y_data, std::size_t ny,
-                                 std::size_t ndim)
-      : Mixin(std::move(x_ind), std::move(x_ptr), std::move(x_data), nx,
-              std::move(y_ind), std::move(y_ptr), std::move(y_data), ny, ndim) {
-  }
+                                 std::vector<In> &&y_data, std::size_t ndim)
+      : Mixin(std::move(x_ind), std::move(x_ptr), std::move(x_data),
+              std::move(y_ind), std::move(y_ptr), std::move(y_data), ndim) {}
 
   SparseObs get_x(Idx i) const override { return Mixin::get_x(i); }
   SparseObs get_y(Idx j) const override { return Mixin::get_y(j); }

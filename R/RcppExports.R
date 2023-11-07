@@ -5,16 +5,16 @@ rnn_brute_force <- function(data, nnbrs, metric = "euclidean", n_threads = 0L, v
     .Call(`_rnndescent_rnn_brute_force`, data, nnbrs, metric, n_threads, verbose)
 }
 
-rnn_brute_force_sparse <- function(data, ind, ptr, nobs, ndim, nnbrs, metric = "euclidean", n_threads = 0L, verbose = FALSE) {
-    .Call(`_rnndescent_rnn_brute_force_sparse`, data, ind, ptr, nobs, ndim, nnbrs, metric, n_threads, verbose)
+rnn_brute_force_sparse <- function(data, ind, ptr, ndim, nnbrs, metric = "euclidean", n_threads = 0L, verbose = FALSE) {
+    .Call(`_rnndescent_rnn_brute_force_sparse`, data, ind, ptr, ndim, nnbrs, metric, n_threads, verbose)
 }
 
 rnn_brute_force_query <- function(reference, query, nnbrs, metric = "euclidean", n_threads = 0L, verbose = FALSE) {
     .Call(`_rnndescent_rnn_brute_force_query`, reference, query, nnbrs, metric, n_threads, verbose)
 }
 
-rnn_brute_force_query_sparse <- function(ref_data, ref_ind, ref_ptr, nref, query_data, query_ind, query_ptr, nquery, ndim, nnbrs, metric = "euclidean", n_threads = 0L, verbose = FALSE) {
-    .Call(`_rnndescent_rnn_brute_force_query_sparse`, ref_data, ref_ind, ref_ptr, nref, query_data, query_ind, query_ptr, nquery, ndim, nnbrs, metric, n_threads, verbose)
+rnn_brute_force_query_sparse <- function(ref_data, ref_ind, ref_ptr, query_data, query_ind, query_ptr, ndim, nnbrs, metric = "euclidean", n_threads = 0L, verbose = FALSE) {
+    .Call(`_rnndescent_rnn_brute_force_query_sparse`, ref_data, ref_ind, ref_ptr, query_data, query_ind, query_ptr, ndim, nnbrs, metric, n_threads, verbose)
 }
 
 #' Find the Euclidean (L2) distance between two vectors
@@ -75,8 +75,8 @@ reverse_nbr_size_impl <- function(nn_idx, nnbrs, len, include_self = FALSE) {
     .Call(`_rnndescent_reverse_nbr_size_impl`, nn_idx, nnbrs, len, include_self)
 }
 
-rnn_idx_to_graph_self_sparse <- function(data, ind, ptr, nobs, ndim, idx, metric = "euclidean", n_threads = 0L, verbose = FALSE) {
-    .Call(`_rnndescent_rnn_idx_to_graph_self_sparse`, data, ind, ptr, nobs, ndim, idx, metric, n_threads, verbose)
+rnn_idx_to_graph_self_sparse <- function(data, ind, ptr, ndim, idx, metric = "euclidean", n_threads = 0L, verbose = FALSE) {
+    .Call(`_rnndescent_rnn_idx_to_graph_self_sparse`, data, ind, ptr, ndim, idx, metric, n_threads, verbose)
 }
 
 rnn_idx_to_graph_self <- function(data, idx, metric = "euclidean", n_threads = 0L, verbose = FALSE) {
@@ -87,8 +87,8 @@ rnn_idx_to_graph_query <- function(reference, query, idx, metric = "euclidean", 
     .Call(`_rnndescent_rnn_idx_to_graph_query`, reference, query, idx, metric, n_threads, verbose)
 }
 
-rnn_idx_to_graph_query_sparse <- function(ref_data, ref_ind, ref_ptr, nref, query_data, query_ind, query_ptr, nquery, ndim, idx, metric = "euclidean", n_threads = 0L, verbose = FALSE) {
-    .Call(`_rnndescent_rnn_idx_to_graph_query_sparse`, ref_data, ref_ind, ref_ptr, nref, query_data, query_ind, query_ptr, nquery, ndim, idx, metric, n_threads, verbose)
+rnn_idx_to_graph_query_sparse <- function(ref_data, ref_ind, ref_ptr, query_data, query_ind, query_ptr, ndim, idx, metric = "euclidean", n_threads = 0L, verbose = FALSE) {
+    .Call(`_rnndescent_rnn_idx_to_graph_query_sparse`, ref_data, ref_ind, ref_ptr, query_data, query_ind, query_ptr, ndim, idx, metric, n_threads, verbose)
 }
 
 local_scaled_nbrs <- function(idx, dist, n_scaled_nbrs, k_begin, k_end, ret_scales = FALSE, n_threads = 0L) {
@@ -107,12 +107,12 @@ nn_descent <- function(data, nn_idx, nn_dist, metric, max_candidates, n_iters, d
     .Call(`_rnndescent_nn_descent`, data, nn_idx, nn_dist, metric, max_candidates, n_iters, delta, low_memory, n_threads, verbose, progress_type)
 }
 
-nn_descent_sparse <- function(data, ind, ptr, nobs, ndim, nn_idx, nn_dist, metric, max_candidates, n_iters, delta, low_memory, n_threads, verbose, progress_type) {
-    .Call(`_rnndescent_nn_descent_sparse`, data, ind, ptr, nobs, ndim, nn_idx, nn_dist, metric, max_candidates, n_iters, delta, low_memory, n_threads, verbose, progress_type)
+nn_descent_sparse <- function(data, ind, ptr, ndim, nn_idx, nn_dist, metric, max_candidates, n_iters, delta, low_memory, n_threads, verbose, progress_type) {
+    .Call(`_rnndescent_nn_descent_sparse`, data, ind, ptr, ndim, nn_idx, nn_dist, metric, max_candidates, n_iters, delta, low_memory, n_threads, verbose, progress_type)
 }
 
-diversify_sparse_cpp <- function(data, ind, ptr, nobs, ndim, graph_list, metric, prune_probability, n_threads) {
-    .Call(`_rnndescent_diversify_sparse_cpp`, data, ind, ptr, nobs, ndim, graph_list, metric, prune_probability, n_threads)
+diversify_sparse_cpp <- function(data, ind, ptr, ndim, graph_list, metric, prune_probability, n_threads) {
+    .Call(`_rnndescent_diversify_sparse_cpp`, data, ind, ptr, ndim, graph_list, metric, prune_probability, n_threads)
 }
 
 diversify_cpp <- function(data, graph_list, metric, prune_probability, n_threads) {
@@ -127,8 +127,8 @@ degree_prune_cpp <- function(graph_list, max_degree, n_threads) {
     .Call(`_rnndescent_degree_prune_cpp`, graph_list, max_degree, n_threads)
 }
 
-random_knn_sparse <- function(data, ind, ptr, nobs, ndim, nnbrs, metric = "euclidean", order_by_distance = TRUE, n_threads = 0L, verbose = FALSE) {
-    .Call(`_rnndescent_random_knn_sparse`, data, ind, ptr, nobs, ndim, nnbrs, metric, order_by_distance, n_threads, verbose)
+random_knn_sparse <- function(data, ind, ptr, ndim, nnbrs, metric = "euclidean", order_by_distance = TRUE, n_threads = 0L, verbose = FALSE) {
+    .Call(`_rnndescent_random_knn_sparse`, data, ind, ptr, ndim, nnbrs, metric, order_by_distance, n_threads, verbose)
 }
 
 random_knn_cpp <- function(data, nnbrs, metric = "euclidean", order_by_distance = TRUE, n_threads = 0L, verbose = FALSE) {
@@ -139,20 +139,20 @@ random_knn_query_cpp <- function(reference, query, nnbrs, metric = "euclidean", 
     .Call(`_rnndescent_random_knn_query_cpp`, reference, query, nnbrs, metric, order_by_distance, n_threads, verbose)
 }
 
-random_knn_query_sparse <- function(ref_data, ref_ind, ref_ptr, nref, query_data, query_ind, query_ptr, nquery, ndim, nnbrs, metric = "euclidean", order_by_distance = TRUE, n_threads = 0L, verbose = FALSE) {
-    .Call(`_rnndescent_random_knn_query_sparse`, ref_data, ref_ind, ref_ptr, nref, query_data, query_ind, query_ptr, nquery, ndim, nnbrs, metric, order_by_distance, n_threads, verbose)
+random_knn_query_sparse <- function(ref_data, ref_ind, ref_ptr, query_data, query_ind, query_ptr, ndim, nnbrs, metric = "euclidean", order_by_distance = TRUE, n_threads = 0L, verbose = FALSE) {
+    .Call(`_rnndescent_random_knn_query_sparse`, ref_data, ref_ind, ref_ptr, query_data, query_ind, query_ptr, ndim, nnbrs, metric, order_by_distance, n_threads, verbose)
 }
 
 rp_tree_knn_explicit <- function(data, nnbrs, metric, n_trees, leaf_size, include_self, unzero = TRUE, ret_forest = FALSE, n_threads = 0L, verbose = FALSE) {
     .Call(`_rnndescent_rp_tree_knn_explicit`, data, nnbrs, metric, n_trees, leaf_size, include_self, unzero, ret_forest, n_threads, verbose)
 }
 
-rp_tree_knn_explicit_sparse <- function(data, ind, ptr, nobs, ndim, nnbrs, metric, n_trees, leaf_size, include_self, unzero = TRUE, ret_forest = FALSE, n_threads = 0L, verbose = FALSE) {
-    .Call(`_rnndescent_rp_tree_knn_explicit_sparse`, data, ind, ptr, nobs, ndim, nnbrs, metric, n_trees, leaf_size, include_self, unzero, ret_forest, n_threads, verbose)
+rp_tree_knn_explicit_sparse <- function(data, ind, ptr, ndim, nnbrs, metric, n_trees, leaf_size, include_self, unzero = TRUE, ret_forest = FALSE, n_threads = 0L, verbose = FALSE) {
+    .Call(`_rnndescent_rp_tree_knn_explicit_sparse`, data, ind, ptr, ndim, nnbrs, metric, n_trees, leaf_size, include_self, unzero, ret_forest, n_threads, verbose)
 }
 
-rp_tree_knn_implicit_sparse <- function(data, ind, ptr, nobs, ndim, nnbrs, metric, n_trees, leaf_size, include_self, unzero = TRUE, ret_forest = FALSE, n_threads = 0L, verbose = FALSE) {
-    .Call(`_rnndescent_rp_tree_knn_implicit_sparse`, data, ind, ptr, nobs, ndim, nnbrs, metric, n_trees, leaf_size, include_self, unzero, ret_forest, n_threads, verbose)
+rp_tree_knn_implicit_sparse <- function(data, ind, ptr, ndim, nnbrs, metric, n_trees, leaf_size, include_self, unzero = TRUE, ret_forest = FALSE, n_threads = 0L, verbose = FALSE) {
+    .Call(`_rnndescent_rp_tree_knn_implicit_sparse`, data, ind, ptr, ndim, nnbrs, metric, n_trees, leaf_size, include_self, unzero, ret_forest, n_threads, verbose)
 }
 
 rp_tree_knn_implicit <- function(data, nnbrs, metric, n_trees, leaf_size, include_self, unzero = TRUE, ret_forest = FALSE, n_threads = 0L, verbose = FALSE) {
@@ -163,24 +163,24 @@ rnn_rp_forest_build <- function(data, metric, n_trees, leaf_size, n_threads = 0L
     .Call(`_rnndescent_rnn_rp_forest_build`, data, metric, n_trees, leaf_size, n_threads, verbose)
 }
 
-rnn_rp_forest_build_sparse <- function(data, ind, ptr, nobs, ndim, metric, n_trees, leaf_size, n_threads = 0L, verbose = FALSE) {
-    .Call(`_rnndescent_rnn_rp_forest_build_sparse`, data, ind, ptr, nobs, ndim, metric, n_trees, leaf_size, n_threads, verbose)
+rnn_rp_forest_build_sparse <- function(data, ind, ptr, ndim, metric, n_trees, leaf_size, n_threads = 0L, verbose = FALSE) {
+    .Call(`_rnndescent_rnn_rp_forest_build_sparse`, data, ind, ptr, ndim, metric, n_trees, leaf_size, n_threads, verbose)
 }
 
 rnn_rp_forest_implicit_build <- function(data, metric, n_trees, leaf_size, n_threads = 0L, verbose = FALSE) {
     .Call(`_rnndescent_rnn_rp_forest_implicit_build`, data, metric, n_trees, leaf_size, n_threads, verbose)
 }
 
-rnn_rp_forest_implicit_build_sparse <- function(data, ind, ptr, nobs, ndim, metric, n_trees, leaf_size, n_threads = 0L, verbose = FALSE) {
-    .Call(`_rnndescent_rnn_rp_forest_implicit_build_sparse`, data, ind, ptr, nobs, ndim, metric, n_trees, leaf_size, n_threads, verbose)
+rnn_rp_forest_implicit_build_sparse <- function(data, ind, ptr, ndim, metric, n_trees, leaf_size, n_threads = 0L, verbose = FALSE) {
+    .Call(`_rnndescent_rnn_rp_forest_implicit_build_sparse`, data, ind, ptr, ndim, metric, n_trees, leaf_size, n_threads, verbose)
 }
 
 rnn_rp_forest_search <- function(query, reference, search_forest, n_nbrs, metric, cache, n_threads, verbose = FALSE) {
     .Call(`_rnndescent_rnn_rp_forest_search`, query, reference, search_forest, n_nbrs, metric, cache, n_threads, verbose)
 }
 
-rnn_rp_forest_search_sparse <- function(ref_data, ref_ind, ref_ptr, nref, query_data, query_ind, query_ptr, nquery, ndim, search_forest, n_nbrs, metric, cache, n_threads, verbose = FALSE) {
-    .Call(`_rnndescent_rnn_rp_forest_search_sparse`, ref_data, ref_ind, ref_ptr, nref, query_data, query_ind, query_ptr, nquery, ndim, search_forest, n_nbrs, metric, cache, n_threads, verbose)
+rnn_rp_forest_search_sparse <- function(ref_data, ref_ind, ref_ptr, query_data, query_ind, query_ptr, ndim, search_forest, n_nbrs, metric, cache, n_threads, verbose = FALSE) {
+    .Call(`_rnndescent_rnn_rp_forest_search_sparse`, ref_data, ref_ind, ref_ptr, query_data, query_ind, query_ptr, ndim, search_forest, n_nbrs, metric, cache, n_threads, verbose)
 }
 
 rnn_score_forest <- function(idx, search_forest, n_trees, n_threads, verbose = FALSE) {
@@ -191,7 +191,7 @@ nn_query <- function(reference, reference_graph_list, query, nn_idx, nn_dist, me
     .Call(`_rnndescent_nn_query`, reference, reference_graph_list, query, nn_idx, nn_dist, metric, epsilon, n_threads, verbose)
 }
 
-nn_query_sparse <- function(ref_data, ref_ind, ref_ptr, nref, query_data, query_ind, query_ptr, nquery, ndim, reference_graph_list, nn_idx, nn_dist, metric = "euclidean", epsilon = 0.1, n_threads = 0L, verbose = FALSE) {
-    .Call(`_rnndescent_nn_query_sparse`, ref_data, ref_ind, ref_ptr, nref, query_data, query_ind, query_ptr, nquery, ndim, reference_graph_list, nn_idx, nn_dist, metric, epsilon, n_threads, verbose)
+nn_query_sparse <- function(ref_data, ref_ind, ref_ptr, query_data, query_ind, query_ptr, ndim, reference_graph_list, nn_idx, nn_dist, metric = "euclidean", epsilon = 0.1, n_threads = 0L, verbose = FALSE) {
+    .Call(`_rnndescent_nn_query_sparse`, ref_data, ref_ind, ref_ptr, query_data, query_ind, query_ptr, ndim, reference_graph_list, nn_idx, nn_dist, metric, epsilon, n_threads, verbose)
 }
 

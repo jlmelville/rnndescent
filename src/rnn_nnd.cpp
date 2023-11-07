@@ -121,14 +121,13 @@ List nn_descent(const NumericMatrix &data, const IntegerMatrix &nn_idx,
 }
 // [[Rcpp::export]]
 List nn_descent_sparse(const NumericVector &data, const IntegerVector &ind,
-                       const IntegerVector &ptr, std::size_t nobs,
-                       std::size_t ndim, const IntegerMatrix &nn_idx,
+                       const IntegerVector &ptr, std::size_t ndim,
+                       const IntegerMatrix &nn_idx,
                        const NumericMatrix &nn_dist, const std::string &metric,
                        std::size_t max_candidates, uint32_t n_iters,
                        double delta, bool low_memory, std::size_t n_threads,
                        bool verbose, const std::string &progress_type) {
-  auto distance_ptr =
-      create_sparse_self_distance(data, ind, ptr, nobs, ndim, metric);
+  auto distance_ptr = create_sparse_self_distance(data, ind, ptr, ndim, metric);
   return nn_descent_impl(*distance_ptr, nn_idx, nn_dist, max_candidates,
                          n_iters, delta, low_memory, n_threads, verbose,
                          progress_type);

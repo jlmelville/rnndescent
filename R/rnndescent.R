@@ -93,12 +93,15 @@ brute_force_knn <- function(data,
   }
   if (is_sparse(data)) {
     res <-
-      rnn_brute_force_sparse(data@x, data@i, data@p,
-                             ncol(data), nrow(data),
-                      k,
-                      actual_metric,
-                      n_threads = n_threads,
-                      verbose = verbose
+      rnn_brute_force_sparse(
+        data = data@x,
+        ind = data@i,
+        ptr = data@p,
+        ndim = nrow(data),
+        nnbrs = k,
+        metric = actual_metric,
+        n_threads = n_threads,
+        verbose = verbose
       )
   }
   else {
@@ -535,7 +538,6 @@ nnd_knn <- function(data,
     nnd_args$data <- data@x
     nnd_args$ind <- data@i
     nnd_args$ptr <- data@p
-    nnd_args$nobs <- ncol(data)
     nnd_args$ndim <- nrow(data)
   }
   else {
@@ -668,17 +670,15 @@ brute_force_knn_query <- function(query,
 
   if (is_sparse(reference)) {
     res <- rnn_brute_force_query_sparse(
-      reference@x,
-      reference@i,
-      reference@p,
-      ncol(reference),
-      query@x,
-      query@i,
-      query@p,
-      ncol(query),
-      nrow(query),
-      k,
-      actual_metric,
+      ref_data = reference@x,
+      ref_ind = reference@i,
+      ref_ptr = reference@p,
+      query_data = query@x,
+      query_ind = query@i,
+      query_ptr = query@p,
+      ndim = nrow(query),
+      nnbrs = k,
+      metric = actual_metric,
       n_threads = n_threads,
       verbose = verbose
     )
@@ -1134,11 +1134,9 @@ graph_knn_query <- function(query,
         ref_data = reference@x,
         ref_ind = reference@i,
         ref_ptr = reference@p,
-        nref = ncol(reference),
         query_data = query@x,
         query_ind = query@i,
         query_ptr = query@p,
-        nquery = ncol(query),
         ndim = nrow(reference),
         reference_graph_list = reference_graph_list,
         nn_idx = init$idx,
@@ -1424,7 +1422,6 @@ diversify <- function(data,
       data = data@x,
       ind = data@i,
       ptr = data@p,
-      nobs = ncol(data),
       ndim = nrow(data),
       graph_list = gl,
       metric = metric,
