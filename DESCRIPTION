@@ -1,7 +1,7 @@
 Package: rnndescent
 Type: Package
 Title: Nearest Neighbor Descent Method for Approximate Nearest Neighbors
-Version: 0.0.13
+Version: 0.0.14
 Authors@R: c(person("James", "Melville", email = "jlmelville@gmail.com", role = c("aut", "cre")),
     person("Vitalie", "Spinu", role = "ctb"))
 Description: The Nearest Neighbor Descent method (Dong and co-workers, 
