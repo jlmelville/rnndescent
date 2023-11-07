@@ -55,7 +55,7 @@ List rnn_brute_force(const NumericMatrix &data, uint32_t nnbrs,
 }
 
 // [[Rcpp::export]]
-List rnn_brute_force_sparse(const IntegerVector &ind, const IntegerVector &ptr,
+List rnn_sparse_brute_force(const IntegerVector &ind, const IntegerVector &ptr,
                             const NumericVector &data, std::size_t ndim,
                             uint32_t nnbrs,
                             const std::string &metric = "euclidean",
@@ -87,7 +87,7 @@ List rnn_brute_force_query(const NumericMatrix &reference,
 }
 
 // [[Rcpp::export]]
-List rnn_brute_force_query_sparse(
+List rnn_sparse_brute_force_query(
     const IntegerVector &ref_ind, const IntegerVector &ref_ptr,
     const NumericVector &ref_data, const IntegerVector &query_ind,
     const IntegerVector &query_ptr, const NumericVector &query_data,

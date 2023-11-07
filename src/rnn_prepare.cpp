@@ -57,7 +57,7 @@ List diversify_impl(const tdoann::BaseDistance<Out, Idx> &distance,
 }
 
 // [[Rcpp::export]]
-List rnn_diversify_sparse(const IntegerVector &ind, const IntegerVector &ptr,
+List rnn_sparse_diversify(const IntegerVector &ind, const IntegerVector &ptr,
                           const NumericVector &data, std::size_t ndim,
                           const List &graph_list, const std::string &metric,
                           double prune_probability, std::size_t n_threads) {

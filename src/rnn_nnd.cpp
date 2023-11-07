@@ -120,7 +120,7 @@ List rnn_descent(const NumericMatrix &data, const IntegerMatrix &nn_idx,
                          progress_type);
 }
 // [[Rcpp::export]]
-List rnn_descent_sparse(const IntegerVector &ind, const IntegerVector &ptr,
+List rnn_sparse_descent(const IntegerVector &ind, const IntegerVector &ptr,
                         const NumericVector &data, std::size_t ndim,
                         const IntegerMatrix &nn_idx,
                         const NumericMatrix &nn_dist, const std::string &metric,

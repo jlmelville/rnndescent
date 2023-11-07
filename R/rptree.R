@@ -311,7 +311,7 @@ rpf_build <- function(data,
 
   if (margin == "implicit") {
     if (is_sparse(data)) {
-      forest <- rnn_rp_forest_implicit_build_sparse(
+      forest <- rnn_sparse_rp_forest_implicit_build(
         ind = data@i,
         ptr = data@p,
         data = data@x,
@@ -336,7 +336,7 @@ rpf_build <- function(data,
   }
   else {
     if (is_sparse(data)) {
-      forest <- rnn_rp_forest_build_sparse(
+      forest <- rnn_sparse_rp_forest_build(
         ind = data@i,
         ptr = data@p,
         data = data@x,
@@ -474,7 +474,7 @@ rpf_knn_query <- function(query,
   metric <- forest$actual_metric
   if (is_sparse(reference)) {
     res <-
-      rnn_rp_forest_search_sparse(
+      rnn_sparse_rp_forest_search(
         ref_ind = reference@i,
         ref_ptr = reference@p,
         ref_data = reference@x,

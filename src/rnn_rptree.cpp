@@ -545,7 +545,7 @@ List rnn_rp_tree_knn_explicit(const NumericMatrix &data, uint32_t nnbrs,
 }
 
 // [[Rcpp::export]]
-List rnn_rp_tree_knn_explicit_sparse(
+List rnn_sparse_rp_tree_knn_explicit(
     const IntegerVector &ind, const IntegerVector &ptr,
     const NumericVector &data, std::size_t ndim, uint32_t nnbrs,
     const std::string &metric, uint32_t n_trees, uint32_t leaf_size,
@@ -637,7 +637,7 @@ List rp_tree_knn_implicit_impl(
 }
 
 // [[Rcpp::export]]
-List rnn_rp_tree_knn_implicit_sparse(
+List rnn_sparse_rp_tree_knn_implicit(
     const IntegerVector &ind, const IntegerVector &ptr,
     const NumericVector &data, std::size_t ndim, uint32_t nnbrs,
     const std::string &metric, uint32_t n_trees, uint32_t leaf_size,
@@ -682,7 +682,7 @@ List rnn_rp_forest_build(const NumericMatrix &data, const std::string &metric,
 }
 
 // [[Rcpp::export]]
-List rnn_rp_forest_build_sparse(const IntegerVector &ind,
+List rnn_sparse_rp_forest_build(const IntegerVector &ind,
                                 const IntegerVector &ptr,
                                 const NumericVector &data, std::size_t ndim,
                                 const std::string &metric, uint32_t n_trees,
@@ -738,7 +738,7 @@ List rnn_rp_forest_implicit_build(const NumericMatrix &data,
 }
 
 // [[Rcpp::export]]
-List rnn_rp_forest_implicit_build_sparse(
+List rnn_sparse_rp_forest_implicit_build(
     const IntegerVector &ind, const IntegerVector &ptr,
     const NumericVector &data, std::size_t ndim, const std::string &metric,
     uint32_t n_trees, uint32_t leaf_size, std::size_t n_threads = 0,
@@ -802,7 +802,7 @@ List rnn_rp_forest_search(const NumericMatrix &query,
 }
 
 // [[Rcpp::export]]
-List rnn_rp_forest_search_sparse(
+List rnn_sparse_rp_forest_search(
     const IntegerVector &ref_ind, const IntegerVector &ref_ptr,
     const NumericVector &ref_data, const IntegerVector &query_ind,
     const IntegerVector &query_ptr, const NumericVector &query_data,

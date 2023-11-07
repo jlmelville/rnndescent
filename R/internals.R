@@ -82,7 +82,7 @@ prepare_init_graph <-
       tsmessage("Generating distances for initial indices")
       if (!is.null(query)) {
         if (is_sparse(data)) {
-          nn <- rnn_idx_to_graph_query_sparse(
+          nn <- rnn_sparse_idx_to_graph_query(
             ref_ind = data@i,
             ref_ptr = data@p,
             ref_data = data@x,
@@ -110,7 +110,7 @@ prepare_init_graph <-
       } else {
         if (is_sparse(data)) {
           nn <-
-            rnn_idx_to_graph_self_sparse(
+            rnn_sparse_idx_to_graph_self(
               ind = data@i,
               ptr = data@p,
               data = data@x,
@@ -380,7 +380,7 @@ rpf_knn_impl <-
 
     if (margin == "implicit") {
       if (is_sparse(data)) {
-        res <- rnn_rp_tree_knn_implicit_sparse(
+        res <- rnn_sparse_rp_tree_knn_implicit(
           ind = data@i,
           ptr = data@p,
           data = data@x,
@@ -413,7 +413,7 @@ rpf_knn_impl <-
     }
     else {
       if (is_sparse(data)) {
-        res <- rnn_rp_tree_knn_explicit_sparse(
+        res <- rnn_sparse_rp_tree_knn_explicit(
           ind = data@i,
           ptr = data@p,
           data = data@x,
@@ -481,7 +481,7 @@ random_knn_impl <-
       msg <- "Generating random k-nearest neighbor graph with k = "
 
       if (is_sparse(reference)) {
-        fun <- rnn_random_knn_sparse
+        fun <- rnn_sparse_random_knn
         args <-
           list(
             data = reference@x,
@@ -499,7 +499,7 @@ random_knn_impl <-
         "Generating random k-nearest neighbor graph from reference with k = "
 
       if (is_sparse(reference)) {
-        fun <- rnn_random_knn_query_sparse
+        fun <- rnn_sparse_random_knn_query
         args <-
           list(
             ref_ind = reference@i,

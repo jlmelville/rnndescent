@@ -61,7 +61,7 @@ List random_knn_cpp_impl(const tdoann::BaseDistance<Out, Idx> &distance,
 }
 
 // [[Rcpp::export]]
-List rnn_random_knn_sparse(const IntegerVector &ind, const IntegerVector &ptr,
+List rnn_sparse_random_knn(const IntegerVector &ind, const IntegerVector &ptr,
                            const NumericVector &data, std::size_t ndim,
                            uint32_t nnbrs,
                            const std::string &metric = "euclidean",
@@ -118,7 +118,7 @@ List rnn_random_knn_query(const NumericMatrix &reference,
 }
 
 // [[Rcpp::export]]
-List rnn_random_knn_query_sparse(
+List rnn_sparse_random_knn_query(
     const IntegerVector &ref_ind, const IntegerVector &ref_ptr,
     const NumericVector &ref_data, const IntegerVector &query_ind,
     const IntegerVector &query_ptr, const NumericVector &query_data,

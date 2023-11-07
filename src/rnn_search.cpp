@@ -71,7 +71,7 @@ List rnn_query(const NumericMatrix &reference, const List &reference_graph_list,
 }
 
 // [[Rcpp::export]]
-List rnn_query_sparse(
+List rnn_sparse_query(
     const IntegerVector &ref_ind, const IntegerVector &ref_ptr,
     const NumericVector &ref_data, const IntegerVector &query_ind,
     const IntegerVector &query_ptr, const NumericVector &query_data,

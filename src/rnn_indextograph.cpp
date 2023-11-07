@@ -49,7 +49,7 @@ auto idx_to_graph_impl(const tdoann::BaseDistance<Out, Idx> &distance,
 }
 
 // [[Rcpp::export]]
-List rnn_idx_to_graph_self_sparse(const IntegerVector &ind,
+List rnn_sparse_idx_to_graph_self(const IntegerVector &ind,
                                   const IntegerVector &ptr,
                                   const NumericVector &data, std::size_t ndim,
                                   const IntegerMatrix &idx,
@@ -79,7 +79,7 @@ List rnn_idx_to_graph_query(const NumericMatrix &reference,
 }
 
 // [[Rcpp::export]]
-List rnn_idx_to_graph_query_sparse(
+List rnn_sparse_idx_to_graph_query(
     const IntegerVector &ref_ind, const IntegerVector &ref_ptr,
     const NumericVector &ref_data, const IntegerVector &query_ind,
     const IntegerVector &query_ptr, const NumericVector &query_data,
