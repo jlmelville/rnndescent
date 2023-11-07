@@ -94,8 +94,8 @@ List rnn_brute_force_query_sparse(
     std::size_t ndim, uint32_t nnbrs, const std::string &metric = "euclidean",
     std::size_t n_threads = 0, bool verbose = false) {
   auto distance_ptr =
-      create_sparse_query_distance(ref_ind, ref_ptr, ref_data,
-                                   query_ind, query_ptr, query_data, ndim, metric);
+      create_sparse_query_distance(ref_ind, ref_ptr, ref_data, query_ind,
+                                   query_ptr, query_data, ndim, metric);
   return rnn_brute_force_query_impl(*distance_ptr, nnbrs, n_threads, verbose);
 }
 

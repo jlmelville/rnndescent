@@ -109,24 +109,24 @@ List nn_descent_impl(const tdoann::BaseDistance<Out, Idx> &distance,
 }
 
 // [[Rcpp::export]]
-List nn_descent(const NumericMatrix &data, const IntegerMatrix &nn_idx,
-                const NumericMatrix &nn_dist, const std::string &metric,
-                std::size_t max_candidates, uint32_t n_iters, double delta,
-                bool low_memory, std::size_t n_threads, bool verbose,
-                const std::string &progress_type) {
+List rnn_descent(const NumericMatrix &data, const IntegerMatrix &nn_idx,
+                 const NumericMatrix &nn_dist, const std::string &metric,
+                 std::size_t max_candidates, uint32_t n_iters, double delta,
+                 bool low_memory, std::size_t n_threads, bool verbose,
+                 const std::string &progress_type) {
   auto distance_ptr = create_self_distance(data, metric);
   return nn_descent_impl(*distance_ptr, nn_idx, nn_dist, max_candidates,
                          n_iters, delta, low_memory, n_threads, verbose,
                          progress_type);
 }
 // [[Rcpp::export]]
-List nn_descent_sparse(const IntegerVector &ind, const IntegerVector &ptr,
-                       const NumericVector &data, std::size_t ndim,
-                       const IntegerMatrix &nn_idx,
-                       const NumericMatrix &nn_dist, const std::string &metric,
-                       std::size_t max_candidates, uint32_t n_iters,
-                       double delta, bool low_memory, std::size_t n_threads,
-                       bool verbose, const std::string &progress_type) {
+List rnn_descent_sparse(const IntegerVector &ind, const IntegerVector &ptr,
+                        const NumericVector &data, std::size_t ndim,
+                        const IntegerMatrix &nn_idx,
+                        const NumericMatrix &nn_dist, const std::string &metric,
+                        std::size_t max_candidates, uint32_t n_iters,
+                        double delta, bool low_memory, std::size_t n_threads,
+                        bool verbose, const std::string &progress_type) {
   auto distance_ptr = create_sparse_self_distance(ind, ptr, data, ndim, metric);
   return nn_descent_impl(*distance_ptr, nn_idx, nn_dist, max_candidates,
                          n_iters, delta, low_memory, n_threads, verbose,

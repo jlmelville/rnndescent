@@ -534,14 +534,14 @@ nnd_knn <- function(data,
     progress_type = progress
   )
   if (is_sparse(data)) {
-    nnd_fun <- nn_descent_sparse
+    nnd_fun <- rnn_descent_sparse
     nnd_args$data <- data@x
     nnd_args$ind <- data@i
     nnd_args$ptr <- data@p
     nnd_args$ndim <- nrow(data)
   }
   else {
-    nnd_fun <- nn_descent
+    nnd_fun <- rnn_descent
     nnd_args$data <- data
   }
   res <- do.call(nnd_fun, nnd_args)
@@ -1130,7 +1130,7 @@ graph_knn_query <- function(query,
 
   if (is_sparse(reference)) {
     res <-
-      nn_query_sparse(
+      rnn_query_sparse(
         ref_ind = reference@i,
         ref_ptr = reference@p,
         ref_data = reference@x,
@@ -1149,7 +1149,7 @@ graph_knn_query <- function(query,
   }
   else {
     res <-
-      nn_query(
+      rnn_query(
         reference = reference,
         reference_graph_list = reference_graph_list,
         query = query,
@@ -1418,7 +1418,7 @@ diversify <- function(data,
   gl <- csparse_to_list(graph)
 
   if (is_sparse(data)) {
-    gl_div <- diversify_sparse_cpp(
+    gl_div <- rnn_diversify_sparse(
       ind = data@i,
       ptr = data@p,
       data = data@x,
@@ -1430,7 +1430,7 @@ diversify <- function(data,
     )
   }
   else {
-    gl_div <- diversify_cpp(
+    gl_div <- rnn_diversify(
       data = data,
       graph_list = gl,
       metric = metric,
@@ -1471,7 +1471,7 @@ degree_prune <-
     gl <- csparse_to_list(graph)
 
     gl_div <-
-      degree_prune_cpp(gl, max_degree, n_threads = n_threads)
+      rnn_degree_prune(gl, max_degree, n_threads = n_threads)
     res <- list_to_sparse(gl_div)
     nnz_after <- Matrix::nnzero(res)
     tsmessage(
@@ -1495,7 +1495,7 @@ merge_graphs_sp <- function(g1, g2) {
   gl1 <- csparse_to_list(g1)
   gl2 <- csparse_to_list(g2)
 
-  gl_merge <- merge_graph_lists_cpp(gl1, gl2)
+  gl_merge <- rnn_merge_graph_lists(gl1, gl2)
   list_to_sparse(gl_merge)
 }
 
@@ -1564,7 +1564,7 @@ merge_knn <- function(nn_graph1,
                       verbose = FALSE) {
   validate_are_mergeable(nn_graph1, nn_graph2)
 
-  merge_nn(
+  rnn_merge_nn(
     nn_graph1$idx,
     nn_graph1$dist,
     nn_graph2$idx,
@@ -1630,7 +1630,7 @@ merge_knnl <- function(nn_graphs,
   }
   validate_are_mergeablel(nn_graphs)
 
-  merge_nn_all(nn_graphs,
+  rnn_merge_nn_all(nn_graphs,
     is_query,
     n_threads = n_threads,
     verbose = verbose

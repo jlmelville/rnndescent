@@ -488,11 +488,11 @@ std::vector<tdoann::SparseRPTree<In, Idx>> build_sparse_rp_forest(
 }
 
 // [[Rcpp::export]]
-List rp_tree_knn_explicit(const NumericMatrix &data, uint32_t nnbrs,
-                          const std::string &metric, uint32_t n_trees,
-                          uint32_t leaf_size, bool include_self,
-                          bool unzero = true, bool ret_forest = false,
-                          std::size_t n_threads = 0, bool verbose = false) {
+List rnn_rp_tree_knn_explicit(const NumericMatrix &data, uint32_t nnbrs,
+                              const std::string &metric, uint32_t n_trees,
+                              uint32_t leaf_size, bool include_self,
+                              bool unzero = true, bool ret_forest = false,
+                              std::size_t n_threads = 0, bool verbose = false) {
   using Idx = RNN_DEFAULT_IDX;
   using In = RNN_DEFAULT_IN;
 
@@ -545,7 +545,7 @@ List rp_tree_knn_explicit(const NumericMatrix &data, uint32_t nnbrs,
 }
 
 // [[Rcpp::export]]
-List rp_tree_knn_explicit_sparse(
+List rnn_rp_tree_knn_explicit_sparse(
     const IntegerVector &ind, const IntegerVector &ptr,
     const NumericVector &data, std::size_t ndim, uint32_t nnbrs,
     const std::string &metric, uint32_t n_trees, uint32_t leaf_size,
@@ -578,8 +578,8 @@ List rp_tree_knn_explicit_sparse(
   }
   RPProgress knn_progress(verbose);
   auto distance_ptr =
-      create_sparse_self_distance(std::move(ind_vec),
-                                  std::move(ptr_vec), std::move(data_vec), ndim, metric);
+      create_sparse_self_distance(std::move(ind_vec), std::move(ptr_vec),
+                                  std::move(data_vec), ndim, metric);
   auto neighbor_heap =
       tdoann::init_rp_tree(*distance_ptr, leaf_array, max_leaf_size, nnbrs,
                            include_self, n_threads, knn_progress, executor);
@@ -637,7 +637,7 @@ List rp_tree_knn_implicit_impl(
 }
 
 // [[Rcpp::export]]
-List rp_tree_knn_implicit_sparse(
+List rnn_rp_tree_knn_implicit_sparse(
     const IntegerVector &ind, const IntegerVector &ptr,
     const NumericVector &data, std::size_t ndim, uint32_t nnbrs,
     const std::string &metric, uint32_t n_trees, uint32_t leaf_size,
@@ -651,11 +651,11 @@ List rp_tree_knn_implicit_sparse(
 }
 
 // [[Rcpp::export]]
-List rp_tree_knn_implicit(const NumericMatrix &data, uint32_t nnbrs,
-                          const std::string &metric, uint32_t n_trees,
-                          uint32_t leaf_size, bool include_self,
-                          bool unzero = true, bool ret_forest = false,
-                          std::size_t n_threads = 0, bool verbose = false) {
+List rnn_rp_tree_knn_implicit(const NumericMatrix &data, uint32_t nnbrs,
+                              const std::string &metric, uint32_t n_trees,
+                              uint32_t leaf_size, bool include_self,
+                              bool unzero = true, bool ret_forest = false,
+                              std::size_t n_threads = 0, bool verbose = false) {
   auto distance_ptr = create_self_distance(data, metric);
   return rp_tree_knn_implicit_impl(
       *distance_ptr, data.ncol(), data.nrow(), nnbrs, metric, n_trees,
@@ -832,8 +832,8 @@ List rnn_rp_forest_search_sparse(
     return heap_to_r(nn_heap);
   } else if (margin_type == margin_type_to_string(MarginType::IMPLICIT)) {
     auto distance_ptr =
-        create_sparse_query_distance(ref_ind, ref_ptr, ref_data,
-                                     query_ind, query_ptr, query_data, ndim, metric);
+        create_sparse_query_distance(ref_ind, ref_ptr, ref_data, query_ind,
+                                     query_ptr, query_data, ndim, metric);
     return rnn_rp_forest_search_impl(*distance_ptr, search_forest, n_nbrs,
                                      cache, n_threads, verbose);
   } else {

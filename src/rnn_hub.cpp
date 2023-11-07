@@ -28,9 +28,9 @@ using Rcpp::IntegerMatrix;
 using Rcpp::IntegerVector;
 
 // [[Rcpp::export]]
-IntegerVector reverse_nbr_size_impl(const IntegerMatrix &nn_idx,
-                                    std::size_t nnbrs, std::size_t len,
-                                    bool include_self = false) {
+IntegerVector rnn_reverse_nbr_size(const IntegerMatrix &nn_idx,
+                                   std::size_t nnbrs, std::size_t len,
+                                   bool include_self = false) {
   const std::size_t nobs = nn_idx.nrow();
   auto data = as<std::vector<std::size_t>>(nn_idx);
   constexpr auto missing = static_cast<std::size_t>(-1);

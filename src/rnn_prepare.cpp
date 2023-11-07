@@ -57,7 +57,7 @@ List diversify_impl(const tdoann::BaseDistance<Out, Idx> &distance,
 }
 
 // [[Rcpp::export]]
-List diversify_sparse_cpp(const IntegerVector &ind, const IntegerVector &ptr,
+List rnn_diversify_sparse(const IntegerVector &ind, const IntegerVector &ptr,
                           const NumericVector &data, std::size_t ndim,
                           const List &graph_list, const std::string &metric,
                           double prune_probability, std::size_t n_threads) {
@@ -67,7 +67,7 @@ List diversify_sparse_cpp(const IntegerVector &ind, const IntegerVector &ptr,
 }
 
 // [[Rcpp::export]]
-List diversify_cpp(const NumericMatrix &data, const List &graph_list,
+List rnn_diversify(const NumericMatrix &data, const List &graph_list,
                    const std::string &metric, double prune_probability,
                    std::size_t n_threads) {
   auto distance_ptr = create_self_distance(data, metric);
@@ -76,7 +76,7 @@ List diversify_cpp(const NumericMatrix &data, const List &graph_list,
 }
 
 // [[Rcpp::export]]
-List merge_graph_lists_cpp(const List &graph_list1, const List &graph_list2) {
+List rnn_merge_graph_lists(const List &graph_list1, const List &graph_list2) {
   auto graph1 = r_to_sparse_graph(graph_list1);
   auto graph2 = r_to_sparse_graph(graph_list2);
 
@@ -86,7 +86,7 @@ List merge_graph_lists_cpp(const List &graph_list1, const List &graph_list2) {
 }
 
 // [[Rcpp::export]]
-List degree_prune_cpp(const List &graph_list, std::size_t max_degree,
+List rnn_degree_prune(const List &graph_list, std::size_t max_degree,
                       std::size_t n_threads) {
   auto graph = r_to_sparse_graph(graph_list);
 

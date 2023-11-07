@@ -60,27 +60,25 @@ List nn_query_impl(const tdoann::BaseDistance<Out, Idx> &distance,
 }
 
 // [[Rcpp::export]]
-List nn_query(const NumericMatrix &reference, const List &reference_graph_list,
-              const NumericMatrix &query, const IntegerMatrix &nn_idx,
-              const NumericMatrix &nn_dist,
-              const std::string &metric = "euclidean", double epsilon = 0.1,
-              std::size_t n_threads = 0, bool verbose = false) {
+List rnn_query(const NumericMatrix &reference, const List &reference_graph_list,
+               const NumericMatrix &query, const IntegerMatrix &nn_idx,
+               const NumericMatrix &nn_dist,
+               const std::string &metric = "euclidean", double epsilon = 0.1,
+               std::size_t n_threads = 0, bool verbose = false) {
   auto distance_ptr = create_query_distance(reference, query, metric);
   return nn_query_impl(*distance_ptr, reference_graph_list, nn_idx, nn_dist,
                        metric, epsilon, n_threads, verbose);
 }
 
 // [[Rcpp::export]]
-List nn_query_sparse(const IntegerVector &ref_ind, const IntegerVector &ref_ptr,
-                     const NumericVector &ref_data,
-                     const IntegerVector &query_ind,
-                     const IntegerVector &query_ptr,
-                     const NumericVector &query_data, std::size_t ndim,
-                     const List &reference_graph_list,
-                     const IntegerMatrix &nn_idx, const NumericMatrix &nn_dist,
-                     const std::string &metric = "euclidean",
-                     double epsilon = 0.1, std::size_t n_threads = 0,
-                     bool verbose = false) {
+List rnn_query_sparse(
+    const IntegerVector &ref_ind, const IntegerVector &ref_ptr,
+    const NumericVector &ref_data, const IntegerVector &query_ind,
+    const IntegerVector &query_ptr, const NumericVector &query_data,
+    std::size_t ndim, const List &reference_graph_list,
+    const IntegerMatrix &nn_idx, const NumericMatrix &nn_dist,
+    const std::string &metric = "euclidean", double epsilon = 0.1,
+    std::size_t n_threads = 0, bool verbose = false) {
   auto distance_ptr =
       create_sparse_query_distance(ref_ind, ref_ptr, ref_data, query_ind,
                                    query_ptr, query_data, ndim, metric);

@@ -61,18 +61,19 @@ List random_knn_cpp_impl(const tdoann::BaseDistance<Out, Idx> &distance,
 }
 
 // [[Rcpp::export]]
-List random_knn_sparse(const IntegerVector &ind, const IntegerVector &ptr,
-                       const NumericVector &data, std::size_t ndim,
-                       uint32_t nnbrs, const std::string &metric = "euclidean",
-                       bool order_by_distance = true, std::size_t n_threads = 0,
-                       bool verbose = false) {
+List rnn_random_knn_sparse(const IntegerVector &ind, const IntegerVector &ptr,
+                           const NumericVector &data, std::size_t ndim,
+                           uint32_t nnbrs,
+                           const std::string &metric = "euclidean",
+                           bool order_by_distance = true,
+                           std::size_t n_threads = 0, bool verbose = false) {
   auto distance_ptr = create_sparse_self_distance(ind, ptr, data, ndim, metric);
   return random_knn_cpp_impl(*distance_ptr, nnbrs, order_by_distance, n_threads,
                              verbose);
 }
 
 // [[Rcpp::export]]
-List random_knn_cpp(const NumericMatrix &data, uint32_t nnbrs,
+List rnn_random_knn(const NumericMatrix &data, uint32_t nnbrs,
                     const std::string &metric = "euclidean",
                     bool order_by_distance = true, std::size_t n_threads = 0,
                     bool verbose = false) {
@@ -106,7 +107,7 @@ List random_knn_query_impl(const tdoann::BaseDistance<Out, Idx> &distance,
 }
 
 // [[Rcpp::export]]
-List random_knn_query_cpp(const NumericMatrix &reference,
+List rnn_random_knn_query(const NumericMatrix &reference,
                           const NumericMatrix &query, uint32_t nnbrs,
                           const std::string &metric = "euclidean",
                           bool order_by_distance = true,
@@ -117,7 +118,7 @@ List random_knn_query_cpp(const NumericMatrix &reference,
 }
 
 // [[Rcpp::export]]
-List random_knn_query_sparse(
+List rnn_random_knn_query_sparse(
     const IntegerVector &ref_ind, const IntegerVector &ref_ptr,
     const NumericVector &ref_data, const IntegerVector &query_ind,
     const IntegerVector &query_ptr, const NumericVector &query_data,
@@ -125,8 +126,8 @@ List random_knn_query_sparse(
     bool order_by_distance = true, std::size_t n_threads = 0,
     bool verbose = false) {
   auto distance_ptr =
-      create_sparse_query_distance(ref_ind, ref_ptr, ref_data,
-                                   query_ind, query_ptr, query_data, ndim, metric);
+      create_sparse_query_distance(ref_ind, ref_ptr, ref_data, query_ind,
+                                   query_ptr, query_data, ndim, metric);
   return random_knn_query_impl(*distance_ptr, nnbrs, order_by_distance,
                                n_threads, verbose);
 }

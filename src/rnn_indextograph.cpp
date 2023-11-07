@@ -87,8 +87,8 @@ List rnn_idx_to_graph_query_sparse(
     const std::string &metric = "euclidean", std::size_t n_threads = 0,
     bool verbose = false) {
   auto distance_ptr =
-      create_sparse_query_distance(ref_ind, ref_ptr, ref_data,
-                                   query_ind, query_ptr, query_data, ndim, metric);
+      create_sparse_query_distance(ref_ind, ref_ptr, ref_data, query_ind,
+                                   query_ptr, query_data, ndim, metric);
   return idx_to_graph_impl(*distance_ptr, idx, n_threads, verbose);
 }
 

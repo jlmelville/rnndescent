@@ -79,7 +79,7 @@ k_occur <- function(idx,
   stopifnot(k >= 1)
   stopifnot(k <= nc)
   len <- max(idx)
-  reverse_nbr_size_impl(idx, k, len, include_self)
+  rnn_reverse_nbr_size(idx, k, len, include_self)
 }
 
 # Local Scaling -----------------------------------------------------------
@@ -189,7 +189,7 @@ local_scale_nn <- function(nn,
     stop("k must be <= neighborhood size of nn")
   }
 
-  local_scaled_nbrs(
+  rnn_local_scaled_nbrs(
     nn$idx,
     nn$dist,
     n_scaled_nbrs = k,

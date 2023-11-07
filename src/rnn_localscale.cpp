@@ -18,10 +18,10 @@ using Rcpp::stop;
 // NOLINTBEGIN(modernize-use-trailing-return-type)
 
 // [[Rcpp::export]]
-List local_scaled_nbrs(const IntegerMatrix &idx, const NumericMatrix &dist,
-                       std::size_t n_scaled_nbrs, std::size_t k_begin,
-                       std::size_t k_end, bool ret_scales = false,
-                       std::size_t n_threads = 0) {
+List rnn_local_scaled_nbrs(const IntegerMatrix &idx, const NumericMatrix &dist,
+                           std::size_t n_scaled_nbrs, std::size_t k_begin,
+                           std::size_t k_end, bool ret_scales = false,
+                           std::size_t n_threads = 0) {
   std::size_t n_orig_nbrs = idx.ncol();
   if (n_scaled_nbrs > n_orig_nbrs) {
     stop("Can't return more neighbors than is in the original graph");
