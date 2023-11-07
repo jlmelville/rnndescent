@@ -5,7 +5,9 @@
 #' @param data Matrix of `n` items to generate neighbors for, with observations
 #'   in the rows and features in the columns. Optionally, input can be passed
 #'   with observations in the columns, by setting `obs = "C"`, which should be
-#'   more efficient.
+#'   more efficient. Possible formats are [base::data.frame()], [base::matrix()]
+#'   or [Matrix::sparseMatrix()]. Sparse matrices should be in `dgCMatrix`
+#'   format.
 #' @param k Number of nearest neighbors to return.
 #' @param metric Type of distance calculation to use. One of:
 #'   - `"euclidean"`.
@@ -121,7 +123,9 @@ brute_force_knn <- function(data,
 #' @param data Matrix of `n` items to generate random neighbors for, with
 #'   observations in the rows and features in the columns. Optionally, input can
 #'   be passed with observations in the columns, by setting `obs = "C"`, which
-#'   should be more efficient.
+#'   should be more efficient. Possible formats are [base::data.frame()],
+#'   [base::matrix()] or [Matrix::sparseMatrix()]. Sparse matrices should be in
+#'   `dgCMatrix` format.
 #' @param k Number of nearest neighbors to return.
 #' @param metric Type of distance calculation to use. One of:
 #'   - `"euclidean"`.
@@ -230,7 +234,9 @@ random_knn <-
 #' @param data Matrix of `n` items to generate neighbors for, with observations
 #'   in the rows and features in the columns. Optionally, input can be passed
 #'   with observations in the columns, by setting `obs = "C"`, which should be
-#'   more efficient.
+#'   more efficient. Possible formats are [base::data.frame()], [base::matrix()]
+#'   or [Matrix::sparseMatrix()]. Sparse matrices should be in `dgCMatrix`
+#'   format.
 #' @param k Number of nearest neighbors to return. Optional if `init` is
 #'   specified.
 #' @param metric Type of distance calculation to use. One of:
@@ -552,13 +558,17 @@ nnd_knn <- function(data,
 #'   features in the columns. Optionally, the data may be passed with the
 #'   observations in the columns, by setting `obs = "C"`, which should be more
 #'   efficient. The `reference` data must be passed in the same orientation as
-#'   `query`.
+#'   `query`. Possible formats are [base::data.frame()], [base::matrix()]
+#'   or [Matrix::sparseMatrix()]. Sparse matrices should be in `dgCMatrix`
+#'   format.
 #' @param reference Matrix of `m` reference items, with observations in the rows
 #'   and features in the columns. The nearest neighbors to the queries are
 #'   calculated from this data. Optionally, the data may be passed with the
 #'   observations in the columns, by setting `obs = "C"`, which should be more
 #'   efficient. The `query` data must be passed in the same orientation as
-#'   `reference`.
+#'   `reference`. Possible formats are [base::data.frame()], [base::matrix()]
+#'   or [Matrix::sparseMatrix()]. Sparse matrices should be in `dgCMatrix`
+#'   format.
 #' @param k Number of nearest neighbors to return.
 #' @param metric Type of distance calculation to use. One of:
 #'   - `"euclidean"`.
@@ -690,13 +700,17 @@ brute_force_knn_query <- function(query,
 #'   features in the columns. Optionally, the data may be passed with the
 #'   observations in the columns, by setting `obs = "C"`, which should be more
 #'   efficient. The `reference` data must be passed in the same orientation as
-#'   `query`.
+#'   `query`. Possible formats are [base::data.frame()], [base::matrix()]
+#'   or [Matrix::sparseMatrix()]. Sparse matrices should be in `dgCMatrix`
+#'   format.
 #' @param reference Matrix of `m` reference items, with observations in the rows
 #'   and features in the columns. The nearest neighbors to the queries are
 #'   randomly selected from this data. Optionally, the data may be passed with
 #'   the observations in the columns, by setting `obs = "C"`, which should be
 #'   more efficient. The `query` data must be passed in the same orientation as
-#'   `reference`.
+#'   `reference`. Possible formats are [base::data.frame()], [base::matrix()]
+#'   or [Matrix::sparseMatrix()]. Sparse matrices should be in `dgCMatrix`
+#'   format.
 #' @param k Number of nearest neighbors to return.
 #' @param metric Type of distance calculation to use. One of:
 #'   - `"euclidean"`.
@@ -817,13 +831,17 @@ random_knn_query <-
 #'   features in the columns. Optionally, the data may be passed with the
 #'   observations in the columns, by setting `obs = "C"`, which should be more
 #'   efficient. The `reference` data must be passed in the same orientation as
-#'   `query`.
+#'   `query`. Possible formats are [base::data.frame()], [base::matrix()]
+#'   or [Matrix::sparseMatrix()]. Sparse matrices should be in `dgCMatrix`
+#'   format.
 #' @param reference Matrix of `m` reference items, with observations in the rows
 #'   and features in the columns. The nearest neighbors to the queries are
 #'   calculated from this data. Optionally, the data may be passed with the
 #'   observations in the columns, by setting `obs = "C"`, which should be more
 #'   efficient. The `query` data must be passed in the same orientation as
-#'   `reference`.
+#'   `reference`. Possible formats are [base::data.frame()], [base::matrix()]
+#'   or [Matrix::sparseMatrix()]. Sparse matrices should be in `dgCMatrix`
+#'   format.
 #' @param reference_graph Search graph of the `reference` data. A neighbor
 #'   graph, such as that output from [nnd_knn()] can be used, but
 #'   preferably a suitably prepared sparse search graph should be used, such as
@@ -1186,7 +1204,9 @@ graph_knn_query <- function(query,
 #'
 #' @param data Matrix of `n` items, with observations in the rows and features
 #'   in the columns. Optionally, input can be passed with observations in the
-#'   columns, by setting `obs = "C"`, which should be more efficient.
+#'   columns, by setting `obs = "C"`, which should be more efficient. Possible
+#'   formats are [base::data.frame()], [base::matrix()] or
+#'   [Matrix::sparseMatrix()]. Sparse matrices should be in `dgCMatrix` format.
 #' @param graph neighbor graph for `data`, a list containing:
 #'   * `idx` an `n` by `k` matrix containing the nearest neighbor indices of
 #'   the data in `data`.

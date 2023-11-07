@@ -6,7 +6,9 @@
 #' @param data Matrix of `n` items to generate neighbors for, with observations
 #'   in the rows and features in the columns. Optionally, input can be passed
 #'   with observations in the columns, by setting `obs = "C"`, which should be
-#'   more efficient.
+#'   more efficient. Possible formats are [base::data.frame()], [base::matrix()]
+#'   or [Matrix::sparseMatrix()]. Sparse matrices should be in `dgCMatrix`
+#'   format.
 #' @param k Number of nearest neighbors to return. Optional if `init` is
 #'   specified.
 #' @param metric Type of distance calculation to use. One of:
@@ -172,7 +174,9 @@ rpf_knn <- function(data,
 #' @param data Matrix of `n` items to generate the index for, with observations
 #'   in the rows and features in the columns. Optionally, input can be passed
 #'   with observations in the columns, by setting `obs = "C"`, which should be
-#'   more efficient.
+#'   more efficient. Possible formats are [base::data.frame()], [base::matrix()]
+#'   or [Matrix::sparseMatrix()]. Sparse matrices should be in `dgCMatrix`
+#'   format.
 #' @param metric Type of distance calculation to use. One of:
 #'   - `"euclidean"`.
 #'   - `"l2sqr"` (squared Euclidean).
@@ -368,13 +372,17 @@ rpf_build <- function(data,
 #'   features in the columns. Optionally, the data may be passed with the
 #'   observations in the columns, by setting `obs = "C"`, which should be more
 #'   efficient. The `reference` data must be passed in the same orientation as
-#'   `query`.
+#'   `query`. Possible formats are [base::data.frame()], [base::matrix()]
+#'   or [Matrix::sparseMatrix()]. Sparse matrices should be in `dgCMatrix`
+#'   format.
 #' @param reference Matrix of `m` reference items, with observations in the rows
 #'   and features in the columns. The nearest neighbors to the queries are
 #'   calculated from this data and should be the same data used to build the
 #'   `forest`. Optionally, the data may be passed with the observations in the
 #'   columns, by setting `obs = "C"`, which should be more efficient. The
 #'   `query` data must be passed in the same orientation as `reference`.
+#'   Possible formats are [base::data.frame()], [base::matrix()] or
+#'   [Matrix::sparseMatrix()]. Sparse matrices should be in `dgCMatrix` format.
 #' @param forest A random partition forest, created by [rpf_build()],
 #'   representing partitions of the data in `reference`.
 #' @param k Number of nearest neighbors to return. You are unlikely to get good

@@ -19,7 +19,9 @@ random_knn(
 \item{data}{Matrix of \code{n} items to generate random neighbors for, with
 observations in the rows and features in the columns. Optionally, input can
 be passed with observations in the columns, by setting \code{obs = "C"}, which
-should be more efficient.}
+should be more efficient. Possible formats are \code{\link[base:data.frame]{base::data.frame()}},
+\code{\link[base:matrix]{base::matrix()}} or \code{\link[Matrix:sparseMatrix]{Matrix::sparseMatrix()}}. Sparse matrices should be in
+\code{dgCMatrix} format.}
 
 \item{k}{Number of nearest neighbors to return.}
 

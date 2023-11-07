@@ -20,7 +20,9 @@ rpf_build(
 \item{data}{Matrix of \code{n} items to generate the index for, with observations
 in the rows and features in the columns. Optionally, input can be passed
 with observations in the columns, by setting \code{obs = "C"}, which should be
-more efficient.}
+more efficient. Possible formats are \code{\link[base:data.frame]{base::data.frame()}}, \code{\link[base:matrix]{base::matrix()}}
+or \code{\link[Matrix:sparseMatrix]{Matrix::sparseMatrix()}}. Sparse matrices should be in \code{dgCMatrix}
+format.}
 
 \item{metric}{Type of distance calculation to use. One of:
 \itemize{

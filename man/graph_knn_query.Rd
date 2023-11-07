@@ -23,14 +23,18 @@ graph_knn_query(
 features in the columns. Optionally, the data may be passed with the
 observations in the columns, by setting \code{obs = "C"}, which should be more
 efficient. The \code{reference} data must be passed in the same orientation as
-\code{query}.}
+\code{query}. Possible formats are \code{\link[base:data.frame]{base::data.frame()}}, \code{\link[base:matrix]{base::matrix()}}
+or \code{\link[Matrix:sparseMatrix]{Matrix::sparseMatrix()}}. Sparse matrices should be in \code{dgCMatrix}
+format.}
 
 \item{reference}{Matrix of \code{m} reference items, with observations in the rows
 and features in the columns. The nearest neighbors to the queries are
 calculated from this data. Optionally, the data may be passed with the
 observations in the columns, by setting \code{obs = "C"}, which should be more
 efficient. The \code{query} data must be passed in the same orientation as
-\code{reference}.}
+\code{reference}. Possible formats are \code{\link[base:data.frame]{base::data.frame()}}, \code{\link[base:matrix]{base::matrix()}}
+or \code{\link[Matrix:sparseMatrix]{Matrix::sparseMatrix()}}. Sparse matrices should be in \code{dgCMatrix}
+format.}
 
 \item{reference_graph}{Search graph of the \code{reference} data. A neighbor
 graph, such as that output from \code{\link[=nnd_knn]{nnd_knn()}} can be used, but
