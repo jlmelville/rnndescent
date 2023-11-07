@@ -95,10 +95,27 @@ specified.</p></dd>
 
 
 <dt>metric</dt>
-<dd><p>Type of distance calculation to use. One of <code>"euclidean"</code>,
-<code>"l2sqr"</code> (squared Euclidean), <code>"cosine"</code>, <code>"manhattan"</code>, <code>"correlation"</code>
-(1 minus the Pearson correlation), <code>"hamming"</code> or <code>"bhamming"</code> (hamming
-on binary data with bitset internal memory optimization).</p></dd>
+<dd><p>Type of distance calculation to use. One of:</p><ul><li><p><code>"euclidean"</code>.</p></li>
+<li><p><code>"l2sqr"</code> (squared Euclidean).</p></li>
+<li><p><code>"cosine"</code>.</p></li>
+<li><p><code>"cosine-preprocessing"</code>: cosine with preprocessing: this trades memory for a
+potential speed up during the distance calculation.It should give the
+same results as <code>cosine</code>, give or take minor numerical changes. Be aware
+that the distance between two identical items may not always give exactly
+zero with this method.</p></li>
+<li><p><code>"manhattan"</code>.</p></li>
+<li><p><code>"correlation"</code> (1 minus the Pearson correlation).</p></li>
+<li><p><code>"correlation-preprocess"</code>: <code>correlation</code> with preprocessing. This trades
+memory for a potential speed up during the distance calculation. It should
+give the same results as <code>correlation</code>, give or take minor numerical
+changes. Be aware that the distance between two identical items may not
+always give exactly zero with this method.</p></li>
+<li><p><code>"hamming"</code>.</p></li>
+<li><p><code>"bhamming"</code> (hamming on binary data with bitset internal memory
+optimization).</p></li>
+</ul><p>This should be the same metric used to generate the <code>reference_graph</code>. If
+a search forest is used for initialization via the <code>init</code> parameter, then the
+metric is fetched from there and this setting is ignored.</p></dd>
 
 
 <dt>init</dt>
@@ -136,10 +153,11 @@ comparison. Use this parameter in conjunction with
 <dt>use_alt_metric</dt>
 <dd><p>If <code>TRUE</code>, use faster metrics that maintain the
 ordering of distances internally (e.g. squared Euclidean distances if using
-<code>metric = "euclidean"</code>), then apply a correction at the end. Probably
-the only reason to set this to <code>FALSE</code> is if you suspect that some
-sort of numeric issue is occurring with your data in the alternative code
-path.</p></dd>
+<code>metric = "euclidean"</code>), then apply a correction at the end. Probably the
+only reason to set this to <code>FALSE</code> is if you suspect that some sort of
+numeric issue is occurring with your data in the alternative code path. If
+a search forest is used for initialization via the <code>init</code> parameter, then
+the metric is fetched from there and this setting is ignored.</p></dd>
 
 
 <dt>n_threads</dt>
@@ -200,11 +218,11 @@ search in high-dimensional data.
 <span class="r-in"><span><span class="va">iris_query_nn</span> <span class="op">&lt;-</span> <span class="fu">graph_knn_query</span><span class="op">(</span><span class="va">iris_query</span>, <span class="va">iris_ref</span>, <span class="va">iris_ref_graph</span>,</span></span>
 <span class="r-in"><span>  k <span class="op">=</span> <span class="fl">4</span>, metric <span class="op">=</span> <span class="st">"euclidean"</span>, verbose <span class="op">=</span> <span class="cn">TRUE</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 01:06:04 Using alt metric 'l2sqr' for 'euclidean'</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 01:06:04 Initializing from random neighbors</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 01:06:04 Generating random k-nearest neighbor graph from reference with k = 4</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 01:06:05 Searching nearest neighbor graph</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 01:06:05 Finished</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 02:34:07 Using alt metric 'l2sqr' for 'euclidean'</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 02:34:07 Initializing from random neighbors</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 02:34:07 Generating random k-nearest neighbor graph from reference with k = 4</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 02:34:07 Searching nearest neighbor graph</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 02:34:07 Finished</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># A more complete example, converting the initial knn into a search graph</span></span></span>
 <span class="r-in"><span><span class="co"># and using a filtered random projection forest to initialize the search</span></span></span>
