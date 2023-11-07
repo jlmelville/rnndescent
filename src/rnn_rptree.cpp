@@ -475,9 +475,7 @@ std::vector<tdoann::SparseRPTree<In, Idx>> build_sparse_rp_forest(
     const std::vector<std::size_t> &ptr_vec, std::size_t ndim,
     const std::string &metric, uint32_t n_trees, uint32_t leaf_size,
     std::size_t n_threads, bool verbose, const tdoann::Executor &executor) {
-  // FIXME: angular
-  // bool angular = is_angular_metric(metric);
-  bool angular = false;
+  bool angular = is_angular_metric(metric);
   rnndescent::ParallelIntRNGAdapter<Idx, rnndescent::DQIntSampler> rng_provider;
   if (verbose) {
     tsmessage() << "Using" << (angular ? " angular " : " euclidean ")

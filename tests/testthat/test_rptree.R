@@ -429,6 +429,10 @@ test_that("sparse explicit margin", {
   set.seed(1337); sknn <- rpf_knn(ui10sp, k = 4, leaf_size = 3, n_trees = 2, margin = "explicit")
   expect_equal(sknn, dknn)
 
+  # implict and explicit should give the same results for euclidean
+  set.seed(1337); siknn <- rpf_knn(ui10sp, k = 4, leaf_size = 3, n_trees = 2, margin = "implicit")
+  expect_equal(siknn, sknn)
+
   set.seed(1337); sknn6 <- rpf_knn(ui10sp6, k = 4, leaf_size = 2, n_trees = 2, ret_forest = TRUE)
   set.seed(1337); sforest6 <- rpf_build(ui10sp6, leaf_size = 2, n_trees = 2)
   expect_equal(sforest6$margin, "explicit")
@@ -446,4 +450,13 @@ test_that("sparse explicit margin", {
   set.seed(1337); dknn6 <- rpf_knn(ui10z6, k = 4, leaf_size = 2, n_trees = 2, margin = "explicit", ret_forest = TRUE)
   set.seed(1337); res_dknn <- rpf_knn_query(ui10z4, ui10z6, forest = dknn6$forest, k = 4)
   expect_equal(res_forest, res_dknn)
+
+  # implict and explicit should give the same results for cosine also
+  set.seed(1337); secknn <- rpf_knn(ui10sp, k = 4, leaf_size = 3, n_trees = 2, margin = "explicit", metric = "cosine")
+  set.seed(1337); sicknn <- rpf_knn(ui10sp, k = 4, leaf_size = 3, n_trees = 2, margin = "implicit", metric = "cosine")
+  expect_equal(secknn, sicknn)
+
+  set.seed(1337); sacknn <- rpf_knn(ui10sp, k = 4, leaf_size = 3, n_trees = 2,
+                                    margin = "explicit", metric = "cosine", use_alt_metric = FALSE)
+  expect_equal(sacknn, secknn, tol = 1e-5)
 })

@@ -38,8 +38,9 @@
 // for consistency with pynndescent should these get implemented other angular
 // metrics are "dot", "dice", "jaccard", "hellinger"
 inline bool is_angular_metric(const std::string &metric) {
-  return (metric == "cosine" || metric == "correlation" ||
-          metric == "hamming" || metric == "bhamming");
+  return (metric == "cosine" || metric == "alternative-cosine" ||
+          metric == "correlation" || metric == "hamming" ||
+          metric == "bhamming");
 }
 
 inline bool is_binary_metric(const std::string &metric) {
