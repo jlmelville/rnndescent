@@ -49,21 +49,23 @@ specified.}
 \item \code{"euclidean"}.
 \item \code{"l2sqr"} (squared Euclidean).
 \item \code{"cosine"}.
-\item \code{"cosine-preprocessing"}: cosine with preprocessing: this trades memory for a
+\item \code{"hamming"}.
+\item \code{"manhattan"}.
+\item \code{"correlation"} (1 minus the Pearson correlation).
+For non-sparse data, some variants are available:
+\item \code{"cosine-preprocess"}: cosine with preprocessing: this trades memory for a
 potential speed up during the distance calculation.It should give the
 same results as \code{cosine}, give or take minor numerical changes. Be aware
 that the distance between two identical items may not always give exactly
 zero with this method.
-\item \code{"manhattan"}.
-\item \code{"correlation"} (1 minus the Pearson correlation).
 \item \code{"correlation-preprocess"}: \code{correlation} with preprocessing. This trades
 memory for a potential speed up during the distance calculation. It should
 give the same results as \code{correlation}, give or take minor numerical
 changes. Be aware that the distance between two identical items may not
 always give exactly zero with this method.
-\item \code{"hamming"}.
-\item \code{"bhamming"} (hamming on binary data with bitset internal memory
-optimization).
+\item \code{"bhamming"}: hamming on binary data (numeric or integer matrix with 0s
+and 1s only) with bitset internal memory optimization. This should be
+substantially faster than \code{"hamming"}.
 }
 
 This should be the same metric used to generate the \code{reference_graph}. If

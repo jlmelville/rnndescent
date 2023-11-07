@@ -15,21 +15,23 @@
 #'   - `"euclidean"`.
 #'   - `"l2sqr"` (squared Euclidean).
 #'   - `"cosine"`.
+#'   - `"hamming"`.
+#'   - `"manhattan"`.
+#'   - `"correlation"` (1 minus the Pearson correlation).
+#'   For non-sparse data, some variants are available:
 #'   - `"cosine-preprocess"`: cosine with preprocessing: this trades memory for a
 #'   potential speed up during the distance calculation.It should give the
 #'   same results as `cosine`, give or take minor numerical changes. Be aware
 #'   that the distance between two identical items may not always give exactly
 #'   zero with this method.
-#'   - `"manhattan"`.
-#'   - `"correlation"` (1 minus the Pearson correlation).
 #'   - `"correlation-preprocess"`: `correlation` with preprocessing. This trades
 #'   memory for a potential speed up during the distance calculation. It should
 #'   give the same results as `correlation`, give or take minor numerical
 #'   changes. Be aware that the distance between two identical items may not
 #'   always give exactly zero with this method.
-#'   - `"hamming"`.
-#'   - `"bhamming"` (hamming on binary data with bitset internal memory
-#'   optimization).
+#'   - `"bhamming"`: hamming on binary data (numeric or integer matrix with 0s
+#'   and 1s only) with bitset internal memory optimization. This should be
+#'   substantially faster than `"hamming"`.
 #' @param use_alt_metric If `TRUE`, use faster metrics that maintain the
 #'   ordering of distances internally (e.g. squared Euclidean distances if using
 #'   `metric = "euclidean"`), then apply a correction at the end. Probably
@@ -181,23 +183,27 @@ rpf_knn <- function(data,
 #'   - `"euclidean"`.
 #'   - `"l2sqr"` (squared Euclidean).
 #'   - `"cosine"`.
+#'   - `"hamming"`.
+#'   - `"manhattan"`.
+#'   - `"correlation"` (1 minus the Pearson correlation).
+#'   For non-sparse data, some variants are available:
 #'   - `"cosine-preprocess"`: cosine with preprocessing: this trades memory for a
 #'   potential speed up during the distance calculation.It should give the
 #'   same results as `cosine`, give or take minor numerical changes. Be aware
 #'   that the distance between two identical items may not always give exactly
 #'   zero with this method.
-#'   - `"manhattan"`.
-#'   - `"correlation"` (1 minus the Pearson correlation).
 #'   - `"correlation-preprocess"`: `correlation` with preprocessing. This trades
 #'   memory for a potential speed up during the distance calculation. It should
 #'   give the same results as `correlation`, give or take minor numerical
 #'   changes. Be aware that the distance between two identical items may not
 #'   always give exactly zero with this method.
-#'   - `"hamming"`.
+#'   - `"bhamming"`: hamming on binary data (numeric or integer matrix with 0s
+#'   and 1s only) with bitset internal memory optimization. This should be
+#'   substantially faster than `"hamming"`.
 #'
-#'   Note that the metric is only used to determine whether an "angular" or
-#'   "Euclidean" distance is used to measure the distance between split points
-#'   in the tree.
+#'   Note that if `margin = "explicit"`, the metric is only used to determine
+#'   whether an "angular" or "Euclidean" distance is used to measure the
+#'   distance between split points in the tree.
 #' @param use_alt_metric If `TRUE`, use faster metrics that maintain the
 #'   ordering of distances internally (e.g. squared Euclidean distances if using
 #'   `metric = "euclidean"`). Probably the only reason to set this to `FALSE` is
