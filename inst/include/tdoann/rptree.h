@@ -348,7 +348,7 @@ make_forest(const std::vector<In> &data, std::size_t ndim, uint32_t n_trees,
   };
 
   progress.set_n_iters(1);
-  ExecutionParams exec_params{};
+  ExecutionParams exec_params{n_threads};
   dispatch_work(worker, n_trees, n_threads, exec_params, progress, executor);
 
   return rp_forest;
@@ -735,7 +735,7 @@ search_forest(const std::vector<SearchTree<In, Idx>> &forest,
   };
 
   progress.set_n_iters(n_queries);
-  ExecutionParams exec_params{};
+  ExecutionParams exec_params{n_threads};
   dispatch_work(worker, n_queries, n_threads, exec_params, progress, executor);
 
   return current_graph;
@@ -808,7 +808,7 @@ score_forest(const std::vector<Tree> &forest,
   };
 
   progress.set_n_iters(1);
-  ExecutionParams exec_params{};
+  ExecutionParams exec_params{n_threads};
   dispatch_work(worker, n_trees, n_threads, exec_params, progress, executor);
 
   return scores;
