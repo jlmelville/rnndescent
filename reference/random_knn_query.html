@@ -68,7 +68,9 @@
 features in the columns. Optionally, the data may be passed with the
 observations in the columns, by setting <code>obs = "C"</code>, which should be more
 efficient. The <code>reference</code> data must be passed in the same orientation as
-<code>query</code>.</p></dd>
+<code>query</code>. Possible formats are <code><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">base::data.frame()</a></code>, <code><a href="https://rdrr.io/r/base/matrix.html" class="external-link">base::matrix()</a></code>
+or <code><a href="https://rdrr.io/pkg/Matrix/man/sparseMatrix.html" class="external-link">Matrix::sparseMatrix()</a></code>. Sparse matrices should be in <code>dgCMatrix</code>
+format.</p></dd>
 
 
 <dt>reference</dt>
@@ -77,7 +79,9 @@ and features in the columns. The nearest neighbors to the queries are
 randomly selected from this data. Optionally, the data may be passed with
 the observations in the columns, by setting <code>obs = "C"</code>, which should be
 more efficient. The <code>query</code> data must be passed in the same orientation as
-<code>reference</code>.</p></dd>
+<code>reference</code>. Possible formats are <code><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">base::data.frame()</a></code>, <code><a href="https://rdrr.io/r/base/matrix.html" class="external-link">base::matrix()</a></code>
+or <code><a href="https://rdrr.io/pkg/Matrix/man/sparseMatrix.html" class="external-link">Matrix::sparseMatrix()</a></code>. Sparse matrices should be in <code>dgCMatrix</code>
+format.</p></dd>
 
 
 <dt>k</dt>
@@ -88,21 +92,23 @@ more efficient. The <code>query</code> data must be passed in the same orientati
 <dd><p>Type of distance calculation to use. One of:</p><ul><li><p><code>"euclidean"</code>.</p></li>
 <li><p><code>"l2sqr"</code> (squared Euclidean).</p></li>
 <li><p><code>"cosine"</code>.</p></li>
+<li><p><code>"hamming"</code>.</p></li>
+<li><p><code>"manhattan"</code>.</p></li>
+<li><p><code>"correlation"</code> (1 minus the Pearson correlation).
+For non-sparse data, some variants are available:</p></li>
 <li><p><code>"cosine-preprocess"</code>: cosine with preprocessing: this trades memory for a
 potential speed up during the distance calculation.It should give the
 same results as <code>cosine</code>, give or take minor numerical changes. Be aware
 that the distance between two identical items may not always give exactly
 zero with this method.</p></li>
-<li><p><code>"manhattan"</code>.</p></li>
-<li><p><code>"correlation"</code> (1 minus the Pearson correlation).</p></li>
 <li><p><code>"correlation-preprocess"</code>: <code>correlation</code> with preprocessing. This trades
 memory for a potential speed up during the distance calculation. It should
 give the same results as <code>correlation</code>, give or take minor numerical
 changes. Be aware that the distance between two identical items may not
 always give exactly zero with this method.</p></li>
-<li><p><code>"hamming"</code>.</p></li>
-<li><p><code>"bhamming"</code> (hamming on binary data with bitset internal memory
-optimization).</p></li>
+<li><p><code>"bhamming"</code>: hamming on binary data (numeric or integer matrix with 0s
+and 1s only) with bitset internal memory optimization. This should be
+substantially faster than <code>"hamming"</code>.</p></li>
 </ul></dd>
 
 
@@ -163,9 +169,9 @@ column-oriented will save some memory and (a small amount of) CPU usage.</p></dd
 <span class="r-in"><span>  reference <span class="op">=</span> <span class="va">iris_ref</span>,</span></span>
 <span class="r-in"><span>  k <span class="op">=</span> <span class="fl">4</span>, metric <span class="op">=</span> <span class="st">"euclidean"</span>, verbose <span class="op">=</span> <span class="cn">TRUE</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 02:34:09 Using alt metric 'l2sqr' for 'euclidean'</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 02:34:09 Generating random k-nearest neighbor graph from reference with k = 4</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 02:34:09 Finished</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 07:35:51 Using alt metric 'l2sqr' for 'euclidean'</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 07:35:51 Generating random k-nearest neighbor graph from reference with k = 4</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 07:35:51 Finished</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Manhattan (l1) distance</span></span></span>
 <span class="r-in"><span><span class="va">iris_query_random_nbrs</span> <span class="op">&lt;-</span> <span class="fu">random_knn_query</span><span class="op">(</span><span class="va">iris_query</span>,</span></span>
