@@ -124,112 +124,112 @@ check_query_nbrs_idx(qnbrs6$idx, nref = nrow(int6))
 expect_equal(qnbrs6$dist, h64d)
 
 # sparse
-# rnbrs <- brute_force_knn(ui10sp_full, k = 4, n_threads = 0)
-# check_nbrs(rnbrs, ui10_eucd, tol = 1e-6)
-#
-# nbrs_zdense <- brute_force_knn(ui10z, k = 4, n_threads = 0)
-# nbrs_zsparse <- brute_force_knn(ui10sp, k = 4, n_threads = 0)
-# expect_equal(nbrs_zsparse, nbrs_zdense)
-#
-# expect_equal(
-#   brute_force_knn(
-#     ui10sp,
-#     k = 4,
-#     n_threads = 0,
-#     metric = "euclidean",
-#     use_alt_metric = FALSE
-#   ),
-#   brute_force_knn(
-#     ui10z,
-#     k = 4,
-#     n_threads = 0,
-#     metric = "euclidean",
-#     use_alt_metric = FALSE
-#   )
-# )
-#
-# expect_equal(
-#   brute_force_knn(
-#     ui10sp,
-#     k = 4,
-#     n_threads = 0,
-#     metric = "manhattan"
-#   ),
-#   brute_force_knn(
-#     ui10z,
-#     k = 4,
-#     n_threads = 0,
-#     metric = "manhattan"
-#   )
-# )
-#
-#
-# expect_equal(
-#   brute_force_knn(
-#     bitdata,
-#     k = 4,
-#     n_threads = 0,
-#     metric = "hamming"
-#   ),
-#   brute_force_knn(
-#     Matrix::drop0(bitdata),
-#     k = 4,
-#     n_threads = 0,
-#     metric = "hamming"
-#   )
-# )
-#
-# expect_equal(
-#   brute_force_knn(
-#     bitdata,
-#     k = 4,
-#     n_threads = 0,
-#     metric = "cosine"
-#   ),
-#   brute_force_knn(
-#     Matrix::drop0(bitdata),
-#     k = 4,
-#     n_threads = 0,
-#     metric = "cosine",
-#     use_alt_metric = FALSE
-#   ),
-#   tol = 1e-6
-# )
-#
-# expect_equal(
-#   brute_force_knn(
-#     bitdata,
-#     k = 4,
-#     n_threads = 0,
-#     metric = "cosine"
-#   ),
-#   brute_force_knn(
-#     Matrix::drop0(bitdata),
-#     k = 4,
-#     n_threads = 0,
-#     metric = "cosine",
-#     use_alt_metric = TRUE
-#   ),
-#   tol = 1e-6
-# )
-#
-# expect_equal(
-#   brute_force_knn(
-#     ui10sp,
-#     k = 4,
-#     n_threads = 0,
-#     metric = "correlation"
-#   ),
-#   brute_force_knn(
-#     ui10z,
-#     k = 4,
-#     n_threads = 0,
-#     metric = "correlation"
-#   ),
-#   tol = 1e-5
-# )
-#
-# # sparse queries
-# expect_equal(brute_force_knn_query(ui10sp, ui10sp, k = 4), brute_force_knn(ui10sp, k = 4))
-# expect_equal(brute_force_knn_query(ui10sp6, ui10sp4, k = 4), brute_force_knn_query(ui10z6, ui10z4, k = 4))
-# expect_equal(brute_force_knn_query(ui10sp4, ui10sp6, k = 4), brute_force_knn_query(ui10z4, ui10z6, k = 4))
+rnbrs <- brute_force_knn(ui10sp_full, k = 4, n_threads = 0)
+check_nbrs(rnbrs, ui10_eucd, tol = 1e-6)
+
+nbrs_zdense <- brute_force_knn(ui10z, k = 4, n_threads = 0)
+nbrs_zsparse <- brute_force_knn(ui10sp, k = 4, n_threads = 0)
+expect_equal(nbrs_zsparse, nbrs_zdense)
+
+expect_equal(
+  brute_force_knn(
+    ui10sp,
+    k = 4,
+    n_threads = 0,
+    metric = "euclidean",
+    use_alt_metric = FALSE
+  ),
+  brute_force_knn(
+    ui10z,
+    k = 4,
+    n_threads = 0,
+    metric = "euclidean",
+    use_alt_metric = FALSE
+  )
+)
+
+expect_equal(
+  brute_force_knn(
+    ui10sp,
+    k = 4,
+    n_threads = 0,
+    metric = "manhattan"
+  ),
+  brute_force_knn(
+    ui10z,
+    k = 4,
+    n_threads = 0,
+    metric = "manhattan"
+  )
+)
+
+
+expect_equal(
+  brute_force_knn(
+    bitdata,
+    k = 4,
+    n_threads = 0,
+    metric = "hamming"
+  ),
+  brute_force_knn(
+    Matrix::drop0(bitdata),
+    k = 4,
+    n_threads = 0,
+    metric = "hamming"
+  )
+)
+
+expect_equal(
+  brute_force_knn(
+    bitdata,
+    k = 4,
+    n_threads = 0,
+    metric = "cosine"
+  ),
+  brute_force_knn(
+    Matrix::drop0(bitdata),
+    k = 4,
+    n_threads = 0,
+    metric = "cosine",
+    use_alt_metric = FALSE
+  ),
+  tol = 1e-6
+)
+
+expect_equal(
+  brute_force_knn(
+    bitdata,
+    k = 4,
+    n_threads = 0,
+    metric = "cosine"
+  ),
+  brute_force_knn(
+    Matrix::drop0(bitdata),
+    k = 4,
+    n_threads = 0,
+    metric = "cosine",
+    use_alt_metric = TRUE
+  ),
+  tol = 1e-6
+)
+
+expect_equal(
+  brute_force_knn(
+    ui10sp,
+    k = 4,
+    n_threads = 0,
+    metric = "correlation"
+  ),
+  brute_force_knn(
+    ui10z,
+    k = 4,
+    n_threads = 0,
+    metric = "correlation"
+  ),
+  tol = 1e-5
+)
+
+# sparse queries
+expect_equal(brute_force_knn_query(ui10sp, ui10sp, k = 4), brute_force_knn(ui10sp, k = 4))
+expect_equal(brute_force_knn_query(ui10sp6, ui10sp4, k = 4), brute_force_knn_query(ui10z6, ui10z4, k = 4))
+expect_equal(brute_force_knn_query(ui10sp4, ui10sp6, k = 4), brute_force_knn_query(ui10z4, ui10z6, k = 4))

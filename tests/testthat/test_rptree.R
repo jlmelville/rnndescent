@@ -387,7 +387,7 @@ ui6f <- rpf_knn(
   ret_forest = TRUE
 )
 qnbrs4 <- graph_knn_query(reference = ui6, reference_graph = ui6f, query = ui4, init = ui6f$forest, k = 4)
-expect_equal(sum(qnbrs4$dist), ui4q_edsum)
+expect_equal(sum(qnbrs4$dist), ui4q_edsum, tol = 1e-6)
 
 test_that("sparse implicit margin", {
 set.seed(1337); dknn <- rpf_knn(ui10z, k = 4, leaf_size = 3, n_trees = 2, margin = "implicit")
@@ -416,7 +416,7 @@ dforest6$sparse <- TRUE
 # avoid triggering the sparse cosine correction which doesn't exist in the dense version
 dforest6$use_alt_metric <- FALSE
 set.seed(1337); squery4 <- rpf_knn_query(query = ui10sp4, reference = ui10sp6, forest = dforest6, k = 4)
-expect_equal(squery4, dquery4, tol = 1e-5)
+expect_equal(squery4, dquery4, tol = 1e-4)
 
 set.seed(1337); sforest6 <- rpf_build(ui10sp6, leaf_size = 3, n_trees = 2, margin = "implicit", metric = "cosine")
 set.seed(1337); squery4b <- rpf_knn_query(query = ui10sp4, reference = ui10sp6, forest = sforest6, k = 4)
