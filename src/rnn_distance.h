@@ -269,10 +269,10 @@ create_self_vector_distance(const Rcpp::NumericMatrix &data,
 template <typename... Args>
 std::unique_ptr<typename FactoryTraits<Args...>::type>
 create_sparse_query_distance_impl(
-    std::vector<typename FactoryTraits<Args...>::input_type> ref_data,
     std::vector<std::size_t> ref_ind, std::vector<std::size_t> ref_ptr,
-    std::vector<typename FactoryTraits<Args...>::input_type> query_data,
+    std::vector<typename FactoryTraits<Args...>::input_type> ref_data,
     std::vector<std::size_t> query_ind, std::vector<std::size_t> query_ptr,
+    std::vector<typename FactoryTraits<Args...>::input_type> query_data,
     std::size_t ndim, const std::string &metric) {
   using In = typename FactoryTraits<Args...>::input_type;
   using Out = typename FactoryTraits<Args...>::output_type;
@@ -327,46 +327,46 @@ create_sparse_query_distance_impl(
 
 template <typename... Args>
 std::unique_ptr<typename FactoryTraits<Args...>::type>
-create_sparse_query_distance_impl(const Rcpp::NumericVector &ref_data,
-                                  const Rcpp::IntegerVector &ref_ind,
+create_sparse_query_distance_impl(const Rcpp::IntegerVector &ref_ind,
                                   const Rcpp::IntegerVector &ref_ptr,
-                                  const Rcpp::NumericVector &query_data,
+                                  const Rcpp::NumericVector &ref_data,
                                   const Rcpp::IntegerVector &query_ind,
                                   const Rcpp::IntegerVector &query_ptr,
+                                  const Rcpp::NumericVector &query_data,
                                   std::size_t ndim, const std::string &metric) {
   using In = typename FactoryTraits<Args...>::input_type;
 
-  auto ref_data_cpp = r_to_vec<In>(ref_data);
   auto ref_ind_cpp = r_to_vec<std::size_t>(ref_ind);
   auto ref_ptr_cpp = r_to_vec<std::size_t>(ref_ptr);
+  auto ref_data_cpp = r_to_vec<In>(ref_data);
 
-  auto query_data_cpp = r_to_vec<In>(query_data);
   auto query_ind_cpp = r_to_vec<std::size_t>(query_ind);
   auto query_ptr_cpp = r_to_vec<std::size_t>(query_ptr);
+  auto query_data_cpp = r_to_vec<In>(query_data);
 
   return create_sparse_query_distance_impl<
       typename FactoryTraits<Args...>::type>(
-      std::move(ref_data_cpp), std::move(ref_ind_cpp), std::move(ref_ptr_cpp),
-      std::move(query_data_cpp), std::move(query_ind_cpp),
-      std::move(query_ptr_cpp), ndim, metric);
+      std::move(ref_ind_cpp), std::move(ref_ptr_cpp), std::move(ref_data_cpp),
+      std::move(query_ind_cpp), std::move(query_ptr_cpp),
+      std::move(query_data_cpp), ndim, metric);
 }
 
 // Factory function to return a BaseDistance
 template <typename Idx = RNN_DEFAULT_IDX>
 std::unique_ptr<tdoann::BaseDistance<RNN_DEFAULT_DIST, Idx>>
-create_sparse_query_distance(const Rcpp::NumericVector &ref_data,
-                             const Rcpp::IntegerVector &ref_ind,
+create_sparse_query_distance(const Rcpp::IntegerVector &ref_ind,
                              const Rcpp::IntegerVector &ref_ptr,
-                             const Rcpp::NumericVector &query_data,
+                             const Rcpp::NumericVector &ref_data,
                              const Rcpp::IntegerVector &query_ind,
                              const Rcpp::IntegerVector &query_ptr,
+                             const Rcpp::NumericVector &query_data,
                              std::size_t ndim, const std::string &metric) {
   // handle special case (e.g. binary) if needed here
 
   return create_sparse_query_distance_impl<
-      tdoann::BaseDistance<RNN_DEFAULT_DIST, Idx>>(ref_data, ref_ind, ref_ptr,
-                                                   query_data, query_ind,
-                                                   query_ptr, ndim, metric);
+      tdoann::BaseDistance<RNN_DEFAULT_DIST, Idx>>(ref_ind, ref_ptr, ref_data,
+                                                   query_ind, query_ptr,
+                                                   query_data, ndim, metric);
 }
 
 // Factory function to return a sparse VectorDistance
@@ -374,22 +374,22 @@ template <typename Idx = RNN_DEFAULT_IDX>
 std::unique_ptr<
     tdoann::SparseVectorDistance<RNN_DEFAULT_IN, RNN_DEFAULT_DIST, Idx>>
 create_sparse_query_vector_distance(
-    const Rcpp::NumericVector &ref_data, const Rcpp::IntegerVector &ref_ind,
-    const Rcpp::IntegerVector &ref_ptr, const Rcpp::NumericVector &query_data,
-    const Rcpp::IntegerVector &query_ind, const Rcpp::IntegerVector &query_ptr,
+    const Rcpp::IntegerVector &ref_ind, const Rcpp::IntegerVector &ref_ptr,
+    const Rcpp::NumericVector &ref_data, const Rcpp::IntegerVector &query_ind,
+    const Rcpp::IntegerVector &query_ptr, const Rcpp::NumericVector &query_data,
     std::size_t ndim, const std::string &metric) {
 
   return create_sparse_query_distance_impl<
       tdoann::SparseVectorDistance<RNN_DEFAULT_IN, RNN_DEFAULT_DIST, Idx>>(
-      ref_data, ref_ind, ref_ptr, query_data, query_ind, query_ptr, ndim,
+      ref_ind, ref_ptr, ref_data, query_ind, query_ptr, query_data, ndim,
       metric);
 }
 
 template <typename... Args>
 std::unique_ptr<typename FactoryTraits<Args...>::type>
 create_sparse_self_distance_impl(
-    std::vector<typename FactoryTraits<Args...>::input_type> data_vec,
     std::vector<std::size_t> ind_vec, std::vector<std::size_t> ptr_vec,
+    std::vector<typename FactoryTraits<Args...>::input_type> data_vec,
     std::size_t ndim, const std::string &metric) {
   using In = typename FactoryTraits<Args...>::input_type;
   using Out = typename FactoryTraits<Args...>::output_type;
@@ -430,45 +430,45 @@ create_sparse_self_distance_impl(
 
 template <typename... Args>
 std::unique_ptr<typename FactoryTraits<Args...>::type>
-create_sparse_self_distance_impl(const Rcpp::NumericVector &data,
-                                 const Rcpp::IntegerVector &ind,
+create_sparse_self_distance_impl(const Rcpp::IntegerVector &ind,
                                  const Rcpp::IntegerVector &ptr,
+                                 const Rcpp::NumericVector &data,
                                  std::size_t ndim, const std::string &metric) {
   using In = typename FactoryTraits<Args...>::input_type;
 
-  auto data_vec = r_to_vec<In>(data);
   auto ind_vec = r_to_vec<std::size_t>(ind);
   auto ptr_vec = r_to_vec<std::size_t>(ptr);
+  auto data_vec = r_to_vec<In>(data);
 
   return create_sparse_self_distance_impl<
-      typename FactoryTraits<Args...>::type>(std::move(data_vec),
-                                             std::move(ind_vec),
-                                             std::move(ptr_vec), ndim, metric);
+      typename FactoryTraits<Args...>::type>(std::move(ind_vec),
+                                             std::move(ptr_vec),
+                                             std::move(data_vec), ndim, metric);
 }
 
 // Factory function to return a BaseDistance
 template <typename Idx = RNN_DEFAULT_IDX>
 std::unique_ptr<tdoann::BaseDistance<RNN_DEFAULT_DIST, Idx>>
-create_sparse_self_distance(const Rcpp::NumericVector &data,
-                            const Rcpp::IntegerVector &ind,
-                            const Rcpp::IntegerVector &ptr, std::size_t ndim,
+create_sparse_self_distance(const Rcpp::IntegerVector &ind,
+                            const Rcpp::IntegerVector &ptr,
+                            const Rcpp::NumericVector &data, std::size_t ndim,
                             const std::string &metric) {
   // handle special case (e.g. binary) if needed here
 
   return create_sparse_self_distance_impl<
-      tdoann::BaseDistance<RNN_DEFAULT_DIST, Idx>>(data, ind, ptr, ndim,
+      tdoann::BaseDistance<RNN_DEFAULT_DIST, Idx>>(ind, ptr, data, ndim,
                                                    metric);
 }
 
 template <typename In = RNN_DEFAULT_DIST, typename Idx = RNN_DEFAULT_IDX>
 std::unique_ptr<tdoann::BaseDistance<RNN_DEFAULT_DIST, Idx>>
-create_sparse_self_distance(std::vector<In> data_vec,
-                            std::vector<std::size_t> ind_vec,
-                            std::vector<std::size_t> ptr_vec, std::size_t ndim,
+create_sparse_self_distance(std::vector<std::size_t> ind_vec,
+                            std::vector<std::size_t> ptr_vec,
+                            std::vector<In> data_vec, std::size_t ndim,
                             const std::string &metric) {
   return create_sparse_self_distance_impl<
       tdoann::BaseDistance<RNN_DEFAULT_DIST, Idx>>(
-      std::move(data_vec), std::move(ind_vec), std::move(ptr_vec), ndim,
+      std::move(ind_vec), std::move(ptr_vec), std::move(data_vec), ndim,
       metric);
 }
 

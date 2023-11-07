@@ -55,12 +55,12 @@ List rnn_brute_force(const NumericMatrix &data, uint32_t nnbrs,
 }
 
 // [[Rcpp::export]]
-List rnn_brute_force_sparse(const NumericVector &data, const IntegerVector &ind,
-                            const IntegerVector &ptr, std::size_t ndim,
+List rnn_brute_force_sparse(const IntegerVector &ind, const IntegerVector &ptr,
+                            const NumericVector &data, std::size_t ndim,
                             uint32_t nnbrs,
                             const std::string &metric = "euclidean",
                             std::size_t n_threads = 0, bool verbose = false) {
-  auto distance_ptr = create_sparse_self_distance(data, ind, ptr, ndim, metric);
+  auto distance_ptr = create_sparse_self_distance(ind, ptr, data, ndim, metric);
   return rnn_brute_force_impl(*distance_ptr, nnbrs, n_threads, verbose);
 }
 
@@ -88,14 +88,14 @@ List rnn_brute_force_query(const NumericMatrix &reference,
 
 // [[Rcpp::export]]
 List rnn_brute_force_query_sparse(
-    const NumericVector &ref_data, const IntegerVector &ref_ind,
-    const IntegerVector &ref_ptr, const NumericVector &query_data,
-    const IntegerVector &query_ind, const IntegerVector &query_ptr,
+    const IntegerVector &ref_ind, const IntegerVector &ref_ptr,
+    const NumericVector &ref_data, const IntegerVector &query_ind,
+    const IntegerVector &query_ptr, const NumericVector &query_data,
     std::size_t ndim, uint32_t nnbrs, const std::string &metric = "euclidean",
     std::size_t n_threads = 0, bool verbose = false) {
   auto distance_ptr =
-      create_sparse_query_distance(ref_data, ref_ind, ref_ptr, query_data,
-                                   query_ind, query_ptr, ndim, metric);
+      create_sparse_query_distance(ref_ind, ref_ptr, ref_data,
+                                   query_ind, query_ptr, query_data, ndim, metric);
   return rnn_brute_force_query_impl(*distance_ptr, nnbrs, n_threads, verbose);
 }
 

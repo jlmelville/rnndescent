@@ -83,12 +83,12 @@ prepare_init_graph <-
       if (!is.null(query)) {
         if (is_sparse(data)) {
           nn <- rnn_idx_to_graph_query_sparse(
-            ref_data = data@x,
             ref_ind = data@i,
             ref_ptr = data@p,
-            query_data = query@x,
+            ref_data = data@x,
             query_ind = query@i,
             query_ptr = query@p,
+            query_data = query@x,
             ndim = nrow(data),
             idx = nn$idx,
             metric = metric,
@@ -111,9 +111,9 @@ prepare_init_graph <-
         if (is_sparse(data)) {
           nn <-
             rnn_idx_to_graph_self_sparse(
-              data = data@x,
               ind = data@i,
               ptr = data@p,
+              data = data@x,
               ndim = nrow(data),
               idx = nn$idx,
               metric = metric,
@@ -381,9 +381,9 @@ rpf_knn_impl <-
     if (margin == "implicit") {
       if (is_sparse(data)) {
         res <- rp_tree_knn_implicit_sparse(
-          data = data@x,
           ind = data@i,
           ptr = data@p,
+          data = data@x,
           ndim = nrow(data),
           nnbrs = k,
           metric = actual_metric,
@@ -414,9 +414,9 @@ rpf_knn_impl <-
     else {
       if (is_sparse(data)) {
         res <- rp_tree_knn_explicit_sparse(
-          data = data@x,
           ind = data@i,
           ptr = data@p,
+          data = data@x,
           ndim = nrow(data),
           nnbrs = k,
           metric = actual_metric,
@@ -502,12 +502,12 @@ random_knn_impl <-
         fun <- random_knn_query_sparse
         args <-
           list(
-            ref_data = reference@x,
             ref_ind = reference@i,
             ref_ptr = reference@p,
-            query_data = query@x,
+            ref_data = reference@x,
             query_ind = query@i,
             query_ptr = query@p,
+            query_data = query@x,
             ndim = nrow(reference)
           )
       }

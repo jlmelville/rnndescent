@@ -26,20 +26,20 @@ BEGIN_RCPP
 END_RCPP
 }
 // rnn_brute_force_sparse
-List rnn_brute_force_sparse(const NumericVector& data, const IntegerVector& ind, const IntegerVector& ptr, std::size_t ndim, uint32_t nnbrs, const std::string& metric, std::size_t n_threads, bool verbose);
-RcppExport SEXP _rnndescent_rnn_brute_force_sparse(SEXP dataSEXP, SEXP indSEXP, SEXP ptrSEXP, SEXP ndimSEXP, SEXP nnbrsSEXP, SEXP metricSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
+List rnn_brute_force_sparse(const IntegerVector& ind, const IntegerVector& ptr, const NumericVector& data, std::size_t ndim, uint32_t nnbrs, const std::string& metric, std::size_t n_threads, bool verbose);
+RcppExport SEXP _rnndescent_rnn_brute_force_sparse(SEXP indSEXP, SEXP ptrSEXP, SEXP dataSEXP, SEXP ndimSEXP, SEXP nnbrsSEXP, SEXP metricSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const NumericVector& >::type data(dataSEXP);
     Rcpp::traits::input_parameter< const IntegerVector& >::type ind(indSEXP);
     Rcpp::traits::input_parameter< const IntegerVector& >::type ptr(ptrSEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type data(dataSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type ndim(ndimSEXP);
     Rcpp::traits::input_parameter< uint32_t >::type nnbrs(nnbrsSEXP);
     Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type n_threads(n_threadsSEXP);
     Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
-    rcpp_result_gen = Rcpp::wrap(rnn_brute_force_sparse(data, ind, ptr, ndim, nnbrs, metric, n_threads, verbose));
+    rcpp_result_gen = Rcpp::wrap(rnn_brute_force_sparse(ind, ptr, data, ndim, nnbrs, metric, n_threads, verbose));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -60,23 +60,23 @@ BEGIN_RCPP
 END_RCPP
 }
 // rnn_brute_force_query_sparse
-List rnn_brute_force_query_sparse(const NumericVector& ref_data, const IntegerVector& ref_ind, const IntegerVector& ref_ptr, const NumericVector& query_data, const IntegerVector& query_ind, const IntegerVector& query_ptr, std::size_t ndim, uint32_t nnbrs, const std::string& metric, std::size_t n_threads, bool verbose);
-RcppExport SEXP _rnndescent_rnn_brute_force_query_sparse(SEXP ref_dataSEXP, SEXP ref_indSEXP, SEXP ref_ptrSEXP, SEXP query_dataSEXP, SEXP query_indSEXP, SEXP query_ptrSEXP, SEXP ndimSEXP, SEXP nnbrsSEXP, SEXP metricSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
+List rnn_brute_force_query_sparse(const IntegerVector& ref_ind, const IntegerVector& ref_ptr, const NumericVector& ref_data, const IntegerVector& query_ind, const IntegerVector& query_ptr, const NumericVector& query_data, std::size_t ndim, uint32_t nnbrs, const std::string& metric, std::size_t n_threads, bool verbose);
+RcppExport SEXP _rnndescent_rnn_brute_force_query_sparse(SEXP ref_indSEXP, SEXP ref_ptrSEXP, SEXP ref_dataSEXP, SEXP query_indSEXP, SEXP query_ptrSEXP, SEXP query_dataSEXP, SEXP ndimSEXP, SEXP nnbrsSEXP, SEXP metricSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const NumericVector& >::type ref_data(ref_dataSEXP);
     Rcpp::traits::input_parameter< const IntegerVector& >::type ref_ind(ref_indSEXP);
     Rcpp::traits::input_parameter< const IntegerVector& >::type ref_ptr(ref_ptrSEXP);
-    Rcpp::traits::input_parameter< const NumericVector& >::type query_data(query_dataSEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type ref_data(ref_dataSEXP);
     Rcpp::traits::input_parameter< const IntegerVector& >::type query_ind(query_indSEXP);
     Rcpp::traits::input_parameter< const IntegerVector& >::type query_ptr(query_ptrSEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type query_data(query_dataSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type ndim(ndimSEXP);
     Rcpp::traits::input_parameter< uint32_t >::type nnbrs(nnbrsSEXP);
     Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type n_threads(n_threadsSEXP);
     Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
-    rcpp_result_gen = Rcpp::wrap(rnn_brute_force_query_sparse(ref_data, ref_ind, ref_ptr, query_data, query_ind, query_ptr, ndim, nnbrs, metric, n_threads, verbose));
+    rcpp_result_gen = Rcpp::wrap(rnn_brute_force_query_sparse(ref_ind, ref_ptr, ref_data, query_ind, query_ptr, query_data, ndim, nnbrs, metric, n_threads, verbose));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -167,20 +167,20 @@ BEGIN_RCPP
 END_RCPP
 }
 // rnn_idx_to_graph_self_sparse
-List rnn_idx_to_graph_self_sparse(const NumericVector& data, const IntegerVector& ind, const IntegerVector& ptr, std::size_t ndim, const IntegerMatrix& idx, const std::string& metric, std::size_t n_threads, bool verbose);
-RcppExport SEXP _rnndescent_rnn_idx_to_graph_self_sparse(SEXP dataSEXP, SEXP indSEXP, SEXP ptrSEXP, SEXP ndimSEXP, SEXP idxSEXP, SEXP metricSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
+List rnn_idx_to_graph_self_sparse(const IntegerVector& ind, const IntegerVector& ptr, const NumericVector& data, std::size_t ndim, const IntegerMatrix& idx, const std::string& metric, std::size_t n_threads, bool verbose);
+RcppExport SEXP _rnndescent_rnn_idx_to_graph_self_sparse(SEXP indSEXP, SEXP ptrSEXP, SEXP dataSEXP, SEXP ndimSEXP, SEXP idxSEXP, SEXP metricSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const NumericVector& >::type data(dataSEXP);
     Rcpp::traits::input_parameter< const IntegerVector& >::type ind(indSEXP);
     Rcpp::traits::input_parameter< const IntegerVector& >::type ptr(ptrSEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type data(dataSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type ndim(ndimSEXP);
     Rcpp::traits::input_parameter< const IntegerMatrix& >::type idx(idxSEXP);
     Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type n_threads(n_threadsSEXP);
     Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
-    rcpp_result_gen = Rcpp::wrap(rnn_idx_to_graph_self_sparse(data, ind, ptr, ndim, idx, metric, n_threads, verbose));
+    rcpp_result_gen = Rcpp::wrap(rnn_idx_to_graph_self_sparse(ind, ptr, data, ndim, idx, metric, n_threads, verbose));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -216,23 +216,23 @@ BEGIN_RCPP
 END_RCPP
 }
 // rnn_idx_to_graph_query_sparse
-List rnn_idx_to_graph_query_sparse(const NumericVector& ref_data, const IntegerVector& ref_ind, const IntegerVector& ref_ptr, const NumericVector& query_data, const IntegerVector& query_ind, const IntegerVector& query_ptr, std::size_t ndim, const IntegerMatrix& idx, const std::string& metric, std::size_t n_threads, bool verbose);
-RcppExport SEXP _rnndescent_rnn_idx_to_graph_query_sparse(SEXP ref_dataSEXP, SEXP ref_indSEXP, SEXP ref_ptrSEXP, SEXP query_dataSEXP, SEXP query_indSEXP, SEXP query_ptrSEXP, SEXP ndimSEXP, SEXP idxSEXP, SEXP metricSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
+List rnn_idx_to_graph_query_sparse(const IntegerVector& ref_ind, const IntegerVector& ref_ptr, const NumericVector& ref_data, const IntegerVector& query_ind, const IntegerVector& query_ptr, const NumericVector& query_data, std::size_t ndim, const IntegerMatrix& idx, const std::string& metric, std::size_t n_threads, bool verbose);
+RcppExport SEXP _rnndescent_rnn_idx_to_graph_query_sparse(SEXP ref_indSEXP, SEXP ref_ptrSEXP, SEXP ref_dataSEXP, SEXP query_indSEXP, SEXP query_ptrSEXP, SEXP query_dataSEXP, SEXP ndimSEXP, SEXP idxSEXP, SEXP metricSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const NumericVector& >::type ref_data(ref_dataSEXP);
     Rcpp::traits::input_parameter< const IntegerVector& >::type ref_ind(ref_indSEXP);
     Rcpp::traits::input_parameter< const IntegerVector& >::type ref_ptr(ref_ptrSEXP);
-    Rcpp::traits::input_parameter< const NumericVector& >::type query_data(query_dataSEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type ref_data(ref_dataSEXP);
     Rcpp::traits::input_parameter< const IntegerVector& >::type query_ind(query_indSEXP);
     Rcpp::traits::input_parameter< const IntegerVector& >::type query_ptr(query_ptrSEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type query_data(query_dataSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type ndim(ndimSEXP);
     Rcpp::traits::input_parameter< const IntegerMatrix& >::type idx(idxSEXP);
     Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type n_threads(n_threadsSEXP);
     Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
-    rcpp_result_gen = Rcpp::wrap(rnn_idx_to_graph_query_sparse(ref_data, ref_ind, ref_ptr, query_data, query_ind, query_ptr, ndim, idx, metric, n_threads, verbose));
+    rcpp_result_gen = Rcpp::wrap(rnn_idx_to_graph_query_sparse(ref_ind, ref_ptr, ref_data, query_ind, query_ptr, query_data, ndim, idx, metric, n_threads, verbose));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -306,14 +306,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // nn_descent_sparse
-List nn_descent_sparse(const NumericVector& data, const IntegerVector& ind, const IntegerVector& ptr, std::size_t ndim, const IntegerMatrix& nn_idx, const NumericMatrix& nn_dist, const std::string& metric, std::size_t max_candidates, uint32_t n_iters, double delta, bool low_memory, std::size_t n_threads, bool verbose, const std::string& progress_type);
-RcppExport SEXP _rnndescent_nn_descent_sparse(SEXP dataSEXP, SEXP indSEXP, SEXP ptrSEXP, SEXP ndimSEXP, SEXP nn_idxSEXP, SEXP nn_distSEXP, SEXP metricSEXP, SEXP max_candidatesSEXP, SEXP n_itersSEXP, SEXP deltaSEXP, SEXP low_memorySEXP, SEXP n_threadsSEXP, SEXP verboseSEXP, SEXP progress_typeSEXP) {
+List nn_descent_sparse(const IntegerVector& ind, const IntegerVector& ptr, const NumericVector& data, std::size_t ndim, const IntegerMatrix& nn_idx, const NumericMatrix& nn_dist, const std::string& metric, std::size_t max_candidates, uint32_t n_iters, double delta, bool low_memory, std::size_t n_threads, bool verbose, const std::string& progress_type);
+RcppExport SEXP _rnndescent_nn_descent_sparse(SEXP indSEXP, SEXP ptrSEXP, SEXP dataSEXP, SEXP ndimSEXP, SEXP nn_idxSEXP, SEXP nn_distSEXP, SEXP metricSEXP, SEXP max_candidatesSEXP, SEXP n_itersSEXP, SEXP deltaSEXP, SEXP low_memorySEXP, SEXP n_threadsSEXP, SEXP verboseSEXP, SEXP progress_typeSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const NumericVector& >::type data(dataSEXP);
     Rcpp::traits::input_parameter< const IntegerVector& >::type ind(indSEXP);
     Rcpp::traits::input_parameter< const IntegerVector& >::type ptr(ptrSEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type data(dataSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type ndim(ndimSEXP);
     Rcpp::traits::input_parameter< const IntegerMatrix& >::type nn_idx(nn_idxSEXP);
     Rcpp::traits::input_parameter< const NumericMatrix& >::type nn_dist(nn_distSEXP);
@@ -325,25 +325,25 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< std::size_t >::type n_threads(n_threadsSEXP);
     Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
     Rcpp::traits::input_parameter< const std::string& >::type progress_type(progress_typeSEXP);
-    rcpp_result_gen = Rcpp::wrap(nn_descent_sparse(data, ind, ptr, ndim, nn_idx, nn_dist, metric, max_candidates, n_iters, delta, low_memory, n_threads, verbose, progress_type));
+    rcpp_result_gen = Rcpp::wrap(nn_descent_sparse(ind, ptr, data, ndim, nn_idx, nn_dist, metric, max_candidates, n_iters, delta, low_memory, n_threads, verbose, progress_type));
     return rcpp_result_gen;
 END_RCPP
 }
 // diversify_sparse_cpp
-List diversify_sparse_cpp(const NumericVector& data, const IntegerVector& ind, const IntegerVector& ptr, std::size_t ndim, const List& graph_list, const std::string& metric, double prune_probability, std::size_t n_threads);
-RcppExport SEXP _rnndescent_diversify_sparse_cpp(SEXP dataSEXP, SEXP indSEXP, SEXP ptrSEXP, SEXP ndimSEXP, SEXP graph_listSEXP, SEXP metricSEXP, SEXP prune_probabilitySEXP, SEXP n_threadsSEXP) {
+List diversify_sparse_cpp(const IntegerVector& ind, const IntegerVector& ptr, const NumericVector& data, std::size_t ndim, const List& graph_list, const std::string& metric, double prune_probability, std::size_t n_threads);
+RcppExport SEXP _rnndescent_diversify_sparse_cpp(SEXP indSEXP, SEXP ptrSEXP, SEXP dataSEXP, SEXP ndimSEXP, SEXP graph_listSEXP, SEXP metricSEXP, SEXP prune_probabilitySEXP, SEXP n_threadsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const NumericVector& >::type data(dataSEXP);
     Rcpp::traits::input_parameter< const IntegerVector& >::type ind(indSEXP);
     Rcpp::traits::input_parameter< const IntegerVector& >::type ptr(ptrSEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type data(dataSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type ndim(ndimSEXP);
     Rcpp::traits::input_parameter< const List& >::type graph_list(graph_listSEXP);
     Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
     Rcpp::traits::input_parameter< double >::type prune_probability(prune_probabilitySEXP);
     Rcpp::traits::input_parameter< std::size_t >::type n_threads(n_threadsSEXP);
-    rcpp_result_gen = Rcpp::wrap(diversify_sparse_cpp(data, ind, ptr, ndim, graph_list, metric, prune_probability, n_threads));
+    rcpp_result_gen = Rcpp::wrap(diversify_sparse_cpp(ind, ptr, data, ndim, graph_list, metric, prune_probability, n_threads));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -388,21 +388,21 @@ BEGIN_RCPP
 END_RCPP
 }
 // random_knn_sparse
-List random_knn_sparse(const NumericVector& data, const IntegerVector& ind, const IntegerVector& ptr, std::size_t ndim, uint32_t nnbrs, const std::string& metric, bool order_by_distance, std::size_t n_threads, bool verbose);
-RcppExport SEXP _rnndescent_random_knn_sparse(SEXP dataSEXP, SEXP indSEXP, SEXP ptrSEXP, SEXP ndimSEXP, SEXP nnbrsSEXP, SEXP metricSEXP, SEXP order_by_distanceSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
+List random_knn_sparse(const IntegerVector& ind, const IntegerVector& ptr, const NumericVector& data, std::size_t ndim, uint32_t nnbrs, const std::string& metric, bool order_by_distance, std::size_t n_threads, bool verbose);
+RcppExport SEXP _rnndescent_random_knn_sparse(SEXP indSEXP, SEXP ptrSEXP, SEXP dataSEXP, SEXP ndimSEXP, SEXP nnbrsSEXP, SEXP metricSEXP, SEXP order_by_distanceSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const NumericVector& >::type data(dataSEXP);
     Rcpp::traits::input_parameter< const IntegerVector& >::type ind(indSEXP);
     Rcpp::traits::input_parameter< const IntegerVector& >::type ptr(ptrSEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type data(dataSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type ndim(ndimSEXP);
     Rcpp::traits::input_parameter< uint32_t >::type nnbrs(nnbrsSEXP);
     Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
     Rcpp::traits::input_parameter< bool >::type order_by_distance(order_by_distanceSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type n_threads(n_threadsSEXP);
     Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
-    rcpp_result_gen = Rcpp::wrap(random_knn_sparse(data, ind, ptr, ndim, nnbrs, metric, order_by_distance, n_threads, verbose));
+    rcpp_result_gen = Rcpp::wrap(random_knn_sparse(ind, ptr, data, ndim, nnbrs, metric, order_by_distance, n_threads, verbose));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -440,24 +440,24 @@ BEGIN_RCPP
 END_RCPP
 }
 // random_knn_query_sparse
-List random_knn_query_sparse(const NumericVector& ref_data, const IntegerVector& ref_ind, const IntegerVector& ref_ptr, const NumericVector& query_data, const IntegerVector& query_ind, const IntegerVector& query_ptr, std::size_t ndim, uint32_t nnbrs, const std::string& metric, bool order_by_distance, std::size_t n_threads, bool verbose);
-RcppExport SEXP _rnndescent_random_knn_query_sparse(SEXP ref_dataSEXP, SEXP ref_indSEXP, SEXP ref_ptrSEXP, SEXP query_dataSEXP, SEXP query_indSEXP, SEXP query_ptrSEXP, SEXP ndimSEXP, SEXP nnbrsSEXP, SEXP metricSEXP, SEXP order_by_distanceSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
+List random_knn_query_sparse(const IntegerVector& ref_ind, const IntegerVector& ref_ptr, const NumericVector& ref_data, const IntegerVector& query_ind, const IntegerVector& query_ptr, const NumericVector& query_data, std::size_t ndim, uint32_t nnbrs, const std::string& metric, bool order_by_distance, std::size_t n_threads, bool verbose);
+RcppExport SEXP _rnndescent_random_knn_query_sparse(SEXP ref_indSEXP, SEXP ref_ptrSEXP, SEXP ref_dataSEXP, SEXP query_indSEXP, SEXP query_ptrSEXP, SEXP query_dataSEXP, SEXP ndimSEXP, SEXP nnbrsSEXP, SEXP metricSEXP, SEXP order_by_distanceSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const NumericVector& >::type ref_data(ref_dataSEXP);
     Rcpp::traits::input_parameter< const IntegerVector& >::type ref_ind(ref_indSEXP);
     Rcpp::traits::input_parameter< const IntegerVector& >::type ref_ptr(ref_ptrSEXP);
-    Rcpp::traits::input_parameter< const NumericVector& >::type query_data(query_dataSEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type ref_data(ref_dataSEXP);
     Rcpp::traits::input_parameter< const IntegerVector& >::type query_ind(query_indSEXP);
     Rcpp::traits::input_parameter< const IntegerVector& >::type query_ptr(query_ptrSEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type query_data(query_dataSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type ndim(ndimSEXP);
     Rcpp::traits::input_parameter< uint32_t >::type nnbrs(nnbrsSEXP);
     Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
     Rcpp::traits::input_parameter< bool >::type order_by_distance(order_by_distanceSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type n_threads(n_threadsSEXP);
     Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
-    rcpp_result_gen = Rcpp::wrap(random_knn_query_sparse(ref_data, ref_ind, ref_ptr, query_data, query_ind, query_ptr, ndim, nnbrs, metric, order_by_distance, n_threads, verbose));
+    rcpp_result_gen = Rcpp::wrap(random_knn_query_sparse(ref_ind, ref_ptr, ref_data, query_ind, query_ptr, query_data, ndim, nnbrs, metric, order_by_distance, n_threads, verbose));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -482,14 +482,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // rp_tree_knn_explicit_sparse
-List rp_tree_knn_explicit_sparse(const NumericVector& data, const IntegerVector& ind, const IntegerVector& ptr, std::size_t ndim, uint32_t nnbrs, const std::string& metric, uint32_t n_trees, uint32_t leaf_size, bool include_self, bool unzero, bool ret_forest, std::size_t n_threads, bool verbose);
-RcppExport SEXP _rnndescent_rp_tree_knn_explicit_sparse(SEXP dataSEXP, SEXP indSEXP, SEXP ptrSEXP, SEXP ndimSEXP, SEXP nnbrsSEXP, SEXP metricSEXP, SEXP n_treesSEXP, SEXP leaf_sizeSEXP, SEXP include_selfSEXP, SEXP unzeroSEXP, SEXP ret_forestSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
+List rp_tree_knn_explicit_sparse(const IntegerVector& ind, const IntegerVector& ptr, const NumericVector& data, std::size_t ndim, uint32_t nnbrs, const std::string& metric, uint32_t n_trees, uint32_t leaf_size, bool include_self, bool unzero, bool ret_forest, std::size_t n_threads, bool verbose);
+RcppExport SEXP _rnndescent_rp_tree_knn_explicit_sparse(SEXP indSEXP, SEXP ptrSEXP, SEXP dataSEXP, SEXP ndimSEXP, SEXP nnbrsSEXP, SEXP metricSEXP, SEXP n_treesSEXP, SEXP leaf_sizeSEXP, SEXP include_selfSEXP, SEXP unzeroSEXP, SEXP ret_forestSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const NumericVector& >::type data(dataSEXP);
     Rcpp::traits::input_parameter< const IntegerVector& >::type ind(indSEXP);
     Rcpp::traits::input_parameter< const IntegerVector& >::type ptr(ptrSEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type data(dataSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type ndim(ndimSEXP);
     Rcpp::traits::input_parameter< uint32_t >::type nnbrs(nnbrsSEXP);
     Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
@@ -500,19 +500,19 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< bool >::type ret_forest(ret_forestSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type n_threads(n_threadsSEXP);
     Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
-    rcpp_result_gen = Rcpp::wrap(rp_tree_knn_explicit_sparse(data, ind, ptr, ndim, nnbrs, metric, n_trees, leaf_size, include_self, unzero, ret_forest, n_threads, verbose));
+    rcpp_result_gen = Rcpp::wrap(rp_tree_knn_explicit_sparse(ind, ptr, data, ndim, nnbrs, metric, n_trees, leaf_size, include_self, unzero, ret_forest, n_threads, verbose));
     return rcpp_result_gen;
 END_RCPP
 }
 // rp_tree_knn_implicit_sparse
-List rp_tree_knn_implicit_sparse(const NumericVector& data, const IntegerVector& ind, const IntegerVector& ptr, std::size_t ndim, uint32_t nnbrs, const std::string& metric, uint32_t n_trees, uint32_t leaf_size, bool include_self, bool unzero, bool ret_forest, std::size_t n_threads, bool verbose);
-RcppExport SEXP _rnndescent_rp_tree_knn_implicit_sparse(SEXP dataSEXP, SEXP indSEXP, SEXP ptrSEXP, SEXP ndimSEXP, SEXP nnbrsSEXP, SEXP metricSEXP, SEXP n_treesSEXP, SEXP leaf_sizeSEXP, SEXP include_selfSEXP, SEXP unzeroSEXP, SEXP ret_forestSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
+List rp_tree_knn_implicit_sparse(const IntegerVector& ind, const IntegerVector& ptr, const NumericVector& data, std::size_t ndim, uint32_t nnbrs, const std::string& metric, uint32_t n_trees, uint32_t leaf_size, bool include_self, bool unzero, bool ret_forest, std::size_t n_threads, bool verbose);
+RcppExport SEXP _rnndescent_rp_tree_knn_implicit_sparse(SEXP indSEXP, SEXP ptrSEXP, SEXP dataSEXP, SEXP ndimSEXP, SEXP nnbrsSEXP, SEXP metricSEXP, SEXP n_treesSEXP, SEXP leaf_sizeSEXP, SEXP include_selfSEXP, SEXP unzeroSEXP, SEXP ret_forestSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const NumericVector& >::type data(dataSEXP);
     Rcpp::traits::input_parameter< const IntegerVector& >::type ind(indSEXP);
     Rcpp::traits::input_parameter< const IntegerVector& >::type ptr(ptrSEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type data(dataSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type ndim(ndimSEXP);
     Rcpp::traits::input_parameter< uint32_t >::type nnbrs(nnbrsSEXP);
     Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
@@ -523,7 +523,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< bool >::type ret_forest(ret_forestSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type n_threads(n_threadsSEXP);
     Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
-    rcpp_result_gen = Rcpp::wrap(rp_tree_knn_implicit_sparse(data, ind, ptr, ndim, nnbrs, metric, n_trees, leaf_size, include_self, unzero, ret_forest, n_threads, verbose));
+    rcpp_result_gen = Rcpp::wrap(rp_tree_knn_implicit_sparse(ind, ptr, data, ndim, nnbrs, metric, n_trees, leaf_size, include_self, unzero, ret_forest, n_threads, verbose));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -564,21 +564,21 @@ BEGIN_RCPP
 END_RCPP
 }
 // rnn_rp_forest_build_sparse
-List rnn_rp_forest_build_sparse(const NumericVector& data, const IntegerVector& ind, const IntegerVector& ptr, std::size_t ndim, const std::string& metric, uint32_t n_trees, uint32_t leaf_size, std::size_t n_threads, bool verbose);
-RcppExport SEXP _rnndescent_rnn_rp_forest_build_sparse(SEXP dataSEXP, SEXP indSEXP, SEXP ptrSEXP, SEXP ndimSEXP, SEXP metricSEXP, SEXP n_treesSEXP, SEXP leaf_sizeSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
+List rnn_rp_forest_build_sparse(const IntegerVector& ind, const IntegerVector& ptr, const NumericVector& data, std::size_t ndim, const std::string& metric, uint32_t n_trees, uint32_t leaf_size, std::size_t n_threads, bool verbose);
+RcppExport SEXP _rnndescent_rnn_rp_forest_build_sparse(SEXP indSEXP, SEXP ptrSEXP, SEXP dataSEXP, SEXP ndimSEXP, SEXP metricSEXP, SEXP n_treesSEXP, SEXP leaf_sizeSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const NumericVector& >::type data(dataSEXP);
     Rcpp::traits::input_parameter< const IntegerVector& >::type ind(indSEXP);
     Rcpp::traits::input_parameter< const IntegerVector& >::type ptr(ptrSEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type data(dataSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type ndim(ndimSEXP);
     Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
     Rcpp::traits::input_parameter< uint32_t >::type n_trees(n_treesSEXP);
     Rcpp::traits::input_parameter< uint32_t >::type leaf_size(leaf_sizeSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type n_threads(n_threadsSEXP);
     Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
-    rcpp_result_gen = Rcpp::wrap(rnn_rp_forest_build_sparse(data, ind, ptr, ndim, metric, n_trees, leaf_size, n_threads, verbose));
+    rcpp_result_gen = Rcpp::wrap(rnn_rp_forest_build_sparse(ind, ptr, data, ndim, metric, n_trees, leaf_size, n_threads, verbose));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -599,21 +599,21 @@ BEGIN_RCPP
 END_RCPP
 }
 // rnn_rp_forest_implicit_build_sparse
-List rnn_rp_forest_implicit_build_sparse(const NumericVector& data, const IntegerVector& ind, const IntegerVector& ptr, std::size_t ndim, const std::string& metric, uint32_t n_trees, uint32_t leaf_size, std::size_t n_threads, bool verbose);
-RcppExport SEXP _rnndescent_rnn_rp_forest_implicit_build_sparse(SEXP dataSEXP, SEXP indSEXP, SEXP ptrSEXP, SEXP ndimSEXP, SEXP metricSEXP, SEXP n_treesSEXP, SEXP leaf_sizeSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
+List rnn_rp_forest_implicit_build_sparse(const IntegerVector& ind, const IntegerVector& ptr, const NumericVector& data, std::size_t ndim, const std::string& metric, uint32_t n_trees, uint32_t leaf_size, std::size_t n_threads, bool verbose);
+RcppExport SEXP _rnndescent_rnn_rp_forest_implicit_build_sparse(SEXP indSEXP, SEXP ptrSEXP, SEXP dataSEXP, SEXP ndimSEXP, SEXP metricSEXP, SEXP n_treesSEXP, SEXP leaf_sizeSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const NumericVector& >::type data(dataSEXP);
     Rcpp::traits::input_parameter< const IntegerVector& >::type ind(indSEXP);
     Rcpp::traits::input_parameter< const IntegerVector& >::type ptr(ptrSEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type data(dataSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type ndim(ndimSEXP);
     Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
     Rcpp::traits::input_parameter< uint32_t >::type n_trees(n_treesSEXP);
     Rcpp::traits::input_parameter< uint32_t >::type leaf_size(leaf_sizeSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type n_threads(n_threadsSEXP);
     Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
-    rcpp_result_gen = Rcpp::wrap(rnn_rp_forest_implicit_build_sparse(data, ind, ptr, ndim, metric, n_trees, leaf_size, n_threads, verbose));
+    rcpp_result_gen = Rcpp::wrap(rnn_rp_forest_implicit_build_sparse(ind, ptr, data, ndim, metric, n_trees, leaf_size, n_threads, verbose));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -636,17 +636,17 @@ BEGIN_RCPP
 END_RCPP
 }
 // rnn_rp_forest_search_sparse
-List rnn_rp_forest_search_sparse(const NumericVector& ref_data, const IntegerVector& ref_ind, const IntegerVector& ref_ptr, const NumericVector& query_data, const IntegerVector& query_ind, const IntegerVector& query_ptr, std::size_t ndim, List search_forest, uint32_t n_nbrs, const std::string& metric, bool cache, std::size_t n_threads, bool verbose);
-RcppExport SEXP _rnndescent_rnn_rp_forest_search_sparse(SEXP ref_dataSEXP, SEXP ref_indSEXP, SEXP ref_ptrSEXP, SEXP query_dataSEXP, SEXP query_indSEXP, SEXP query_ptrSEXP, SEXP ndimSEXP, SEXP search_forestSEXP, SEXP n_nbrsSEXP, SEXP metricSEXP, SEXP cacheSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
+List rnn_rp_forest_search_sparse(const IntegerVector& ref_ind, const IntegerVector& ref_ptr, const NumericVector& ref_data, const IntegerVector& query_ind, const IntegerVector& query_ptr, const NumericVector& query_data, std::size_t ndim, List search_forest, uint32_t n_nbrs, const std::string& metric, bool cache, std::size_t n_threads, bool verbose);
+RcppExport SEXP _rnndescent_rnn_rp_forest_search_sparse(SEXP ref_indSEXP, SEXP ref_ptrSEXP, SEXP ref_dataSEXP, SEXP query_indSEXP, SEXP query_ptrSEXP, SEXP query_dataSEXP, SEXP ndimSEXP, SEXP search_forestSEXP, SEXP n_nbrsSEXP, SEXP metricSEXP, SEXP cacheSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const NumericVector& >::type ref_data(ref_dataSEXP);
     Rcpp::traits::input_parameter< const IntegerVector& >::type ref_ind(ref_indSEXP);
     Rcpp::traits::input_parameter< const IntegerVector& >::type ref_ptr(ref_ptrSEXP);
-    Rcpp::traits::input_parameter< const NumericVector& >::type query_data(query_dataSEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type ref_data(ref_dataSEXP);
     Rcpp::traits::input_parameter< const IntegerVector& >::type query_ind(query_indSEXP);
     Rcpp::traits::input_parameter< const IntegerVector& >::type query_ptr(query_ptrSEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type query_data(query_dataSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type ndim(ndimSEXP);
     Rcpp::traits::input_parameter< List >::type search_forest(search_forestSEXP);
     Rcpp::traits::input_parameter< uint32_t >::type n_nbrs(n_nbrsSEXP);
@@ -654,7 +654,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< bool >::type cache(cacheSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type n_threads(n_threadsSEXP);
     Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
-    rcpp_result_gen = Rcpp::wrap(rnn_rp_forest_search_sparse(ref_data, ref_ind, ref_ptr, query_data, query_ind, query_ptr, ndim, search_forest, n_nbrs, metric, cache, n_threads, verbose));
+    rcpp_result_gen = Rcpp::wrap(rnn_rp_forest_search_sparse(ref_ind, ref_ptr, ref_data, query_ind, query_ptr, query_data, ndim, search_forest, n_nbrs, metric, cache, n_threads, verbose));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -693,17 +693,17 @@ BEGIN_RCPP
 END_RCPP
 }
 // nn_query_sparse
-List nn_query_sparse(const NumericVector& ref_data, const IntegerVector& ref_ind, const IntegerVector& ref_ptr, const NumericVector& query_data, const IntegerVector& query_ind, const IntegerVector& query_ptr, std::size_t ndim, const List& reference_graph_list, const IntegerMatrix& nn_idx, const NumericMatrix& nn_dist, const std::string& metric, double epsilon, std::size_t n_threads, bool verbose);
-RcppExport SEXP _rnndescent_nn_query_sparse(SEXP ref_dataSEXP, SEXP ref_indSEXP, SEXP ref_ptrSEXP, SEXP query_dataSEXP, SEXP query_indSEXP, SEXP query_ptrSEXP, SEXP ndimSEXP, SEXP reference_graph_listSEXP, SEXP nn_idxSEXP, SEXP nn_distSEXP, SEXP metricSEXP, SEXP epsilonSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
+List nn_query_sparse(const IntegerVector& ref_ind, const IntegerVector& ref_ptr, const NumericVector& ref_data, const IntegerVector& query_ind, const IntegerVector& query_ptr, const NumericVector& query_data, std::size_t ndim, const List& reference_graph_list, const IntegerMatrix& nn_idx, const NumericMatrix& nn_dist, const std::string& metric, double epsilon, std::size_t n_threads, bool verbose);
+RcppExport SEXP _rnndescent_nn_query_sparse(SEXP ref_indSEXP, SEXP ref_ptrSEXP, SEXP ref_dataSEXP, SEXP query_indSEXP, SEXP query_ptrSEXP, SEXP query_dataSEXP, SEXP ndimSEXP, SEXP reference_graph_listSEXP, SEXP nn_idxSEXP, SEXP nn_distSEXP, SEXP metricSEXP, SEXP epsilonSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const NumericVector& >::type ref_data(ref_dataSEXP);
     Rcpp::traits::input_parameter< const IntegerVector& >::type ref_ind(ref_indSEXP);
     Rcpp::traits::input_parameter< const IntegerVector& >::type ref_ptr(ref_ptrSEXP);
-    Rcpp::traits::input_parameter< const NumericVector& >::type query_data(query_dataSEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type ref_data(ref_dataSEXP);
     Rcpp::traits::input_parameter< const IntegerVector& >::type query_ind(query_indSEXP);
     Rcpp::traits::input_parameter< const IntegerVector& >::type query_ptr(query_ptrSEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type query_data(query_dataSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type ndim(ndimSEXP);
     Rcpp::traits::input_parameter< const List& >::type reference_graph_list(reference_graph_listSEXP);
     Rcpp::traits::input_parameter< const IntegerMatrix& >::type nn_idx(nn_idxSEXP);
@@ -712,7 +712,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type epsilon(epsilonSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type n_threads(n_threadsSEXP);
     Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
-    rcpp_result_gen = Rcpp::wrap(nn_query_sparse(ref_data, ref_ind, ref_ptr, query_data, query_ind, query_ptr, ndim, reference_graph_list, nn_idx, nn_dist, metric, epsilon, n_threads, verbose));
+    rcpp_result_gen = Rcpp::wrap(nn_query_sparse(ref_ind, ref_ptr, ref_data, query_ind, query_ptr, query_data, ndim, reference_graph_list, nn_idx, nn_dist, metric, epsilon, n_threads, verbose));
     return rcpp_result_gen;
 END_RCPP
 }

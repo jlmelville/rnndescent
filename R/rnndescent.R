@@ -94,9 +94,9 @@ brute_force_knn <- function(data,
   if (is_sparse(data)) {
     res <-
       rnn_brute_force_sparse(
-        data = data@x,
         ind = data@i,
         ptr = data@p,
+        data = data@x,
         ndim = nrow(data),
         nnbrs = k,
         metric = actual_metric,
@@ -670,12 +670,12 @@ brute_force_knn_query <- function(query,
 
   if (is_sparse(reference)) {
     res <- rnn_brute_force_query_sparse(
-      ref_data = reference@x,
       ref_ind = reference@i,
       ref_ptr = reference@p,
-      query_data = query@x,
+      ref_data = reference@x,
       query_ind = query@i,
       query_ptr = query@p,
+      query_data = query@x,
       ndim = nrow(query),
       nnbrs = k,
       metric = actual_metric,
@@ -1131,12 +1131,12 @@ graph_knn_query <- function(query,
   if (is_sparse(reference)) {
     res <-
       nn_query_sparse(
-        ref_data = reference@x,
         ref_ind = reference@i,
         ref_ptr = reference@p,
-        query_data = query@x,
+        ref_data = reference@x,
         query_ind = query@i,
         query_ptr = query@p,
+        query_data = query@x,
         ndim = nrow(reference),
         reference_graph_list = reference_graph_list,
         nn_idx = init$idx,
@@ -1419,9 +1419,9 @@ diversify <- function(data,
 
   if (is_sparse(data)) {
     gl_div <- diversify_sparse_cpp(
-      data = data@x,
       ind = data@i,
       ptr = data@p,
+      data = data@x,
       ndim = nrow(data),
       graph_list = gl,
       metric = metric,
