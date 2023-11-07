@@ -830,16 +830,36 @@ random_knn_query <-
 #'   that output by [prepare_search_graph()].
 #' @param k Number of nearest neighbors to return. Optional if `init` is
 #'   specified.
-#' @param metric Type of distance calculation to use. One of `"euclidean"`,
-#'   `"l2sqr"` (squared Euclidean), `"cosine"`, `"manhattan"`, `"correlation"`
-#'   (1 minus the Pearson correlation), `"hamming"` or `"bhamming"` (hamming
-#'   on binary data with bitset internal memory optimization).
+#' @param metric Type of distance calculation to use. One of:
+#'   - `"euclidean"`.
+#'   - `"l2sqr"` (squared Euclidean).
+#'   - `"cosine"`.
+#'   - `"cosine-preprocessing"`: cosine with preprocessing: this trades memory for a
+#'   potential speed up during the distance calculation.It should give the
+#'   same results as `cosine`, give or take minor numerical changes. Be aware
+#'   that the distance between two identical items may not always give exactly
+#'   zero with this method.
+#'   - `"manhattan"`.
+#'   - `"correlation"` (1 minus the Pearson correlation).
+#'   - `"correlation-preprocess"`: `correlation` with preprocessing. This trades
+#'   memory for a potential speed up during the distance calculation. It should
+#'   give the same results as `correlation`, give or take minor numerical
+#'   changes. Be aware that the distance between two identical items may not
+#'   always give exactly zero with this method.
+#'   - `"hamming"`.
+#'   - `"bhamming"` (hamming on binary data with bitset internal memory
+#'   optimization).
+#'
+#' This should be the same metric used to generate the `reference_graph`. If
+#' a search forest is used for initialization via the `init` parameter, then the
+#' metric is fetched from there and this setting is ignored.
 #' @param use_alt_metric If `TRUE`, use faster metrics that maintain the
 #'   ordering of distances internally (e.g. squared Euclidean distances if using
-#'   `metric = "euclidean"`), then apply a correction at the end. Probably
-#'   the only reason to set this to `FALSE` is if you suspect that some
-#'   sort of numeric issue is occurring with your data in the alternative code
-#'   path.
+#'   `metric = "euclidean"`), then apply a correction at the end. Probably the
+#'   only reason to set this to `FALSE` is if you suspect that some sort of
+#'   numeric issue is occurring with your data in the alternative code path. If
+#'   a search forest is used for initialization via the `init` parameter, then
+#'   the metric is fetched from there and this setting is ignored.
 #' @param init Initial `query` neighbor graph to optimize. If not provided, `k`
 #'   random neighbors are created. If provided, the input format must be one of:
 #'   1. A list containing:
@@ -950,10 +970,22 @@ graph_knn_query <- function(query,
     query <- Matrix::t(query)
   }
 
-  # FIXME: move order of initialization so rp-forest comes first.
-  # if rpforest is used then it shoulld override metric and use_alt_metric
-  actual_metric <-
-    get_actual_metric(use_alt_metric, metric, reference, verbose)
+  if (is.list(init) && is_rpforest(init)) {
+    tsmessage("Reading metric data from forest")
+    actual_metric <- init$actual_metric
+    metric <- init$original_metric
+    use_alt_metric <- init$use_alt_metric
+    if (use_alt_metric && metric != actual_metric) {
+      tsmessage("Using alt metric '", actual_metric, "' for '", metric, "'")
+    }
+    else {
+      tsmessage("Using metric '", metric, "'")
+    }
+  }
+  else {
+    actual_metric <-
+      get_actual_metric(use_alt_metric, metric, reference, verbose)
+  }
 
   # reference and query must be column-oriented at this point
   if (is.null(init)) {

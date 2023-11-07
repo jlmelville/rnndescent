@@ -348,4 +348,10 @@ test_that("full workflow", {
 
   # there can be ties, so just check distances
   expect_equal(iris_query_nn$dist, iris_qbf$dist)
+
+  # initializing from a forest means that the metric param is ignored
+  iris_query_nnc <- graph_knn_query(iris_query, iris_ref, iris_ref_search_graph,
+                                   init = forest, k = 4, epsilon = 1.1,
+                                   metric = "cosine")
+  expect_equal(iris_query_nn$dist, iris_qbf$dist)
 })

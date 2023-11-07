@@ -40,10 +40,31 @@ that output by \code{\link[=prepare_search_graph]{prepare_search_graph()}}.}
 \item{k}{Number of nearest neighbors to return. Optional if \code{init} is
 specified.}
 
-\item{metric}{Type of distance calculation to use. One of \code{"euclidean"},
-\code{"l2sqr"} (squared Euclidean), \code{"cosine"}, \code{"manhattan"}, \code{"correlation"}
-(1 minus the Pearson correlation), \code{"hamming"} or \code{"bhamming"} (hamming
-on binary data with bitset internal memory optimization).}
+\item{metric}{Type of distance calculation to use. One of:
+\itemize{
+\item \code{"euclidean"}.
+\item \code{"l2sqr"} (squared Euclidean).
+\item \code{"cosine"}.
+\item \code{"cosine-preprocessing"}: cosine with preprocessing: this trades memory for a
+potential speed up during the distance calculation.It should give the
+same results as \code{cosine}, give or take minor numerical changes. Be aware
+that the distance between two identical items may not always give exactly
+zero with this method.
+\item \code{"manhattan"}.
+\item \code{"correlation"} (1 minus the Pearson correlation).
+\item \code{"correlation-preprocess"}: \code{correlation} with preprocessing. This trades
+memory for a potential speed up during the distance calculation. It should
+give the same results as \code{correlation}, give or take minor numerical
+changes. Be aware that the distance between two identical items may not
+always give exactly zero with this method.
+\item \code{"hamming"}.
+\item \code{"bhamming"} (hamming on binary data with bitset internal memory
+optimization).
+}
+
+This should be the same metric used to generate the \code{reference_graph}. If
+a search forest is used for initialization via the \code{init} parameter, then the
+metric is fetched from there and this setting is ignored.}
 
 \item{init}{Initial \code{query} neighbor graph to optimize. If not provided, \code{k}
 random neighbors are created. If provided, the input format must be one of:
@@ -85,10 +106,11 @@ comparison. Use this parameter in conjunction with
 
 \item{use_alt_metric}{If \code{TRUE}, use faster metrics that maintain the
 ordering of distances internally (e.g. squared Euclidean distances if using
-\code{metric = "euclidean"}), then apply a correction at the end. Probably
-the only reason to set this to \code{FALSE} is if you suspect that some
-sort of numeric issue is occurring with your data in the alternative code
-path.}
+\code{metric = "euclidean"}), then apply a correction at the end. Probably the
+only reason to set this to \code{FALSE} is if you suspect that some sort of
+numeric issue is occurring with your data in the alternative code path. If
+a search forest is used for initialization via the \code{init} parameter, then
+the metric is fetched from there and this setting is ignored.}
 
 \item{n_threads}{Number of threads to use.}
 
