@@ -2,11 +2,17 @@
 
 ## New features
 
+* Sparse data is now supported. Pass a `dgCMatrix` to the `data`, `reference` or
+`query` parameters where you would usually use a dense matrix or data frame.
+`cosine`, `euclidean`, `manhattan`, `hamming` and `correlation` are all 
+available, but alternative versions in the dense case, e.g. `cosine-preprocess`
+or the  binary-specific `bhamming` for dense data is not.
 * A new `init` option for `graph_knn_query`: you can now pass an RP forest and
 initialize with that, e.g. from `rpf_build`, or by setting `ret_forest = TRUE`
 on `nnd_knn` or `rpf_knn`. You may want to cut down the size of the forest
 used for initialization with `rpf_filter` first, though (a single tree may be
-enough).
+enough). This will also use the metric data in the forest, so setting `metric`
+(or `use_alt_metric`) in the function itself will be ignored.
 
 ## Bug fixes and minor improvements
 
