@@ -31,7 +31,6 @@
 #include <memory>
 #include <vector>
 
-#include "bitvec.h"
 #include "distance.h"
 
 // Pointer-based polymorphic classes for calculating distances. This is all
@@ -89,18 +88,25 @@ struct DistanceTraits<std::unique_ptr<VectorDistance<In, Out, Idx>>> {
   using Index = Idx;
 };
 
-// These mixins hold vector and dimension data. Due to the joys of inheritance
-// chains and resolution of virtual methods, classes using this mixin save very
-// little on boilerplate (in fact they might even be more verbose).
-
-// SelfDataMixin is for distances calculated within a single dataset.
-template <typename In, typename Idx> class SelfDataMixin {
+template <typename In, typename Out, typename Idx>
+class SelfDistanceCalculator : public VectorDistance<In, Out, Idx> {
 public:
   using Iterator = typename std::vector<In>::const_iterator;
+  using DistanceFunc = Out (*)(Iterator, Iterator, Iterator);
+  using PreprocessFunc = void (*)(std::vector<In> &, std::size_t);
+
+  virtual ~SelfDistanceCalculator() = default;
 
   template <typename VecIn>
-  SelfDataMixin(VecIn &&data, std::size_t ndim)
-      : x(std::forward<VecIn>(data)), nx(x.size() / ndim), ndim(ndim) {}
+  SelfDistanceCalculator(VecIn &&data, std::size_t ndim,
+                         DistanceFunc distance_func,
+                         PreprocessFunc preprocess_func = nullptr)
+      : x(std::move(data)), nx(x.size() / ndim), ndim(ndim),
+        distance_func(distance_func) {
+    if (preprocess_func) {
+      preprocess_func(x, ndim);
+    }
+  }
 
   std::size_t get_nx() const { return nx; }
   // For self-distance, nx == ny
@@ -109,491 +115,60 @@ public:
   // For self-distance get_y(i) == get_x(i)
   Iterator get_y(Idx i) const { return get_x(i); }
 
+  Out calculate(const Idx &i, const Idx &j) const override {
+    const std::size_t di = this->ndim * i;
+    return distance_func(this->x.begin() + di,
+                         this->x.begin() + di + this->ndim,
+                         this->x.begin() + this->ndim * j);
+  }
+
 protected:
-  mutable std::vector<In> x;
+  std::vector<In> x;
   std::size_t nx;
   std::size_t ndim;
+  DistanceFunc distance_func;
 };
 
-template <typename In, typename Idx> class QueryDataMixin {
+template <typename In, typename Out, typename Idx>
+class QueryDistanceCalculator : public VectorDistance<In, Out, Idx> {
 public:
   using Iterator = typename std::vector<In>::const_iterator;
-
+  using DistanceFunc = Out (*)(Iterator, Iterator, Iterator);
+  using PreprocessFunc = void (*)(std::vector<In> &, std::size_t);
   template <typename VecIn>
-  QueryDataMixin(VecIn &&xdata, VecIn &&ydata, std::size_t ndim)
+  QueryDistanceCalculator(VecIn &&xdata, VecIn &&ydata, std::size_t ndim,
+                          DistanceFunc distance_func,
+                          PreprocessFunc preprocess_func = nullptr)
       : x(std::forward<VecIn>(xdata)), y(std::forward<VecIn>(ydata)),
-        nx(x.size() / ndim), ny(y.size() / ndim), ndim(ndim) {}
+        nx(x.size() / ndim), ny(y.size() / ndim), ndim(ndim),
+        distance_func(distance_func) {
+    if (preprocess_func) {
+      preprocess_func(x, ndim);
+      preprocess_func(y, ndim);
+    }
+  }
 
   std::size_t get_nx() const { return nx; }
   std::size_t get_ny() const { return ny; }
   Iterator get_x(Idx i) const { return x.begin() + i * ndim; }
   Iterator get_y(Idx i) const { return y.begin() + i * ndim; }
 
+  Out calculate(const Idx &i, const Idx &j) const override {
+    const std::size_t di = this->ndim * i;
+    return distance_func(this->x.begin() + di,
+                         this->x.begin() + di + this->ndim,
+                         this->y.begin() + this->ndim * j);
+  }
+
 protected:
-  // these are not const because for data which needs to be transformed
-  // (e.g. preprocessing versions of cosine and correlation) we need to do the
-  // operations in-place to avoid unnecessary allocations, which in turn
-  // requires work to be done in the constructor body on the x, y fields.
-  mutable std::vector<In> x;
-  mutable std::vector<In> y;
+  std::vector<In> x;
+  std::vector<In> y;
   std::size_t nx;
   std::size_t ny;
   std::size_t ndim;
+  DistanceFunc distance_func;
 };
 
-template <typename In, typename Out, typename Idx = uint32_t>
-class L2SqrSelfDistance : public VectorDistance<In, Out, Idx>,
-                          public SelfDataMixin<In, Idx> {
-public:
-  using Mixin = SelfDataMixin<In, Idx>;
-  using Iterator = typename Mixin::Iterator;
-
-  template <typename VecIn>
-  L2SqrSelfDistance(VecIn &&data, std::size_t ndim)
-      : SelfDataMixin<In, Idx>(std::forward<VecIn>(data), ndim) {}
-
-  Out calculate(const Idx &i, const Idx &j) const override {
-    const std::size_t di = this->ndim * i;
-    return l2sqr<Out>(this->x.begin() + di, this->x.begin() + di + this->ndim,
-                      this->x.begin() + this->ndim * j);
-  }
-
-  std::size_t get_nx() const override { return Mixin::get_nx(); }
-  std::size_t get_ny() const override { return Mixin::get_ny(); }
-  Iterator get_x(Idx i) const override { return Mixin::get_x(i); }
-  Iterator get_y(Idx i) const override { return Mixin::get_y(i); }
-};
-
-template <typename In, typename Out, typename Idx = uint32_t>
-class L2SqrQueryDistance : public VectorDistance<In, Out, Idx>,
-                           public QueryDataMixin<In, Idx> {
-public:
-  using Mixin = QueryDataMixin<In, Idx>;
-  using Iterator = typename Mixin::Iterator;
-
-  template <typename VecIn>
-  L2SqrQueryDistance(VecIn &&xdata, VecIn &&ydata, std::size_t ndim)
-      : QueryDataMixin<In, Idx>(std::forward<VecIn>(xdata),
-                                std::forward<VecIn>(ydata), ndim) {}
-
-  Out calculate(const Idx &i, const Idx &j) const override {
-    const std::size_t di = this->ndim * i;
-    return l2sqr<Out>(this->x.begin() + di, this->x.begin() + di + this->ndim,
-                      this->y.begin() + this->ndim * j);
-  }
-
-  std::size_t get_nx() const override { return Mixin::get_nx(); }
-  std::size_t get_ny() const override { return Mixin::get_ny(); }
-  Iterator get_x(Idx i) const override { return Mixin::get_x(i); }
-  Iterator get_y(Idx i) const override { return Mixin::get_y(i); }
-};
-
-template <typename In, typename Out, typename Idx = uint32_t>
-class EuclideanSelfDistance : public VectorDistance<In, Out, Idx>,
-                              public SelfDataMixin<In, Idx> {
-public:
-  using Mixin = SelfDataMixin<In, Idx>;
-  using Iterator = typename Mixin::Iterator;
-
-  template <typename VecIn>
-  EuclideanSelfDistance(VecIn &&data, std::size_t ndim)
-      : SelfDataMixin<In, Idx>(std::forward<VecIn>(data), ndim) {}
-
-  Out calculate(const Idx &i, const Idx &j) const override {
-    const std::size_t di = this->ndim * i;
-    return euclidean<Out>(this->x.begin() + di,
-                          this->x.begin() + di + this->ndim,
-                          this->x.begin() + this->ndim * j);
-  }
-
-  std::size_t get_nx() const override { return Mixin::get_nx(); }
-  std::size_t get_ny() const override { return Mixin::get_ny(); }
-  Iterator get_x(Idx i) const override { return Mixin::get_x(i); }
-  Iterator get_y(Idx i) const override { return Mixin::get_y(i); }
-};
-
-template <typename In, typename Out, typename Idx = uint32_t>
-class EuclideanQueryDistance : public VectorDistance<In, Out, Idx>,
-                               public QueryDataMixin<In, Idx> {
-public:
-  using Mixin = QueryDataMixin<In, Idx>;
-  using Iterator = typename Mixin::Iterator;
-
-  template <typename VecIn>
-  EuclideanQueryDistance(VecIn &&xdata, VecIn &&ydata, std::size_t ndim)
-      : QueryDataMixin<In, Idx>(std::forward<VecIn>(xdata),
-                                std::forward<VecIn>(ydata), ndim) {}
-
-  Out calculate(const Idx &i, const Idx &j) const override {
-    const std::size_t di = this->ndim * i;
-    return euclidean<Out>(this->x.begin() + di,
-                          this->x.begin() + di + this->ndim,
-                          this->y.begin() + this->ndim * j);
-  }
-
-  std::size_t get_nx() const override { return Mixin::get_nx(); }
-  std::size_t get_ny() const override { return Mixin::get_ny(); }
-  Iterator get_x(Idx i) const override { return Mixin::get_x(i); }
-  Iterator get_y(Idx i) const override { return Mixin::get_y(i); }
-};
-
-template <typename In, typename Out, typename Idx = uint32_t>
-class ManhattanSelfDistance : public VectorDistance<In, Out, Idx>,
-                              public SelfDataMixin<In, Idx> {
-public:
-  using Mixin = SelfDataMixin<In, Idx>;
-  using Iterator = typename Mixin::Iterator;
-
-  template <typename VecIn>
-  ManhattanSelfDistance(VecIn &&data, std::size_t ndim)
-      : SelfDataMixin<In, Idx>(std::forward<VecIn>(data), ndim) {}
-
-  Out calculate(const Idx &i, const Idx &j) const override {
-    const std::size_t di = this->ndim * i;
-    return manhattan<Out>(this->x.begin() + di,
-                          this->x.begin() + di + this->ndim,
-                          this->x.begin() + this->ndim * j);
-  }
-
-  std::size_t get_nx() const override { return Mixin::get_nx(); }
-  std::size_t get_ny() const override { return Mixin::get_ny(); }
-  Iterator get_x(Idx i) const override { return Mixin::get_x(i); }
-  Iterator get_y(Idx i) const override { return Mixin::get_y(i); }
-};
-
-template <typename In, typename Out, typename Idx = uint32_t>
-class ManhattanQueryDistance : public VectorDistance<In, Out, Idx>,
-                               public QueryDataMixin<In, Idx> {
-public:
-  using Mixin = QueryDataMixin<In, Idx>;
-  using Iterator = typename Mixin::Iterator;
-
-  template <typename VecIn>
-  ManhattanQueryDistance(VecIn &&xdata, VecIn &&ydata, std::size_t ndim)
-      : QueryDataMixin<In, Idx>(std::forward<VecIn>(xdata),
-                                std::forward<VecIn>(ydata), ndim) {}
-
-  Out calculate(const Idx &i, const Idx &j) const override {
-    const std::size_t di = this->ndim * i;
-    return manhattan<Out>(this->x.begin() + di,
-                          this->x.begin() + di + this->ndim,
-                          this->y.begin() + this->ndim * j);
-  }
-
-  std::size_t get_nx() const override { return Mixin::get_nx(); }
-  std::size_t get_ny() const override { return Mixin::get_ny(); }
-  Iterator get_x(Idx i) const override { return Mixin::get_x(i); }
-  Iterator get_y(Idx i) const override { return Mixin::get_y(i); }
-};
-
-template <typename In, typename Out, typename Idx = uint32_t>
-class CosineSelfDistance : public VectorDistance<In, Out, Idx>,
-                           public SelfDataMixin<In, Idx> {
-public:
-  using Mixin = SelfDataMixin<In, Idx>;
-  using Iterator = typename Mixin::Iterator;
-
-  template <typename VecIn>
-  CosineSelfDistance(VecIn &&data, std::size_t ndim)
-      : SelfDataMixin<In, Idx>(std::forward<VecIn>(data), ndim) {}
-
-  Out calculate(const Idx &i, const Idx &j) const override {
-    const std::size_t di = this->ndim * i;
-    return cosine<Out>(this->x.begin() + di, this->x.begin() + di + this->ndim,
-                       this->x.begin() + this->ndim * j);
-  }
-
-  std::size_t get_nx() const override { return Mixin::get_nx(); }
-  std::size_t get_ny() const override { return Mixin::get_ny(); }
-  Iterator get_x(Idx i) const override { return Mixin::get_x(i); }
-  Iterator get_y(Idx i) const override { return Mixin::get_y(i); }
-};
-
-template <typename In, typename Out, typename Idx = uint32_t>
-class CosineQueryDistance : public VectorDistance<In, Out, Idx>,
-                            public QueryDataMixin<In, Idx> {
-public:
-  using Mixin = QueryDataMixin<In, Idx>;
-  using Iterator = typename Mixin::Iterator;
-
-  template <typename VecIn>
-  CosineQueryDistance(VecIn &&xdata, VecIn &&ydata, std::size_t ndim)
-      : QueryDataMixin<In, Idx>(std::forward<VecIn>(xdata),
-                                std::forward<VecIn>(ydata), ndim) {}
-
-  Out calculate(const Idx &i, const Idx &j) const override {
-    const std::size_t di = this->ndim * i;
-    return cosine<Out>(this->x.begin() + di, this->x.begin() + di + this->ndim,
-                       this->y.begin() + this->ndim * j);
-  }
-
-  std::size_t get_nx() const override { return Mixin::get_nx(); }
-  std::size_t get_ny() const override { return Mixin::get_ny(); }
-  Iterator get_x(Idx i) const override { return Mixin::get_x(i); }
-  Iterator get_y(Idx i) const override { return Mixin::get_y(i); }
-};
-
-// pre-calculates data for faster perf in calculate
-template <typename In, typename Out, typename Idx = uint32_t>
-class CosinePreprocessSelfDistance : public VectorDistance<In, Out, Idx>,
-                                     public SelfDataMixin<In, Idx> {
-public:
-  using Mixin = SelfDataMixin<In, Idx>;
-  using Iterator = typename Mixin::Iterator;
-
-  template <typename VecIn>
-  CosinePreprocessSelfDistance(VecIn &&data, std::size_t ndim)
-      : SelfDataMixin<In, Idx>(std::forward<VecIn>(data), ndim) {
-    // must cast away the constness temporarily to do in-place initialization
-    normalize(const_cast<std::vector<In> &>(this->x), this->ndim);
-  }
-
-  Out calculate(const Idx &i, const Idx &j) const override {
-    const std::size_t di = this->ndim * i;
-    return inner_product<Out>(this->x.begin() + di,
-                              this->x.begin() + di + this->ndim,
-                              this->x.begin() + this->ndim * j);
-  }
-
-  std::size_t get_nx() const override { return Mixin::get_nx(); }
-  std::size_t get_ny() const override { return Mixin::get_ny(); }
-  Iterator get_x(Idx i) const override { return Mixin::get_x(i); }
-  Iterator get_y(Idx i) const override { return Mixin::get_y(i); }
-};
-
-// pre-calculates data for faster perf in calculate
-template <typename In, typename Out, typename Idx = uint32_t>
-class CosinePreprocessQueryDistance : public VectorDistance<In, Out, Idx>,
-                                      public QueryDataMixin<In, Idx> {
-public:
-  using Mixin = QueryDataMixin<In, Idx>;
-  using Iterator = typename Mixin::Iterator;
-
-  template <typename VecIn>
-  CosinePreprocessQueryDistance(VecIn &&xdata, VecIn &&ydata, std::size_t ndim)
-      : QueryDataMixin<In, Idx>(std::forward<VecIn>(xdata),
-                                std::forward<VecIn>(ydata), ndim) {
-    // must cast away the constness temporarily to do in-place initialization
-    normalize(const_cast<std::vector<In> &>(this->x), this->ndim);
-    normalize(const_cast<std::vector<In> &>(this->y), this->ndim);
-  }
-
-  Out calculate(const Idx &i, const Idx &j) const override {
-    const std::size_t di = this->ndim * i;
-    return inner_product<Out>(this->x.begin() + di,
-                              this->x.begin() + di + this->ndim,
-                              this->y.begin() + this->ndim * j);
-  }
-
-  std::size_t get_nx() const override { return Mixin::get_nx(); }
-  std::size_t get_ny() const override { return Mixin::get_ny(); }
-  Iterator get_x(Idx i) const override { return Mixin::get_x(i); }
-  Iterator get_y(Idx i) const override { return Mixin::get_y(i); }
-};
-
-template <typename In, typename Out, typename Idx = uint32_t>
-class CorrelationSelfDistance : public VectorDistance<In, Out, Idx>,
-                                public SelfDataMixin<In, Idx> {
-public:
-  using Mixin = SelfDataMixin<In, Idx>;
-  using Iterator = typename Mixin::Iterator;
-
-  template <typename VecIn>
-  CorrelationSelfDistance(VecIn &&data, std::size_t ndim)
-      : SelfDataMixin<In, Idx>(std::forward<VecIn>(data), ndim) {}
-
-  Out calculate(const Idx &i, const Idx &j) const override {
-    const std::size_t di = this->ndim * i;
-    return correlation<Out>(this->x.begin() + di,
-                            this->x.begin() + di + this->ndim,
-                            this->x.begin() + this->ndim * j);
-  }
-
-  std::size_t get_nx() const override { return Mixin::get_nx(); }
-  std::size_t get_ny() const override { return Mixin::get_ny(); }
-  Iterator get_x(Idx i) const override { return Mixin::get_x(i); }
-  Iterator get_y(Idx i) const override { return Mixin::get_y(i); }
-};
-
-template <typename In, typename Out, typename Idx = uint32_t>
-class CorrelationQueryDistance : public VectorDistance<In, Out, Idx>,
-                                 public QueryDataMixin<In, Idx> {
-public:
-  using Mixin = QueryDataMixin<In, Idx>;
-  using Iterator = typename Mixin::Iterator;
-
-  template <typename VecIn>
-  CorrelationQueryDistance(VecIn &&xdata, VecIn &&ydata, std::size_t ndim)
-      : QueryDataMixin<In, Idx>(std::forward<VecIn>(xdata),
-                                std::forward<VecIn>(ydata), ndim) {}
-
-  Out calculate(const Idx &i, const Idx &j) const override {
-    const std::size_t di = this->ndim * i;
-    return correlation<Out>(this->x.begin() + di,
-                            this->x.begin() + di + this->ndim,
-                            this->y.begin() + this->ndim * j);
-  }
-
-  std::size_t get_nx() const override { return Mixin::get_nx(); }
-  std::size_t get_ny() const override { return Mixin::get_ny(); }
-  Iterator get_x(Idx i) const override { return Mixin::get_x(i); }
-  Iterator get_y(Idx i) const override { return Mixin::get_y(i); }
-};
-
-// pre-calculates data for faster perf in calculate
-template <typename In, typename Out, typename Idx = uint32_t>
-class CorrelationPreprocessSelfDistance : public VectorDistance<In, Out, Idx>,
-                                          public SelfDataMixin<In, Idx> {
-public:
-  using Mixin = SelfDataMixin<In, Idx>;
-  using Iterator = typename Mixin::Iterator;
-
-  template <typename VecIn>
-  CorrelationPreprocessSelfDistance(VecIn &&data, std::size_t ndim)
-      : SelfDataMixin<In, Idx>(std::forward<VecIn>(data), ndim) {
-    // must cast away the constness temporarily to do in-place initialization
-    mean_center(const_cast<std::vector<In> &>(this->x), this->ndim);
-    normalize(const_cast<std::vector<In> &>(this->x), this->ndim);
-  }
-
-  Out calculate(const Idx &i, const Idx &j) const override {
-    const std::size_t di = this->ndim * i;
-    return inner_product<Out>(this->x.begin() + di,
-                              this->x.begin() + di + this->ndim,
-                              this->x.begin() + this->ndim * j);
-  }
-
-  std::size_t get_nx() const override { return Mixin::get_nx(); }
-  std::size_t get_ny() const override { return Mixin::get_ny(); }
-  Iterator get_x(Idx i) const override { return Mixin::get_x(i); }
-  Iterator get_y(Idx i) const override { return Mixin::get_y(i); }
-};
-
-// pre-calculates data for faster perf in calculate
-template <typename In, typename Out, typename Idx = uint32_t>
-class CorrelationPreprocessQueryDistance : public VectorDistance<In, Out, Idx>,
-                                           public QueryDataMixin<In, Idx> {
-public:
-  using Mixin = QueryDataMixin<In, Idx>;
-  using Iterator = typename Mixin::Iterator;
-
-  template <typename VecIn>
-  CorrelationPreprocessQueryDistance(VecIn &&xdata, VecIn &&ydata,
-                                     std::size_t ndim)
-      : QueryDataMixin<In, Idx>(std::forward<VecIn>(xdata),
-                                std::forward<VecIn>(ydata), ndim) {
-    // must cast away the constness temporarily to do in-place initialization
-    mean_center(const_cast<std::vector<In> &>(this->x), this->ndim);
-    normalize(const_cast<std::vector<In> &>(this->x), this->ndim);
-
-    mean_center(const_cast<std::vector<In> &>(this->y), this->ndim);
-    normalize(const_cast<std::vector<In> &>(this->y), this->ndim);
-  }
-
-  Out calculate(const Idx &i, const Idx &j) const override {
-    const std::size_t di = this->ndim * i;
-    return inner_product<Out>(this->x.begin() + di,
-                              this->x.begin() + di + this->ndim,
-                              this->y.begin() + this->ndim * j);
-  }
-
-  std::size_t get_nx() const override { return Mixin::get_nx(); }
-  std::size_t get_ny() const override { return Mixin::get_ny(); }
-  Iterator get_x(Idx i) const override { return Mixin::get_x(i); }
-  Iterator get_y(Idx i) const override { return Mixin::get_y(i); }
-};
-
-template <typename In, typename Out, typename Idx = uint32_t>
-class HammingSelfDistance : public VectorDistance<In, Out, Idx>,
-                            public SelfDataMixin<In, Idx> {
-public:
-  using Mixin = SelfDataMixin<In, Idx>;
-  using Iterator = typename Mixin::Iterator;
-
-  template <typename VecIn>
-  HammingSelfDistance(VecIn &&data, std::size_t ndim)
-      : SelfDataMixin<In, Idx>(std::forward<VecIn>(data), ndim) {}
-
-  Out calculate(const Idx &i, const Idx &j) const override {
-    const std::size_t di = this->ndim * i;
-    return hamming<Out>(this->x.begin() + di, this->x.begin() + di + this->ndim,
-                        this->x.begin() + this->ndim * j);
-  }
-
-  std::size_t get_nx() const override { return Mixin::get_nx(); }
-  std::size_t get_ny() const override { return Mixin::get_ny(); }
-  Iterator get_x(Idx i) const override { return Mixin::get_x(i); }
-  Iterator get_y(Idx i) const override { return Mixin::get_y(i); }
-};
-
-template <typename In, typename Out, typename Idx = uint32_t>
-class HammingQueryDistance : public VectorDistance<In, Out, Idx>,
-                             public QueryDataMixin<In, Idx> {
-public:
-  using Mixin = QueryDataMixin<In, Idx>;
-  using Iterator = typename Mixin::Iterator;
-
-  template <typename VecIn>
-  HammingQueryDistance(VecIn &&xdata, VecIn &&ydata, std::size_t ndim)
-      : QueryDataMixin<In, Idx>(std::forward<VecIn>(xdata),
-                                std::forward<VecIn>(ydata), ndim) {}
-
-  Out calculate(const Idx &i, const Idx &j) const override {
-    const std::size_t di = this->ndim * i;
-    return hamming<Out>(this->x.begin() + di, this->x.begin() + di + this->ndim,
-                        this->y.begin() + this->ndim * j);
-  }
-
-  std::size_t get_nx() const override { return Mixin::get_nx(); }
-  std::size_t get_ny() const override { return Mixin::get_ny(); }
-  Iterator get_x(Idx i) const override { return Mixin::get_x(i); }
-  Iterator get_y(Idx i) const override { return Mixin::get_y(i); }
-};
-
-template <typename Out, typename Idx = uint32_t>
-class BHammingSelfDistance : public BaseDistance<Out, Idx> {
-public:
-  template <typename VecIn>
-  BHammingSelfDistance(VecIn &&data, std::size_t ndim)
-      : vec_len(num_blocks_needed(ndim)), nx(data.size() / ndim),
-        bdata(to_bitvec(std::forward<VecIn>(data), ndim)) {}
-
-  Out calculate(const Idx &i, const Idx &j) const override {
-    return bhamming_impl<Out>(bdata, i, bdata, j, vec_len);
-  }
-
-  std::size_t get_nx() const override { return nx; }
-  std::size_t get_ny() const override { return nx; }
-
-private:
-  std::size_t vec_len;
-  std::size_t nx;
-  const BitVec bdata;
-};
-
-template <typename Out, typename Idx = uint32_t>
-class BHammingQueryDistance : public BaseDistance<Out, Idx> {
-public:
-  template <typename VecIn>
-  BHammingQueryDistance(VecIn &&x, VecIn &&y, std::size_t ndim)
-      : vec_len(num_blocks_needed(ndim)), nx(x.size() / ndim),
-        ny(y.size() / ndim), bx(to_bitvec(std::forward<VecIn>(x), ndim)),
-        by(to_bitvec(std::forward<VecIn>(y), ndim)) {}
-
-  Out calculate(const Idx &i, const Idx &j) const override {
-    return bhamming_impl<Out>(bx, i, by, j, vec_len);
-  }
-
-  std::size_t get_nx() const override { return nx; }
-  std::size_t get_ny() const override { return ny; }
-
-private:
-  std::size_t vec_len;
-  std::size_t nx;
-  std::size_t ny;
-  const BitVec bx;
-  const BitVec by;
-};
 } // namespace tdoann
 
 #endif // TDOANN_DISTANCEBASE_H

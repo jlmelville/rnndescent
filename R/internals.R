@@ -286,9 +286,19 @@ sparse_correct_alternative_cosine <- function(dist) {
   }
 }
 
+# FIXME uncorrect also
+
+# def correct_alternative_hellinger(d):
+#   return np.sqrt(1.0 - pow(2.0, -d))
+
+# def correct_alternative_jaccard(v):
+#   return 1.0 - pow(2.0, -v)
+
 sparse_uncorrect_alternative_cosine <- function(dist) {
   ifelse(dist >= (1.0 - 1.e-10), 0.0, -log2(1.0 - dist))
 }
+
+
 
 
 validate_are_mergeablel <- function(nn_graphs) {

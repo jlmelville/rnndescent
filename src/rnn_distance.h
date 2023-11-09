@@ -22,13 +22,66 @@
 
 #include <memory>
 #include <type_traits>
+#include <unordered_map>
 
 #include <Rcpp.h>
 
 #include "tdoann/distancebase.h"
+#include "tdoann/distancebin.h"
 #include "tdoann/sparse.h"
 
 #include "rnn_util.h"
+
+template <typename In, typename Out>
+using DistanceFunc = Out (*)(typename std::vector<In>::const_iterator,
+                             typename std::vector<In>::const_iterator,
+                             typename std::vector<In>::const_iterator);
+
+template <typename In, typename Out>
+const std::unordered_map<std::string, DistanceFunc<In, Out>> &get_metric_map() {
+  using InIt = typename std::vector<In>::const_iterator;
+  static const std::unordered_map<std::string, DistanceFunc<In, Out>>
+      metric_map = {
+          {"braycurtis", tdoann::bray_curtis<Out, InIt>},
+          {"canberra", tdoann::canberra<Out, InIt>},
+          {"chebyshev", tdoann::chebyshev<Out, InIt>},
+          {"correlation", tdoann::correlation<Out, InIt>},
+          {"cosine", tdoann::cosine<Out, InIt>},
+          {"dice", tdoann::dice<Out, InIt>},
+          {"dot", tdoann::dot<Out, InIt>},
+          {"euclidean", tdoann::euclidean<Out, InIt>},
+          {"hamming", tdoann::hamming<Out, InIt>},
+          {"hellinger", tdoann::hellinger<Out, InIt>},
+          {"alternative-hellinger", tdoann::alternative_hellinger<Out, InIt>},
+          {"jaccard", tdoann::jaccard<Out, InIt>},
+          {"alternative-jaccard", tdoann::alternative_jaccard<Out, InIt>},
+          {"jensenshannon", tdoann::jensen_shannon_divergence<Out, InIt>},
+          {"kulsinski", tdoann::kulsinski<Out, InIt>},
+          {"l2sqr", tdoann::l2sqr<Out, InIt>},
+          {"manhattan", tdoann::manhattan<Out, InIt>},
+          {"matching", tdoann::matching<Out, InIt>},
+          {"rogerstanimoto", tdoann::rogers_tanimoto<Out, InIt>},
+          {"russellrao", tdoann::russell_rao<Out, InIt>},
+          {"sokalmichener", tdoann::sokal_michener<Out, InIt>},
+          {"sokalsneath", tdoann::sokal_sneath<Out, InIt>},
+          {"spearmanr", tdoann::spearmanr<Out, InIt>},
+          {"symmetrickl", tdoann::symmetric_kl_divergence<Out, InIt>},
+          {"yule", tdoann::yule<Out, InIt>}};
+  return metric_map;
+}
+
+template <typename Out, typename Idx>
+using BinaryDistanceFunc = Out (*)(const tdoann::BitVec &, Idx,
+                                   const tdoann::BitVec &, Idx, std::size_t);
+template <typename Out, typename Idx>
+const std::unordered_map<std::string, BinaryDistanceFunc<Out, Idx>> &
+get_binary_metric_map() {
+  static const std::unordered_map<std::string, BinaryDistanceFunc<Out, Idx>>
+      metric_map = {{"bdice", tdoann::bdice<Out, Idx>},
+                    {"bhamming", tdoann::bhamming<Out, Idx>},
+                    {"bjaccard", tdoann::bjaccard<Out, Idx>}};
+  return metric_map;
+}
 
 // needed for RP Tree calculations
 // https://github.com/lmcinnes/pynndescent/blob/db258cea34cce7e11e90a460c1f8a0bd8b69f1c1/pynndescent/pynndescent_.py#L764
@@ -37,14 +90,27 @@
 // other metrics are considered to be euclidean.
 // for consistency with pynndescent should these get implemented other angular
 // metrics are "dot", "dice", "jaccard", "hellinger"
+constexpr const char *angular_metrics[] = {"cosine",      "alternative-cosine",
+                                           "correlation", "hamming",
+                                           "bhamming",    "jaccard",
+                                           "bjaccard"};
 inline bool is_angular_metric(const std::string &metric) {
-  return (metric == "cosine" || metric == "alternative-cosine" ||
-          metric == "correlation" || metric == "hamming" ||
-          metric == "bhamming");
+  for (const char *angular_metric : angular_metrics) {
+    if (metric == angular_metric) {
+      return true;
+    }
+  }
+  return false;
 }
 
+constexpr const char *binary_metrics[] = {"bdice", "bhamming", "bjaccard"};
 inline bool is_binary_metric(const std::string &metric) {
-  return metric == "bhamming";
+  for (const char *binary_metric : binary_metrics) {
+    if (metric == binary_metric) {
+      return true;
+    }
+  }
+  return false;
 }
 
 // Using Traits to return a pointer to BaseDistance or VectorDistance
@@ -86,40 +152,31 @@ create_query_distance_impl(
   using In = typename FactoryTraits<Args...>::input_type;
   using Out = typename FactoryTraits<Args...>::output_type;
   using Idx = typename FactoryTraits<Args...>::index_type;
+  using InIt = typename std::vector<In>::const_iterator;
 
-  if (metric == "euclidean") {
-    return std::make_unique<tdoann::EuclideanQueryDistance<In, Out, Idx>>(
-        std::move(ref_vec), std::move(query_vec), ndim);
-  }
-  if (metric == "l2sqr") {
-    return std::make_unique<tdoann::L2SqrQueryDistance<In, Out, Idx>>(
-        std::move(ref_vec), std::move(query_vec), ndim);
-  }
-  if (metric == "manhattan") {
-    return std::make_unique<tdoann::ManhattanQueryDistance<In, Out, Idx>>(
-        std::move(ref_vec), std::move(query_vec), ndim);
-  }
-  if (metric == "cosine") {
-    return std::make_unique<tdoann::CosineQueryDistance<In, Out, Idx>>(
-        std::move(ref_vec), std::move(query_vec), ndim);
+  const auto &metric_map = get_metric_map<In, Out>();
+
+  auto it = metric_map.find(metric);
+  if (it != metric_map.end()) {
+    return std::make_unique<tdoann::QueryDistanceCalculator<In, Out, Idx>>(
+        std::move(ref_vec), std::move(query_vec), ndim, it->second);
   }
   if (metric == "cosine-preprocess") {
-    return std::make_unique<
-        tdoann::CosinePreprocessQueryDistance<In, Out, Idx>>(
-        std::move(ref_vec), std::move(query_vec), ndim);
-  }
-  if (metric == "correlation") {
-    return std::make_unique<tdoann::CorrelationQueryDistance<In, Out, Idx>>(
-        std::move(ref_vec), std::move(query_vec), ndim);
+    auto preprocess = [](std::vector<In> &data, std::size_t ndim) {
+      tdoann::normalize(data, ndim);
+    };
+    return std::make_unique<tdoann::QueryDistanceCalculator<In, Out, Idx>>(
+        std::move(ref_vec), std::move(query_vec), ndim,
+        tdoann::inner_product<Out, InIt>, preprocess);
   }
   if (metric == "correlation-preprocess") {
-    return std::make_unique<
-        tdoann::CorrelationPreprocessQueryDistance<In, Out, Idx>>(
-        std::move(ref_vec), std::move(query_vec), ndim);
-  }
-  if (metric == "hamming") {
-    return std::make_unique<tdoann::HammingQueryDistance<In, Out, Idx>>(
-        std::move(ref_vec), std::move(query_vec), ndim);
+    auto preprocess = [](std::vector<In> &data, std::size_t ndim) {
+      tdoann::mean_center(data, ndim);
+      tdoann::normalize(data, ndim);
+    };
+    return std::make_unique<tdoann::QueryDistanceCalculator<In, Out, Idx>>(
+        std::move(ref_vec), std::move(query_vec), ndim,
+        tdoann::inner_product<Out, InIt>, preprocess);
   }
   Rcpp::stop("Bad metric");
 }
@@ -147,13 +204,18 @@ create_query_distance(const Rcpp::NumericMatrix &reference,
   using Out = RNN_DEFAULT_DIST;
 
   // handle binary first
-  if (metric == "bhamming") {
+  if (is_binary_metric(metric)) {
     const auto ndim = reference.nrow();
     auto ref_bvec = r_to_vec<uint8_t>(reference);
     auto query_bvec = r_to_vec<uint8_t>(query);
 
-    return std::make_unique<tdoann::BHammingQueryDistance<Out, Idx>>(
-        std::move(ref_bvec), std::move(query_bvec), ndim);
+    const auto &metric_map = get_binary_metric_map<Out, Idx>();
+    auto it = metric_map.find(metric);
+    if (it != metric_map.end()) {
+      return std::make_unique<tdoann::BinaryQueryDistanceCalculator<Out, Idx>>(
+          std::move(ref_bvec), std::move(query_bvec), ndim, it->second);
+    }
+    Rcpp::stop("Unsupported binary metric");
   }
   return create_query_distance_impl<tdoann::BaseDistance<Out, Idx>>(
       reference, query, metric);
@@ -177,39 +239,32 @@ create_self_distance_impl(
   using In = typename FactoryTraits<Args...>::input_type;
   using Out = typename FactoryTraits<Args...>::output_type;
   using Idx = typename FactoryTraits<Args...>::index_type;
+  using InIt = typename std::vector<In>::const_iterator;
 
-  if (metric == "euclidean") {
-    return std::make_unique<tdoann::EuclideanSelfDistance<In, Out, Idx>>(
-        std::move(data_vec), ndim);
+  const auto &metric_map = get_metric_map<In, Out>();
+
+  auto it = metric_map.find(metric);
+  if (it != metric_map.end()) {
+    return std::make_unique<tdoann::SelfDistanceCalculator<In, Out, Idx>>(
+        std::move(data_vec), ndim, it->second);
   }
-  if (metric == "l2sqr") {
-    return std::make_unique<tdoann::L2SqrSelfDistance<In, Out, Idx>>(
-        std::move(data_vec), ndim);
-  }
-  if (metric == "manhattan") {
-    return std::make_unique<tdoann::ManhattanSelfDistance<In, Out, Idx>>(
-        std::move(data_vec), ndim);
-  }
-  if (metric == "cosine") {
-    return std::make_unique<tdoann::CosineSelfDistance<In, Out, Idx>>(
-        std::move(data_vec), ndim);
-  }
+
   if (metric == "cosine-preprocess") {
-    return std::make_unique<tdoann::CosinePreprocessSelfDistance<In, Out, Idx>>(
-        std::move(data_vec), ndim);
-  }
-  if (metric == "correlation") {
-    return std::make_unique<tdoann::CorrelationSelfDistance<In, Out, Idx>>(
-        std::move(data_vec), ndim);
+    auto preprocess = [](std::vector<In> &data, std::size_t ndim) {
+      tdoann::normalize(data, ndim);
+    };
+    return std::make_unique<tdoann::SelfDistanceCalculator<In, Out, Idx>>(
+        std::move(data_vec), ndim, tdoann::inner_product<Out, InIt>,
+        preprocess);
   }
   if (metric == "correlation-preprocess") {
-    return std::make_unique<
-        tdoann::CorrelationPreprocessSelfDistance<In, Out, Idx>>(
-        std::move(data_vec), ndim);
-  }
-  if (metric == "hamming") {
-    return std::make_unique<tdoann::HammingSelfDistance<In, Out, Idx>>(
-        std::move(data_vec), ndim);
+    auto preprocess = [](std::vector<In> &data, std::size_t ndim) {
+      tdoann::mean_center(data, ndim);
+      tdoann::normalize(data, ndim);
+    };
+    return std::make_unique<tdoann::SelfDistanceCalculator<In, Out, Idx>>(
+        std::move(data_vec), ndim, tdoann::inner_product<Out, InIt>,
+        preprocess);
   }
   Rcpp::stop("Bad metric");
 }
@@ -234,12 +289,17 @@ create_self_distance(const Rcpp::NumericMatrix &data,
   using Out = RNN_DEFAULT_DIST;
 
   // handle binary first
-  if (metric == "bhamming") {
+  if (is_binary_metric(metric)) {
     const auto ndim = data.nrow();
     auto data_bvec = r_to_vec<uint8_t>(data);
 
-    return std::make_unique<tdoann::BHammingSelfDistance<Out, Idx>>(
-        std::move(data_bvec), ndim);
+    const auto &metric_map = get_binary_metric_map<Out, Idx>();
+    auto it = metric_map.find(metric);
+    if (it != metric_map.end()) {
+      return std::make_unique<tdoann::BinarySelfDistanceCalculator<Out, Idx>>(
+          std::move(data_bvec), ndim, it->second);
+    }
+    Rcpp::stop("Unsupported binary metric");
   }
   return create_self_distance_impl<tdoann::BaseDistance<Out, Idx>>(data,
                                                                    metric);
