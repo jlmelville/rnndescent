@@ -32,14 +32,25 @@
 
 #include "rnn_util.h"
 
+template <typename In> using DataIt = typename std::vector<In>::const_iterator;
+using SizeIt = typename std::vector<std::size_t>::const_iterator;
+
 template <typename In, typename Out>
-using DistanceFunc = Out (*)(typename std::vector<In>::const_iterator,
-                             typename std::vector<In>::const_iterator,
-                             typename std::vector<In>::const_iterator);
+using DistanceFunc = Out (*)(DataIt<In>, DataIt<In>, DataIt<In>);
+template <typename Out, typename Idx>
+using BinaryDistanceFunc = Out (*)(const tdoann::BitVec &, Idx,
+                                   const tdoann::BitVec &, Idx, std::size_t);
+template <typename In, typename Out>
+using SparseDistanceFunc = Out (*)(SizeIt, std::size_t, DataIt<In>, SizeIt,
+                                   std::size_t, DataIt<In>);
+template <typename In, typename Out>
+using SparseNFeaturesDistanceFunc = Out (*)(SizeIt, std::size_t, DataIt<In>,
+                                            SizeIt, std::size_t, DataIt<In>,
+                                            std::size_t);
 
 template <typename In, typename Out>
 const std::unordered_map<std::string, DistanceFunc<In, Out>> &get_metric_map() {
-  using InIt = typename std::vector<In>::const_iterator;
+  using InIt = DataIt<In>;
   static const std::unordered_map<std::string, DistanceFunc<In, Out>>
       metric_map = {
           {"braycurtis", tdoann::bray_curtis<Out, InIt>},
@@ -71,15 +82,37 @@ const std::unordered_map<std::string, DistanceFunc<In, Out>> &get_metric_map() {
 }
 
 template <typename Out, typename Idx>
-using BinaryDistanceFunc = Out (*)(const tdoann::BitVec &, Idx,
-                                   const tdoann::BitVec &, Idx, std::size_t);
-template <typename Out, typename Idx>
 const std::unordered_map<std::string, BinaryDistanceFunc<Out, Idx>> &
 get_binary_metric_map() {
   static const std::unordered_map<std::string, BinaryDistanceFunc<Out, Idx>>
       metric_map = {{"bdice", tdoann::bdice<Out, Idx>},
                     {"bhamming", tdoann::bhamming<Out, Idx>},
                     {"bjaccard", tdoann::bjaccard<Out, Idx>}};
+  return metric_map;
+}
+
+template <typename In, typename Out>
+const std::unordered_map<std::string, SparseDistanceFunc<In, Out>> &
+get_sparse_metric_map() {
+  using InIt = DataIt<In>;
+  static const std::unordered_map<std::string, SparseDistanceFunc<In, Out>>
+      metric_map = {
+          {"l2sqr", tdoann::sparse_l2sqr<Out, InIt>},
+          {"euclidean", tdoann::sparse_euclidean<Out, InIt>},
+          {"manhattan", tdoann::sparse_manhattan<Out, InIt>},
+          {"cosine", tdoann::sparse_cosine<Out, InIt>},
+          {"hamming", tdoann::sparse_hamming<Out, InIt>},
+          {"alternative-cosine", tdoann::sparse_alternative_cosine<Out, InIt>}};
+  return metric_map;
+}
+
+template <typename In, typename Out>
+const std::unordered_map<std::string, SparseNFeaturesDistanceFunc<In, Out>> &
+get_sparse_nfeatures_metric_map() {
+  using InIt = DataIt<In>;
+  static const std::unordered_map<std::string,
+                                  SparseNFeaturesDistanceFunc<In, Out>>
+      metric_map = {{"correlation", tdoann::sparse_correlation<Out, InIt>}};
   return metric_map;
 }
 
@@ -338,50 +371,26 @@ create_sparse_query_distance_impl(
   using Out = typename FactoryTraits<Args...>::output_type;
   using Idx = typename FactoryTraits<Args...>::index_type;
 
-  if (metric == "l2sqr") {
-    return std::make_unique<tdoann::SparseL2SqrQueryDistance<In, Out, Idx>>(
-        std::move(ref_ind), std::move(ref_ptr), std::move(ref_data),
-        std::move(query_ind), std::move(query_ptr), std::move(query_data),
-        ndim);
-  }
-  if (metric == "euclidean") {
-    return std::make_unique<tdoann::SparseEuclideanQueryDistance<In, Out, Idx>>(
-        std::move(ref_ind), std::move(ref_ptr), std::move(ref_data),
-        std::move(query_ind), std::move(query_ptr), std::move(query_data),
-        ndim);
-  }
-  if (metric == "manhattan") {
-    return std::make_unique<tdoann::SparseManhattanQueryDistance<In, Out, Idx>>(
-        std::move(ref_ind), std::move(ref_ptr), std::move(ref_data),
-        std::move(query_ind), std::move(query_ptr), std::move(query_data),
-        ndim);
-  }
-  if (metric == "cosine") {
-    return std::make_unique<tdoann::SparseCosineQueryDistance<In, Out, Idx>>(
-        std::move(ref_ind), std::move(ref_ptr), std::move(ref_data),
-        std::move(query_ind), std::move(query_ptr), std::move(query_data),
-        ndim);
-  }
-  if (metric == "alternative-cosine") {
+  const auto &metric_map = get_sparse_metric_map<In, Out>();
+  auto it = metric_map.find(metric);
+  if (it != metric_map.end()) {
     return std::make_unique<
-        tdoann::SparseAlternativeCosineQueryDistance<In, Out, Idx>>(
+        tdoann::SparseQueryDistanceCalculator<In, Out, Idx>>(
         std::move(ref_ind), std::move(ref_ptr), std::move(ref_data),
-        std::move(query_ind), std::move(query_ptr), std::move(query_data),
-        ndim);
+        std::move(query_ind), std::move(query_ptr), std::move(query_data), ndim,
+        it->second);
   }
-  if (metric == "correlation") {
+
+  const auto &nf_metric_map = get_sparse_nfeatures_metric_map<In, Out>();
+  auto nfit = nf_metric_map.find(metric);
+  if (nfit != nf_metric_map.end()) {
     return std::make_unique<
-        tdoann::SparseCorrelationQueryDistance<In, Out, Idx>>(
+        tdoann::SparseNFeaturesQueryDistanceCalculator<In, Out, Idx>>(
         std::move(ref_ind), std::move(ref_ptr), std::move(ref_data),
-        std::move(query_ind), std::move(query_ptr), std::move(query_data),
-        ndim);
+        std::move(query_ind), std::move(query_ptr), std::move(query_data), ndim,
+        nfit->second);
   }
-  if (metric == "hamming") {
-    return std::make_unique<tdoann::SparseHammingQueryDistance<In, Out, Idx>>(
-        std::move(ref_ind), std::move(ref_ptr), std::move(ref_data),
-        std::move(query_ind), std::move(query_ptr), std::move(query_data),
-        ndim);
-  }
+
   Rcpp::stop("Bad metric");
 }
 
@@ -455,36 +464,23 @@ create_sparse_self_distance_impl(
   using Out = typename FactoryTraits<Args...>::output_type;
   using Idx = typename FactoryTraits<Args...>::index_type;
 
-  if (metric == "l2sqr") {
-    return std::make_unique<tdoann::SparseL2SqrSelfDistance<In, Out, Idx>>(
-        std::move(ind_vec), std::move(ptr_vec), std::move(data_vec), ndim);
+  const auto &metric_map = get_sparse_metric_map<In, Out>();
+  auto it = metric_map.find(metric);
+  if (it != metric_map.end()) {
+    return std::make_unique<tdoann::SparseSelfDistanceCalculator<In, Out, Idx>>(
+        std::move(ind_vec), std::move(ptr_vec), std::move(data_vec), ndim,
+        it->second);
   }
-  if (metric == "euclidean") {
-    return std::make_unique<tdoann::SparseEuclideanSelfDistance<In, Out, Idx>>(
-        std::move(ind_vec), std::move(ptr_vec), std::move(data_vec), ndim);
-  }
-  if (metric == "manhattan") {
-    return std::make_unique<tdoann::SparseManhattanSelfDistance<In, Out, Idx>>(
-        std::move(ind_vec), std::move(ptr_vec), std::move(data_vec), ndim);
-  }
-  if (metric == "cosine") {
-    return std::make_unique<tdoann::SparseCosineSelfDistance<In, Out, Idx>>(
-        std::move(ind_vec), std::move(ptr_vec), std::move(data_vec), ndim);
-  }
-  if (metric == "alternative-cosine") {
+
+  const auto &nf_metric_map = get_sparse_nfeatures_metric_map<In, Out>();
+  auto nfit = nf_metric_map.find(metric);
+  if (nfit != nf_metric_map.end()) {
     return std::make_unique<
-        tdoann::SparseAlternativeCosineSelfDistance<In, Out, Idx>>(
-        std::move(ind_vec), std::move(ptr_vec), std::move(data_vec), ndim);
+        tdoann::SparseNFeaturesSelfDistanceCalculator<In, Out, Idx>>(
+        std::move(ind_vec), std::move(ptr_vec), std::move(data_vec), ndim,
+        nfit->second);
   }
-  if (metric == "correlation") {
-    return std::make_unique<
-        tdoann::SparseCorrelationSelfDistance<In, Out, Idx>>(
-        std::move(ind_vec), std::move(ptr_vec), std::move(data_vec), ndim);
-  }
-  if (metric == "hamming") {
-    return std::make_unique<tdoann::SparseHammingSelfDistance<In, Out, Idx>>(
-        std::move(ind_vec), std::move(ptr_vec), std::move(data_vec), ndim);
-  }
+
   Rcpp::stop("Bad metric");
 }
 
