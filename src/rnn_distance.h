@@ -85,6 +85,7 @@ get_binary_metric_map() {
       metric_map = {{"bdice", tdoann::bdice<Out, Idx>},
                     {"bhamming", tdoann::bhamming<Out, Idx>},
                     {"bjaccard", tdoann::bjaccard<Out, Idx>},
+                    {"bkulsinski", tdoann::bkulsinski<Out, Idx>},
                     {"bmatching", tdoann::bmatching<Out, Idx>}};
   return metric_map;
 }
@@ -133,15 +134,9 @@ inline bool is_angular_metric(const std::string &metric) {
   return false;
 }
 
-constexpr const char *binary_metrics[] = {"bdice", "bhamming", "bjaccard",
-                                          "bmatching"};
 inline bool is_binary_metric(const std::string &metric) {
-  for (const char *binary_metric : binary_metrics) {
-    if (metric == binary_metric) {
-      return true;
-    }
-  }
-  return false;
+  const auto &metric_map = get_binary_metric_map<RNN_DEFAULT_DIST, RNN_DEFAULT_IDX>();
+  return metric_map.find(metric) != metric_map.end();
 }
 
 // Using Traits to return a pointer to BaseDistance or VectorDistance

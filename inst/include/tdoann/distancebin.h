@@ -101,6 +101,30 @@ Out bjaccard(const BitVec &x, Idx i, const BitVec &y, Idx j, std::size_t len,
 }
 
 template <typename Out, typename Idx = uint32_t>
+Out bkulsinski(const BitVec &x, Idx i, const BitVec &y, Idx j, std::size_t len,
+               std::size_t ndim) {
+  std::size_t di = len * i;
+  std::size_t dj = len * j;
+
+  std::size_t num_true_true = 0;
+  std::size_t num_not_equal = 0;
+  for (std::size_t d = 0; d < len; ++d, ++di, ++dj) {
+    auto xi = x[di];
+    auto yj = y[dj];
+    num_true_true += (xi & yj).count();
+    num_not_equal += (xi ^ yj).count();
+  }
+
+  if (num_not_equal == 0) {
+    return Out(0);
+  } else {
+    return static_cast<Out>(
+        static_cast<double>(num_not_equal - num_true_true + ndim) /
+        (num_not_equal + ndim));
+  }
+}
+
+template <typename Out, typename Idx = uint32_t>
 Out bmatching(const BitVec &x, Idx i, const BitVec &y, Idx j, std::size_t len,
               std::size_t ndim) {
   std::size_t di = len * i;

@@ -74,6 +74,7 @@ test_that("Jaccard", {
   expect_equal(j_unc, aj_raw$dist)
 
   expect_equal(brute_force_knn(bitdata, k = 4, metric = "jaccard", use_alt_metric = FALSE), jbf, tol = 1e-7)
+  expect_equal(jbf, brute_force_knn(bitdata, k = 4, metric = "bjaccard"), tol = 1e-7)
 })
 
 test_that("Hellinger", {
@@ -82,4 +83,18 @@ test_that("Hellinger", {
   unc <- apply_dense_alt_metric_uncorrection("hellinger", bf$dist)
   expect_equal(unc, araw$dist)
   expect_equal(brute_force_knn(bitdata, k = 4, metric = "hellinger", use_alt_metric = FALSE), bf, tol = 1e-7)
+})
+
+test_that("Matching", {
+  bfm <- brute_force_knn(bitdata, k = 4, metric = "matching")
+  bfmb <- brute_force_knn(bitdata, k = 4, metric = "bmatching")
+
+  expect_equal(bfm, bfmb)
+})
+
+test_that("Kulsinski", {
+  bfm <- brute_force_knn(bitdata, k = 4, metric = "kulsinski")
+  bfmb <- brute_force_knn(bitdata, k = 4, metric = "bkulsinski")
+
+  expect_equal(bfm, bfmb)
 })
