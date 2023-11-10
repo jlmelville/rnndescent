@@ -235,7 +235,8 @@ template <typename Out, typename DataIt>
 Out sparse_l2sqr(typename std::vector<std::size_t>::const_iterator ind1_start,
                  std::size_t ind1_size, DataIt data1_start,
                  typename std::vector<std::size_t>::const_iterator ind2_start,
-                 std::size_t ind2_size, DataIt data2_start) {
+                 std::size_t ind2_size, DataIt data2_start,
+                 std::size_t /* unused */) {
   Out sum{0};
 
   std::size_t i1 = 0;
@@ -282,9 +283,9 @@ Out sparse_euclidean(
     typename std::vector<std::size_t>::const_iterator ind1_start,
     std::size_t ind1_size, DataIt data1_start,
     typename std::vector<std::size_t>::const_iterator ind2_start,
-    std::size_t ind2_size, DataIt data2_start) {
+    std::size_t ind2_size, DataIt data2_start, std::size_t ndim) {
   return std::sqrt(sparse_l2sqr<Out>(ind1_start, ind1_size, data1_start,
-                                     ind2_start, ind2_size, data2_start));
+                                     ind2_start, ind2_size, data2_start, ndim));
 }
 
 template <typename Out, typename DataIt>
@@ -292,7 +293,7 @@ Out sparse_manhattan(
     typename std::vector<std::size_t>::const_iterator ind1_start,
     std::size_t ind1_size, DataIt data1_start,
     typename std::vector<std::size_t>::const_iterator ind2_start,
-    std::size_t ind2_size, DataIt data2_start) {
+    std::size_t ind2_size, DataIt data2_start, std::size_t /* unused */) {
 
   Out result = Out();
 
@@ -335,7 +336,8 @@ template <typename Out, typename DataIt>
 Out sparse_hamming(typename std::vector<std::size_t>::const_iterator ind1_start,
                    std::size_t ind1_size, DataIt data1_start,
                    typename std::vector<std::size_t>::const_iterator ind2_start,
-                   std::size_t ind2_size, DataIt data2_start) {
+                   std::size_t ind2_size, DataIt data2_start,
+                   std::size_t /* unused */) {
 
   std::size_t i1 = 0;
   std::size_t i2 = 0;
@@ -377,7 +379,8 @@ template <typename Out, typename DataIt>
 Out sparse_cosine(typename std::vector<std::size_t>::const_iterator ind1_start,
                   std::size_t ind1_size, DataIt data1_start,
                   typename std::vector<std::size_t>::const_iterator ind2_start,
-                  std::size_t ind2_size, DataIt data2_start) {
+                  std::size_t ind2_size, DataIt data2_start,
+                  std::size_t /* unused */) {
 
   Out dot_product{0};
   Out norm1{0};
@@ -439,7 +442,7 @@ Out sparse_alternative_cosine(
     typename std::vector<std::size_t>::const_iterator ind1_start,
     std::size_t ind1_size, DataIt data1_start,
     typename std::vector<std::size_t>::const_iterator ind2_start,
-    std::size_t ind2_size, DataIt data2_start) {
+    std::size_t ind2_size, DataIt data2_start, std::size_t /* unused */) {
 
   const Out FLOAT32_MAX = std::numeric_limits<float>::max();
 
@@ -585,56 +588,22 @@ struct DistanceTraits<std::unique_ptr<SparseVectorDistance<In, Out, Idx>>> {
   using Index = Idx;
 };
 
-template <typename In, typename Idx> class SparseSelfVectorMixin {
-protected:
-  std::vector<std::size_t> x_ind;
-  std::vector<std::size_t> x_ptr;
-  std::vector<In> x_data;
-  std::size_t nx;
-  std::size_t ndim;
-
-public:
-  SparseSelfVectorMixin(std::vector<std::size_t> &&ind,
-                        std::vector<std::size_t> &&ptr, std::vector<In> &&data,
-                        std::size_t ndim)
-      : x_ind(std::move(ind)), x_ptr(std::move(ptr)), x_data(std::move(data)),
-        nx(x_ptr.size() - 1), ndim(ndim) {}
-
-  auto get_x(Idx i) const {
-    auto ind_start = x_ind.cbegin() + x_ptr[i];
-    auto ind_end = x_ind.cbegin() + x_ptr[i + 1];
-    auto data_start = x_data.cbegin() + x_ptr[i];
-    auto ind_size = ind_end - ind_start;
-
-    return std::make_tuple(ind_start, ind_size, data_start);
-  }
-
-  auto get_y(Idx i) const { return get_x(i); }
-
-  std::size_t get_nx() const { return nx; }
-  std::size_t get_ny() const { return nx; }
-};
-
 template <typename In, typename Out, typename Idx>
-class SparseSelfVectorBase : public SparseVectorDistance<In, Out, Idx> {
-protected:
-  std::vector<std::size_t> x_ind;
-  std::vector<std::size_t> x_ptr;
-  std::vector<In> x_data;
-  std::size_t nx;
-  std::size_t ndim;
-
+class SparseSelfDistanceCalculator : public SparseVectorDistance<In, Out, Idx> {
 public:
   using SizeIt = typename std::vector<std::size_t>::const_iterator;
   using DataIt = typename std::vector<In>::const_iterator;
+  using DistanceFunc = Out (*)(SizeIt, std::size_t, DataIt, SizeIt, std::size_t,
+                               DataIt, std::size_t);
 
-  SparseSelfVectorBase(std::vector<std::size_t> &&ind,
-                       std::vector<std::size_t> &&ptr, std::vector<In> &&data,
-                       std::size_t ndim)
+  SparseSelfDistanceCalculator(std::vector<std::size_t> &&ind,
+                               std::vector<std::size_t> &&ptr,
+                               std::vector<In> &&data, std::size_t ndim,
+                               DistanceFunc distance_func)
       : x_ind(std::move(ind)), x_ptr(std::move(ptr)), x_data(std::move(data)),
-        nx(x_ptr.size() - 1), ndim(ndim) {}
+        nx(x_ptr.size() - 1), ndim(ndim), distance_func(distance_func) {}
 
-  virtual ~SparseSelfVectorBase() = default;
+  virtual ~SparseSelfDistanceCalculator() = default;
 
   std::tuple<SizeIt, std::size_t, DataIt> get_x(Idx i) const override {
     auto ind_start = x_ind.cbegin() + x_ptr[i];
@@ -651,53 +620,6 @@ public:
 
   std::size_t get_nx() const override { return nx; }
   std::size_t get_ny() const override { return nx; }
-};
-
-template <typename In, typename Out, typename Idx>
-class SparseSelfDistanceCalculator : public SparseSelfVectorBase<In, Out, Idx> {
-public:
-  using SizeIt = typename SparseSelfVectorBase<In, Out, Idx>::SizeIt;
-  using DataIt = typename SparseSelfVectorBase<In, Out, Idx>::DataIt;
-  using DistanceFunc = Out (*)(SizeIt, std::size_t, DataIt, SizeIt, std::size_t,
-                               DataIt);
-
-  SparseSelfDistanceCalculator(std::vector<std::size_t> &&ind,
-                               std::vector<std::size_t> &&ptr,
-                               std::vector<In> &&data, std::size_t ndim,
-                               DistanceFunc distance_func)
-      : SparseSelfVectorBase<In, Out, Idx>(std::move(ind), std::move(ptr),
-                                           std::move(data), ndim),
-        distance_func(distance_func) {}
-
-  Out calculate(const Idx &i, const Idx &j) const override {
-    auto [ind1_start, ind1_size, data1_start] = this->get_x(i);
-    auto [ind2_start, ind2_size, data2_start] = this->get_x(j);
-
-    return distance_func(ind1_start, ind1_size, data1_start, ind2_start,
-                         ind2_size, data2_start);
-  }
-
-private:
-  DistanceFunc distance_func;
-};
-
-template <typename In, typename Out, typename Idx>
-class SparseNFeaturesSelfDistanceCalculator
-    : public SparseSelfVectorBase<In, Out, Idx> {
-public:
-  using SizeIt = typename SparseSelfVectorBase<In, Out, Idx>::SizeIt;
-  using DataIt = typename SparseSelfVectorBase<In, Out, Idx>::DataIt;
-  using DistanceFunc = Out (*)(SizeIt, std::size_t, DataIt, SizeIt, std::size_t,
-                               DataIt, std::size_t);
-
-  SparseNFeaturesSelfDistanceCalculator(std::vector<std::size_t> &&ind,
-                                        std::vector<std::size_t> &&ptr,
-                                        std::vector<In> &&data,
-                                        std::size_t ndim,
-                                        DistanceFunc distance_func)
-      : SparseSelfVectorBase<In, Out, Idx>(std::move(ind), std::move(ptr),
-                                           std::move(data), ndim),
-        distance_func(distance_func) {}
 
   Out calculate(const Idx &i, const Idx &j) const override {
     auto [ind1_start, ind1_size, data1_start] = this->get_x(i);
@@ -707,41 +629,37 @@ public:
                          ind2_size, data2_start, this->ndim);
   }
 
-private:
-  DistanceFunc distance_func;
-};
-
-template <typename In, typename Out, typename Idx>
-class SparseQueryVectorBase : public SparseVectorDistance<In, Out, Idx> {
-protected:
   std::vector<std::size_t> x_ind;
   std::vector<std::size_t> x_ptr;
   std::vector<In> x_data;
   std::size_t nx;
-
-  std::vector<std::size_t> y_ind;
-  std::vector<std::size_t> y_ptr;
-  std::vector<In> y_data;
-  std::size_t ny;
-
   std::size_t ndim;
+  DistanceFunc distance_func;
+};
 
+template <typename In, typename Out, typename Idx>
+class SparseQueryDistanceCalculator
+    : public SparseVectorDistance<In, Out, Idx> {
 public:
   using SizeIt = typename std::vector<std::size_t>::const_iterator;
   using DataIt = typename std::vector<In>::const_iterator;
+  using DistanceFunc = Out (*)(SizeIt, std::size_t, DataIt, SizeIt, std::size_t,
+                               DataIt, std::size_t);
 
-  SparseQueryVectorBase(std::vector<std::size_t> &&x_ind,
-                        std::vector<std::size_t> &&x_ptr,
-                        std::vector<In> &&x_data,
-                        std::vector<std::size_t> &&y_ind,
-                        std::vector<std::size_t> &&y_ptr,
-                        std::vector<In> &&y_data, std::size_t ndim)
+  SparseQueryDistanceCalculator(std::vector<std::size_t> &&x_ind,
+                                std::vector<std::size_t> &&x_ptr,
+                                std::vector<In> &&x_data,
+                                std::vector<std::size_t> &&y_ind,
+                                std::vector<std::size_t> &&y_ptr,
+                                std::vector<In> &&y_data, std::size_t ndim,
+                                DistanceFunc distance_func)
       : x_ind(std::move(x_ind)), x_ptr(std::move(x_ptr)),
         x_data(std::move(x_data)), nx(this->x_ptr.size() - 1),
         y_ind(std::move(y_ind)), y_ptr(std::move(y_ptr)),
-        y_data(std::move(y_data)), ny(this->y_ptr.size() - 1), ndim(ndim) {}
+        y_data(std::move(y_data)), ny(this->y_ptr.size() - 1), ndim(ndim),
+        distance_func(distance_func) {}
 
-  virtual ~SparseQueryVectorBase() = default;
+  virtual ~SparseQueryDistanceCalculator() = default;
 
   std::tuple<SizeIt, std::size_t, DataIt> get_x(Idx i) const override {
     auto ind_start = x_ind.cbegin() + x_ptr[i];
@@ -762,59 +680,6 @@ public:
 
   std::size_t get_nx() const override { return nx; }
   std::size_t get_ny() const override { return ny; }
-};
-
-template <typename In, typename Out, typename Idx>
-class SparseQueryDistanceCalculator
-    : public SparseQueryVectorBase<In, Out, Idx> {
-public:
-  using SizeIt = typename SparseQueryVectorBase<In, Out, Idx>::SizeIt;
-  using DataIt = typename SparseQueryVectorBase<In, Out, Idx>::DataIt;
-  using DistanceFunc = Out (*)(SizeIt, std::size_t, DataIt, SizeIt, std::size_t,
-                               DataIt);
-
-  SparseQueryDistanceCalculator(std::vector<std::size_t> &&x_ind,
-                                std::vector<std::size_t> &&x_ptr,
-                                std::vector<In> &&x_data,
-                                std::vector<std::size_t> &&y_ind,
-                                std::vector<std::size_t> &&y_ptr,
-                                std::vector<In> &&y_data, std::size_t ndim,
-                                DistanceFunc distance_func)
-      : SparseQueryVectorBase<In, Out, Idx>(
-            std::move(x_ind), std::move(x_ptr), std::move(x_data),
-            std::move(y_ind), std::move(y_ptr), std::move(y_data), ndim),
-        distance_func(distance_func) {}
-
-  Out calculate(const Idx &i, const Idx &j) const override {
-    auto [ind1_start, ind1_size, data1_start] = this->get_x(i);
-    auto [ind2_start, ind2_size, data2_start] = this->get_y(j);
-
-    return distance_func(ind1_start, ind1_size, data1_start, ind2_start,
-                         ind2_size, data2_start);
-  }
-
-private:
-  DistanceFunc distance_func;
-};
-
-template <typename In, typename Out, typename Idx>
-class SparseNFeaturesQueryDistanceCalculator
-    : public SparseQueryVectorBase<In, Out, Idx> {
-public:
-  using SizeIt = typename SparseQueryVectorBase<In, Out, Idx>::SizeIt;
-  using DataIt = typename SparseQueryVectorBase<In, Out, Idx>::DataIt;
-  using DistanceFunc = Out (*)(SizeIt, std::size_t, DataIt, SizeIt, std::size_t,
-                               DataIt, std::size_t);
-
-  SparseNFeaturesQueryDistanceCalculator(
-      std::vector<std::size_t> &&x_ind, std::vector<std::size_t> &&x_ptr,
-      std::vector<In> &&x_data, std::vector<std::size_t> &&y_ind,
-      std::vector<std::size_t> &&y_ptr, std::vector<In> &&y_data,
-      std::size_t ndim, DistanceFunc distance_func)
-      : SparseQueryVectorBase<In, Out, Idx>(
-            std::move(x_ind), std::move(x_ptr), std::move(x_data),
-            std::move(y_ind), std::move(y_ptr), std::move(y_data), ndim),
-        distance_func(distance_func) {}
 
   Out calculate(const Idx &i, const Idx &j) const override {
     auto [ind1_start, ind1_size, data1_start] = this->get_x(i);
@@ -824,7 +689,18 @@ public:
                          ind2_size, data2_start, this->ndim);
   }
 
-private:
+  std::vector<std::size_t> x_ind;
+  std::vector<std::size_t> x_ptr;
+  std::vector<In> x_data;
+  std::size_t nx;
+
+  std::vector<std::size_t> y_ind;
+  std::vector<std::size_t> y_ptr;
+  std::vector<In> y_data;
+  std::size_t ny;
+
+  std::size_t ndim;
+
   DistanceFunc distance_func;
 };
 

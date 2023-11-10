@@ -39,14 +39,11 @@ template <typename In, typename Out>
 using DistanceFunc = Out (*)(DataIt<In>, DataIt<In>, DataIt<In>);
 template <typename Out, typename Idx>
 using BinaryDistanceFunc = Out (*)(const tdoann::BitVec &, Idx,
-                                   const tdoann::BitVec &, Idx, std::size_t);
+                                   const tdoann::BitVec &, Idx, std::size_t,
+                                   std::size_t);
 template <typename In, typename Out>
 using SparseDistanceFunc = Out (*)(SizeIt, std::size_t, DataIt<In>, SizeIt,
-                                   std::size_t, DataIt<In>);
-template <typename In, typename Out>
-using SparseNFeaturesDistanceFunc = Out (*)(SizeIt, std::size_t, DataIt<In>,
-                                            SizeIt, std::size_t, DataIt<In>,
-                                            std::size_t);
+                                   std::size_t, DataIt<In>, std::size_t);
 
 template <typename In, typename Out>
 const std::unordered_map<std::string, DistanceFunc<In, Out>> &get_metric_map() {
@@ -87,7 +84,8 @@ get_binary_metric_map() {
   static const std::unordered_map<std::string, BinaryDistanceFunc<Out, Idx>>
       metric_map = {{"bdice", tdoann::bdice<Out, Idx>},
                     {"bhamming", tdoann::bhamming<Out, Idx>},
-                    {"bjaccard", tdoann::bjaccard<Out, Idx>}};
+                    {"bjaccard", tdoann::bjaccard<Out, Idx>},
+                    {"bmatching", tdoann::bmatching<Out, Idx>}};
   return metric_map;
 }
 
@@ -97,22 +95,13 @@ get_sparse_metric_map() {
   using InIt = DataIt<In>;
   static const std::unordered_map<std::string, SparseDistanceFunc<In, Out>>
       metric_map = {
-          {"l2sqr", tdoann::sparse_l2sqr<Out, InIt>},
-          {"euclidean", tdoann::sparse_euclidean<Out, InIt>},
-          {"manhattan", tdoann::sparse_manhattan<Out, InIt>},
+          {"correlation", tdoann::sparse_correlation<Out, InIt>},
           {"cosine", tdoann::sparse_cosine<Out, InIt>},
+          {"alternative-cosine", tdoann::sparse_alternative_cosine<Out, InIt>},
+          {"euclidean", tdoann::sparse_euclidean<Out, InIt>},
           {"hamming", tdoann::sparse_hamming<Out, InIt>},
-          {"alternative-cosine", tdoann::sparse_alternative_cosine<Out, InIt>}};
-  return metric_map;
-}
-
-template <typename In, typename Out>
-const std::unordered_map<std::string, SparseNFeaturesDistanceFunc<In, Out>> &
-get_sparse_nfeatures_metric_map() {
-  using InIt = DataIt<In>;
-  static const std::unordered_map<std::string,
-                                  SparseNFeaturesDistanceFunc<In, Out>>
-      metric_map = {{"correlation", tdoann::sparse_correlation<Out, InIt>}};
+          {"l2sqr", tdoann::sparse_l2sqr<Out, InIt>},
+          {"manhattan", tdoann::sparse_manhattan<Out, InIt>}};
   return metric_map;
 }
 
@@ -123,9 +112,17 @@ get_sparse_nfeatures_metric_map() {
 // other metrics are considered to be euclidean.
 // for consistency with pynndescent should these get implemented other angular
 // metrics are "dot", "dice", "jaccard", "hellinger"
-constexpr const char *angular_metrics[] = {"cosine",      "alternative-cosine",
-                                           "correlation", "hamming",
-                                           "bhamming",    "jaccard",
+constexpr const char *angular_metrics[] = {"cosine",
+                                           "alternative-cosine",
+                                           "correlation",
+                                           "dot",
+                                           "dice"
+                                           "hamming",
+                                           "hellinger",
+                                           "alternative-hellinger",
+                                           "jaccard",
+                                           "alternative-jaccard",
+                                           "bhamming",
                                            "bjaccard"};
 inline bool is_angular_metric(const std::string &metric) {
   for (const char *angular_metric : angular_metrics) {
@@ -136,7 +133,8 @@ inline bool is_angular_metric(const std::string &metric) {
   return false;
 }
 
-constexpr const char *binary_metrics[] = {"bdice", "bhamming", "bjaccard"};
+constexpr const char *binary_metrics[] = {"bdice", "bhamming", "bjaccard",
+                                          "bmatching"};
 inline bool is_binary_metric(const std::string &metric) {
   for (const char *binary_metric : binary_metrics) {
     if (metric == binary_metric) {
@@ -381,16 +379,6 @@ create_sparse_query_distance_impl(
         it->second);
   }
 
-  const auto &nf_metric_map = get_sparse_nfeatures_metric_map<In, Out>();
-  auto nfit = nf_metric_map.find(metric);
-  if (nfit != nf_metric_map.end()) {
-    return std::make_unique<
-        tdoann::SparseNFeaturesQueryDistanceCalculator<In, Out, Idx>>(
-        std::move(ref_ind), std::move(ref_ptr), std::move(ref_data),
-        std::move(query_ind), std::move(query_ptr), std::move(query_data), ndim,
-        nfit->second);
-  }
-
   Rcpp::stop("Bad metric");
 }
 
@@ -430,8 +418,6 @@ create_sparse_query_distance(const Rcpp::IntegerVector &ref_ind,
                              const Rcpp::IntegerVector &query_ptr,
                              const Rcpp::NumericVector &query_data,
                              std::size_t ndim, const std::string &metric) {
-  // handle special case (e.g. binary) if needed here
-
   return create_sparse_query_distance_impl<
       tdoann::BaseDistance<RNN_DEFAULT_DIST, Idx>>(ref_ind, ref_ptr, ref_data,
                                                    query_ind, query_ptr,
@@ -472,15 +458,6 @@ create_sparse_self_distance_impl(
         it->second);
   }
 
-  const auto &nf_metric_map = get_sparse_nfeatures_metric_map<In, Out>();
-  auto nfit = nf_metric_map.find(metric);
-  if (nfit != nf_metric_map.end()) {
-    return std::make_unique<
-        tdoann::SparseNFeaturesSelfDistanceCalculator<In, Out, Idx>>(
-        std::move(ind_vec), std::move(ptr_vec), std::move(data_vec), ndim,
-        nfit->second);
-  }
-
   Rcpp::stop("Bad metric");
 }
 
@@ -509,8 +486,7 @@ create_sparse_self_distance(const Rcpp::IntegerVector &ind,
                             const Rcpp::IntegerVector &ptr,
                             const Rcpp::NumericVector &data, std::size_t ndim,
                             const std::string &metric) {
-  // handle special case (e.g. binary) if needed here
-
+  // handle special case if needed here
   return create_sparse_self_distance_impl<
       tdoann::BaseDistance<RNN_DEFAULT_DIST, Idx>>(ind, ptr, data, ndim,
                                                    metric);

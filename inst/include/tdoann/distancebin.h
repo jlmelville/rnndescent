@@ -41,9 +41,8 @@
 namespace tdoann {
 
 template <typename Out, typename Idx = uint32_t>
-auto bdice(const BitVec &x, Idx i, const BitVec &y, Idx j, std::size_t len)
-    -> Out {
-
+Out bdice(const BitVec &x, Idx i, const BitVec &y, Idx j, std::size_t len,
+          std::size_t /* unused */) {
   std::size_t di = len * i;
   std::size_t dj = len * j;
 
@@ -65,8 +64,8 @@ auto bdice(const BitVec &x, Idx i, const BitVec &y, Idx j, std::size_t len)
 }
 
 template <typename Out, typename Idx = uint32_t>
-auto bhamming(const BitVec &x, const Idx i, const BitVec &y, Idx j,
-              std::size_t len) -> Out {
+Out bhamming(const BitVec &x, const Idx i, const BitVec &y, Idx j,
+             std::size_t len, std::size_t /* unused */) {
   Out sum = 0;
   std::size_t di = len * i;
   std::size_t dj = len * j;
@@ -79,8 +78,8 @@ auto bhamming(const BitVec &x, const Idx i, const BitVec &y, Idx j,
 }
 
 template <typename Out, typename Idx = uint32_t>
-auto bjaccard(const BitVec &x, Idx i, const BitVec &y, Idx j, std::size_t len)
-    -> Out {
+Out bjaccard(const BitVec &x, Idx i, const BitVec &y, Idx j, std::size_t len,
+             std::size_t /* unused */) {
   std::size_t intersection = 0;
   std::size_t union_count = 0;
   std::size_t di = len * i;
@@ -101,24 +100,41 @@ auto bjaccard(const BitVec &x, Idx i, const BitVec &y, Idx j, std::size_t len)
   }
 }
 
+template <typename Out, typename Idx = uint32_t>
+Out bmatching(const BitVec &x, Idx i, const BitVec &y, Idx j, std::size_t len,
+              std::size_t ndim) {
+  std::size_t di = len * i;
+  std::size_t dj = len * j;
+
+  std::size_t num_not_equal = 0;
+  for (std::size_t d = 0; d < len; ++d, ++di, ++dj) {
+    auto xi = x[di];
+    auto yj = y[dj];
+    num_not_equal += (xi ^ yj).count();
+  }
+
+  return static_cast<Out>(static_cast<double>(num_not_equal) / ndim);
+}
+
 template <typename Out, typename Idx>
 class BinarySelfDistanceCalculator : public BaseDistance<Out, Idx> {
 public:
   using DistanceFunc = Out (*)(const BitVec &, Idx, const BitVec &, Idx,
-                               std::size_t);
+                               std::size_t, std::size_t);
 
   template <typename VecIn>
   BinarySelfDistanceCalculator(VecIn &&data, std::size_t ndim,
                                DistanceFunc distance)
       : vec_len(num_blocks_needed(ndim)), nx(data.size() / ndim),
         bdata(to_bitvec(std::forward<VecIn>(data), ndim)),
-        distance_func(distance) {}
+        distance_func(distance), ndim(ndim) {}
 
   std::size_t get_nx() const override { return nx; }
   std::size_t get_ny() const override { return nx; }
 
   Out calculate(const Idx &i, const Idx &j) const override {
-    return distance_func(this->bdata, i, this->bdata, j, this->vec_len);
+    return distance_func(this->bdata, i, this->bdata, j, this->vec_len,
+                         this->ndim);
   }
 
 protected:
@@ -126,26 +142,28 @@ protected:
   std::size_t nx;
   BitVec bdata;
   DistanceFunc distance_func;
+  std::size_t ndim;
 };
 
 template <typename Out, typename Idx>
 class BinaryQueryDistanceCalculator : public BaseDistance<Out, Idx> {
 public:
   using DistanceFunc = Out (*)(const BitVec &, Idx, const BitVec &, Idx,
-                               std::size_t);
+                               std::size_t, std::size_t);
 
   template <typename VecIn>
   BinaryQueryDistanceCalculator(VecIn &&x, VecIn &&y, std::size_t ndim,
                                 DistanceFunc distance)
       : vec_len(num_blocks_needed(ndim)), nx(x.size() / ndim),
         ny(y.size() / ndim), bx(to_bitvec(std::forward<VecIn>(x), ndim)),
-        by(to_bitvec(std::forward<VecIn>(y), ndim)), distance_func(distance) {}
+        by(to_bitvec(std::forward<VecIn>(y), ndim)), distance_func(distance),
+        ndim(ndim) {}
 
   std::size_t get_nx() const override { return nx; }
   std::size_t get_ny() const override { return ny; }
 
   Out calculate(const Idx &i, const Idx &j) const override {
-    return distance_func(this->bx, i, this->by, j, this->vec_len);
+    return distance_func(this->bx, i, this->by, j, this->vec_len, this->ndim);
   }
 
 protected:
@@ -155,6 +173,7 @@ protected:
   BitVec bx;
   BitVec by;
   DistanceFunc distance_func;
+  std::size_t ndim;
 };
 
 } // namespace tdoann
