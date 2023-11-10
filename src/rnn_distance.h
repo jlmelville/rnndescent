@@ -86,7 +86,12 @@ get_binary_metric_map() {
                     {"bhamming", tdoann::bhamming<Out, Idx>},
                     {"bjaccard", tdoann::bjaccard<Out, Idx>},
                     {"bkulsinski", tdoann::bkulsinski<Out, Idx>},
-                    {"bmatching", tdoann::bmatching<Out, Idx>}};
+                    {"bmatching", tdoann::bmatching<Out, Idx>},
+                    {"brogerstanimoto", tdoann::brogers_tanimoto<Out, Idx>},
+                    {"brussellrao", tdoann::brussell_rao<Out, Idx>},
+                    {"bsokalmichener", tdoann::bsokal_michener<Out, Idx>},
+                    {"bsokalsneath", tdoann::bsokal_sneath<Out, Idx>},
+                    {"byule", tdoann::byule<Out, Idx>}};
   return metric_map;
 }
 
@@ -135,7 +140,8 @@ inline bool is_angular_metric(const std::string &metric) {
 }
 
 inline bool is_binary_metric(const std::string &metric) {
-  const auto &metric_map = get_binary_metric_map<RNN_DEFAULT_DIST, RNN_DEFAULT_IDX>();
+  const auto &metric_map =
+      get_binary_metric_map<RNN_DEFAULT_DIST, RNN_DEFAULT_IDX>();
   return metric_map.find(metric) != metric_map.end();
 }
 

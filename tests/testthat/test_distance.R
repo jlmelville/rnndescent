@@ -93,8 +93,43 @@ test_that("Matching", {
 })
 
 test_that("Kulsinski", {
-  bfm <- brute_force_knn(bitdata, k = 4, metric = "kulsinski")
-  bfmb <- brute_force_knn(bitdata, k = 4, metric = "bkulsinski")
+  bfdense <- brute_force_knn(bitdata, k = 4, metric = "kulsinski")
+  bfbin <- brute_force_knn(bitdata, k = 4, metric = "bkulsinski")
 
-  expect_equal(bfm, bfmb)
+  expect_equal(bfdense, bfbin)
+})
+
+test_that("Rogers-Tanimoto", {
+  bfdense <- brute_force_knn(bitdata, k = 4, metric = "rogerstanimoto")
+  bfbin <- brute_force_knn(bitdata, k = 4, metric = "brogerstanimoto")
+
+  expect_equal(bfdense, bfbin)
+})
+
+test_that("Russell-Rao", {
+  bfdense <- brute_force_knn(bitdata, k = 4, metric = "russellrao")
+  bfbin <- brute_force_knn(bitdata, k = 4, metric = "brussellrao")
+
+  expect_equal(bfdense, bfbin)
+})
+
+test_that("Sokal-Michener", {
+  bfdense <- brute_force_knn(bitdata, k = 4, metric = "sokalmichener")
+  bfbin <- brute_force_knn(bitdata, k = 4, metric = "bsokalmichener")
+
+  expect_equal(bfdense, bfbin)
+})
+
+test_that("Sokal-Sneath", {
+  bfdense <- brute_force_knn(bitdata, k = 4, metric = "sokalsneath")
+  bfbin <- brute_force_knn(bitdata, k = 4, metric = "bsokalsneath")
+
+  expect_equal(bfdense, bfbin)
+})
+
+test_that("Yule", {
+  bfdense <- brute_force_knn(bitdata, k = 4, metric = "yule")
+  bfbin <- brute_force_knn(bitdata, k = 4, metric = "byule")
+
+  expect_equal(bfdense, bfbin)
 })

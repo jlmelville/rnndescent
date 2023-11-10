@@ -140,6 +140,129 @@ Out bmatching(const BitVec &x, Idx i, const BitVec &y, Idx j, std::size_t len,
   return static_cast<Out>(static_cast<double>(num_not_equal) / ndim);
 }
 
+template <typename Out, typename Idx = uint32_t>
+Out brogers_tanimoto(const BitVec &x, Idx i, const BitVec &y, Idx j,
+                     std::size_t len, std::size_t ndim) {
+  std::size_t di = len * i;
+  std::size_t dj = len * j;
+
+  std::size_t num_not_equal = 0;
+  for (std::size_t d = 0; d < len; ++d, ++di, ++dj) {
+    auto xi = x[di];
+    auto yj = y[dj];
+    num_not_equal += (xi ^ yj).count();
+  }
+
+  return static_cast<Out>((2.0 * num_not_equal) / (ndim + num_not_equal));
+}
+
+template <typename Out, typename Idx = uint32_t>
+Out brussell_rao(const BitVec &x, Idx i, const BitVec &y, Idx j,
+                 std::size_t len, std::size_t ndim) {
+  std::size_t di = len * i;
+  std::size_t dj = len * j;
+
+  std::size_t num_true_true = 0;
+  std::size_t num_x_true = 0;
+  std::size_t num_y_true = 0;
+
+  for (std::size_t d = 0; d < len; ++d, ++di, ++dj) {
+    auto xi = x[di];
+    auto yj = y[dj];
+    num_true_true += (xi & yj).count();
+    num_x_true += xi.count();
+    num_y_true += yj.count();
+  }
+
+  if (num_true_true == num_x_true && num_true_true == num_y_true) {
+    return Out(0);
+  } else {
+    return static_cast<Out>(ndim - num_true_true) / static_cast<Out>(ndim);
+  }
+}
+
+template <typename Out, typename Idx = uint32_t>
+Out bsokal_michener(const BitVec &x, Idx i, const BitVec &y, Idx j,
+                    std::size_t len, std::size_t ndim) {
+  std::size_t di = len * i;
+  std::size_t dj = len * j;
+
+  std::size_t num_not_equal = 0;
+  std::size_t num_equal = 0;
+
+  for (std::size_t d = 0; d < len; ++d, ++di, ++dj) {
+    auto xi = x[di];
+    auto yj = y[dj];
+    num_not_equal += (xi ^ yj).count();
+    num_equal += (xi.size() - (xi ^ yj).count());
+  }
+
+  // Subtract padding from num_equal: extra 0s will contribute to num_equal
+  const std::size_t total_bits = x[0].size() * len;
+  const auto rem = ndim % total_bits;
+  const std::size_t padding = rem > 0 ? total_bits - rem : 0;
+  num_equal -= padding;
+
+  std::size_t total = num_equal + num_not_equal;
+  return total == 0 ? Out(0)
+                    : static_cast<Out>(num_not_equal) / static_cast<Out>(total);
+}
+
+template <typename Out, typename Idx = uint32_t>
+Out bsokal_sneath(const BitVec &x, Idx i, const BitVec &y, Idx j,
+                  std::size_t len, std::size_t ndim) {
+  std::size_t di = len * i;
+  std::size_t dj = len * j;
+
+  std::size_t num_true_true = 0;
+  std::size_t num_not_equal = 0;
+
+  for (std::size_t d = 0; d < len; ++d, ++di, ++dj) {
+    auto xi = x[di];
+    auto yj = y[dj];
+    num_true_true += (xi & yj).count();
+    num_not_equal += (xi ^ yj).count();
+  }
+
+  if (num_not_equal == 0) {
+    return Out(0);
+  } else {
+    return static_cast<Out>(num_not_equal) /
+           static_cast<Out>(0.5 * num_true_true + num_not_equal);
+  }
+}
+
+template <typename Out, typename Idx = uint32_t>
+Out byule(const BitVec &x, Idx i, const BitVec &y, Idx j, std::size_t len,
+          std::size_t ndim) {
+  std::size_t di = len * i;
+  std::size_t dj = len * j;
+
+  std::size_t num_true_true = 0;
+  std::size_t num_true_false = 0;
+  std::size_t num_false_true = 0;
+  std::size_t num_false_false = 0;
+
+  for (std::size_t d = 0; d < len; ++d, ++di, ++dj) {
+    auto xi = x[di];
+    auto yj = y[dj];
+    num_true_true += (xi & yj).count();
+    num_true_false += (xi & ~yj).count();
+    num_false_true += (~xi & yj).count();
+  }
+
+  // Calculate num_false_false
+  num_false_false = ndim - num_true_true - num_true_false - num_false_true;
+
+  if (num_true_false == 0 || num_false_true == 0) {
+    return Out(0);
+  } else {
+    return static_cast<Out>(2.0 * num_true_false * num_false_true) /
+           static_cast<Out>(num_true_true * num_false_false +
+                            num_true_false * num_false_true);
+  }
+}
+
 template <typename Out, typename Idx>
 class BinarySelfDistanceCalculator : public BaseDistance<Out, Idx> {
 public:
