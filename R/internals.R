@@ -191,6 +191,8 @@ find_sparse_alt_metric <- function(metric) {
 find_dense_alt_metric <- function(metric) {
   switch(metric,
          euclidean = "l2sqr",
+         hellinger = "alternative-hellinger",
+         jaccard = "alternative-jaccard",
          metric
   )
 }
@@ -220,6 +222,8 @@ apply_alt_metric_uncorrection <- function(metric, dist, is_sparse = FALSE) {
 apply_dense_alt_metric_uncorrection <- function(metric, dist) {
   switch(metric,
          euclidean = dist * dist,
+         hellinger = uncorrect_alternative_hellinger(dist),
+         jaccard = uncorrect_alternative_jaccard(dist),
          dist
   )
 }
@@ -236,6 +240,8 @@ apply_sparse_alt_metric_uncorrection <- function(metric, dist) {
 apply_dense_alt_metric_correction <- function(metric, dist) {
   switch(metric,
          euclidean = sqrt(dist),
+         jaccard = apply(dist, c(1, 2), correct_alternative_jaccard),
+         hellinger = apply(dist, c(1, 2), correct_alternative_hellinger),
          dist
   )
 }
@@ -286,20 +292,33 @@ sparse_correct_alternative_cosine <- function(dist) {
   }
 }
 
-# FIXME uncorrect also
+correct_alternative_jaccard <- function(dist) {
+  if (is.na(dist)) {
+    return(NA)
+  }
+  if (isclose(0.0, abs(dist), atol = 1e-7) || dist < 0.0) {
+    0.0
+  }
+  else {
+    1.0 - (2.0 ^ -dist)
+  }
+}
 
-# def correct_alternative_hellinger(d):
-#   return np.sqrt(1.0 - pow(2.0, -d))
+correct_alternative_hellinger <- function(dist) {
+  sqrt(correct_alternative_jaccard(dist))
+}
 
-# def correct_alternative_jaccard(v):
-#   return 1.0 - pow(2.0, -v)
+uncorrect_alternative_jaccard <- function(dist) {
+  ifelse(dist >= (1.0 - 1.e-10), 0.0, -log2(1.0 - dist))
+}
+
+uncorrect_alternative_hellinger <- function(dist) {
+  ifelse(dist >= (1.0 - 1.e-10), 0.0, -log2(1.0 - (dist * dist)))
+}
 
 sparse_uncorrect_alternative_cosine <- function(dist) {
   ifelse(dist >= (1.0 - 1.e-10), 0.0, -log2(1.0 - dist))
 }
-
-
-
 
 validate_are_mergeablel <- function(nn_graphs) {
   nn_graph1 <- nn_graphs[[1]]

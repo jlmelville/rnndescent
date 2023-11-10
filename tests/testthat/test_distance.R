@@ -65,3 +65,21 @@ test_that("Correlation distance", {
   }
   expect_equal(dmat, uirism10_cord, check.attributes = FALSE, tol = 1e-6)
 })
+
+test_that("Jaccard", {
+  # check corrections
+  jbf <- brute_force_knn(bitdata, k = 4, metric = "jaccard")
+  aj_raw <- brute_force_knn(bitdata, k = 4, metric = "alternative-jaccard")
+  j_unc <- apply_dense_alt_metric_uncorrection("jaccard", jbf$dist)
+  expect_equal(j_unc, aj_raw$dist)
+
+  expect_equal(brute_force_knn(bitdata, k = 4, metric = "jaccard", use_alt_metric = FALSE), jbf, tol = 1e-7)
+})
+
+test_that("Hellinger", {
+  bf <- brute_force_knn(bitdata, k = 4, metric = "hellinger")
+  araw <- brute_force_knn(bitdata, k = 4, metric = "alternative-hellinger")
+  unc <- apply_dense_alt_metric_uncorrection("hellinger", bf$dist)
+  expect_equal(unc, araw$dist)
+  expect_equal(brute_force_knn(bitdata, k = 4, metric = "hellinger", use_alt_metric = FALSE), bf, tol = 1e-7)
+})

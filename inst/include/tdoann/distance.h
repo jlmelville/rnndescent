@@ -280,6 +280,7 @@ Out alternative_jaccard(It xbegin, It xend, It ybegin) {
     return -std::log2(static_cast<double>(num_equal) / num_non_zero);
   }
 }
+
 template <typename Out, typename It>
 Out jensen_shannon_divergence(It xbegin, It xend, It ybegin) {
   const std::size_t ndim = std::distance(xbegin, xend);
