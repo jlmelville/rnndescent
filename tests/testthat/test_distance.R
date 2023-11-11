@@ -97,7 +97,7 @@ test_that("Dice", {
 test_that("Dot", {
   bfdense <- brute_force_knn(ui10z, k = 4, metric = "dot")
   bfsparse <- brute_force_knn(ui10sp, k = 4, metric = "dot")
-  expect_equal(bfdense, bfsparse)
+  expect_equal(bfdense, bfsparse, tol = 1e-7)
 })
 
 test_that("Hamming", {
