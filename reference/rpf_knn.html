@@ -84,27 +84,48 @@ specified.</p></dd>
 
 
 <dt>metric</dt>
-<dd><p>Type of distance calculation to use. One of:</p><ul><li><p><code>"euclidean"</code>.</p></li>
-<li><p><code>"l2sqr"</code> (squared Euclidean).</p></li>
+<dd><p>Type of distance calculation to use. One of:</p><ul><li><p><code>"braycurtis"</code></p></li>
+<li><p><code>"canberra"</code></p></li>
+<li><p><code>"chebyshev"</code></p></li>
+<li><p><code>"correlation"</code> (1 minus the Pearson correlation).</p></li>
 <li><p><code>"cosine"</code>.</p></li>
+<li><p><code>"dice"</code></p></li>
+<li><p><code>"euclidean"</code>.</p></li>
 <li><p><code>"hamming"</code>.</p></li>
-<li><p><code>"manhattan"</code>.</p></li>
-<li><p><code>"correlation"</code> (1 minus the Pearson correlation).
-For non-sparse data, some variants are available:</p></li>
-<li><p><code>"cosine-preprocess"</code>: cosine with preprocessing: this trades memory for a
-potential speed up during the distance calculation.It should give the
-same results as <code>cosine</code>, give or take minor numerical changes. Be aware
-that the distance between two identical items may not always give exactly
-zero with this method.</p></li>
-<li><p><code>"correlation-preprocess"</code>: <code>correlation</code> with preprocessing. This trades
-memory for a potential speed up during the distance calculation. It should
-give the same results as <code>correlation</code>, give or take minor numerical
-changes. Be aware that the distance between two identical items may not
-always give exactly zero with this method.</p></li>
-<li><p><code>"bhamming"</code>: hamming on binary data (numeric or integer matrix with 0s
-and 1s only) with bitset internal memory optimization. This should be
-substantially faster than <code>"hamming"</code>.</p></li>
-</ul></dd>
+<li><p><code>"hellinger"</code></p></li>
+<li><p><code>"jaccard"</code></p></li>
+<li><p><code>"jensenshannon"</code></p></li>
+<li><p><code>"kulsinski"</code></p></li>
+<li><p><code>"l2sqr"</code> (squared Euclidean)</p></li>
+<li><p><code>"manhattan"</code></p></li>
+<li><p><code>"rogerstanimoto"</code></p></li>
+<li><p><code>"russellrao"</code></p></li>
+<li><p><code>"sokalmichener"</code></p></li>
+<li><p><code>"sokalsneath"</code></p></li>
+<li><p><code>"spearmanr"</code> (1 minus the Spearman rank correlation; not available for
+sparse data).</p></li>
+<li><p><code>"symmetrickl"</code> (symmetric Kullback-Leibler divergence)</p></li>
+<li><p><code>"yule"</code></p></li>
+</ul><p>For non-sparse data, the following variants are available with
+preprocessing: this trades memory for a potential speed up during the
+distance calculation. Some minor numerical differences should be expected
+compared to the non-preprocessed versions:</p><ul><li><p><code>"cosine-preprocess"</code>: <code>cosine</code> with preprocessing.</p></li>
+<li><p><code>"correlation-preprocess"</code>: <code>correlation</code> with preprocessing.</p></li>
+</ul><p>For non-sparse binary data (numeric or integer matrix with 0s
+and 1s only) the following metric variants are available which should be
+substantially faster than the non-binary variants:</p><ul><li><p><code>"bdice"</code></p></li>
+<li><p><code>"bhamming"</code></p></li>
+<li><p><code>"bjaccard"</code></p></li>
+<li><p><code>"bkulsinski"</code></p></li>
+<li><p><code>"bmatching"</code></p></li>
+<li><p><code>"brogerstanimoto"</code></p></li>
+<li><p><code>"brussellrao"</code></p></li>
+<li><p><code>"bsokalmichener"</code></p></li>
+<li><p><code>"bsokalsneath"</code></p></li>
+<li><p><code>"byule"</code></p></li>
+</ul><p>Note that if <code>margin = "explicit"</code>, the metric is only used to determine
+whether an "angular" or "Euclidean" distance is used to measure the
+distance between split points in the tree.</p></dd>
 
 
 <dt>use_alt_metric</dt>
