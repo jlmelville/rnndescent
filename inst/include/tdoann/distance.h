@@ -566,6 +566,12 @@ template <typename T> void mean_center(std::vector<T> &vec, std::size_t ndim) {
   }
 }
 
+template <typename T>
+void mean_center_and_normalize(std::vector<T> &vec, std::size_t ndim) {
+  mean_center(vec, ndim);
+  normalize(vec, ndim);
+}
+
 } // namespace tdoann
 #endif // TDOANN_DISTANCE_H
 // NOLINTEND(readability-identifier-length)
