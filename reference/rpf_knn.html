@@ -151,6 +151,17 @@ default of <code>NULL</code> means that the number of leaves is chosen based on 
 number of requested neighbors <code>k</code>.</p></dd>
 
 
+<dt>max_tree_depth</dt>
+<dd><p>The maximum depth of the tree to build (default = 200).
+If the maximum tree depth is exceeded then the leaf size of a tree may
+exceed <code>leaf_size</code> which can result in a large number of neighbor distances
+being calculated. If <code>verbose = TRUE</code> a message will be logged to indicate
+that the leaf size is large. However, increasing the <code>max_tree_depth</code> may
+not help: it may be that there is something unusual about the distribution
+of your data set under your chose <code>metric</code> that makes a tree-based
+initialization inappropriate.</p></dd>
+
+
 <dt>include_self</dt>
 <dd><p>If <code>TRUE</code> (the default) then an item is considered to
 be a neighbor of itself. Hence the first nearest neighbor in the results
