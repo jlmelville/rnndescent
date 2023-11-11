@@ -514,7 +514,7 @@ rpf_index_ls4e <-
       )
     ),
     margin = "explicit",
-    actual_metric = "l2sqr",
+    actual_metric = "sqeuclidean",
     version = "0.0.12",
     use_alt_metric = TRUE,
     original_metric = "euclidean",
@@ -615,7 +615,7 @@ rpf_index_ls4i <-
       )
     ),
     margin = "implicit",
-    actual_metric = "l2sqr",
+    actual_metric = "sqeuclidean",
     version = "0.0.12",
     use_alt_metric = TRUE,
     original_metric = "euclidean",

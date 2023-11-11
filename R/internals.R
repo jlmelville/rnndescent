@@ -182,7 +182,7 @@ is_sparse <- function(x) {
 
 find_sparse_alt_metric <- function(metric) {
   switch(metric,
-         euclidean = "l2sqr",
+         euclidean = "sqeuclidean",
          cosine = "alternative-cosine",
          jaccard = "alternative-jaccard",
          metric
@@ -191,7 +191,7 @@ find_sparse_alt_metric <- function(metric) {
 
 find_dense_alt_metric <- function(metric) {
   switch(metric,
-         euclidean = "l2sqr",
+         euclidean = "sqeuclidean",
          hellinger = "alternative-hellinger",
          jaccard = "alternative-jaccard",
          metric

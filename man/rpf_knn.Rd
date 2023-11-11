@@ -11,6 +11,7 @@ rpf_knn(
   use_alt_metric = TRUE,
   n_trees = NULL,
   leaf_size = NULL,
+  max_tree_depth = 200,
   include_self = TRUE,
   ret_forest = FALSE,
   margin = "auto",
@@ -44,7 +45,7 @@ specified.}
 \item \code{"jaccard"}
 \item \code{"jensenshannon"}
 \item \code{"kulsinski"}
-\item \code{"l2sqr"} (squared Euclidean)
+\item \code{"sqeuclidean"} (squared Euclidean)
 \item \code{"manhattan"}
 \item \code{"rogerstanimoto"}
 \item \code{"russellrao"}

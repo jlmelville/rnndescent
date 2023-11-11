@@ -39,7 +39,7 @@ should be more efficient. Possible formats are \code{\link[base:data.frame]{base
 \item \code{"jaccard"}
 \item \code{"jensenshannon"}
 \item \code{"kulsinski"}
-\item \code{"l2sqr"} (squared Euclidean)
+\item \code{"sqeuclidean"} (squared Euclidean)
 \item \code{"manhattan"}
 \item \code{"rogerstanimoto"}
 \item \code{"russellrao"}

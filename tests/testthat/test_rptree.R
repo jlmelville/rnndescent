@@ -108,7 +108,7 @@ expected_rpf_index <- list(
       )
     ),
   margin = "explicit",
-  actual_metric = "l2sqr",
+  actual_metric = "sqeuclidean",
   version = "0.0.12",
   use_alt_metric = TRUE,
   original_metric = "euclidean",
@@ -241,7 +241,7 @@ expected_rpfi_index <- list(
     leaf_size = 4
   )),
   margin = "implicit",
-  actual_metric = "l2sqr",
+  actual_metric = "sqeuclidean",
   version = "0.0.12",
   use_alt_metric = TRUE,
   original_metric = "euclidean",

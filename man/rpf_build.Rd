@@ -10,6 +10,7 @@ rpf_build(
   use_alt_metric = TRUE,
   n_trees = NULL,
   leaf_size = 10,
+  max_tree_depth = 200,
   margin = "auto",
   n_threads = 0,
   verbose = FALSE,
@@ -38,7 +39,7 @@ format.}
 \item \code{"jaccard"}
 \item \code{"jensenshannon"}
 \item \code{"kulsinski"}
-\item \code{"l2sqr"} (squared Euclidean)
+\item \code{"sqeuclidean"} (squared Euclidean)
 \item \code{"manhattan"}
 \item \code{"rogerstanimoto"}
 \item \code{"russellrao"}

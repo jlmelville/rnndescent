@@ -1,5 +1,35 @@
 # rnndescent 0.0.14
 
+## Breaking Changes
+
+* The `hamming` and `bhamming` metrics are now normalized with respect to the
+number of features, to be consistent with the other binary-style metrics (and 
+PyNNDescent). If you need the old distances, multiply the distance matrix by 
+the number of columns, e.g. do something like:
+    
+    ```R
+    res <- brute_force_knn(X, metric = "hamming")
+    res$dist <- res$dist * ncol(X)
+    ```
+
+* The metric `l2sqr` has been renamed `sqeuclidean` to be consistent with 
+PyNNDescent.
+
+## New features
+
+* Metrics? We got 'em! The `metric` parameter now accepts a much larger number
+of metrics. See the rdoc for the full list of supported metrics. Currently, most
+of the metrics from PyNNDescent which don't require extra parameters are
+supported. The number of specialized binary metrics has also been expanded.
+* New parameter for `rpf_knn` and `rpf_build`: `max_tree_depth` this controls
+the depth of the tree and was set to 100 internally. This default has been 
+doubled to 200 and can now be user-controlled. If `verbose = TRUE` and the 
+largest leaf in the forest exceeds the `leaf_size` parameter, a message warning
+you about this will be logged and indicates that the maximum tree depth has
+been exceeded. Increasing `max_tree_depth` may not be the answer: it's more
+likely there is something unusual about the distribution of the distances in
+your dataset and a random initialization might be a better use of your time.
+
 # rnndescent 0.0.13
 
 ## New features

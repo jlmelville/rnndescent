@@ -22,7 +22,7 @@
 #'   - `"jaccard"`
 #'   - `"jensenshannon"`
 #'   - `"kulsinski"`
-#'   - `"l2sqr"` (squared Euclidean)
+#'   - `"sqeuclidean"` (squared Euclidean)
 #'   - `"manhattan"`
 #'   - `"rogerstanimoto"`
 #'   - `"russellrao"`
@@ -168,7 +168,7 @@ brute_force_knn <- function(data,
 #'   - `"jaccard"`
 #'   - `"jensenshannon"`
 #'   - `"kulsinski"`
-#'   - `"l2sqr"` (squared Euclidean)
+#'   - `"sqeuclidean"` (squared Euclidean)
 #'   - `"manhattan"`
 #'   - `"rogerstanimoto"`
 #'   - `"russellrao"`
@@ -305,7 +305,7 @@ random_knn <-
 #'   - `"jaccard"`
 #'   - `"jensenshannon"`
 #'   - `"kulsinski"`
-#'   - `"l2sqr"` (squared Euclidean)
+#'   - `"sqeuclidean"` (squared Euclidean)
 #'   - `"manhattan"`
 #'   - `"rogerstanimoto"`
 #'   - `"russellrao"`
@@ -663,7 +663,7 @@ nnd_knn <- function(data,
 #'   - `"jaccard"`
 #'   - `"jensenshannon"`
 #'   - `"kulsinski"`
-#'   - `"l2sqr"` (squared Euclidean)
+#'   - `"sqeuclidean"` (squared Euclidean)
 #'   - `"manhattan"`
 #'   - `"rogerstanimoto"`
 #'   - `"russellrao"`
@@ -828,7 +828,7 @@ brute_force_knn_query <- function(query,
 #'   - `"jaccard"`
 #'   - `"jensenshannon"`
 #'   - `"kulsinski"`
-#'   - `"l2sqr"` (squared Euclidean)
+#'   - `"sqeuclidean"` (squared Euclidean)
 #'   - `"manhattan"`
 #'   - `"rogerstanimoto"`
 #'   - `"russellrao"`
@@ -989,7 +989,7 @@ random_knn_query <-
 #'   - `"jaccard"`
 #'   - `"jensenshannon"`
 #'   - `"kulsinski"`
-#'   - `"l2sqr"` (squared Euclidean)
+#'   - `"sqeuclidean"` (squared Euclidean)
 #'   - `"manhattan"`
 #'   - `"rogerstanimoto"`
 #'   - `"russellrao"`
@@ -1371,7 +1371,7 @@ graph_knn_query <- function(query,
 #'   - `"jaccard"`
 #'   - `"jensenshannon"`
 #'   - `"kulsinski"`
-#'   - `"l2sqr"` (squared Euclidean)
+#'   - `"sqeuclidean"` (squared Euclidean)
 #'   - `"manhattan"`
 #'   - `"rogerstanimoto"`
 #'   - `"russellrao"`

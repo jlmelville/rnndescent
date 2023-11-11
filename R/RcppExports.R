@@ -31,8 +31,8 @@ euclidean_distance <- function(x, y) {
 #' @param x A numeric vector.
 #' @param y A numeric vector of the same length as \code{x}.
 #' @export
-l2sqr_distance <- function(x, y) {
-    .Call(`_rnndescent_l2sqr_distance`, x, y)
+squared_euclidean_distance <- function(x, y) {
+    .Call(`_rnndescent_squared_euclidean_distance`, x, y)
 }
 
 #' Find the cosine distance between two vectors

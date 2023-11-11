@@ -65,7 +65,6 @@ const std::unordered_map<std::string, DistanceFunc<In, Out>> &get_metric_map() {
           {"alternative-jaccard", tdoann::alternative_jaccard<Out, InIt>},
           {"jensenshannon", tdoann::jensen_shannon_divergence<Out, InIt>},
           {"kulsinski", tdoann::kulsinski<Out, InIt>},
-          {"l2sqr", tdoann::l2sqr<Out, InIt>},
           {"manhattan", tdoann::manhattan<Out, InIt>},
           {"matching", tdoann::matching<Out, InIt>},
           {"rogerstanimoto", tdoann::rogers_tanimoto<Out, InIt>},
@@ -73,6 +72,7 @@ const std::unordered_map<std::string, DistanceFunc<In, Out>> &get_metric_map() {
           {"sokalmichener", tdoann::sokal_michener<Out, InIt>},
           {"sokalsneath", tdoann::sokal_sneath<Out, InIt>},
           {"spearmanr", tdoann::spearmanr<Out, InIt>},
+          {"sqeuclidean", tdoann::squared_euclidean<Out, InIt>},
           {"symmetrickl", tdoann::symmetric_kl_divergence<Out, InIt>},
           {"yule", tdoann::yule<Out, InIt>}};
   return metric_map;
@@ -120,13 +120,13 @@ get_sparse_metric_map() {
           {"jensenshannon",
            tdoann::sparse_jensen_shannon_divergence<Out, InIt>},
           {"kulsinski", tdoann::sparse_kulsinski<Out, InIt>},
-          {"l2sqr", tdoann::sparse_l2sqr<Out, InIt>},
           {"manhattan", tdoann::sparse_manhattan<Out, InIt>},
           {"matching", tdoann::sparse_matching<Out, InIt>},
           {"rogerstanimoto", tdoann::sparse_rogers_tanimoto<Out, InIt>},
           {"russellrao", tdoann::sparse_russell_rao<Out, InIt>},
           {"sokalmichener", tdoann::sparse_sokal_michener<Out, InIt>},
           {"sokalsneath", tdoann::sparse_sokal_sneath<Out, InIt>},
+          {"sqeuclidean", tdoann::sparse_squared_euclidean<Out, InIt>},
           {"symmetrickl", tdoann::sparse_symmetric_kl_divergence<Out, InIt>},
           {"yule", tdoann::sparse_yule<Out, InIt>}};
   return metric_map;

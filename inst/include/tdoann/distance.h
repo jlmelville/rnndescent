@@ -42,7 +42,7 @@ namespace tdoann {
 // functions are organized alphabetically, requiring forward declaration
 
 template <typename Out, typename It>
-Out l2sqr(const It xbegin, const It xend, const It ybegin);
+Out squared_euclidean(const It xbegin, const It xend, const It ybegin);
 template <typename It> std::vector<double> rankdata(It begin, It end);
 
 // used by cosine and correlation to avoid division by zero
@@ -177,7 +177,7 @@ auto dot(const It xbegin, const It xend, const It ybegin) {
 
 template <typename Out, typename It>
 Out euclidean(const It xbegin, const It xend, const It ybegin) {
-  return std::sqrt(l2sqr<Out>(xbegin, xend, ybegin));
+  return std::sqrt(squared_euclidean<Out>(xbegin, xend, ybegin));
 }
 
 template <typename Out, typename It>
@@ -336,16 +336,6 @@ auto kulsinski(It xbegin, It xend, It ybegin) {
 }
 
 template <typename Out, typename It>
-Out l2sqr(const It xbegin, const It xend, const It ybegin) {
-  Out sum{0};
-  for (It xit = xbegin, yit = ybegin; xit != xend; ++xit, ++yit) {
-    const Out diff = *xit - *yit;
-    sum += diff * diff;
-  }
-  return sum;
-}
-
-template <typename Out, typename It>
 Out manhattan(const It xbegin, const It xend, const It ybegin) {
   Out sum{0};
   for (It xit = xbegin, yit = ybegin; xit != xend; ++xit, ++yit) {
@@ -444,6 +434,16 @@ Out spearmanr(It xbegin, It xend, It ybegin) {
   auto y_rank = rankdata(ybegin, ybegin + std::distance(xbegin, xend));
 
   return correlation<Out>(x_rank.begin(), x_rank.end(), y_rank.begin());
+}
+
+template <typename Out, typename It>
+Out squared_euclidean(const It xbegin, const It xend, const It ybegin) {
+  Out sum{0};
+  for (It xit = xbegin, yit = ybegin; xit != xend; ++xit, ++yit) {
+    const Out diff = *xit - *yit;
+    sum += diff * diff;
+  }
+  return sum;
 }
 
 template <typename Out, typename It>

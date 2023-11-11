@@ -24,7 +24,7 @@
 #'   - `"jaccard"`
 #'   - `"jensenshannon"`
 #'   - `"kulsinski"`
-#'   - `"l2sqr"` (squared Euclidean)
+#'   - `"sqeuclidean"` (squared Euclidean)
 #'   - `"manhattan"`
 #'   - `"rogerstanimoto"`
 #'   - `"russellrao"`
@@ -221,7 +221,7 @@ rpf_knn <- function(data,
 #'   - `"jaccard"`
 #'   - `"jensenshannon"`
 #'   - `"kulsinski"`
-#'   - `"l2sqr"` (squared Euclidean)
+#'   - `"sqeuclidean"` (squared Euclidean)
 #'   - `"manhattan"`
 #'   - `"rogerstanimoto"`
 #'   - `"russellrao"`

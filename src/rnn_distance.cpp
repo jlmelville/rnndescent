@@ -55,9 +55,10 @@ float euclidean_distance(const NumericVector &x, const NumericVector &y) {
 //' @param y A numeric vector of the same length as \code{x}.
 //' @export
 // [[Rcpp::export]]
-float l2sqr_distance(const NumericVector &x, const NumericVector &y) {
+float squared_euclidean_distance(const NumericVector &x,
+                                 const NumericVector &y) {
   check_vecs(x, y);
-  return tdoann::l2sqr<float>(x.begin(), x.end(), y.begin());
+  return tdoann::squared_euclidean<float>(x.begin(), x.end(), y.begin());
 }
 
 //' Find the cosine distance between two vectors

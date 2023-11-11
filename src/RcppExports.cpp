@@ -92,15 +92,15 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// l2sqr_distance
-float l2sqr_distance(const NumericVector& x, const NumericVector& y);
-RcppExport SEXP _rnndescent_l2sqr_distance(SEXP xSEXP, SEXP ySEXP) {
+// squared_euclidean_distance
+float squared_euclidean_distance(const NumericVector& x, const NumericVector& y);
+RcppExport SEXP _rnndescent_squared_euclidean_distance(SEXP xSEXP, SEXP ySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const NumericVector& >::type x(xSEXP);
     Rcpp::traits::input_parameter< const NumericVector& >::type y(ySEXP);
-    rcpp_result_gen = Rcpp::wrap(l2sqr_distance(x, y));
+    rcpp_result_gen = Rcpp::wrap(squared_euclidean_distance(x, y));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -731,7 +731,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_rnndescent_rnn_brute_force_query", (DL_FUNC) &_rnndescent_rnn_brute_force_query, 6},
     {"_rnndescent_rnn_sparse_brute_force_query", (DL_FUNC) &_rnndescent_rnn_sparse_brute_force_query, 11},
     {"_rnndescent_euclidean_distance", (DL_FUNC) &_rnndescent_euclidean_distance, 2},
-    {"_rnndescent_l2sqr_distance", (DL_FUNC) &_rnndescent_l2sqr_distance, 2},
+    {"_rnndescent_squared_euclidean_distance", (DL_FUNC) &_rnndescent_squared_euclidean_distance, 2},
     {"_rnndescent_cosine_distance", (DL_FUNC) &_rnndescent_cosine_distance, 2},
     {"_rnndescent_manhattan_distance", (DL_FUNC) &_rnndescent_manhattan_distance, 2},
     {"_rnndescent_hamming_distance", (DL_FUNC) &_rnndescent_hamming_distance, 2},

@@ -47,11 +47,11 @@ void check_leaf_size(std::size_t leaf_size, std::size_t max_leaf_size,
   if (max_leaf_size > leaf_size) {
     if (verbose) {
       tsmessage()
-      << "Warning: max_leaf_size (" << max_leaf_size << ") > leaf_size ("
-      << leaf_size << "): "
-      << "either max_tree_depth is too low "
-      "or your dataset is not well-suited to tree initialization -- "
-      "consider a random initialization\n";
+          << "Warning: max_leaf_size (" << max_leaf_size << ") > leaf_size ("
+          << leaf_size << "): "
+          << "either max_tree_depth is too low "
+             "or your dataset is not well-suited to tree initialization -- "
+             "consider a random initialization\n";
     }
   }
 }

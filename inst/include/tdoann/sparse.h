@@ -39,11 +39,11 @@
 namespace tdoann {
 
 template <typename Out, typename DataIt>
-Out sparse_l2sqr(typename std::vector<std::size_t>::const_iterator ind1_start,
-                 std::size_t ind1_size, DataIt data1_start,
-                 typename std::vector<std::size_t>::const_iterator ind2_start,
-                 std::size_t ind2_size, DataIt data2_start,
-                 std::size_t /* ndim */);
+Out sparse_squared_euclidean(
+    typename std::vector<std::size_t>::const_iterator ind1_start,
+    std::size_t ind1_size, DataIt data1_start,
+    typename std::vector<std::size_t>::const_iterator ind2_start,
+    std::size_t ind2_size, DataIt data2_start, std::size_t /* ndim */);
 
 inline std::vector<std::size_t> arr_union(const std::vector<std::size_t> &ar1,
                                           const std::vector<std::size_t> &ar2) {
@@ -702,8 +702,9 @@ Out sparse_euclidean(
     std::size_t ind1_size, DataIt data1_start,
     typename std::vector<std::size_t>::const_iterator ind2_start,
     std::size_t ind2_size, DataIt data2_start, std::size_t ndim) {
-  return std::sqrt(sparse_l2sqr<Out>(ind1_start, ind1_size, data1_start,
-                                     ind2_start, ind2_size, data2_start, ndim));
+  return std::sqrt(sparse_squared_euclidean<Out>(ind1_start, ind1_size,
+                                                 data1_start, ind2_start,
+                                                 ind2_size, data2_start, ndim));
 }
 
 template <typename Out, typename DataIt>
@@ -917,11 +918,11 @@ Out sparse_kulsinski(
 }
 
 template <typename Out, typename DataIt>
-Out sparse_l2sqr(typename std::vector<std::size_t>::const_iterator ind1_start,
-                 std::size_t ind1_size, DataIt data1_start,
-                 typename std::vector<std::size_t>::const_iterator ind2_start,
-                 std::size_t ind2_size, DataIt data2_start,
-                 std::size_t /* ndim */) {
+Out sparse_squared_euclidean(
+    typename std::vector<std::size_t>::const_iterator ind1_start,
+    std::size_t ind1_size, DataIt data1_start,
+    typename std::vector<std::size_t>::const_iterator ind2_start,
+    std::size_t ind2_size, DataIt data2_start, std::size_t /* ndim */) {
   Out sum{0};
 
   std::size_t i1 = 0;
@@ -932,16 +933,16 @@ Out sparse_l2sqr(typename std::vector<std::size_t>::const_iterator ind1_start,
     const auto j2 = *(ind2_start + i2);
 
     if (j1 == j2) {
-      auto val = static_cast<Out>(*(data1_start + i1) - *(data2_start + i2));
+      auto val = *(data1_start + i1) - *(data2_start + i2);
       sum += val * val;
       ++i1;
       ++i2;
     } else if (j1 < j2) {
-      auto val = static_cast<Out>(*(data1_start + i1));
+      auto val = *(data1_start + i1);
       sum += val * val;
       ++i1;
     } else {
-      auto val = static_cast<Out>(*(data2_start + i2));
+      auto val = *(data2_start + i2);
       sum += val * val;
       ++i2;
     }
@@ -949,18 +950,18 @@ Out sparse_l2sqr(typename std::vector<std::size_t>::const_iterator ind1_start,
 
   // pass over the tails
   while (i1 < ind1_size) {
-    auto val = static_cast<Out>(*(data1_start + i1));
+    auto val = *(data1_start + i1);
     sum += val * val;
     ++i1;
   }
 
   while (i2 < ind2_size) {
-    auto val = static_cast<Out>(*(data2_start + i2));
+    auto val = *(data2_start + i2);
     sum += val * val;
     ++i2;
   }
 
-  return sum;
+  return static_cast<Out>(sum);
 }
 
 template <typename Out, typename DataIt>

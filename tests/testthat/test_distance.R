@@ -12,7 +12,7 @@ test_that("Euclidean distance", {
 
   for (i in 1:nrow(dmat)) {
     for (j in 1:ncol(dmat)) {
-      dmat[i, j] <- l2sqr_distance(ui10[i, ], ui10[j, ])
+      dmat[i, j] <- squared_euclidean_distance(ui10[i, ], ui10[j, ])
     }
   }
   expect_equal(dmat, ui10_eucd ^ 2, check.attributes = FALSE, tol = 1e-6)
