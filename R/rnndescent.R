@@ -10,26 +10,49 @@
 #'   format.
 #' @param k Number of nearest neighbors to return.
 #' @param metric Type of distance calculation to use. One of:
-#'   - `"euclidean"`.
-#'   - `"l2sqr"` (squared Euclidean).
-#'   - `"cosine"`.
-#'   - `"hamming"`.
-#'   - `"manhattan"`.
+#'   - `"braycurtis"`
+#'   - `"canberra"`
+#'   - `"chebyshev"`
 #'   - `"correlation"` (1 minus the Pearson correlation).
-#'   For non-sparse data, some variants are available:
-#'   - `"cosine-preprocess"`: cosine with preprocessing: this trades memory for a
-#'   potential speed up during the distance calculation.It should give the
-#'   same results as `cosine`, give or take minor numerical changes. Be aware
-#'   that the distance between two identical items may not always give exactly
-#'   zero with this method.
-#'   - `"correlation-preprocess"`: `correlation` with preprocessing. This trades
-#'   memory for a potential speed up during the distance calculation. It should
-#'   give the same results as `correlation`, give or take minor numerical
-#'   changes. Be aware that the distance between two identical items may not
-#'   always give exactly zero with this method.
-#'   - `"bhamming"`: hamming on binary data (numeric or integer matrix with 0s
-#'   and 1s only) with bitset internal memory optimization. This should be
-#'   substantially faster than `"hamming"`.
+#'   - `"cosine"`.
+#'   - `"dice"`
+#'   - `"euclidean"`.
+#'   - `"hamming"`.
+#'   - `"hellinger"`
+#'   - `"jaccard"`
+#'   - `"jensenshannon"`
+#'   - `"kulsinski"`
+#'   - `"l2sqr"` (squared Euclidean)
+#'   - `"manhattan"`
+#'   - `"rogerstanimoto"`
+#'   - `"russellrao"`
+#'   - `"sokalmichener"`
+#'   - `"sokalsneath"`
+#'   - `"spearmanr"` (1 minus the Spearman rank correlation; not available for
+#'   sparse data).
+#'   - `"symmetrickl"` (symmetric Kullback-Leibler divergence)
+#'   - `"yule"`
+#'
+#'   For non-sparse data, the following variants are available with
+#'   preprocessing: this trades memory for a potential speed up during the
+#'   distance calculation. Some minor numerical differences should be expected
+#'   compared to the non-preprocessed versions:
+#'   - `"cosine-preprocess"`: `cosine` with preprocessing.
+#'   - `"correlation-preprocess"`: `correlation` with preprocessing.
+#'
+#'   For non-sparse binary data (numeric or integer matrix with 0s
+#'   and 1s only) the following metric variants are available which should be
+#'   substantially faster than the non-binary variants:
+#'   - `"bdice"`
+#'   - `"bhamming"`
+#'   - `"bjaccard"`
+#'   - `"bkulsinski"`
+#'   - `"bmatching"`
+#'   - `"brogerstanimoto"`
+#'   - `"brussellrao"`
+#'   - `"bsokalmichener"`
+#'   - `"bsokalsneath"`
+#'   - `"byule"`
 #' @param use_alt_metric If `TRUE`, use faster metrics that maintain the
 #'   ordering of distances internally (e.g. squared Euclidean distances if using
 #'   `metric = "euclidean"`), then apply a correction at the end. Probably
@@ -133,26 +156,49 @@ brute_force_knn <- function(data,
 #'   `dgCMatrix` format.
 #' @param k Number of nearest neighbors to return.
 #' @param metric Type of distance calculation to use. One of:
-#'   - `"euclidean"`.
-#'   - `"l2sqr"` (squared Euclidean).
-#'   - `"cosine"`.
-#'   - `"hamming"`.
-#'   - `"manhattan"`.
+#'   - `"braycurtis"`
+#'   - `"canberra"`
+#'   - `"chebyshev"`
 #'   - `"correlation"` (1 minus the Pearson correlation).
-#'   For non-sparse data, some variants are available:
-#'   - `"cosine-preprocess"`: cosine with preprocessing: this trades memory for a
-#'   potential speed up during the distance calculation.It should give the
-#'   same results as `cosine`, give or take minor numerical changes. Be aware
-#'   that the distance between two identical items may not always give exactly
-#'   zero with this method.
-#'   - `"correlation-preprocess"`: `correlation` with preprocessing. This trades
-#'   memory for a potential speed up during the distance calculation. It should
-#'   give the same results as `correlation`, give or take minor numerical
-#'   changes. Be aware that the distance between two identical items may not
-#'   always give exactly zero with this method.
-#'   - `"bhamming"`: hamming on binary data (numeric or integer matrix with 0s
-#'   and 1s only) with bitset internal memory optimization. This should be
-#'   substantially faster than `"hamming"`.
+#'   - `"cosine"`.
+#'   - `"dice"`
+#'   - `"euclidean"`.
+#'   - `"hamming"`.
+#'   - `"hellinger"`
+#'   - `"jaccard"`
+#'   - `"jensenshannon"`
+#'   - `"kulsinski"`
+#'   - `"l2sqr"` (squared Euclidean)
+#'   - `"manhattan"`
+#'   - `"rogerstanimoto"`
+#'   - `"russellrao"`
+#'   - `"sokalmichener"`
+#'   - `"sokalsneath"`
+#'   - `"spearmanr"` (1 minus the Spearman rank correlation; not available for
+#'   sparse data).
+#'   - `"symmetrickl"` (symmetric Kullback-Leibler divergence)
+#'   - `"yule"`
+#'
+#'   For non-sparse data, the following variants are available with
+#'   preprocessing: this trades memory for a potential speed up during the
+#'   distance calculation. Some minor numerical differences should be expected
+#'   compared to the non-preprocessed versions:
+#'   - `"cosine-preprocess"`: `cosine` with preprocessing.
+#'   - `"correlation-preprocess"`: `correlation` with preprocessing.
+#'
+#'   For non-sparse binary data (numeric or integer matrix with 0s
+#'   and 1s only) the following metric variants are available which should be
+#'   substantially faster than the non-binary variants:
+#'   - `"bdice"`
+#'   - `"bhamming"`
+#'   - `"bjaccard"`
+#'   - `"bkulsinski"`
+#'   - `"bmatching"`
+#'   - `"brogerstanimoto"`
+#'   - `"brussellrao"`
+#'   - `"bsokalmichener"`
+#'   - `"bsokalsneath"`
+#'   - `"byule"`
 #' @param use_alt_metric If `TRUE`, use faster metrics that maintain the
 #'   ordering of distances internally (e.g. squared Euclidean distances if using
 #'   `metric = "euclidean"`), then apply a correction at the end. Probably
@@ -247,26 +293,49 @@ random_knn <-
 #' @param k Number of nearest neighbors to return. Optional if `init` is
 #'   specified.
 #' @param metric Type of distance calculation to use. One of:
-#'   - `"euclidean"`.
-#'   - `"l2sqr"` (squared Euclidean).
-#'   - `"cosine"`.
-#'   - `"hamming"`.
-#'   - `"manhattan"`.
+#'   - `"braycurtis"`
+#'   - `"canberra"`
+#'   - `"chebyshev"`
 #'   - `"correlation"` (1 minus the Pearson correlation).
-#'   For non-sparse data, some variants are available:
-#'   - `"cosine-preprocess"`: cosine with preprocessing: this trades memory for a
-#'   potential speed up during the distance calculation.It should give the
-#'   same results as `cosine`, give or take minor numerical changes. Be aware
-#'   that the distance between two identical items may not always give exactly
-#'   zero with this method.
-#'   - `"correlation-preprocess"`: `correlation` with preprocessing. This trades
-#'   memory for a potential speed up during the distance calculation. It should
-#'   give the same results as `correlation`, give or take minor numerical
-#'   changes. Be aware that the distance between two identical items may not
-#'   always give exactly zero with this method.
-#'   - `"bhamming"`: hamming on binary data (numeric or integer matrix with 0s
-#'   and 1s only) with bitset internal memory optimization. This should be
-#'   substantially faster than `"hamming"`.
+#'   - `"cosine"`.
+#'   - `"dice"`
+#'   - `"euclidean"`.
+#'   - `"hamming"`.
+#'   - `"hellinger"`
+#'   - `"jaccard"`
+#'   - `"jensenshannon"`
+#'   - `"kulsinski"`
+#'   - `"l2sqr"` (squared Euclidean)
+#'   - `"manhattan"`
+#'   - `"rogerstanimoto"`
+#'   - `"russellrao"`
+#'   - `"sokalmichener"`
+#'   - `"sokalsneath"`
+#'   - `"spearmanr"` (1 minus the Spearman rank correlation; not available for
+#'   sparse data).
+#'   - `"symmetrickl"` (symmetric Kullback-Leibler divergence)
+#'   - `"yule"`
+#'
+#'   For non-sparse data, the following variants are available with
+#'   preprocessing: this trades memory for a potential speed up during the
+#'   distance calculation. Some minor numerical differences should be expected
+#'   compared to the non-preprocessed versions:
+#'   - `"cosine-preprocess"`: `cosine` with preprocessing.
+#'   - `"correlation-preprocess"`: `correlation` with preprocessing.
+#'
+#'   For non-sparse binary data (numeric or integer matrix with 0s
+#'   and 1s only) the following metric variants are available which should be
+#'   substantially faster than the non-binary variants:
+#'   - `"bdice"`
+#'   - `"bhamming"`
+#'   - `"bjaccard"`
+#'   - `"bkulsinski"`
+#'   - `"bmatching"`
+#'   - `"brogerstanimoto"`
+#'   - `"brussellrao"`
+#'   - `"bsokalmichener"`
+#'   - `"bsokalsneath"`
+#'   - `"byule"`
 #' @param init Name of the initialization strategy or initial `data` neighbor
 #'   graph to optimize. One of:
 #'   - `"rand"` random initialization (the default).
@@ -581,26 +650,49 @@ nnd_knn <- function(data,
 #'   format.
 #' @param k Number of nearest neighbors to return.
 #' @param metric Type of distance calculation to use. One of:
-#'   - `"euclidean"`.
-#'   - `"l2sqr"` (squared Euclidean).
-#'   - `"cosine"`.
-#'   - `"hamming"`.
-#'   - `"manhattan"`.
+#'   - `"braycurtis"`
+#'   - `"canberra"`
+#'   - `"chebyshev"`
 #'   - `"correlation"` (1 minus the Pearson correlation).
-#'   For non-sparse data, some variants are available:
-#'   - `"cosine-preprocess"`: cosine with preprocessing: this trades memory for a
-#'   potential speed up during the distance calculation.It should give the
-#'   same results as `cosine`, give or take minor numerical changes. Be aware
-#'   that the distance between two identical items may not always give exactly
-#'   zero with this method.
-#'   - `"correlation-preprocess"`: `correlation` with preprocessing. This trades
-#'   memory for a potential speed up during the distance calculation. It should
-#'   give the same results as `correlation`, give or take minor numerical
-#'   changes. Be aware that the distance between two identical items may not
-#'   always give exactly zero with this method.
-#'   - `"bhamming"`: hamming on binary data (numeric or integer matrix with 0s
-#'   and 1s only) with bitset internal memory optimization. This should be
-#'   substantially faster than `"hamming"`.
+#'   - `"cosine"`.
+#'   - `"dice"`
+#'   - `"euclidean"`.
+#'   - `"hamming"`.
+#'   - `"hellinger"`
+#'   - `"jaccard"`
+#'   - `"jensenshannon"`
+#'   - `"kulsinski"`
+#'   - `"l2sqr"` (squared Euclidean)
+#'   - `"manhattan"`
+#'   - `"rogerstanimoto"`
+#'   - `"russellrao"`
+#'   - `"sokalmichener"`
+#'   - `"sokalsneath"`
+#'   - `"spearmanr"` (1 minus the Spearman rank correlation; not available for
+#'   sparse data).
+#'   - `"symmetrickl"` (symmetric Kullback-Leibler divergence)
+#'   - `"yule"`
+#'
+#'   For non-sparse data, the following variants are available with
+#'   preprocessing: this trades memory for a potential speed up during the
+#'   distance calculation. Some minor numerical differences should be expected
+#'   compared to the non-preprocessed versions:
+#'   - `"cosine-preprocess"`: `cosine` with preprocessing.
+#'   - `"correlation-preprocess"`: `correlation` with preprocessing.
+#'
+#'   For non-sparse binary data (numeric or integer matrix with 0s
+#'   and 1s only) the following metric variants are available which should be
+#'   substantially faster than the non-binary variants:
+#'   - `"bdice"`
+#'   - `"bhamming"`
+#'   - `"bjaccard"`
+#'   - `"bkulsinski"`
+#'   - `"bmatching"`
+#'   - `"brogerstanimoto"`
+#'   - `"brussellrao"`
+#'   - `"bsokalmichener"`
+#'   - `"bsokalsneath"`
+#'   - `"byule"`
 #' @param use_alt_metric If `TRUE`, use faster metrics that maintain the
 #'   ordering of distances internally (e.g. squared Euclidean distances if using
 #'   `metric = "euclidean"`), then apply a correction at the end. Probably
@@ -723,26 +815,49 @@ brute_force_knn_query <- function(query,
 #'   format.
 #' @param k Number of nearest neighbors to return.
 #' @param metric Type of distance calculation to use. One of:
-#'   - `"euclidean"`.
-#'   - `"l2sqr"` (squared Euclidean).
-#'   - `"cosine"`.
-#'   - `"hamming"`.
-#'   - `"manhattan"`.
+#'   - `"braycurtis"`
+#'   - `"canberra"`
+#'   - `"chebyshev"`
 #'   - `"correlation"` (1 minus the Pearson correlation).
-#'   For non-sparse data, some variants are available:
-#'   - `"cosine-preprocess"`: cosine with preprocessing: this trades memory for a
-#'   potential speed up during the distance calculation.It should give the
-#'   same results as `cosine`, give or take minor numerical changes. Be aware
-#'   that the distance between two identical items may not always give exactly
-#'   zero with this method.
-#'   - `"correlation-preprocess"`: `correlation` with preprocessing. This trades
-#'   memory for a potential speed up during the distance calculation. It should
-#'   give the same results as `correlation`, give or take minor numerical
-#'   changes. Be aware that the distance between two identical items may not
-#'   always give exactly zero with this method.
-#'   - `"bhamming"`: hamming on binary data (numeric or integer matrix with 0s
-#'   and 1s only) with bitset internal memory optimization. This should be
-#'   substantially faster than `"hamming"`.
+#'   - `"cosine"`.
+#'   - `"dice"`
+#'   - `"euclidean"`.
+#'   - `"hamming"`.
+#'   - `"hellinger"`
+#'   - `"jaccard"`
+#'   - `"jensenshannon"`
+#'   - `"kulsinski"`
+#'   - `"l2sqr"` (squared Euclidean)
+#'   - `"manhattan"`
+#'   - `"rogerstanimoto"`
+#'   - `"russellrao"`
+#'   - `"sokalmichener"`
+#'   - `"sokalsneath"`
+#'   - `"spearmanr"` (1 minus the Spearman rank correlation; not available for
+#'   sparse data).
+#'   - `"symmetrickl"` (symmetric Kullback-Leibler divergence)
+#'   - `"yule"`
+#'
+#'   For non-sparse data, the following variants are available with
+#'   preprocessing: this trades memory for a potential speed up during the
+#'   distance calculation. Some minor numerical differences should be expected
+#'   compared to the non-preprocessed versions:
+#'   - `"cosine-preprocess"`: `cosine` with preprocessing.
+#'   - `"correlation-preprocess"`: `correlation` with preprocessing.
+#'
+#'   For non-sparse binary data (numeric or integer matrix with 0s
+#'   and 1s only) the following metric variants are available which should be
+#'   substantially faster than the non-binary variants:
+#'   - `"bdice"`
+#'   - `"bhamming"`
+#'   - `"bjaccard"`
+#'   - `"bkulsinski"`
+#'   - `"bmatching"`
+#'   - `"brogerstanimoto"`
+#'   - `"brussellrao"`
+#'   - `"bsokalmichener"`
+#'   - `"bsokalsneath"`
+#'   - `"byule"`
 #' @param use_alt_metric If `TRUE`, use faster metrics that maintain the
 #'   ordering of distances internally (e.g. squared Euclidean distances if using
 #'   `metric = "euclidean"`), then apply a correction at the end. Probably
@@ -861,30 +976,49 @@ random_knn_query <-
 #' @param k Number of nearest neighbors to return. Optional if `init` is
 #'   specified.
 #' @param metric Type of distance calculation to use. One of:
-#'   - `"euclidean"`.
-#'   - `"l2sqr"` (squared Euclidean).
-#'   - `"cosine"`.
-#'   - `"hamming"`.
-#'   - `"manhattan"`.
+#'   - `"braycurtis"`
+#'   - `"canberra"`
+#'   - `"chebyshev"`
 #'   - `"correlation"` (1 minus the Pearson correlation).
-#'   For non-sparse data, some variants are available:
-#'   - `"cosine-preprocess"`: cosine with preprocessing: this trades memory for a
-#'   potential speed up during the distance calculation.It should give the
-#'   same results as `cosine`, give or take minor numerical changes. Be aware
-#'   that the distance between two identical items may not always give exactly
-#'   zero with this method.
-#'   - `"correlation-preprocess"`: `correlation` with preprocessing. This trades
-#'   memory for a potential speed up during the distance calculation. It should
-#'   give the same results as `correlation`, give or take minor numerical
-#'   changes. Be aware that the distance between two identical items may not
-#'   always give exactly zero with this method.
-#'   - `"bhamming"`: hamming on binary data (numeric or integer matrix with 0s
-#'   and 1s only) with bitset internal memory optimization. This should be
-#'   substantially faster than `"hamming"`.
+#'   - `"cosine"`.
+#'   - `"dice"`
+#'   - `"euclidean"`.
+#'   - `"hamming"`.
+#'   - `"hellinger"`
+#'   - `"jaccard"`
+#'   - `"jensenshannon"`
+#'   - `"kulsinski"`
+#'   - `"l2sqr"` (squared Euclidean)
+#'   - `"manhattan"`
+#'   - `"rogerstanimoto"`
+#'   - `"russellrao"`
+#'   - `"sokalmichener"`
+#'   - `"sokalsneath"`
+#'   - `"spearmanr"` (1 minus the Spearman rank correlation; not available for
+#'   sparse data).
+#'   - `"symmetrickl"` (symmetric Kullback-Leibler divergence)
+#'   - `"yule"`
 #'
-#' This should be the same metric used to generate the `reference_graph`. If
-#' a search forest is used for initialization via the `init` parameter, then the
-#' metric is fetched from there and this setting is ignored.
+#'   For non-sparse data, the following variants are available with
+#'   preprocessing: this trades memory for a potential speed up during the
+#'   distance calculation. Some minor numerical differences should be expected
+#'   compared to the non-preprocessed versions:
+#'   - `"cosine-preprocess"`: `cosine` with preprocessing.
+#'   - `"correlation-preprocess"`: `correlation` with preprocessing.
+#'
+#'   For non-sparse binary data (numeric or integer matrix with 0s
+#'   and 1s only) the following metric variants are available which should be
+#'   substantially faster than the non-binary variants:
+#'   - `"bdice"`
+#'   - `"bhamming"`
+#'   - `"bjaccard"`
+#'   - `"bkulsinski"`
+#'   - `"bmatching"`
+#'   - `"brogerstanimoto"`
+#'   - `"brussellrao"`
+#'   - `"bsokalmichener"`
+#'   - `"bsokalsneath"`
+#'   - `"byule"`
 #' @param use_alt_metric If `TRUE`, use faster metrics that maintain the
 #'   ordering of distances internally (e.g. squared Euclidean distances if using
 #'   `metric = "euclidean"`), then apply a correction at the end. Probably the
@@ -1224,26 +1358,49 @@ graph_knn_query <- function(query,
 #'   the data in `data`.
 #'   * `dist` an `n` by `k` matrix containing the nearest neighbor distances.
 #' @param metric Type of distance calculation to use. One of:
-#'   - `"euclidean"`.
-#'   - `"l2sqr"` (squared Euclidean).
-#'   - `"cosine"`.
-#'   - `"hamming"`.
-#'   - `"manhattan"`.
+#'   - `"braycurtis"`
+#'   - `"canberra"`
+#'   - `"chebyshev"`
 #'   - `"correlation"` (1 minus the Pearson correlation).
-#'   For non-sparse data, some variants are available:
-#'   - `"cosine-preprocess"`: cosine with preprocessing: this trades memory for a
-#'   potential speed up during the distance calculation.It should give the
-#'   same results as `cosine`, give or take minor numerical changes. Be aware
-#'   that the distance between two identical items may not always give exactly
-#'   zero with this method.
-#'   - `"correlation-preprocess"`: `correlation` with preprocessing. This trades
-#'   memory for a potential speed up during the distance calculation. It should
-#'   give the same results as `correlation`, give or take minor numerical
-#'   changes. Be aware that the distance between two identical items may not
-#'   always give exactly zero with this method.
-#'   - `"bhamming"`: hamming on binary data (numeric or integer matrix with 0s
-#'   and 1s only) with bitset internal memory optimization. This should be
-#'   substantially faster than `"hamming"`.
+#'   - `"cosine"`.
+#'   - `"dice"`
+#'   - `"euclidean"`.
+#'   - `"hamming"`.
+#'   - `"hellinger"`
+#'   - `"jaccard"`
+#'   - `"jensenshannon"`
+#'   - `"kulsinski"`
+#'   - `"l2sqr"` (squared Euclidean)
+#'   - `"manhattan"`
+#'   - `"rogerstanimoto"`
+#'   - `"russellrao"`
+#'   - `"sokalmichener"`
+#'   - `"sokalsneath"`
+#'   - `"spearmanr"` (1 minus the Spearman rank correlation; not available for
+#'   sparse data).
+#'   - `"symmetrickl"` (symmetric Kullback-Leibler divergence)
+#'   - `"yule"`
+#'
+#'   For non-sparse data, the following variants are available with
+#'   preprocessing: this trades memory for a potential speed up during the
+#'   distance calculation. Some minor numerical differences should be expected
+#'   compared to the non-preprocessed versions:
+#'   - `"cosine-preprocess"`: `cosine` with preprocessing.
+#'   - `"correlation-preprocess"`: `correlation` with preprocessing.
+#'
+#'   For non-sparse binary data (numeric or integer matrix with 0s
+#'   and 1s only) the following metric variants are available which should be
+#'   substantially faster than the non-binary variants:
+#'   - `"bdice"`
+#'   - `"bhamming"`
+#'   - `"bjaccard"`
+#'   - `"bkulsinski"`
+#'   - `"bmatching"`
+#'   - `"brogerstanimoto"`
+#'   - `"brussellrao"`
+#'   - `"bsokalmichener"`
+#'   - `"bsokalsneath"`
+#'   - `"byule"`
 #' @param diversify_prob the degree of diversification of the search graph
 #'   by removing unnecessary edges through occlusion pruning. This should take a
 #'   value between `0` (no diversification) and `1` (remove as many edges as

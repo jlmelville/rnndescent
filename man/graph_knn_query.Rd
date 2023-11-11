@@ -46,31 +46,54 @@ specified.}
 
 \item{metric}{Type of distance calculation to use. One of:
 \itemize{
-\item \code{"euclidean"}.
-\item \code{"l2sqr"} (squared Euclidean).
-\item \code{"cosine"}.
-\item \code{"hamming"}.
-\item \code{"manhattan"}.
+\item \code{"braycurtis"}
+\item \code{"canberra"}
+\item \code{"chebyshev"}
 \item \code{"correlation"} (1 minus the Pearson correlation).
-For non-sparse data, some variants are available:
-\item \code{"cosine-preprocess"}: cosine with preprocessing: this trades memory for a
-potential speed up during the distance calculation.It should give the
-same results as \code{cosine}, give or take minor numerical changes. Be aware
-that the distance between two identical items may not always give exactly
-zero with this method.
-\item \code{"correlation-preprocess"}: \code{correlation} with preprocessing. This trades
-memory for a potential speed up during the distance calculation. It should
-give the same results as \code{correlation}, give or take minor numerical
-changes. Be aware that the distance between two identical items may not
-always give exactly zero with this method.
-\item \code{"bhamming"}: hamming on binary data (numeric or integer matrix with 0s
-and 1s only) with bitset internal memory optimization. This should be
-substantially faster than \code{"hamming"}.
+\item \code{"cosine"}.
+\item \code{"dice"}
+\item \code{"euclidean"}.
+\item \code{"hamming"}.
+\item \code{"hellinger"}
+\item \code{"jaccard"}
+\item \code{"jensenshannon"}
+\item \code{"kulsinski"}
+\item \code{"l2sqr"} (squared Euclidean)
+\item \code{"manhattan"}
+\item \code{"rogerstanimoto"}
+\item \code{"russellrao"}
+\item \code{"sokalmichener"}
+\item \code{"sokalsneath"}
+\item \code{"spearmanr"} (1 minus the Spearman rank correlation; not available for
+sparse data).
+\item \code{"symmetrickl"} (symmetric Kullback-Leibler divergence)
+\item \code{"yule"}
 }
 
-This should be the same metric used to generate the \code{reference_graph}. If
-a search forest is used for initialization via the \code{init} parameter, then the
-metric is fetched from there and this setting is ignored.}
+For non-sparse data, the following variants are available with
+preprocessing: this trades memory for a potential speed up during the
+distance calculation. Some minor numerical differences should be expected
+compared to the non-preprocessed versions:
+\itemize{
+\item \code{"cosine-preprocess"}: \code{cosine} with preprocessing.
+\item \code{"correlation-preprocess"}: \code{correlation} with preprocessing.
+}
+
+For non-sparse binary data (numeric or integer matrix with 0s
+and 1s only) the following metric variants are available which should be
+substantially faster than the non-binary variants:
+\itemize{
+\item \code{"bdice"}
+\item \code{"bhamming"}
+\item \code{"bjaccard"}
+\item \code{"bkulsinski"}
+\item \code{"bmatching"}
+\item \code{"brogerstanimoto"}
+\item \code{"brussellrao"}
+\item \code{"bsokalmichener"}
+\item \code{"bsokalsneath"}
+\item \code{"byule"}
+}}
 
 \item{init}{Initial \code{query} neighbor graph to optimize. If not provided, \code{k}
 random neighbors are created. If provided, the input format must be one of:
