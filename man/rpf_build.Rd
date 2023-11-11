@@ -98,6 +98,15 @@ want to retrieve when running queries (e.g. if you want find 50 nearest
 neighbors set \code{leaf_size = 50}) and should not be set to a value smaller
 than \code{10}.}
 
+\item{max_tree_depth}{The maximum depth of the tree to build (default = 200).
+If the maximum tree depth is exceeded then the leaf size of a tree may
+exceed \code{leaf_size} which can result in a large number of neighbor distances
+being calculated. If \code{verbose = TRUE} a message will be logged to indicate
+that the leaf size is large. However, increasing the \code{max_tree_depth} may
+not help: it may be that there is something unusual about the distribution
+of your data set under your chose \code{metric} that makes a tree-based
+initialization inappropriate.}
+
 \item{margin}{A character string specifying the method used to  assign points
 to one side of the hyperplane or the other. Possible values are:
 \itemize{

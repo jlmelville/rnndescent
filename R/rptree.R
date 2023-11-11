@@ -72,6 +72,14 @@
 #' @param leaf_size The maximum number of items that can appear in a leaf. The
 #'   default of `NULL` means that the number of leaves is chosen based on the
 #'   number of requested neighbors `k`.
+#' @param max_tree_depth The maximum depth of the tree to build (default = 200).
+#'   If the maximum tree depth is exceeded then the leaf size of a tree may
+#'   exceed `leaf_size` which can result in a large number of neighbor distances
+#'   being calculated. If `verbose = TRUE` a message will be logged to indicate
+#'   that the leaf size is large. However, increasing the `max_tree_depth` may
+#'   not help: it may be that there is something unusual about the distribution
+#'   of your data set under your chose `metric` that makes a tree-based
+#'   initialization inappropriate.
 #' @param include_self If `TRUE` (the default) then an item is considered to
 #'   be a neighbor of itself. Hence the first nearest neighbor in the results
 #'   will be the item itself. This is a convention that many nearest neighbor
@@ -271,6 +279,14 @@ rpf_knn <- function(data,
 #'   want to retrieve when running queries (e.g. if you want find 50 nearest
 #'   neighbors set `leaf_size = 50`) and should not be set to a value smaller
 #'   than `10`.
+#' @param max_tree_depth The maximum depth of the tree to build (default = 200).
+#'   If the maximum tree depth is exceeded then the leaf size of a tree may
+#'   exceed `leaf_size` which can result in a large number of neighbor distances
+#'   being calculated. If `verbose = TRUE` a message will be logged to indicate
+#'   that the leaf size is large. However, increasing the `max_tree_depth` may
+#'   not help: it may be that there is something unusual about the distribution
+#'   of your data set under your chose `metric` that makes a tree-based
+#'   initialization inappropriate.
 #' @param margin A character string specifying the method used to  assign points
 #'   to one side of the hyperplane or the other. Possible values are:
 #'   - `"explicit"` categorizes all distance metrics as either Euclidean or
