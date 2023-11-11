@@ -42,6 +42,20 @@ using Rcpp::Rcerr;
 
 enum class MarginType { EXPLICIT, IMPLICIT };
 
+void check_leaf_size(std::size_t leaf_size, std::size_t max_leaf_size,
+                     bool verbose) {
+  if (max_leaf_size > leaf_size) {
+    if (verbose) {
+      tsmessage()
+      << "Warning: max_leaf_size (" << max_leaf_size << ") > leaf_size ("
+      << leaf_size << "): "
+      << "either max_tree_depth is too low "
+      "or your dataset is not well-suited to tree initialization -- "
+      "consider a random initialization\n";
+    }
+  }
+}
+
 // Function to convert MarginType to a string
 std::string margin_type_to_string(MarginType margin_type) {
   switch (margin_type) {
@@ -511,6 +525,8 @@ List rnn_rp_tree_knn_explicit(const NumericMatrix &data, uint32_t nnbrs,
     tsmessage() << "Extracting leaf array from forest\n";
   }
   const std::size_t max_leaf_size = tdoann::find_max_leaf_size(rp_forest);
+  check_leaf_size(leaf_size, max_leaf_size, verbose);
+
   std::vector<Idx> leaf_array =
       tdoann::get_leaves_from_forest(rp_forest, max_leaf_size);
 
@@ -573,6 +589,8 @@ List rnn_sparse_rp_tree_knn_explicit(
     tsmessage() << "Extracting leaf array from forest\n";
   }
   const std::size_t max_leaf_size = tdoann::find_max_leaf_size(rp_forest);
+  check_leaf_size(leaf_size, max_leaf_size, verbose);
+
   std::vector<Idx> leaf_array =
       tdoann::get_leaves_from_forest(rp_forest, max_leaf_size);
 
@@ -619,6 +637,8 @@ List rp_tree_knn_implicit_impl(const tdoann::BaseDistance<Out, Idx> &distance,
     tsmessage() << "Extracting leaf array from forest\n";
   }
   const std::size_t max_leaf_size = tdoann::find_max_leaf_size(rp_forest);
+  check_leaf_size(leaf_size, max_leaf_size, verbose);
+
   std::vector<Idx> leaf_array =
       tdoann::get_leaves_from_forest(rp_forest, max_leaf_size);
 
