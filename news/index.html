@@ -43,6 +43,22 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.0.14" id="rnndescent-0014">rnndescent 0.0.14<a class="anchor" aria-label="anchor" href="#rnndescent-0014"></a></h2>
+<div class="section level3">
+<h3 id="breaking-changes-0-0-14">Breaking Changes<a class="anchor" aria-label="anchor" href="#breaking-changes-0-0-14"></a></h3>
+<ul><li>
+<p>The <code>hamming</code> and <code>bhamming</code> metrics are now normalized with respect to the number of features, to be consistent with the other binary-style metrics (and PyNNDescent). If you need the old distances, multiply the distance matrix by the number of columns, e.g. do something like:</p>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
+<span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/brute_force_knn.html">brute_force_knn</a></span><span class="op">(</span><span class="va">X</span>, metric <span class="op">=</span> <span class="st">"hamming"</span><span class="op">)</span></span>
+<span><span class="va">res</span><span class="op">$</span><span class="va">dist</span> <span class="op">&lt;-</span> <span class="va">res</span><span class="op">$</span><span class="va">dist</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">X</span><span class="op">)</span></span></code></pre></div>
+</li>
+<li><p>The metric <code>l2sqr</code> has been renamed <code>sqeuclidean</code> to be consistent with PyNNDescent.</p></li>
+</ul></div>
+<div class="section level3">
+<h3 id="new-features-0-0-14">New features<a class="anchor" aria-label="anchor" href="#new-features-0-0-14"></a></h3>
+<ul><li>Metrics? We got ’em! The <code>metric</code> parameter now accepts a much larger number of metrics. See the rdoc for the full list of supported metrics. Currently, most of the metrics from PyNNDescent which don’t require extra parameters are supported. The number of specialized binary metrics has also been expanded.</li>
+<li>New parameter for <code>rpf_knn</code> and <code>rpf_build</code>: <code>max_tree_depth</code> this controls the depth of the tree and was set to 100 internally. This default has been doubled to 200 and can now be user-controlled. If <code>verbose = TRUE</code> and the largest leaf in the forest exceeds the <code>leaf_size</code> parameter, a message warning you about this will be logged and indicates that the maximum tree depth has been exceeded. Increasing <code>max_tree_depth</code> may not be the answer: it’s more likely there is something unusual about the distribution of the distances in your dataset and a random initialization might be a better use of your time.</li>
+</ul></div>
 </div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.0.13" id="rnndescent-0013">rnndescent 0.0.13<a class="anchor" aria-label="anchor" href="#rnndescent-0013"></a></h2>

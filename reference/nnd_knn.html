@@ -96,7 +96,7 @@ specified.</p></dd>
 <li><p><code>"jaccard"</code></p></li>
 <li><p><code>"jensenshannon"</code></p></li>
 <li><p><code>"kulsinski"</code></p></li>
-<li><p><code>"l2sqr"</code> (squared Euclidean)</p></li>
+<li><p><code>"sqeuclidean"</code> (squared Euclidean)</p></li>
 <li><p><code>"manhattan"</code></p></li>
 <li><p><code>"rogerstanimoto"</code></p></li>
 <li><p><code>"russellrao"</code></p></li>
@@ -262,11 +262,11 @@ ACM.
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Use verbose flag to see information about progress</span></span></span>
 <span class="r-in"><span><span class="va">iris_nn</span> <span class="op">&lt;-</span> <span class="fu">nnd_knn</span><span class="op">(</span><span class="va">iris</span>, k <span class="op">=</span> <span class="fl">4</span>, metric <span class="op">=</span> <span class="st">"euclidean"</span>, verbose <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 04:33:19 Using alt metric 'l2sqr' for 'euclidean'</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 04:33:19 Initializing neighbors using 'rand' method</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 04:33:19 Generating random k-nearest neighbor graph with k = 4</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 04:33:19 Running nearest neighbor descent for 10 iterations</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 04:33:19 Finished</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 07:35:15 Using alt metric 'sqeuclidean' for 'euclidean'</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 07:35:15 Initializing neighbors using 'rand' method</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 07:35:15 Generating random k-nearest neighbor graph with k = 4</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 07:35:15 Running nearest neighbor descent for 10 iterations</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 07:35:15 Finished</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Nearest neighbor descent uses random initialization, but you can pass any</span></span></span>
 <span class="r-in"><span><span class="co"># approximation using the init argument (as long as the metrics used to</span></span></span>
@@ -274,10 +274,10 @@ ACM.
 <span class="r-in"><span><span class="co"># by nnd_knn).</span></span></span>
 <span class="r-in"><span><span class="va">iris_nn</span> <span class="op">&lt;-</span> <span class="fu"><a href="random_knn.html">random_knn</a></span><span class="op">(</span><span class="va">iris</span>, k <span class="op">=</span> <span class="fl">4</span>, metric <span class="op">=</span> <span class="st">"euclidean"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">iris_nn</span> <span class="op">&lt;-</span> <span class="fu">nnd_knn</span><span class="op">(</span><span class="va">iris</span>, init <span class="op">=</span> <span class="va">iris_nn</span>, metric <span class="op">=</span> <span class="st">"euclidean"</span>, verbose <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 04:33:19 Using alt metric 'l2sqr' for 'euclidean'</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 04:33:19 Applying metric correction to initial distances from 'euclidean' to 'l2sqr'</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 04:33:19 Running nearest neighbor descent for 10 iterations</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 04:33:19 Finished</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 07:35:15 Using alt metric 'sqeuclidean' for 'euclidean'</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 07:35:15 Applying metric correction to initial distances from 'euclidean' to 'sqeuclidean'</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 07:35:15 Running nearest neighbor descent for 10 iterations</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 07:35:15 Finished</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Number of iterations controls how much optimization is attempted. A smaller</span></span></span>
 <span class="r-in"><span><span class="co"># value will run faster but give poorer results</span></span></span>

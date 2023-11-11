@@ -49,9 +49,6 @@
     <loc>https://jlmelville.github.io/rnndescent/reference/k_occur.html</loc>
   </url>
   <url>
-    <loc>https://jlmelville.github.io/rnndescent/reference/l2sqr_distance.html</loc>
-  </url>
-  <url>
     <loc>https://jlmelville.github.io/rnndescent/reference/local_scale_nn.html</loc>
   </url>
   <url>
@@ -89,5 +86,8 @@
   </url>
   <url>
     <loc>https://jlmelville.github.io/rnndescent/reference/rpf_knn_query.html</loc>
+  </url>
+  <url>
+    <loc>https://jlmelville.github.io/rnndescent/reference/squared_euclidean_distance.html</loc>
   </url>
 </urlset>
