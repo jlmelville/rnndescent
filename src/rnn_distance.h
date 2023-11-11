@@ -213,8 +213,9 @@ create_query_distance_impl(
     return std::make_unique<tdoann::QueryDistanceCalculator<In, Out, Idx>>(
         std::move(ref_vec), std::move(query_vec), ndim, it->second);
   }
+
   if (metric == "cosine-preprocess") {
-    auto preprocess = [](std::vector<In> &data, std::size_t ndim) {
+    auto preprocess = [](std::vector<In> &data, std::size_t ndim) -> void {
       tdoann::normalize(data, ndim);
     };
     return std::make_unique<tdoann::QueryDistanceCalculator<In, Out, Idx>>(
@@ -222,7 +223,7 @@ create_query_distance_impl(
         tdoann::inner_product<Out, InIt>, preprocess);
   }
   if (metric == "correlation-preprocess") {
-    auto preprocess = [](std::vector<In> &data, std::size_t ndim) {
+    auto preprocess = [](std::vector<In> &data, std::size_t ndim) -> void {
       tdoann::mean_center(data, ndim);
       tdoann::normalize(data, ndim);
     };
@@ -302,7 +303,7 @@ create_self_distance_impl(
   }
 
   if (metric == "cosine-preprocess") {
-    auto preprocess = [](std::vector<In> &data, std::size_t ndim) {
+    auto preprocess = [](std::vector<In> &data, std::size_t ndim) -> void {
       tdoann::normalize(data, ndim);
     };
     return std::make_unique<tdoann::SelfDistanceCalculator<In, Out, Idx>>(
@@ -310,7 +311,7 @@ create_self_distance_impl(
         preprocess);
   }
   if (metric == "correlation-preprocess") {
-    auto preprocess = [](std::vector<In> &data, std::size_t ndim) {
+    auto preprocess = [](std::vector<In> &data, std::size_t ndim) -> void {
       tdoann::mean_center(data, ndim);
       tdoann::normalize(data, ndim);
     };
