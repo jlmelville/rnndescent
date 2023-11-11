@@ -214,13 +214,16 @@ create_query_distance_impl(
         std::move(ref_vec), std::move(query_vec), ndim, it->second);
   }
 
+
+  using PreprocessFunc = typename tdoann::QueryDistanceCalculator<In, Out, Idx>::PreprocessFunc;
+
   if (metric == "cosine-preprocess") {
     auto preprocess = [](std::vector<In> &data, std::size_t ndim) -> void {
       tdoann::normalize(data, ndim);
     };
     return std::make_unique<tdoann::QueryDistanceCalculator<In, Out, Idx>>(
         std::move(ref_vec), std::move(query_vec), ndim,
-        tdoann::inner_product<Out, InIt>, preprocess);
+        tdoann::inner_product<Out, InIt>, static_cast<PreprocessFunc>(preprocess));
   }
   if (metric == "correlation-preprocess") {
     auto preprocess = [](std::vector<In> &data, std::size_t ndim) -> void {
@@ -229,7 +232,7 @@ create_query_distance_impl(
     };
     return std::make_unique<tdoann::QueryDistanceCalculator<In, Out, Idx>>(
         std::move(ref_vec), std::move(query_vec), ndim,
-        tdoann::inner_product<Out, InIt>, preprocess);
+        tdoann::inner_product<Out, InIt>, static_cast<PreprocessFunc>(preprocess));
   }
   Rcpp::stop("Bad metric");
 }
@@ -301,6 +304,7 @@ create_self_distance_impl(
     return std::make_unique<tdoann::SelfDistanceCalculator<In, Out, Idx>>(
         std::move(data_vec), ndim, it->second);
   }
+  using PreprocessFunc = typename tdoann::SelfDistanceCalculator<In, Out, Idx>::PreprocessFunc;
 
   if (metric == "cosine-preprocess") {
     auto preprocess = [](std::vector<In> &data, std::size_t ndim) -> void {
@@ -308,7 +312,7 @@ create_self_distance_impl(
     };
     return std::make_unique<tdoann::SelfDistanceCalculator<In, Out, Idx>>(
         std::move(data_vec), ndim, tdoann::inner_product<Out, InIt>,
-        preprocess);
+        static_cast<PreprocessFunc>(preprocess));
   }
   if (metric == "correlation-preprocess") {
     auto preprocess = [](std::vector<In> &data, std::size_t ndim) -> void {
@@ -317,7 +321,7 @@ create_self_distance_impl(
     };
     return std::make_unique<tdoann::SelfDistanceCalculator<In, Out, Idx>>(
         std::move(data_vec), ndim, tdoann::inner_product<Out, InIt>,
-        preprocess);
+        static_cast<PreprocessFunc>(preprocess));
   }
   Rcpp::stop("Bad metric");
 }
