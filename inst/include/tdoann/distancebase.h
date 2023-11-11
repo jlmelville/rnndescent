@@ -108,12 +108,12 @@ public:
     }
   }
 
-  std::size_t get_nx() const { return nx; }
+  std::size_t get_nx() const override { return nx; }
   // For self-distance, nx == ny
-  std::size_t get_ny() const { return get_nx(); }
-  Iterator get_x(Idx i) const { return x.begin() + ndim * i; }
+  std::size_t get_ny() const override { return get_nx(); }
+  Iterator get_x(Idx i) const override { return x.begin() + ndim * i; }
   // For self-distance get_y(i) == get_x(i)
-  Iterator get_y(Idx i) const { return get_x(i); }
+  Iterator get_y(Idx i) const override { return get_x(i); }
 
   Out calculate(const Idx &i, const Idx &j) const override {
     const std::size_t di = this->ndim * i;
@@ -148,10 +148,10 @@ public:
     }
   }
 
-  std::size_t get_nx() const { return nx; }
-  std::size_t get_ny() const { return ny; }
-  Iterator get_x(Idx i) const { return x.begin() + i * ndim; }
-  Iterator get_y(Idx i) const { return y.begin() + i * ndim; }
+  std::size_t get_nx() const override { return nx; }
+  std::size_t get_ny() const override { return ny; }
+  Iterator get_x(Idx i) const override { return x.begin() + i * ndim; }
+  Iterator get_y(Idx i) const override { return y.begin() + i * ndim; }
 
   Out calculate(const Idx &i, const Idx &j) const override {
     const std::size_t di = this->ndim * i;
