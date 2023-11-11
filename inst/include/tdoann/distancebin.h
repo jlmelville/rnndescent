@@ -42,7 +42,7 @@ namespace tdoann {
 
 template <typename Out, typename Idx = uint32_t>
 Out bdice(const BitVec &x, Idx i, const BitVec &y, Idx j, std::size_t len,
-          std::size_t /* unused */) {
+          std::size_t /* ndim */) {
   std::size_t di = len * i;
   std::size_t dj = len * j;
 
@@ -56,7 +56,7 @@ Out bdice(const BitVec &x, Idx i, const BitVec &y, Idx j, std::size_t len,
   }
 
   if (num_not_equal == 0) {
-    return static_cast<Out>(0);
+    return Out{};
   } else {
     return static_cast<Out>(static_cast<double>(num_not_equal) /
                             (2 * num_true_true + num_not_equal));
@@ -65,7 +65,7 @@ Out bdice(const BitVec &x, Idx i, const BitVec &y, Idx j, std::size_t len,
 
 template <typename Out, typename Idx = uint32_t>
 Out bhamming(const BitVec &x, const Idx i, const BitVec &y, Idx j,
-             std::size_t len, std::size_t /* unused */) {
+             std::size_t len, std::size_t ndim) {
   Out sum = 0;
   std::size_t di = len * i;
   std::size_t dj = len * j;
@@ -74,12 +74,12 @@ Out bhamming(const BitVec &x, const Idx i, const BitVec &y, Idx j,
     sum += (x[di] ^ y[dj]).count();
   }
 
-  return sum;
+  return static_cast<Out>(static_cast<double>(sum) / ndim);
 }
 
 template <typename Out, typename Idx = uint32_t>
 Out bjaccard(const BitVec &x, Idx i, const BitVec &y, Idx j, std::size_t len,
-             std::size_t /* unused */) {
+             std::size_t /* ndim */) {
   std::size_t intersection = 0;
   std::size_t union_count = 0;
   std::size_t di = len * i;
@@ -203,9 +203,8 @@ Out bsokal_michener(const BitVec &x, Idx i, const BitVec &y, Idx j,
   const std::size_t padding = rem > 0 ? total_bits - rem : 0;
   num_equal -= padding;
 
-  std::size_t total = num_equal + num_not_equal;
-  return total == 0 ? Out(0)
-                    : static_cast<Out>(num_not_equal) / static_cast<Out>(total);
+  return static_cast<Out>(static_cast<double>(num_not_equal + num_not_equal) /
+                          (ndim + num_not_equal));
 }
 
 template <typename Out, typename Idx = uint32_t>

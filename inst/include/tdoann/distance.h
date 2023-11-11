@@ -69,10 +69,10 @@ Out bray_curtis(const It xbegin, const It xend, const It ybegin) {
     denominator += std::abs(*xit + *yit);
   }
 
-  if (denominator > static_cast<Out>(0)) {
+  if (denominator > Out{}) {
     return numerator / denominator;
   } else {
-    return static_cast<Out>(0);
+    return Out{};
   }
 }
 
@@ -84,7 +84,7 @@ Out canberra(const It xbegin, const It xend, const It ybegin) {
     const auto yi = *yit;
     const auto denominator = std::abs(xi) + std::abs(yi);
 
-    if (denominator > static_cast<Out>(0)) {
+    if (denominator > Out{}) {
       result += std::abs(xi - yi) / denominator;
     }
   }
@@ -154,7 +154,7 @@ template <typename Out, typename It> auto dice(It xbegin, It xend, It ybegin) {
   }
 
   if (num_not_equal == 0) {
-    return static_cast<Out>(0);
+    return Out{};
   } else {
     return static_cast<Out>(static_cast<double>(num_not_equal) /
                             (2 * num_true_true + num_not_equal));
@@ -186,7 +186,8 @@ Out hamming(const It xbegin, const It xend, const It ybegin) {
   for (It xit = xbegin, yit = ybegin; xit != xend; ++xit, ++yit) {
     sum += *xit != *yit;
   }
-  return sum;
+  return static_cast<Out>(static_cast<double>(sum) /
+                          std::distance(xbegin, xend));
 }
 
 template <typename Out, typename It>
@@ -202,7 +203,7 @@ auto hellinger(const It xbegin, const It xend, const It ybegin) {
   }
 
   if (l1_norm_x == 0 && l1_norm_y == 0) {
-    return static_cast<Out>(0.0);
+    return Out{};
   } else if (l1_norm_x == 0 || l1_norm_y == 0) {
     return static_cast<Out>(1.0);
   } else {
@@ -226,7 +227,7 @@ auto alternative_hellinger(const It xbegin, const It xend, const It ybegin) {
   constexpr Out FLOAT32_MAX = std::numeric_limits<Out>::max();
 
   if (l1_norm_x == 0 && l1_norm_y == 0) {
-    return static_cast<Out>(0.0);
+    return Out{};
   } else if (l1_norm_x == 0 || l1_norm_y == 0 || result <= 0) {
     return FLOAT32_MAX;
   } else {
@@ -256,7 +257,7 @@ auto jaccard(It xbegin, It xend, It ybegin) {
   }
 
   if (num_non_zero == 0) {
-    return static_cast<Out>(0);
+    return Out{};
   } else {
     return static_cast<Out>(static_cast<double>(num_non_zero - num_equal) /
                             num_non_zero);
@@ -400,7 +401,7 @@ auto russell_rao(It xbegin, It xend, It ybegin) {
 }
 
 template <typename Out, typename It>
-auto sokal_michener(It xbegin, It xend, It ybegin) {
+Out sokal_michener(It xbegin, It xend, It ybegin) {
   std::size_t num_not_equal = 0;
   std::size_t num_equal = 0;
 
@@ -411,9 +412,10 @@ auto sokal_michener(It xbegin, It xend, It ybegin) {
     num_equal += (x_true == y_true);
   }
 
-  std::size_t total = num_equal + num_not_equal;
-  return total == 0 ? Out(0)
-                    : static_cast<Out>(num_not_equal) / static_cast<Out>(total);
+  // the same as (2.0 * num_not_equal) / (ndim + num_not_equal)
+  // but avoid having to calculate ndim as std::difference(xbegin, xend);
+  const double nne2 = num_not_equal + num_not_equal;
+  return static_cast<Out>(nne2 / (num_equal + nne2));
 }
 
 template <typename Out, typename It>

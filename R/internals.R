@@ -184,6 +184,7 @@ find_sparse_alt_metric <- function(metric) {
   switch(metric,
          euclidean = "l2sqr",
          cosine = "alternative-cosine",
+         jaccard = "alternative-jaccard",
          metric
   )
 }
@@ -233,6 +234,8 @@ apply_sparse_alt_metric_uncorrection <- function(metric, dist) {
     metric,
     euclidean = dist * dist,
     cosine = apply(dist, c(1, 2), sparse_uncorrect_alternative_cosine),
+    hellinger = uncorrect_alternative_hellinger(dist),
+    jaccard = uncorrect_alternative_jaccard(dist),
     dist
   )
 }
@@ -240,8 +243,8 @@ apply_sparse_alt_metric_uncorrection <- function(metric, dist) {
 apply_dense_alt_metric_correction <- function(metric, dist) {
   switch(metric,
          euclidean = sqrt(dist),
-         jaccard = apply(dist, c(1, 2), correct_alternative_jaccard),
          hellinger = apply(dist, c(1, 2), correct_alternative_hellinger),
+         jaccard = apply(dist, c(1, 2), correct_alternative_jaccard),
          dist
   )
 }
@@ -250,6 +253,8 @@ apply_sparse_alt_metric_correction <- function(metric, dist) {
   switch(metric,
     euclidean = sqrt(dist),
     cosine = apply(dist, c(1, 2), sparse_correct_alternative_cosine),
+    hellinger = apply(dist, c(1, 2), correct_alternative_hellinger),
+    jaccard = apply(dist, c(1, 2), correct_alternative_jaccard),
     dist
   )
 }

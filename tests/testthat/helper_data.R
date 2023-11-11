@@ -50,8 +50,45 @@ set.seed(1337)
 bitdata <- bitm(nrow = 10, ncol = 160)
 intdata <- matrix(sample.int(5, 40, replace = TRUE), 10)
 
+bitdatasp <- Matrix::drop0(bitdata)
+
 bit6 <- bitdata[1:6, ]
 bit4 <- bitdata[7:10, ]
+
+# Hamming
+# from Annoy
+expected_hamm_idx <- matrix(
+  c(
+    1, 7, 4, 5,
+    2, 10, 3, 9,
+    3, 4, 2, 7,
+    4, 3, 1, 7,
+    5, 6, 7, 1,
+    6, 5, 10, 3,
+    7, 1, 10, 5,
+    8, 9, 10, 7,
+    9, 8, 10, 4,
+    10, 2, 9, 7
+  ),
+  byrow = TRUE, nrow = 10, ncol = 4
+)
+
+# distances normalized wrt ndim for consistency with PyNNDescent
+expected_hamm_dist <- matrix(
+  c(
+    0, 72, 74, 77,
+    0, 69, 78, 79,
+    0, 65, 78, 79,
+    0, 65, 74, 76,
+    0, 67, 75, 77,
+    0, 67, 80, 81,
+    0, 72, 74, 75,
+    0, 69, 77, 81,
+    0, 69, 72, 78,
+    0, 69, 72, 74
+  ),
+  byrow = TRUE, nrow = 10, ncol = 4
+) / ncol(bitdata)
 
 int6 <- intdata[1:6, ]
 int4 <- intdata[7:10, ]
@@ -63,11 +100,11 @@ int6hd <- matrix(c(
   3,   2,   4,   0,   3,   3,
   3,   4,   4,   3,   0,   2,
   2,   4,   4,   3,   2,   0
-), nrow = 6)
+), nrow = 6) / ncol(int6)
 
-# Taken from RcppAnnoy
-bit4q_hdsum <- 1275
-bit6q_hdsum <- 1986
+# Taken from RcppAnnoy (and then normalize wrt num features for consistency with PyNNDescent)
+bit4q_hdsum <- 1275 / ncol(bitdata)
+bit6q_hdsum <- 1986 / ncol(bitdata)
 
 # Distance matrices generated with Annoy
 
@@ -108,7 +145,7 @@ bit10_hamd <- matrix(c(
   93, 84, 82, 85, 82, 87, 81, 0, 69, 77,
   90, 79, 81, 78, 83, 88, 92, 69, 0, 72,
   90, 69, 89, 92, 81, 80, 74, 77, 72, 0
-), nrow = 10)
+), nrow = 10) / ncol(bitdata)
 
 # for uirism[1:10, ]
 uirism10_cord <- matrix(

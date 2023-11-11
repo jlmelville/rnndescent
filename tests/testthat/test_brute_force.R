@@ -92,16 +92,18 @@ expect_equal(sum(qnbrs6$dist), bit6q_hdsum)
 ui6_nnd <- brute_force_knn(int6, k = 6, metric = "hamming")
 check_nbrs(ui6_nnd, int6hd, tol = 1e-6, check_idx_order = FALSE, check_dist_order = TRUE)
 
+# normalize by nfeatures
 h46d <- matrix(c(
   1, 2, 2, 3,
   3, 3, 3, 3,
   3, 3, 4, 4,
   2, 2, 3, 3),
-  byrow = TRUE, nrow = 4)
+  byrow = TRUE, nrow = 4) / ncol(int6)
 qnbrs4 <- brute_force_knn_query(int4, int6, k = 4, metric = "hamming")
 check_query_nbrs_idx(qnbrs4$idx, nref = nrow(int6))
 expect_equal(qnbrs4$dist, h46d)
 
+# normalize by nfeatures
 h64d <- matrix(c(
   2, 3, 3, 4,
   1, 2, 3, 4,
@@ -109,7 +111,7 @@ h64d <- matrix(c(
   2, 2, 3, 4,
   3, 3, 4, 4,
   3, 4, 4, 4),
-  byrow = TRUE, nrow = 6)
+  byrow = TRUE, nrow = 6) / ncol(int6)
 qnbrs6 <- brute_force_knn_query(int6, int4, k = 4, metric = "hamming")
 check_query_nbrs_idx(qnbrs6$idx, nref = nrow(int6))
 expect_equal(qnbrs6$dist, h64d)
@@ -172,7 +174,7 @@ expect_equal(
     metric = "hamming"
   ),
   brute_force_knn(
-    Matrix::drop0(bitdata),
+    bitdatasp,
     k = 4,
     n_threads = 0,
     metric = "hamming"
@@ -187,7 +189,7 @@ expect_equal(
     metric = "cosine"
   ),
   brute_force_knn(
-    Matrix::drop0(bitdata),
+    bitdatasp,
     k = 4,
     n_threads = 0,
     metric = "cosine",
@@ -204,7 +206,7 @@ expect_equal(
     metric = "cosine"
   ),
   brute_force_knn(
-    Matrix::drop0(bitdata),
+    bitdatasp,
     k = 4,
     n_threads = 0,
     metric = "cosine",

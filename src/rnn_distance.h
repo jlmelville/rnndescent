@@ -101,13 +101,34 @@ get_sparse_metric_map() {
   using InIt = DataIt<In>;
   static const std::unordered_map<std::string, SparseDistanceFunc<In, Out>>
       metric_map = {
+          {"braycurtis", tdoann::sparse_bray_curtis<Out, InIt>},
+          {"canberra", tdoann::sparse_canberra<Out, InIt>},
+          {"chebyshev", tdoann::sparse_chebyshev<Out, InIt>},
           {"correlation", tdoann::sparse_correlation<Out, InIt>},
           {"cosine", tdoann::sparse_cosine<Out, InIt>},
           {"alternative-cosine", tdoann::sparse_alternative_cosine<Out, InIt>},
+          {"dice", tdoann::sparse_dice<Out, InIt>},
+          {"dot", tdoann::sparse_dot<Out, InIt>},
           {"euclidean", tdoann::sparse_euclidean<Out, InIt>},
           {"hamming", tdoann::sparse_hamming<Out, InIt>},
+          {"jaccard", tdoann::sparse_jaccard<Out, InIt>},
+          {"alternative-jaccard",
+           tdoann::sparse_alternative_jaccard<Out, InIt>},
+          {"hellinger", tdoann::sparse_hellinger<Out, InIt>},
+          {"alternative-hellinger",
+           tdoann::sparse_alternative_hellinger<Out, InIt>},
+          {"jensenshannon",
+           tdoann::sparse_jensen_shannon_divergence<Out, InIt>},
+          {"kulsinski", tdoann::sparse_kulsinski<Out, InIt>},
           {"l2sqr", tdoann::sparse_l2sqr<Out, InIt>},
-          {"manhattan", tdoann::sparse_manhattan<Out, InIt>}};
+          {"manhattan", tdoann::sparse_manhattan<Out, InIt>},
+          {"matching", tdoann::sparse_matching<Out, InIt>},
+          {"rogerstanimoto", tdoann::sparse_rogers_tanimoto<Out, InIt>},
+          {"russellrao", tdoann::sparse_russell_rao<Out, InIt>},
+          {"sokalmichener", tdoann::sparse_sokal_michener<Out, InIt>},
+          {"sokalsneath", tdoann::sparse_sokal_sneath<Out, InIt>},
+          {"symmetrickl", tdoann::sparse_symmetric_kl_divergence<Out, InIt>},
+          {"yule", tdoann::sparse_yule<Out, InIt>}};
   return metric_map;
 }
 
@@ -116,8 +137,6 @@ get_sparse_metric_map() {
 // angular metrics currently are:
 // "cosine", "dot", "correlation", "dice", "jaccard", "hellinger", "hamming",
 // other metrics are considered to be euclidean.
-// for consistency with pynndescent should these get implemented other angular
-// metrics are "dot", "dice", "jaccard", "hellinger"
 constexpr const char *angular_metrics[] = {"cosine",
                                            "alternative-cosine",
                                            "correlation",
@@ -128,6 +147,7 @@ constexpr const char *angular_metrics[] = {"cosine",
                                            "alternative-hellinger",
                                            "jaccard",
                                            "alternative-jaccard",
+                                           "bdice",
                                            "bhamming",
                                            "bjaccard"};
 inline bool is_angular_metric(const std::string &metric) {

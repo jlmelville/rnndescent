@@ -485,6 +485,8 @@ nnd_knn <- function(data,
     # user-supplied input may need to be transformed to the actual metric
     if (use_alt_metric &&
         !is.null(init) && is.list(init) && !is.null(init$dist)) {
+      tsmessage("Applying metric correction to initial distances from '",
+                metric, "' to '", actual_metric, "'")
       init$dist <-
         apply_alt_metric_uncorrection(metric, init$dist, is_sparse(data))
     }

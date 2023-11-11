@@ -33,25 +33,104 @@
 #include <unordered_set>
 #include <vector>
 
+#include "distance.h"
 #include "distancebase.h"
 
 namespace tdoann {
 
-// TODO: if we assume ar1 and ar2 are already sorted we could use std::set_union
+template <typename Out, typename DataIt>
+Out sparse_l2sqr(typename std::vector<std::size_t>::const_iterator ind1_start,
+                 std::size_t ind1_size, DataIt data1_start,
+                 typename std::vector<std::size_t>::const_iterator ind2_start,
+                 std::size_t ind2_size, DataIt data2_start,
+                 std::size_t /* ndim */);
+
 inline std::vector<std::size_t> arr_union(const std::vector<std::size_t> &ar1,
                                           const std::vector<std::size_t> &ar2) {
-  // Concatenate the two arrays
-  std::vector<std::size_t> union_result(ar1.size() + ar2.size());
-  std::copy(ar1.begin(), ar1.end(), union_result.begin());
-  std::copy(ar2.begin(), ar2.end(), union_result.begin() + ar1.size());
+  std::vector<std::size_t> union_result;
+  union_result.reserve(ar1.size() + ar2.size());
 
-  std::sort(union_result.begin(), union_result.end());
-
-  // Remove duplicate elements
-  union_result.erase(std::unique(union_result.begin(), union_result.end()),
-                     union_result.end());
+  std::set_union(ar1.begin(), ar1.end(), ar2.begin(), ar2.end(),
+                 std::back_inserter(union_result));
 
   return union_result;
+}
+
+template <typename It>
+std::size_t fast_intersection_size(It ind1_start, std::size_t ind1_size,
+                                   It ind2_start, std::size_t ind2_size) {
+  if (ind1_size == 0 || ind2_size == 0) {
+    return 0;
+  }
+
+  It i1 = ind1_start;
+  It i2 = ind2_start;
+  std::size_t result = 0;
+
+  while (i1 < ind1_start + ind1_size && i2 < ind2_start + ind2_size) {
+    if (*i1 == *i2) {
+      ++result;
+      ++i1;
+      ++i2;
+    } else if (*i1 < *i2) {
+      ++i1;
+    } else {
+      ++i2;
+    }
+  }
+
+  return result;
+}
+
+template <typename In, typename DataIt>
+std::pair<std::vector<In>, std::vector<In>>
+dense_union(typename std::vector<std::size_t>::const_iterator ind1_start,
+            std::size_t ind1_size, DataIt data1_start,
+            typename std::vector<std::size_t>::const_iterator ind2_start,
+            std::size_t ind2_size, DataIt data2_start) {
+
+  std::vector<In> result_data1, result_data2;
+
+  auto i1 = ind1_start;
+  auto d1 = data1_start;
+  auto i2 = ind2_start;
+  auto d2 = data2_start;
+  while (i1 < ind1_start + ind1_size && i2 < ind2_start + ind2_size) {
+    if (*i1 == *i2) {
+      result_data1.push_back(*d1);
+      result_data2.push_back(*d2);
+      ++i1;
+      ++d1;
+      ++i2;
+      ++d2;
+    } else if (*i1 < *i2) {
+      result_data1.push_back(*d1);
+      result_data2.push_back(In{});
+      ++i1;
+      ++d1;
+    } else {
+      result_data1.push_back(In{});
+      result_data2.push_back(*d2);
+      ++i2;
+      ++d2;
+    }
+  }
+
+  // Process remaining elements
+  while (i1 < ind1_start + ind1_size) {
+    result_data1.push_back(*d1);
+    result_data2.push_back(In{});
+    ++i1;
+    ++d1;
+  }
+  while (i2 < ind2_start + ind2_size) {
+    result_data1.push_back(In{});
+    result_data2.push_back(*d2);
+    ++i2;
+    ++d2;
+  }
+
+  return {result_data1, result_data2};
 }
 
 template <typename Out, typename DataIt>
@@ -232,13 +311,14 @@ sparse_mul(typename std::vector<std::size_t>::const_iterator ind1_start,
 }
 
 template <typename Out, typename DataIt>
-Out sparse_l2sqr(typename std::vector<std::size_t>::const_iterator ind1_start,
-                 std::size_t ind1_size, DataIt data1_start,
-                 typename std::vector<std::size_t>::const_iterator ind2_start,
-                 std::size_t ind2_size, DataIt data2_start,
-                 std::size_t /* unused */) {
-  Out sum{0};
+Out sparse_bray_curtis(
+    typename std::vector<std::size_t>::const_iterator ind1_start,
+    std::size_t ind1_size, DataIt data1_start,
+    typename std::vector<std::size_t>::const_iterator ind2_start,
+    std::size_t ind2_size, DataIt data2_start, std::size_t /* ndim */) {
 
+  double numerator = 0.0;
+  double denominator = 0.0;
   std::size_t i1 = 0;
   std::size_t i2 = 0;
 
@@ -247,85 +327,87 @@ Out sparse_l2sqr(typename std::vector<std::size_t>::const_iterator ind1_start,
     const auto j2 = *(ind2_start + i2);
 
     if (j1 == j2) {
-      auto val = static_cast<Out>(*(data1_start + i1) - *(data2_start + i2));
-      sum += val * val;
+      auto val1 = *(data1_start + i1);
+      auto val2 = *(data2_start + i2);
+      numerator += std::abs(val1 - val2);
+      denominator += std::abs(val1 + val2);
       ++i1;
       ++i2;
     } else if (j1 < j2) {
-      auto val = static_cast<Out>(*(data1_start + i1));
-      sum += val * val;
+      numerator += std::abs(*(data1_start + i1));
+      denominator += std::abs(*(data1_start + i1));
       ++i1;
     } else {
-      auto val = static_cast<Out>(*(data2_start + i2));
-      sum += val * val;
+      numerator += std::abs(*(data2_start + i2));
+      denominator += std::abs(*(data2_start + i2));
       ++i2;
     }
   }
 
-  // pass over the tails
   while (i1 < ind1_size) {
-    auto val = static_cast<Out>(*(data1_start + i1));
-    sum += val * val;
+    numerator += std::abs(*(data1_start + i1));
+    denominator += std::abs(*(data1_start + i1));
     ++i1;
   }
 
   while (i2 < ind2_size) {
-    auto val = static_cast<Out>(*(data2_start + i2));
-    sum += val * val;
+    numerator += std::abs(*(data2_start + i2));
+    denominator += std::abs(*(data2_start + i2));
     ++i2;
   }
 
-  return sum;
+  return denominator == 0.0
+             ? Out{}
+             : static_cast<Out>(numerator) / static_cast<Out>(denominator);
 }
 
 template <typename Out, typename DataIt>
-Out sparse_euclidean(
+Out sparse_canberra(
     typename std::vector<std::size_t>::const_iterator ind1_start,
     std::size_t ind1_size, DataIt data1_start,
     typename std::vector<std::size_t>::const_iterator ind2_start,
-    std::size_t ind2_size, DataIt data2_start, std::size_t ndim) {
-  return std::sqrt(sparse_l2sqr<Out>(ind1_start, ind1_size, data1_start,
-                                     ind2_start, ind2_size, data2_start, ndim));
-}
+    std::size_t ind2_size, DataIt data2_start, std::size_t /* ndim */) {
 
-template <typename Out, typename DataIt>
-Out sparse_manhattan(
-    typename std::vector<std::size_t>::const_iterator ind1_start,
-    std::size_t ind1_size, DataIt data1_start,
-    typename std::vector<std::size_t>::const_iterator ind2_start,
-    std::size_t ind2_size, DataIt data2_start, std::size_t /* unused */) {
-
-  Out result = Out();
-
-  std::size_t i1 = 0;
-  std::size_t i2 = 0;
+  std::size_t i1 = 0, i2 = 0;
+  Out result = 0.0;
 
   while (i1 < ind1_size && i2 < ind2_size) {
     const auto j1 = *(ind1_start + i1);
     const auto j2 = *(ind2_start + i2);
 
     if (j1 == j2) {
-      auto val =
-          std::abs(static_cast<Out>(*(data1_start + i1) - *(data2_start + i2)));
-      result += val;
+      auto abs_val1 = std::abs(*(data1_start + i1));
+      auto abs_val2 = std::abs(*(data2_start + i2));
+      auto denom = abs_val1 + abs_val2;
+      if (denom > Out{}) {
+        result += std::abs(abs_val1 - abs_val2) / denom;
+      }
       ++i1;
       ++i2;
     } else if (j1 < j2) {
-      result += std::abs(static_cast<Out>(*(data1_start + i1)));
+      if (*(data1_start + i1) != Out{}) {
+        result += 1.0;
+      }
       ++i1;
     } else {
-      result += std::abs(static_cast<Out>(*(data2_start + i2)));
+      if (*(data2_start + i2) != Out{}) {
+        result += 1.0;
+      }
       ++i2;
     }
   }
 
   while (i1 < ind1_size) {
-    result += std::abs(static_cast<Out>(*(data1_start + i1)));
+    if (*(data1_start + i1) != Out{}) {
+      result += 1.0;
+    }
     ++i1;
   }
 
   while (i2 < ind2_size) {
-    result += std::abs(static_cast<Out>(*(data2_start + i2)));
+    if (*(data2_start + i2) != Out{}) {
+      result += 1.0;
+    }
     ++i2;
   }
 
@@ -333,155 +415,44 @@ Out sparse_manhattan(
 }
 
 template <typename Out, typename DataIt>
-Out sparse_hamming(typename std::vector<std::size_t>::const_iterator ind1_start,
-                   std::size_t ind1_size, DataIt data1_start,
-                   typename std::vector<std::size_t>::const_iterator ind2_start,
-                   std::size_t ind2_size, DataIt data2_start,
-                   std::size_t /* unused */) {
-
-  std::size_t i1 = 0;
-  std::size_t i2 = 0;
-  std::size_t num_not_equal = 0;
-
-  while (i1 < ind1_size && i2 < ind2_size) {
-    const auto j1 = *(ind1_start + i1);
-    const auto j2 = *(ind2_start + i2);
-
-    if (j1 == j2) {
-      if (*(data1_start + i1) != *(data2_start + i2)) {
-        ++num_not_equal;
-      }
-      ++i1;
-      ++i2;
-    } else if (j1 < j2) {
-      ++num_not_equal;
-      ++i1;
-    } else {
-      ++num_not_equal;
-      ++i2;
-    }
-  }
-
-  while (i1 < ind1_size) {
-    ++num_not_equal;
-    ++i1;
-  }
-
-  while (i2 < ind2_size) {
-    ++num_not_equal;
-    ++i2;
-  }
-
-  return num_not_equal;
-}
-
-template <typename Out, typename DataIt>
-Out sparse_cosine(typename std::vector<std::size_t>::const_iterator ind1_start,
-                  std::size_t ind1_size, DataIt data1_start,
-                  typename std::vector<std::size_t>::const_iterator ind2_start,
-                  std::size_t ind2_size, DataIt data2_start,
-                  std::size_t /* unused */) {
-
-  Out dot_product{0};
-  Out norm1{0};
-  Out norm2{0};
-
-  std::size_t i1 = 0;
-  std::size_t i2 = 0;
-
-  while (i1 < ind1_size && i2 < ind2_size) {
-    const auto j1 = *(ind1_start + i1);
-    const auto j2 = *(ind2_start + i2);
-
-    if (j1 == j2) {
-      const auto val1 = static_cast<Out>(*(data1_start + i1));
-      const auto val2 = static_cast<Out>(*(data2_start + i2));
-      dot_product += val1 * val2;
-      norm1 += val1 * val1;
-      norm2 += val2 * val2;
-      ++i1;
-      ++i2;
-    } else if (j1 < j2) {
-      const auto val1 = static_cast<Out>(*(data1_start + i1));
-      norm1 += val1 * val1;
-      ++i1;
-    } else {
-      const auto val2 = static_cast<Out>(*(data2_start + i2));
-      norm2 += val2 * val2;
-      ++i2;
-    }
-  }
-
-  // Handle remaining elements
-  while (i1 < ind1_size) {
-    const auto val1 = static_cast<Out>(*(data1_start + i1));
-    norm1 += val1 * val1;
-    ++i1;
-  }
-
-  while (i2 < ind2_size) {
-    const auto val2 = static_cast<Out>(*(data2_start + i2));
-    norm2 += val2 * val2;
-    ++i2;
-  }
-
-  norm1 = std::sqrt(norm1);
-  norm2 = std::sqrt(norm2);
-
-  if (norm1 == 0.0 && norm2 == 0.0) {
-    return Out(0);
-  } else if (norm1 == 0.0 || norm2 == 0.0) {
-    return Out(1);
-  } else {
-    return Out(1) - (dot_product / (norm1 * norm2));
-  }
-}
-
-template <typename Out, typename DataIt>
-Out sparse_alternative_cosine(
+Out sparse_chebyshev(
     typename std::vector<std::size_t>::const_iterator ind1_start,
     std::size_t ind1_size, DataIt data1_start,
     typename std::vector<std::size_t>::const_iterator ind2_start,
-    std::size_t ind2_size, DataIt data2_start, std::size_t /* unused */) {
+    std::size_t ind2_size, DataIt data2_start, std::size_t /* ndim */) {
 
-  const Out FLOAT32_MAX = std::numeric_limits<float>::max();
+  std::size_t i1 = 0, i2 = 0;
+  Out max_diff = 0;
 
-  auto sparse_mul_result = sparse_mul<Out>(ind1_start, ind1_size, data1_start,
-                                           ind2_start, ind2_size, data2_start);
-  auto &aux_data = sparse_mul_result.second;
+  while (i1 < ind1_size && i2 < ind2_size) {
+    const auto j1 = *(ind1_start + i1);
+    const auto j2 = *(ind2_start + i2);
 
-  Out result{0};
-  Out norm_x{0};
-  Out norm_y{0};
-  std::size_t dim = aux_data.size();
-
-  for (std::size_t i = 0; i < ind1_size; ++i) {
-    Out val = static_cast<Out>(*(data1_start + i));
-    norm_x += val * val;
+    if (j1 == j2) {
+      max_diff = std::max(max_diff,
+                          std::abs(*(data1_start + i1) - *(data2_start + i2)));
+      ++i1;
+      ++i2;
+    } else if (j1 < j2) {
+      max_diff = std::max(max_diff, std::abs(*(data1_start + i1)));
+      ++i1;
+    } else {
+      max_diff = std::max(max_diff, std::abs(*(data2_start + i2)));
+      ++i2;
+    }
   }
 
-  for (std::size_t i = 0; i < ind2_size; ++i) {
-    Out val = static_cast<Out>(*(data2_start + i));
-    norm_y += val * val;
+  while (i1 < ind1_size) {
+    max_diff = std::max(max_diff, std::abs(*(data1_start + i1)));
+    ++i1;
   }
 
-  norm_x = std::sqrt(norm_x);
-  norm_y = std::sqrt(norm_y);
-
-  for (std::size_t i = 0; i < dim; ++i) {
-    result += aux_data[i];
+  while (i2 < ind2_size) {
+    max_diff = std::max(max_diff, std::abs(*(data2_start + i2)));
+    ++i2;
   }
 
-  if (norm_x == 0.0 && norm_y == 0.0) {
-    return Out(0);
-  } else if (norm_x == 0.0 || norm_y == 0.0) {
-    return FLOAT32_MAX;
-  } else if (result <= 0.0) {
-    return FLOAT32_MAX;
-  } else {
-    result = (norm_x * norm_y) / result;
-    return std::log2(result);
-  }
+  return max_diff;
 }
 
 template <typename Out, typename DataIt>
@@ -563,6 +534,630 @@ Out sparse_correlation(
   } else {
     return Out(1) - (dot_product / (norm1 * norm2));
   }
+}
+template <typename Out, typename DataIt>
+Out sparse_cosine(typename std::vector<std::size_t>::const_iterator ind1_start,
+                  std::size_t ind1_size, DataIt data1_start,
+                  typename std::vector<std::size_t>::const_iterator ind2_start,
+                  std::size_t ind2_size, DataIt data2_start,
+                  std::size_t /* ndim */) {
+
+  Out dot_product{0};
+  Out norm1{0};
+  Out norm2{0};
+
+  std::size_t i1 = 0;
+  std::size_t i2 = 0;
+
+  while (i1 < ind1_size && i2 < ind2_size) {
+    const auto j1 = *(ind1_start + i1);
+    const auto j2 = *(ind2_start + i2);
+
+    if (j1 == j2) {
+      const auto val1 = static_cast<Out>(*(data1_start + i1));
+      const auto val2 = static_cast<Out>(*(data2_start + i2));
+      dot_product += val1 * val2;
+      norm1 += val1 * val1;
+      norm2 += val2 * val2;
+      ++i1;
+      ++i2;
+    } else if (j1 < j2) {
+      const auto val1 = static_cast<Out>(*(data1_start + i1));
+      norm1 += val1 * val1;
+      ++i1;
+    } else {
+      const auto val2 = static_cast<Out>(*(data2_start + i2));
+      norm2 += val2 * val2;
+      ++i2;
+    }
+  }
+
+  // Handle remaining elements
+  while (i1 < ind1_size) {
+    const auto val1 = static_cast<Out>(*(data1_start + i1));
+    norm1 += val1 * val1;
+    ++i1;
+  }
+
+  while (i2 < ind2_size) {
+    const auto val2 = static_cast<Out>(*(data2_start + i2));
+    norm2 += val2 * val2;
+    ++i2;
+  }
+
+  norm1 = std::sqrt(norm1);
+  norm2 = std::sqrt(norm2);
+
+  if (norm1 == 0.0 && norm2 == 0.0) {
+    return Out(0);
+  } else if (norm1 == 0.0 || norm2 == 0.0) {
+    return Out(1);
+  } else {
+    return Out(1) - (dot_product / (norm1 * norm2));
+  }
+}
+
+template <typename Out, typename DataIt>
+Out sparse_alternative_cosine(
+    typename std::vector<std::size_t>::const_iterator ind1_start,
+    std::size_t ind1_size, DataIt data1_start,
+    typename std::vector<std::size_t>::const_iterator ind2_start,
+    std::size_t ind2_size, DataIt data2_start, std::size_t /* ndim */) {
+
+  const Out FLOAT32_MAX = std::numeric_limits<float>::max();
+
+  auto sparse_mul_result = sparse_mul<Out>(ind1_start, ind1_size, data1_start,
+                                           ind2_start, ind2_size, data2_start);
+  auto &aux_data = sparse_mul_result.second;
+
+  Out result{0};
+  Out norm_x{0};
+  Out norm_y{0};
+  std::size_t dim = aux_data.size();
+
+  for (std::size_t i = 0; i < ind1_size; ++i) {
+    Out val = static_cast<Out>(*(data1_start + i));
+    norm_x += val * val;
+  }
+
+  for (std::size_t i = 0; i < ind2_size; ++i) {
+    Out val = static_cast<Out>(*(data2_start + i));
+    norm_y += val * val;
+  }
+
+  norm_x = std::sqrt(norm_x);
+  norm_y = std::sqrt(norm_y);
+
+  for (std::size_t i = 0; i < dim; ++i) {
+    result += aux_data[i];
+  }
+
+  if (norm_x == 0.0 && norm_y == 0.0) {
+    return Out(0);
+  } else if (norm_x == 0.0 || norm_y == 0.0) {
+    return FLOAT32_MAX;
+  } else if (result <= 0.0) {
+    return FLOAT32_MAX;
+  } else {
+    result = (norm_x * norm_y) / result;
+    return std::log2(result);
+  }
+}
+
+template <typename Out, typename DataIt>
+Out sparse_dice(typename std::vector<std::size_t>::const_iterator ind1_start,
+                std::size_t ind1_size, DataIt /* data1_start */,
+                typename std::vector<std::size_t>::const_iterator ind2_start,
+                std::size_t ind2_size, DataIt /* data2_start */,
+                std::size_t /* ndim */) {
+
+  std::size_t num_true_true =
+      fast_intersection_size(ind1_start, ind1_size, ind2_start, ind2_size);
+  std::size_t num_non_zero = ind1_size + ind2_size - num_true_true;
+  std::size_t num_not_equal = num_non_zero - num_true_true;
+
+  if (num_not_equal == 0) {
+    return Out{};
+  } else {
+    return static_cast<Out>(static_cast<double>(num_not_equal) /
+                            (2 * num_true_true + num_not_equal));
+  }
+}
+
+template <typename Out, typename DataIt>
+Out sparse_dot(typename std::vector<std::size_t>::const_iterator ind1_start,
+               std::size_t ind1_size, DataIt data1_start,
+               typename std::vector<std::size_t>::const_iterator ind2_start,
+               std::size_t ind2_size, DataIt data2_start,
+               std::size_t /* ndim */) {
+
+  Out result = 0;
+  std::size_t i1 = 0, i2 = 0;
+
+  while (i1 < ind1_size && i2 < ind2_size) {
+    const auto j1 = *(ind1_start + i1);
+    const auto j2 = *(ind2_start + i2);
+
+    if (j1 == j2) {
+      result += static_cast<Out>(*(data1_start + i1) * *(data2_start + i2));
+      ++i1;
+      ++i2;
+    } else if (j1 < j2) {
+      ++i1;
+    } else {
+      ++i2;
+    }
+  }
+
+  if (result <= Out{}) {
+    return static_cast<Out>(1.0);
+  } else {
+    return static_cast<Out>(1.0) - result;
+  }
+}
+
+template <typename Out, typename DataIt>
+Out sparse_euclidean(
+    typename std::vector<std::size_t>::const_iterator ind1_start,
+    std::size_t ind1_size, DataIt data1_start,
+    typename std::vector<std::size_t>::const_iterator ind2_start,
+    std::size_t ind2_size, DataIt data2_start, std::size_t ndim) {
+  return std::sqrt(sparse_l2sqr<Out>(ind1_start, ind1_size, data1_start,
+                                     ind2_start, ind2_size, data2_start, ndim));
+}
+
+template <typename Out, typename DataIt>
+Out sparse_hamming(typename std::vector<std::size_t>::const_iterator ind1_start,
+                   std::size_t ind1_size, DataIt data1_start,
+                   typename std::vector<std::size_t>::const_iterator ind2_start,
+                   std::size_t ind2_size, DataIt data2_start,
+                   std::size_t ndim) {
+  std::size_t i1 = 0;
+  std::size_t i2 = 0;
+  std::size_t num_not_equal = 0;
+
+  while (i1 < ind1_size && i2 < ind2_size) {
+    const auto j1 = *(ind1_start + i1);
+    const auto j2 = *(ind2_start + i2);
+
+    if (j1 == j2) {
+      if (*(data1_start + i1) != *(data2_start + i2)) {
+        ++num_not_equal;
+      }
+      ++i1;
+      ++i2;
+    } else if (j1 < j2) {
+      ++num_not_equal;
+      ++i1;
+    } else {
+      ++num_not_equal;
+      ++i2;
+    }
+  }
+
+  num_not_equal += (ind1_size - i1) + (ind2_size - i2);
+
+  return static_cast<Out>(static_cast<double>(num_not_equal) / ndim);
+}
+
+#include <cmath> // For std::sqrt
+
+template <typename Out, typename DataIt>
+Out sparse_hellinger(
+    typename std::vector<std::size_t>::const_iterator ind1_start,
+    std::size_t ind1_size, DataIt data1_start,
+    typename std::vector<std::size_t>::const_iterator ind2_start,
+    std::size_t ind2_size, DataIt data2_start, std::size_t /* ndim */) {
+
+  double result = 0.0;
+  double l1_norm_x = 0.0;
+  double l1_norm_y = 0.0;
+  std::size_t i1 = 0, i2 = 0;
+
+  while (i1 < ind1_size && i2 < ind2_size) {
+    const auto j1 = *(ind1_start + i1);
+    const auto j2 = *(ind2_start + i2);
+
+    if (j1 == j2) {
+      result += std::sqrt(*(data1_start + i1) * *(data2_start + i2));
+      l1_norm_x += *(data1_start + i1);
+      l1_norm_y += *(data2_start + i2);
+      ++i1;
+      ++i2;
+    } else {
+      if (j1 < j2) {
+        l1_norm_x += *(data1_start + i1);
+        ++i1;
+      } else {
+        l1_norm_y += *(data2_start + i2);
+        ++i2;
+      }
+    }
+  }
+
+  while (i1 < ind1_size) {
+    l1_norm_x += *(data1_start + i1);
+    ++i1;
+  }
+
+  while (i2 < ind2_size) {
+    l1_norm_y += *(data2_start + i2);
+    ++i2;
+  }
+
+  if (l1_norm_x == 0 && l1_norm_y == 0) {
+    return Out{};
+  } else if (l1_norm_x == 0 || l1_norm_y == 0) {
+    return static_cast<Out>(1.0);
+  } else {
+    return std::sqrt(static_cast<Out>(1.0) -
+                     result / std::sqrt(l1_norm_x * l1_norm_y));
+  }
+}
+
+template <typename Out, typename DataIt>
+Out sparse_alternative_hellinger(
+    typename std::vector<std::size_t>::const_iterator ind1_start,
+    std::size_t ind1_size, DataIt data1_start,
+    typename std::vector<std::size_t>::const_iterator ind2_start,
+    std::size_t ind2_size, DataIt data2_start, std::size_t /* ndim */) {
+
+  double result = 0.0;
+  double l1_norm_x = 0.0;
+  double l1_norm_y = 0.0;
+
+  // Calculate L1 norms
+  for (std::size_t i = 0; i < ind1_size; ++i) {
+    l1_norm_x += *(data1_start + i);
+  }
+  for (std::size_t j = 0; j < ind2_size; ++j) {
+    l1_norm_y += *(data2_start + j);
+  }
+
+  // Calculate the product and its square root sum
+  std::size_t i1 = 0, i2 = 0;
+  while (i1 < ind1_size && i2 < ind2_size) {
+    const auto j1 = *(ind1_start + i1);
+    const auto j2 = *(ind2_start + i2);
+
+    if (j1 == j2) {
+      result += std::sqrt(*(data1_start + i1) * *(data2_start + i2));
+      ++i1;
+      ++i2;
+    } else if (j1 < j2) {
+      ++i1;
+    } else {
+      ++i2;
+    }
+  }
+
+  if (l1_norm_x == 0 && l1_norm_y == 0) {
+    return Out{};
+  } else if (l1_norm_x == 0 || l1_norm_y == 0 || result <= 0) {
+    return std::numeric_limits<Out>::max();
+  } else {
+    result = std::sqrt(l1_norm_x * l1_norm_y) / result;
+    return static_cast<Out>(std::log2(result));
+  }
+}
+
+template <typename Out, typename DataIt>
+Out sparse_jaccard(typename std::vector<std::size_t>::const_iterator ind1_start,
+                   std::size_t ind1_size, DataIt /* data1_start */,
+                   typename std::vector<std::size_t>::const_iterator ind2_start,
+                   std::size_t ind2_size, DataIt /* data2_start */,
+                   std::size_t /* ndim */) {
+
+  std::size_t num_equal =
+      fast_intersection_size(ind1_start, ind1_size, ind2_start, ind2_size);
+  std::size_t num_non_zero = ind1_size + ind2_size - num_equal;
+
+  if (num_non_zero == 0) {
+    return Out{};
+  } else {
+    return static_cast<Out>(static_cast<double>(num_non_zero - num_equal) /
+                            num_non_zero);
+  }
+}
+
+template <typename Out, typename DataIt>
+Out sparse_alternative_jaccard(
+    typename std::vector<std::size_t>::const_iterator ind1_start,
+    std::size_t ind1_size, DataIt /* data1_start */,
+    typename std::vector<std::size_t>::const_iterator ind2_start,
+    std::size_t ind2_size, DataIt /* data2_start */, std::size_t /* ndim */) {
+
+  std::size_t num_equal =
+      fast_intersection_size(ind1_start, ind1_size, ind2_start, ind2_size);
+  std::size_t num_non_zero = ind1_size + ind2_size - num_equal;
+
+  if (num_non_zero == 0) {
+    return Out{};
+  } else if (num_equal == 0) {
+    return std::numeric_limits<Out>::max();
+  } else {
+    return static_cast<Out>(
+        -std::log2(static_cast<double>(num_equal) / num_non_zero));
+  }
+}
+
+template <typename Out, typename DataIt>
+Out sparse_jensen_shannon_divergence(
+    typename std::vector<std::size_t>::const_iterator ind1_start,
+    std::size_t ind1_size, DataIt data1_start,
+    typename std::vector<std::size_t>::const_iterator ind2_start,
+    std::size_t ind2_size, DataIt data2_start, std::size_t /* ndim */) {
+
+  auto [dense_data1, dense_data2] = dense_union<Out, DataIt>(
+      ind1_start, ind1_size, data1_start, ind2_start, ind2_size, data2_start);
+
+  return jensen_shannon_divergence<Out>(dense_data1.begin(), dense_data1.end(),
+                                        dense_data2.begin());
+}
+
+template <typename Out, typename DataIt>
+Out sparse_kulsinski(
+    typename std::vector<std::size_t>::const_iterator ind1_start,
+    std::size_t ind1_size, DataIt /* data1_start */,
+    typename std::vector<std::size_t>::const_iterator ind2_start,
+    std::size_t ind2_size, DataIt /* data2_start */, std::size_t ndim) {
+
+  std::size_t num_true_true =
+      fast_intersection_size(ind1_start, ind1_size, ind2_start, ind2_size);
+  std::size_t num_non_zero = ind1_size + ind2_size - num_true_true;
+  std::size_t num_not_equal = num_non_zero - num_true_true;
+
+  if (num_not_equal == 0) {
+    return Out{};
+  } else {
+    return static_cast<Out>(
+        static_cast<double>(num_not_equal - num_true_true + ndim) /
+        (num_not_equal + ndim));
+  }
+}
+
+template <typename Out, typename DataIt>
+Out sparse_l2sqr(typename std::vector<std::size_t>::const_iterator ind1_start,
+                 std::size_t ind1_size, DataIt data1_start,
+                 typename std::vector<std::size_t>::const_iterator ind2_start,
+                 std::size_t ind2_size, DataIt data2_start,
+                 std::size_t /* ndim */) {
+  Out sum{0};
+
+  std::size_t i1 = 0;
+  std::size_t i2 = 0;
+
+  while (i1 < ind1_size && i2 < ind2_size) {
+    const auto j1 = *(ind1_start + i1);
+    const auto j2 = *(ind2_start + i2);
+
+    if (j1 == j2) {
+      auto val = static_cast<Out>(*(data1_start + i1) - *(data2_start + i2));
+      sum += val * val;
+      ++i1;
+      ++i2;
+    } else if (j1 < j2) {
+      auto val = static_cast<Out>(*(data1_start + i1));
+      sum += val * val;
+      ++i1;
+    } else {
+      auto val = static_cast<Out>(*(data2_start + i2));
+      sum += val * val;
+      ++i2;
+    }
+  }
+
+  // pass over the tails
+  while (i1 < ind1_size) {
+    auto val = static_cast<Out>(*(data1_start + i1));
+    sum += val * val;
+    ++i1;
+  }
+
+  while (i2 < ind2_size) {
+    auto val = static_cast<Out>(*(data2_start + i2));
+    sum += val * val;
+    ++i2;
+  }
+
+  return sum;
+}
+
+template <typename Out, typename DataIt>
+Out sparse_manhattan(
+    typename std::vector<std::size_t>::const_iterator ind1_start,
+    std::size_t ind1_size, DataIt data1_start,
+    typename std::vector<std::size_t>::const_iterator ind2_start,
+    std::size_t ind2_size, DataIt data2_start, std::size_t /* ndim */) {
+
+  Out result = Out();
+
+  std::size_t i1 = 0;
+  std::size_t i2 = 0;
+
+  while (i1 < ind1_size && i2 < ind2_size) {
+    const auto j1 = *(ind1_start + i1);
+    const auto j2 = *(ind2_start + i2);
+
+    if (j1 == j2) {
+      auto val =
+          std::abs(static_cast<Out>(*(data1_start + i1) - *(data2_start + i2)));
+      result += val;
+      ++i1;
+      ++i2;
+    } else if (j1 < j2) {
+      result += std::abs(static_cast<Out>(*(data1_start + i1)));
+      ++i1;
+    } else {
+      result += std::abs(static_cast<Out>(*(data2_start + i2)));
+      ++i2;
+    }
+  }
+
+  while (i1 < ind1_size) {
+    result += std::abs(static_cast<Out>(*(data1_start + i1)));
+    ++i1;
+  }
+
+  while (i2 < ind2_size) {
+    result += std::abs(static_cast<Out>(*(data2_start + i2)));
+    ++i2;
+  }
+
+  return result;
+}
+
+template <typename Out, typename DataIt>
+Out sparse_matching(
+    typename std::vector<std::size_t>::const_iterator ind1_start,
+    std::size_t ind1_size, DataIt /* data1_start */,
+    typename std::vector<std::size_t>::const_iterator ind2_start,
+    std::size_t ind2_size, DataIt /* data2_start */, std::size_t ndim) {
+
+  std::size_t num_true_true =
+      fast_intersection_size(ind1_start, ind1_size, ind2_start, ind2_size);
+  std::size_t num_non_zero = ind1_size + ind2_size - num_true_true;
+  std::size_t num_not_equal = num_non_zero - num_true_true;
+
+  return static_cast<Out>(static_cast<double>(num_not_equal) / ndim);
+}
+
+template <typename Out, typename DataIt>
+Out sparse_rogers_tanimoto(
+    typename std::vector<std::size_t>::const_iterator ind1_start,
+    std::size_t ind1_size, DataIt /* data1_start */,
+    typename std::vector<std::size_t>::const_iterator ind2_start,
+    std::size_t ind2_size, DataIt /* data2_start */, std::size_t ndim) {
+
+  std::size_t num_true_true =
+      fast_intersection_size(ind1_start, ind1_size, ind2_start, ind2_size);
+  std::size_t num_non_zero = ind1_size + ind2_size - num_true_true;
+  std::size_t num_not_equal = num_non_zero - num_true_true;
+
+  return static_cast<Out>((2.0 * num_not_equal) / (ndim + num_not_equal));
+}
+
+template <typename Out, typename DataIt>
+Out sparse_russell_rao(
+    typename std::vector<std::size_t>::const_iterator ind1_start,
+    std::size_t ind1_size, DataIt /* data1_start */,
+    typename std::vector<std::size_t>::const_iterator ind2_start,
+    std::size_t ind2_size, DataIt /* data2_start */, std::size_t ndim) {
+
+  std::size_t num_true_true = 0;
+  auto i1 = ind1_start;
+  auto i2 = ind2_start;
+
+  while (i1 < ind1_start + ind1_size && i2 < ind2_start + ind2_size) {
+    if (*i1 == *i2) {
+      ++num_true_true;
+      ++i1;
+      ++i2;
+    } else if (*i1 < *i2) {
+      ++i1;
+    } else {
+      ++i2;
+    }
+  }
+
+  if (num_true_true == ind1_size && num_true_true == ind2_size) {
+    return Out{};
+  } else {
+    return static_cast<Out>(static_cast<double>(ndim - num_true_true) / ndim);
+  }
+}
+
+template <typename Out, typename DataIt>
+Out sparse_sokal_michener(
+    typename std::vector<std::size_t>::const_iterator ind1_start,
+    std::size_t ind1_size, DataIt /* data1_start */,
+    typename std::vector<std::size_t>::const_iterator ind2_start,
+    std::size_t ind2_size, DataIt /* data2_start */, std::size_t ndim) {
+
+  std::size_t num_true_true =
+      fast_intersection_size(ind1_start, ind1_size, ind2_start, ind2_size);
+  std::size_t num_non_zero = ind1_size + ind2_size - num_true_true;
+  std::size_t num_not_equal = num_non_zero - num_true_true;
+
+  return static_cast<Out>(static_cast<double>(num_not_equal + num_not_equal) /
+                          (ndim + num_not_equal));
+}
+
+template <typename Out, typename DataIt>
+Out sparse_sokal_sneath(
+    typename std::vector<std::size_t>::const_iterator ind1_start,
+    std::size_t ind1_size, DataIt /* data1_start */,
+    typename std::vector<std::size_t>::const_iterator ind2_start,
+    std::size_t ind2_size, DataIt /* data2_start */, std::size_t /* ndim */) {
+
+  std::size_t num_true_true =
+      fast_intersection_size(ind1_start, ind1_size, ind2_start, ind2_size);
+  std::size_t num_non_zero = ind1_size + ind2_size - num_true_true;
+  std::size_t num_not_equal = num_non_zero - num_true_true;
+
+  if (num_not_equal == 0) {
+    return Out{};
+  } else {
+    return static_cast<Out>(num_not_equal /
+                            (0.5 * num_true_true + num_not_equal));
+  }
+}
+
+template <typename Out, typename DataIt>
+Out sparse_yule(typename std::vector<std::size_t>::const_iterator ind1_start,
+                std::size_t ind1_size, DataIt /* data1_start */,
+                typename std::vector<std::size_t>::const_iterator ind2_start,
+                std::size_t ind2_size, DataIt /* data2_start */,
+                std::size_t ndim) {
+
+  std::size_t num_true_true = 0;
+  std::size_t num_true_false = 0;
+  std::size_t num_false_true = 0;
+
+  auto i1 = ind1_start;
+  auto i2 = ind2_start;
+
+  while (i1 < ind1_start + ind1_size && i2 < ind2_start + ind2_size) {
+    if (*i1 == *i2) {
+      ++num_true_true;
+      ++i1;
+      ++i2;
+    } else if (*i1 < *i2) {
+      ++num_true_false;
+      ++i1;
+    } else {
+      ++num_false_true;
+      ++i2;
+    }
+  }
+
+  num_true_false += (ind1_start + ind1_size) - i1;
+  num_false_true += (ind2_start + ind2_size) - i2;
+
+  std::size_t num_false_false =
+      ndim - num_true_true - num_true_false - num_false_true;
+
+  if (num_true_false == 0 || num_false_true == 0) {
+    return Out{};
+  } else {
+    return static_cast<Out>(2.0 * num_true_false * num_false_true) /
+           static_cast<Out>(num_true_true * num_false_false +
+                            num_true_false * num_false_true);
+  }
+}
+
+template <typename Out, typename DataIt>
+Out sparse_symmetric_kl_divergence(
+    typename std::vector<std::size_t>::const_iterator ind1_start,
+    std::size_t ind1_size, DataIt data1_start,
+    typename std::vector<std::size_t>::const_iterator ind2_start,
+    std::size_t ind2_size, DataIt data2_start, std::size_t /* ndim */) {
+
+  auto [dense_data1, dense_data2] = dense_union<Out, DataIt>(
+      ind1_start, ind1_size, data1_start, ind2_start, ind2_size, data2_start);
+
+  return symmetric_kl_divergence<Out>(dense_data1.begin(), dense_data1.end(),
+                                      dense_data2.begin());
 }
 
 template <typename In, typename Out, typename Idx = uint32_t>

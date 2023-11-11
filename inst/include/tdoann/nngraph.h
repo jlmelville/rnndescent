@@ -53,7 +53,7 @@ template <typename Out = float, typename Idx = uint32_t> struct SparseNNGraph {
 
   static constexpr auto npos() -> Idx { return static_cast<Idx>(-1); }
 
-  static constexpr auto zero = static_cast<Out>(0);
+  static constexpr auto zero = Out{};
 
   auto n_nbrs(Idx idx) const -> std::size_t {
     return row_ptr[idx + 1] - row_ptr[idx];
