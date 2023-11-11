@@ -353,17 +353,14 @@ void make_sparse_tree_recursive(
 }
 
 template <typename In, typename Idx>
-SparseRPTree<In, Idx> make_sparse_tree(const std::vector<std::size_t> &ind,
-                                       const std::vector<std::size_t> &ptr,
-                                       const std::vector<In> &data,
-                                       std::size_t ndim,
-                                       RandomIntGenerator<Idx> &rng,
-                                       uint32_t leaf_size, bool angular) {
+SparseRPTree<In, Idx> make_sparse_tree(
+    const std::vector<std::size_t> &ind, const std::vector<std::size_t> &ptr,
+    const std::vector<In> &data, std::size_t ndim, RandomIntGenerator<Idx> &rng,
+    uint32_t leaf_size, uint32_t max_tree_depth, bool angular) {
   std::vector<Idx> indices(ptr.size() - 1);
   std::iota(indices.begin(), indices.end(), 0);
 
   SparseRPTree<In, Idx> tree(indices.size(), leaf_size, ndim);
-  constexpr uint32_t max_depth = 100;
 
   if (angular) {
     auto splitter = [](const auto &ind, const auto &ptr, const auto &data,
@@ -373,7 +370,7 @@ SparseRPTree<In, Idx> make_sparse_tree(const std::vector<std::size_t> &ind,
     };
 
     make_sparse_tree_recursive(ind, ptr, data, indices, tree, rng, splitter,
-                               leaf_size, max_depth);
+                               leaf_size, max_tree_depth);
   } else {
     auto splitter = [](const auto &ind, const auto &ptr, const auto &data,
                        auto &indices, auto &rng) {
@@ -382,7 +379,7 @@ SparseRPTree<In, Idx> make_sparse_tree(const std::vector<std::size_t> &ind,
     };
 
     make_sparse_tree_recursive(ind, ptr, data, indices, tree, rng, splitter,
-                               leaf_size, max_depth);
+                               leaf_size, max_tree_depth);
   }
   return tree;
 }
@@ -392,8 +389,9 @@ std::vector<SparseRPTree<In, Idx>> make_sparse_forest(
     const std::vector<std::size_t> &inds,
     const std::vector<std::size_t> &indptr, const std::vector<In> &data,
     std::size_t ndim, uint32_t n_trees, uint32_t leaf_size,
-    ParallelRandomIntProvider<Idx> &parallel_rand, bool angular,
-    std::size_t n_threads, ProgressBase &progress, const Executor &executor) {
+    uint32_t max_tree_depth, ParallelRandomIntProvider<Idx> &parallel_rand,
+    bool angular, std::size_t n_threads, ProgressBase &progress,
+    const Executor &executor) {
   std::vector<SparseRPTree<In, Idx>> rp_forest(n_trees);
 
   parallel_rand.initialize();
@@ -401,8 +399,8 @@ std::vector<SparseRPTree<In, Idx>> make_sparse_forest(
   auto worker = [&](std::size_t begin, std::size_t end) {
     auto rng = parallel_rand.get_parallel_instance(end);
     for (auto i = begin; i < end; ++i) {
-      rp_forest[i] =
-          make_sparse_tree(inds, indptr, data, ndim, *rng, leaf_size, angular);
+      rp_forest[i] = make_sparse_tree(inds, indptr, data, ndim, *rng, leaf_size,
+                                      max_tree_depth, angular);
     }
   };
 

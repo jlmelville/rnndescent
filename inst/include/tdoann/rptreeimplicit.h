@@ -219,23 +219,25 @@ void make_tree_recursive(const BaseDistance<Out, Idx> &distance,
 template <typename Out, typename Idx>
 RPTreeImplicit<Idx>
 make_dense_tree(const BaseDistance<Out, Idx> &distance, std::size_t ndim,
-                RandomIntGenerator<Idx> &rng, uint32_t leaf_size) {
+                RandomIntGenerator<Idx> &rng, uint32_t leaf_size,
+                uint32_t max_tree_depth) {
   std::vector<Idx> indices(distance.get_ny());
   std::iota(indices.begin(), indices.end(), 0);
 
   RPTreeImplicit<Idx> tree(indices.size(), leaf_size, ndim);
-  constexpr uint32_t max_depth = 100;
 
-  make_tree_recursive(distance, indices, tree, rng, leaf_size, max_depth);
+  make_tree_recursive(distance, indices, tree, rng, leaf_size, max_tree_depth);
 
   return tree;
 }
 
 template <typename Out, typename Idx>
-std::vector<RPTreeImplicit<Idx>> make_forest(
-    const BaseDistance<Out, Idx> &distance, std::size_t ndim, uint32_t n_trees,
-    uint32_t leaf_size, ParallelRandomIntProvider<Idx> &parallel_rand,
-    std::size_t n_threads, ProgressBase &progress, const Executor &executor) {
+std::vector<RPTreeImplicit<Idx>>
+make_forest(const BaseDistance<Out, Idx> &distance, std::size_t ndim,
+            uint32_t n_trees, uint32_t leaf_size, uint32_t max_tree_depth,
+            ParallelRandomIntProvider<Idx> &parallel_rand,
+            std::size_t n_threads, ProgressBase &progress,
+            const Executor &executor) {
   std::vector<RPTreeImplicit<Idx>> rp_forest(n_trees);
 
   parallel_rand.initialize();
@@ -243,7 +245,8 @@ std::vector<RPTreeImplicit<Idx>> make_forest(
   auto worker = [&](std::size_t begin, std::size_t end) {
     auto rng_ptr = parallel_rand.get_parallel_instance(end);
     for (auto i = begin; i < end; ++i) {
-      rp_forest[i] = make_dense_tree(distance, ndim, *rng_ptr, leaf_size);
+      rp_forest[i] =
+          make_dense_tree(distance, ndim, *rng_ptr, leaf_size, max_tree_depth);
     }
   };
 

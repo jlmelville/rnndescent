@@ -303,12 +303,12 @@ void make_tree_recursive(const std::vector<In> &data, std::size_t ndim,
 template <typename In, typename Idx>
 RPTree<In, Idx> make_dense_tree(const std::vector<In> &data, std::size_t ndim,
                                 RandomIntGenerator<Idx> &rng,
-                                uint32_t leaf_size, bool angular) {
+                                uint32_t leaf_size, uint32_t max_tree_depth,
+                                bool angular) {
   std::vector<Idx> indices(data.size() / ndim);
   std::iota(indices.begin(), indices.end(), 0);
 
   RPTree<In, Idx> tree(indices.size(), leaf_size, ndim);
-  constexpr uint32_t max_depth = 100;
   if (angular) {
 
     auto angular_splitter = [](const auto &data, auto ndim, const auto &indices,
@@ -317,7 +317,7 @@ RPTree<In, Idx> make_dense_tree(const std::vector<In> &data, std::size_t ndim,
     };
 
     make_tree_recursive(data, ndim, indices, tree, rng, angular_splitter,
-                        leaf_size, max_depth);
+                        leaf_size, max_tree_depth);
   } else {
     auto euclidean_splitter = [](const auto &data, auto ndim,
                                  const auto &indices, auto &rng) {
@@ -325,7 +325,7 @@ RPTree<In, Idx> make_dense_tree(const std::vector<In> &data, std::size_t ndim,
     };
 
     make_tree_recursive(data, ndim, indices, tree, rng, euclidean_splitter,
-                        leaf_size, max_depth);
+                        leaf_size, max_tree_depth);
   }
   return tree;
 }
@@ -333,8 +333,9 @@ RPTree<In, Idx> make_dense_tree(const std::vector<In> &data, std::size_t ndim,
 template <typename In, typename Idx>
 std::vector<RPTree<In, Idx>>
 make_forest(const std::vector<In> &data, std::size_t ndim, uint32_t n_trees,
-            uint32_t leaf_size, ParallelRandomIntProvider<Idx> &parallel_rand,
-            bool angular, std::size_t n_threads, ProgressBase &progress,
+            uint32_t leaf_size, uint32_t max_tree_depth,
+            ParallelRandomIntProvider<Idx> &parallel_rand, bool angular,
+            std::size_t n_threads, ProgressBase &progress,
             const Executor &executor) {
   std::vector<RPTree<In, Idx>> rp_forest(n_trees);
 
@@ -343,7 +344,8 @@ make_forest(const std::vector<In> &data, std::size_t ndim, uint32_t n_trees,
   auto worker = [&](std::size_t begin, std::size_t end) {
     auto rng = parallel_rand.get_parallel_instance(end);
     for (auto i = begin; i < end; ++i) {
-      rp_forest[i] = make_dense_tree(data, ndim, *rng, leaf_size, angular);
+      rp_forest[i] =
+          make_dense_tree(data, ndim, *rng, leaf_size, max_tree_depth, angular);
     }
   };
 
@@ -733,7 +735,6 @@ search_forest(const std::vector<SearchTree<In, Idx>> &forest,
       }
     }
   };
-
   progress.set_n_iters(n_queries);
   ExecutionParams exec_params{n_threads};
   dispatch_work(worker, n_queries, n_threads, exec_params, progress, executor);

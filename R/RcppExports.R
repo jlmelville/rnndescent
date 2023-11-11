@@ -143,36 +143,36 @@ rnn_sparse_random_knn_query <- function(ref_ind, ref_ptr, ref_data, query_ind, q
     .Call(`_rnndescent_rnn_sparse_random_knn_query`, ref_ind, ref_ptr, ref_data, query_ind, query_ptr, query_data, ndim, nnbrs, metric, order_by_distance, n_threads, verbose)
 }
 
-rnn_rp_tree_knn_explicit <- function(data, nnbrs, metric, n_trees, leaf_size, include_self, unzero = TRUE, ret_forest = FALSE, n_threads = 0L, verbose = FALSE) {
-    .Call(`_rnndescent_rnn_rp_tree_knn_explicit`, data, nnbrs, metric, n_trees, leaf_size, include_self, unzero, ret_forest, n_threads, verbose)
+rnn_rp_tree_knn_explicit <- function(data, nnbrs, metric, n_trees, leaf_size, max_tree_depth, include_self, unzero = TRUE, ret_forest = FALSE, n_threads = 0L, verbose = FALSE) {
+    .Call(`_rnndescent_rnn_rp_tree_knn_explicit`, data, nnbrs, metric, n_trees, leaf_size, max_tree_depth, include_self, unzero, ret_forest, n_threads, verbose)
 }
 
-rnn_sparse_rp_tree_knn_explicit <- function(ind, ptr, data, ndim, nnbrs, metric, n_trees, leaf_size, include_self, unzero = TRUE, ret_forest = FALSE, n_threads = 0L, verbose = FALSE) {
-    .Call(`_rnndescent_rnn_sparse_rp_tree_knn_explicit`, ind, ptr, data, ndim, nnbrs, metric, n_trees, leaf_size, include_self, unzero, ret_forest, n_threads, verbose)
+rnn_sparse_rp_tree_knn_explicit <- function(ind, ptr, data, ndim, nnbrs, metric, n_trees, leaf_size, max_tree_depth, include_self, unzero = TRUE, ret_forest = FALSE, n_threads = 0L, verbose = FALSE) {
+    .Call(`_rnndescent_rnn_sparse_rp_tree_knn_explicit`, ind, ptr, data, ndim, nnbrs, metric, n_trees, leaf_size, max_tree_depth, include_self, unzero, ret_forest, n_threads, verbose)
 }
 
-rnn_sparse_rp_tree_knn_implicit <- function(ind, ptr, data, ndim, nnbrs, metric, n_trees, leaf_size, include_self, unzero = TRUE, ret_forest = FALSE, n_threads = 0L, verbose = FALSE) {
-    .Call(`_rnndescent_rnn_sparse_rp_tree_knn_implicit`, ind, ptr, data, ndim, nnbrs, metric, n_trees, leaf_size, include_self, unzero, ret_forest, n_threads, verbose)
+rnn_sparse_rp_tree_knn_implicit <- function(ind, ptr, data, ndim, nnbrs, metric, n_trees, leaf_size, max_tree_depth, include_self, unzero = TRUE, ret_forest = FALSE, n_threads = 0L, verbose = FALSE) {
+    .Call(`_rnndescent_rnn_sparse_rp_tree_knn_implicit`, ind, ptr, data, ndim, nnbrs, metric, n_trees, leaf_size, max_tree_depth, include_self, unzero, ret_forest, n_threads, verbose)
 }
 
-rnn_rp_tree_knn_implicit <- function(data, nnbrs, metric, n_trees, leaf_size, include_self, unzero = TRUE, ret_forest = FALSE, n_threads = 0L, verbose = FALSE) {
-    .Call(`_rnndescent_rnn_rp_tree_knn_implicit`, data, nnbrs, metric, n_trees, leaf_size, include_self, unzero, ret_forest, n_threads, verbose)
+rnn_rp_tree_knn_implicit <- function(data, nnbrs, metric, n_trees, leaf_size, max_tree_depth, include_self, unzero = TRUE, ret_forest = FALSE, n_threads = 0L, verbose = FALSE) {
+    .Call(`_rnndescent_rnn_rp_tree_knn_implicit`, data, nnbrs, metric, n_trees, leaf_size, max_tree_depth, include_self, unzero, ret_forest, n_threads, verbose)
 }
 
-rnn_rp_forest_build <- function(data, metric, n_trees, leaf_size, n_threads = 0L, verbose = FALSE) {
-    .Call(`_rnndescent_rnn_rp_forest_build`, data, metric, n_trees, leaf_size, n_threads, verbose)
+rnn_rp_forest_build <- function(data, metric, n_trees, leaf_size, max_tree_depth, n_threads = 0L, verbose = FALSE) {
+    .Call(`_rnndescent_rnn_rp_forest_build`, data, metric, n_trees, leaf_size, max_tree_depth, n_threads, verbose)
 }
 
-rnn_sparse_rp_forest_build <- function(ind, ptr, data, ndim, metric, n_trees, leaf_size, n_threads = 0L, verbose = FALSE) {
-    .Call(`_rnndescent_rnn_sparse_rp_forest_build`, ind, ptr, data, ndim, metric, n_trees, leaf_size, n_threads, verbose)
+rnn_sparse_rp_forest_build <- function(ind, ptr, data, ndim, metric, n_trees, leaf_size, max_tree_depth, n_threads = 0L, verbose = FALSE) {
+    .Call(`_rnndescent_rnn_sparse_rp_forest_build`, ind, ptr, data, ndim, metric, n_trees, leaf_size, max_tree_depth, n_threads, verbose)
 }
 
-rnn_rp_forest_implicit_build <- function(data, metric, n_trees, leaf_size, n_threads = 0L, verbose = FALSE) {
-    .Call(`_rnndescent_rnn_rp_forest_implicit_build`, data, metric, n_trees, leaf_size, n_threads, verbose)
+rnn_rp_forest_implicit_build <- function(data, metric, n_trees, leaf_size, max_tree_depth, n_threads = 0L, verbose = FALSE) {
+    .Call(`_rnndescent_rnn_rp_forest_implicit_build`, data, metric, n_trees, leaf_size, max_tree_depth, n_threads, verbose)
 }
 
-rnn_sparse_rp_forest_implicit_build <- function(ind, ptr, data, ndim, metric, n_trees, leaf_size, n_threads = 0L, verbose = FALSE) {
-    .Call(`_rnndescent_rnn_sparse_rp_forest_implicit_build`, ind, ptr, data, ndim, metric, n_trees, leaf_size, n_threads, verbose)
+rnn_sparse_rp_forest_implicit_build <- function(ind, ptr, data, ndim, metric, n_trees, leaf_size, max_tree_depth, n_threads = 0L, verbose = FALSE) {
+    .Call(`_rnndescent_rnn_sparse_rp_forest_implicit_build`, ind, ptr, data, ndim, metric, n_trees, leaf_size, max_tree_depth, n_threads, verbose)
 }
 
 rnn_rp_forest_search <- function(query, reference, search_forest, n_nbrs, metric, cache, n_threads, verbose = FALSE) {

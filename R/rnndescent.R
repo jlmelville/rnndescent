@@ -537,6 +537,7 @@ nnd_knn <- function(data,
           actual_metric = actual_metric,
           n_trees = NULL,
           leaf_size = NULL,
+          max_tree_depth = 200,
           include_self = FALSE, # this is changed from default on purpose
           ret_forest = ret_forest,
           margin = "auto",
