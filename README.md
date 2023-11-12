@@ -26,24 +26,26 @@ Tantalizingly close to being releasable, you can now use rnndescent for:
 * using this package for nearest neighbor search all on its own...
 * ... including finding nearest neighbors on sparse data, which most other 
 packages in the R ecosystem cannot do.
+* and a much larger number of metrics than most other packages.
 
 ## Current Status
 
-*06 November 2023* Sparse data support has been added. You should be able to 
-use e.g. a `dgCMatrix` with all the methods and currently supported metrics as
-easily as a dense matrix.
+*12 November 2023. I have added most of the metrics that don't need extra
+parameters for both sparse and non-sparse data, e.g. `braycurtis`, `dice`,
+`jaccard`, `hellinger` etc. See the `Missing Metrics` section at the end of this
+README for those which are not implemented.
 
 ### Missing Features 
 
-Compared to pynndescent, rnndescent is currently lacking:
+Compared to pynndescent, rnndescent is currently lacking, in decreasing order
+of likelihood of implementation:
 
-* an expanded range of distance metrics. I am unlikely to support *all* of the 
-ones in pynndescent, but a lot more are coming.
+* meaningful documentation.
 * a class to hide some of the complexities of pulling all the methods together
 simply.
-* meaningful documentation.
-
-I hope to add all this.
+* some of the distance metrics. A large number are currently supported though.
+See `Missing Metrics` below for those that are currently not available.
+* custom metrics. This just isn't feasible with a C++ implementation.
 
 ## Installation
 
@@ -362,6 +364,23 @@ from [RcppParallel](https://github.com/RcppCore/RcppParallel) and is
 As far as I know, these licenses are all compatible with re-licensing under
 GPLv3 or later.
 
+## Missing Metrics
+
+The following metrics are in PyNNDescent but are not supported in rnndescent:
+
+* Circular Kantorovich
+* Haversine
+* Kantorovich
+* Mahalanobis
+* Minkowski
+* Sinkhorn
+* Standardised Euclidean
+* Wasserstein 1d
+* Weighted Minkowski
+
+These require passing extra information as part of the metric definition, which
+is not currently supported. 
+
 ## See Also
 
 * [PyNNDescent](https://github.com/lmcinnes/pynndescent), the Python implementation.
@@ -374,6 +393,10 @@ C++ implementation.
 * [nndescent](https://github.com/brj0/nndescent), another C++ implementation, with Python bindings.
 
 ## Old News
+
+*06 November 2023* Sparse data support has been added. You should be able to 
+use e.g. a `dgCMatrix` with all the methods and currently supported metrics as
+easily as a dense matrix.
 
 *30 October 2023* At last, a workable random partition forest implementation
 has been added. This can be used standalone (e.g. `rpf_knn`, 
