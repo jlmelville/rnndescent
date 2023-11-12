@@ -15,11 +15,11 @@
 #'   - `"braycurtis"`
 #'   - `"canberra"`
 #'   - `"chebyshev"`
-#'   - `"correlation"` (1 minus the Pearson correlation).
-#'   - `"cosine"`.
+#'   - `"correlation"` (1 minus the Pearson correlation)
+#'   - `"cosine"`
 #'   - `"dice"`
-#'   - `"euclidean"`.
-#'   - `"hamming"`.
+#'   - `"euclidean"`
+#'   - `"hamming"`
 #'   - `"hellinger"`
 #'   - `"jaccard"`
 #'   - `"jensenshannon"`
@@ -31,8 +31,10 @@
 #'   - `"sokalmichener"`
 #'   - `"sokalsneath"`
 #'   - `"spearmanr"` (1 minus the Spearman rank correlation; not available for
-#'   sparse data).
+#'   sparse data)
 #'   - `"symmetrickl"` (symmetric Kullback-Leibler divergence)
+#'   - `"tsss"` (Triangle Area Similarity-Sector Area Similarity or TS-SS
+#'   metric)
 #'   - `"yule"`
 #'
 #'   For non-sparse data, the following variants are available with
@@ -220,11 +222,11 @@ rpf_knn <- function(data,
 #'   - `"braycurtis"`
 #'   - `"canberra"`
 #'   - `"chebyshev"`
-#'   - `"correlation"` (1 minus the Pearson correlation).
-#'   - `"cosine"`.
+#'   - `"correlation"` (1 minus the Pearson correlation)
+#'   - `"cosine"`
 #'   - `"dice"`
-#'   - `"euclidean"`.
-#'   - `"hamming"`.
+#'   - `"euclidean"`
+#'   - `"hamming"`
 #'   - `"hellinger"`
 #'   - `"jaccard"`
 #'   - `"jensenshannon"`
@@ -236,8 +238,10 @@ rpf_knn <- function(data,
 #'   - `"sokalmichener"`
 #'   - `"sokalsneath"`
 #'   - `"spearmanr"` (1 minus the Spearman rank correlation; not available for
-#'   sparse data).
+#'   sparse data)
 #'   - `"symmetrickl"` (symmetric Kullback-Leibler divergence)
+#'   - `"tsss"` (Triangle Area Similarity-Sector Area Similarity or TS-SS
+#'   metric)
 #'   - `"yule"`
 #'
 #'   For non-sparse data, the following variants are available with

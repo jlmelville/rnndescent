@@ -1105,6 +1105,74 @@ Out sparse_sokal_sneath(
 }
 
 template <typename Out, typename DataIt>
+Out sparse_tsss(typename std::vector<std::size_t>::const_iterator ind1_start,
+                std::size_t ind1_size, DataIt data1_start,
+                typename std::vector<std::size_t>::const_iterator ind2_start,
+                std::size_t ind2_size, DataIt data2_start, std::size_t ndim) {
+
+  Out d_euc_squared = 0.0;
+  Out d_cos = 0.0;
+  Out norm_x = 0.0;
+  Out norm_y = 0.0;
+
+  auto i1 = ind1_start, i2 = ind2_start;
+  auto d1 = data1_start, d2 = data2_start;
+
+  while (i1 < ind1_start + ind1_size && i2 < ind2_start + ind2_size) {
+    if (*i1 == *i2) {
+      Out diff = *d1 - *d2;
+      d_euc_squared += diff * diff;
+      d_cos += *d1 * *d2;
+      norm_x += *d1 * *d1;
+      norm_y += *d2 * *d2;
+      ++i1;
+      ++d1;
+      ++i2;
+      ++d2;
+    } else {
+      if (*i1 < *i2) {
+        norm_x += *d1 * *d1;
+        d_euc_squared += *d1 * *d1;
+        ++i1;
+        ++d1;
+      } else {
+        norm_y += *d2 * *d2;
+        d_euc_squared += *d2 * *d2;
+        ++i2;
+        ++d2;
+      }
+    }
+  }
+
+  // Remaining elements in vectors
+  while (i1 < ind1_start + ind1_size) {
+    norm_x += *d1 * *d1;
+    d_euc_squared += *d1 * *d1;
+    ++i1;
+    ++d1;
+  }
+  while (i2 < ind2_start + ind2_size) {
+    norm_y += *d2 * *d2;
+    d_euc_squared += *d2 * *d2;
+    ++i2;
+    ++d2;
+  }
+
+  norm_x = std::sqrt(norm_x);
+  norm_y = std::sqrt(norm_y);
+  Out magnitude_difference = std::abs(norm_x - norm_y);
+  d_cos /= norm_x * norm_y;
+  d_cos = std::clamp(d_cos, Out(-1), Out(1));
+  Out theta = std::acos(d_cos) + (M_PI / 18.0); // Add 10 degrees in radians
+
+  Out sector =
+      std::pow((std::sqrt(d_euc_squared) + magnitude_difference), 2) * theta;
+  Out triangle = norm_x * norm_y * std::sin(theta) / 2.0;
+
+  return triangle * sector;
+}
+
+template <typename Out, typename DataIt>
 Out sparse_yule(typename std::vector<std::size_t>::const_iterator ind1_start,
                 std::size_t ind1_size, DataIt /* data1_start */,
                 typename std::vector<std::size_t>::const_iterator ind2_start,

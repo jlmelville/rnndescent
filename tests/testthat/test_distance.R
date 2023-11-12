@@ -231,6 +231,12 @@ test_that("Symmetric KL", {
   expect_equal(bfdense, bfsparse)
 })
 
+test_that("TS-SS", {
+  bfdense <- brute_force_knn(bitdata, k = 4, metric = "tsss")
+  bfsparse <- brute_force_knn(bitdatasp, k = 4, metric = "tsss")
+  expect_equal(bfdense, bfsparse)
+})
+
 test_that("Yule", {
   bfdense <- brute_force_knn(bitdata, k = 4, metric = "yule")
   bfbin <- brute_force_knn(bitdata, k = 4, metric = "byule")

@@ -74,6 +74,7 @@ const std::unordered_map<std::string, DistanceFunc<In, Out>> &get_metric_map() {
           {"spearmanr", tdoann::spearmanr<Out, InIt>},
           {"sqeuclidean", tdoann::squared_euclidean<Out, InIt>},
           {"symmetrickl", tdoann::symmetric_kl_divergence<Out, InIt>},
+          {"tsss", tdoann::tsss<Out, InIt>},
           {"yule", tdoann::yule<Out, InIt>}};
   return metric_map;
 }
@@ -128,6 +129,7 @@ get_sparse_metric_map() {
           {"sokalsneath", tdoann::sparse_sokal_sneath<Out, InIt>},
           {"sqeuclidean", tdoann::sparse_squared_euclidean<Out, InIt>},
           {"symmetrickl", tdoann::sparse_symmetric_kl_divergence<Out, InIt>},
+          {"tsss", tdoann::sparse_tsss<Out, InIt>},
           {"yule", tdoann::sparse_yule<Out, InIt>}};
   return metric_map;
 }

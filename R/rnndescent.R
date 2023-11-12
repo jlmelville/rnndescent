@@ -13,11 +13,11 @@
 #'   - `"braycurtis"`
 #'   - `"canberra"`
 #'   - `"chebyshev"`
-#'   - `"correlation"` (1 minus the Pearson correlation).
-#'   - `"cosine"`.
+#'   - `"correlation"` (1 minus the Pearson correlation)
+#'   - `"cosine"`
 #'   - `"dice"`
-#'   - `"euclidean"`.
-#'   - `"hamming"`.
+#'   - `"euclidean"`
+#'   - `"hamming"`
 #'   - `"hellinger"`
 #'   - `"jaccard"`
 #'   - `"jensenshannon"`
@@ -29,8 +29,10 @@
 #'   - `"sokalmichener"`
 #'   - `"sokalsneath"`
 #'   - `"spearmanr"` (1 minus the Spearman rank correlation; not available for
-#'   sparse data).
+#'   sparse data)
 #'   - `"symmetrickl"` (symmetric Kullback-Leibler divergence)
+#'   - `"tsss"` (Triangle Area Similarity-Sector Area Similarity or TS-SS
+#'   metric)
 #'   - `"yule"`
 #'
 #'   For non-sparse data, the following variants are available with
@@ -159,11 +161,11 @@ brute_force_knn <- function(data,
 #'   - `"braycurtis"`
 #'   - `"canberra"`
 #'   - `"chebyshev"`
-#'   - `"correlation"` (1 minus the Pearson correlation).
-#'   - `"cosine"`.
+#'   - `"correlation"` (1 minus the Pearson correlation)
+#'   - `"cosine"`
 #'   - `"dice"`
-#'   - `"euclidean"`.
-#'   - `"hamming"`.
+#'   - `"euclidean"`
+#'   - `"hamming"`
 #'   - `"hellinger"`
 #'   - `"jaccard"`
 #'   - `"jensenshannon"`
@@ -175,8 +177,10 @@ brute_force_knn <- function(data,
 #'   - `"sokalmichener"`
 #'   - `"sokalsneath"`
 #'   - `"spearmanr"` (1 minus the Spearman rank correlation; not available for
-#'   sparse data).
+#'   sparse data)
 #'   - `"symmetrickl"` (symmetric Kullback-Leibler divergence)
+#'   - `"tsss"` (Triangle Area Similarity-Sector Area Similarity or TS-SS
+#'   metric)
 #'   - `"yule"`
 #'
 #'   For non-sparse data, the following variants are available with
@@ -296,11 +300,11 @@ random_knn <-
 #'   - `"braycurtis"`
 #'   - `"canberra"`
 #'   - `"chebyshev"`
-#'   - `"correlation"` (1 minus the Pearson correlation).
-#'   - `"cosine"`.
+#'   - `"correlation"` (1 minus the Pearson correlation)
+#'   - `"cosine"`
 #'   - `"dice"`
-#'   - `"euclidean"`.
-#'   - `"hamming"`.
+#'   - `"euclidean"`
+#'   - `"hamming"`
 #'   - `"hellinger"`
 #'   - `"jaccard"`
 #'   - `"jensenshannon"`
@@ -312,8 +316,10 @@ random_knn <-
 #'   - `"sokalmichener"`
 #'   - `"sokalsneath"`
 #'   - `"spearmanr"` (1 minus the Spearman rank correlation; not available for
-#'   sparse data).
+#'   sparse data)
 #'   - `"symmetrickl"` (symmetric Kullback-Leibler divergence)
+#'   - `"tsss"` (Triangle Area Similarity-Sector Area Similarity or TS-SS
+#'   metric)
 #'   - `"yule"`
 #'
 #'   For non-sparse data, the following variants are available with
@@ -654,11 +660,11 @@ nnd_knn <- function(data,
 #'   - `"braycurtis"`
 #'   - `"canberra"`
 #'   - `"chebyshev"`
-#'   - `"correlation"` (1 minus the Pearson correlation).
-#'   - `"cosine"`.
+#'   - `"correlation"` (1 minus the Pearson correlation)
+#'   - `"cosine"`
 #'   - `"dice"`
-#'   - `"euclidean"`.
-#'   - `"hamming"`.
+#'   - `"euclidean"`
+#'   - `"hamming"`
 #'   - `"hellinger"`
 #'   - `"jaccard"`
 #'   - `"jensenshannon"`
@@ -670,8 +676,10 @@ nnd_knn <- function(data,
 #'   - `"sokalmichener"`
 #'   - `"sokalsneath"`
 #'   - `"spearmanr"` (1 minus the Spearman rank correlation; not available for
-#'   sparse data).
+#'   sparse data)
 #'   - `"symmetrickl"` (symmetric Kullback-Leibler divergence)
+#'   - `"tsss"` (Triangle Area Similarity-Sector Area Similarity or TS-SS
+#'   metric)
 #'   - `"yule"`
 #'
 #'   For non-sparse data, the following variants are available with
@@ -819,11 +827,11 @@ brute_force_knn_query <- function(query,
 #'   - `"braycurtis"`
 #'   - `"canberra"`
 #'   - `"chebyshev"`
-#'   - `"correlation"` (1 minus the Pearson correlation).
-#'   - `"cosine"`.
+#'   - `"correlation"` (1 minus the Pearson correlation)
+#'   - `"cosine"`
 #'   - `"dice"`
-#'   - `"euclidean"`.
-#'   - `"hamming"`.
+#'   - `"euclidean"`
+#'   - `"hamming"`
 #'   - `"hellinger"`
 #'   - `"jaccard"`
 #'   - `"jensenshannon"`
@@ -835,8 +843,10 @@ brute_force_knn_query <- function(query,
 #'   - `"sokalmichener"`
 #'   - `"sokalsneath"`
 #'   - `"spearmanr"` (1 minus the Spearman rank correlation; not available for
-#'   sparse data).
+#'   sparse data)
 #'   - `"symmetrickl"` (symmetric Kullback-Leibler divergence)
+#'   - `"tsss"` (Triangle Area Similarity-Sector Area Similarity or TS-SS
+#'   metric)
 #'   - `"yule"`
 #'
 #'   For non-sparse data, the following variants are available with
@@ -980,11 +990,11 @@ random_knn_query <-
 #'   - `"braycurtis"`
 #'   - `"canberra"`
 #'   - `"chebyshev"`
-#'   - `"correlation"` (1 minus the Pearson correlation).
-#'   - `"cosine"`.
+#'   - `"correlation"` (1 minus the Pearson correlation)
+#'   - `"cosine"`
 #'   - `"dice"`
-#'   - `"euclidean"`.
-#'   - `"hamming"`.
+#'   - `"euclidean"`
+#'   - `"hamming"`
 #'   - `"hellinger"`
 #'   - `"jaccard"`
 #'   - `"jensenshannon"`
@@ -996,8 +1006,10 @@ random_knn_query <-
 #'   - `"sokalmichener"`
 #'   - `"sokalsneath"`
 #'   - `"spearmanr"` (1 minus the Spearman rank correlation; not available for
-#'   sparse data).
+#'   sparse data)
 #'   - `"symmetrickl"` (symmetric Kullback-Leibler divergence)
+#'   - `"tsss"` (Triangle Area Similarity-Sector Area Similarity or TS-SS
+#'   metric)
 #'   - `"yule"`
 #'
 #'   For non-sparse data, the following variants are available with
@@ -1362,11 +1374,11 @@ graph_knn_query <- function(query,
 #'   - `"braycurtis"`
 #'   - `"canberra"`
 #'   - `"chebyshev"`
-#'   - `"correlation"` (1 minus the Pearson correlation).
-#'   - `"cosine"`.
+#'   - `"correlation"` (1 minus the Pearson correlation)
+#'   - `"cosine"`
 #'   - `"dice"`
-#'   - `"euclidean"`.
-#'   - `"hamming"`.
+#'   - `"euclidean"`
+#'   - `"hamming"`
 #'   - `"hellinger"`
 #'   - `"jaccard"`
 #'   - `"jensenshannon"`
@@ -1378,8 +1390,10 @@ graph_knn_query <- function(query,
 #'   - `"sokalmichener"`
 #'   - `"sokalsneath"`
 #'   - `"spearmanr"` (1 minus the Spearman rank correlation; not available for
-#'   sparse data).
+#'   sparse data)
 #'   - `"symmetrickl"` (symmetric Kullback-Leibler divergence)
+#'   - `"tsss"` (Triangle Area Similarity-Sector Area Similarity or TS-SS
+#'   metric)
 #'   - `"yule"`
 #'
 #'   For non-sparse data, the following variants are available with

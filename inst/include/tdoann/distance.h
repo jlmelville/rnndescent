@@ -480,6 +480,36 @@ Out symmetric_kl_divergence(It xbegin, It xend, It ybegin) {
   return result;
 }
 
+template <typename Out, typename It> Out tsss(It xbegin, It xend, It ybegin) {
+  Out d_euc_squared = 0.0;
+  Out d_cos = 0.0;
+  Out norm_x = 0.0;
+  Out norm_y = 0.0;
+
+  for (auto xit = xbegin, yit = ybegin; xit != xend; ++xit, ++yit) {
+    Out diff = *xit - *yit;
+    d_euc_squared += diff * diff;
+    d_cos += *xit * *yit;
+    norm_x += *xit * *xit;
+    norm_y += *yit * *yit;
+  }
+
+  norm_x = std::sqrt(norm_x);
+  norm_y = std::sqrt(norm_y);
+  Out magnitude_difference = std::abs(norm_x - norm_y);
+  d_cos /= norm_x * norm_y;
+  // very real chance of d_cos being outside [-1, 1] range and causing acos
+  // to give a NaN when comparing a point with itself
+  d_cos = std::clamp(d_cos, Out(-1), Out(1));
+  Out theta = std::acos(d_cos) + (M_PI / 18.0); // Add 10 degrees in radians
+
+  Out sector =
+      std::pow((std::sqrt(d_euc_squared) + magnitude_difference), 2) * theta;
+  Out triangle = norm_x * norm_y * std::sin(theta) / 2.0;
+
+  return triangle * sector;
+}
+
 template <typename Out, typename It> auto yule(It xbegin, It xend, It ybegin) {
   std::size_t num_true_true = 0;
   std::size_t num_true_false = 0;

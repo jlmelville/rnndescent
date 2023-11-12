@@ -34,11 +34,11 @@ the data in \code{data}.
 \item \code{"braycurtis"}
 \item \code{"canberra"}
 \item \code{"chebyshev"}
-\item \code{"correlation"} (1 minus the Pearson correlation).
-\item \code{"cosine"}.
+\item \code{"correlation"} (1 minus the Pearson correlation)
+\item \code{"cosine"}
 \item \code{"dice"}
-\item \code{"euclidean"}.
-\item \code{"hamming"}.
+\item \code{"euclidean"}
+\item \code{"hamming"}
 \item \code{"hellinger"}
 \item \code{"jaccard"}
 \item \code{"jensenshannon"}
@@ -50,8 +50,10 @@ the data in \code{data}.
 \item \code{"sokalmichener"}
 \item \code{"sokalsneath"}
 \item \code{"spearmanr"} (1 minus the Spearman rank correlation; not available for
-sparse data).
+sparse data)
 \item \code{"symmetrickl"} (symmetric Kullback-Leibler divergence)
+\item \code{"tsss"} (Triangle Area Similarity-Sector Area Similarity or TS-SS
+metric)
 \item \code{"yule"}
 }
 
