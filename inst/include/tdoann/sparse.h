@@ -133,6 +133,29 @@ dense_union(typename std::vector<std::size_t>::const_iterator ind1_start,
   return {result_data1, result_data2};
 }
 
+template <typename DataIt>
+std::vector<double>
+sparse_rankdata(typename std::vector<std::size_t>::const_iterator ind_start,
+                std::size_t ind_size, DataIt data_start, std::size_t ndim) {
+  // Rank the non-zero data using dense rankdata function
+  auto ranks = rankdata(data_start, data_start + ind_size);
+
+  // Now account for the zeros - we use averaging for breaking ties
+  // the average of all N zeros is (N + 1) / 2
+  std::size_t num_zeros = ndim - ind_size;
+  double zero_rank = (num_zeros + 1) / 2.0;
+
+  // Positive value ranks can't be affected by the zero ranks, so we only need
+  // to adjust the ranks of any negative values so they rank below the zeros
+  for (size_t i = 0; i < ind_size; ++i) {
+    if (*(data_start + i) < 0) {
+      ranks[i] += zero_rank;
+    }
+  }
+
+  return ranks;
+}
+
 template <typename Out, typename DataIt>
 std::pair<std::vector<std::size_t>, std::vector<Out>>
 sparse_sum(typename std::vector<std::size_t>::const_iterator ind1_start,
@@ -672,7 +695,8 @@ Out sparse_dot(typename std::vector<std::size_t>::const_iterator ind1_start,
                std::size_t /* ndim */) {
 
   Out result = 0;
-  std::size_t i1 = 0, i2 = 0;
+  std::size_t i1 = 0;
+  std::size_t i2 = 0;
 
   while (i1 < ind1_size && i2 < ind2_size) {
     const auto j1 = *(ind1_start + i1);
@@ -690,10 +714,42 @@ Out sparse_dot(typename std::vector<std::size_t>::const_iterator ind1_start,
   }
 
   if (result <= Out{}) {
-    return static_cast<Out>(1.0);
+    return 1.0;
   } else {
-    return static_cast<Out>(1.0) - result;
+    return 1.0 - result;
   }
+}
+
+template <typename Out, typename DataIt>
+auto sparse_alternative_dot(
+    typename std::vector<std::size_t>::const_iterator ind1_start,
+    std::size_t ind1_size, DataIt data1_start,
+    typename std::vector<std::size_t>::const_iterator ind2_start,
+    std::size_t ind2_size, DataIt data2_start, std::size_t /* ndim */) {
+  Out result = 0;
+  std::size_t i1 = 0;
+  std::size_t i2 = 0;
+
+  while (i1 < ind1_size && i2 < ind2_size) {
+    const auto j1 = *(ind1_start + i1);
+    const auto j2 = *(ind2_start + i2);
+
+    if (j1 == j2) {
+      result += static_cast<Out>(*(data1_start + i1) * *(data2_start + i2));
+      ++i1;
+      ++i2;
+    } else if (j1 < j2) {
+      ++i1;
+    } else {
+      ++i2;
+    }
+  }
+
+  if (result <= 0.0) {
+    return std::numeric_limits<Out>::max();
+  }
+
+  return -std::log2(result);
 }
 
 template <typename Out, typename DataIt>
@@ -918,6 +974,21 @@ Out sparse_kulsinski(
 }
 
 template <typename Out, typename DataIt>
+Out sparse_spearmanr(
+    typename std::vector<std::size_t>::const_iterator ind1_start,
+    std::size_t ind1_size, DataIt data1_start,
+    typename std::vector<std::size_t>::const_iterator ind2_start,
+    std::size_t ind2_size, DataIt data2_start, std::size_t ndim) {
+
+  auto x_rank = sparse_rankdata(ind1_start, ind1_size, data1_start, ndim);
+  auto y_rank = sparse_rankdata(ind2_start, ind2_size, data2_start, ndim);
+
+  // Use sparse_correlation for the final correlation calculation
+  return sparse_correlation<Out>(ind1_start, ind1_size, x_rank.begin(),
+                                 ind2_start, ind2_size, y_rank.begin(), ndim);
+}
+
+template <typename Out, typename DataIt>
 Out sparse_squared_euclidean(
     typename std::vector<std::size_t>::const_iterator ind1_start,
     std::size_t ind1_size, DataIt data1_start,
@@ -1101,6 +1172,65 @@ Out sparse_sokal_sneath(
   } else {
     return static_cast<Out>(num_not_equal /
                             (0.5 * num_true_true + num_not_equal));
+  }
+}
+
+template <typename Out, typename DataIt>
+Out sparse_true_angular(
+    typename std::vector<std::size_t>::const_iterator ind1_start,
+    std::size_t ind1_size, DataIt data1_start,
+    typename std::vector<std::size_t>::const_iterator ind2_start,
+    std::size_t ind2_size, DataIt data2_start, std::size_t /* ndim */) {
+
+  Out result = 0.0;
+  Out norm_x = 0.0;
+  Out norm_y = 0.0;
+
+  auto i1 = ind1_start, d1 = data1_start;
+  auto i2 = ind2_start, d2 = data2_start;
+
+  while (i1 < ind1_start + ind1_size && i2 < ind2_start + ind2_size) {
+    if (*i1 == *i2) {
+      result += *d1 * *d2;
+      norm_x += *d1 * *d1;
+      norm_y += *d2 * *d2;
+      ++i1;
+      ++d1;
+      ++i2;
+      ++d2;
+    } else {
+      if (*i1 < *i2) {
+        norm_x += *d1 * *d1;
+        ++i1;
+        ++d1;
+      } else {
+        norm_y += *d2 * *d2;
+        ++i2;
+        ++d2;
+      }
+    }
+  }
+
+  while (i1 < ind1_start + ind1_size) {
+    norm_x += *d1 * *d1;
+    ++i1;
+    ++d1;
+  }
+  while (i2 < ind2_start + ind2_size) {
+    norm_y += *d2 * *d2;
+    ++i2;
+    ++d2;
+  }
+
+  if (norm_x == 0.0 && norm_y == 0.0) {
+    return 0.0;
+  } else if (norm_x == 0.0 || norm_y == 0.0 || result <= 0.0) {
+    return std::numeric_limits<Out>::max();
+  } else {
+    result /= std::sqrt(norm_x) * std::sqrt(norm_y);
+    result = std::clamp(result, Out(-1), Out(1));
+    result = std::acos(result) / M_PI;
+    return 1.0 - result;
   }
 }
 

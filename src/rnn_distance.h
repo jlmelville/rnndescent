@@ -55,8 +55,10 @@ const std::unordered_map<std::string, DistanceFunc<In, Out>> &get_metric_map() {
           {"chebyshev", tdoann::chebyshev<Out, InIt>},
           {"correlation", tdoann::correlation<Out, InIt>},
           {"cosine", tdoann::cosine<Out, InIt>},
+          {"alternative-cosine", tdoann::alternative_cosine<Out, InIt>},
           {"dice", tdoann::dice<Out, InIt>},
           {"dot", tdoann::dot<Out, InIt>},
+          {"alternative-dot", tdoann::alternative_dot<Out, InIt>},
           {"euclidean", tdoann::euclidean<Out, InIt>},
           {"hamming", tdoann::hamming<Out, InIt>},
           {"hellinger", tdoann::hellinger<Out, InIt>},
@@ -74,6 +76,7 @@ const std::unordered_map<std::string, DistanceFunc<In, Out>> &get_metric_map() {
           {"spearmanr", tdoann::spearmanr<Out, InIt>},
           {"sqeuclidean", tdoann::squared_euclidean<Out, InIt>},
           {"symmetrickl", tdoann::symmetric_kl_divergence<Out, InIt>},
+          {"trueangular", tdoann::true_angular<Out, InIt>},
           {"tsss", tdoann::tsss<Out, InIt>},
           {"yule", tdoann::yule<Out, InIt>}};
   return metric_map;
@@ -110,6 +113,7 @@ get_sparse_metric_map() {
           {"alternative-cosine", tdoann::sparse_alternative_cosine<Out, InIt>},
           {"dice", tdoann::sparse_dice<Out, InIt>},
           {"dot", tdoann::sparse_dot<Out, InIt>},
+          {"alternative-dot", tdoann::sparse_alternative_dot<Out, InIt>},
           {"euclidean", tdoann::sparse_euclidean<Out, InIt>},
           {"hamming", tdoann::sparse_hamming<Out, InIt>},
           {"jaccard", tdoann::sparse_jaccard<Out, InIt>},
@@ -127,8 +131,10 @@ get_sparse_metric_map() {
           {"russellrao", tdoann::sparse_russell_rao<Out, InIt>},
           {"sokalmichener", tdoann::sparse_sokal_michener<Out, InIt>},
           {"sokalsneath", tdoann::sparse_sokal_sneath<Out, InIt>},
+          {"spearmanr", tdoann::sparse_spearmanr<Out, InIt>},
           {"sqeuclidean", tdoann::sparse_squared_euclidean<Out, InIt>},
           {"symmetrickl", tdoann::sparse_symmetric_kl_divergence<Out, InIt>},
+          {"trueangular", tdoann::sparse_true_angular<Out, InIt>},
           {"tsss", tdoann::sparse_tsss<Out, InIt>},
           {"yule", tdoann::sparse_yule<Out, InIt>}};
   return metric_map;

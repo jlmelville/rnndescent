@@ -30,6 +30,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
+#include <iostream>
 #include <numeric>
 #include <vector>
 
@@ -44,20 +45,6 @@ namespace tdoann {
 template <typename Out, typename It>
 Out squared_euclidean(const It xbegin, const It xend, const It ybegin);
 template <typename It> std::vector<double> rankdata(It begin, It end);
-
-// used by cosine and correlation to avoid division by zero
-template <typename Out>
-inline Out angular_dist(const Out &normx, const Out &normy, const Out &res) {
-  Out zero{0};
-  if (normx == zero && normy == zero) {
-    return zero;
-  }
-  Out one{1};
-  if (normx == zero || normy == zero) {
-    return one;
-  }
-  return one - (res / std::sqrt(normx * normy));
-}
 
 template <typename Out, typename It>
 Out bray_curtis(const It xbegin, const It xend, const It ybegin) {
@@ -103,8 +90,8 @@ Out chebyshev(const It xbegin, const It xend, const It ybegin) {
 template <typename Out, typename It>
 inline Out correlation(const It xbegin, const It xend, const It ybegin) {
   // calculate mean
-  Out xmu{0};
-  Out ymu{0};
+  Out xmu = 0.0;
+  Out ymu = 0.0;
   for (It xit = xbegin, yit = ybegin; xit != xend; ++xit, ++yit) {
     xmu += *xit;
     ymu += *yit;
@@ -114,9 +101,9 @@ inline Out correlation(const It xbegin, const It xend, const It ybegin) {
   ymu /= n;
 
   // cosine on mean centered data
-  Out res{0};
-  Out normx{0};
-  Out normy{0};
+  Out res = 0.0;
+  Out normx = 0.0;
+  Out normy = 0.0;
   for (It xit = xbegin, yit = ybegin; xit != xend; ++xit, ++yit) {
     Out x = *xit - xmu;
     Out y = *yit - ymu;
@@ -125,22 +112,65 @@ inline Out correlation(const It xbegin, const It xend, const It ybegin) {
     normy += y * y;
   }
 
-  return angular_dist(normx, normy, res);
+  constexpr Out zero = 0.0;
+  if (normx == zero && normy == zero) {
+    return zero;
+  }
+  constexpr Out one = 1.0;
+  if (normx == zero || normy == zero) {
+    return one;
+  }
+  return one - (res / std::sqrt(normx * normy));
 }
 
 template <typename Out, typename It>
 Out cosine(const It xbegin, const It xend, const It ybegin) {
-  Out res{0};
-  Out normx{0};
-  Out normy{0};
+  Out result = 0.0;
+  Out norm_x = 0.0;
+  Out norm_y = 0.0;
+
   for (It xit = xbegin, yit = ybegin; xit != xend; ++xit, ++yit) {
     Out x = *xit;
     Out y = *yit;
-    res += x * y;
-    normx += x * x;
-    normy += y * y;
+    result += x * y;
+    norm_x += x * x;
+    norm_y += y * y;
   }
-  return angular_dist(normx, normy, res);
+
+  if (norm_x == 0.0 && norm_y == 0.0) {
+    return 0.0;
+  }
+  if (norm_x == 0.0 || norm_y == 0.0) {
+    return 1.0;
+  }
+  return 1.0 - (result / std::sqrt(norm_x * norm_y));
+}
+
+template <typename Out, typename It>
+Out alternative_cosine(const It xbegin, const It xend, const It ybegin) {
+  Out result = 0.0;
+  Out norm_x = 0.0;
+  Out norm_y = 0.0;
+
+  for (It xit = xbegin, yit = ybegin; xit != xend; ++xit, ++yit) {
+    Out x = *xit;
+    Out y = *yit;
+    result += x * y;
+    norm_x += x * x;
+    norm_y += y * y;
+  }
+
+  if (norm_x == 0.0 && norm_y == 0.0) {
+    return 0.0;
+  }
+
+  Out max_value = std::numeric_limits<Out>::max();
+  if (norm_x == 0.0 || norm_y == 0.0 || result <= 0.0) {
+    return max_value;
+  }
+
+  result = std::sqrt(norm_x * norm_y) / result;
+  return std::log2(result);
 }
 
 template <typename Out, typename It> auto dice(It xbegin, It xend, It ybegin) {
@@ -173,6 +203,20 @@ auto dot(const It xbegin, const It xend, const It ybegin) {
   } else {
     return static_cast<Out>(1.0) - result;
   }
+}
+
+template <typename Out, typename It>
+auto alternative_dot(const It xbegin, const It xend, const It ybegin) {
+  Out result = 0;
+  for (auto xit = xbegin, yit = ybegin; xit != xend; ++xit, ++yit) {
+    result += (*xit) * (*yit);
+  }
+
+  if (result <= 0.0) {
+    return std::numeric_limits<Out>::max();
+  }
+
+  return -std::log2(result);
 }
 
 template <typename Out, typename It>
@@ -480,6 +524,30 @@ Out symmetric_kl_divergence(It xbegin, It xend, It ybegin) {
   return result;
 }
 
+template <typename Out, typename It>
+Out true_angular(It xbegin, It xend, It ybegin) {
+  Out result = 0.0;
+  Out norm_x = 0.0;
+  Out norm_y = 0.0;
+
+  for (It xit = xbegin, yit = ybegin; xit != xend; ++xit, ++yit) {
+    result += *xit * *yit;
+    norm_x += *xit * *xit;
+    norm_y += *yit * *yit;
+  }
+
+  if (norm_x == 0.0 && norm_y == 0.0) {
+    return 0.0;
+  } else if (norm_x == 0.0 || norm_y == 0.0 || result <= 0.0) {
+    return std::numeric_limits<Out>::max();
+  } else {
+    result /= std::sqrt(norm_x) * std::sqrt(norm_y);
+    result = std::clamp(result, Out(-1), Out(1));
+    result = std::acos(result) / M_PI;
+    return 1.0 - result;
+  }
+}
+
 template <typename Out, typename It> Out tsss(It xbegin, It xend, It ybegin) {
   Out d_euc_squared = 0.0;
   Out d_cos = 0.0;
@@ -544,32 +612,26 @@ template <typename It> std::vector<double> rankdata(It begin, It end) {
   std::sort(indices.begin(), indices.end(),
             [&](size_t a, size_t b) { return *(begin + a) < *(begin + b); });
 
+  // Calculate dense ranks
   for (size_t i = 0; i < indices.size(); ++i) {
-    // Start rank at 1
     ranks[indices[i]] = i + 1;
   }
 
   // Handle ties by averaging ranks
-  double sum_ranks;
-  size_t num_ties;
-  for (size_t i = 0; i < ranks.size(); ++i) {
-    sum_ranks = ranks[i];
-    num_ties = 1;
-
-    size_t j = i + 1;
+  for (size_t i = 0; i < ranks.size();) {
+    size_t j = i;
+    double sum_ranks = 0.0;
     while (j < ranks.size() && *(begin + indices[i]) == *(begin + indices[j])) {
-      sum_ranks += ranks[j];
-      ++num_ties;
+      sum_ranks += ranks[indices[j]];
       ++j;
     }
 
-    double average_rank = sum_ranks / num_ties;
+    double average_rank = sum_ranks / (j - i);
     for (size_t k = i; k < j; ++k) {
       ranks[indices[k]] = average_rank;
     }
 
-    // Skip over all the ties we just handled
-    i = j - 1;
+    i = j;
   }
 
   return ranks;

@@ -28,8 +28,7 @@
 #'   - `"russellrao"`
 #'   - `"sokalmichener"`
 #'   - `"sokalsneath"`
-#'   - `"spearmanr"` (1 minus the Spearman rank correlation; not available for
-#'   sparse data)
+#'   - `"spearmanr"` (1 minus the Spearman rank correlation)
 #'   - `"symmetrickl"` (symmetric Kullback-Leibler divergence)
 #'   - `"tsss"` (Triangle Area Similarity-Sector Area Similarity or TS-SS
 #'   metric)
@@ -176,8 +175,7 @@ brute_force_knn <- function(data,
 #'   - `"russellrao"`
 #'   - `"sokalmichener"`
 #'   - `"sokalsneath"`
-#'   - `"spearmanr"` (1 minus the Spearman rank correlation; not available for
-#'   sparse data)
+#'   - `"spearmanr"` (1 minus the Spearman rank correlation)
 #'   - `"symmetrickl"` (symmetric Kullback-Leibler divergence)
 #'   - `"tsss"` (Triangle Area Similarity-Sector Area Similarity or TS-SS
 #'   metric)
@@ -315,8 +313,7 @@ random_knn <-
 #'   - `"russellrao"`
 #'   - `"sokalmichener"`
 #'   - `"sokalsneath"`
-#'   - `"spearmanr"` (1 minus the Spearman rank correlation; not available for
-#'   sparse data)
+#'   - `"spearmanr"` (1 minus the Spearman rank correlation)
 #'   - `"symmetrickl"` (symmetric Kullback-Leibler divergence)
 #'   - `"tsss"` (Triangle Area Similarity-Sector Area Similarity or TS-SS
 #'   metric)
@@ -675,8 +672,7 @@ nnd_knn <- function(data,
 #'   - `"russellrao"`
 #'   - `"sokalmichener"`
 #'   - `"sokalsneath"`
-#'   - `"spearmanr"` (1 minus the Spearman rank correlation; not available for
-#'   sparse data)
+#'   - `"spearmanr"` (1 minus the Spearman rank correlation)
 #'   - `"symmetrickl"` (symmetric Kullback-Leibler divergence)
 #'   - `"tsss"` (Triangle Area Similarity-Sector Area Similarity or TS-SS
 #'   metric)
@@ -842,8 +838,7 @@ brute_force_knn_query <- function(query,
 #'   - `"russellrao"`
 #'   - `"sokalmichener"`
 #'   - `"sokalsneath"`
-#'   - `"spearmanr"` (1 minus the Spearman rank correlation; not available for
-#'   sparse data)
+#'   - `"spearmanr"` (1 minus the Spearman rank correlation)
 #'   - `"symmetrickl"` (symmetric Kullback-Leibler divergence)
 #'   - `"tsss"` (Triangle Area Similarity-Sector Area Similarity or TS-SS
 #'   metric)
@@ -1005,8 +1000,7 @@ random_knn_query <-
 #'   - `"russellrao"`
 #'   - `"sokalmichener"`
 #'   - `"sokalsneath"`
-#'   - `"spearmanr"` (1 minus the Spearman rank correlation; not available for
-#'   sparse data)
+#'   - `"spearmanr"` (1 minus the Spearman rank correlation)
 #'   - `"symmetrickl"` (symmetric Kullback-Leibler divergence)
 #'   - `"tsss"` (Triangle Area Similarity-Sector Area Similarity or TS-SS
 #'   metric)
@@ -1389,8 +1383,7 @@ graph_knn_query <- function(query,
 #'   - `"russellrao"`
 #'   - `"sokalmichener"`
 #'   - `"sokalsneath"`
-#'   - `"spearmanr"` (1 minus the Spearman rank correlation; not available for
-#'   sparse data)
+#'   - `"spearmanr"` (1 minus the Spearman rank correlation)
 #'   - `"symmetrickl"` (symmetric Kullback-Leibler divergence)
 #'   - `"tsss"` (Triangle Area Similarity-Sector Area Similarity or TS-SS
 #'   metric)

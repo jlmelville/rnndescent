@@ -30,8 +30,7 @@
 #'   - `"russellrao"`
 #'   - `"sokalmichener"`
 #'   - `"sokalsneath"`
-#'   - `"spearmanr"` (1 minus the Spearman rank correlation; not available for
-#'   sparse data)
+#'   - `"spearmanr"` (1 minus the Spearman rank correlation)
 #'   - `"symmetrickl"` (symmetric Kullback-Leibler divergence)
 #'   - `"tsss"` (Triangle Area Similarity-Sector Area Similarity or TS-SS
 #'   metric)
@@ -237,8 +236,7 @@ rpf_knn <- function(data,
 #'   - `"russellrao"`
 #'   - `"sokalmichener"`
 #'   - `"sokalsneath"`
-#'   - `"spearmanr"` (1 minus the Spearman rank correlation; not available for
-#'   sparse data)
+#'   - `"spearmanr"` (1 minus the Spearman rank correlation)
 #'   - `"symmetrickl"` (symmetric Kullback-Leibler divergence)
 #'   - `"tsss"` (Triangle Area Similarity-Sector Area Similarity or TS-SS
 #'   metric)

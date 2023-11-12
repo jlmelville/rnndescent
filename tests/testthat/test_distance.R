@@ -84,6 +84,25 @@ test_that("Chebyshev", {
   expect_equal(dbf, sbd)
 })
 
+test_that("Cosine", {
+  bfdense <- brute_force_knn(bitdata, k = 4, metric = "cosine")
+  araw <- brute_force_knn(bitdata, k = 4, metric = "alternative-cosine")
+  unc <- apply_dense_alt_metric_uncorrection("cosine", bfdense$dist)
+  expect_equal(unc, araw$dist)
+  expect_equal(brute_force_knn(bitdata, k = 4, metric = "cosine", use_alt_metric = FALSE), bfdense, tol = 1e-7)
+
+  # sparse
+  bfsparse <- brute_force_knn(bitdatasp, k = 4, metric = "cosine", use_alt_metric = FALSE)
+  expect_equal(bfdense, bfsparse, tol = 1e-7)
+
+  # check sparse uncorrection
+  set.seed(1337); spunc <- nnd_knn(bitdatasp, k = 4, metric = "cosine", n_iters = 0,
+                                   init = random_knn(bitdatasp, k = 4, metric = "cosine"))
+  set.seed(1337); spnoc <- nnd_knn(bitdatasp, k = 4, metric = "cosine", use_alt_metric = FALSE, n_iters = 0,
+                                   init = random_knn(bitdatasp, k = 4, metric = "cosine"))
+  expect_equal(spunc, spnoc, tol = 1e-7)
+})
+
 test_that("Dice", {
   bfdense <- brute_force_knn(bitdata, k = 4, metric = "dice")
   bfbin <- brute_force_knn(bitdata, k = 4, metric = "bdice")
@@ -98,6 +117,32 @@ test_that("Dot", {
   bfdense <- brute_force_knn(ui10z, k = 4, metric = "dot")
   bfsparse <- brute_force_knn(ui10sp, k = 4, metric = "dot")
   expect_equal(bfdense, bfsparse, tol = 1e-7)
+
+  bfdense <- brute_force_knn(bitdata, k = 4, metric = "dot")
+  araw <- brute_force_knn(bitdata, k = 4, metric = "alternative-dot")
+  unc <- apply_dense_alt_metric_uncorrection("dot", bfdense$dist)
+  expect_equal(unc, araw$dist)
+  expect_equal(brute_force_knn(bitdata, k = 4, metric = "dot", use_alt_metric = FALSE), bfdense, tol = 1e-7)
+
+  # check dense uncorrection
+  set.seed(1337); dunc <- nnd_knn(bitdata, k = 4, metric = "dot", n_iters = 0,
+                                  init = random_knn(bitdatasp, k = 4, metric = "dot"))
+  set.seed(1337); dnoc <- nnd_knn(bitdata, k = 4, metric = "dot", use_alt_metric = FALSE, n_iters = 0,
+                                  init = random_knn(bitdatasp, k = 4, metric = "dot"))
+  expect_equal(dunc, dnoc, tol = 1e-7)
+
+  # sparse
+  bfsparse <- brute_force_knn(bitdatasp, k = 4, metric = "dot", use_alt_metric = FALSE)
+  expect_equal(bfdense, bfsparse, tol = 1e-7)
+  bfsparsec <- brute_force_knn(bitdatasp, k = 4, metric = "dot")
+  expect_equal(bfdense, bfsparsec, tol = 1e-7)
+
+  # check sparse uncorrection
+  set.seed(1337); spunc <- nnd_knn(bitdatasp, k = 4, metric = "dot", n_iters = 0,
+                                   init = random_knn(bitdatasp, k = 4, metric = "dot"))
+  set.seed(1337); spnoc <- nnd_knn(bitdatasp, k = 4, metric = "dot", use_alt_metric = FALSE, n_iters = 0,
+                                   init = random_knn(bitdatasp, k = 4, metric = "dot"))
+  expect_equal(spunc, spnoc, tol = 1e-7)
 })
 
 test_that("Hamming", {
@@ -116,9 +161,18 @@ test_that("Hellinger", {
   expect_equal(unc, araw$dist)
   expect_equal(brute_force_knn(bitdata, k = 4, metric = "hellinger", use_alt_metric = FALSE), bfdense, tol = 1e-7)
 
+  # check dense uncorrection
+  set.seed(1337); dunc <- nnd_knn(bitdata, k = 4, metric = "hellinger", n_iters = 0,
+                                  init = random_knn(bitdatasp, k = 4, metric = "hellinger"))
+  set.seed(1337); dnoc <- nnd_knn(bitdata, k = 4, metric = "hellinger", use_alt_metric = FALSE, n_iters = 0,
+                                  init = random_knn(bitdatasp, k = 4, metric = "hellinger"))
+  expect_equal(dunc, dnoc, tol = 1e-7)
+
   # sparse
   bfsparse <- brute_force_knn(bitdatasp, k = 4, metric = "hellinger", use_alt_metric = FALSE)
   expect_equal(bfdense, bfsparse, tol = 1e-7)
+  bfsparsec <- brute_force_knn(bitdatasp, k = 4, metric = "hellinger")
+  expect_equal(bfdense, bfsparsec, tol = 1e-7)
 
   # check sparse uncorrection
   set.seed(1337); spunc <- nnd_knn(bitdatasp, k = 4, metric = "hellinger", n_iters = 0,
@@ -224,11 +278,41 @@ test_that("Sokal-Sneath", {
   expect_equal(bfdense, bfsparse)
 })
 
+test_that("Spearman Rank", {
+  bfdense <- brute_force_knn(bitdata, k = 4, metric = "spearmanr")
+
+  bfsparse <- brute_force_knn(bitdatasp, k = 4, metric = "spearmanr")
+  expect_equal(bfdense, bfsparse, tol = 1e-6)
+})
+
 test_that("Symmetric KL", {
   bfdense <- brute_force_knn(bitdata, k = 4, metric = "symmetrickl")
 
   bfsparse <- brute_force_knn(bitdatasp, k = 4, metric = "symmetrickl")
   expect_equal(bfdense, bfsparse)
+})
+
+test_that("true angular", {
+  # true angular is weird in that it's a similarity not a distance
+  # it behaves very strangely, so this is just to characterize its strange
+  # behavior rather than to assert it's behaving in a semantically "correct"
+  # manner
+
+  # alt metric uses cosine so ordering is based on that, but the conversion
+  # turns it back into a similarity so the distances are in descending order
+  bfdense <- brute_force_knn(bitdata, k = 10, metric = "trueangular")
+  bfsparse <- brute_force_knn(bitdatasp, k = 10, metric = "trueangular")
+  expect_equal(bfdense, bfsparse, tol = 1e-4)
+
+  # turn off alt metric so we get the true angular ordering
+  # now self "distance" is the furthest distance but the distances are increasing
+  # do all 10 neighbors so we can ensure self-distance is 1 and not subject
+  # to acos rounding error causing NaN
+  bfdensena <- brute_force_knn(bitdata, k = 10, metric = "trueangular", use_alt_metric = FALSE)
+  bfsparsena <- brute_force_knn(bitdatasp, k = 10, metric = "trueangular", use_alt_metric = FALSE)
+  expect_equal(bfdensena, bfsparsena, tol = 1e-5)
+  expect_equal(bfdensena$idx[, 10], 1:10)
+  expect_equal(bfdensena$dist[, 10], rep(1.0, 10), tol = 1e-3)
 })
 
 test_that("TS-SS", {
