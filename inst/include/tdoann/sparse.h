@@ -1186,8 +1186,10 @@ Out sparse_true_angular(
   Out norm_x = 0.0;
   Out norm_y = 0.0;
 
-  auto i1 = ind1_start, d1 = data1_start;
-  auto i2 = ind2_start, d2 = data2_start;
+  auto i1 = ind1_start;
+  auto d1 = data1_start;
+  auto i2 = ind2_start;
+  auto d2 = data2_start;
 
   while (i1 < ind1_start + ind1_size && i2 < ind2_start + ind2_size) {
     if (*i1 == *i2) {

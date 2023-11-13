@@ -72,7 +72,7 @@ apply_sparse_alt_metric_uncorrection <- function(metric, dist) {
 apply_dense_alt_metric_correction <- function(metric, dist) {
   switch(metric,
          cosine = apply(dist, c(1, 2), correct_alternative_cosine),
-         dot = apply(dist, c(1, 2), correct_alternative_cosine),
+         dot = apply(dist, c(1, 2), correct_alternative_dot),
          euclidean = sqrt(dist),
          hellinger = apply(dist, c(1, 2), correct_alternative_hellinger),
          jaccard = apply(dist, c(1, 2), correct_alternative_jaccard),
@@ -84,7 +84,7 @@ apply_dense_alt_metric_correction <- function(metric, dist) {
 apply_sparse_alt_metric_correction <- function(metric, dist) {
   switch(metric,
          cosine = apply(dist, c(1, 2), correct_alternative_cosine),
-         dot = apply(dist, c(1, 2), correct_alternative_cosine),
+         dot = apply(dist, c(1, 2), correct_alternative_dot),
          euclidean = sqrt(dist),
          hellinger = apply(dist, c(1, 2), correct_alternative_hellinger),
          jaccard = apply(dist, c(1, 2), correct_alternative_jaccard),
@@ -120,10 +120,15 @@ isclose <- function(a, b, rtol = 1.0e-5, atol = 1.0e-8) {
 }
 
 correct_alternative_cosine <- function(dist) {
+  # -ve distance is fine for dot, but not cosine
+  max(correct_alternative_dot(dist), 0.0)
+}
+
+correct_alternative_dot <- function(dist) {
   if (is.na(dist)) {
     return(NA)
   }
-  # -ve distance is fine for e.g. dot
+  # -ve distance is ok for dot
   1.0 - (2.0 ^ -dist)
 }
 
