@@ -302,13 +302,29 @@ create_query_distance(const Rcpp::LogicalMatrix &reference,
 }
 
 template <typename Idx = RNN_DEFAULT_IDX>
-std::unique_ptr<tdoann::VectorDistance<RNN_DEFAULT_DIST, RNN_DEFAULT_DIST, Idx>>
+std::unique_ptr<tdoann::VectorDistance<RNN_DEFAULT_IN, RNN_DEFAULT_DIST, Idx>>
 create_query_vector_distance(const Rcpp::NumericMatrix &reference,
                              const Rcpp::NumericMatrix &query,
                              const std::string &metric) {
   return create_query_distance_impl<
-      tdoann::VectorDistance<RNN_DEFAULT_DIST, RNN_DEFAULT_DIST, Idx>>(
+      tdoann::VectorDistance<RNN_DEFAULT_IN, RNN_DEFAULT_DIST, Idx>>(
       reference, query, metric);
+}
+
+template <typename Idx = RNN_DEFAULT_IDX>
+std::unique_ptr<tdoann::VectorDistance<RNN_DEFAULT_IN, RNN_DEFAULT_DIST, Idx>>
+create_query_vector_distance(const Rcpp::LogicalMatrix &reference,
+                             const Rcpp::LogicalMatrix &query,
+                             const std::string &metric) {
+  using In = RNN_DEFAULT_IN;
+
+  const auto ndim = reference.nrow();
+  auto ref_vec = r_to_vec<In>(reference);
+  auto query_vec = r_to_vec<In>(query);
+
+  return create_query_distance_impl<
+      tdoann::VectorDistance<In, RNN_DEFAULT_DIST, Idx>>(
+      std::move(ref_vec), std::move(query_vec), ndim, metric);
 }
 
 template <typename... Args>

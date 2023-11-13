@@ -580,9 +580,31 @@ rpf_knn_query <- function(query,
         verbose = verbose
       )
   }
+  else if (is.logical(reference)) {
+    res <-
+      rnn_logical_rp_forest_search(
+        reference = reference,
+        query = query,
+        search_forest = forest,
+        n_nbrs = k,
+        metric = metric,
+        cache = cache,
+        n_threads = n_threads,
+        verbose = verbose
+      )
+  }
   else {
     res <-
-      rnn_rp_forest_search(query, reference, forest, k, metric, cache, n_threads, verbose)
+      rnn_rp_forest_search(
+        reference = reference,
+        query = query,
+        search_forest = forest,
+        n_nbrs = k,
+        metric = metric,
+        cache = cache,
+        n_threads = n_threads,
+        verbose = verbose
+      )
   }
 
   if (forest$use_alt_metric) {

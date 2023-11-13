@@ -812,6 +812,24 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rnn_logical_rp_forest_search
+List rnn_logical_rp_forest_search(const LogicalMatrix& query, const LogicalMatrix& reference, List search_forest, uint32_t n_nbrs, const std::string& metric, bool cache, std::size_t n_threads, bool verbose);
+RcppExport SEXP _rnndescent_rnn_logical_rp_forest_search(SEXP querySEXP, SEXP referenceSEXP, SEXP search_forestSEXP, SEXP n_nbrsSEXP, SEXP metricSEXP, SEXP cacheSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const LogicalMatrix& >::type query(querySEXP);
+    Rcpp::traits::input_parameter< const LogicalMatrix& >::type reference(referenceSEXP);
+    Rcpp::traits::input_parameter< List >::type search_forest(search_forestSEXP);
+    Rcpp::traits::input_parameter< uint32_t >::type n_nbrs(n_nbrsSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
+    Rcpp::traits::input_parameter< bool >::type cache(cacheSEXP);
+    Rcpp::traits::input_parameter< std::size_t >::type n_threads(n_threadsSEXP);
+    Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
+    rcpp_result_gen = Rcpp::wrap(rnn_logical_rp_forest_search(query, reference, search_forest, n_nbrs, metric, cache, n_threads, verbose));
+    return rcpp_result_gen;
+END_RCPP
+}
 // rnn_sparse_rp_forest_search
 List rnn_sparse_rp_forest_search(const IntegerVector& ref_ind, const IntegerVector& ref_ptr, const NumericVector& ref_data, const IntegerVector& query_ind, const IntegerVector& query_ptr, const NumericVector& query_data, std::size_t ndim, List search_forest, uint32_t n_nbrs, const std::string& metric, bool cache, std::size_t n_threads, bool verbose);
 RcppExport SEXP _rnndescent_rnn_sparse_rp_forest_search(SEXP ref_indSEXP, SEXP ref_ptrSEXP, SEXP ref_dataSEXP, SEXP query_indSEXP, SEXP query_ptrSEXP, SEXP query_dataSEXP, SEXP ndimSEXP, SEXP search_forestSEXP, SEXP n_nbrsSEXP, SEXP metricSEXP, SEXP cacheSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
@@ -961,6 +979,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_rnndescent_rnn_logical_rp_forest_implicit_build", (DL_FUNC) &_rnndescent_rnn_logical_rp_forest_implicit_build, 7},
     {"_rnndescent_rnn_sparse_rp_forest_implicit_build", (DL_FUNC) &_rnndescent_rnn_sparse_rp_forest_implicit_build, 10},
     {"_rnndescent_rnn_rp_forest_search", (DL_FUNC) &_rnndescent_rnn_rp_forest_search, 8},
+    {"_rnndescent_rnn_logical_rp_forest_search", (DL_FUNC) &_rnndescent_rnn_logical_rp_forest_search, 8},
     {"_rnndescent_rnn_sparse_rp_forest_search", (DL_FUNC) &_rnndescent_rnn_sparse_rp_forest_search, 13},
     {"_rnndescent_rnn_score_forest", (DL_FUNC) &_rnndescent_rnn_score_forest, 5},
     {"_rnndescent_rnn_query", (DL_FUNC) &_rnndescent_rnn_query, 9},

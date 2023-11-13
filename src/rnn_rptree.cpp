@@ -819,9 +819,9 @@ List rnn_sparse_rp_forest_implicit_build(
 }
 
 template <typename Out, typename Idx>
-List rnn_rp_forest_search_impl(const tdoann::BaseDistance<Out, Idx> &distance,
-                               List search_forest, uint32_t n_nbrs, bool cache,
-                               std::size_t n_threads, bool verbose) {
+List rnn_rp_forest_search_implicit(
+    const tdoann::BaseDistance<Out, Idx> &distance, List search_forest,
+    uint32_t n_nbrs, bool cache, std::size_t n_threads, bool verbose) {
   auto search_forest_cpp =
       r_to_search_forest_implicit<Idx>(search_forest, n_threads);
 
@@ -834,12 +834,11 @@ List rnn_rp_forest_search_impl(const tdoann::BaseDistance<Out, Idx> &distance,
   return heap_to_r(nn_heap);
 }
 
-// [[Rcpp::export]]
-List rnn_rp_forest_search(const NumericMatrix &query,
-                          const NumericMatrix &reference, List search_forest,
-                          uint32_t n_nbrs, const std::string &metric,
-                          bool cache, std::size_t n_threads,
-                          bool verbose = false) {
+template <typename Matrix>
+List rp_forest_search(const Matrix &query, const Matrix &reference,
+                      List search_forest, uint32_t n_nbrs,
+                      const std::string &metric, bool cache,
+                      std::size_t n_threads, bool verbose = false) {
   RParallelExecutor executor;
   std::string margin_type = search_forest["margin"];
 
@@ -861,11 +860,31 @@ List rnn_rp_forest_search(const NumericMatrix &query,
     return heap_to_r(nn_heap);
   } else if (margin_type == margin_type_to_string(MarginType::IMPLICIT)) {
     auto distance_ptr = create_query_distance(reference, query, metric);
-    return rnn_rp_forest_search_impl(*distance_ptr, search_forest, n_nbrs,
-                                     cache, n_threads, verbose);
+    return rnn_rp_forest_search_implicit(*distance_ptr, search_forest, n_nbrs,
+                                         cache, n_threads, verbose);
   } else {
     Rcpp::stop("Bad search forest type ", margin_type);
   }
+}
+
+// [[Rcpp::export]]
+List rnn_rp_forest_search(const NumericMatrix &query,
+                          const NumericMatrix &reference, List search_forest,
+                          uint32_t n_nbrs, const std::string &metric,
+                          bool cache, std::size_t n_threads,
+                          bool verbose = false) {
+  return rp_forest_search(query, reference, search_forest, n_nbrs, metric,
+                          cache, n_threads, verbose);
+}
+
+// [[Rcpp::export]]
+List rnn_logical_rp_forest_search(const LogicalMatrix &query,
+                                  const LogicalMatrix &reference,
+                                  List search_forest, uint32_t n_nbrs,
+                                  const std::string &metric, bool cache,
+                                  std::size_t n_threads, bool verbose = false) {
+  return rp_forest_search(query, reference, search_forest, n_nbrs, metric,
+                          cache, n_threads, verbose);
 }
 
 // [[Rcpp::export]]
@@ -901,8 +920,8 @@ List rnn_sparse_rp_forest_search(
     auto distance_ptr =
         create_sparse_query_distance(ref_ind, ref_ptr, ref_data, query_ind,
                                      query_ptr, query_data, ndim, metric);
-    return rnn_rp_forest_search_impl(*distance_ptr, search_forest, n_nbrs,
-                                     cache, n_threads, verbose);
+    return rnn_rp_forest_search_implicit(*distance_ptr, search_forest, n_nbrs,
+                                         cache, n_threads, verbose);
   } else {
     Rcpp::stop("Bad search forest type ", margin_type);
   }
