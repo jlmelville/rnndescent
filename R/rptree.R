@@ -395,6 +395,17 @@ rpf_build <- function(data,
         verbose = verbose
       )
     }
+    else if (is.logical(data)) {
+      forest <- rnn_logical_rp_forest_implicit_build(
+        data,
+        actual_metric,
+        n_trees = n_trees,
+        leaf_size = leaf_size,
+        max_tree_depth = max_tree_depth,
+        n_threads = n_threads,
+        verbose = verbose
+      )
+    }
     else {
       forest <- rnn_rp_forest_implicit_build(
         data,
@@ -408,6 +419,7 @@ rpf_build <- function(data,
     }
   }
   else {
+    # explicit margin
     if (is_sparse(data)) {
       forest <- rnn_sparse_rp_forest_build(
         ind = data@i,
@@ -422,6 +434,9 @@ rpf_build <- function(data,
         verbose = verbose
       )
     }
+    # no logical option here as explicit margin must do real-value maths
+    # on hyperplanes rather than calculating distances between points in the
+    # dataset
     else {
       forest <- rnn_rp_forest_build(
         data,

@@ -30,6 +30,7 @@
 
 using Rcpp::IntegerVector;
 using Rcpp::List;
+using Rcpp::LogicalMatrix;
 using Rcpp::NumericMatrix;
 using Rcpp::NumericVector;
 
@@ -50,6 +51,14 @@ List rnn_brute_force_impl(const tdoann::BaseDistance<Out, Idx> &distance,
 List rnn_brute_force(const NumericMatrix &data, uint32_t nnbrs,
                      const std::string &metric = "euclidean",
                      std::size_t n_threads = 0, bool verbose = false) {
+  auto distance_ptr = create_self_distance(data, metric);
+  return rnn_brute_force_impl(*distance_ptr, nnbrs, n_threads, verbose);
+}
+
+// [[Rcpp::export]]
+List rnn_logical_brute_force(const LogicalMatrix &data, uint32_t nnbrs,
+                             const std::string &metric = "euclidean",
+                             std::size_t n_threads = 0, bool verbose = false) {
   auto distance_ptr = create_self_distance(data, metric);
   return rnn_brute_force_impl(*distance_ptr, nnbrs, n_threads, verbose);
 }
@@ -82,6 +91,16 @@ List rnn_brute_force_query(const NumericMatrix &reference,
                            const NumericMatrix &query, uint32_t nnbrs,
                            const std::string &metric = "euclidean",
                            std::size_t n_threads = 0, bool verbose = false) {
+  auto distance_ptr = create_query_distance(reference, query, metric);
+  return rnn_brute_force_query_impl(*distance_ptr, nnbrs, n_threads, verbose);
+}
+
+// [[Rcpp::export]]
+List rnn_logical_brute_force_query(const LogicalMatrix &reference,
+                                   const LogicalMatrix &query, uint32_t nnbrs,
+                                   const std::string &metric = "euclidean",
+                                   std::size_t n_threads = 0,
+                                   bool verbose = false) {
   auto distance_ptr = create_query_distance(reference, query, metric);
   return rnn_brute_force_query_impl(*distance_ptr, nnbrs, n_threads, verbose);
 }

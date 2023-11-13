@@ -128,15 +128,23 @@ brute_force_knn <- function(data,
         verbose = verbose
       )
   }
+  else if (is.logical(data)) {
+    res <-
+      rnn_logical_brute_force(data,
+                          k,
+                          actual_metric,
+                          n_threads = n_threads,
+                          verbose = verbose)
+  }
   else {
     res <-
       rnn_brute_force(data,
-        k,
-        actual_metric,
-        n_threads = n_threads,
-        verbose = verbose
-      )
+                      k,
+                      actual_metric,
+                      n_threads = n_threads,
+                      verbose = verbose)
   }
+
   res$idx <- res$idx + 1
 
   if (use_alt_metric) {
@@ -615,6 +623,10 @@ nnd_knn <- function(data,
     nnd_args$ptr <- data@p
     nnd_args$ndim <- nrow(data)
   }
+  else if (is.logical(data)) {
+    nnd_fun <- rnn_logical_descent
+    nnd_args$data <- data
+  }
   else {
     nnd_fun <- rnn_descent
     nnd_args$data <- data
@@ -781,6 +793,14 @@ brute_force_knn_query <- function(query,
       n_threads = n_threads,
       verbose = verbose
     )
+  }
+  else if (is.logical(reference)) {
+    res <- rnn_logical_brute_force_query(reference,
+                                 query,
+                                 k,
+                                 actual_metric,
+                                 n_threads = n_threads,
+                                 verbose = verbose)
   }
   else {
     res <- rnn_brute_force_query(reference,
@@ -1290,6 +1310,20 @@ graph_knn_query <- function(query,
         verbose = verbose
       )
   }
+  else if (is.logical(reference)) {
+    res <-
+      rnn_logical_query(
+        reference = reference,
+        reference_graph_list = reference_graph_list,
+        query = query,
+        nn_idx = init$idx,
+        nn_dist = init$dist,
+        metric = actual_metric,
+        epsilon = epsilon,
+        n_threads = n_threads,
+        verbose = verbose
+      )
+  }
   else {
     res <-
       rnn_query(
@@ -1590,6 +1624,15 @@ diversify <- function(data,
       ptr = data@p,
       data = data@x,
       ndim = nrow(data),
+      graph_list = gl,
+      metric = metric,
+      prune_probability = prune_probability,
+      n_threads = n_threads
+    )
+  }
+  else if (is.logical(data)) {
+    gl_div <- rnn_logical_diversify(
+      data = data,
       graph_list = gl,
       metric = metric,
       prune_probability = prune_probability,

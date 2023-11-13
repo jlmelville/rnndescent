@@ -96,6 +96,17 @@ prepare_init_graph <-
             verbose = verbose
           )
         }
+        else if (is.logical(data)) {
+          nn <-
+            rnn_logical_idx_to_graph_query(
+              reference = data,
+              query = query,
+              idx = nn$idx,
+              metric = metric,
+              n_threads = n_threads,
+              verbose = verbose
+            )
+        }
         else {
           nn <-
             rnn_idx_to_graph_query(
@@ -115,6 +126,16 @@ prepare_init_graph <-
               ptr = data@p,
               data = data@x,
               ndim = nrow(data),
+              idx = nn$idx,
+              metric = metric,
+              n_threads = n_threads,
+              verbose = verbose
+            )
+        }
+        else if (is.logical(data)) {
+          nn <-
+            rnn_logical_idx_to_graph_self(
+              data = data,
               idx = nn$idx,
               metric = metric,
               n_threads = n_threads,
@@ -287,6 +308,21 @@ rpf_knn_impl <-
           verbose = verbose
         )
       }
+      else if (is.logical(data)) {
+        res <- rnn_logical_rp_tree_knn_implicit(
+          data,
+          k,
+          actual_metric,
+          n_trees = n_trees,
+          leaf_size = leaf_size,
+          max_tree_depth = max_tree_depth,
+          include_self = include_self,
+          ret_forest = ret_forest,
+          unzero = unzero,
+          n_threads = n_threads,
+          verbose = verbose
+        )
+      }
       else {
         res <- rnn_rp_tree_knn_implicit(
           data,
@@ -384,6 +420,10 @@ random_knn_impl <-
             ndim = nrow(reference)
           )
       }
+      else if (is.logical(reference)) {
+        fun <- rnn_logical_random_knn
+        args <- list(data = reference)
+      }
       else {
         fun <- rnn_random_knn
         args <- list(data = reference)
@@ -404,6 +444,10 @@ random_knn_impl <-
             query_data = query@x,
             ndim = nrow(reference)
           )
+      }
+      else if (is.logical(reference)) {
+        fun <- rnn_logical_random_knn_query
+        args <- list(reference = reference, query = query)
       }
       else {
         fun <- rnn_random_knn_query

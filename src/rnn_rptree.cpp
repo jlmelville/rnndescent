@@ -36,6 +36,7 @@ using Rcpp::_;
 using Rcpp::IntegerMatrix;
 using Rcpp::IntegerVector;
 using Rcpp::List;
+using Rcpp::LogicalMatrix;
 using Rcpp::NumericMatrix;
 using Rcpp::NumericVector;
 using Rcpp::Rcerr;
@@ -535,6 +536,10 @@ List rnn_rp_tree_knn_explicit(const NumericMatrix &data, uint32_t nnbrs,
                 << " leaves\n";
   }
   RPProgress knn_progress(verbose);
+  // FIXME: get rid of this as binary metrics need to go away: logical matrix
+  // should be coerced to Numerical and everything happens through the normal
+  // dense metric code path -- implicit margin tree will work with logical
+  // end-to-end
   if (is_binary_metric(metric)) {
     // unfortunately data_vec is still in scope even though we no longer
     // need it
@@ -692,6 +697,19 @@ List rnn_rp_tree_knn_implicit(const NumericMatrix &data, uint32_t nnbrs,
 }
 
 // [[Rcpp::export]]
+List rnn_logical_rp_tree_knn_implicit(
+    const LogicalMatrix &data, uint32_t nnbrs, const std::string &metric,
+    uint32_t n_trees, uint32_t leaf_size, uint32_t max_tree_depth,
+    bool include_self, bool unzero = true, bool ret_forest = false,
+    std::size_t n_threads = 0, bool verbose = false) {
+  auto distance_ptr = create_self_distance(data, metric);
+  return rp_tree_knn_implicit_impl(*distance_ptr, data.ncol(), data.nrow(),
+                                   nnbrs, metric, n_trees, leaf_size,
+                                   max_tree_depth, include_self, unzero,
+                                   ret_forest, n_threads, verbose);
+}
+
+// [[Rcpp::export]]
 List rnn_rp_forest_build(const NumericMatrix &data, const std::string &metric,
                          uint32_t n_trees, uint32_t leaf_size,
                          uint32_t max_tree_depth, std::size_t n_threads = 0,
@@ -761,6 +779,22 @@ List rnn_rp_forest_implicit_build(const NumericMatrix &data,
                                   uint32_t leaf_size, uint32_t max_tree_depth,
                                   std::size_t n_threads = 0,
                                   bool verbose = false) {
+  const std::size_t ndim = data.nrow();
+  const std::size_t nobs = data.ncol();
+  auto distance_ptr = create_self_distance(data, metric);
+
+  return rnn_rp_forest_implicit_build_impl(*distance_ptr, metric, nobs, ndim,
+                                           n_trees, leaf_size, max_tree_depth,
+                                           n_threads, verbose);
+}
+
+// [[Rcpp::export]]
+List rnn_logical_rp_forest_implicit_build(const LogicalMatrix &data,
+                                          const std::string &metric,
+                                          uint32_t n_trees, uint32_t leaf_size,
+                                          uint32_t max_tree_depth,
+                                          std::size_t n_threads = 0,
+                                          bool verbose = false) {
   const std::size_t ndim = data.nrow();
   const std::size_t nobs = data.ncol();
   auto distance_ptr = create_self_distance(data, metric);

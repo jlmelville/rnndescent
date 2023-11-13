@@ -31,6 +31,7 @@
 
 using Rcpp::IntegerVector;
 using Rcpp::List;
+using Rcpp::LogicalMatrix;
 using Rcpp::NumericMatrix;
 using Rcpp::NumericVector;
 
@@ -70,6 +71,15 @@ List rnn_sparse_diversify(const IntegerVector &ind, const IntegerVector &ptr,
 List rnn_diversify(const NumericMatrix &data, const List &graph_list,
                    const std::string &metric, double prune_probability,
                    std::size_t n_threads) {
+  auto distance_ptr = create_self_distance(data, metric);
+  return diversify_impl(*distance_ptr, graph_list, prune_probability,
+                        n_threads);
+}
+
+// [[Rcpp::export]]
+List rnn_logical_diversify(const LogicalMatrix &data, const List &graph_list,
+                           const std::string &metric, double prune_probability,
+                           std::size_t n_threads) {
   auto distance_ptr = create_self_distance(data, metric);
   return diversify_impl(*distance_ptr, graph_list, prune_probability,
                         n_threads);

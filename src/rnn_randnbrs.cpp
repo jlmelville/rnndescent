@@ -33,6 +33,7 @@
 
 using Rcpp::IntegerVector;
 using Rcpp::List;
+using Rcpp::LogicalMatrix;
 using Rcpp::NumericMatrix;
 using Rcpp::NumericVector;
 
@@ -82,6 +83,16 @@ List rnn_random_knn(const NumericMatrix &data, uint32_t nnbrs,
                              verbose);
 }
 
+// [[Rcpp::export]]
+List rnn_logical_random_knn(const LogicalMatrix &data, uint32_t nnbrs,
+                            const std::string &metric = "euclidean",
+                            bool order_by_distance = true,
+                            std::size_t n_threads = 0, bool verbose = false) {
+  auto distance_ptr = create_self_distance(data, metric);
+  return random_knn_cpp_impl(*distance_ptr, nnbrs, order_by_distance, n_threads,
+                             verbose);
+}
+
 template <typename Out, typename Idx>
 List random_knn_query_impl(const tdoann::BaseDistance<Out, Idx> &distance,
                            uint32_t nnbrs, bool order_by_distance = true,
@@ -112,6 +123,18 @@ List rnn_random_knn_query(const NumericMatrix &reference,
                           const std::string &metric = "euclidean",
                           bool order_by_distance = true,
                           std::size_t n_threads = 0, bool verbose = false) {
+  auto distance_ptr = create_query_distance(reference, query, metric);
+  return random_knn_query_impl(*distance_ptr, nnbrs, order_by_distance,
+                               n_threads, verbose);
+}
+
+// [[Rcpp::export]]
+List rnn_logical_random_knn_query(const LogicalMatrix &reference,
+                                  const LogicalMatrix &query, uint32_t nnbrs,
+                                  const std::string &metric = "euclidean",
+                                  bool order_by_distance = true,
+                                  std::size_t n_threads = 0,
+                                  bool verbose = false) {
   auto distance_ptr = create_query_distance(reference, query, metric);
   return random_knn_query_impl(*distance_ptr, nnbrs, order_by_distance,
                                n_threads, verbose);

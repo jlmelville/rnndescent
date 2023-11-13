@@ -32,6 +32,7 @@
 using Rcpp::IntegerMatrix;
 using Rcpp::IntegerVector;
 using Rcpp::List;
+using Rcpp::LogicalMatrix;
 using Rcpp::NumericMatrix;
 using Rcpp::NumericVector;
 
@@ -69,11 +70,32 @@ List rnn_idx_to_graph_self(const NumericMatrix &data, const IntegerMatrix &idx,
 }
 
 // [[Rcpp::export]]
+List rnn_logical_idx_to_graph_self(const LogicalMatrix &data,
+                                   const IntegerMatrix &idx,
+                                   const std::string &metric = "euclidean",
+                                   std::size_t n_threads = 0,
+                                   bool verbose = false) {
+  auto distance_ptr = create_self_distance(data, metric);
+  return idx_to_graph_impl(*distance_ptr, idx, n_threads, verbose);
+}
+
+// [[Rcpp::export]]
 List rnn_idx_to_graph_query(const NumericMatrix &reference,
                             const NumericMatrix &query,
                             const IntegerMatrix &idx,
                             const std::string &metric = "euclidean",
                             std::size_t n_threads = 0, bool verbose = false) {
+  auto distance_ptr = create_query_distance(reference, query, metric);
+  return idx_to_graph_impl(*distance_ptr, idx, n_threads, verbose);
+}
+
+// [[Rcpp::export]]
+List rnn_logical_idx_to_graph_query(const LogicalMatrix &reference,
+                                    const LogicalMatrix &query,
+                                    const IntegerMatrix &idx,
+                                    const std::string &metric = "euclidean",
+                                    std::size_t n_threads = 0,
+                                    bool verbose = false) {
   auto distance_ptr = create_query_distance(reference, query, metric);
   return idx_to_graph_impl(*distance_ptr, idx, n_threads, verbose);
 }

@@ -5,12 +5,20 @@ rnn_brute_force <- function(data, nnbrs, metric = "euclidean", n_threads = 0L, v
     .Call(`_rnndescent_rnn_brute_force`, data, nnbrs, metric, n_threads, verbose)
 }
 
+rnn_logical_brute_force <- function(data, nnbrs, metric = "euclidean", n_threads = 0L, verbose = FALSE) {
+    .Call(`_rnndescent_rnn_logical_brute_force`, data, nnbrs, metric, n_threads, verbose)
+}
+
 rnn_sparse_brute_force <- function(ind, ptr, data, ndim, nnbrs, metric = "euclidean", n_threads = 0L, verbose = FALSE) {
     .Call(`_rnndescent_rnn_sparse_brute_force`, ind, ptr, data, ndim, nnbrs, metric, n_threads, verbose)
 }
 
 rnn_brute_force_query <- function(reference, query, nnbrs, metric = "euclidean", n_threads = 0L, verbose = FALSE) {
     .Call(`_rnndescent_rnn_brute_force_query`, reference, query, nnbrs, metric, n_threads, verbose)
+}
+
+rnn_logical_brute_force_query <- function(reference, query, nnbrs, metric = "euclidean", n_threads = 0L, verbose = FALSE) {
+    .Call(`_rnndescent_rnn_logical_brute_force_query`, reference, query, nnbrs, metric, n_threads, verbose)
 }
 
 rnn_sparse_brute_force_query <- function(ref_ind, ref_ptr, ref_data, query_ind, query_ptr, query_data, ndim, nnbrs, metric = "euclidean", n_threads = 0L, verbose = FALSE) {
@@ -83,8 +91,16 @@ rnn_idx_to_graph_self <- function(data, idx, metric = "euclidean", n_threads = 0
     .Call(`_rnndescent_rnn_idx_to_graph_self`, data, idx, metric, n_threads, verbose)
 }
 
+rnn_logical_idx_to_graph_self <- function(data, idx, metric = "euclidean", n_threads = 0L, verbose = FALSE) {
+    .Call(`_rnndescent_rnn_logical_idx_to_graph_self`, data, idx, metric, n_threads, verbose)
+}
+
 rnn_idx_to_graph_query <- function(reference, query, idx, metric = "euclidean", n_threads = 0L, verbose = FALSE) {
     .Call(`_rnndescent_rnn_idx_to_graph_query`, reference, query, idx, metric, n_threads, verbose)
+}
+
+rnn_logical_idx_to_graph_query <- function(reference, query, idx, metric = "euclidean", n_threads = 0L, verbose = FALSE) {
+    .Call(`_rnndescent_rnn_logical_idx_to_graph_query`, reference, query, idx, metric, n_threads, verbose)
 }
 
 rnn_sparse_idx_to_graph_query <- function(ref_ind, ref_ptr, ref_data, query_ind, query_ptr, query_data, ndim, idx, metric = "euclidean", n_threads = 0L, verbose = FALSE) {
@@ -107,6 +123,10 @@ rnn_descent <- function(data, nn_idx, nn_dist, metric, max_candidates, n_iters, 
     .Call(`_rnndescent_rnn_descent`, data, nn_idx, nn_dist, metric, max_candidates, n_iters, delta, low_memory, n_threads, verbose, progress_type)
 }
 
+rnn_logical_descent <- function(data, nn_idx, nn_dist, metric, max_candidates, n_iters, delta, low_memory, n_threads, verbose, progress_type) {
+    .Call(`_rnndescent_rnn_logical_descent`, data, nn_idx, nn_dist, metric, max_candidates, n_iters, delta, low_memory, n_threads, verbose, progress_type)
+}
+
 rnn_sparse_descent <- function(ind, ptr, data, ndim, nn_idx, nn_dist, metric, max_candidates, n_iters, delta, low_memory, n_threads, verbose, progress_type) {
     .Call(`_rnndescent_rnn_sparse_descent`, ind, ptr, data, ndim, nn_idx, nn_dist, metric, max_candidates, n_iters, delta, low_memory, n_threads, verbose, progress_type)
 }
@@ -117,6 +137,10 @@ rnn_sparse_diversify <- function(ind, ptr, data, ndim, graph_list, metric, prune
 
 rnn_diversify <- function(data, graph_list, metric, prune_probability, n_threads) {
     .Call(`_rnndescent_rnn_diversify`, data, graph_list, metric, prune_probability, n_threads)
+}
+
+rnn_logical_diversify <- function(data, graph_list, metric, prune_probability, n_threads) {
+    .Call(`_rnndescent_rnn_logical_diversify`, data, graph_list, metric, prune_probability, n_threads)
 }
 
 rnn_merge_graph_lists <- function(graph_list1, graph_list2) {
@@ -135,8 +159,16 @@ rnn_random_knn <- function(data, nnbrs, metric = "euclidean", order_by_distance 
     .Call(`_rnndescent_rnn_random_knn`, data, nnbrs, metric, order_by_distance, n_threads, verbose)
 }
 
+rnn_logical_random_knn <- function(data, nnbrs, metric = "euclidean", order_by_distance = TRUE, n_threads = 0L, verbose = FALSE) {
+    .Call(`_rnndescent_rnn_logical_random_knn`, data, nnbrs, metric, order_by_distance, n_threads, verbose)
+}
+
 rnn_random_knn_query <- function(reference, query, nnbrs, metric = "euclidean", order_by_distance = TRUE, n_threads = 0L, verbose = FALSE) {
     .Call(`_rnndescent_rnn_random_knn_query`, reference, query, nnbrs, metric, order_by_distance, n_threads, verbose)
+}
+
+rnn_logical_random_knn_query <- function(reference, query, nnbrs, metric = "euclidean", order_by_distance = TRUE, n_threads = 0L, verbose = FALSE) {
+    .Call(`_rnndescent_rnn_logical_random_knn_query`, reference, query, nnbrs, metric, order_by_distance, n_threads, verbose)
 }
 
 rnn_sparse_random_knn_query <- function(ref_ind, ref_ptr, ref_data, query_ind, query_ptr, query_data, ndim, nnbrs, metric = "euclidean", order_by_distance = TRUE, n_threads = 0L, verbose = FALSE) {
@@ -159,6 +191,10 @@ rnn_rp_tree_knn_implicit <- function(data, nnbrs, metric, n_trees, leaf_size, ma
     .Call(`_rnndescent_rnn_rp_tree_knn_implicit`, data, nnbrs, metric, n_trees, leaf_size, max_tree_depth, include_self, unzero, ret_forest, n_threads, verbose)
 }
 
+rnn_logical_rp_tree_knn_implicit <- function(data, nnbrs, metric, n_trees, leaf_size, max_tree_depth, include_self, unzero = TRUE, ret_forest = FALSE, n_threads = 0L, verbose = FALSE) {
+    .Call(`_rnndescent_rnn_logical_rp_tree_knn_implicit`, data, nnbrs, metric, n_trees, leaf_size, max_tree_depth, include_self, unzero, ret_forest, n_threads, verbose)
+}
+
 rnn_rp_forest_build <- function(data, metric, n_trees, leaf_size, max_tree_depth, n_threads = 0L, verbose = FALSE) {
     .Call(`_rnndescent_rnn_rp_forest_build`, data, metric, n_trees, leaf_size, max_tree_depth, n_threads, verbose)
 }
@@ -169,6 +205,10 @@ rnn_sparse_rp_forest_build <- function(ind, ptr, data, ndim, metric, n_trees, le
 
 rnn_rp_forest_implicit_build <- function(data, metric, n_trees, leaf_size, max_tree_depth, n_threads = 0L, verbose = FALSE) {
     .Call(`_rnndescent_rnn_rp_forest_implicit_build`, data, metric, n_trees, leaf_size, max_tree_depth, n_threads, verbose)
+}
+
+rnn_logical_rp_forest_implicit_build <- function(data, metric, n_trees, leaf_size, max_tree_depth, n_threads = 0L, verbose = FALSE) {
+    .Call(`_rnndescent_rnn_logical_rp_forest_implicit_build`, data, metric, n_trees, leaf_size, max_tree_depth, n_threads, verbose)
 }
 
 rnn_sparse_rp_forest_implicit_build <- function(ind, ptr, data, ndim, metric, n_trees, leaf_size, max_tree_depth, n_threads = 0L, verbose = FALSE) {
@@ -189,6 +229,10 @@ rnn_score_forest <- function(idx, search_forest, n_trees, n_threads, verbose = F
 
 rnn_query <- function(reference, reference_graph_list, query, nn_idx, nn_dist, metric = "euclidean", epsilon = 0.1, n_threads = 0L, verbose = FALSE) {
     .Call(`_rnndescent_rnn_query`, reference, reference_graph_list, query, nn_idx, nn_dist, metric, epsilon, n_threads, verbose)
+}
+
+rnn_logical_query <- function(reference, reference_graph_list, query, nn_idx, nn_dist, metric = "euclidean", epsilon = 0.1, n_threads = 0L, verbose = FALSE) {
+    .Call(`_rnndescent_rnn_logical_query`, reference, reference_graph_list, query, nn_idx, nn_dist, metric, epsilon, n_threads, verbose)
 }
 
 rnn_sparse_query <- function(ref_ind, ref_ptr, ref_data, query_ind, query_ptr, query_data, ndim, reference_graph_list, nn_idx, nn_dist, metric = "euclidean", epsilon = 0.1, n_threads = 0L, verbose = FALSE) {

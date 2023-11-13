@@ -260,13 +260,13 @@ create_query_distance(const Rcpp::NumericMatrix &reference,
 
   // handle binary first
   if (is_binary_metric(metric)) {
-    const auto ndim = reference.nrow();
-    auto ref_bvec = r_to_vec<uint8_t>(reference);
-    auto query_bvec = r_to_vec<uint8_t>(query);
-
     const auto &metric_map = get_binary_metric_map<Out, Idx>();
     auto it = metric_map.find(metric);
     if (it != metric_map.end()) {
+      const auto ndim = reference.nrow();
+      auto ref_bvec = r_to_vec<uint8_t>(reference);
+      auto query_bvec = r_to_vec<uint8_t>(query);
+
       return std::make_unique<tdoann::BinaryQueryDistanceCalculator<Out, Idx>>(
           std::move(ref_bvec), std::move(query_bvec), ndim, it->second);
     }
@@ -274,6 +274,31 @@ create_query_distance(const Rcpp::NumericMatrix &reference,
   }
   return create_query_distance_impl<tdoann::BaseDistance<Out, Idx>>(
       reference, query, metric);
+}
+
+template <typename In = RNN_DEFAULT_IN, typename Idx = RNN_DEFAULT_IDX>
+std::unique_ptr<tdoann::BaseDistance<RNN_DEFAULT_DIST, Idx>>
+create_query_distance(const Rcpp::LogicalMatrix &reference,
+                      const Rcpp::LogicalMatrix &query,
+                      const std::string &metric) {
+  using Out = RNN_DEFAULT_DIST;
+  const auto ndim = reference.nrow();
+
+  if (is_binary_metric(metric)) {
+    const auto &metric_map = get_binary_metric_map<Out, Idx>();
+    auto it = metric_map.find(metric);
+    if (it != metric_map.end()) {
+      std::vector<uint8_t> ref_bvec = r_to_binvec(reference);
+      std::vector<uint8_t> query_bvec = r_to_binvec(query);
+      return std::make_unique<tdoann::BinaryQueryDistanceCalculator<Out, Idx>>(
+          std::move(ref_bvec), std::move(query_bvec), ndim, it->second);
+    }
+  }
+
+  auto ref_vec = r_to_vec<In>(reference);
+  auto query_vec = r_to_vec<In>(query);
+  return create_query_distance_impl<tdoann::BaseDistance<Out, Idx>>(
+      std::move(ref_vec), std::move(query_vec), ndim, metric);
 }
 
 template <typename Idx = RNN_DEFAULT_IDX>
@@ -353,7 +378,29 @@ create_self_distance(const Rcpp::NumericMatrix &data,
                                                                    metric);
 }
 
-template <typename In = RNN_DEFAULT_DIST, typename Idx = RNN_DEFAULT_IDX>
+template <typename In = RNN_DEFAULT_IN, typename Idx = RNN_DEFAULT_IDX>
+std::unique_ptr<tdoann::BaseDistance<RNN_DEFAULT_DIST, Idx>>
+create_self_distance(const Rcpp::LogicalMatrix &data,
+                     const std::string &metric) {
+  using Out = RNN_DEFAULT_DIST;
+  const auto ndim = data.nrow();
+
+  if (is_binary_metric(metric)) {
+    const auto &metric_map = get_binary_metric_map<Out, Idx>();
+    auto it = metric_map.find(metric);
+    if (it != metric_map.end()) {
+      std::vector<uint8_t> data_bvec = r_to_binvec(data);
+      return std::make_unique<tdoann::BinarySelfDistanceCalculator<Out, Idx>>(
+          std::move(data_bvec), ndim, it->second);
+    }
+  }
+
+  auto data_vec = r_to_vec<In>(data);
+  return create_self_distance_impl<tdoann::BaseDistance<Out, Idx>>(
+      std::move(data_vec), ndim, metric);
+}
+
+template <typename In = RNN_DEFAULT_IN, typename Idx = RNN_DEFAULT_IDX>
 std::unique_ptr<tdoann::VectorDistance<In, RNN_DEFAULT_DIST, Idx>>
 create_self_distance(std::vector<In> data_vec, std::size_t ndim,
                      const std::string &metric) {

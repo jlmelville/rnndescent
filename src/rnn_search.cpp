@@ -33,6 +33,7 @@
 using Rcpp::IntegerMatrix;
 using Rcpp::IntegerVector;
 using Rcpp::List;
+using Rcpp::LogicalMatrix;
 using Rcpp::NumericMatrix;
 using Rcpp::NumericVector;
 
@@ -65,6 +66,19 @@ List rnn_query(const NumericMatrix &reference, const List &reference_graph_list,
                const NumericMatrix &nn_dist,
                const std::string &metric = "euclidean", double epsilon = 0.1,
                std::size_t n_threads = 0, bool verbose = false) {
+  auto distance_ptr = create_query_distance(reference, query, metric);
+  return nn_query_impl(*distance_ptr, reference_graph_list, nn_idx, nn_dist,
+                       metric, epsilon, n_threads, verbose);
+}
+
+// [[Rcpp::export]]
+List rnn_logical_query(const LogicalMatrix &reference,
+                       const List &reference_graph_list,
+                       const LogicalMatrix &query, const IntegerMatrix &nn_idx,
+                       const NumericMatrix &nn_dist,
+                       const std::string &metric = "euclidean",
+                       double epsilon = 0.1, std::size_t n_threads = 0,
+                       bool verbose = false) {
   auto distance_ptr = create_query_distance(reference, query, metric);
   return nn_query_impl(*distance_ptr, reference_graph_list, nn_idx, nn_dist,
                        metric, epsilon, n_threads, verbose);
