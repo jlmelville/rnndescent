@@ -577,6 +577,9 @@ nnd_knn <- function(data,
     )
     # FIXME: can we just turn off unzero in tree and random return?
     init$idx <- init$idx + 1
+    if (any(init$idx == 0)) {
+      tsmessage("Warning: failed to find ",  k, " neighbors for all points")
+    }
   } else {
     # user-supplied input may need to be transformed to the actual metric
     if (use_alt_metric &&
