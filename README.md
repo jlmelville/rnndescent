@@ -30,7 +30,7 @@ packages in the R ecosystem cannot do.
 
 ## Current Status
 
-*13 November 2023. I have added most of the metrics that don't need extra
+*13 November 2023*. I have added most of the metrics that don't need extra
 parameters for both sparse and non-sparse data, e.g. `braycurtis`, `dice`,
 `jaccard`, `hellinger` etc. See the `Missing Metrics` section at the end of this
 README for those which are not implemented. There are a few breaking changes
