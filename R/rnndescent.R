@@ -386,6 +386,8 @@ random_knn <-
 #'   descent optimization, if you attempt to provide a `metric` or
 #'   `use_alt_metric` option in this list it will be ignored.
 #' @param n_iters Number of iterations of nearest neighbor descent to carry out.
+#'   By default, this will be chosen based on the number of observations in
+#'   `data`.
 #' @param max_candidates Maximum number of candidate neighbors to try for each
 #'   item in each iteration. Use relative to `k` to emulate the "rho"
 #'   sampling parameter in the nearest neighbor descent paper. By default, this
@@ -500,7 +502,7 @@ nnd_knn <- function(data,
                     metric = "euclidean",
                     init = "rand",
                     init_args = NULL,
-                    n_iters = 10,
+                    n_iters = NULL,
                     max_candidates = NULL,
                     delta = 0.001,
                     low_memory = TRUE,
@@ -607,6 +609,9 @@ nnd_knn <- function(data,
 
   if (is.null(max_candidates)) {
     max_candidates <- min(k, 60)
+  }
+  if (is.null(n_iters)) {
+    n_iters <- max(5, round(log2(nrow(data))))
   }
   tsmessage(
     thread_msg(

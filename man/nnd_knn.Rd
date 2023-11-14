@@ -10,7 +10,7 @@ nnd_knn(
   metric = "euclidean",
   init = "rand",
   init_args = NULL,
-  n_iters = 10,
+  n_iters = NULL,
   max_candidates = NULL,
   delta = 0.001,
   low_memory = TRUE,
@@ -121,7 +121,9 @@ inconsistences with the tree calculation and subsequent nearest neighbor
 descent optimization, if you attempt to provide a \code{metric} or
 \code{use_alt_metric} option in this list it will be ignored.}
 
-\item{n_iters}{Number of iterations of nearest neighbor descent to carry out.}
+\item{n_iters}{Number of iterations of nearest neighbor descent to carry out.
+By default, this will be chosen based on the number of observations in
+\code{data}.}
 
 \item{max_candidates}{Maximum number of candidate neighbors to try for each
 item in each iteration. Use relative to \code{k} to emulate the "rho"

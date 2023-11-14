@@ -193,7 +193,7 @@ msgs <- capture_everything(nnd_knn(ui10, 4, verbose = TRUE))
 expect_match(msgs, "\\*\\*\\*")
 expect_match(msgs, "Convergence")
 
-msgs <- capture_everything(nnd_knn(ui10, 4, verbose = TRUE, progress = "dist"))
+msgs <- capture_everything(nnd_knn(ui10, 4, verbose = TRUE, progress = "dist", n_iters = 10))
 expect_match(msgs, "0 / 10")
 expect_match(msgs, "Convergence")
 
