@@ -25,16 +25,19 @@ observations in the columns, by setting \code{obs = "C"}, which should be more
 efficient. The \code{reference} data must be passed in the same orientation as
 \code{query}. Possible formats are \code{\link[base:data.frame]{base::data.frame()}}, \code{\link[base:matrix]{base::matrix()}}
 or \code{\link[Matrix:sparseMatrix]{Matrix::sparseMatrix()}}. Sparse matrices should be in \code{dgCMatrix}
-format.}
+format. Dataframes will be converted to \code{numerical} matrix format
+internally, so if your data columns are \code{logical} and intended to be used
+with the specialized binary \code{metric}s, you should convert it to a logical
+matrix first (otherwise you will get the slower dense numerical version).}
 
 \item{reference}{Matrix of \code{m} reference items, with observations in the rows
 and features in the columns. The nearest neighbors to the queries are
 calculated from this data. Optionally, the data may be passed with the
 observations in the columns, by setting \code{obs = "C"}, which should be more
-efficient. The \code{query} data must be passed in the same orientation as
-\code{reference}. Possible formats are \code{\link[base:data.frame]{base::data.frame()}}, \code{\link[base:matrix]{base::matrix()}}
-or \code{\link[Matrix:sparseMatrix]{Matrix::sparseMatrix()}}. Sparse matrices should be in \code{dgCMatrix}
-format.}
+efficient. The \code{query} data must be passed in the same format and
+orientation as \code{reference}. Possible formats are \code{\link[base:data.frame]{base::data.frame()}},
+\code{\link[base:matrix]{base::matrix()}} or \code{\link[Matrix:sparseMatrix]{Matrix::sparseMatrix()}}. Sparse matrices should be in
+\code{dgCMatrix} format.}
 
 \item{reference_graph}{Search graph of the \code{reference} data. A neighbor
 graph, such as that output from \code{\link[=nnd_knn]{nnd_knn()}} can be used, but
@@ -80,20 +83,21 @@ compared to the non-preprocessed versions:
 \item \code{"correlation-preprocess"}: \code{correlation} with preprocessing.
 }
 
-For non-sparse binary data (numeric or integer matrix with 0s
-and 1s only) the following metric variants are available which should be
-substantially faster than the non-binary variants:
+For non-sparse binary data passed as a \code{logical} matrix, the following
+metrics have specialized variants which should be substantially faster than
+the non-binary variants (in other cases the logical data will be treated as
+a dense numeric vector of 0s and 1s):
 \itemize{
-\item \code{"bdice"}
-\item \code{"bhamming"}
-\item \code{"bjaccard"}
-\item \code{"bkulsinski"}
-\item \code{"bmatching"}
-\item \code{"brogerstanimoto"}
-\item \code{"brussellrao"}
-\item \code{"bsokalmichener"}
-\item \code{"bsokalsneath"}
-\item \code{"byule"}
+\item \code{"dice"}
+\item \code{"hamming"}
+\item \code{"jaccard"}
+\item \code{"kulsinski"}
+\item \code{"matching"}
+\item \code{"rogerstanimoto"}
+\item \code{"russellrao"}
+\item \code{"sokalmichener"}
+\item \code{"sokalsneath"}
+\item \code{"yule"}
 }}
 
 \item{init}{Initial \code{query} neighbor graph to optimize. If not provided, \code{k}

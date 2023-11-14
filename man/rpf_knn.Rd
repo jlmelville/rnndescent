@@ -26,7 +26,10 @@ in the rows and features in the columns. Optionally, input can be passed
 with observations in the columns, by setting \code{obs = "C"}, which should be
 more efficient. Possible formats are \code{\link[base:data.frame]{base::data.frame()}}, \code{\link[base:matrix]{base::matrix()}}
 or \code{\link[Matrix:sparseMatrix]{Matrix::sparseMatrix()}}. Sparse matrices should be in \code{dgCMatrix}
-format.}
+format. Dataframes will be converted to \code{numerical} matrix format
+internally, so if your data columns are \code{logical} and intended to be used
+with the specialized binary \code{metric}s, you should convert it to a logical
+matrix first (otherwise you will get the slower dense numerical version).}
 
 \item{k}{Number of nearest neighbors to return. Optional if \code{init} is
 specified.}
@@ -67,20 +70,21 @@ compared to the non-preprocessed versions:
 \item \code{"correlation-preprocess"}: \code{correlation} with preprocessing.
 }
 
-For non-sparse binary data (numeric or integer matrix with 0s
-and 1s only) the following metric variants are available which should be
-substantially faster than the non-binary variants:
+For non-sparse binary data passed as a \code{logical} matrix, the following
+metrics have specialized variants which should be substantially faster than
+the non-binary variants (in other cases the logical data will be treated as
+a dense numeric vector of 0s and 1s):
 \itemize{
-\item \code{"bdice"}
-\item \code{"bhamming"}
-\item \code{"bjaccard"}
-\item \code{"bkulsinski"}
-\item \code{"bmatching"}
-\item \code{"brogerstanimoto"}
-\item \code{"brussellrao"}
-\item \code{"bsokalmichener"}
-\item \code{"bsokalsneath"}
-\item \code{"byule"}
+\item \code{"dice"}
+\item \code{"hamming"}
+\item \code{"jaccard"}
+\item \code{"kulsinski"}
+\item \code{"matching"}
+\item \code{"rogerstanimoto"}
+\item \code{"russellrao"}
+\item \code{"sokalmichener"}
+\item \code{"sokalsneath"}
+\item \code{"yule"}
 }
 
 Note that if \code{margin = "explicit"}, the metric is only used to determine

@@ -22,15 +22,18 @@ observations in the columns, by setting \code{obs = "C"}, which should be more
 efficient. The \code{reference} data must be passed in the same orientation as
 \code{query}. Possible formats are \code{\link[base:data.frame]{base::data.frame()}}, \code{\link[base:matrix]{base::matrix()}}
 or \code{\link[Matrix:sparseMatrix]{Matrix::sparseMatrix()}}. Sparse matrices should be in \code{dgCMatrix}
-format.}
+format. Dataframes will be converted to \code{numerical} matrix format
+internally, so if your data columns are \code{logical} and intended to be used
+with the specialized binary \code{metric}s, you should convert it to a logical
+matrix first (otherwise you will get the slower dense numerical version).}
 
 \item{reference}{Matrix of \code{m} reference items, with observations in the rows
 and features in the columns. The nearest neighbors to the queries are
 calculated from this data and should be the same data used to build the
 \code{forest}. Optionally, the data may be passed with the observations in the
 columns, by setting \code{obs = "C"}, which should be more efficient. The
-\code{query} data must be passed in the same orientation as \code{reference}.
-Possible formats are \code{\link[base:data.frame]{base::data.frame()}}, \code{\link[base:matrix]{base::matrix()}} or
+\code{query} data must be passed in the same format and orientation as
+\code{reference}. Possible formats are \code{\link[base:data.frame]{base::data.frame()}}, \code{\link[base:matrix]{base::matrix()}} or
 \code{\link[Matrix:sparseMatrix]{Matrix::sparseMatrix()}}. Sparse matrices should be in \code{dgCMatrix} format.}
 
 \item{forest}{A random partition forest, created by \code{\link[=rpf_build]{rpf_build()}},

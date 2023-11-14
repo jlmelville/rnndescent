@@ -1423,7 +1423,6 @@ graph_knn_query <- function(query,
 #'   your data columns are `logical` and intended to be used with the
 #'   specialized binary `metric`s, you should convert it to a logical matrix
 #'   first (otherwise you will get the slower dense numerical version).
-#' @param k Number of nearest neighbors to return.
 #' @param graph neighbor graph for `data`, a list containing:
 #'   * `idx` an `n` by `k` matrix containing the nearest neighbor indices of
 #'   the data in `data`.
