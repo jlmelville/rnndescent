@@ -188,20 +188,12 @@ Out bsokal_michener(const BitVec &x, Idx i, const BitVec &y, Idx j,
   std::size_t dj = len * j;
 
   std::size_t num_not_equal = 0;
-  std::size_t num_equal = 0;
 
   for (std::size_t d = 0; d < len; ++d, ++di, ++dj) {
     auto xi = x[di];
     auto yj = y[dj];
     num_not_equal += (xi ^ yj).count();
-    num_equal += (xi.size() - (xi ^ yj).count());
   }
-
-  // Subtract padding from num_equal: extra 0s will contribute to num_equal
-  const std::size_t total_bits = x[0].size() * len;
-  const auto rem = ndim % total_bits;
-  const std::size_t padding = rem > 0 ? total_bits - rem : 0;
-  num_equal -= padding;
 
   return static_cast<Out>(static_cast<double>(num_not_equal + num_not_equal) /
                           (ndim + num_not_equal));
