@@ -2,6 +2,10 @@
 
 ## Breaking Changes
 
+* The `bhamming` metric no longer exists as a specialized metric. Instead, if
+you pass a `logical` matrix to `data`, `reference` or `query` parameter
+(depending on the function) and specify `metric = "hamming"` you will
+automatically get the binary-specific version of the hamming metric.
 * The `hamming` and `bhamming` metrics are now normalized with respect to the
 number of features, to be consistent with the other binary-style metrics (and 
 PyNNDescent). If you need the old distances, multiply the distance matrix by 
