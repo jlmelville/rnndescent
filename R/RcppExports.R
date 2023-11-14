@@ -25,6 +25,10 @@ rnn_sparse_brute_force_query <- function(ref_ind, ref_ptr, ref_data, query_ind, 
     .Call(`_rnndescent_rnn_sparse_brute_force_query`, ref_ind, ref_ptr, ref_data, query_ind, query_ptr, query_data, ndim, nnbrs, metric, n_threads, verbose)
 }
 
+is_binary_metric <- function(metric) {
+    .Call(`_rnndescent_is_binary_metric`, metric)
+}
+
 #' Find the Euclidean (L2) distance between two vectors
 #'
 #' @param x A numeric vector.

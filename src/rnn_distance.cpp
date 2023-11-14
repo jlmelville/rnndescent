@@ -28,9 +28,18 @@
 
 #include <Rcpp.h>
 
+#include "rnn_distance.h"
+
 using Rcpp::IntegerVector;
 using Rcpp::NumericVector;
 using Rcpp::stop;
+
+// [[Rcpp::export]]
+bool is_binary_metric(const std::string &metric) {
+  const auto &metric_map =
+      get_binary_metric_map<RNN_DEFAULT_DIST, RNN_DEFAULT_IDX>();
+  return metric_map.find(metric) != metric_map.end();
+}
 
 template <typename Vec> inline void check_vecs(const Vec &x, const Vec &y) {
   if (x.length() != y.length()) {

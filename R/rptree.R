@@ -8,7 +8,10 @@
 #'   with observations in the columns, by setting `obs = "C"`, which should be
 #'   more efficient. Possible formats are [base::data.frame()], [base::matrix()]
 #'   or [Matrix::sparseMatrix()]. Sparse matrices should be in `dgCMatrix`
-#'   format.
+#'   format. Dataframes will be converted to `numerical` matrix format
+#'   internally, so if your data columns are `logical` and intended to be used
+#'   with the specialized binary `metric`s, you should convert it to a logical
+#'   matrix first (otherwise you will get the slower dense numerical version).
 #' @param k Number of nearest neighbors to return. Optional if `init` is
 #'   specified.
 #' @param metric Type of distance calculation to use. One of:
@@ -43,19 +46,20 @@
 #'   - `"cosine-preprocess"`: `cosine` with preprocessing.
 #'   - `"correlation-preprocess"`: `correlation` with preprocessing.
 #'
-#'   For non-sparse binary data (numeric or integer matrix with 0s
-#'   and 1s only) the following metric variants are available which should be
-#'   substantially faster than the non-binary variants:
-#'   - `"bdice"`
-#'   - `"bhamming"`
-#'   - `"bjaccard"`
-#'   - `"bkulsinski"`
-#'   - `"bmatching"`
-#'   - `"brogerstanimoto"`
-#'   - `"brussellrao"`
-#'   - `"bsokalmichener"`
-#'   - `"bsokalsneath"`
-#'   - `"byule"`
+#'   For non-sparse binary data passed as a `logical` matrix, the following
+#'   metrics have specialized variants which should be substantially faster than
+#'   the non-binary variants (in other cases the logical data will be treated as
+#'   a dense numeric vector of 0s and 1s):
+#'   - `"dice"`
+#'   - `"hamming"`
+#'   - `"jaccard"`
+#'   - `"kulsinski"`
+#'   - `"matching"`
+#'   - `"rogerstanimoto"`
+#'   - `"russellrao"`
+#'   - `"sokalmichener"`
+#'   - `"sokalsneath"`
+#'   - `"yule"`
 #'
 #'   Note that if `margin = "explicit"`, the metric is only used to determine
 #'   whether an "angular" or "Euclidean" distance is used to measure the
@@ -216,7 +220,10 @@ rpf_knn <- function(data,
 #'   with observations in the columns, by setting `obs = "C"`, which should be
 #'   more efficient. Possible formats are [base::data.frame()], [base::matrix()]
 #'   or [Matrix::sparseMatrix()]. Sparse matrices should be in `dgCMatrix`
-#'   format.
+#'   format. Dataframes will be converted to `numerical` matrix format
+#'   internally, so if your data columns are `logical` and intended to be used
+#'   with the specialized binary `metric`s, you should convert it to a logical
+#'   matrix first (otherwise you will get the slower dense numerical version).
 #' @param metric Type of distance calculation to use. One of:
 #'   - `"braycurtis"`
 #'   - `"canberra"`
@@ -249,19 +256,20 @@ rpf_knn <- function(data,
 #'   - `"cosine-preprocess"`: `cosine` with preprocessing.
 #'   - `"correlation-preprocess"`: `correlation` with preprocessing.
 #'
-#'   For non-sparse binary data (numeric or integer matrix with 0s
-#'   and 1s only) the following metric variants are available which should be
-#'   substantially faster than the non-binary variants:
-#'   - `"bdice"`
-#'   - `"bhamming"`
-#'   - `"bjaccard"`
-#'   - `"bkulsinski"`
-#'   - `"bmatching"`
-#'   - `"brogerstanimoto"`
-#'   - `"brussellrao"`
-#'   - `"bsokalmichener"`
-#'   - `"bsokalsneath"`
-#'   - `"byule"`
+#'   For non-sparse binary data passed as a `logical` matrix, the following
+#'   metrics have specialized variants which should be substantially faster than
+#'   the non-binary variants (in other cases the logical data will be treated as
+#'   a dense numeric vector of 0s and 1s):
+#'   - `"dice"`
+#'   - `"hamming"`
+#'   - `"jaccard"`
+#'   - `"kulsinski"`
+#'   - `"matching"`
+#'   - `"rogerstanimoto"`
+#'   - `"russellrao"`
+#'   - `"sokalmichener"`
+#'   - `"sokalsneath"`
+#'   - `"yule"`
 #'
 #'   Note that if `margin = "explicit"`, the metric is only used to determine
 #'   whether an "angular" or "Euclidean" distance is used to measure the
@@ -361,7 +369,7 @@ rpf_build <- function(data,
 
   data <- x2m(data)
 
-  margin <- find_margin_method(margin, metric)
+  margin <- find_margin_method(margin, metric, data)
 
   actual_metric <- get_actual_metric(use_alt_metric, metric, data, verbose)
 
@@ -468,14 +476,17 @@ rpf_build <- function(data,
 #'   efficient. The `reference` data must be passed in the same orientation as
 #'   `query`. Possible formats are [base::data.frame()], [base::matrix()]
 #'   or [Matrix::sparseMatrix()]. Sparse matrices should be in `dgCMatrix`
-#'   format.
+#'   format. Dataframes will be converted to `numerical` matrix format
+#'   internally, so if your data columns are `logical` and intended to be used
+#'   with the specialized binary `metric`s, you should convert it to a logical
+#'   matrix first (otherwise you will get the slower dense numerical version).
 #' @param reference Matrix of `m` reference items, with observations in the rows
 #'   and features in the columns. The nearest neighbors to the queries are
 #'   calculated from this data and should be the same data used to build the
 #'   `forest`. Optionally, the data may be passed with the observations in the
 #'   columns, by setting `obs = "C"`, which should be more efficient. The
-#'   `query` data must be passed in the same orientation as `reference`.
-#'   Possible formats are [base::data.frame()], [base::matrix()] or
+#'   `query` data must be passed in the same format and orientation as
+#'   `reference`. Possible formats are [base::data.frame()], [base::matrix()] or
 #'   [Matrix::sparseMatrix()]. Sparse matrices should be in `dgCMatrix` format.
 #' @param forest A random partition forest, created by [rpf_build()],
 #'   representing partitions of the data in `reference`.

@@ -174,14 +174,17 @@ get_reference_graph_k <- function(reference_graph) {
   ncol(reference_graph$idx)
 }
 
-find_margin_method <- function(margin, metric) {
+find_margin_method <- function(margin, metric, data) {
   margin <- match.arg(tolower(margin), c("auto", "explicit", "implicit"))
   if (margin %in% c("explicit", "implicit")) {
     return(margin)
   }
-  switch(metric,
-         bhamming = "implicit",
-         "explicit")
+  if (is.logical(data) && is_binary_metric(metric)) {
+    "implicit"
+  }
+  else {
+    "explicit"
+  }
 }
 
 check_sparse <- function(reference, query) {
@@ -194,6 +197,18 @@ check_sparse <- function(reference, query) {
   }
   if (n_sparse_input == 1) {
     stop("Either both or none of query and reference can be sparse")
+  }
+
+  # let's also check logical in here too
+  n_logical <- 0
+  if (is.logical(reference)) {
+    n_logical <- n_logical + 1
+  }
+  if (is.logical(query)) {
+    n_logical <- n_logical + 1
+  }
+  if (n_logical == 1) {
+    stop("Either both or none of query and reference can be logical")
   }
 }
 
@@ -274,7 +289,7 @@ rpf_knn_impl <-
       leaf_size <- max(10, k)
     }
 
-    margin <- find_margin_method(margin, metric)
+    margin <- find_margin_method(margin, metric, data)
 
     tsmessage(
       thread_msg(
@@ -359,6 +374,9 @@ rpf_knn_impl <-
         )
       }
       else {
+        # no logical code path here: explicit margin doesn't lend itself
+        # easily to the logical-specialized metrics so if you want to do that
+        # you should use implicit margin
         res <- rnn_rp_tree_knn_explicit(
           data,
           k,

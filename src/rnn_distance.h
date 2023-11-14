@@ -86,16 +86,16 @@ template <typename Out, typename Idx>
 const std::unordered_map<std::string, BinaryDistanceFunc<Out, Idx>> &
 get_binary_metric_map() {
   static const std::unordered_map<std::string, BinaryDistanceFunc<Out, Idx>>
-      metric_map = {{"bdice", tdoann::bdice<Out, Idx>},
-                    {"bhamming", tdoann::bhamming<Out, Idx>},
-                    {"bjaccard", tdoann::bjaccard<Out, Idx>},
-                    {"bkulsinski", tdoann::bkulsinski<Out, Idx>},
-                    {"bmatching", tdoann::bmatching<Out, Idx>},
-                    {"brogerstanimoto", tdoann::brogers_tanimoto<Out, Idx>},
-                    {"brussellrao", tdoann::brussell_rao<Out, Idx>},
-                    {"bsokalmichener", tdoann::bsokal_michener<Out, Idx>},
-                    {"bsokalsneath", tdoann::bsokal_sneath<Out, Idx>},
-                    {"byule", tdoann::byule<Out, Idx>}};
+      metric_map = {{"dice", tdoann::bdice<Out, Idx>},
+                    {"hamming", tdoann::bhamming<Out, Idx>},
+                    {"jaccard", tdoann::bjaccard<Out, Idx>},
+                    {"kulsinski", tdoann::bkulsinski<Out, Idx>},
+                    {"matching", tdoann::bmatching<Out, Idx>},
+                    {"rogerstanimoto", tdoann::brogers_tanimoto<Out, Idx>},
+                    {"russellrao", tdoann::brussell_rao<Out, Idx>},
+                    {"sokalmichener", tdoann::bsokal_michener<Out, Idx>},
+                    {"sokalsneath", tdoann::bsokal_sneath<Out, Idx>},
+                    {"yule", tdoann::byule<Out, Idx>}};
   return metric_map;
 }
 
@@ -140,38 +140,7 @@ get_sparse_metric_map() {
   return metric_map;
 }
 
-// needed for RP Tree calculations
-// https://github.com/lmcinnes/pynndescent/blob/db258cea34cce7e11e90a460c1f8a0bd8b69f1c1/pynndescent/pynndescent_.py#L764
-// angular metrics currently are:
-// "cosine", "dot", "correlation", "dice", "jaccard", "hellinger", "hamming",
-// other metrics are considered to be euclidean.
-constexpr const char *angular_metrics[] = {"cosine",
-                                           "alternative-cosine",
-                                           "correlation",
-                                           "dot",
-                                           "dice"
-                                           "hamming",
-                                           "hellinger",
-                                           "alternative-hellinger",
-                                           "jaccard",
-                                           "alternative-jaccard",
-                                           "bdice",
-                                           "bhamming",
-                                           "bjaccard"};
-inline bool is_angular_metric(const std::string &metric) {
-  for (const char *angular_metric : angular_metrics) {
-    if (metric == angular_metric) {
-      return true;
-    }
-  }
-  return false;
-}
-
-inline bool is_binary_metric(const std::string &metric) {
-  const auto &metric_map =
-      get_binary_metric_map<RNN_DEFAULT_DIST, RNN_DEFAULT_IDX>();
-  return metric_map.find(metric) != metric_map.end();
-}
+bool is_binary_metric(const std::string &metric);
 
 // Using Traits to return a pointer to BaseDistance or VectorDistance
 // Functions can return a BaseDistance<Out, Idx> or VectorDistance<In, Out, Idx>
@@ -257,21 +226,7 @@ create_query_distance(const Rcpp::NumericMatrix &reference,
                       const Rcpp::NumericMatrix &query,
                       const std::string &metric) {
   using Out = RNN_DEFAULT_DIST;
-
-  // handle binary first
-  if (is_binary_metric(metric)) {
-    const auto &metric_map = get_binary_metric_map<Out, Idx>();
-    auto it = metric_map.find(metric);
-    if (it != metric_map.end()) {
-      const auto ndim = reference.nrow();
-      auto ref_bvec = r_to_vec<uint8_t>(reference);
-      auto query_bvec = r_to_vec<uint8_t>(query);
-
-      return std::make_unique<tdoann::BinaryQueryDistanceCalculator<Out, Idx>>(
-          std::move(ref_bvec), std::move(query_bvec), ndim, it->second);
-    }
-    Rcpp::stop("Unsupported binary metric");
-  }
+  // potential specializations here
   return create_query_distance_impl<tdoann::BaseDistance<Out, Idx>>(
       reference, query, metric);
 }
@@ -376,20 +331,7 @@ std::unique_ptr<tdoann::BaseDistance<RNN_DEFAULT_DIST, Idx>>
 create_self_distance(const Rcpp::NumericMatrix &data,
                      const std::string &metric) {
   using Out = RNN_DEFAULT_DIST;
-
-  // handle binary first
-  if (is_binary_metric(metric)) {
-    const auto ndim = data.nrow();
-    auto data_bvec = r_to_vec<uint8_t>(data);
-
-    const auto &metric_map = get_binary_metric_map<Out, Idx>();
-    auto it = metric_map.find(metric);
-    if (it != metric_map.end()) {
-      return std::make_unique<tdoann::BinarySelfDistanceCalculator<Out, Idx>>(
-          std::move(data_bvec), ndim, it->second);
-    }
-    Rcpp::stop("Unsupported binary metric");
-  }
+  // potential specializations here
   return create_self_distance_impl<tdoann::BaseDistance<Out, Idx>>(data,
                                                                    metric);
 }

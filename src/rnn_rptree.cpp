@@ -41,6 +41,30 @@ using Rcpp::NumericMatrix;
 using Rcpp::NumericVector;
 using Rcpp::Rcerr;
 
+// needed for RP Tree calculations
+// https://github.com/lmcinnes/pynndescent/blob/db258cea34cce7e11e90a460c1f8a0bd8b69f1c1/pynndescent/pynndescent_.py#L764
+// angular metrics currently are:
+// "cosine", "dot", "correlation", "dice", "jaccard", "hellinger", "hamming",
+// other metrics are considered to be euclidean.
+constexpr const char *angular_metrics[] = {"cosine",
+                                           "alternative-cosine",
+                                           "correlation",
+                                           "dot",
+                                           "dice"
+                                           "hamming",
+                                           "hellinger",
+                                           "alternative-hellinger",
+                                           "jaccard",
+                                           "alternative-jaccard"};
+bool is_angular_metric(const std::string &metric) {
+  for (const char *angular_metric : angular_metrics) {
+    if (metric == angular_metric) {
+      return true;
+    }
+  }
+  return false;
+}
+
 enum class MarginType { EXPLICIT, IMPLICIT };
 
 void check_leaf_size(std::size_t leaf_size, std::size_t max_leaf_size,
@@ -536,24 +560,7 @@ List rnn_rp_tree_knn_explicit(const NumericMatrix &data, uint32_t nnbrs,
                 << " leaves\n";
   }
   RPProgress knn_progress(verbose);
-  // FIXME: get rid of this as binary metrics need to go away: logical matrix
-  // should be coerced to Numerical and everything happens through the normal
-  // dense metric code path -- implicit margin tree will work with logical
-  // end-to-end
-  if (is_binary_metric(metric)) {
-    // unfortunately data_vec is still in scope even though we no longer
-    // need it
-    auto nn_list = init_rp_tree_binary(
-        data, nnbrs, metric, include_self, leaf_array, max_leaf_size,
-        max_tree_depth, n_threads, knn_progress, executor);
-    if (ret_forest) {
-      auto search_forest =
-          tdoann::convert_rp_forest(rp_forest, data.ncol(), ndim);
-      List search_forest_r = search_forest_to_r(search_forest, metric);
-      nn_list["forest"] = search_forest_r;
-    }
-    return nn_list;
-  }
+
   auto distance_ptr = create_self_distance(std::move(data_vec), ndim, metric);
   auto neighbor_heap =
       tdoann::init_rp_tree(*distance_ptr, leaf_array, max_leaf_size, nnbrs,

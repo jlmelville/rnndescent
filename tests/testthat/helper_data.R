@@ -51,9 +51,13 @@ bitdata <- bitm(nrow = 10, ncol = 160)
 intdata <- matrix(sample.int(5, 40, replace = TRUE), 10)
 
 bitdatasp <- Matrix::drop0(bitdata)
+lbitdata <- matrix(as.logical(bitdata), nrow = nrow(bitdatasp))
 
 bit6 <- bitdata[1:6, ]
 bit4 <- bitdata[7:10, ]
+
+lbit6 <- matrix(as.logical(bit6), nrow = nrow(bit6))
+lbit4 <- matrix(as.logical(bit4), nrow = nrow(bit4))
 
 # Hamming
 # from Annoy

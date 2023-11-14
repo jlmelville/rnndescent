@@ -7,7 +7,10 @@
 #'   with observations in the columns, by setting `obs = "C"`, which should be
 #'   more efficient. Possible formats are [base::data.frame()], [base::matrix()]
 #'   or [Matrix::sparseMatrix()]. Sparse matrices should be in `dgCMatrix`
-#'   format.
+#'   format. Dataframes will be converted to `numerical` matrix format
+#'   internally, so if your data columns are `logical` and intended to be used
+#'   with the specialized binary `metric`s, you should convert it to a logical
+#'   matrix first (otherwise you will get the slower dense numerical version).
 #' @param k Number of nearest neighbors to return.
 #' @param metric Type of distance calculation to use. One of:
 #'   - `"braycurtis"`
@@ -41,19 +44,20 @@
 #'   - `"cosine-preprocess"`: `cosine` with preprocessing.
 #'   - `"correlation-preprocess"`: `correlation` with preprocessing.
 #'
-#'   For non-sparse binary data (numeric or integer matrix with 0s
-#'   and 1s only) the following metric variants are available which should be
-#'   substantially faster than the non-binary variants:
-#'   - `"bdice"`
-#'   - `"bhamming"`
-#'   - `"bjaccard"`
-#'   - `"bkulsinski"`
-#'   - `"bmatching"`
-#'   - `"brogerstanimoto"`
-#'   - `"brussellrao"`
-#'   - `"bsokalmichener"`
-#'   - `"bsokalsneath"`
-#'   - `"byule"`
+#'   For non-sparse binary data passed as a `logical` matrix, the following
+#'   metrics have specialized variants which should be substantially faster than
+#'   the non-binary variants (in other cases the logical data will be treated as
+#'   a dense numeric vector of 0s and 1s):
+#'   - `"dice"`
+#'   - `"hamming"`
+#'   - `"jaccard"`
+#'   - `"kulsinski"`
+#'   - `"matching"`
+#'   - `"rogerstanimoto"`
+#'   - `"russellrao"`
+#'   - `"sokalmichener"`
+#'   - `"sokalsneath"`
+#'   - `"yule"`
 #' @param use_alt_metric If `TRUE`, use faster metrics that maintain the
 #'   ordering of distances internally (e.g. squared Euclidean distances if using
 #'   `metric = "euclidean"`), then apply a correction at the end. Probably
@@ -162,7 +166,11 @@ brute_force_knn <- function(data,
 #'   be passed with observations in the columns, by setting `obs = "C"`, which
 #'   should be more efficient. Possible formats are [base::data.frame()],
 #'   [base::matrix()] or [Matrix::sparseMatrix()]. Sparse matrices should be in
-#'   `dgCMatrix` format.
+#'   `dgCMatrix` format. Dataframes will be converted to `numerical` matrix
+#'   format internally, so if your data columns are `logical` and intended to be
+#'   used with the specialized binary `metric`s, you should convert it to a
+#'   logical matrix first (otherwise you will get the slower dense numerical
+#'   version).
 #' @param k Number of nearest neighbors to return.
 #' @param metric Type of distance calculation to use. One of:
 #'   - `"braycurtis"`
@@ -196,19 +204,20 @@ brute_force_knn <- function(data,
 #'   - `"cosine-preprocess"`: `cosine` with preprocessing.
 #'   - `"correlation-preprocess"`: `correlation` with preprocessing.
 #'
-#'   For non-sparse binary data (numeric or integer matrix with 0s
-#'   and 1s only) the following metric variants are available which should be
-#'   substantially faster than the non-binary variants:
-#'   - `"bdice"`
-#'   - `"bhamming"`
-#'   - `"bjaccard"`
-#'   - `"bkulsinski"`
-#'   - `"bmatching"`
-#'   - `"brogerstanimoto"`
-#'   - `"brussellrao"`
-#'   - `"bsokalmichener"`
-#'   - `"bsokalsneath"`
-#'   - `"byule"`
+#'   For non-sparse binary data passed as a `logical` matrix, the following
+#'   metrics have specialized variants which should be substantially faster than
+#'   the non-binary variants (in other cases the logical data will be treated as
+#'   a dense numeric vector of 0s and 1s):
+#'   - `"dice"`
+#'   - `"hamming"`
+#'   - `"jaccard"`
+#'   - `"kulsinski"`
+#'   - `"matching"`
+#'   - `"rogerstanimoto"`
+#'   - `"russellrao"`
+#'   - `"sokalmichener"`
+#'   - `"sokalsneath"`
+#'   - `"yule"`
 #' @param use_alt_metric If `TRUE`, use faster metrics that maintain the
 #'   ordering of distances internally (e.g. squared Euclidean distances if using
 #'   `metric = "euclidean"`), then apply a correction at the end. Probably
@@ -299,7 +308,10 @@ random_knn <-
 #'   with observations in the columns, by setting `obs = "C"`, which should be
 #'   more efficient. Possible formats are [base::data.frame()], [base::matrix()]
 #'   or [Matrix::sparseMatrix()]. Sparse matrices should be in `dgCMatrix`
-#'   format.
+#'   format. Dataframes will be converted to `numerical` matrix format
+#'   internally, so if your data columns are `logical` and intended to be used
+#'   with the specialized binary `metric`s, you should convert it to a logical
+#'   matrix first (otherwise you will get the slower dense numerical version).
 #' @param k Number of nearest neighbors to return. Optional if `init` is
 #'   specified.
 #' @param metric Type of distance calculation to use. One of:
@@ -334,19 +346,20 @@ random_knn <-
 #'   - `"cosine-preprocess"`: `cosine` with preprocessing.
 #'   - `"correlation-preprocess"`: `correlation` with preprocessing.
 #'
-#'   For non-sparse binary data (numeric or integer matrix with 0s
-#'   and 1s only) the following metric variants are available which should be
-#'   substantially faster than the non-binary variants:
-#'   - `"bdice"`
-#'   - `"bhamming"`
-#'   - `"bjaccard"`
-#'   - `"bkulsinski"`
-#'   - `"bmatching"`
-#'   - `"brogerstanimoto"`
-#'   - `"brussellrao"`
-#'   - `"bsokalmichener"`
-#'   - `"bsokalsneath"`
-#'   - `"byule"`
+#'   For non-sparse binary data passed as a `logical` matrix, the following
+#'   metrics have specialized variants which should be substantially faster than
+#'   the non-binary variants (in other cases the logical data will be treated as
+#'   a dense numeric vector of 0s and 1s):
+#'   - `"dice"`
+#'   - `"hamming"`
+#'   - `"jaccard"`
+#'   - `"kulsinski"`
+#'   - `"matching"`
+#'   - `"rogerstanimoto"`
+#'   - `"russellrao"`
+#'   - `"sokalmichener"`
+#'   - `"sokalsneath"`
+#'   - `"yule"`
 #' @param init Name of the initialization strategy or initial `data` neighbor
 #'   graph to optimize. One of:
 #'   - `"rand"` random initialization (the default).
@@ -655,15 +668,18 @@ nnd_knn <- function(data,
 #'   efficient. The `reference` data must be passed in the same orientation as
 #'   `query`. Possible formats are [base::data.frame()], [base::matrix()]
 #'   or [Matrix::sparseMatrix()]. Sparse matrices should be in `dgCMatrix`
-#'   format.
+#'   format. Dataframes will be converted to `numerical` matrix format
+#'   internally, so if your data columns are `logical` and intended to be used
+#'   with the specialized binary `metric`s, you should convert it to a logical
+#'   matrix first (otherwise you will get the slower dense numerical version).
 #' @param reference Matrix of `m` reference items, with observations in the rows
 #'   and features in the columns. The nearest neighbors to the queries are
 #'   calculated from this data. Optionally, the data may be passed with the
 #'   observations in the columns, by setting `obs = "C"`, which should be more
-#'   efficient. The `query` data must be passed in the same orientation as
-#'   `reference`. Possible formats are [base::data.frame()], [base::matrix()]
-#'   or [Matrix::sparseMatrix()]. Sparse matrices should be in `dgCMatrix`
-#'   format.
+#'   efficient. The `query` data must be passed in the same format and
+#'   orientation as `reference`. Possible formats are [base::data.frame()],
+#'   [base::matrix()] or [Matrix::sparseMatrix()]. Sparse matrices should be in
+#'   `dgCMatrix` format.
 #' @param k Number of nearest neighbors to return.
 #' @param metric Type of distance calculation to use. One of:
 #'   - `"braycurtis"`
@@ -697,19 +713,20 @@ nnd_knn <- function(data,
 #'   - `"cosine-preprocess"`: `cosine` with preprocessing.
 #'   - `"correlation-preprocess"`: `correlation` with preprocessing.
 #'
-#'   For non-sparse binary data (numeric or integer matrix with 0s
-#'   and 1s only) the following metric variants are available which should be
-#'   substantially faster than the non-binary variants:
-#'   - `"bdice"`
-#'   - `"bhamming"`
-#'   - `"bjaccard"`
-#'   - `"bkulsinski"`
-#'   - `"bmatching"`
-#'   - `"brogerstanimoto"`
-#'   - `"brussellrao"`
-#'   - `"bsokalmichener"`
-#'   - `"bsokalsneath"`
-#'   - `"byule"`
+#'   For non-sparse binary data passed as a `logical` matrix, the following
+#'   metrics have specialized variants which should be substantially faster than
+#'   the non-binary variants (in other cases the logical data will be treated as
+#'   a dense numeric vector of 0s and 1s):
+#'   - `"dice"`
+#'   - `"hamming"`
+#'   - `"jaccard"`
+#'   - `"kulsinski"`
+#'   - `"matching"`
+#'   - `"rogerstanimoto"`
+#'   - `"russellrao"`
+#'   - `"sokalmichener"`
+#'   - `"sokalsneath"`
+#'   - `"yule"`
 #' @param use_alt_metric If `TRUE`, use faster metrics that maintain the
 #'   ordering of distances internally (e.g. squared Euclidean distances if using
 #'   `metric = "euclidean"`), then apply a correction at the end. Probably
@@ -829,15 +846,18 @@ brute_force_knn_query <- function(query,
 #'   efficient. The `reference` data must be passed in the same orientation as
 #'   `query`. Possible formats are [base::data.frame()], [base::matrix()]
 #'   or [Matrix::sparseMatrix()]. Sparse matrices should be in `dgCMatrix`
-#'   format.
+#'   format. Dataframes will be converted to `numerical` matrix format
+#'   internally, so if your data columns are `logical` and intended to be used
+#'   with the specialized binary `metric`s, you should convert it to a logical
+#'   matrix first (otherwise you will get the slower dense numerical version).
 #' @param reference Matrix of `m` reference items, with observations in the rows
 #'   and features in the columns. The nearest neighbors to the queries are
 #'   randomly selected from this data. Optionally, the data may be passed with
 #'   the observations in the columns, by setting `obs = "C"`, which should be
-#'   more efficient. The `query` data must be passed in the same orientation as
-#'   `reference`. Possible formats are [base::data.frame()], [base::matrix()]
-#'   or [Matrix::sparseMatrix()]. Sparse matrices should be in `dgCMatrix`
-#'   format.
+#'   more efficient. The `query` data must be passed in the same orientation
+#'   and format as `reference`. Possible formats are [base::data.frame()],
+#'   [base::matrix()] or [Matrix::sparseMatrix()]. Sparse matrices should be in
+#'   `dgCMatrix` format.
 #' @param k Number of nearest neighbors to return.
 #' @param metric Type of distance calculation to use. One of:
 #'   - `"braycurtis"`
@@ -871,19 +891,20 @@ brute_force_knn_query <- function(query,
 #'   - `"cosine-preprocess"`: `cosine` with preprocessing.
 #'   - `"correlation-preprocess"`: `correlation` with preprocessing.
 #'
-#'   For non-sparse binary data (numeric or integer matrix with 0s
-#'   and 1s only) the following metric variants are available which should be
-#'   substantially faster than the non-binary variants:
-#'   - `"bdice"`
-#'   - `"bhamming"`
-#'   - `"bjaccard"`
-#'   - `"bkulsinski"`
-#'   - `"bmatching"`
-#'   - `"brogerstanimoto"`
-#'   - `"brussellrao"`
-#'   - `"bsokalmichener"`
-#'   - `"bsokalsneath"`
-#'   - `"byule"`
+#'   For non-sparse binary data passed as a `logical` matrix, the following
+#'   metrics have specialized variants which should be substantially faster than
+#'   the non-binary variants (in other cases the logical data will be treated as
+#'   a dense numeric vector of 0s and 1s):
+#'   - `"dice"`
+#'   - `"hamming"`
+#'   - `"jaccard"`
+#'   - `"kulsinski"`
+#'   - `"matching"`
+#'   - `"rogerstanimoto"`
+#'   - `"russellrao"`
+#'   - `"sokalmichener"`
+#'   - `"sokalsneath"`
+#'   - `"yule"`
 #' @param use_alt_metric If `TRUE`, use faster metrics that maintain the
 #'   ordering of distances internally (e.g. squared Euclidean distances if using
 #'   `metric = "euclidean"`), then apply a correction at the end. Probably
@@ -986,15 +1007,18 @@ random_knn_query <-
 #'   efficient. The `reference` data must be passed in the same orientation as
 #'   `query`. Possible formats are [base::data.frame()], [base::matrix()]
 #'   or [Matrix::sparseMatrix()]. Sparse matrices should be in `dgCMatrix`
-#'   format.
+#'   format. Dataframes will be converted to `numerical` matrix format
+#'   internally, so if your data columns are `logical` and intended to be used
+#'   with the specialized binary `metric`s, you should convert it to a logical
+#'   matrix first (otherwise you will get the slower dense numerical version).
 #' @param reference Matrix of `m` reference items, with observations in the rows
 #'   and features in the columns. The nearest neighbors to the queries are
 #'   calculated from this data. Optionally, the data may be passed with the
 #'   observations in the columns, by setting `obs = "C"`, which should be more
-#'   efficient. The `query` data must be passed in the same orientation as
-#'   `reference`. Possible formats are [base::data.frame()], [base::matrix()]
-#'   or [Matrix::sparseMatrix()]. Sparse matrices should be in `dgCMatrix`
-#'   format.
+#'   efficient. The `query` data must be passed in the same format and
+#'   orientation as `reference`. Possible formats are [base::data.frame()],
+#'   [base::matrix()] or [Matrix::sparseMatrix()]. Sparse matrices should be in
+#'   `dgCMatrix` format.
 #' @param reference_graph Search graph of the `reference` data. A neighbor
 #'   graph, such as that output from [nnd_knn()] can be used, but
 #'   preferably a suitably prepared sparse search graph should be used, such as
@@ -1033,19 +1057,20 @@ random_knn_query <-
 #'   - `"cosine-preprocess"`: `cosine` with preprocessing.
 #'   - `"correlation-preprocess"`: `correlation` with preprocessing.
 #'
-#'   For non-sparse binary data (numeric or integer matrix with 0s
-#'   and 1s only) the following metric variants are available which should be
-#'   substantially faster than the non-binary variants:
-#'   - `"bdice"`
-#'   - `"bhamming"`
-#'   - `"bjaccard"`
-#'   - `"bkulsinski"`
-#'   - `"bmatching"`
-#'   - `"brogerstanimoto"`
-#'   - `"brussellrao"`
-#'   - `"bsokalmichener"`
-#'   - `"bsokalsneath"`
-#'   - `"byule"`
+#'   For non-sparse binary data passed as a `logical` matrix, the following
+#'   metrics have specialized variants which should be substantially faster than
+#'   the non-binary variants (in other cases the logical data will be treated as
+#'   a dense numeric vector of 0s and 1s):
+#'   - `"dice"`
+#'   - `"hamming"`
+#'   - `"jaccard"`
+#'   - `"kulsinski"`
+#'   - `"matching"`
+#'   - `"rogerstanimoto"`
+#'   - `"russellrao"`
+#'   - `"sokalmichener"`
+#'   - `"sokalsneath"`
+#'   - `"yule"`
 #' @param use_alt_metric If `TRUE`, use faster metrics that maintain the
 #'   ordering of distances internally (e.g. squared Euclidean distances if using
 #'   `metric = "euclidean"`), then apply a correction at the end. Probably the
@@ -1394,6 +1419,11 @@ graph_knn_query <- function(query,
 #'   columns, by setting `obs = "C"`, which should be more efficient. Possible
 #'   formats are [base::data.frame()], [base::matrix()] or
 #'   [Matrix::sparseMatrix()]. Sparse matrices should be in `dgCMatrix` format.
+#'   Dataframes will be converted to `numerical` matrix format internally, so if
+#'   your data columns are `logical` and intended to be used with the
+#'   specialized binary `metric`s, you should convert it to a logical matrix
+#'   first (otherwise you will get the slower dense numerical version).
+#' @param k Number of nearest neighbors to return.
 #' @param graph neighbor graph for `data`, a list containing:
 #'   * `idx` an `n` by `k` matrix containing the nearest neighbor indices of
 #'   the data in `data`.
@@ -1430,19 +1460,20 @@ graph_knn_query <- function(query,
 #'   - `"cosine-preprocess"`: `cosine` with preprocessing.
 #'   - `"correlation-preprocess"`: `correlation` with preprocessing.
 #'
-#'   For non-sparse binary data (numeric or integer matrix with 0s
-#'   and 1s only) the following metric variants are available which should be
-#'   substantially faster than the non-binary variants:
-#'   - `"bdice"`
-#'   - `"bhamming"`
-#'   - `"bjaccard"`
-#'   - `"bkulsinski"`
-#'   - `"bmatching"`
-#'   - `"brogerstanimoto"`
-#'   - `"brussellrao"`
-#'   - `"bsokalmichener"`
-#'   - `"bsokalsneath"`
-#'   - `"byule"`
+#'   For non-sparse binary data passed as a `logical` matrix, the following
+#'   metrics have specialized variants which should be substantially faster than
+#'   the non-binary variants (in other cases the logical data will be treated as
+#'   a dense numeric vector of 0s and 1s):
+#'   - `"dice"`
+#'   - `"hamming"`
+#'   - `"jaccard"`
+#'   - `"kulsinski"`
+#'   - `"matching"`
+#'   - `"rogerstanimoto"`
+#'   - `"russellrao"`
+#'   - `"sokalmichener"`
+#'   - `"sokalsneath"`
+#'   - `"yule"`
 #' @param diversify_prob the degree of diversification of the search graph
 #'   by removing unnecessary edges through occlusion pruning. This should take a
 #'   value between `0` (no diversification) and `1` (remove as many edges as

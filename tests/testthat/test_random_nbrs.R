@@ -96,11 +96,11 @@ check_query_nbrs(nn = qnbrs6, query = bit6, ref_range = 7:10, query_range = 1:6,
 
 
 set.seed(1337)
-qnbrs4 <- random_knn_query(reference = bit6, query = bit4, k = 4, metric = "bhamming")
+qnbrs4 <- random_knn_query(reference = lbit6, query = lbit4, k = 4, metric = "hamming")
 check_query_nbrs(nn = qnbrs4, query = bit4, ref_range = 1:6, query_range = 7:10, k = 4, expected_dist = bit10_hamd, tol = 1e-6)
 
 set.seed(1337)
-qnbrs6 <- random_knn_query(reference = bit4, query = bit6, k = 4, metric = "bhamming")
+qnbrs6 <- random_knn_query(reference = lbit4, query = lbit6, k = 4, metric = "hamming")
 check_query_nbrs(nn = qnbrs6, query = bit6, ref_range = 7:10, query_range = 1:6, k = 4, expected_dist = bit10_hamd, tol = 1e-6)
 
 test_that("column orientation", {
@@ -109,8 +109,8 @@ test_that("column orientation", {
   check_nbrs(rnbrs, ui10_eucd, tol = 1e-6)
 
   set.seed(1337)
-  qnbrs6 <- random_knn_query(reference = t(bit4), query = t(bit6), k = 4, metric = "bhamming", obs = "C")
-  check_query_nbrs(nn = qnbrs6, query = bit6, ref_range = 7:10, query_range = 1:6, k = 4, expected_dist = bit10_hamd, tol = 1e-6)
+  qnbrs6 <- random_knn_query(reference = t(lbit4), query = t(lbit6), k = 4, metric = "hamming", obs = "C")
+  check_query_nbrs(nn = qnbrs6, query = lbit6, ref_range = 7:10, query_range = 1:6, k = 4, expected_dist = bit10_hamd, tol = 1e-6)
 })
 
 test_that("one neighbor code path is ok", {

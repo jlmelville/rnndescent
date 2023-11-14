@@ -111,6 +111,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// is_binary_metric
+bool is_binary_metric(const std::string& metric);
+RcppExport SEXP _rnndescent_is_binary_metric(SEXP metricSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
+    rcpp_result_gen = Rcpp::wrap(is_binary_metric(metric));
+    return rcpp_result_gen;
+END_RCPP
+}
 // euclidean_distance
 float euclidean_distance(const NumericVector& x, const NumericVector& y);
 RcppExport SEXP _rnndescent_euclidean_distance(SEXP xSEXP, SEXP ySEXP) {
@@ -938,6 +949,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_rnndescent_rnn_brute_force_query", (DL_FUNC) &_rnndescent_rnn_brute_force_query, 6},
     {"_rnndescent_rnn_logical_brute_force_query", (DL_FUNC) &_rnndescent_rnn_logical_brute_force_query, 6},
     {"_rnndescent_rnn_sparse_brute_force_query", (DL_FUNC) &_rnndescent_rnn_sparse_brute_force_query, 11},
+    {"_rnndescent_is_binary_metric", (DL_FUNC) &_rnndescent_is_binary_metric, 1},
     {"_rnndescent_euclidean_distance", (DL_FUNC) &_rnndescent_euclidean_distance, 2},
     {"_rnndescent_squared_euclidean_distance", (DL_FUNC) &_rnndescent_squared_euclidean_distance, 2},
     {"_rnndescent_cosine_distance", (DL_FUNC) &_rnndescent_cosine_distance, 2},

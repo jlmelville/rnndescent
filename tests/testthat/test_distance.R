@@ -105,7 +105,7 @@ test_that("Cosine", {
 
 test_that("Dice", {
   bfdense <- brute_force_knn(bitdata, k = 4, metric = "dice")
-  bfbin <- brute_force_knn(bitdata, k = 4, metric = "bdice")
+  bfbin <- brute_force_knn(lbitdata, k = 4, metric = "dice")
 
   expect_equal(bfdense, bfbin)
 
@@ -147,7 +147,7 @@ test_that("Dot", {
 
 test_that("Hamming", {
   bfdense <- brute_force_knn(bitdata, k = 4, metric = "hamming")
-  bfbin <- brute_force_knn(bitdata, k = 4, metric = "bhamming")
+  bfbin <- brute_force_knn(lbitdata, k = 4, metric = "hamming")
   expect_equal(bfdense, bfbin)
 
   bfsparse <- brute_force_knn(bitdatasp, k = 4, metric = "hamming")
@@ -191,7 +191,7 @@ test_that("Jaccard", {
   expect_equal(j_unc, aj_raw$dist)
 
   expect_equal(brute_force_knn(bitdata, k = 4, metric = "jaccard", use_alt_metric = FALSE), jbf, tol = 1e-7)
-  expect_equal(jbf, brute_force_knn(bitdata, k = 4, metric = "bjaccard"), tol = 1e-7)
+  expect_equal(jbf, brute_force_knn(lbitdata, k = 4, metric = "jaccard"), tol = 1e-7)
 
   # check dense uncorrection
   set.seed(1337); dunc <- nnd_knn(bitdata, k = 4, metric = "jaccard", n_iters = 0,
@@ -221,7 +221,7 @@ test_that("Jensen-Shannon", {
 
 test_that("Matching", {
   bfdense <- brute_force_knn(bitdata, k = 4, metric = "matching")
-  bfbin <- brute_force_knn(bitdata, k = 4, metric = "bmatching")
+  bfbin <- brute_force_knn(lbitdata, k = 4, metric = "matching")
 
   expect_equal(bfdense, bfbin)
 
@@ -231,7 +231,7 @@ test_that("Matching", {
 
 test_that("Kulsinski", {
   bfdense <- brute_force_knn(bitdata, k = 4, metric = "kulsinski")
-  bfbin <- brute_force_knn(bitdata, k = 4, metric = "bkulsinski")
+  bfbin <- brute_force_knn(lbitdata, k = 4, metric = "kulsinski")
   expect_equal(bfdense, bfbin)
 
   bfsparse <- brute_force_knn(bitdatasp, k = 4, metric = "kulsinski")
@@ -240,7 +240,7 @@ test_that("Kulsinski", {
 
 test_that("Rogers-Tanimoto", {
   bfdense <- brute_force_knn(bitdata, k = 4, metric = "rogerstanimoto")
-  bfbin <- brute_force_knn(bitdata, k = 4, metric = "brogerstanimoto")
+  bfbin <- brute_force_knn(lbitdata, k = 4, metric = "rogerstanimoto")
 
   expect_equal(bfdense, bfbin)
 
@@ -250,7 +250,7 @@ test_that("Rogers-Tanimoto", {
 
 test_that("Russell-Rao", {
   bfdense <- brute_force_knn(bitdata, k = 4, metric = "russellrao")
-  bfbin <- brute_force_knn(bitdata, k = 4, metric = "brussellrao")
+  bfbin <- brute_force_knn(lbitdata, k = 4, metric = "russellrao")
 
   expect_equal(bfdense, bfbin)
 
@@ -260,7 +260,7 @@ test_that("Russell-Rao", {
 
 test_that("Sokal-Michener", {
   bfdense <- brute_force_knn(bitdata, k = 4, metric = "sokalmichener")
-  bfbin <- brute_force_knn(bitdata, k = 4, metric = "bsokalmichener")
+  bfbin <- brute_force_knn(lbitdata, k = 4, metric = "sokalmichener")
 
   expect_equal(bfdense, bfbin)
 
@@ -270,7 +270,7 @@ test_that("Sokal-Michener", {
 
 test_that("Sokal-Sneath", {
   bfdense <- brute_force_knn(bitdata, k = 4, metric = "sokalsneath")
-  bfbin <- brute_force_knn(bitdata, k = 4, metric = "bsokalsneath")
+  bfbin <- brute_force_knn(lbitdata, k = 4, metric = "sokalsneath")
 
   expect_equal(bfdense, bfbin)
 
@@ -323,7 +323,7 @@ test_that("TS-SS", {
 
 test_that("Yule", {
   bfdense <- brute_force_knn(bitdata, k = 4, metric = "yule")
-  bfbin <- brute_force_knn(bitdata, k = 4, metric = "byule")
+  bfbin <- brute_force_knn(lbitdata, k = 4, metric = "yule")
 
   expect_equal(bfdense, bfbin)
 
