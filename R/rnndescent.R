@@ -578,7 +578,9 @@ nnd_knn <- function(data,
     # FIXME: can we just turn off unzero in tree and random return?
     init$idx <- init$idx + 1
     if (any(init$idx == 0)) {
-      tsmessage("Warning: failed to find ",  k, " neighbors for all points")
+      tsmessage("Warning: initialization failed to find ",
+                k,
+                " neighbors for all points")
     }
   } else {
     # user-supplied input may need to be transformed to the actual metric
@@ -657,6 +659,11 @@ nnd_knn <- function(data,
   if (use_alt_metric) {
     res$dist <-
       apply_alt_metric_correction(metric, res$dist, is_sparse(data))
+  }
+  if (any(init$idx == 0)) {
+    tsmessage("Warning: NN Descent failed to find ",
+              k,
+              " neighbors for all points")
   }
   tsmessage("Finished")
   if (!is.null(forest)) {
