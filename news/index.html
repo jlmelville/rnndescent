@@ -45,7 +45,8 @@
 <h2 class="pkg-version" data-toc-text="0.0.14" id="rnndescent-0014">rnndescent 0.0.14<a class="anchor" aria-label="anchor" href="#rnndescent-0014"></a></h2>
 <div class="section level3">
 <h3 id="breaking-changes-0-0-14">Breaking Changes<a class="anchor" aria-label="anchor" href="#breaking-changes-0-0-14"></a></h3>
-<ul><li>
+<ul><li><p>The <code>bhamming</code> metric no longer exists as a specialized metric. Instead, if you pass a <code>logical</code> matrix to <code>data</code>, <code>reference</code> or <code>query</code> parameter (depending on the function) and specify <code>metric = "hamming"</code> you will automatically get the binary-specific version of the hamming metric.</p></li>
+<li>
 <p>The <code>hamming</code> and <code>bhamming</code> metrics are now normalized with respect to the number of features, to be consistent with the other binary-style metrics (and PyNNDescent). If you need the old distances, multiply the distance matrix by the number of columns, e.g. do something like:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
