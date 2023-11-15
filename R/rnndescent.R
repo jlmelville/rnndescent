@@ -616,7 +616,7 @@ nnd_knn <- function(data,
     max_candidates <- min(k, 60)
   }
   if (is.null(n_iters)) {
-    n_iters <- max(5, round(log2(nrow(data))))
+    n_iters <- max(5, round(log2(ncol(data))))
   }
   tsmessage(
     thread_msg(
