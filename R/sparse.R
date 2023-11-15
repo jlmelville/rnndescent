@@ -38,8 +38,7 @@ graph_to_sparse <- function(graph, repr, drop0 = FALSE, transpose = FALSE) {
   if (transpose) {
     i <- as.vector(idx)
     j <- rep(1:n_row, times = n_nbrs)
-  }
-  else {
+  } else {
     i <- rep(1:n_row, times = n_nbrs)
     j <- as.vector(idx)
   }

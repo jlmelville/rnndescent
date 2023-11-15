@@ -193,8 +193,10 @@ iris_nnd <- nnd_knn(iris, k = 4, init = iris_rp)
 # from an RP forest directly
 
 # for future querying you may want to also return the RP forest:
-iris_rpf <- rpf_knn(iris, k = 4, n_trees = 3, include_self = FALSE,
-                    ret_forest = TRUE)
+iris_rpf <- rpf_knn(iris,
+  k = 4, n_trees = 3, include_self = FALSE,
+  ret_forest = TRUE
+)
 # forest and nn data can be used to create a smaller forest for querying
 # filtered_forest <- rpf_filter(iris_rpf)
 }

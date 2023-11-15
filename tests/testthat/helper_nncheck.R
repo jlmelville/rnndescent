@@ -1,4 +1,3 @@
-
 # Graph Construction Helpers ----------------------------------------------
 
 # i should not appear in the "true" neighbors (i.e. it should be the first
@@ -27,8 +26,7 @@ check_nbrs_idx <- function(nnidx, check_order = TRUE) {
   for (i in 1:nr) {
     if (check_order) {
       check_nbri(nnidx, i)
-    }
-    else {
+    } else {
       check_nbri_unordered(nnidx, i)
     }
   }

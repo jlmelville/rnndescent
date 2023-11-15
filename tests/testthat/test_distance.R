@@ -15,7 +15,7 @@ test_that("Euclidean distance", {
       dmat[i, j] <- squared_euclidean_distance(ui10[i, ], ui10[j, ])
     }
   }
-  expect_equal(dmat, ui10_eucd ^ 2, check.attributes = FALSE, tol = 1e-6)
+  expect_equal(dmat, ui10_eucd^2, check.attributes = FALSE, tol = 1e-6)
 })
 
 test_that("Cosine distance", {
@@ -96,10 +96,16 @@ test_that("Cosine", {
   expect_equal(bfdense, bfsparse, tol = 1e-7)
 
   # check sparse uncorrection
-  set.seed(1337); spunc <- nnd_knn(bitdatasp, k = 4, metric = "cosine", n_iters = 0,
-                                   init = random_knn(bitdatasp, k = 4, metric = "cosine"))
-  set.seed(1337); spnoc <- nnd_knn(bitdatasp, k = 4, metric = "cosine", use_alt_metric = FALSE, n_iters = 0,
-                                   init = random_knn(bitdatasp, k = 4, metric = "cosine"))
+  set.seed(1337)
+  spunc <- nnd_knn(bitdatasp,
+    k = 4, metric = "cosine", n_iters = 0,
+    init = random_knn(bitdatasp, k = 4, metric = "cosine")
+  )
+  set.seed(1337)
+  spnoc <- nnd_knn(bitdatasp,
+    k = 4, metric = "cosine", use_alt_metric = FALSE, n_iters = 0,
+    init = random_knn(bitdatasp, k = 4, metric = "cosine")
+  )
   expect_equal(spunc, spnoc, tol = 1e-7)
 })
 
@@ -125,10 +131,16 @@ test_that("Dot", {
   expect_equal(brute_force_knn(bitdata, k = 4, metric = "dot", use_alt_metric = FALSE), bfdense, tol = 1e-7)
 
   # check dense uncorrection
-  set.seed(1337); dunc <- nnd_knn(bitdata, k = 4, metric = "dot", n_iters = 0,
-                                  init = random_knn(bitdatasp, k = 4, metric = "dot"))
-  set.seed(1337); dnoc <- nnd_knn(bitdata, k = 4, metric = "dot", use_alt_metric = FALSE, n_iters = 0,
-                                  init = random_knn(bitdatasp, k = 4, metric = "dot"))
+  set.seed(1337)
+  dunc <- nnd_knn(bitdata,
+    k = 4, metric = "dot", n_iters = 0,
+    init = random_knn(bitdatasp, k = 4, metric = "dot")
+  )
+  set.seed(1337)
+  dnoc <- nnd_knn(bitdata,
+    k = 4, metric = "dot", use_alt_metric = FALSE, n_iters = 0,
+    init = random_knn(bitdatasp, k = 4, metric = "dot")
+  )
   expect_equal(dunc, dnoc, tol = 1e-7)
 
   # sparse
@@ -138,10 +150,16 @@ test_that("Dot", {
   expect_equal(bfdense, bfsparsec, tol = 1e-6)
 
   # check sparse uncorrection
-  set.seed(1337); spunc <- nnd_knn(bitdatasp, k = 4, metric = "dot", n_iters = 0,
-                                   init = random_knn(bitdatasp, k = 4, metric = "dot"))
-  set.seed(1337); spnoc <- nnd_knn(bitdatasp, k = 4, metric = "dot", use_alt_metric = FALSE, n_iters = 0,
-                                   init = random_knn(bitdatasp, k = 4, metric = "dot"))
+  set.seed(1337)
+  spunc <- nnd_knn(bitdatasp,
+    k = 4, metric = "dot", n_iters = 0,
+    init = random_knn(bitdatasp, k = 4, metric = "dot")
+  )
+  set.seed(1337)
+  spnoc <- nnd_knn(bitdatasp,
+    k = 4, metric = "dot", use_alt_metric = FALSE, n_iters = 0,
+    init = random_knn(bitdatasp, k = 4, metric = "dot")
+  )
   expect_equal(spunc, spnoc, tol = 1e-7)
 })
 
@@ -162,10 +180,16 @@ test_that("Hellinger", {
   expect_equal(brute_force_knn(bitdata, k = 4, metric = "hellinger", use_alt_metric = FALSE), bfdense, tol = 1e-7)
 
   # check dense uncorrection
-  set.seed(1337); dunc <- nnd_knn(bitdata, k = 4, metric = "hellinger", n_iters = 0,
-                                  init = random_knn(bitdatasp, k = 4, metric = "hellinger"))
-  set.seed(1337); dnoc <- nnd_knn(bitdata, k = 4, metric = "hellinger", use_alt_metric = FALSE, n_iters = 0,
-                                  init = random_knn(bitdatasp, k = 4, metric = "hellinger"))
+  set.seed(1337)
+  dunc <- nnd_knn(bitdata,
+    k = 4, metric = "hellinger", n_iters = 0,
+    init = random_knn(bitdatasp, k = 4, metric = "hellinger")
+  )
+  set.seed(1337)
+  dnoc <- nnd_knn(bitdata,
+    k = 4, metric = "hellinger", use_alt_metric = FALSE, n_iters = 0,
+    init = random_knn(bitdatasp, k = 4, metric = "hellinger")
+  )
   expect_equal(dunc, dnoc, tol = 1e-7)
 
   # sparse
@@ -175,12 +199,17 @@ test_that("Hellinger", {
   expect_equal(bfdense, bfsparsec, tol = 1e-7)
 
   # check sparse uncorrection
-  set.seed(1337); spunc <- nnd_knn(bitdatasp, k = 4, metric = "hellinger", n_iters = 0,
-                                   init = random_knn(bitdatasp, k = 4, metric = "hellinger"))
-  set.seed(1337); spnoc <- nnd_knn(bitdatasp, k = 4, metric = "hellinger", use_alt_metric = FALSE, n_iters = 0,
-                                   init = random_knn(bitdatasp, k = 4, metric = "hellinger"))
+  set.seed(1337)
+  spunc <- nnd_knn(bitdatasp,
+    k = 4, metric = "hellinger", n_iters = 0,
+    init = random_knn(bitdatasp, k = 4, metric = "hellinger")
+  )
+  set.seed(1337)
+  spnoc <- nnd_knn(bitdatasp,
+    k = 4, metric = "hellinger", use_alt_metric = FALSE, n_iters = 0,
+    init = random_knn(bitdatasp, k = 4, metric = "hellinger")
+  )
   expect_equal(spunc, spnoc, tol = 1e-7)
-
 })
 
 test_that("Jaccard", {
@@ -194,10 +223,16 @@ test_that("Jaccard", {
   expect_equal(jbf, brute_force_knn(lbitdata, k = 4, metric = "jaccard"), tol = 1e-7)
 
   # check dense uncorrection
-  set.seed(1337); dunc <- nnd_knn(bitdata, k = 4, metric = "jaccard", n_iters = 0,
-                                  init = random_knn(bitdatasp, k = 4, metric = "jaccard"))
-  set.seed(1337); dnoc <- nnd_knn(bitdata, k = 4, metric = "jaccard", use_alt_metric = FALSE, n_iters = 0,
-                                  init = random_knn(bitdatasp, k = 4, metric = "jaccard"))
+  set.seed(1337)
+  dunc <- nnd_knn(bitdata,
+    k = 4, metric = "jaccard", n_iters = 0,
+    init = random_knn(bitdatasp, k = 4, metric = "jaccard")
+  )
+  set.seed(1337)
+  dnoc <- nnd_knn(bitdata,
+    k = 4, metric = "jaccard", use_alt_metric = FALSE, n_iters = 0,
+    init = random_knn(bitdatasp, k = 4, metric = "jaccard")
+  )
   expect_equal(dunc, dnoc, tol = 1e-7)
 
   # check sparse
@@ -205,10 +240,16 @@ test_that("Jaccard", {
   expect_equal(bfsparse, jbf, tol = 1e-7)
 
   # check sparse uncorrection
-  set.seed(1337); spunc <- nnd_knn(bitdatasp, k = 4, metric = "jaccard", n_iters = 0,
-                                  init = random_knn(bitdatasp, k = 4, metric = "jaccard"))
-  set.seed(1337); spnoc <- nnd_knn(bitdatasp, k = 4, metric = "jaccard", use_alt_metric = FALSE, n_iters = 0,
-                                  init = random_knn(bitdatasp, k = 4, metric = "jaccard"))
+  set.seed(1337)
+  spunc <- nnd_knn(bitdatasp,
+    k = 4, metric = "jaccard", n_iters = 0,
+    init = random_knn(bitdatasp, k = 4, metric = "jaccard")
+  )
+  set.seed(1337)
+  spnoc <- nnd_knn(bitdatasp,
+    k = 4, metric = "jaccard", use_alt_metric = FALSE, n_iters = 0,
+    init = random_knn(bitdatasp, k = 4, metric = "jaccard")
+  )
   expect_equal(spunc, spnoc, tol = 1e-7)
 })
 

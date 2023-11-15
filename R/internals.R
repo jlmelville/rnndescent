@@ -57,8 +57,7 @@ prepare_init_graph <-
         if (!augment_low_k) {
           stop("Not enough initial neighbors provided for k = ", k)
         }
-      }
-      else if (k < ncol(nn$dist)) {
+      } else if (k < ncol(nn$dist)) {
         nn$idx <- nn$idx[, 1:k, drop = FALSE]
       }
       # else k == ncol and we need do nothing
@@ -70,8 +69,7 @@ prepare_init_graph <-
         if (!augment_low_k) {
           stop("Not enough initial distances provided for k = ", k)
         }
-      }
-      else if (k < ncol(nn$dist)) {
+      } else if (k < ncol(nn$dist)) {
         nn$dist <- nn$dist[, 1:k, drop = FALSE]
       }
       # otherwise k == ncol and we need do nothing
@@ -95,8 +93,7 @@ prepare_init_graph <-
             n_threads = n_threads,
             verbose = verbose
           )
-        }
-        else if (is.logical(data)) {
+        } else if (is.logical(data)) {
           nn <-
             rnn_logical_idx_to_graph_query(
               reference = data,
@@ -106,8 +103,7 @@ prepare_init_graph <-
               n_threads = n_threads,
               verbose = verbose
             )
-        }
-        else {
+        } else {
           nn <-
             rnn_idx_to_graph_query(
               reference = data,
@@ -131,8 +127,7 @@ prepare_init_graph <-
               n_threads = n_threads,
               verbose = verbose
             )
-        }
-        else if (is.logical(data)) {
+        } else if (is.logical(data)) {
           nn <-
             rnn_logical_idx_to_graph_self(
               data = data,
@@ -141,8 +136,7 @@ prepare_init_graph <-
               n_threads = n_threads,
               verbose = verbose
             )
-        }
-        else {
+        } else {
           nn <-
             rnn_idx_to_graph_self(
               data = data,
@@ -181,8 +175,7 @@ find_margin_method <- function(margin, metric, data) {
   }
   if (is.logical(data) && is_binary_metric(metric)) {
     "implicit"
-  }
-  else {
+  } else {
     "explicit"
   }
 }
@@ -279,10 +272,9 @@ rpf_knn_impl <-
            n_threads = 0,
            verbose = FALSE,
            unzero = TRUE) {
-
     if (is.null(n_trees)) {
       # data is transposed at this point so n_obs is in the number of columns
-      n_trees <- 5 + as.integer(round(ncol(data) ^ 0.25))
+      n_trees <- 5 + as.integer(round(ncol(data)^0.25))
       n_trees <- min(32, n_trees)
     }
     if (is.null(leaf_size)) {
@@ -322,8 +314,7 @@ rpf_knn_impl <-
           n_threads = n_threads,
           verbose = verbose
         )
-      }
-      else if (is.logical(data)) {
+      } else if (is.logical(data)) {
         res <- rnn_logical_rp_tree_knn_implicit(
           data,
           k,
@@ -337,8 +328,7 @@ rpf_knn_impl <-
           n_threads = n_threads,
           verbose = verbose
         )
-      }
-      else {
+      } else {
         res <- rnn_rp_tree_knn_implicit(
           data,
           k,
@@ -353,8 +343,7 @@ rpf_knn_impl <-
           verbose = verbose
         )
       }
-    }
-    else {
+    } else {
       if (is_sparse(data)) {
         res <- rnn_sparse_rp_tree_knn_explicit(
           ind = data@i,
@@ -372,8 +361,7 @@ rpf_knn_impl <-
           n_threads = n_threads,
           verbose = verbose
         )
-      }
-      else {
+      } else {
         # no logical code path here: explicit margin doesn't lend itself
         # easily to the logical-specialized metrics so if you want to do that
         # you should use implicit margin
@@ -423,8 +411,7 @@ random_knn_impl <-
            order_by_distance,
            n_threads,
            verbose,
-           query = NULL
-           ) {
+           query = NULL) {
     if (is.null(query)) {
       msg <- "Generating random k-nearest neighbor graph with k = "
 
@@ -437,12 +424,10 @@ random_knn_impl <-
             ptr = reference@p,
             ndim = nrow(reference)
           )
-      }
-      else if (is.logical(reference)) {
+      } else if (is.logical(reference)) {
         fun <- rnn_logical_random_knn
         args <- list(data = reference)
-      }
-      else {
+      } else {
         fun <- rnn_random_knn
         args <- list(data = reference)
       }
@@ -462,12 +447,10 @@ random_knn_impl <-
             query_data = query@x,
             ndim = nrow(reference)
           )
-      }
-      else if (is.logical(reference)) {
+      } else if (is.logical(reference)) {
         fun <- rnn_logical_random_knn_query
         args <- list(reference = reference, query = query)
-      }
-      else {
+      } else {
         fun <- rnn_random_knn_query
         args <- list(reference = reference, query = query)
       }
@@ -484,8 +467,8 @@ random_knn_impl <-
       )
     )
     tsmessage(thread_msg(msg,
-                         k,
-                         n_threads = n_threads
+      k,
+      n_threads = n_threads
     ))
     res <- do.call(fun, args)
     res

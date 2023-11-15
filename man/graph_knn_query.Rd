@@ -196,7 +196,8 @@ forest <- rpf_filter(iris_ref_graph, n_trees = 1)
 iris_ref_search_graph <- prepare_search_graph(iris_ref, iris_ref_graph)
 # run the query with the improved graph and initialization
 iris_query_nn <- graph_knn_query(iris_query, iris_ref, iris_ref_search_graph,
-                                 init = forest, k = 4)
+  init = forest, k = 4
+)
 
 }
 \references{

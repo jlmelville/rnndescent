@@ -907,15 +907,15 @@ the locally scaled search graph without any backtracking:
 
 ```{r search with locally scaled search graph, no back-tracking}
 g1000dls_search0nnd <-
-    graph_knn_query(
-        query = g1000d,
-        reference = g1000d,
-        reference_graph = g1000dls_search_graph,
-        k = 15,
-        metric = "euclidean",
-        init = g1000d_nnd,
-        epsilon = 0
-    )
+  graph_knn_query(
+    query = g1000d,
+    reference = g1000d,
+    reference_graph = g1000dls_search_graph,
+    k = 15,
+    metric = "euclidean",
+    init = g1000d_nnd,
+    epsilon = 0
+  )
 nn_accuracy(g1000d_nnbf, g1000dls_search0nnd, k = 15)
 ```
 
@@ -939,15 +939,15 @@ can use for initialization:
 
 ```{r search with locally scaled search graph, no back-tracking, LS-initialized}
 g1000dls_search0 <-
-    graph_knn_query(
-        query = g1000d,
-        reference = g1000d,
-        reference_graph = g1000dls_search_graph,
-        k = 15,
-        metric = "euclidean",
-        init = g1000d_nnd65ls15,
-        epsilon = 0
-    )
+  graph_knn_query(
+    query = g1000d,
+    reference = g1000d,
+    reference_graph = g1000dls_search_graph,
+    k = 15,
+    metric = "euclidean",
+    init = g1000d_nnd65ls15,
+    epsilon = 0
+  )
 nn_accuracy(g1000d_nnbf, g1000dls_search0, k = 15)
 ```
 

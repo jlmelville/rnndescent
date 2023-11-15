@@ -140,7 +140,7 @@ expect_equal(sum(iris_nnd$dist), ui_edsum, tol = 1e-3)
 # initialize from existing knn graph with missing data
 set.seed(1337)
 iris_nbrs_missing <- iris_nbrs
-iris_nbrs_missing$idx[1,] <- rep(0, ncol(iris_nbrs_missing$idx))
+iris_nbrs_missing$idx[1, ] <- rep(0, ncol(iris_nbrs_missing$idx))
 iris_nbrs_missing$dist[1, ] <-
   rep(NA, ncol(iris_nbrs_missing$dist))
 iris_nnd <- nnd_knn(uirism, init = iris_nbrs_missing)
@@ -317,15 +317,20 @@ test_that("column oriented", {
 })
 
 test_that("sparse", {
-  set.seed(1337); dznbrs <- nnd_knn(ui10z, k = 4, n_threads = 0, metric = "euclidean")
-  set.seed(1337); spnbrs <- nnd_knn(ui10sp, k = 4, n_threads = 0, metric = "euclidean", use_alt_metric = TRUE)
+  set.seed(1337)
+  dznbrs <- nnd_knn(ui10z, k = 4, n_threads = 0, metric = "euclidean")
+  set.seed(1337)
+  spnbrs <- nnd_knn(ui10sp, k = 4, n_threads = 0, metric = "euclidean", use_alt_metric = TRUE)
   expect_equal(dznbrs, spnbrs)
-  set.seed(1337); spnbrs <- nnd_knn(ui10sp, k = 4, n_threads = 0, metric = "euclidean", use_alt_metric = FALSE)
+  set.seed(1337)
+  spnbrs <- nnd_knn(ui10sp, k = 4, n_threads = 0, metric = "euclidean", use_alt_metric = FALSE)
   expect_equal(dznbrs, spnbrs, tol = 1e-7)
 
   g6 <- brute_force_knn(ui10z6, k = 4)
-  set.seed(1337); dq4 <- graph_knn_query(reference = ui10z6, query = ui10z4, reference_graph = g6, k = 4)
-  set.seed(1337); sq4 <- graph_knn_query(reference = ui10sp6, query = ui10sp4, reference_graph = g6, k = 4)
+  set.seed(1337)
+  dq4 <- graph_knn_query(reference = ui10z6, query = ui10z4, reference_graph = g6, k = 4)
+  set.seed(1337)
+  sq4 <- graph_knn_query(reference = ui10sp6, query = ui10sp4, reference_graph = g6, k = 4)
   expect_equal(sq4, dq4)
 })
 
@@ -342,7 +347,8 @@ test_that("full workflow", {
   iris_ref_search_graph <- prepare_search_graph(iris_ref, iris_ref_graph)
   # run the query with the improved graph and initialization
   iris_query_nn <- graph_knn_query(iris_query, iris_ref, iris_ref_search_graph,
-                                   init = forest, k = 4, epsilon = 1.1)
+    init = forest, k = 4, epsilon = 1.1
+  )
 
   iris_qbf <- brute_force_knn_query(iris_query, iris_ref, k = 4)
 
@@ -351,7 +357,8 @@ test_that("full workflow", {
 
   # initializing from a forest means that the metric param is ignored
   iris_query_nnc <- graph_knn_query(iris_query, iris_ref, iris_ref_search_graph,
-                                   init = forest, k = 4, epsilon = 1.1,
-                                   metric = "cosine")
+    init = forest, k = 4, epsilon = 1.1,
+    metric = "cosine"
+  )
   expect_equal(iris_query_nn$dist, iris_qbf$dist)
 })

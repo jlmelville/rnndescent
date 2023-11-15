@@ -131,22 +131,22 @@ brute_force_knn <- function(data,
         n_threads = n_threads,
         verbose = verbose
       )
-  }
-  else if (is.logical(data)) {
+  } else if (is.logical(data)) {
     res <-
       rnn_logical_brute_force(data,
-                          k,
-                          actual_metric,
-                          n_threads = n_threads,
-                          verbose = verbose)
-  }
-  else {
+        k,
+        actual_metric,
+        n_threads = n_threads,
+        verbose = verbose
+      )
+  } else {
     res <-
       rnn_brute_force(data,
-                      k,
-                      actual_metric,
-                      n_threads = n_threads,
-                      verbose = verbose)
+        k,
+        actual_metric,
+        n_threads = n_threads,
+        verbose = verbose
+      )
   }
 
   res$idx <- res$idx + 1
@@ -298,7 +298,6 @@ random_knn <-
     }
     tsmessage("Finished")
     res
-
   }
 
 #' Find Nearest Neighbors and Distances
@@ -543,8 +542,7 @@ nnd_knn <- function(data,
     }
 
     tsmessage("Initializing neighbors using '", init, "' method")
-    init <- switch(
-      init,
+    init <- switch(init,
       "rand" = random_knn_impl(
         reference = data,
         k = k,
@@ -578,16 +576,20 @@ nnd_knn <- function(data,
     # FIXME: can we just turn off unzero in tree and random return?
     init$idx <- init$idx + 1
     if (any(init$idx == 0)) {
-      tsmessage("Warning: initialization failed to find ",
-                k,
-                " neighbors for all points")
+      tsmessage(
+        "Warning: initialization failed to find ",
+        k,
+        " neighbors for all points"
+      )
     }
   } else {
     # user-supplied input may need to be transformed to the actual metric
     if (use_alt_metric &&
-        !is.null(init) && is.list(init) && !is.null(init$dist)) {
-      tsmessage("Applying metric correction to initial distances from '",
-                metric, "' to '", actual_metric, "'")
+      !is.null(init) && is.list(init) && !is.null(init$dist)) {
+      tsmessage(
+        "Applying metric correction to initial distances from '",
+        metric, "' to '", actual_metric, "'"
+      )
       init$dist <-
         apply_alt_metric_uncorrection(metric, init$dist, is_sparse(data))
     }
@@ -645,12 +647,10 @@ nnd_knn <- function(data,
     nnd_args$ind <- data@i
     nnd_args$ptr <- data@p
     nnd_args$ndim <- nrow(data)
-  }
-  else if (is.logical(data)) {
+  } else if (is.logical(data)) {
     nnd_fun <- rnn_logical_descent
     nnd_args$data <- data
-  }
-  else {
+  } else {
     nnd_fun <- rnn_descent
     nnd_args$data <- data
   }
@@ -661,9 +661,11 @@ nnd_knn <- function(data,
       apply_alt_metric_correction(metric, res$dist, is_sparse(data))
   }
   if (any(init$idx == 0)) {
-    tsmessage("Warning: NN Descent failed to find ",
-              k,
-              " neighbors for all points")
+    tsmessage(
+      "Warning: NN Descent failed to find ",
+      k,
+      " neighbors for all points"
+    )
   }
   tsmessage("Finished")
   if (!is.null(forest)) {
@@ -825,22 +827,22 @@ brute_force_knn_query <- function(query,
       n_threads = n_threads,
       verbose = verbose
     )
-  }
-  else if (is.logical(reference)) {
+  } else if (is.logical(reference)) {
     res <- rnn_logical_brute_force_query(reference,
-                                 query,
-                                 k,
-                                 actual_metric,
-                                 n_threads = n_threads,
-                                 verbose = verbose)
-  }
-  else {
+      query,
+      k,
+      actual_metric,
+      n_threads = n_threads,
+      verbose = verbose
+    )
+  } else {
     res <- rnn_brute_force_query(reference,
-                                 query,
-                                 k,
-                                 actual_metric,
-                                 n_threads = n_threads,
-                                 verbose = verbose)
+      query,
+      k,
+      actual_metric,
+      n_threads = n_threads,
+      verbose = verbose
+    )
   }
   res$idx <- res$idx + 1
 
@@ -1165,7 +1167,8 @@ random_knn_query <-
 #' iris_ref_search_graph <- prepare_search_graph(iris_ref, iris_ref_graph)
 #' # run the query with the improved graph and initialization
 #' iris_query_nn <- graph_knn_query(iris_query, iris_ref, iris_ref_search_graph,
-#'                                  init = forest, k = 4)
+#'   init = forest, k = 4
+#' )
 #'
 #' @references
 #' Hajebi, K., Abbasi-Yadkori, Y., Shahbazi, H., & Zhang, H. (2011, June).
@@ -1210,12 +1213,10 @@ graph_knn_query <- function(query,
     use_alt_metric <- init$use_alt_metric
     if (use_alt_metric && metric != actual_metric) {
       tsmessage("Using alt metric '", actual_metric, "' for '", metric, "'")
-    }
-    else {
+    } else {
       tsmessage("Using metric '", metric, "'")
     }
-  }
-  else {
+  } else {
     actual_metric <-
       get_actual_metric(use_alt_metric, metric, reference, verbose)
   }
@@ -1243,22 +1244,22 @@ graph_knn_query <- function(query,
     )
     # FIXME: can we just do the unzeroing inside the init?
     init$idx <- init$idx + 1
-  }
-  else if (is.list(init) && is_rpforest(init)) {
-    init <- rpf_knn_query(query = query,
-                  reference = reference,
-                  forest = init,
-                  k = k,
-                  cache = TRUE,
-                  n_threads = n_threads,
-                  verbose = verbose,
-                  obs = "C")
+  } else if (is.list(init) && is_rpforest(init)) {
+    init <- rpf_knn_query(
+      query = query,
+      reference = reference,
+      forest = init,
+      k = k,
+      cache = TRUE,
+      n_threads = n_threads,
+      verbose = verbose,
+      obs = "C"
+    )
     if (use_alt_metric) {
       init$dist <-
         apply_alt_metric_uncorrection(metric, init$dist, is_sparse(reference))
     }
-  }
-  else if (is.list(init) && !is.null(init$idx)) {
+  } else if (is.list(init) && !is.null(init$idx)) {
     # user-supplied distances may need to be transformed to the actual metric
     if (use_alt_metric && !is.null(init$dist)) {
       init$dist <-
@@ -1269,8 +1270,7 @@ graph_knn_query <- function(query,
       k <- ncol(init$idx)
       tsmessage("Using k = ", k, " from initial graph")
     }
-  }
-  else {
+  } else {
     stop("Unsupported type of 'init'")
   }
 
@@ -1289,11 +1289,13 @@ graph_knn_query <- function(query,
     tsmessage("Warning: reference knn graph contains missing data")
   }
 
-  stopifnot(!is.null(query),
-            (
-              methods::is(query, "matrix") ||
-                methods::is(query, "sparseMatrix")
-            ))
+  stopifnot(
+    !is.null(query),
+    (
+      methods::is(query, "matrix") ||
+        methods::is(query, "sparseMatrix")
+    )
+  )
   stopifnot(
     !is.null(init$idx),
     methods::is(init$idx, "matrix"),
@@ -1349,8 +1351,7 @@ graph_knn_query <- function(query,
         n_threads = n_threads,
         verbose = verbose
       )
-  }
-  else if (is.logical(reference)) {
+  } else if (is.logical(reference)) {
     res <-
       rnn_logical_query(
         reference = reference,
@@ -1363,8 +1364,7 @@ graph_knn_query <- function(query,
         n_threads = n_threads,
         verbose = verbose
       )
-  }
-  else {
+  } else {
     res <-
       rnn_query(
         reference = reference,
@@ -1674,8 +1674,7 @@ diversify <- function(data,
       prune_probability = prune_probability,
       n_threads = n_threads
     )
-  }
-  else if (is.logical(data)) {
+  } else if (is.logical(data)) {
     gl_div <- rnn_logical_diversify(
       data = data,
       graph_list = gl,
@@ -1683,8 +1682,7 @@ diversify <- function(data,
       prune_probability = prune_probability,
       n_threads = n_threads
     )
-  }
-  else {
+  } else {
     gl_div <- rnn_diversify(
       data = data,
       graph_list = gl,

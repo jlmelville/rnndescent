@@ -55,8 +55,10 @@ iris_odd_filtered_forest <- rpf_filter(rfknn)
 iris_even <- iris[seq_len(nrow(iris)) \%\% 2 == 0, ]
 
 # search with the filtered forest
-iris_even_nn <- rpf_knn_query(query = iris_even, reference = iris_odd,
-                              forest = iris_odd_filtered_forest, k = 15)
+iris_even_nn <- rpf_knn_query(
+  query = iris_even, reference = iris_odd,
+  forest = iris_odd_filtered_forest, k = 15
+)
 }
 \seealso{
 \code{\link[=rpf_build]{rpf_build()}}

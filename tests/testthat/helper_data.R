@@ -153,7 +153,8 @@ bit10_hamd <- matrix(c(
 
 # for uirism[1:10, ]
 uirism10_cord <- matrix(
-  c(0, 0.00400133876, 2.60889537e-05, 0.00183154822, 0.0006526685,
+  c(
+    0, 0.00400133876, 2.60889537e-05, 0.00183154822, 0.0006526685,
     0.000413946853, 0.00118880691, 0.000461852891, 0.00192335771,
     0.00344803882, 0.00400133876, 0, 0.00339291433, 0.00260336976,
     0.00776732119, 0.00640810993, 0.00927944638, 0.00288194472, 0.00145365862,
@@ -175,7 +176,8 @@ uirism10_cord <- matrix(
     0.00478602797, 0.000593789371, 0, 0.000260225275, 0.00344803882,
     0.00096714455, 0.00301440442, 0.000693152364, 0.00623882524,
     0.00473942264, 0.0072727783, 0.00162634825, 0.000260225275, 0
-  ), nrow = 10
+  ),
+  nrow = 10
 )
 
 ui10_nn4 <- list(
@@ -192,8 +194,9 @@ ui10_nn4 <- list(
       9, 4, 8, 2,
       10, 6, 1, 3
     ),
-    byrow = TRUE, ncol = 4),
-  dist =matrix(
+    byrow = TRUE, ncol = 4
+  ),
+  dist = matrix(
     c(
       0, 0.3464, 0.6782, 0.7,
       0, 0.3, 0.4243, 0.4796,
@@ -206,7 +209,8 @@ ui10_nn4 <- list(
       0, 0.3464, 0.5831, 0.6164,
       0, 0.5831, 0.6782, 1.044
     ),
-    byrow = TRUE, ncol = 4)
+    byrow = TRUE, ncol = 4
+  )
 )
 
 # set.seed(1337)
@@ -226,7 +230,7 @@ rpf_index_ls4e <-
             0,
             -0.5,
             0,
-            0,-0.299999952316284,
+            0, -0.299999952316284,
             0,
             -0.100000023841858,
             0,
@@ -239,12 +243,18 @@ rpf_index_ls4e <-
           ),
           dim = 5:4
         ),
-        offsets = c(-7.62000131607056, NaN,
-                    4.53999948501587, NaN, NaN),
-        children = structure(c(1L, 0L, 3L,
-                               3L, 6L, 2L, 3L, 4L, 6L, 10L), dim = c(5L, 2L)),
-        indices = c(0L,
-                    5L, 9L, 3L, 7L, 8L, 1L, 2L, 4L, 6L),
+        offsets = c(
+          -7.62000131607056, NaN,
+          4.53999948501587, NaN, NaN
+        ),
+        children = structure(c(
+          1L, 0L, 3L,
+          3L, 6L, 2L, 3L, 4L, 6L, 10L
+        ), dim = c(5L, 2L)),
+        indices = c(
+          0L,
+          5L, 9L, 3L, 7L, 8L, 1L, 2L, 4L, 6L
+        ),
         leaf_size = 4
       ),
       list(
@@ -260,7 +270,7 @@ rpf_index_ls4e <-
             0,
             0,
             0,
-            0,-0.399999976158142,
+            0, -0.399999976158142,
             0,
             0,
             0,
@@ -272,12 +282,18 @@ rpf_index_ls4e <-
           ),
           dim = 5:4
         ),
-        offsets = c(-1.4850001335144,-6.96000003814697, NaN, NaN,
-                    NaN),
-        children = structure(c(1L, 2L, 0L, 3L, 6L, 4L, 3L,
-                               3L, 6L, 10L), dim = c(5L, 2L)),
-        indices = c(0L, 5L, 9L, 1L,
-                    2L, 6L, 3L, 4L, 7L, 8L),
+        offsets = c(
+          -1.4850001335144, -6.96000003814697, NaN, NaN,
+          NaN
+        ),
+        children = structure(c(
+          1L, 2L, 0L, 3L, 6L, 4L, 3L,
+          3L, 6L, 10L
+        ), dim = c(5L, 2L)),
+        indices = c(
+          0L, 5L, 9L, 1L,
+          2L, 6L, 3L, 4L, 7L, 8L
+        ),
         leaf_size = 4
       ),
       list(
@@ -315,7 +331,7 @@ rpf_index_ls4e <-
           dim = c(7L, 4L)
         ),
         offsets = c(
-          -3.02999901771545,-6.70499992370605,
+          -3.02999901771545, -6.70499992370605,
           NaN,
           -2.04000043869019,
           NaN,
@@ -325,8 +341,10 @@ rpf_index_ls4e <-
         children = structure(c(
           1L,
           2L, 0L, 4L, 3L, 7L, 8L, 6L, 3L, 3L, 5L, 7L, 8L, 10L
-        ), dim = c(7L,
-                   2L)),
+        ), dim = c(
+          7L,
+          2L
+        )),
         indices = c(0L, 5L, 9L, 2L, 4L, 6L, 7L, 1L, 3L, 8L),
         leaf_size = 4
       ),
@@ -356,12 +374,18 @@ rpf_index_ls4e <-
           ),
           dim = 5:4
         ),
-        offsets = c(-1.4850001335144, 5.10999965667725, NaN,
-                    NaN, NaN),
-        children = structure(c(1L, 2L, 0L, 3L, 6L,
-                               4L, 3L, 3L, 6L, 10L), dim = c(5L, 2L)),
-        indices = c(1L,
-                    2L, 6L, 0L, 5L, 9L, 3L, 4L, 7L, 8L),
+        offsets = c(
+          -1.4850001335144, 5.10999965667725, NaN,
+          NaN, NaN
+        ),
+        children = structure(c(
+          1L, 2L, 0L, 3L, 6L,
+          4L, 3L, 3L, 6L, 10L
+        ), dim = c(5L, 2L)),
+        indices = c(
+          1L,
+          2L, 6L, 0L, 5L, 9L, 3L, 4L, 7L, 8L
+        ),
         leaf_size = 4
       ),
       list(
@@ -411,8 +435,10 @@ rpf_index_ls4e <-
           1L, 0L, 3L, 1L, 5L, 5L, 7L, 2L,
           1L, 4L, 5L, 6L, 7L, 10L
         ), dim = c(7L, 2L)),
-        indices = c(8L,
-                    0L, 1L, 3L, 6L, 5L, 9L, 2L, 4L, 7L),
+        indices = c(
+          8L,
+          0L, 1L, 3L, 6L, 5L, 9L, 2L, 4L, 7L
+        ),
         leaf_size = 4
       ),
       list(
@@ -461,15 +487,17 @@ rpf_index_ls4e <-
         children = structure(c(
           1L,
           2L, 0L, 4L, 5L, 5L, 7L, 4L, 3L, 4L, 5L, 6L, 7L, 10L
-        ), dim = c(7L,
-                   2L)),
+        ), dim = c(
+          7L,
+          2L
+        )),
         indices = c(0L, 2L, 4L, 5L, 9L, 3L, 8L, 1L, 6L, 7L),
         leaf_size = 4
       ),
       list(
         hyperplanes = structure(
           c(
-            -0.200000286102295,-0.400000095367432,
+            -0.200000286102295, -0.400000095367432,
             0,
             0.599999904632568,
             0,
@@ -512,8 +540,10 @@ rpf_index_ls4e <-
           1L, 2L, 0L, 4L, 1L, 4L, 6L, 6L,
           3L, 1L, 5L, 4L, 6L, 10L
         ), dim = c(7L, 2L)),
-        indices = c(1L,
-                    0L, 5L, 9L, 2L, 6L, 3L, 4L, 7L, 8L),
+        indices = c(
+          1L,
+          0L, 5L, 9L, 2L, 6L, 3L, 4L, 7L, 8L
+        ),
         leaf_size = 4
       )
     ),
@@ -532,89 +562,129 @@ rpf_index_ls4i <-
   list(
     trees = list(
       list(
-        normal_indices = structure(c(9L,-1L,
-                                     3L,-1L,-1L, 4L,-1L, 2L,-1L,-1L), dim = c(5L, 2L)),
-        children = structure(c(1L,
-                               0L, 3L, 3L, 6L, 2L, 3L, 4L, 6L, 10L), dim = c(5L, 2L)),
-        indices = c(0L,
-                    5L, 9L, 3L, 7L, 8L, 1L, 2L, 4L, 6L),
+        normal_indices = structure(c(
+          9L, -1L,
+          3L, -1L, -1L, 4L, -1L, 2L, -1L, -1L
+        ), dim = c(5L, 2L)),
+        children = structure(c(
+          1L,
+          0L, 3L, 3L, 6L, 2L, 3L, 4L, 6L, 10L
+        ), dim = c(5L, 2L)),
+        indices = c(
+          0L,
+          5L, 9L, 3L, 7L, 8L, 1L, 2L, 4L, 6L
+        ),
         leaf_size = 4
       ),
       list(
-        normal_indices = structure(c(2L,
-                                     9L,-1L,-1L,-1L, 4L, 6L,-1L,-1L,-1L), dim = c(5L, 2L)),
-        children = structure(c(1L, 2L, 0L, 3L, 6L, 4L, 3L, 3L, 6L,
-                               10L), dim = c(5L, 2L)),
-        indices = c(0L, 5L, 9L, 1L, 2L, 6L,
-                    3L, 4L, 7L, 8L),
+        normal_indices = structure(c(
+          2L,
+          9L, -1L, -1L, -1L, 4L, 6L, -1L, -1L, -1L
+        ), dim = c(5L, 2L)),
+        children = structure(c(
+          1L, 2L, 0L, 3L, 6L, 4L, 3L, 3L, 6L,
+          10L
+        ), dim = c(5L, 2L)),
+        indices = c(
+          0L, 5L, 9L, 1L, 2L, 6L,
+          3L, 4L, 7L, 8L
+        ),
         leaf_size = 4
       ),
       list(
         normal_indices = structure(
-          c(1L,
-            0L,-1L, 2L,-1L,-1L,-1L, 8L, 7L,-1L, 1L,-1L,-1L,-1L),
-          dim = c(7L,
-                  2L)
+          c(
+            1L,
+            0L, -1L, 2L, -1L, -1L, -1L, 8L, 7L, -1L, 1L, -1L, -1L, -1L
+          ),
+          dim = c(
+            7L,
+            2L
+          )
         ),
         children = structure(c(
           1L, 2L, 0L, 4L, 3L, 7L, 8L, 6L,
           3L, 3L, 5L, 7L, 8L, 10L
         ), dim = c(7L, 2L)),
-        indices = c(0L, 5L,
-                    9L, 2L, 4L, 6L, 7L, 1L, 3L, 8L),
+        indices = c(
+          0L, 5L,
+          9L, 2L, 4L, 6L, 7L, 1L, 3L, 8L
+        ),
         leaf_size = 4
       ),
       list(
-        normal_indices = structure(c(2L,
-                                     6L,-1L,-1L,-1L, 4L, 0L,-1L,-1L,-1L), dim = c(5L, 2L)),
-        children = structure(c(1L, 2L, 0L, 3L, 6L, 4L, 3L, 3L, 6L,
-                               10L), dim = c(5L, 2L)),
-        indices = c(1L, 2L, 6L, 0L, 5L, 9L,
-                    3L, 4L, 7L, 8L),
+        normal_indices = structure(c(
+          2L,
+          6L, -1L, -1L, -1L, 4L, 0L, -1L, -1L, -1L
+        ), dim = c(5L, 2L)),
+        children = structure(c(
+          1L, 2L, 0L, 3L, 6L, 4L, 3L, 3L, 6L,
+          10L
+        ), dim = c(5L, 2L)),
+        indices = c(
+          1L, 2L, 6L, 0L, 5L, 9L,
+          3L, 4L, 7L, 8L
+        ),
         leaf_size = 4
       ),
       list(
         normal_indices = structure(
-          c(8L,-1L, 1L,-1L, 5L,-1L,-1L, 3L,-1L, 4L,-1L, 2L,-1L,-1L),
-          dim = c(7L,
-                  2L)
+          c(8L, -1L, 1L, -1L, 5L, -1L, -1L, 3L, -1L, 4L, -1L, 2L, -1L, -1L),
+          dim = c(
+            7L,
+            2L
+          )
         ),
         children = structure(c(
           1L, 0L, 3L, 1L, 5L, 5L, 7L, 2L,
           1L, 4L, 5L, 6L, 7L, 10L
         ), dim = c(7L, 2L)),
-        indices = c(8L, 0L,
-                    1L, 3L, 6L, 5L, 9L, 2L, 4L, 7L),
+        indices = c(
+          8L, 0L,
+          1L, 3L, 6L, 5L, 9L, 2L, 4L, 7L
+        ),
         leaf_size = 4
       ),
       list(
         normal_indices = structure(
-          c(2L,
-            5L,-1L,-1L, 8L,-1L,-1L, 6L, 9L,-1L,-1L, 7L,-1L,-1L),
-          dim = c(7L,
-                  2L)
+          c(
+            2L,
+            5L, -1L, -1L, 8L, -1L, -1L, 6L, 9L, -1L, -1L, 7L, -1L, -1L
+          ),
+          dim = c(
+            7L,
+            2L
+          )
         ),
         children = structure(c(
           1L, 2L, 0L, 4L, 5L, 5L, 7L, 4L,
           3L, 4L, 5L, 6L, 7L, 10L
         ), dim = c(7L, 2L)),
-        indices = c(0L, 2L,
-                    4L, 5L, 9L, 3L, 8L, 1L, 6L, 7L),
+        indices = c(
+          0L, 2L,
+          4L, 5L, 9L, 3L, 8L, 1L, 6L, 7L
+        ),
         leaf_size = 4
       ),
       list(
         normal_indices = structure(
-          c(1L,
-            1L,-1L, 0L,-1L,-1L,-1L, 7L, 2L,-1L, 6L,-1L,-1L,-1L),
-          dim = c(7L,
-                  2L)
+          c(
+            1L,
+            1L, -1L, 0L, -1L, -1L, -1L, 7L, 2L, -1L, 6L, -1L, -1L, -1L
+          ),
+          dim = c(
+            7L,
+            2L
+          )
         ),
         children = structure(c(
           1L, 2L, 0L, 4L, 1L, 4L, 6L, 6L,
           3L, 1L, 5L, 4L, 6L, 10L
         ), dim = c(7L, 2L)),
-        indices = c(1L, 0L,
-                    5L, 9L, 2L, 6L, 3L, 4L, 7L, 8L),
+        indices = c(
+          1L, 0L,
+          5L, 9L, 2L, 6L, 3L, 4L, 7L, 8L
+        ),
         leaf_size = 4
       )
     ),

@@ -146,8 +146,10 @@
 #' # from an RP forest directly
 #'
 #' # for future querying you may want to also return the RP forest:
-#' iris_rpf <- rpf_knn(iris, k = 4, n_trees = 3, include_self = FALSE,
-#'                     ret_forest = TRUE)
+#' iris_rpf <- rpf_knn(iris,
+#'   k = 4, n_trees = 3, include_self = FALSE,
+#'   ret_forest = TRUE
+#' )
 #' # forest and nn data can be used to create a smaller forest for querying
 #' # filtered_forest <- rpf_filter(iris_rpf)
 #' @references
@@ -173,9 +175,10 @@ rpf_knn <- function(data,
                     obs = "R") {
   obs <- match.arg(toupper(obs), c("C", "R"))
   n_obs <- switch(obs,
-                  R = nrow,
-                  C = ncol,
-                  stop("Unknown obs type"))
+    R = nrow,
+    C = ncol,
+    stop("Unknown obs type")
+  )
   data <- x2m(data)
   check_k(k, n_obs(data))
 
@@ -343,8 +346,10 @@ rpf_knn <- function(data,
 #' iris_odd_forest <- rpf_build(iris_odd, n_trees = 10)
 #'
 #' iris_even <- iris[seq_len(nrow(iris)) %% 2 == 0, ]
-#' iris_even_nn <- rpf_knn_query(query = iris_even, reference = iris_odd,
-#'                               forest = iris_odd_forest, k = 15)
+#' iris_even_nn <- rpf_knn_query(
+#'   query = iris_even, reference = iris_odd,
+#'   forest = iris_odd_forest, k = 15
+#' )
 #' @export
 rpf_build <- function(data,
                       metric = "euclidean",
@@ -358,12 +363,13 @@ rpf_build <- function(data,
                       obs = "R") {
   obs <- match.arg(toupper(obs), c("C", "R"))
   n_obs <- switch(obs,
-                  R = nrow,
-                  C = ncol,
-                  stop("Unknown obs type"))
+    R = nrow,
+    C = ncol,
+    stop("Unknown obs type")
+  )
 
   if (is.null(n_trees)) {
-    n_trees <- 5 + as.integer(round(nrow(data) ^ 0.25))
+    n_trees <- 5 + as.integer(round(nrow(data)^0.25))
     n_trees <- min(32, n_trees)
   }
 
@@ -402,8 +408,7 @@ rpf_build <- function(data,
         n_threads = n_threads,
         verbose = verbose
       )
-    }
-    else if (is.logical(data)) {
+    } else if (is.logical(data)) {
       forest <- rnn_logical_rp_forest_implicit_build(
         data,
         actual_metric,
@@ -413,8 +418,7 @@ rpf_build <- function(data,
         n_threads = n_threads,
         verbose = verbose
       )
-    }
-    else {
+    } else {
       forest <- rnn_rp_forest_implicit_build(
         data,
         actual_metric,
@@ -425,8 +429,7 @@ rpf_build <- function(data,
         verbose = verbose
       )
     }
-  }
-  else {
+  } else {
     # explicit margin
     if (is_sparse(data)) {
       forest <- rnn_sparse_rp_forest_build(
@@ -527,8 +530,10 @@ rpf_build <- function(data,
 #' iris_odd_forest <- rpf_build(iris_odd, n_trees = 10)
 #'
 #' iris_even <- iris[seq_len(nrow(iris)) %% 2 == 0, ]
-#' iris_even_nn <- rpf_knn_query(query = iris_even, reference = iris_odd,
-#'                               forest = iris_odd_forest, k = 15)
+#' iris_even_nn <- rpf_knn_query(
+#'   query = iris_even, reference = iris_odd,
+#'   forest = iris_odd_forest, k = 15
+#' )
 #' @export
 rpf_knn_query <- function(query,
                           reference,
@@ -540,9 +545,10 @@ rpf_knn_query <- function(query,
                           obs = "R") {
   obs <- match.arg(toupper(obs), c("C", "R"))
   n_obs <- switch(obs,
-                  R = nrow,
-                  C = ncol,
-                  stop("Unknown obs type"))
+    R = nrow,
+    C = ncol,
+    stop("Unknown obs type")
+  )
 
   check_sparse(reference, query)
 
@@ -569,8 +575,9 @@ rpf_knn_query <- function(query,
   }
 
   tsmessage(thread_msg("Querying rp forest for k = ",
-                       k, ifelse(cache, " with caching", ""),
-                       n_threads = n_threads))
+    k, ifelse(cache, " with caching", ""),
+    n_threads = n_threads
+  ))
 
   metric <- forest$actual_metric
   if (is_sparse(reference)) {
@@ -590,8 +597,7 @@ rpf_knn_query <- function(query,
         n_threads = n_threads,
         verbose = verbose
       )
-  }
-  else if (is.logical(reference)) {
+  } else if (is.logical(reference)) {
     res <-
       rnn_logical_rp_forest_search(
         reference = reference,
@@ -603,8 +609,7 @@ rpf_knn_query <- function(query,
         n_threads = n_threads,
         verbose = verbose
       )
-  }
-  else {
+  } else {
     res <-
       rnn_rp_forest_search(
         reference = reference,
@@ -668,8 +673,10 @@ rpf_knn_query <- function(query,
 #' iris_even <- iris[seq_len(nrow(iris)) %% 2 == 0, ]
 #'
 #' # search with the filtered forest
-#' iris_even_nn <- rpf_knn_query(query = iris_even, reference = iris_odd,
-#'                               forest = iris_odd_filtered_forest, k = 15)
+#' iris_even_nn <- rpf_knn_query(
+#'   query = iris_even, reference = iris_odd,
+#'   forest = iris_odd_filtered_forest, k = 15
+#' )
 #' @export
 rpf_filter <-
   function(nn,
@@ -689,7 +696,8 @@ rpf_filter <-
       stop("n_trees must be between 1 and ", n_unfiltered_trees)
     }
     tsmessage(thread_msg("Keeping ", n_trees, " best search trees",
-                         n_threads = n_threads))
+      n_threads = n_threads
+    ))
     filtered_forest <- rnn_score_forest(
       nn$idx,
       search_forest = forest,
@@ -699,10 +707,12 @@ rpf_filter <-
     )
 
     filtered_forest <-
-      set_forest_data(filtered_forest,
-                   forest$use_alt_metric,
-                   forest$original_metric,
-                   forest$sparse)
+      set_forest_data(
+        filtered_forest,
+        forest$use_alt_metric,
+        forest$original_metric,
+        forest$sparse
+      )
 
     filtered_forest
   }

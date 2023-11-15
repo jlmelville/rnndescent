@@ -148,11 +148,15 @@ test_that("sparse cosine", {
 })
 
 test_that("sparse query", {
-  set.seed(1337); sp6_4 <- random_knn_query(ui10sp6, ui10sp4, k = 4)
-  set.seed(1337); dz6_4 <- random_knn_query(ui10z6, ui10z4, k = 4)
+  set.seed(1337)
+  sp6_4 <- random_knn_query(ui10sp6, ui10sp4, k = 4)
+  set.seed(1337)
+  dz6_4 <- random_knn_query(ui10z6, ui10z4, k = 4)
   expect_equal(sp6_4, dz6_4)
 
-  set.seed(1337); sp4_6 <- random_knn_query(ui10sp4, ui10sp6, k = 4)
-  set.seed(1337); dz4_6 <- random_knn_query(ui10z4, ui10z6, k = 4)
+  set.seed(1337)
+  sp4_6 <- random_knn_query(ui10sp4, ui10sp6, k = 4)
+  set.seed(1337)
+  dz4_6 <- random_knn_query(ui10z4, ui10z6, k = 4)
   expect_equal(sp4_6, dz4_6)
 })

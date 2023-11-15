@@ -12,8 +12,10 @@ expect_equal(bit_rnn$dist, expected_hamm_dist, check.attributes = FALSE, tol = 1
 
 # high memory
 set.seed(1337)
-bit_rnn <- nnd_knn(lbitdata, 4, low_memory = FALSE, metric = "hamming",
-                   max_candidates = 10)
+bit_rnn <- nnd_knn(lbitdata, 4,
+  low_memory = FALSE, metric = "hamming",
+  max_candidates = 10
+)
 expect_equal(bit_rnn$idx, expected_hamm_idx, check.attributes = FALSE)
 expect_equal(bit_rnn$dist, expected_hamm_dist, check.attributes = FALSE, tol = 1e-7)
 

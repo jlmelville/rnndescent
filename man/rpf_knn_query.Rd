@@ -83,8 +83,10 @@ iris_odd <- iris[seq_len(nrow(iris)) \%\% 2 == 1, ]
 iris_odd_forest <- rpf_build(iris_odd, n_trees = 10)
 
 iris_even <- iris[seq_len(nrow(iris)) \%\% 2 == 0, ]
-iris_even_nn <- rpf_knn_query(query = iris_even, reference = iris_odd,
-                              forest = iris_odd_forest, k = 15)
+iris_even_nn <- rpf_knn_query(
+  query = iris_even, reference = iris_odd,
+  forest = iris_odd_forest, k = 15
+)
 }
 \references{
 Dasgupta, S., & Freund, Y. (2008, May).
