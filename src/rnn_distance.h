@@ -57,8 +57,6 @@ const std::unordered_map<std::string, DistanceFunc<In, Out>> &get_metric_map() {
           {"cosine", tdoann::cosine<Out, InIt>},
           {"alternative-cosine", tdoann::alternative_cosine<Out, InIt>},
           {"dice", tdoann::dice<Out, InIt>},
-          {"dot", tdoann::dot<Out, InIt>},
-          {"alternative-dot", tdoann::alternative_dot<Out, InIt>},
           {"euclidean", tdoann::euclidean<Out, InIt>},
           {"hamming", tdoann::hamming<Out, InIt>},
           {"hellinger", tdoann::hellinger<Out, InIt>},
@@ -112,8 +110,6 @@ get_sparse_metric_map() {
           {"cosine", tdoann::sparse_cosine<Out, InIt>},
           {"alternative-cosine", tdoann::sparse_alternative_cosine<Out, InIt>},
           {"dice", tdoann::sparse_dice<Out, InIt>},
-          {"dot", tdoann::sparse_dot<Out, InIt>},
-          {"alternative-dot", tdoann::sparse_alternative_dot<Out, InIt>},
           {"euclidean", tdoann::sparse_euclidean<Out, InIt>},
           {"hamming", tdoann::sparse_hamming<Out, InIt>},
           {"jaccard", tdoann::sparse_jaccard<Out, InIt>},
@@ -201,6 +197,16 @@ create_query_distance_impl(
         std::move(ref_vec), std::move(query_vec), ndim,
         tdoann::inner_product<Out, InIt>,
         tdoann::mean_center_and_normalize<In>);
+  }
+  if (metric == "dot") {
+    return std::make_unique<tdoann::QueryDistanceCalculator<In, Out, Idx>>(
+        std::move(ref_vec), std::move(query_vec), ndim, tdoann::dot<Out, InIt>,
+        tdoann::normalize<In>);
+  }
+  if (metric == "alternative-dot") {
+    return std::make_unique<tdoann::QueryDistanceCalculator<In, Out, Idx>>(
+        std::move(ref_vec), std::move(query_vec), ndim,
+        tdoann::alternative_dot<Out, InIt>, tdoann::normalize<In>);
   }
   Rcpp::stop("Bad metric");
 }
@@ -310,6 +316,16 @@ create_self_distance_impl(
         std::move(data_vec), ndim, tdoann::inner_product<Out, InIt>,
         tdoann::mean_center_and_normalize<In>);
   }
+  if (metric == "dot") {
+    return std::make_unique<tdoann::SelfDistanceCalculator<In, Out, Idx>>(
+        std::move(data_vec), ndim, tdoann::dot<Out, InIt>,
+        tdoann::normalize<In>);
+  }
+  if (metric == "alternative-dot") {
+    return std::make_unique<tdoann::SelfDistanceCalculator<In, Out, Idx>>(
+        std::move(data_vec), ndim, tdoann::alternative_dot<Out, InIt>,
+        tdoann::normalize<In>);
+  }
   Rcpp::stop("Bad metric");
 }
 
@@ -401,6 +417,22 @@ create_sparse_query_distance_impl(
         it->second);
   }
 
+  using InIt = DataIt<In>;
+  if (metric == "dot") {
+    return std::make_unique<
+        tdoann::SparseQueryDistanceCalculator<In, Out, Idx>>(
+        std::move(ref_ind), std::move(ref_ptr), std::move(ref_data),
+        std::move(query_ind), std::move(query_ptr), std::move(query_data), ndim,
+        tdoann::sparse_dot<Out, InIt>, tdoann::sparse_normalize<In>);
+  }
+  if (metric == "alternative-dot") {
+    return std::make_unique<
+        tdoann::SparseQueryDistanceCalculator<In, Out, Idx>>(
+        std::move(ref_ind), std::move(ref_ptr), std::move(ref_data),
+        std::move(query_ind), std::move(query_ptr), std::move(query_data), ndim,
+        tdoann::sparse_alternative_dot<Out, InIt>,
+        tdoann::sparse_normalize<In>);
+  }
   Rcpp::stop("Bad metric");
 }
 
@@ -480,6 +512,18 @@ create_sparse_self_distance_impl(
         it->second);
   }
 
+  using InIt = DataIt<In>;
+  if (metric == "dot") {
+    return std::make_unique<tdoann::SparseSelfDistanceCalculator<In, Out, Idx>>(
+        std::move(ind_vec), std::move(ptr_vec), std::move(data_vec), ndim,
+        tdoann::sparse_dot<Out, InIt>, tdoann::sparse_normalize<In>);
+  }
+  if (metric == "alternative-dot") {
+    return std::make_unique<tdoann::SparseSelfDistanceCalculator<In, Out, Idx>>(
+        std::move(ind_vec), std::move(ptr_vec), std::move(data_vec), ndim,
+        tdoann::sparse_alternative_dot<Out, InIt>,
+        tdoann::sparse_normalize<In>);
+  }
   Rcpp::stop("Bad metric");
 }
 

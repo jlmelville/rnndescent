@@ -1361,6 +1361,26 @@ Out sparse_symmetric_kl_divergence(
                                       dense_data2.begin());
 }
 
+template <typename In>
+void sparse_normalize(const std::vector<std::size_t> &ind,
+                      const std::vector<std::size_t> &ptr,
+                      std::vector<In> &data, std::size_t ndim) {
+
+  constexpr double MIN_NORM = 1e-30;
+
+  for (std::size_t i = 0; i < ptr.size() - 1; ++i) {
+    auto data_start = data.begin() + ptr[i];
+    auto data_end = data.begin() + ptr[i + 1];
+
+    double norm =
+        std::sqrt(std::inner_product(data_start, data_end, data_start, 0.0)) +
+        MIN_NORM;
+
+    std::transform(data_start, data_end, data_start,
+                   [norm](In val) { return val / norm; });
+  }
+}
+
 template <typename In, typename Out, typename Idx = uint32_t>
 class SparseVectorDistance : public BaseDistance<Out, Idx> {
 public:
@@ -1391,13 +1411,21 @@ public:
   using DataIt = typename std::vector<In>::const_iterator;
   using DistanceFunc = Out (*)(SizeIt, std::size_t, DataIt, SizeIt, std::size_t,
                                DataIt, std::size_t);
+  using PreprocessFunc = void (*)(const std::vector<std::size_t> &,
+                                  const std::vector<std::size_t> &,
+                                  std::vector<In> &, std::size_t);
 
   SparseSelfDistanceCalculator(std::vector<std::size_t> &&ind,
                                std::vector<std::size_t> &&ptr,
                                std::vector<In> &&data, std::size_t ndim,
-                               DistanceFunc distance_func)
+                               DistanceFunc distance_func,
+                               PreprocessFunc preprocess_func = nullptr)
       : x_ind(std::move(ind)), x_ptr(std::move(ptr)), x_data(std::move(data)),
-        nx(x_ptr.size() - 1), ndim(ndim), distance_func(distance_func) {}
+        nx(x_ptr.size() - 1), ndim(ndim), distance_func(distance_func) {
+    if (preprocess_func) {
+      preprocess_func(x_ind, x_ptr, x_data, ndim);
+    }
+  }
 
   virtual ~SparseSelfDistanceCalculator() = default;
 
@@ -1441,19 +1469,27 @@ public:
   using DataIt = typename std::vector<In>::const_iterator;
   using DistanceFunc = Out (*)(SizeIt, std::size_t, DataIt, SizeIt, std::size_t,
                                DataIt, std::size_t);
-
+  using PreprocessFunc = void (*)(const std::vector<std::size_t> &,
+                                  const std::vector<std::size_t> &,
+                                  std::vector<In> &, std::size_t);
   SparseQueryDistanceCalculator(std::vector<std::size_t> &&x_ind,
                                 std::vector<std::size_t> &&x_ptr,
                                 std::vector<In> &&x_data,
                                 std::vector<std::size_t> &&y_ind,
                                 std::vector<std::size_t> &&y_ptr,
                                 std::vector<In> &&y_data, std::size_t ndim,
-                                DistanceFunc distance_func)
+                                DistanceFunc distance_func,
+                                PreprocessFunc preprocess_func = nullptr)
       : x_ind(std::move(x_ind)), x_ptr(std::move(x_ptr)),
         x_data(std::move(x_data)), nx(this->x_ptr.size() - 1),
         y_ind(std::move(y_ind)), y_ptr(std::move(y_ptr)),
         y_data(std::move(y_data)), ny(this->y_ptr.size() - 1), ndim(ndim),
-        distance_func(distance_func) {}
+        distance_func(distance_func) {
+    if (preprocess_func) {
+      preprocess_func(x_ind, x_ptr, x_data, ndim);
+      preprocess_func(y_ind, y_ptr, y_data, ndim);
+    }
+  }
 
   virtual ~SparseQueryDistanceCalculator() = default;
 

@@ -116,7 +116,7 @@ test_that("Dice", {
 test_that("Dot", {
   bfdense <- brute_force_knn(ui10z, k = 4, metric = "dot")
   bfsparse <- brute_force_knn(ui10sp, k = 4, metric = "dot")
-  expect_equal(bfdense, bfsparse, tol = 1e-6)
+  expect_equal(bfdense, bfsparse, tol = 1e-5)
 
   bfdense <- brute_force_knn(bitdata, k = 4, metric = "dot")
   araw <- brute_force_knn(bitdata, k = 4, metric = "alternative-dot")
@@ -135,7 +135,7 @@ test_that("Dot", {
   bfsparse <- brute_force_knn(bitdatasp, k = 4, metric = "dot", use_alt_metric = FALSE)
   expect_equal(bfdense, bfsparse, tol = 1e-7)
   bfsparsec <- brute_force_knn(bitdatasp, k = 4, metric = "dot")
-  expect_equal(bfdense, bfsparsec, tol = 1e-7)
+  expect_equal(bfdense, bfsparsec, tol = 1e-6)
 
   # check sparse uncorrection
   set.seed(1337); spunc <- nnd_knn(bitdatasp, k = 4, metric = "dot", n_iters = 0,
