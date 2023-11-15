@@ -263,8 +263,10 @@ In <em>Proceedings of the fortieth annual ACM symposium on Theory of computing</
 <span class="r-in"><span><span class="co"># from an RP forest directly</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># for future querying you may want to also return the RP forest:</span></span></span>
-<span class="r-in"><span><span class="va">iris_rpf</span> <span class="op">&lt;-</span> <span class="fu">rpf_knn</span><span class="op">(</span><span class="va">iris</span>, k <span class="op">=</span> <span class="fl">4</span>, n_trees <span class="op">=</span> <span class="fl">3</span>, include_self <span class="op">=</span> <span class="cn">FALSE</span>,</span></span>
-<span class="r-in"><span>                    ret_forest <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">iris_rpf</span> <span class="op">&lt;-</span> <span class="fu">rpf_knn</span><span class="op">(</span><span class="va">iris</span>,</span></span>
+<span class="r-in"><span>  k <span class="op">=</span> <span class="fl">4</span>, n_trees <span class="op">=</span> <span class="fl">3</span>, include_self <span class="op">=</span> <span class="cn">FALSE</span>,</span></span>
+<span class="r-in"><span>  ret_forest <span class="op">=</span> <span class="cn">TRUE</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="co"># forest and nn data can be used to create a smaller forest for querying</span></span></span>
 <span class="r-in"><span><span class="co"># filtered_forest &lt;- rpf_filter(iris_rpf)</span></span></span>
 </code></pre></div>
