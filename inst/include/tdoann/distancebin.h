@@ -242,7 +242,6 @@ Out byule(const BitVec &x, Idx i, const BitVec &y, Idx j, std::size_t len,
     num_false_true += (~xi & yj).count();
   }
 
-  // Calculate num_false_false
   num_false_false = ndim - num_true_true - num_true_false - num_false_true;
 
   if (num_true_false == 0 || num_false_true == 0) {
@@ -255,17 +254,20 @@ Out byule(const BitVec &x, Idx i, const BitVec &y, Idx j, std::size_t len,
 }
 
 template <typename Out, typename Idx>
+using BinaryDistanceFunc = Out (*)(const BitVec &, Idx, const BitVec &, Idx,
+                                   std::size_t, std::size_t);
+
+template <typename Out, typename Idx>
 class BinarySelfDistanceCalculator : public BaseDistance<Out, Idx> {
 public:
-  using DistanceFunc = Out (*)(const BitVec &, Idx, const BitVec &, Idx,
-                               std::size_t, std::size_t);
-
   template <typename VecIn>
   BinarySelfDistanceCalculator(VecIn &&data, std::size_t ndim,
-                               DistanceFunc distance)
+                               BinaryDistanceFunc<Out, Idx> distance)
       : vec_len(num_blocks_needed(ndim)), nx(data.size() / ndim),
         bdata(to_bitvec(std::forward<VecIn>(data), ndim)),
         distance_func(distance), ndim(ndim) {}
+
+  virtual ~BinarySelfDistanceCalculator() = default;
 
   std::size_t get_nx() const override { return nx; }
   std::size_t get_ny() const override { return nx; }
@@ -279,23 +281,22 @@ protected:
   std::size_t vec_len;
   std::size_t nx;
   BitVec bdata;
-  DistanceFunc distance_func;
+  BinaryDistanceFunc<Out, Idx> distance_func;
   std::size_t ndim;
 };
 
 template <typename Out, typename Idx>
 class BinaryQueryDistanceCalculator : public BaseDistance<Out, Idx> {
 public:
-  using DistanceFunc = Out (*)(const BitVec &, Idx, const BitVec &, Idx,
-                               std::size_t, std::size_t);
-
   template <typename VecIn>
   BinaryQueryDistanceCalculator(VecIn &&x, VecIn &&y, std::size_t ndim,
-                                DistanceFunc distance)
+                                BinaryDistanceFunc<Out, Idx> distance)
       : vec_len(num_blocks_needed(ndim)), nx(x.size() / ndim),
         ny(y.size() / ndim), bx(to_bitvec(std::forward<VecIn>(x), ndim)),
         by(to_bitvec(std::forward<VecIn>(y), ndim)), distance_func(distance),
         ndim(ndim) {}
+
+  virtual ~BinaryQueryDistanceCalculator() = default;
 
   std::size_t get_nx() const override { return nx; }
   std::size_t get_ny() const override { return ny; }
@@ -310,7 +311,7 @@ protected:
   std::size_t ny;
   BitVec bx;
   BitVec by;
-  DistanceFunc distance_func;
+  BinaryDistanceFunc<Out, Idx> distance_func;
   std::size_t ndim;
 };
 

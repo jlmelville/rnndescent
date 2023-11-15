@@ -1404,22 +1404,23 @@ struct DistanceTraits<std::unique_ptr<SparseVectorDistance<In, Out, Idx>>> {
   using Index = Idx;
 };
 
+using SizeIt = typename std::vector<std::size_t>::const_iterator;
+template <typename In, typename Out>
+using SparseDistanceFunc = Out (*)(SizeIt, std::size_t, DataIt<In>, SizeIt,
+                                   std::size_t, DataIt<In>, std::size_t);
+template <typename In>
+using SparsePreprocessFunc = void (*)(const std::vector<std::size_t> &,
+                                      const std::vector<std::size_t> &,
+                                      std::vector<In> &, std::size_t);
+
 template <typename In, typename Out, typename Idx>
 class SparseSelfDistanceCalculator : public SparseVectorDistance<In, Out, Idx> {
 public:
-  using SizeIt = typename std::vector<std::size_t>::const_iterator;
-  using DataIt = typename std::vector<In>::const_iterator;
-  using DistanceFunc = Out (*)(SizeIt, std::size_t, DataIt, SizeIt, std::size_t,
-                               DataIt, std::size_t);
-  using PreprocessFunc = void (*)(const std::vector<std::size_t> &,
-                                  const std::vector<std::size_t> &,
-                                  std::vector<In> &, std::size_t);
-
-  SparseSelfDistanceCalculator(std::vector<std::size_t> &&ind,
-                               std::vector<std::size_t> &&ptr,
-                               std::vector<In> &&data, std::size_t ndim,
-                               DistanceFunc distance_func,
-                               PreprocessFunc preprocess_func = nullptr)
+  SparseSelfDistanceCalculator(
+      std::vector<std::size_t> &&ind, std::vector<std::size_t> &&ptr,
+      std::vector<In> &&data, std::size_t ndim,
+      SparseDistanceFunc<In, Out> distance_func,
+      SparsePreprocessFunc<In> preprocess_func = nullptr)
       : x_ind(std::move(ind)), x_ptr(std::move(ptr)), x_data(std::move(data)),
         nx(x_ptr.size() - 1), ndim(ndim), distance_func(distance_func) {
     if (preprocess_func) {
@@ -1429,7 +1430,7 @@ public:
 
   virtual ~SparseSelfDistanceCalculator() = default;
 
-  std::tuple<SizeIt, std::size_t, DataIt> get_x(Idx i) const override {
+  std::tuple<SizeIt, std::size_t, DataIt<In>> get_x(Idx i) const override {
     auto ind_start = x_ind.cbegin() + x_ptr[i];
     auto ind_end = x_ind.cbegin() + x_ptr[i + 1];
     auto data_start = x_data.cbegin() + x_ptr[i];
@@ -1438,7 +1439,7 @@ public:
     return std::make_tuple(ind_start, ind_size, data_start);
   }
 
-  std::tuple<SizeIt, std::size_t, DataIt> get_y(Idx i) const override {
+  std::tuple<SizeIt, std::size_t, DataIt<In>> get_y(Idx i) const override {
     return get_x(i);
   }
 
@@ -1458,28 +1459,19 @@ public:
   std::vector<In> x_data;
   std::size_t nx;
   std::size_t ndim;
-  DistanceFunc distance_func;
+  SparseDistanceFunc<In, Out> distance_func;
 };
 
 template <typename In, typename Out, typename Idx>
 class SparseQueryDistanceCalculator
     : public SparseVectorDistance<In, Out, Idx> {
 public:
-  using SizeIt = typename std::vector<std::size_t>::const_iterator;
-  using DataIt = typename std::vector<In>::const_iterator;
-  using DistanceFunc = Out (*)(SizeIt, std::size_t, DataIt, SizeIt, std::size_t,
-                               DataIt, std::size_t);
-  using PreprocessFunc = void (*)(const std::vector<std::size_t> &,
-                                  const std::vector<std::size_t> &,
-                                  std::vector<In> &, std::size_t);
-  SparseQueryDistanceCalculator(std::vector<std::size_t> &&x_ind,
-                                std::vector<std::size_t> &&x_ptr,
-                                std::vector<In> &&x_data,
-                                std::vector<std::size_t> &&y_ind,
-                                std::vector<std::size_t> &&y_ptr,
-                                std::vector<In> &&y_data, std::size_t ndim,
-                                DistanceFunc distance_func,
-                                PreprocessFunc preprocess_func = nullptr)
+  SparseQueryDistanceCalculator(
+      std::vector<std::size_t> &&x_ind, std::vector<std::size_t> &&x_ptr,
+      std::vector<In> &&x_data, std::vector<std::size_t> &&y_ind,
+      std::vector<std::size_t> &&y_ptr, std::vector<In> &&y_data,
+      std::size_t ndim, SparseDistanceFunc<In, Out> distance_func,
+      SparsePreprocessFunc<In> preprocess_func = nullptr)
       : x_ind(std::move(x_ind)), x_ptr(std::move(x_ptr)),
         x_data(std::move(x_data)), nx(this->x_ptr.size() - 1),
         y_ind(std::move(y_ind)), y_ptr(std::move(y_ptr)),
@@ -1493,7 +1485,7 @@ public:
 
   virtual ~SparseQueryDistanceCalculator() = default;
 
-  std::tuple<SizeIt, std::size_t, DataIt> get_x(Idx i) const override {
+  std::tuple<SizeIt, std::size_t, DataIt<In>> get_x(Idx i) const override {
     auto ind_start = x_ind.cbegin() + x_ptr[i];
     auto ind_end = x_ind.cbegin() + x_ptr[i + 1];
     auto data_start = x_data.cbegin() + x_ptr[i];
@@ -1502,7 +1494,7 @@ public:
     return std::make_tuple(ind_start, ind_size, data_start);
   }
 
-  std::tuple<SizeIt, std::size_t, DataIt> get_y(Idx i) const override {
+  std::tuple<SizeIt, std::size_t, DataIt<In>> get_y(Idx i) const override {
     auto ind_start = y_ind.cbegin() + y_ptr[i];
     auto ind_end = y_ind.cbegin() + y_ptr[i + 1];
     auto data_start = y_data.cbegin() + y_ptr[i];
@@ -1533,7 +1525,7 @@ public:
 
   std::size_t ndim;
 
-  DistanceFunc distance_func;
+  SparseDistanceFunc<In, Out> distance_func;
 };
 
 } // namespace tdoann

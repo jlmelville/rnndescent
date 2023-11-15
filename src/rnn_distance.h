@@ -32,30 +32,24 @@
 
 #include "rnn_util.h"
 
-template <typename In> using DataIt = typename std::vector<In>::const_iterator;
-using SizeIt = typename std::vector<std::size_t>::const_iterator;
+bool is_binary_metric(const std::string &metric);
 
 template <typename In, typename Out>
-using DistanceFunc = Out (*)(DataIt<In>, DataIt<In>, DataIt<In>);
-template <typename Out, typename Idx>
-using BinaryDistanceFunc = Out (*)(const tdoann::BitVec &, Idx,
-                                   const tdoann::BitVec &, Idx, std::size_t,
-                                   std::size_t);
-template <typename In, typename Out>
-using SparseDistanceFunc = Out (*)(SizeIt, std::size_t, DataIt<In>, SizeIt,
-                                   std::size_t, DataIt<In>, std::size_t);
-
-template <typename In, typename Out>
-const std::unordered_map<std::string, DistanceFunc<In, Out>> &get_metric_map() {
-  using InIt = DataIt<In>;
-  static const std::unordered_map<std::string, DistanceFunc<In, Out>>
+const std::unordered_map<std::string, tdoann::DistanceFunc<In, Out>> &
+get_metric_map() {
+  using InIt = tdoann::DataIt<In>;
+  static const std::unordered_map<std::string, tdoann::DistanceFunc<In, Out>>
       metric_map = {
           {"braycurtis", tdoann::bray_curtis<Out, InIt>},
           {"canberra", tdoann::canberra<Out, InIt>},
           {"chebyshev", tdoann::chebyshev<Out, InIt>},
           {"correlation", tdoann::correlation<Out, InIt>},
+          {"correlation-preprocess", tdoann::inner_product<Out, InIt>},
           {"cosine", tdoann::cosine<Out, InIt>},
           {"alternative-cosine", tdoann::alternative_cosine<Out, InIt>},
+          {"cosine-preprocess", tdoann::inner_product<Out, InIt>},
+          {"dot", tdoann::dot<Out, InIt>},
+          {"alternative-dot", tdoann::alternative_dot<Out, InIt>},
           {"dice", tdoann::dice<Out, InIt>},
           {"euclidean", tdoann::euclidean<Out, InIt>},
           {"hamming", tdoann::hamming<Out, InIt>},
@@ -80,10 +74,22 @@ const std::unordered_map<std::string, DistanceFunc<In, Out>> &get_metric_map() {
   return metric_map;
 }
 
+template <typename In>
+const std::unordered_map<std::string, tdoann::PreprocessFunc<In>> &
+get_preprocess_map() {
+  static const std::unordered_map<std::string, tdoann::PreprocessFunc<In>> map =
+      {{"cosine-preprocess", tdoann::normalize<In>},
+       {"correlation-preprocess", tdoann::mean_center_and_normalize<In>},
+       {"dot", tdoann::normalize<In>},
+       {"alternative-dot", tdoann::normalize<In>}};
+  return map;
+}
+
 template <typename Out, typename Idx>
-const std::unordered_map<std::string, BinaryDistanceFunc<Out, Idx>> &
+const std::unordered_map<std::string, tdoann::BinaryDistanceFunc<Out, Idx>> &
 get_binary_metric_map() {
-  static const std::unordered_map<std::string, BinaryDistanceFunc<Out, Idx>>
+  static const std::unordered_map<std::string,
+                                  tdoann::BinaryDistanceFunc<Out, Idx>>
       metric_map = {{"dice", tdoann::bdice<Out, Idx>},
                     {"hamming", tdoann::bhamming<Out, Idx>},
                     {"jaccard", tdoann::bjaccard<Out, Idx>},
@@ -98,10 +104,11 @@ get_binary_metric_map() {
 }
 
 template <typename In, typename Out>
-const std::unordered_map<std::string, SparseDistanceFunc<In, Out>> &
+const std::unordered_map<std::string, tdoann::SparseDistanceFunc<In, Out>> &
 get_sparse_metric_map() {
-  using InIt = DataIt<In>;
-  static const std::unordered_map<std::string, SparseDistanceFunc<In, Out>>
+  using InIt = tdoann::DataIt<In>;
+  static const std::unordered_map<std::string,
+                                  tdoann::SparseDistanceFunc<In, Out>>
       metric_map = {
           {"braycurtis", tdoann::sparse_bray_curtis<Out, InIt>},
           {"canberra", tdoann::sparse_canberra<Out, InIt>},
@@ -110,6 +117,8 @@ get_sparse_metric_map() {
           {"cosine", tdoann::sparse_cosine<Out, InIt>},
           {"alternative-cosine", tdoann::sparse_alternative_cosine<Out, InIt>},
           {"dice", tdoann::sparse_dice<Out, InIt>},
+          {"dot", tdoann::sparse_dot<Out, InIt>},
+          {"alternative-dot", tdoann::sparse_alternative_dot<Out, InIt>},
           {"euclidean", tdoann::sparse_euclidean<Out, InIt>},
           {"hamming", tdoann::sparse_hamming<Out, InIt>},
           {"jaccard", tdoann::sparse_jaccard<Out, InIt>},
@@ -136,7 +145,50 @@ get_sparse_metric_map() {
   return metric_map;
 }
 
-bool is_binary_metric(const std::string &metric);
+template <typename In>
+const std::unordered_map<std::string, tdoann::SparsePreprocessFunc<In>> &
+get_sparse_preprocess_map() {
+  static const std::unordered_map<std::string, tdoann::SparsePreprocessFunc<In>>
+      map = {{"dot", tdoann::sparse_normalize<In>},
+             {"alternative-dot", tdoann::sparse_normalize<In>}};
+  return map;
+}
+
+template <typename In, typename Out>
+std::pair<tdoann::DistanceFunc<In, Out>, tdoann::PreprocessFunc<In>>
+get_dense_distance_funcs(const std::string &metric) {
+  const auto &metric_map = get_metric_map<In, Out>();
+  if (metric_map.count(metric) == 0) {
+    Rcpp::stop("Bad metric");
+  }
+  auto distance_func = metric_map.at(metric);
+
+  tdoann::PreprocessFunc<In> preprocess_func = nullptr;
+  const auto &preprocess_map = get_preprocess_map<In>();
+  if (preprocess_map.count(metric) > 0) {
+    preprocess_func = preprocess_map.at(metric);
+  }
+
+  return {distance_func, preprocess_func};
+}
+
+template <typename In, typename Out>
+std::pair<tdoann::SparseDistanceFunc<In, Out>, tdoann::SparsePreprocessFunc<In>>
+get_sparse_distance_funcs(const std::string &metric) {
+  const auto &metric_map = get_sparse_metric_map<In, Out>();
+  if (metric_map.count(metric) == 0) {
+    Rcpp::stop("Bad metric");
+  }
+  auto distance_func = metric_map.at(metric);
+
+  tdoann::SparsePreprocessFunc<In> preprocess_func = nullptr;
+  const auto &preprocess_map = get_sparse_preprocess_map<In>();
+  if (preprocess_map.count(metric) > 0) {
+    preprocess_func = preprocess_map.at(metric);
+  }
+
+  return {distance_func, preprocess_func};
+}
 
 // Using Traits to return a pointer to BaseDistance or VectorDistance
 // Functions can return a BaseDistance<Out, Idx> or VectorDistance<In, Out, Idx>
@@ -177,38 +229,13 @@ create_query_distance_impl(
   using In = typename FactoryTraits<Args...>::input_type;
   using Out = typename FactoryTraits<Args...>::output_type;
   using Idx = typename FactoryTraits<Args...>::index_type;
-  using InIt = typename std::vector<In>::const_iterator;
 
-  const auto &metric_map = get_metric_map<In, Out>();
+  auto [distance_func, preprocess_func] =
+      get_dense_distance_funcs<In, Out>(metric);
 
-  auto it = metric_map.find(metric);
-  if (it != metric_map.end()) {
-    return std::make_unique<tdoann::QueryDistanceCalculator<In, Out, Idx>>(
-        std::move(ref_vec), std::move(query_vec), ndim, it->second);
-  }
-
-  if (metric == "cosine-preprocess") {
-    return std::make_unique<tdoann::QueryDistanceCalculator<In, Out, Idx>>(
-        std::move(ref_vec), std::move(query_vec), ndim,
-        tdoann::inner_product<Out, InIt>, tdoann::normalize<In>);
-  }
-  if (metric == "correlation-preprocess") {
-    return std::make_unique<tdoann::QueryDistanceCalculator<In, Out, Idx>>(
-        std::move(ref_vec), std::move(query_vec), ndim,
-        tdoann::inner_product<Out, InIt>,
-        tdoann::mean_center_and_normalize<In>);
-  }
-  if (metric == "dot") {
-    return std::make_unique<tdoann::QueryDistanceCalculator<In, Out, Idx>>(
-        std::move(ref_vec), std::move(query_vec), ndim, tdoann::dot<Out, InIt>,
-        tdoann::normalize<In>);
-  }
-  if (metric == "alternative-dot") {
-    return std::make_unique<tdoann::QueryDistanceCalculator<In, Out, Idx>>(
-        std::move(ref_vec), std::move(query_vec), ndim,
-        tdoann::alternative_dot<Out, InIt>, tdoann::normalize<In>);
-  }
-  Rcpp::stop("Bad metric");
+  return std::make_unique<tdoann::QueryDistanceCalculator<In, Out, Idx>>(
+      std::move(ref_vec), std::move(query_vec), ndim, distance_func,
+      preprocess_func);
 }
 
 template <typename... Args>
@@ -245,15 +272,13 @@ create_query_distance(const Rcpp::LogicalMatrix &reference,
   using Out = RNN_DEFAULT_DIST;
   const auto ndim = reference.nrow();
 
-  if (is_binary_metric(metric)) {
-    const auto &metric_map = get_binary_metric_map<Out, Idx>();
-    auto it = metric_map.find(metric);
-    if (it != metric_map.end()) {
-      std::vector<uint8_t> ref_bvec = r_to_binvec(reference);
-      std::vector<uint8_t> query_bvec = r_to_binvec(query);
-      return std::make_unique<tdoann::BinaryQueryDistanceCalculator<Out, Idx>>(
-          std::move(ref_bvec), std::move(query_bvec), ndim, it->second);
-    }
+  const auto &metric_map = get_binary_metric_map<Out, Idx>();
+  if (metric_map.count(metric) > 0) {
+    std::vector<uint8_t> ref_bvec = r_to_binvec(reference);
+    std::vector<uint8_t> query_bvec = r_to_binvec(query);
+    return std::make_unique<tdoann::BinaryQueryDistanceCalculator<Out, Idx>>(
+        std::move(ref_bvec), std::move(query_bvec), ndim,
+        metric_map.at(metric));
   }
 
   auto ref_vec = r_to_vec<In>(reference);
@@ -296,37 +321,11 @@ create_self_distance_impl(
   using In = typename FactoryTraits<Args...>::input_type;
   using Out = typename FactoryTraits<Args...>::output_type;
   using Idx = typename FactoryTraits<Args...>::index_type;
-  using InIt = typename std::vector<In>::const_iterator;
 
-  const auto &metric_map = get_metric_map<In, Out>();
-
-  auto it = metric_map.find(metric);
-  if (it != metric_map.end()) {
-    return std::make_unique<tdoann::SelfDistanceCalculator<In, Out, Idx>>(
-        std::move(data_vec), ndim, it->second);
-  }
-
-  if (metric == "cosine-preprocess") {
-    return std::make_unique<tdoann::SelfDistanceCalculator<In, Out, Idx>>(
-        std::move(data_vec), ndim, tdoann::inner_product<Out, InIt>,
-        tdoann::normalize<In>);
-  }
-  if (metric == "correlation-preprocess") {
-    return std::make_unique<tdoann::SelfDistanceCalculator<In, Out, Idx>>(
-        std::move(data_vec), ndim, tdoann::inner_product<Out, InIt>,
-        tdoann::mean_center_and_normalize<In>);
-  }
-  if (metric == "dot") {
-    return std::make_unique<tdoann::SelfDistanceCalculator<In, Out, Idx>>(
-        std::move(data_vec), ndim, tdoann::dot<Out, InIt>,
-        tdoann::normalize<In>);
-  }
-  if (metric == "alternative-dot") {
-    return std::make_unique<tdoann::SelfDistanceCalculator<In, Out, Idx>>(
-        std::move(data_vec), ndim, tdoann::alternative_dot<Out, InIt>,
-        tdoann::normalize<In>);
-  }
-  Rcpp::stop("Bad metric");
+  auto [distance_func, preprocess_func] =
+      get_dense_distance_funcs<In, Out>(metric);
+  return std::make_unique<tdoann::SelfDistanceCalculator<In, Out, Idx>>(
+      std::move(data_vec), ndim, distance_func, preprocess_func);
 }
 
 template <typename... Args>
@@ -359,14 +358,11 @@ create_self_distance(const Rcpp::LogicalMatrix &data,
   using Out = RNN_DEFAULT_DIST;
   const auto ndim = data.nrow();
 
-  if (is_binary_metric(metric)) {
-    const auto &metric_map = get_binary_metric_map<Out, Idx>();
-    auto it = metric_map.find(metric);
-    if (it != metric_map.end()) {
-      std::vector<uint8_t> data_bvec = r_to_binvec(data);
-      return std::make_unique<tdoann::BinarySelfDistanceCalculator<Out, Idx>>(
-          std::move(data_bvec), ndim, it->second);
-    }
+  const auto &metric_map = get_binary_metric_map<Out, Idx>();
+  if (metric_map.count(metric) > 0) {
+    std::vector<uint8_t> data_bvec = r_to_binvec(data);
+    return std::make_unique<tdoann::BinarySelfDistanceCalculator<Out, Idx>>(
+        std::move(data_bvec), ndim, metric_map.at(metric));
   }
 
   auto data_vec = r_to_vec<In>(data);
@@ -407,33 +403,13 @@ create_sparse_query_distance_impl(
   using Out = typename FactoryTraits<Args...>::output_type;
   using Idx = typename FactoryTraits<Args...>::index_type;
 
-  const auto &metric_map = get_sparse_metric_map<In, Out>();
-  auto it = metric_map.find(metric);
-  if (it != metric_map.end()) {
-    return std::make_unique<
-        tdoann::SparseQueryDistanceCalculator<In, Out, Idx>>(
-        std::move(ref_ind), std::move(ref_ptr), std::move(ref_data),
-        std::move(query_ind), std::move(query_ptr), std::move(query_data), ndim,
-        it->second);
-  }
+  auto [distance_func, preprocess_func] =
+      get_sparse_distance_funcs<In, Out>(metric);
 
-  using InIt = DataIt<In>;
-  if (metric == "dot") {
-    return std::make_unique<
-        tdoann::SparseQueryDistanceCalculator<In, Out, Idx>>(
-        std::move(ref_ind), std::move(ref_ptr), std::move(ref_data),
-        std::move(query_ind), std::move(query_ptr), std::move(query_data), ndim,
-        tdoann::sparse_dot<Out, InIt>, tdoann::sparse_normalize<In>);
-  }
-  if (metric == "alternative-dot") {
-    return std::make_unique<
-        tdoann::SparseQueryDistanceCalculator<In, Out, Idx>>(
-        std::move(ref_ind), std::move(ref_ptr), std::move(ref_data),
-        std::move(query_ind), std::move(query_ptr), std::move(query_data), ndim,
-        tdoann::sparse_alternative_dot<Out, InIt>,
-        tdoann::sparse_normalize<In>);
-  }
-  Rcpp::stop("Bad metric");
+  return std::make_unique<tdoann::SparseQueryDistanceCalculator<In, Out, Idx>>(
+      std::move(ref_ind), std::move(ref_ptr), std::move(ref_data),
+      std::move(query_ind), std::move(query_ptr), std::move(query_data), ndim,
+      distance_func, preprocess_func);
 }
 
 template <typename... Args>
@@ -504,27 +480,12 @@ create_sparse_self_distance_impl(
   using Out = typename FactoryTraits<Args...>::output_type;
   using Idx = typename FactoryTraits<Args...>::index_type;
 
-  const auto &metric_map = get_sparse_metric_map<In, Out>();
-  auto it = metric_map.find(metric);
-  if (it != metric_map.end()) {
-    return std::make_unique<tdoann::SparseSelfDistanceCalculator<In, Out, Idx>>(
-        std::move(ind_vec), std::move(ptr_vec), std::move(data_vec), ndim,
-        it->second);
-  }
+  auto [distance_func, preprocess_func] =
+      get_sparse_distance_funcs<In, Out>(metric);
 
-  using InIt = DataIt<In>;
-  if (metric == "dot") {
-    return std::make_unique<tdoann::SparseSelfDistanceCalculator<In, Out, Idx>>(
-        std::move(ind_vec), std::move(ptr_vec), std::move(data_vec), ndim,
-        tdoann::sparse_dot<Out, InIt>, tdoann::sparse_normalize<In>);
-  }
-  if (metric == "alternative-dot") {
-    return std::make_unique<tdoann::SparseSelfDistanceCalculator<In, Out, Idx>>(
-        std::move(ind_vec), std::move(ptr_vec), std::move(data_vec), ndim,
-        tdoann::sparse_alternative_dot<Out, InIt>,
-        tdoann::sparse_normalize<In>);
-  }
-  Rcpp::stop("Bad metric");
+  return std::make_unique<tdoann::SparseSelfDistanceCalculator<In, Out, Idx>>(
+      std::move(ind_vec), std::move(ptr_vec), std::move(data_vec), ndim,
+      distance_func, preprocess_func);
 }
 
 template <typename... Args>

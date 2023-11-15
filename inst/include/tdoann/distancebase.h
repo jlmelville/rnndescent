@@ -88,19 +88,24 @@ struct DistanceTraits<std::unique_ptr<VectorDistance<In, Out, Idx>>> {
   using Index = Idx;
 };
 
+template <typename In> using DataIt = typename std::vector<In>::const_iterator;
+template <typename In, typename Out>
+using DistanceFunc = Out (*)(DataIt<In>, DataIt<In>, DataIt<In>);
+template <typename In>
+using PreprocessFunc = void (*)(std::vector<In> &, std::size_t);
+
 template <typename In, typename Out, typename Idx>
 class SelfDistanceCalculator : public VectorDistance<In, Out, Idx> {
 public:
   using Iterator = typename std::vector<In>::const_iterator;
   using DistanceFunc = Out (*)(Iterator, Iterator, Iterator);
-  using PreprocessFunc = void (*)(std::vector<In> &, std::size_t);
 
   virtual ~SelfDistanceCalculator() = default;
 
   template <typename VecIn>
   SelfDistanceCalculator(VecIn &&data, std::size_t ndim,
                          DistanceFunc distance_func,
-                         PreprocessFunc preprocess_func = nullptr)
+                         PreprocessFunc<In> preprocess_func = nullptr)
       : x(std::move(data)), nx(x.size() / ndim), ndim(ndim),
         distance_func(distance_func) {
     if (preprocess_func) {
@@ -134,11 +139,13 @@ class QueryDistanceCalculator : public VectorDistance<In, Out, Idx> {
 public:
   using Iterator = typename std::vector<In>::const_iterator;
   using DistanceFunc = Out (*)(Iterator, Iterator, Iterator);
-  using PreprocessFunc = void (*)(std::vector<In> &, std::size_t);
+
+  virtual ~QueryDistanceCalculator() = default;
+
   template <typename VecIn>
   QueryDistanceCalculator(VecIn &&xdata, VecIn &&ydata, std::size_t ndim,
                           DistanceFunc distance_func,
-                          PreprocessFunc preprocess_func = nullptr)
+                          PreprocessFunc<In> preprocess_func = nullptr)
       : x(std::forward<VecIn>(xdata)), y(std::forward<VecIn>(ydata)),
         nx(x.size() / ndim), ny(y.size() / ndim), ndim(ndim),
         distance_func(distance_func) {
