@@ -8,8 +8,8 @@ Authors@R: c(
   )
 Description: The Nearest Neighbor Descent method (Dong and co-workers,
     <doi:10.1145/1963405.1963487>) for finding approximate nearest
-    neighbors. This is a translation of the Python implementation,
-    "pynndescent" (<https://github.com/lmcinnes/pynndescent>).
+    neighbors. This is based heavily on the Python implementation,
+    "PyNNDescent" (<https://github.com/lmcinnes/pynndescent>).
 License: GPL (>= 3)
 URL: https://jlmelville.github.io/rnndescent/
 Imports: 
