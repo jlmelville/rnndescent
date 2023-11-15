@@ -360,7 +360,7 @@ from [RcppParallel](https://github.com/RcppCore/RcppParallel) and is
 [GPLv2 or later](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
 * The underlying nearest neighbor descent C++ library, which can be found under
 `inst/include/tdoann`, is licensed under the 
-[BSD 2-Clause](https://opensource.org/licenses/BSD-2-Clause).
+[BSD 2-Clause](https://opensource.org/license/bsd-2-clause/).
 
 As far as I know, these licenses are all compatible with re-licensing under
 GPLv3 or later.
@@ -388,7 +388,6 @@ is not currently supported.
 * [nndescent](https://github.com/TatsuyaShirakawa/nndescent), a C++ implementation.
 * [NearestNeighborDescent.jl](https://github.com/dillondaudert/NearestNeighborDescent.jl),
 a Julia implementation.
-* [nn_descent](https://github.com/eskomski/nn_descent), a C implementation.
 * [NNDescent.cpp](https://github.com/AnabelSMRuggiero/NNDescent.cpp), another
 C++ implementation.
 * [nndescent](https://github.com/brj0/nndescent), another C++ implementation, with Python bindings.
