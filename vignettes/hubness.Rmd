@@ -1,11 +1,11 @@
 ---
-title: "rnndescent"
+title: "hubness"
 output: 
   rmarkdown::html_vignette:
     fig_width: 4
     fig_height: 4
 vignette: >
-  %\VignetteIndexEntry{rnndescent}
+  %\VignetteIndexEntry{hubness}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 bibliography: bibliography.bibtex
