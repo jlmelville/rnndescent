@@ -1,5 +1,12 @@
 # rnndescent 0.0.15
 
+## Breaking Changes
+
+* Standalone distance functions have been removed. They hadn't expanded to 
+match all the distances available in the nearest neighbor functions, nor was
+sparse support added. Doing so would increase the size of this package's API
+even further. They may show up in another package.
+
 # rnndescent 0.0.14
 
 ## Breaking Changes

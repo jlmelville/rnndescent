@@ -111,89 +111,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// is_binary_metric
-bool is_binary_metric(const std::string& metric);
-RcppExport SEXP _rnndescent_is_binary_metric(SEXP metricSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
-    rcpp_result_gen = Rcpp::wrap(is_binary_metric(metric));
-    return rcpp_result_gen;
-END_RCPP
-}
-// euclidean_distance
-float euclidean_distance(const NumericVector& x, const NumericVector& y);
-RcppExport SEXP _rnndescent_euclidean_distance(SEXP xSEXP, SEXP ySEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const NumericVector& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< const NumericVector& >::type y(ySEXP);
-    rcpp_result_gen = Rcpp::wrap(euclidean_distance(x, y));
-    return rcpp_result_gen;
-END_RCPP
-}
-// squared_euclidean_distance
-float squared_euclidean_distance(const NumericVector& x, const NumericVector& y);
-RcppExport SEXP _rnndescent_squared_euclidean_distance(SEXP xSEXP, SEXP ySEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const NumericVector& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< const NumericVector& >::type y(ySEXP);
-    rcpp_result_gen = Rcpp::wrap(squared_euclidean_distance(x, y));
-    return rcpp_result_gen;
-END_RCPP
-}
-// cosine_distance
-float cosine_distance(const NumericVector& x, const NumericVector& y);
-RcppExport SEXP _rnndescent_cosine_distance(SEXP xSEXP, SEXP ySEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const NumericVector& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< const NumericVector& >::type y(ySEXP);
-    rcpp_result_gen = Rcpp::wrap(cosine_distance(x, y));
-    return rcpp_result_gen;
-END_RCPP
-}
-// manhattan_distance
-float manhattan_distance(const NumericVector& x, const NumericVector& y);
-RcppExport SEXP _rnndescent_manhattan_distance(SEXP xSEXP, SEXP ySEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const NumericVector& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< const NumericVector& >::type y(ySEXP);
-    rcpp_result_gen = Rcpp::wrap(manhattan_distance(x, y));
-    return rcpp_result_gen;
-END_RCPP
-}
-// hamming_distance
-float hamming_distance(const IntegerVector& x, const IntegerVector& y);
-RcppExport SEXP _rnndescent_hamming_distance(SEXP xSEXP, SEXP ySEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const IntegerVector& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< const IntegerVector& >::type y(ySEXP);
-    rcpp_result_gen = Rcpp::wrap(hamming_distance(x, y));
-    return rcpp_result_gen;
-END_RCPP
-}
-// correlation_distance
-float correlation_distance(const NumericVector& x, const NumericVector& y);
-RcppExport SEXP _rnndescent_correlation_distance(SEXP xSEXP, SEXP ySEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const NumericVector& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< const NumericVector& >::type y(ySEXP);
-    rcpp_result_gen = Rcpp::wrap(correlation_distance(x, y));
-    return rcpp_result_gen;
-END_RCPP
-}
 // rnn_reverse_nbr_size
 IntegerVector rnn_reverse_nbr_size(const IntegerMatrix& nn_idx, std::size_t nnbrs, std::size_t len, bool include_self);
 RcppExport SEXP _rnndescent_rnn_reverse_nbr_size(SEXP nn_idxSEXP, SEXP nnbrsSEXP, SEXP lenSEXP, SEXP include_selfSEXP) {
@@ -949,13 +866,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_rnndescent_rnn_brute_force_query", (DL_FUNC) &_rnndescent_rnn_brute_force_query, 6},
     {"_rnndescent_rnn_logical_brute_force_query", (DL_FUNC) &_rnndescent_rnn_logical_brute_force_query, 6},
     {"_rnndescent_rnn_sparse_brute_force_query", (DL_FUNC) &_rnndescent_rnn_sparse_brute_force_query, 11},
-    {"_rnndescent_is_binary_metric", (DL_FUNC) &_rnndescent_is_binary_metric, 1},
-    {"_rnndescent_euclidean_distance", (DL_FUNC) &_rnndescent_euclidean_distance, 2},
-    {"_rnndescent_squared_euclidean_distance", (DL_FUNC) &_rnndescent_squared_euclidean_distance, 2},
-    {"_rnndescent_cosine_distance", (DL_FUNC) &_rnndescent_cosine_distance, 2},
-    {"_rnndescent_manhattan_distance", (DL_FUNC) &_rnndescent_manhattan_distance, 2},
-    {"_rnndescent_hamming_distance", (DL_FUNC) &_rnndescent_hamming_distance, 2},
-    {"_rnndescent_correlation_distance", (DL_FUNC) &_rnndescent_correlation_distance, 2},
     {"_rnndescent_rnn_reverse_nbr_size", (DL_FUNC) &_rnndescent_rnn_reverse_nbr_size, 4},
     {"_rnndescent_rnn_sparse_idx_to_graph_self", (DL_FUNC) &_rnndescent_rnn_sparse_idx_to_graph_self, 8},
     {"_rnndescent_rnn_idx_to_graph_self", (DL_FUNC) &_rnndescent_rnn_idx_to_graph_self, 5},

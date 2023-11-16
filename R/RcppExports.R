@@ -25,64 +25,6 @@ rnn_sparse_brute_force_query <- function(ref_ind, ref_ptr, ref_data, query_ind, 
     .Call(`_rnndescent_rnn_sparse_brute_force_query`, ref_ind, ref_ptr, ref_data, query_ind, query_ptr, query_data, ndim, nnbrs, metric, n_threads, verbose)
 }
 
-is_binary_metric <- function(metric) {
-    .Call(`_rnndescent_is_binary_metric`, metric)
-}
-
-#' Find the Euclidean (L2) distance between two vectors
-#'
-#' @param x A numeric vector.
-#' @param y A numeric vector of the same length as \code{x}.
-#' @export
-euclidean_distance <- function(x, y) {
-    .Call(`_rnndescent_euclidean_distance`, x, y)
-}
-
-#' Find the squared Euclidean (squared L2) distance between two vectors
-#'
-#' @param x A numeric vector.
-#' @param y A numeric vector of the same length as \code{x}.
-#' @export
-squared_euclidean_distance <- function(x, y) {
-    .Call(`_rnndescent_squared_euclidean_distance`, x, y)
-}
-
-#' Find the cosine distance between two vectors
-#'
-#' @param x A numeric vector.
-#' @param y A numeric vector of the same length as \code{x}.
-#' @export
-cosine_distance <- function(x, y) {
-    .Call(`_rnndescent_cosine_distance`, x, y)
-}
-
-#' Find the Manhattan (L1) distance between two vectors
-#'
-#' @param x A numeric vector.
-#' @param y A numeric vector of the same length as \code{x}.
-#' @export
-manhattan_distance <- function(x, y) {
-    .Call(`_rnndescent_manhattan_distance`, x, y)
-}
-
-#' Find the Hamming distance between two vectors
-#'
-#' @param x An integer vector.
-#' @param y An integer vector of the same length as \code{x}.
-#' @export
-hamming_distance <- function(x, y) {
-    .Call(`_rnndescent_hamming_distance`, x, y)
-}
-
-#' Find the correlation distance between two vectors
-#'
-#' @param x A numeric vector.
-#' @param y A numeric vector of the same length as \code{x}.
-#' @export
-correlation_distance <- function(x, y) {
-    .Call(`_rnndescent_correlation_distance`, x, y)
-}
-
 rnn_reverse_nbr_size <- function(nn_idx, nnbrs, len, include_self = FALSE) {
     .Call(`_rnndescent_rnn_reverse_nbr_size`, nn_idx, nnbrs, len, include_self)
 }
