@@ -792,167 +792,6 @@ graph without back-tracking gives slightly better accuracies:</p>
 <p>but it seems like some sort of back-tracking is to be recommended
 with this approach.</p>
 </div>
-<div class="section level3">
-<h3 id="local-scaling">Local Scaling<a class="anchor" aria-label="anchor" href="#local-scaling"></a>
-</h3>
-<p>In the context of spectral clustering, <span class="citation">(Zelnik-manor and Perona 2005)</span> suggested scaling
-nearest neighbor distances to reflect the local statistics of the
-neighborhoods. This would allow the idea of what a large and a short
-distance was to vary depending on the local density around each point.
-The scaling suggested was:</p>
-<p><span class="math display">\[\hat{d}_{ij}^2 =
-\frac{d_{ij}^2}{\sigma_i\sigma_j}\]</span></p>
-<p>where <span class="math inline">\(\hat{d}_{ij}\)</span> is the scaled
-distance between points <span class="math inline">\(i\)</span> and <span class="math inline">\(j\)</span>, <span class="math inline">\(d_{ij}\)</span> is the original distance, and
-<span class="math inline">\(\sigma_i\)</span> is the local scale
-associated with point <span class="math inline">\(i\)</span>. To define
-<span class="math inline">\(\sigma_i\)</span>, Zelnik-Manor and Perona
-suggest using the distance to a nearest neighbor. In their paper they
-got good results by using the distance to the seventh-nearest
-neighbor.</p>
-<p><span class="citation">(Schnitzer et al. 2012)</span> suggested using
-<span class="math inline">\(\hat{d}_{ij}\)</span> instead of <span class="math inline">\(d_{ij}\)</span> in nearest neighbor calculations
-as a way to reduce the effect of hubs. Because hubs have more neighbors,
-the distance to a specific neighbor will be smaller relative to
-non-hubs. Hence <span class="math inline">\(\sigma_i\)</span> will be
-smaller for hubs, which will lead to larger <span class="math inline">\(\hat{d}_{ij}\)</span> compared to non-hubs.
-Therefore using <span class="math inline">\(\hat{d}_{ij}\)</span> acts
-to “penalize” hubs when competing with non-hubs to appear in a nearest
-neighbor list.</p>
-<p>A further modification suggested by Schnitzer and co-workers was to
-use the average distance to multiple nearest neighbors to calculate
-<span class="math inline">\(\sigma_i\)</span>, a technique used by <span class="citation">(Jegou, Harzallah, and Schmid 2007)</span>.</p>
-<p>In the field of dimensionality reduction, generating a nearest
-neighbor graph is a step for many methods. <span class="citation">(Wang
-et al. 2021)</span> describe using local scaling as a post-processing
-step with the following recipe:</p>
-<ul>
-<li>Find the <span class="math inline">\(k+50\)</span>th nearest
-neighbors, where <span class="math inline">\(k\)</span> is the actual
-number of neighbors you want (e.g. if you want to 15 neighbors per
-point, find the 65 nearest neighbors).</li>
-<li>Use the mean distance to the 4-6th nearest neighbors as <span class="math inline">\(\sigma_i\)</span>. Using this range was also
-advocated in another dimensionality reduction method <span class="citation">(Amid and Warmuth 2019)</span>.</li>
-<li>From the <span class="math inline">\(k+50\)</span> nearest
-neighbors, find the <span class="math inline">\(k\)</span> neighbors
-with the smallest locally scaled distances. These are the <span class="math inline">\(k\)</span> neighbors to use for downstream
-processing.</li>
-</ul>
-<p>To do with our 1000D example, we first need to generate the
-(approximate) 65-nearest neighbors:</p>
-<div class="sourceCode" id="cb58"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">g1000d_nnd65</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/nnd_knn.html">nnd_knn</a></span><span class="op">(</span><span class="va">g1000d</span>, k <span class="op">=</span> <span class="fl">65</span>, metric <span class="op">=</span> <span class="st">"euclidean"</span><span class="op">)</span></span></code></pre></div>
-<p>This is a noticeably slow step. Next, we use the
-<code>local_scale_nn</code> function to extract a 15-neighbor
-locally-scaled subset:</p>
-<div class="sourceCode" id="cb59"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">g1000d_nnd65ls15</span> <span class="op">&lt;-</span></span>
-<span>  <span class="fu"><a href="../reference/local_scale_nn.html">local_scale_nn</a></span><span class="op">(</span><span class="va">g1000d_nnd65</span>, k <span class="op">=</span> <span class="fl">15</span>, k_scale <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">4</span>, <span class="fl">6</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p>If you look at the distances in <code>g1000d_nnd65ls15</code> these
-are the original unscaled distances, as found in
-<code>g1000d_nnd65</code> (<span class="math inline">\(d_{ij}\)</span>).
-The scaled distances <span class="math inline">\(\hat{d}_{ij}\)</span>
-are used internally to select the 15 neighbors, but are not returned
-from <code>local_scale_nn</code>.</p>
-<p>How does local scaling affect the hubness of the resulting neighbor
-graph?</p>
-<div class="sourceCode" id="cb60"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">g1000d_lsko</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/k_occur.html">k_occur</a></span><span class="op">(</span><span class="va">g1000d_nnd65ls15</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/hist.html" class="external-link">hist</a></span><span class="op">(</span><span class="va">g1000d_lsko</span>, main <span class="op">=</span> <span class="st">"locally scaled k-occ"</span>, xlab <span class="op">=</span> <span class="st">"k-occurrences"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="hubness_files/figure-html/hubness%20of%20locally%20scaled%20nearest%20neighbor%20graph-1.png" width="700"></p>
-<div class="sourceCode" id="cb61"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">g1000d_lsko</span><span class="op">)</span></span>
-<span><span class="co">#&gt;    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. </span></span>
-<span><span class="co">#&gt;       1       6      11      15      19     116</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">g1000d_lsko</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 31</span></span></code></pre></div>
-<p>This is a massive reduction in hubness over the 15NN graph, and
-nearly as good as the search graph generated from the 15NN graph. Can we
-see further improvements if we generate a search graph from the locally
-scaled neighbors?</p>
-<div class="sourceCode" id="cb62"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">g1000dls_search_graph</span> <span class="op">&lt;-</span></span>
-<span>  <span class="fu"><a href="../reference/prepare_search_graph.html">prepare_search_graph</a></span><span class="op">(</span></span>
-<span>    data <span class="op">=</span> <span class="va">g1000d</span>,</span>
-<span>    graph <span class="op">=</span> <span class="va">g1000d_nnd65ls15</span>,</span>
-<span>    metric <span class="op">=</span> <span class="st">"euclidean"</span>,</span>
-<span>    diversify_prob <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>    pruning_degree_multiplier <span class="op">=</span> <span class="fl">1.5</span></span>
-<span>  <span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb63"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">g1000d_lssgko</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/k_occur.html">k_occur</a></span><span class="op">(</span><span class="va">g1000dls_search_graph</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/hist.html" class="external-link">hist</a></span><span class="op">(</span><span class="va">g1000d_lssgko</span>, main <span class="op">=</span> <span class="st">"locally scaled search k-occ"</span>, xlab <span class="op">=</span> <span class="st">"k-occurrences"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="hubness_files/figure-html/hubness%20of%20locally%20scaled%20search%20graph-1.png" width="700"></p>
-<div class="sourceCode" id="cb64"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">g1000d_lssgko</span><span class="op">)</span></span>
-<span><span class="co">#&gt;    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. </span></span>
-<span><span class="co">#&gt;    1.00    6.00    9.00   10.38   13.00   83.00</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">g1000d_lssgko</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 20</span></span></code></pre></div>
-<p>Here the hubness properties are further improved over using either
-local scaling or creating a search graph separately. While this is
-promising, does it translate into better search performance? Here are
-the accuracy results using the locally scaled search graph without any
-backtracking:</p>
-<div class="sourceCode" id="cb65"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">g1000dls_search0nnd</span> <span class="op">&lt;-</span></span>
-<span>  <span class="fu"><a href="../reference/graph_knn_query.html">graph_knn_query</a></span><span class="op">(</span></span>
-<span>    query <span class="op">=</span> <span class="va">g1000d</span>,</span>
-<span>    reference <span class="op">=</span> <span class="va">g1000d</span>,</span>
-<span>    reference_graph <span class="op">=</span> <span class="va">g1000dls_search_graph</span>,</span>
-<span>    k <span class="op">=</span> <span class="fl">15</span>,</span>
-<span>    metric <span class="op">=</span> <span class="st">"euclidean"</span>,</span>
-<span>    init <span class="op">=</span> <span class="va">g1000d_nnd</span>,</span>
-<span>    epsilon <span class="op">=</span> <span class="fl">0</span></span>
-<span>  <span class="op">)</span></span>
-<span><span class="fu">nn_accuracy</span><span class="op">(</span><span class="va">g1000d_nnbf</span>, <span class="va">g1000dls_search0nnd</span>, k <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 0.9392667</span></span></code></pre></div>
-<p>Without having to do any back-tracking, we can get 94% accuracy, a
-nearly 10% improvement compared to the search graph generated from the
-15NN graph directly.</p>
-<p>It’s worth noting here that we initialized the search using
-<code>g1000d_nnd</code>, the 15NN results from running NND with
-<code>k = 15</code>. This makes comparing the performance with the other
-search graph fairer, but in reality we wouldn’t have that data to hand,
-as we used <code>k = 65</code>. As noted in the ‘Use More Neighbors’
-section above, we already know that using NND with an increased value of
-<code>k</code> is going to result in a big improvement without bothering
-with local scaling:</p>
-<div class="sourceCode" id="cb66"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">nn_accuracy</span><span class="op">(</span><span class="va">g1000d_nnbf</span>, <span class="va">g1000d_nnd65</span>, k <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 0.9998667</span></span></code></pre></div>
-<p>Almost perfect. We also have the locally-scaled 15 nearest neighbor
-graph we can use for initialization:</p>
-<div class="sourceCode" id="cb67"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">g1000dls_search0</span> <span class="op">&lt;-</span></span>
-<span>  <span class="fu"><a href="../reference/graph_knn_query.html">graph_knn_query</a></span><span class="op">(</span></span>
-<span>    query <span class="op">=</span> <span class="va">g1000d</span>,</span>
-<span>    reference <span class="op">=</span> <span class="va">g1000d</span>,</span>
-<span>    reference_graph <span class="op">=</span> <span class="va">g1000dls_search_graph</span>,</span>
-<span>    k <span class="op">=</span> <span class="fl">15</span>,</span>
-<span>    metric <span class="op">=</span> <span class="st">"euclidean"</span>,</span>
-<span>    init <span class="op">=</span> <span class="va">g1000d_nnd65ls15</span>,</span>
-<span>    epsilon <span class="op">=</span> <span class="fl">0</span></span>
-<span>  <span class="op">)</span></span>
-<span><span class="fu">nn_accuracy</span><span class="op">(</span><span class="va">g1000d_nnbf</span>, <span class="va">g1000dls_search0</span>, k <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 0.8805333</span></span></code></pre></div>
-<p>This is noticeably less good than initializing using the 15 NND
-results, but it’s still the best non-back-tracking result. If we do set
-<code>epsilon = 0.1</code>, then we get 100% accuracy using both the
-neighbor graph and the search graph, but then again the other
-non-locally scaled graphs are getting very close to that too.</p>
-<p>The value of local scaling is probably not if you want to find an
-accurate approximation to the nearest neighbors: using back-tracking
-search with a search graph derived from the unscaled neighbor graph
-directly is going to be less effort. However there may be cases where
-the increased cost of building the <span class="math inline">\(k+50\)</span> nearest neighbor graph is not a big
-problem, e.g. if you intend to build a graph once but search it many
-times, then the search graph built from the locally scaled neighbor
-graph is probably more efficient to traverse in cases where the unscaled
-data suffers from hubs. Or the properties of the locally-scaled graph
-may be more attractive for other uses e.g. dimensionality reduction
-methods like those described by Wang and co-workers.</p>
-</div>
 </div>
 <div class="section level2">
 <h2 id="conclusions">Conclusions<a class="anchor" aria-label="anchor" href="#conclusions"></a>
@@ -978,8 +817,6 @@ times from different random starting points and merge the results.</li>
 nearest neighbor descent results into a search graph and then querying
 the graph with the original data, using the nearest neighbor results for
 initialization and a back-tracking search.</li>
-<li>Local scaling can also reduce the effect of hubs and be combined
-with a search graph, at the cost of a larger computational effort.</li>
 </ul>
 <p>If you are concerned with potential hubs interfering with the
 accuracy of the neighbor graph, I suggest the following steps:</p>
@@ -1007,11 +844,6 @@ Nanopoulos, and Ivanovic 2010; Bratić et al. 2019)</span>.</p>
 <h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
 <div id="refs" class="references csl-bib-body hanging-indent">
-<div id="ref-DBLP:journals/corr/abs-1910-00204" class="csl-entry">
-Amid, Ehsan, and Manfred K. Warmuth. 2019. <span>“TriMap: Large-Scale
-Dimensionality Reduction Using Triplets.”</span> <em>CoRR</em>
-abs/1910.00204. <a href="http://arxiv.org/abs/1910.00204" class="external-link">http://arxiv.org/abs/1910.00204</a>.
-</div>
 <div id="ref-bratic2019influence" class="csl-entry">
 Bratić, Brankica, Michael E Houle, Vladimir Kurbalija, Vincent Oria, and
 Miloš Radovanović. 2019. <span>“The Influence of Hubness on
@@ -1041,12 +873,6 @@ Unsupervised Distance-Based Outlier Detection.”</span> In <em>2016 IEEE
 16th International Conference on Data Mining Workshops (ICDMW)</em>,
 716–23. IEEE.
 </div>
-<div id="ref-jegou2007contextual" class="csl-entry">
-Jegou, Herve, Hedi Harzallah, and Cordelia Schmid. 2007. <span>“A
-Contextual Dissimilarity Measure for Accurate and Efficient Image
-Search.”</span> In <em>2007 IEEE Conference on Computer Vision and
-Pattern Recognition</em>, 1–8. IEEE.
-</div>
 <div id="ref-low2013hubness" class="csl-entry">
 Low, Thomas, Christian Borgelt, Sebastian Stober, and Andreas
 Nürnberger. 2013. <span>“The Hubness Phenomenon: Fact or
@@ -1063,19 +889,6 @@ Data.”</span> <em>Journal of Machine Learning Research</em> 11 (sept):
 Schnitzer, Dominik, Arthur Flexer, Markus Schedl, and Gerhard Widmer.
 2012. <span>“Local and Global Scaling Reduce Hubs in Space.”</span>
 <em>The Journal of Machine Learning Research</em> 13 (1): 2871–2902.
-</div>
-<div id="ref-JMLR:v22:20-1061" class="csl-entry">
-Wang, Yingfan, Haiyang Huang, Cynthia Rudin, and Yaron Shaposhnik. 2021.
-<span>“Understanding How Dimension Reduction Tools Work: An Empirical
-Approach to Deciphering t-SNE, UMAP, TriMap, and PaCMAP for Data
-Visualization.”</span> <em>Journal of Machine Learning Research</em> 22
-(201): 1–73. <a href="http://jmlr.org/papers/v22/20-1061.html" class="external-link">http://jmlr.org/papers/v22/20-1061.html</a>.
-</div>
-<div id="ref-NIPS2004_40173ea4" class="csl-entry">
-Zelnik-manor, Lihi, and Pietro Perona. 2005. <span>“Self-Tuning Spectral
-Clustering.”</span> In <em>Advances in Neural Information Processing
-Systems</em>, edited by L. Saul, Y. Weiss, and L. Bottou. Vol. 17. MIT
-Press. <a href="https://proceedings.neurips.cc/paper/2004/file/40173ea48d9567f1f393b20c855bb40b-Paper.pdf" class="external-link">https://proceedings.neurips.cc/paper/2004/file/40173ea48d9567f1f393b20c855bb40b-Paper.pdf</a>.
 </div>
 </div>
 </div>
