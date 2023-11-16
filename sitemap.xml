@@ -31,19 +31,7 @@
     <loc>https://jlmelville.github.io/rnndescent/reference/brute_force_knn_query.html</loc>
   </url>
   <url>
-    <loc>https://jlmelville.github.io/rnndescent/reference/correlation_distance.html</loc>
-  </url>
-  <url>
-    <loc>https://jlmelville.github.io/rnndescent/reference/cosine_distance.html</loc>
-  </url>
-  <url>
-    <loc>https://jlmelville.github.io/rnndescent/reference/euclidean_distance.html</loc>
-  </url>
-  <url>
     <loc>https://jlmelville.github.io/rnndescent/reference/graph_knn_query.html</loc>
-  </url>
-  <url>
-    <loc>https://jlmelville.github.io/rnndescent/reference/hamming_distance.html</loc>
   </url>
   <url>
     <loc>https://jlmelville.github.io/rnndescent/reference/index.html</loc>
@@ -53,9 +41,6 @@
   </url>
   <url>
     <loc>https://jlmelville.github.io/rnndescent/reference/local_scale_nn.html</loc>
-  </url>
-  <url>
-    <loc>https://jlmelville.github.io/rnndescent/reference/manhattan_distance.html</loc>
   </url>
   <url>
     <loc>https://jlmelville.github.io/rnndescent/reference/merge_knn.html</loc>
@@ -92,8 +77,5 @@
   </url>
   <url>
     <loc>https://jlmelville.github.io/rnndescent/reference/rpf_knn_query.html</loc>
-  </url>
-  <url>
-    <loc>https://jlmelville.github.io/rnndescent/reference/squared_euclidean_distance.html</loc>
   </url>
 </urlset>
