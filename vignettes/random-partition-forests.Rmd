@@ -86,7 +86,8 @@ iris_forest <- rpf_build(iris, leaf_size = 15)
 Some options at your disposal:
 
 * `metric`: the type of distance calculation to use. The default is `euclidean`,
-but there are a lot to choose from. See the help text for the `metric` parameter in rpf_build()` for details.
+but there are a lot to choose from. See the help text for the `metric` parameter
+in rpf_build()` for details.
 * `n_trees`: the number of trees to build. The default is to choose based on
 the size of the data provided, with a maximum of 32: eventually you will get
 diminishing returns from the number of trees in a forest.
@@ -135,7 +136,13 @@ same, but they don't have to be. At this point, we must also specify the
 number of neighbors we want.
 
 ```{r query a forest}
-iris_query <- rpf_knn_query(query = iris, reference = iris, forest = iris_forest, k = 15)
+iris_query <-
+  rpf_knn_query(
+    query = iris,
+    reference = iris,
+    forest = iris_forest,
+    k = 15
+  )
 ```
 
 The `iris_query` that is returned is a list with two matrices: `idx` contains
@@ -160,7 +167,8 @@ iris_knn <- rpf_knn(iris, k = 15)
 This should give the same result as running `rpf_build` followed by
 `rpf_knn_query` (apart from the vagaries of the random number generator), but is
 a lot more convenient and a bit faster. You have access to the same parameters
-for forest building as `rpf_build`, e.g. `leaf_size`, `n_trees`, `max_tree_depth` etc.
+for forest building as `rpf_build`, e.g. `leaf_size`, `n_trees`,
+`max_tree_depth` etc.
 
 Additionally, if you want the k-nearest neighbors *and* you also want the forest
 for future querying, if you set `ret_forest = TRUE`, the return value will
@@ -169,8 +177,15 @@ we build the forest (and get the 15-nearest neighbors) for the first 50 `iris`
 items and then query the remaining 100:
 
 ```{r forest knn with forest}
-iris_knn_with_forest <- rpf_knn(iris[1:50, ], k = 15, ret_forest = TRUE)
-iris_query <- rpf_knn_query(query = iris[51:150, ], reference = iris[1:50, ], forest = iris_knn_with_forest$forest, k = 15)
+iris_knn_with_forest <-
+  rpf_knn(iris[1:50, ], k = 15, ret_forest = TRUE)
+iris_query <-
+  rpf_knn_query(
+    query = iris[51:150, ],
+    reference = iris[1:50, ],
+    forest = iris_knn_with_forest$forest,
+    k = 15
+  )
 ```
 
 ## Margin
@@ -178,9 +193,10 @@ iris_query <- rpf_knn_query(query = iris[51:150, ], reference = iris[1:50, ], fo
 The `margin` parameter determines how to calculate the side of the hyperplane
 each item in a split belongs to. The usual method (`margin = "explicit"`) does
 the same thing as in PyNNDescent: the way the hyperplane is defined is to use
-the vector defined by the two points $a$ and $b$ as the normal vector to a plane, and then
-the point midway between them as the point on the plane. We then calculate
-the margin of a point $x$ (effectively the signed distance from the plane to $x$) as:
+the vector defined by the two points $a$ and $b$ as the normal vector to a
+plane, and then the point midway between them as the point on the plane. We then
+calculate the margin of a point $x$ (effectively the signed distance from the
+plane to $x$) as:
 
 
 $$
@@ -198,49 +214,60 @@ of binary vectors in which you are applying e.g. the Hamming metric. The mid-poi
 of two binary vectors is not a binary vector, and nor does it make sense to 
 think about the geometric relationship implied by a dot product.
 
-As an alternative to calculating the margin via an explicit creation of a hyperplane,
-you could instead think about how the distance between $x$ and $a$, $d_{xa}$ compares to
-the distance between $x$ and $b$, $d_{xb}$ and what the significance for the margin is.
-Remember that the vector defined by $a$ and $b$ is the normal vector to the hyperplane,
-so you can think of a line connecting $a$ and $b$, with the hyperplane splitting that
-line in two equal halves. Now imagine $x$ is somewhere on that line. If $x$ is closer
-to $a$ than $b$ it must be on the same side of the hyperplane as $a$, and vice versa.
-Therefore we can calculate the margin by comparing $d_{xa}$ and $d_{xb}$ and seeing which
-value is smaller.
+As an alternative to calculating the margin via an explicit creation of a
+hyperplane, you could instead think about how the distance between $x$ and $a$,
+$d_{xa}$ compares to the distance between $x$ and $b$, $d_{xb}$ and what the
+significance for the margin is. Remember that the vector defined by $a$ and $b$
+is the normal vector to the hyperplane, so you can think of a line connecting
+$a$ and $b$, with the hyperplane splitting that line in two equal halves. Now
+imagine $x$ is somewhere on that line. If $x$ is closer to $a$ than $b$ it must
+be on the same side of the hyperplane as $a$, and vice versa. Therefore we can
+calculate the margin by comparing $d_{xa}$ and $d_{xb}$ and seeing which value
+is smaller.
 
 Because we don't explicitly create the hyperplane, I call this the "implicit"
-margin method and you can choose to generate splits this way by setting `margin = "implicit"`. We'll use some random binary data for this example.
+margin method and you can choose to generate splits this way by setting `margin
+= "implicit"`. We'll use some random binary data for this example.
 
 ```{r binary matrix}
 binary_data <- matrix(as.logical(rbinom(1000, 1, 0.5)), ncol = 10)
 ```
 
-Note the `as.logical` call: if rnndescent detects binary data in this format *and*
-you specify a metric which is appropriate for binary data (e.g. Hamming), 
-*and* you use `margin = "implicit"` then
-a specialized function is called which should be much faster than the functions
-written only with generic floating point data in mind.
+Note the `as.logical` call: if `rnndescent` detects binary data in this format
+*and* you specify a metric which is appropriate for binary data (e.g. Hamming),
+*and* you use `margin = "implicit"` then a specialized function is called which
+should be much faster than the functions written only with generic floating
+point data in mind.
 
 ```{r binary knn implicit}
-bin_knn_imp <- rpf_knn(binary_data, k = 15, metric = "hamming", margin = "implicit")
+bin_knn_imp <-
+  rpf_knn(binary_data,
+    k = 15,
+    metric = "hamming",
+    margin = "implicit"
+  )
 ```
 
 The following will give the same results but for large datasets is likely to
 be noticeably slower:
 
 ```{r binary knn explicit}
-bin_knn_exp <- rpf_knn(binary_data, k = 15, metric = "hamming", margin = "explicit")
+bin_knn_exp <-
+  rpf_knn(binary_data,
+    k = 15,
+    metric = "hamming",
+    margin = "explicit"
+  )
 ```
 
 So if the implicit margin method is faster (and makes sense for more metrics)
-why would you ever want to use the explicit method? Well, the implicit method
-is only faster for binary data with specialized metrics. The downside of the
+why would you ever want to use the explicit method? Well, the implicit method is
+only faster for binary data with specialized metrics. The downside of the
 implicit method is that determining the side of the hyperplane requires *two*
 distance calculations per point, whereas the explicit method only requires the
 dot product calculation, which is likely to be only as costly as a single
 distance calculation. So for floating point data, the explicit method is likely
 to be about twice as fast.
-
 That's a lot to think about so the default setting for `margin` is `"auto"`,
 which tries to do the right thing: if you are using binary data with a suitable
 metric, it will use the implicit method, otherwise it will use the explicit
@@ -251,23 +278,28 @@ metrics that put more emphasis on angle versus magnitude.
 
 As mentioned at the beginning of this vignette, in `rnndescent` it's expected
 that you would only use random partition forests as an initialization to nearest
-neighbor descent. In that case, keeping the entire forest for querying new
-data is probably unnecessary: we can keep only the "best" trees. PyNNDescent only 
+neighbor descent. In that case, keeping the entire forest for querying new data
+is probably unnecessary: we can keep only the "best" trees. PyNNDescent only
 keeps one tree for this purpose. For determining what tree is "best", we mean
-the tree that reproduces the k-nearest neighbor graph most
-effectively. You can do this by comparing a k-nearest neighbor graph with that
-produced by a single tree. The `rpf_filter` function does this for you:
+the tree that reproduces the k-nearest neighbor graph most effectively. You can
+do this by comparing a k-nearest neighbor graph with that produced by a single
+tree. The `rpf_filter` function does this for you:
 
 ```{r filter}
-iris_filtered <- rpf_filter(nn = iris_query, forest = iris_forest, n_trees = 1)
+iris_filtered <-
+  rpf_filter(
+    nn = iris_query,
+    forest = iris_forest,
+    n_trees = 1
+  )
 ```
 
 `n_trees` is the number of trees to keep. Feel free to keep more if you like,
 although there is no extra diversification step to ensure that the trees being
 retained are both good at reproducing the k-nearest neighbor graph *and* are
 diverse from each other (perhaps they reproduce different parts of the neighbor
-graph well?). The higher quality the k-nearest-neighbor graph is, the better
-the filtering will work so although the example above uses the graph from the
+graph well?). The higher quality the k-nearest-neighbor graph is, the better the
+filtering will work so although the example above uses the graph from the
 forest, you might get better results using the graph from having run nearest
 neighbor descent with the forest result as input.
 

@@ -49,4 +49,3 @@
 #' In *Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition*
 #' (pp. 5713-5722).
 "_PACKAGE"
-
