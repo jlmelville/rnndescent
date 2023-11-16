@@ -6,6 +6,9 @@
 match all the distances available in the nearest neighbor functions, nor was
 sparse support added. Doing so would increase the size of this package's API
 even further. They may show up in another package.
+* The `local_scale_nn ` has been removed, for similar reasons to the removal
+of the standalone distance functions. It remains in the `localscale` branch
+of the github repo.
 
 # rnndescent 0.0.14
 

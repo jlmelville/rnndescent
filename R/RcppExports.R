@@ -53,10 +53,6 @@ rnn_sparse_idx_to_graph_query <- function(ref_ind, ref_ptr, ref_data, query_ind,
     .Call(`_rnndescent_rnn_sparse_idx_to_graph_query`, ref_ind, ref_ptr, ref_data, query_ind, query_ptr, query_data, ndim, idx, metric, n_threads, verbose)
 }
 
-rnn_local_scaled_nbrs <- function(idx, dist, n_scaled_nbrs, k_begin, k_end, ret_scales = FALSE, n_threads = 0L) {
-    .Call(`_rnndescent_rnn_local_scaled_nbrs`, idx, dist, n_scaled_nbrs, k_begin, k_end, ret_scales, n_threads)
-}
-
 rnn_merge_nn <- function(nn_idx1, nn_dist1, nn_idx2, nn_dist2, is_query, n_threads, verbose) {
     .Call(`_rnndescent_rnn_merge_nn`, nn_idx1, nn_dist1, nn_idx2, nn_dist2, is_query, n_threads, verbose)
 }
@@ -187,5 +183,9 @@ rnn_logical_query <- function(reference, reference_graph_list, query, nn_idx, nn
 
 rnn_sparse_query <- function(ref_ind, ref_ptr, ref_data, query_ind, query_ptr, query_data, ndim, reference_graph_list, nn_idx, nn_dist, metric = "euclidean", epsilon = 0.1, n_threads = 0L, verbose = FALSE) {
     .Call(`_rnndescent_rnn_sparse_query`, ref_ind, ref_ptr, ref_data, query_ind, query_ptr, query_data, ndim, reference_graph_list, nn_idx, nn_dist, metric, epsilon, n_threads, verbose)
+}
+
+is_binary_metric <- function(metric) {
+    .Call(`_rnndescent_is_binary_metric`, metric)
 }
 

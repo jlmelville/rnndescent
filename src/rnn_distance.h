@@ -101,12 +101,6 @@ get_binary_metric_map() {
   return metric_map;
 }
 
-inline bool is_binary_metric(const std::string &metric) {
-  const auto &metric_map =
-    get_binary_metric_map<RNN_DEFAULT_DIST, RNN_DEFAULT_IDX>();
-  return metric_map.find(metric) != metric_map.end();
-}
-
 template <typename In, typename Out>
 const std::unordered_map<std::string, tdoann::SparseDistanceFunc<In, Out>> &
 get_sparse_metric_map() {

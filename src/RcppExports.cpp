@@ -226,23 +226,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// rnn_local_scaled_nbrs
-List rnn_local_scaled_nbrs(const IntegerMatrix& idx, const NumericMatrix& dist, std::size_t n_scaled_nbrs, std::size_t k_begin, std::size_t k_end, bool ret_scales, std::size_t n_threads);
-RcppExport SEXP _rnndescent_rnn_local_scaled_nbrs(SEXP idxSEXP, SEXP distSEXP, SEXP n_scaled_nbrsSEXP, SEXP k_beginSEXP, SEXP k_endSEXP, SEXP ret_scalesSEXP, SEXP n_threadsSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const IntegerMatrix& >::type idx(idxSEXP);
-    Rcpp::traits::input_parameter< const NumericMatrix& >::type dist(distSEXP);
-    Rcpp::traits::input_parameter< std::size_t >::type n_scaled_nbrs(n_scaled_nbrsSEXP);
-    Rcpp::traits::input_parameter< std::size_t >::type k_begin(k_beginSEXP);
-    Rcpp::traits::input_parameter< std::size_t >::type k_end(k_endSEXP);
-    Rcpp::traits::input_parameter< bool >::type ret_scales(ret_scalesSEXP);
-    Rcpp::traits::input_parameter< std::size_t >::type n_threads(n_threadsSEXP);
-    rcpp_result_gen = Rcpp::wrap(rnn_local_scaled_nbrs(idx, dist, n_scaled_nbrs, k_begin, k_end, ret_scales, n_threads));
-    return rcpp_result_gen;
-END_RCPP
-}
 // rnn_merge_nn
 List rnn_merge_nn(const IntegerMatrix& nn_idx1, const NumericMatrix& nn_dist1, const IntegerMatrix& nn_idx2, const NumericMatrix& nn_dist2, bool is_query, std::size_t n_threads, bool verbose);
 RcppExport SEXP _rnndescent_rnn_merge_nn(SEXP nn_idx1SEXP, SEXP nn_dist1SEXP, SEXP nn_idx2SEXP, SEXP nn_dist2SEXP, SEXP is_querySEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
@@ -858,6 +841,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// is_binary_metric
+bool is_binary_metric(const std::string& metric);
+RcppExport SEXP _rnndescent_is_binary_metric(SEXP metricSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
+    rcpp_result_gen = Rcpp::wrap(is_binary_metric(metric));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_rnndescent_rnn_brute_force", (DL_FUNC) &_rnndescent_rnn_brute_force, 5},
@@ -873,7 +867,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_rnndescent_rnn_idx_to_graph_query", (DL_FUNC) &_rnndescent_rnn_idx_to_graph_query, 6},
     {"_rnndescent_rnn_logical_idx_to_graph_query", (DL_FUNC) &_rnndescent_rnn_logical_idx_to_graph_query, 6},
     {"_rnndescent_rnn_sparse_idx_to_graph_query", (DL_FUNC) &_rnndescent_rnn_sparse_idx_to_graph_query, 11},
-    {"_rnndescent_rnn_local_scaled_nbrs", (DL_FUNC) &_rnndescent_rnn_local_scaled_nbrs, 7},
     {"_rnndescent_rnn_merge_nn", (DL_FUNC) &_rnndescent_rnn_merge_nn, 7},
     {"_rnndescent_rnn_merge_nn_all", (DL_FUNC) &_rnndescent_rnn_merge_nn_all, 4},
     {"_rnndescent_rnn_descent", (DL_FUNC) &_rnndescent_rnn_descent, 11},
@@ -907,6 +900,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_rnndescent_rnn_query", (DL_FUNC) &_rnndescent_rnn_query, 9},
     {"_rnndescent_rnn_logical_query", (DL_FUNC) &_rnndescent_rnn_logical_query, 9},
     {"_rnndescent_rnn_sparse_query", (DL_FUNC) &_rnndescent_rnn_sparse_query, 14},
+    {"_rnndescent_is_binary_metric", (DL_FUNC) &_rnndescent_is_binary_metric, 1},
     {NULL, NULL, 0}
 };
 
