@@ -1,0 +1,274 @@
+---
+title: "Random Partition Forests"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Random Partition Forests}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+bibliography: bibliography.bibtex
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(rnndescent)
+```
+
+
+The Nearest Neighbor Descent method as usually described is technically a way to
+optimize an *existing* estimate of the nearest neighbor graph. You must think of
+a way to initialize the graph. The obvious approach and the one used in the
+description of NND in [@dong2011efficient] is to start with a random selection
+of neighbors. One of the clever things about the PyNNDescent implementation is
+that it uses a random partition forest [@dasgupta2008random] to come up with the
+initial guess. Random partition forests are part of a large group of tree-based
+methods. These are often very fast and conceptually simple, but can be
+inaccurate. Much of the literature is devoted to proposals of tweaks to these
+methods to improve their performance, often at the expense of their simplicity
+and speed. PyNNDescent (and rnndescent follows its lead) avoids this because we
+only need to get to a decent guess of the nearest neighbor graph which we can
+then improve by nearest neighbor descent. As long as we don't take substantially
+longer than the random initialization to come up with the guess and it's
+sufficiently good, we should come out ahead.
+
+## Random Partition Forests
+
+Here's a basic introduction to how random partition forests work.
+
+### Building a Space-Partitioning Tree
+
+First, we will consider the recipe for building a space-partitioning tree:
+
+1. Select a dimension.
+2. Select a split point along that dimension.
+3. Split the data into two child nodes based on the split point.
+4. Repeat steps 1-3 on each of the two groups.
+5. When the number of items in a group is less than some threshold, the node
+is now a leaf, and stop splitting.
+
+Variations of steps 1 and 2 determines the vast majority of the differences
+between the various tree-based methods.
+
+### Building a Random Partition Tree
+
+For a random partition tree we:
+
+1. Select two points at random.
+2. Calculate the mid-point between those two points.
+
+This is enough to define a hyperplane in the data. This is not *exactly* the
+algorithm as described in [@dasgupta2008random], but it is how it's done in
+the very similar method [Annoy](https://github.com/spotify/annoy).
+
+Step 3 then involves calculating which side of the hyperplane each point is on
+and assigning data to the child nodes on that basis.
+
+### From Trees to Forests
+
+A random partition forest is just a collection of random partition trees.
+Because of the random nature of the trees, they will all be different.
+
+## Build a Forest
+
+To build a forest with `rnndescent`, use the `rpf_build` function. We'll use the
+`iris` dataset as an example, with the goal of finding the 15-nearest neighbors
+of each item in the dataset.
+
+```{r build a forest}
+iris_forest <- rpf_build(iris, leaf_size = 15)
+```
+
+Some options at your disposal:
+
+* `metric`: the type of distance calculation to use. The default is `euclidean`,
+but there are a lot to choose from. See the help text for the `metric` parameter in rpf_build()` for details.
+* `n_trees`: the number of trees to build. The default is to choose based on
+the size of the data provided, with a maximum of 32: eventually you will get
+diminishing returns from the number of trees in a forest.
+* `leaf_size`: the number of items in a leaf. The splitting procedure stops
+when there are fewer than this number of items in a node. The default is `10`
+but you will want the leaf size to scale with the number of neighbors you will
+look for, so I have increased it to `15` for this example. The bigger this value
+the more accurate the search will be, but at the cost of a lot more distance
+calculations to carry out. Conversely, if you make it too small compared to the
+number of neighbors, then you may end up with not all items finding `k`
+neighbors.
+* `max_tree_depth`: the maximum depth of the tree. If a tree reaches this depth
+then even if the current node size exceeds the value of `leaf_size`, it will
+stop splitting. The point of splitting a tree is that the size of each leaf
+*should* rapidly decrease as you go down the tree, and in an ideal case it
+would decrease by a factor of two at each level, so ideally we can process
+datasets that vary by many orders of magnitude while the depth of the tree
+only increases by a few levels. The default `max_tree_depth` is 200, so if you
+trigger this limit, the answer may *not* be to increase the depth. It's more
+likely that there is something about the distribution of your data that prevents
+it from splitting well. In this case, if there's a different `metric` to try
+that still has relevance for your data, that's worth a try, but possibly the
+best solution is to abandon the tree-based approach (for example initialize
+nearest neighbor descent with random neighbors).
+* `margin`: this makes a slight modification to how the assignment of data to
+the sides of the hyperplane is calculated. We'll discuss this below.
+
+The `iris_forest` that is returned is just an R list, so you can save it and
+load it with `saveRDS` and `readRDS` without issue. But it's not something
+you will want to inspect and definitely don't modify it. It's mainly useful
+for passing to other functions, like the one we will talk about next.
+
+## Finding Nearest Neighbors
+
+To use this to find nearest neighbors, a query point will traverse the tree
+from the root to a leaf, calculating the side of each hyperplane it encounters.
+All the items in the leaf in which it ends up are then candidates for nearest
+neighbors.
+
+To query the forest we just build, we use the `rpf_knn_query` function. Apart
+from the forest itself, we also need the data we want to query (`query`) and
+the data used to build the forest (`reference`), because the forest doesn't
+store that information. In thus case, because we are looking at the k-nearest
+neighbors or `iris`, the `query` and the `reference` are the
+same, but they don't have to be. At this point, we must also specify the
+number of neighbors we want.
+
+```{r query a forest}
+iris_query <- rpf_knn_query(query = iris, reference = iris, forest = iris_forest, k = 15)
+```
+
+The `iris_query` that is returned is a list with two matrices: `idx` contains
+for each row the indices of the k-nearest neighbors, and `dist` contains
+the distances.
+
+## A Small Optimization for the k-Nearest Neighbors
+
+You could use the querying approach mentioned above for finding the k-nearest
+neighbors of the data that was used in building the tree. However, the data has
+already been partitioned so if you want k-nearest neighbor data, there's a more
+efficient way to do that: for each leaf, the k-nearest neighbors of each point
+in the leaf are the other members of that leaf. While usually the distance
+calculations take up most of the time when looking for neighbors, you do avoid
+having to make any tree traversals and the associated hyperplane distance
+calculations.
+
+```{r forest knn}
+iris_knn <- rpf_knn(iris, k = 15)
+```
+
+This should give the same result as running `rpf_build` followed by
+`rpf_knn_query` (apart from the vagaries of the random number generator), but is
+a lot more convenient and a bit faster. You have access to the same parameters
+for forest building as `rpf_build`, e.g. `leaf_size`, `n_trees`, `max_tree_depth` etc.
+
+Additionally, if you want the k-nearest neighbors *and* you also want the forest
+for future querying, if you set `ret_forest = TRUE`, the return value will
+now also contain the forest as the `forest` item in the list. In this example
+we build the forest (and get the 15-nearest neighbors) for the first 50 `iris`
+items and then query the remaining 100:
+
+```{r forest knn with forest}
+iris_knn_with_forest <- rpf_knn(iris[1:50, ], k = 15, ret_forest = TRUE)
+iris_query <- rpf_knn_query(query = iris[51:150, ], reference = iris[1:50, ], forest = iris_knn_with_forest$forest, k = 15)
+```
+
+## Margin
+
+The `margin` parameter determines how to calculate the side of the hyperplane
+each item in a split belongs to. The usual method (`margin = "explicit"`) does
+the same thing as in PyNNDescent: the way the hyperplane is defined is to use
+the vector defined by the two points $a$ and $b$ as the normal vector to a plane, and then
+the point midway between them as the point on the plane. We then calculate
+the margin of a point $x$ (effectively the signed distance from the plane to $x$) as:
+
+
+$$
+\text{margin}(\mathbf{x}) = ((\mathbf{b} - \mathbf{a}) \cdot (\mathbf{x} - \frac{\mathbf{a} + \mathbf{b}}{2}))
+$$
+
+Taking dot products of vectors and finding mid points is all totally unexceptional
+if you are using a Euclidean metric. And because there is a monotonic relationship
+between the cosine distances and the Euclidean distance after normalization of
+vectors, we can define an "angular" version of this calculation that works on the
+normalized vectors.
+
+But for some datasets this will be a bit weird and un-natural. Imagine a dataset
+of binary vectors in which you are applying e.g. the Hamming metric. The mid-point
+of two binary vectors is not a binary vector, and nor does it make sense to 
+think about the geometric relationship implied by a dot product.
+
+As an alternative to calculating the margin via an explicit creation of a hyperplane,
+you could instead think about how the distance between $x$ and $a$, $d_{xa}$ compares to
+the distance between $x$ and $b$, $d_{xb}$ and what the significance for the margin is.
+Remember that the vector defined by $a$ and $b$ is the normal vector to the hyperplane,
+so you can think of a line connecting $a$ and $b$, with the hyperplane splitting that
+line in two equal halves. Now imagine $x$ is somewhere on that line. If $x$ is closer
+to $a$ than $b$ it must be on the same side of the hyperplane as $a$, and vice versa.
+Therefore we can calculate the margin by comparing $d_{xa}$ and $d_{xb}$ and seeing which
+value is smaller.
+
+Because we don't explicitly create the hyperplane, I call this the "implicit"
+margin method and you can choose to generate splits this way by setting `margin = "implicit"`. We'll use some random binary data for this example.
+
+```{r binary matrix}
+binary_data <- matrix(as.logical(rbinom(1000, 1, 0.5)), ncol = 10)
+```
+
+Note the `as.logical` call: if rnndescent detects binary data in this format *and*
+you specify a metric which is appropriate for binary data (e.g. Hamming), 
+*and* you use `margin = "implicit"` then
+a specialized function is called which should be much faster than the functions
+written only with generic floating point data in mind.
+
+```{r binary knn implicit}
+bin_knn_imp <- rpf_knn(binary_data, k = 15, metric = "hamming", margin = "implicit")
+```
+
+The following will give the same results but for large datasets is likely to
+be noticeably slower:
+
+```{r binary knn explicit}
+bin_knn_exp <- rpf_knn(binary_data, k = 15, metric = "hamming", margin = "explicit")
+```
+
+So if the implicit margin method is faster (and makes sense for more metrics)
+why would you ever want to use the explicit method? Well, the implicit method
+is only faster for binary data with specialized metrics. The downside of the
+implicit method is that determining the side of the hyperplane requires *two*
+distance calculations per point, whereas the explicit method only requires the
+dot product calculation, which is likely to be only as costly as a single
+distance calculation. So for floating point data, the explicit method is likely
+to be about twice as fast.
+
+That's a lot to think about so the default setting for `margin` is `"auto"`,
+which tries to do the right thing: if you are using binary data with a suitable
+metric, it will use the implicit method, otherwise it will use the explicit
+method and normalize the vectors to give a more "angular" approach for some
+metrics that put more emphasis on angle versus magnitude.
+
+## Filtering a Forest
+
+As mentioned at the beginning of this vignette, in `rnndescent` it's expected
+that you would only use random partition forests as an initialization to nearest
+neighbor descent. In that case, keeping the entire forest for querying new
+data is probably unnecessary: we can keep only the "best" trees. PyNNDescent only 
+keeps one tree for this purpose. For determining what tree is "best", we mean
+the tree that reproduces the k-nearest neighbor graph most
+effectively. You can do this by comparing a k-nearest neighbor graph with that
+produced by a single tree. The `rpf_filter` function does this for you:
+
+```{r filter}
+iris_filtered <- rpf_filter(nn = iris_query, forest = iris_forest, n_trees = 1)
+```
+
+`n_trees` is the number of trees to keep. Feel free to keep more if you like,
+although there is no extra diversification step to ensure that the trees being
+retained are both good at reproducing the k-nearest neighbor graph *and* are
+diverse from each other (perhaps they reproduce different parts of the neighbor
+graph well?). The higher quality the k-nearest-neighbor graph is, the better
+the filtering will work so although the example above uses the graph from the
+forest, you might get better results using the graph from having run nearest
+neighbor descent with the forest result as input.
+
+## References
