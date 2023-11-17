@@ -146,13 +146,13 @@ void print_search_forest(
 
 template <typename In, typename Idx>
 List search_tree_to_r(tdoann::SearchTree<In, Idx> &&search_tree) {
+  const std::size_t n_nodes = search_tree.hyperplanes.size();
+  const std::size_t n_hyperplane_cols = search_tree.hyperplanes[0].size();
 
-  std::size_t n_nodes = search_tree.hyperplanes.size();
-  NumericVector offsets(search_tree.offsets.size());
-  std::size_t n_hyperplane_cols = search_tree.hyperplanes[0].size();
+  NumericVector offsets(n_nodes);
   NumericMatrix hyperplanes(n_nodes, n_hyperplane_cols);
+  IntegerMatrix children(n_nodes, 2);
 
-  IntegerMatrix children(search_tree.children.size(), 2);
   for (std::size_t i = 0; i < n_nodes; ++i) {
     children(i, 0) = search_tree.children[i].first;
     children(i, 1) = search_tree.children[i].second;
@@ -163,7 +163,6 @@ List search_tree_to_r(tdoann::SearchTree<In, Idx> &&search_tree) {
       hyperplanes(i, j) = search_tree.hyperplanes[i][j];
     }
   }
-
   IntegerVector indices(search_tree.indices.begin(), search_tree.indices.end());
 
   return List::create(_("hyperplanes") = hyperplanes, _("offsets") = offsets,
@@ -178,8 +177,7 @@ List search_forest_to_r(std::vector<tdoann::SearchTree<In, Idx>> &search_forest,
   List forest_list(n_trees);
 
   for (std::size_t i = 0; i < n_trees; ++i) {
-    List tree_list = search_tree_to_r(std::move(search_forest[i]));
-    forest_list[i] = tree_list;
+    forest_list[i] = search_tree_to_r(std::move(search_forest[i]));
   }
   return List::create(_("trees") = forest_list,
                       _("margin") = margin_type_to_string(MarginType::EXPLICIT),
@@ -360,16 +358,9 @@ r_to_search_forest(List forest_list, std::size_t n_threads) {
   const auto n_trees = trees.size();
   std::vector<tdoann::SearchTree<In, Idx>> search_forest(n_trees);
 
-  auto worker = [&](std::size_t begin, std::size_t end) {
-    for (auto i = begin; i < end; ++i) {
-      search_forest[i] = r_to_search_tree<In, Idx>(trees[i]);
-    }
-  };
-
-  RParallelExecutor executor;
-  RPProgress progress(false);
-  tdoann::ExecutionParams exec_params{n_threads};
-  dispatch_work(worker, n_trees, n_threads, exec_params, progress, executor);
+  for (std::size_t i = 0; i < n_trees; ++i) {
+    search_forest[i] = r_to_search_tree<In, Idx>(trees[i]);
+  }
 
   return search_forest;
 }
@@ -388,17 +379,9 @@ r_to_search_forest_implicit(List forest_list, std::size_t n_threads) {
   const List &trees = forest_list["trees"];
   const auto n_trees = trees.size();
   std::vector<tdoann::SearchTreeImplicit<Idx>> search_forest(n_trees);
-
-  auto worker = [&](std::size_t begin, std::size_t end) {
-    for (auto i = begin; i < end; ++i) {
-      search_forest[i] = r_to_search_tree_implicit<Idx>(trees[i]);
-    }
-  };
-
-  RParallelExecutor executor;
-  RPProgress progress(false);
-  tdoann::ExecutionParams exec_params{n_threads};
-  dispatch_work(worker, n_trees, n_threads, exec_params, progress, executor);
+  for (std::size_t i = 0; i < n_trees; ++i) {
+    search_forest[i] = r_to_search_tree_implicit<Idx>(trees[i]);
+  }
 
   return search_forest;
 }
@@ -460,18 +443,9 @@ r_to_sparse_search_forest(List forest_list, std::size_t n_threads) {
   const List &trees = forest_list["trees"];
   const auto n_trees = trees.size();
   std::vector<tdoann::SparseSearchTree<In, Idx>> search_forest(n_trees);
-
-  auto worker = [&](std::size_t begin, std::size_t end) {
-    for (auto i = begin; i < end; ++i) {
-      search_forest[i] = r_to_sparse_search_tree<In, Idx>(trees[i]);
-    }
-  };
-
-  RParallelExecutor executor;
-  RPProgress progress(false);
-  tdoann::ExecutionParams exec_params{n_threads};
-  dispatch_work(worker, n_trees, n_threads, exec_params, progress, executor);
-
+  for (std::size_t i = 0; i < n_trees; ++i) {
+    search_forest[i] = r_to_sparse_search_tree<In, Idx>(trees[i]);
+  }
   return search_forest;
 }
 
@@ -827,7 +801,7 @@ List rnn_sparse_rp_forest_implicit_build(
 
 template <typename Out, typename Idx>
 List rnn_rp_forest_search_implicit(
-    const tdoann::BaseDistance<Out, Idx> &distance, List search_forest,
+    const tdoann::BaseDistance<Out, Idx> &distance, const List &search_forest,
     uint32_t n_nbrs, bool cache, std::size_t n_threads, bool verbose) {
   auto search_forest_cpp =
       r_to_search_forest_implicit<Idx>(search_forest, n_threads);
@@ -843,7 +817,7 @@ List rnn_rp_forest_search_implicit(
 
 template <typename Matrix>
 List rp_forest_search(const Matrix &query, const Matrix &reference,
-                      List search_forest, uint32_t n_nbrs,
+                      const List &search_forest, uint32_t n_nbrs,
                       const std::string &metric, bool cache,
                       std::size_t n_threads, bool verbose = false) {
   RParallelExecutor executor;
@@ -876,10 +850,10 @@ List rp_forest_search(const Matrix &query, const Matrix &reference,
 
 // [[Rcpp::export]]
 List rnn_rp_forest_search(const NumericMatrix &query,
-                          const NumericMatrix &reference, List search_forest,
-                          uint32_t n_nbrs, const std::string &metric,
-                          bool cache, std::size_t n_threads,
-                          bool verbose = false) {
+                          const NumericMatrix &reference,
+                          const List &search_forest, uint32_t n_nbrs,
+                          const std::string &metric, bool cache,
+                          std::size_t n_threads, bool verbose = false) {
   return rp_forest_search(query, reference, search_forest, n_nbrs, metric,
                           cache, n_threads, verbose);
 }
@@ -887,7 +861,7 @@ List rnn_rp_forest_search(const NumericMatrix &query,
 // [[Rcpp::export]]
 List rnn_logical_rp_forest_search(const LogicalMatrix &query,
                                   const LogicalMatrix &reference,
-                                  List search_forest, uint32_t n_nbrs,
+                                  const List &search_forest, uint32_t n_nbrs,
                                   const std::string &metric, bool cache,
                                   std::size_t n_threads, bool verbose = false) {
   return rp_forest_search(query, reference, search_forest, n_nbrs, metric,
@@ -899,7 +873,7 @@ List rnn_sparse_rp_forest_search(
     const IntegerVector &ref_ind, const IntegerVector &ref_ptr,
     const NumericVector &ref_data, const IntegerVector &query_ind,
     const IntegerVector &query_ptr, const NumericVector &query_data,
-    std::size_t ndim, List search_forest, uint32_t n_nbrs,
+    std::size_t ndim, const List &search_forest, uint32_t n_nbrs,
     const std::string &metric, bool cache, std::size_t n_threads,
     bool verbose = false) {
   RParallelExecutor executor;
@@ -961,12 +935,11 @@ std::vector<Tree> rnn_score_forest_impl(const IntegerMatrix &idx,
                 << "Max score: " << *max_it << "\n"
                 << "Mean score: " << mean << "\n";
   }
-
   return tdoann::filter_top_n_trees(search_forest, scores, n_trees);
 }
 
 // [[Rcpp::export]]
-List rnn_score_forest(const IntegerMatrix &idx, List search_forest,
+List rnn_score_forest(const IntegerMatrix &idx, const List &search_forest,
                       uint32_t n_trees, std::size_t n_threads,
                       bool verbose = false) {
   using Idx = RNN_DEFAULT_IDX;

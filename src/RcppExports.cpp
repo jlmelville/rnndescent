@@ -709,14 +709,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // rnn_rp_forest_search
-List rnn_rp_forest_search(const NumericMatrix& query, const NumericMatrix& reference, List search_forest, uint32_t n_nbrs, const std::string& metric, bool cache, std::size_t n_threads, bool verbose);
+List rnn_rp_forest_search(const NumericMatrix& query, const NumericMatrix& reference, const List& search_forest, uint32_t n_nbrs, const std::string& metric, bool cache, std::size_t n_threads, bool verbose);
 RcppExport SEXP _rnndescent_rnn_rp_forest_search(SEXP querySEXP, SEXP referenceSEXP, SEXP search_forestSEXP, SEXP n_nbrsSEXP, SEXP metricSEXP, SEXP cacheSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const NumericMatrix& >::type query(querySEXP);
     Rcpp::traits::input_parameter< const NumericMatrix& >::type reference(referenceSEXP);
-    Rcpp::traits::input_parameter< List >::type search_forest(search_forestSEXP);
+    Rcpp::traits::input_parameter< const List& >::type search_forest(search_forestSEXP);
     Rcpp::traits::input_parameter< uint32_t >::type n_nbrs(n_nbrsSEXP);
     Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
     Rcpp::traits::input_parameter< bool >::type cache(cacheSEXP);
@@ -727,14 +727,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // rnn_logical_rp_forest_search
-List rnn_logical_rp_forest_search(const LogicalMatrix& query, const LogicalMatrix& reference, List search_forest, uint32_t n_nbrs, const std::string& metric, bool cache, std::size_t n_threads, bool verbose);
+List rnn_logical_rp_forest_search(const LogicalMatrix& query, const LogicalMatrix& reference, const List& search_forest, uint32_t n_nbrs, const std::string& metric, bool cache, std::size_t n_threads, bool verbose);
 RcppExport SEXP _rnndescent_rnn_logical_rp_forest_search(SEXP querySEXP, SEXP referenceSEXP, SEXP search_forestSEXP, SEXP n_nbrsSEXP, SEXP metricSEXP, SEXP cacheSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const LogicalMatrix& >::type query(querySEXP);
     Rcpp::traits::input_parameter< const LogicalMatrix& >::type reference(referenceSEXP);
-    Rcpp::traits::input_parameter< List >::type search_forest(search_forestSEXP);
+    Rcpp::traits::input_parameter< const List& >::type search_forest(search_forestSEXP);
     Rcpp::traits::input_parameter< uint32_t >::type n_nbrs(n_nbrsSEXP);
     Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
     Rcpp::traits::input_parameter< bool >::type cache(cacheSEXP);
@@ -745,7 +745,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // rnn_sparse_rp_forest_search
-List rnn_sparse_rp_forest_search(const IntegerVector& ref_ind, const IntegerVector& ref_ptr, const NumericVector& ref_data, const IntegerVector& query_ind, const IntegerVector& query_ptr, const NumericVector& query_data, std::size_t ndim, List search_forest, uint32_t n_nbrs, const std::string& metric, bool cache, std::size_t n_threads, bool verbose);
+List rnn_sparse_rp_forest_search(const IntegerVector& ref_ind, const IntegerVector& ref_ptr, const NumericVector& ref_data, const IntegerVector& query_ind, const IntegerVector& query_ptr, const NumericVector& query_data, std::size_t ndim, const List& search_forest, uint32_t n_nbrs, const std::string& metric, bool cache, std::size_t n_threads, bool verbose);
 RcppExport SEXP _rnndescent_rnn_sparse_rp_forest_search(SEXP ref_indSEXP, SEXP ref_ptrSEXP, SEXP ref_dataSEXP, SEXP query_indSEXP, SEXP query_ptrSEXP, SEXP query_dataSEXP, SEXP ndimSEXP, SEXP search_forestSEXP, SEXP n_nbrsSEXP, SEXP metricSEXP, SEXP cacheSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -757,7 +757,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const IntegerVector& >::type query_ptr(query_ptrSEXP);
     Rcpp::traits::input_parameter< const NumericVector& >::type query_data(query_dataSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type ndim(ndimSEXP);
-    Rcpp::traits::input_parameter< List >::type search_forest(search_forestSEXP);
+    Rcpp::traits::input_parameter< const List& >::type search_forest(search_forestSEXP);
     Rcpp::traits::input_parameter< uint32_t >::type n_nbrs(n_nbrsSEXP);
     Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
     Rcpp::traits::input_parameter< bool >::type cache(cacheSEXP);
@@ -768,13 +768,13 @@ BEGIN_RCPP
 END_RCPP
 }
 // rnn_score_forest
-List rnn_score_forest(const IntegerMatrix& idx, List search_forest, uint32_t n_trees, std::size_t n_threads, bool verbose);
+List rnn_score_forest(const IntegerMatrix& idx, const List& search_forest, uint32_t n_trees, std::size_t n_threads, bool verbose);
 RcppExport SEXP _rnndescent_rnn_score_forest(SEXP idxSEXP, SEXP search_forestSEXP, SEXP n_treesSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const IntegerMatrix& >::type idx(idxSEXP);
-    Rcpp::traits::input_parameter< List >::type search_forest(search_forestSEXP);
+    Rcpp::traits::input_parameter< const List& >::type search_forest(search_forestSEXP);
     Rcpp::traits::input_parameter< uint32_t >::type n_trees(n_treesSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type n_threads(n_threadsSEXP);
     Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
