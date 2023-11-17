@@ -214,12 +214,17 @@ template <typename Out, typename Idx>
 void flag_retained_new_candidates(NNDHeap<Out, Idx> &current_graph,
                                   const NNHeap<Out, Idx> &new_nbrs,
                                   std::size_t begin, std::size_t end) {
+  constexpr auto npos = static_cast<Idx>(-1);
   const std::size_t n_nbrs = current_graph.n_nbrs;
   std::size_t ibegin = begin * n_nbrs;
   std::size_t ij = ibegin;
   for (auto i = begin; i < end; i++, ibegin += n_nbrs) {
     for (std::size_t j = 0; j < n_nbrs; j++, ij++) {
-      if (new_nbrs.contains(i, current_graph.idx[ij])) {
+      const auto &nbr = current_graph.idx[ij];
+      if (nbr == npos) {
+        continue;
+      }
+      if (new_nbrs.contains(i, nbr)) {
         current_graph.flags[ij] = 0;
       }
     }
