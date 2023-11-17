@@ -115,10 +115,20 @@ nearest neighbor descent with random neighbors).
 * `margin`: this makes a slight modification to how the assignment of data to
 the sides of the hyperplane is calculated. We'll discuss this below.
 
-The `iris_forest` that is returned is just an R list, so you can save it and
-load it with `saveRDS` and `readRDS` without issue. But it's not something
-you will want to inspect and definitely don't modify it. It's mainly useful
-for passing to other functions, like the one we will talk about next.
+As an example of a poor choice of `max_depth` and the warning you will get:
+
+```{r bad max_depth}
+iris_bad_forest <- rpf_build(iris,
+  leaf_size = 15, verbose = TRUE,
+  max_tree_depth = 2
+)
+```
+
+At any rate, whatever the leaf size, the forest that is returned is just an R
+list, so you can save it and load it with `saveRDS` and `readRDS` without issue.
+But it's not something you will want to inspect and definitely don't modify it.
+It's mainly useful for passing to other functions, like the one we will talk
+about next.
 
 ## Finding Nearest Neighbors
 

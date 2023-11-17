@@ -67,8 +67,10 @@ bool is_angular_metric(const std::string &metric) {
 
 enum class MarginType { EXPLICIT, IMPLICIT };
 
-void check_leaf_size(std::size_t leaf_size, std::size_t max_leaf_size,
-                     bool verbose) {
+template <typename Tree>
+std::size_t check_leaf_size(const std::vector<Tree> &rp_forest,
+                            std::size_t leaf_size, bool verbose) {
+  const std::size_t max_leaf_size = tdoann::find_max_leaf_size(rp_forest);
   if (max_leaf_size > leaf_size) {
     if (verbose) {
       tsmessage()
@@ -79,6 +81,7 @@ void check_leaf_size(std::size_t leaf_size, std::size_t max_leaf_size,
              "consider a random initialization\n";
     }
   }
+  return max_leaf_size;
 }
 
 // Function to convert MarginType to a string
@@ -523,8 +526,8 @@ List rnn_rp_tree_knn_explicit(const NumericMatrix &data, uint32_t nnbrs,
   if (verbose) {
     tsmessage() << "Extracting leaf array from forest\n";
   }
-  const std::size_t max_leaf_size = tdoann::find_max_leaf_size(rp_forest);
-  check_leaf_size(leaf_size, max_leaf_size, verbose);
+  const std::size_t max_leaf_size =
+      check_leaf_size(rp_forest, leaf_size, verbose);
 
   std::vector<Idx> leaf_array =
       tdoann::get_leaves_from_forest(rp_forest, max_leaf_size);
@@ -574,8 +577,8 @@ List rnn_sparse_rp_tree_knn_explicit(
   if (verbose) {
     tsmessage() << "Extracting leaf array from forest\n";
   }
-  const std::size_t max_leaf_size = tdoann::find_max_leaf_size(rp_forest);
-  check_leaf_size(leaf_size, max_leaf_size, verbose);
+  const std::size_t max_leaf_size =
+      check_leaf_size(rp_forest, leaf_size, verbose);
 
   std::vector<Idx> leaf_array =
       tdoann::get_leaves_from_forest(rp_forest, max_leaf_size);
@@ -622,8 +625,8 @@ List rp_tree_knn_implicit_impl(const tdoann::BaseDistance<Out, Idx> &distance,
   if (verbose) {
     tsmessage() << "Extracting leaf array from forest\n";
   }
-  const std::size_t max_leaf_size = tdoann::find_max_leaf_size(rp_forest);
-  check_leaf_size(leaf_size, max_leaf_size, verbose);
+  const std::size_t max_leaf_size =
+      check_leaf_size(rp_forest, leaf_size, verbose);
 
   std::vector<Idx> leaf_array =
       tdoann::get_leaves_from_forest(rp_forest, max_leaf_size);
@@ -705,7 +708,7 @@ List rnn_rp_forest_build(const NumericMatrix &data, const std::string &metric,
   auto rp_forest =
       build_rp_forest<In, Idx>(data_vec, ndim, metric, n_trees, leaf_size,
                                max_tree_depth, n_threads, verbose, executor);
-
+  check_leaf_size(rp_forest, leaf_size, verbose);
   auto search_forest = tdoann::convert_rp_forest(rp_forest, data.ncol(), ndim);
 
   return search_forest_to_r(search_forest, metric);
