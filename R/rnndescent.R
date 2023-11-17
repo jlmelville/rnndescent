@@ -1,3 +1,149 @@
+# API ---------------------------------------------------------------------
+
+rnnd_build <- function(data,
+                       k = 30,
+                       metric = "euclidean",
+                       use_alt_metric = TRUE,
+                       init = "tree",
+                       n_trees = NULL,
+                       leaf_size = NULL,
+                       max_tree_depth = 200,
+                       margin = "auto",
+                       n_iters = NULL,
+                       delta = 0.001,
+                       max_candidates = NULL,
+                       low_memory = TRUE,
+                       prepare = FALSE,
+                       pruning_degree_multiplier = 1.5,
+                       diversify_prob = 1.0,
+                       n_search_trees = 1,
+                       n_threads = 0,
+                       verbose = FALSE,
+                       progress = "bar",
+                       obs = "R") {
+  data <- x2m(data)
+  if (obs == "R") {
+    data <- Matrix::t(data)
+  }
+
+  index <- nnd_knn(
+    data,
+    k = k,
+    metric = metric,
+    use_alt_metric = use_alt_metric,
+    init = init,
+    init_args = list(
+      n_trees = n_trees,
+      leaf_size = leaf_size,
+      max_tree_depth = max_tree_depth,
+      margin = margin
+    ),
+    ret_forest = TRUE,
+    n_iters = n_iters,
+    delta = delta,
+    max_candidates = max_candidates,
+    low_memory = low_memory,
+    n_threads = n_threads,
+    verbose = verbose,
+    obs = "C"
+  )
+
+  index <- list(
+    graph = list(idx = index$idx, dist = index$dist),
+    forest = index$forest
+  )
+
+  index$prep <- list(
+    pruning_degree_multiplier = pruning_degree_multiplier,
+    diversify_prob = diversify_prob,
+    n_search_trees = n_search_trees,
+    is_prepared = FALSE
+  )
+
+  index$data <- data
+
+  index$original_metric <- metric
+  index$use_alt_metric <- use_alt_metric
+
+  if (prepare) {
+    tsmessage("Preparing index for searching")
+    index <-
+      rnnd_prepare(index, n_threads = n_threads, verbose = verbose)
+  }
+
+  index
+}
+
+rnnd_prepare <- function(index,
+                         n_threads = 0,
+                         verbose = FALSE) {
+  if (!is.null(index)) {
+    index$search_forest <-
+      rpf_filter(
+        nn = index$graph,
+        forest = index$forest,
+        n_trees = index$prep$n_search_trees,
+        n_threads = n_threads,
+        verbose = verbose
+      )
+  }
+
+  search_graph <- prepare_search_graph(
+    data = index$data,
+    graph = index$graph,
+    metric = index$original_metric,
+    diversify_prob = index$prep$diversify_prob,
+    pruning_degree_multiplier = index$prep$pruning_degree_multiplier,
+    n_threads = n_threads,
+    verbose = verbose,
+    obs = "C"
+  )
+
+  index$prep$is_prepared <- TRUE
+  index$search_graph <- search_graph
+  index
+}
+
+rnnd_query <-
+  function(index,
+           query,
+           k = 30,
+           epsilon = 0.1,
+           n_threads = 0,
+           verbose = FALSE,
+           obs = "R") {
+    if (!index$prep$is_prepared) {
+      tsmessage("Preparing search graph")
+      index <-
+        rnnd_prepare(index, n_threads = n_threads, verbose = verbose)
+    }
+
+    if (!is.null(index$search_forest)) {
+      init <- index$search_forest
+    } else {
+      init <- NULL
+    }
+
+    query <- x2m(query)
+    if (obs == "R") {
+      query <- Matrix::t(query)
+    }
+    graph_knn_query(
+      query = query,
+      reference = index$data,
+      reference_graph = index$search_graph,
+      k = k,
+      metric = index$original_metric,
+      init = init,
+      epsilon = epsilon,
+      use_alt_metric = index$use_alt_metric,
+      n_threads = n_threads,
+      verbose = verbose,
+      obs = "C"
+    )
+  }
+
+
 # kNN Construction --------------------------------------------------------
 
 #' Calculate Exact Nearest Neighbors by Brute Force
@@ -540,7 +686,6 @@ nnd_knn <- function(data,
         init_args$metric <- metric
       }
     }
-
     tsmessage("Initializing neighbors using '", init, "' method")
     init <- switch(init,
       "rand" = random_knn_impl(
