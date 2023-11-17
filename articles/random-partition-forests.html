@@ -181,27 +181,19 @@ distribution of your data that prevents it from splitting well. In this
 case, if there’s a different <code>metric</code> to try that still has
 relevance for your data, that’s worth a try, but possibly the best
 solution is to abandon the tree-based approach (for example initialize
-nearest neighbor descent with random neighbors).</li>
+nearest neighbor descent with random neighbors). If you set
+<code>verbose = TRUE</code> you will get a warning about the maximum
+leaf size being larger than <code>leaf_size</code>.</li>
 <li>
 <code>margin</code>: this makes a slight modification to how the
 assignment of data to the sides of the hyperplane is calculated. We’ll
 discuss this below.</li>
 </ul>
-<p>As an example of a poor choice of <code>max_depth</code> and the
-warning you will get:</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">iris_bad_forest</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rpf_build.html">rpf_build</a></span><span class="op">(</span><span class="va">iris</span>,</span>
-<span>  leaf_size <span class="op">=</span> <span class="fl">15</span>, verbose <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  max_tree_depth <span class="op">=</span> <span class="fl">2</span></span>
-<span><span class="op">)</span></span>
-<span><span class="co">#&gt; 06:21:48 Using alt metric 'sqeuclidean' for 'euclidean'</span></span>
-<span><span class="co">#&gt; 06:21:48 Building RP forest with n_trees = 8 max leaf size = 15 margin = 'explicit'</span></span>
-<span><span class="co">#&gt; 06:21:48 Finished</span></span></code></pre></div>
-<p>At any rate, whatever the leaf size, the forest that is returned is
-just an R list, so you can save it and load it with <code>saveRDS</code>
-and <code>readRDS</code> without issue. But it’s not something you will
-want to inspect and definitely don’t modify it. It’s mainly useful for
-passing to other functions, like the one we will talk about next.</p>
+<p>The forest that is returned is just an R list, so you can save it and
+load it with <code>saveRDS</code> and <code>readRDS</code> without
+issue. But it’s not something you will want to inspect and definitely
+don’t modify it. It’s mainly useful for passing to other functions, like
+the one we will talk about next.</p>
 </div>
 <div class="section level2">
 <h2 id="finding-nearest-neighbors">Finding Nearest Neighbors<a class="anchor" aria-label="anchor" href="#finding-nearest-neighbors"></a>
@@ -218,7 +210,7 @@ doesn’t store that information. In thus case, because we are looking at
 the k-nearest neighbors or <code>iris</code>, the <code>query</code> and
 the <code>reference</code> are the same, but they don’t have to be. At
 this point, we must also specify the number of neighbors we want.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">iris_query</span> <span class="op">&lt;-</span></span>
 <span>  <span class="fu"><a href="../reference/rpf_knn_query.html">rpf_knn_query</a></span><span class="op">(</span></span>
 <span>    query <span class="op">=</span> <span class="va">iris</span>,</span>
@@ -241,7 +233,7 @@ the k-nearest neighbors of each point in the leaf are the other members
 of that leaf. While usually the distance calculations take up most of
 the time when looking for neighbors, you do avoid having to make any
 tree traversals and the associated hyperplane distance calculations.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">iris_knn</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rpf_knn.html">rpf_knn</a></span><span class="op">(</span><span class="va">iris</span>, k <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span></code></pre></div>
 <p>This should give the same result as running <code>rpf_build</code>
 followed by <code>rpf_knn_query</code> (apart from the vagaries of the
@@ -255,7 +247,7 @@ also want the forest for future querying, if you set
 the forest as the <code>forest</code> item in the list. In this example
 we build the forest (and get the 15-nearest neighbors) for the first 50
 <code>iris</code> items and then query the remaining 100:</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">iris_knn_with_forest</span> <span class="op">&lt;-</span></span>
 <span>  <span class="fu"><a href="../reference/rpf_knn.html">rpf_knn</a></span><span class="op">(</span><span class="va">iris</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">50</span>, <span class="op">]</span>, k <span class="op">=</span> <span class="fl">15</span>, ret_forest <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="va">iris_query</span> <span class="op">&lt;-</span></span>
@@ -306,7 +298,7 @@ smaller.</p>
 “implicit” margin method and you can choose to generate splits this way
 by setting <code>margin = "implicit"</code>. We’ll use some random
 binary data for this example.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">binary_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/logical.html" class="external-link">as.logical</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Binomial.html" class="external-link">rbinom</a></span><span class="op">(</span><span class="fl">1000</span>, <span class="fl">1</span>, <span class="fl">0.5</span><span class="op">)</span><span class="op">)</span>, ncol <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span></code></pre></div>
 <p>Note the <code>as.logical</code> call: if <code>rnndescent</code>
 detects binary data in this format <em>and</em> you specify a metric
@@ -314,7 +306,7 @@ which is appropriate for binary data (e.g. Hamming), <em>and</em> you
 use <code>margin = "implicit"</code> then a specialized function is
 called which should be much faster than the functions written only with
 generic floating point data in mind.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">bin_knn_imp</span> <span class="op">&lt;-</span></span>
 <span>  <span class="fu"><a href="../reference/rpf_knn.html">rpf_knn</a></span><span class="op">(</span><span class="va">binary_data</span>,</span>
 <span>    k <span class="op">=</span> <span class="fl">15</span>,</span>
@@ -323,7 +315,7 @@ generic floating point data in mind.</p>
 <span>  <span class="op">)</span></span></code></pre></div>
 <p>The following will give the same results but for large datasets is
 likely to be noticeably slower:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">bin_knn_exp</span> <span class="op">&lt;-</span></span>
 <span>  <span class="fu"><a href="../reference/rpf_knn.html">rpf_knn</a></span><span class="op">(</span><span class="va">binary_data</span>,</span>
 <span>    k <span class="op">=</span> <span class="fl">15</span>,</span>
@@ -358,7 +350,7 @@ the tree that reproduces the k-nearest neighbor graph most effectively.
 You can do this by comparing a k-nearest neighbor graph with that
 produced by a single tree. The <code>rpf_filter</code> function does
 this for you:</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">iris_filtered</span> <span class="op">&lt;-</span></span>
 <span>  <span class="fu"><a href="../reference/rpf_filter.html">rpf_filter</a></span><span class="op">(</span></span>
 <span>    nn <span class="op">=</span> <span class="va">iris_query</span>,</span>
