@@ -358,7 +358,7 @@ r_to_search_forest(List forest_list, std::size_t n_threads) {
   }
 
   const List &trees = forest_list["trees"];
-  const auto n_trees = trees.size();
+  const std::size_t n_trees = trees.size();
   std::vector<tdoann::SearchTree<In, Idx>> search_forest(n_trees);
 
   for (std::size_t i = 0; i < n_trees; ++i) {
@@ -380,7 +380,7 @@ r_to_search_forest_implicit(List forest_list, std::size_t n_threads) {
   }
 
   const List &trees = forest_list["trees"];
-  const auto n_trees = trees.size();
+  const std::size_t n_trees = trees.size();
   std::vector<tdoann::SearchTreeImplicit<Idx>> search_forest(n_trees);
   for (std::size_t i = 0; i < n_trees; ++i) {
     search_forest[i] = r_to_search_tree_implicit<Idx>(trees[i]);
@@ -444,7 +444,7 @@ r_to_sparse_search_forest(List forest_list, std::size_t n_threads) {
   }
 
   const List &trees = forest_list["trees"];
-  const auto n_trees = trees.size();
+  const std::size_t n_trees = trees.size();
   std::vector<tdoann::SparseSearchTree<In, Idx>> search_forest(n_trees);
   for (std::size_t i = 0; i < n_trees; ++i) {
     search_forest[i] = r_to_sparse_search_tree<In, Idx>(trees[i]);
