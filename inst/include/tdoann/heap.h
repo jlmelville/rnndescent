@@ -232,31 +232,29 @@ public:
     return idx_p < n_points && d_pq < dist[idx_p * n_nbrs];
   }
 
-  auto checked_push_pair(Idx row, const Out &weight, Idx idx, uint8_t flag = 1)
-      -> uint32_t {
-    uint32_t num_updates = checked_push(row, weight, idx, flag);
+  auto checked_push_pair(Idx row, const Out &weight, Idx idx) -> uint32_t {
+    uint32_t num_updates = checked_push(row, weight, idx);
     if (row != idx) {
       // NOLINTNEXTLINE(readability-suspicious-call-argument)
-      num_updates += checked_push(idx, weight, row, flag);
+      num_updates += checked_push(idx, weight, row);
     }
     return num_updates;
   }
 
-  auto checked_push(Idx row, const Out &weight, Idx idx, uint8_t flag = 1)
-      -> uint32_t {
+  auto checked_push(Idx row, const Out &weight, Idx idx) -> uint32_t {
     if (!accepts(row, weight) || contains(row, idx)) {
       return 0U;
     }
 
-    unchecked_push(row, weight, idx, flag);
+    unchecked_push(row, weight, idx);
     return 1U;
   }
 
   // This differs from the pynndescent version as it is truly unchecked
-  void unchecked_push(Idx row, const Out &weight, Idx index,
-                      uint8_t flag = 1U) {
+  void unchecked_push(Idx row, const Out &weight, Idx index) {
     std::size_t root = row * n_nbrs;
 
+    constexpr uint8_t flag = 1U;
     // insert val at position zero
     dist[root] = weight;
     idx[root] = index;
