@@ -81,4 +81,3 @@ k_occur <- function(idx,
   len <- max(idx)
   rnn_reverse_nbr_size(idx, k, len, include_self)
 }
-
