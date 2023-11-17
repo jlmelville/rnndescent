@@ -240,7 +240,7 @@ void build_candidates(const NNDHeap<Out, Idx> &nn_heap,
     for (auto i = begin, idx_offset = begin * n_nbrs; i < end;
          i++, idx_offset += n_nbrs) {
       for (auto idx_ij = idx_offset; idx_ij < idx_offset + n_nbrs; idx_ij++) {
-        auto nbr = nn_heap.idx[idx_ij];
+        const auto nbr = nn_heap.idx[idx_ij];
         if (nbr == npos) {
           continue;
         }

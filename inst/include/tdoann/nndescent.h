@@ -169,12 +169,13 @@ void build_candidates(const NNDHeap<Out, Idx> &current_graph,
   for (std::size_t i = 0, idx_offset = 0; i < n_points;
        i++, idx_offset += n_nbrs) {
     for (auto idx_ij = idx_offset; idx_ij < idx_offset + n_nbrs; idx_ij++) {
-      if (current_graph.idx[idx_ij] == npos) {
+      const auto nbr = current_graph.idx[idx_ij];
+      if (nbr == npos) {
         continue;
       }
-      auto rand_weight = rand.unif();
       auto &nbrs = current_graph.flags[idx_ij] == 1 ? new_nbrs : old_nbrs;
-      nbrs.checked_push_pair(i, rand_weight, current_graph.idx[idx_ij]);
+      auto rand_weight = rand.unif(); // pairs will be processed in random order
+      nbrs.checked_push_pair(i, rand_weight, nbr);
     }
   }
 }
