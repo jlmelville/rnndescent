@@ -38,7 +38,7 @@ using Rcpp::NumericVector;
 template <typename Out, typename Idx>
 List diversify_impl(const tdoann::BaseDistance<Out, Idx> &distance,
                     List graph_list, double prune_probability,
-                    std::size_t n_threads) {
+                    std::size_t n_threads, bool verbose) {
   const auto graph = r_to_sparse_graph<Out, Idx>(graph_list);
 
   std::optional<tdoann::SparseNNGraph<Out, Idx>> diversified;
@@ -48,7 +48,7 @@ List diversify_impl(const tdoann::BaseDistance<Out, Idx> &distance,
         tdoann::remove_long_edges(graph, distance, rand, prune_probability);
   } else {
     RParallelExecutor executor;
-    RPProgress progress(1, false);
+    RPProgress progress(1, verbose);
     rnndescent::ParallelRNGAdapter<rnndescent::PcgRand> parallel_rand;
     diversified = tdoann::remove_long_edges(graph, distance, parallel_rand,
                                             prune_probability, n_threads,
@@ -61,28 +61,29 @@ List diversify_impl(const tdoann::BaseDistance<Out, Idx> &distance,
 List rnn_sparse_diversify(const IntegerVector &ind, const IntegerVector &ptr,
                           const NumericVector &data, std::size_t ndim,
                           const List &graph_list, const std::string &metric,
-                          double prune_probability, std::size_t n_threads) {
+                          double prune_probability, std::size_t n_threads,
+                          bool verbose) {
   auto distance_ptr = create_sparse_self_distance(ind, ptr, data, ndim, metric);
-  return diversify_impl(*distance_ptr, graph_list, prune_probability,
-                        n_threads);
+  return diversify_impl(*distance_ptr, graph_list, prune_probability, n_threads,
+                        verbose);
 }
 
 // [[Rcpp::export]]
 List rnn_diversify(const NumericMatrix &data, const List &graph_list,
                    const std::string &metric, double prune_probability,
-                   std::size_t n_threads) {
+                   std::size_t n_threads, bool verbose) {
   auto distance_ptr = create_self_distance(data, metric);
-  return diversify_impl(*distance_ptr, graph_list, prune_probability,
-                        n_threads);
+  return diversify_impl(*distance_ptr, graph_list, prune_probability, n_threads,
+                        verbose);
 }
 
 // [[Rcpp::export]]
 List rnn_logical_diversify(const LogicalMatrix &data, const List &graph_list,
                            const std::string &metric, double prune_probability,
-                           std::size_t n_threads) {
+                           std::size_t n_threads, bool verbose) {
   auto distance_ptr = create_self_distance(data, metric);
-  return diversify_impl(*distance_ptr, graph_list, prune_probability,
-                        n_threads);
+  return diversify_impl(*distance_ptr, graph_list, prune_probability, n_threads,
+                        verbose);
 }
 
 // [[Rcpp::export]]

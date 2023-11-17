@@ -73,16 +73,16 @@ rnn_sparse_descent <- function(ind, ptr, data, ndim, nn_idx, nn_dist, metric, ma
     .Call(`_rnndescent_rnn_sparse_descent`, ind, ptr, data, ndim, nn_idx, nn_dist, metric, max_candidates, n_iters, delta, low_memory, n_threads, verbose, progress_type)
 }
 
-rnn_sparse_diversify <- function(ind, ptr, data, ndim, graph_list, metric, prune_probability, n_threads) {
-    .Call(`_rnndescent_rnn_sparse_diversify`, ind, ptr, data, ndim, graph_list, metric, prune_probability, n_threads)
+rnn_sparse_diversify <- function(ind, ptr, data, ndim, graph_list, metric, prune_probability, n_threads, verbose) {
+    .Call(`_rnndescent_rnn_sparse_diversify`, ind, ptr, data, ndim, graph_list, metric, prune_probability, n_threads, verbose)
 }
 
-rnn_diversify <- function(data, graph_list, metric, prune_probability, n_threads) {
-    .Call(`_rnndescent_rnn_diversify`, data, graph_list, metric, prune_probability, n_threads)
+rnn_diversify <- function(data, graph_list, metric, prune_probability, n_threads, verbose) {
+    .Call(`_rnndescent_rnn_diversify`, data, graph_list, metric, prune_probability, n_threads, verbose)
 }
 
-rnn_logical_diversify <- function(data, graph_list, metric, prune_probability, n_threads) {
-    .Call(`_rnndescent_rnn_logical_diversify`, data, graph_list, metric, prune_probability, n_threads)
+rnn_logical_diversify <- function(data, graph_list, metric, prune_probability, n_threads, verbose) {
+    .Call(`_rnndescent_rnn_logical_diversify`, data, graph_list, metric, prune_probability, n_threads, verbose)
 }
 
 rnn_merge_graph_lists <- function(graph_list1, graph_list2) {

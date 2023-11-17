@@ -165,7 +165,9 @@ auto remove_long_edges(const SparseNNGraph<Out, Idx> &graph,
     remove_long_edges_impl(graph, distance, *rand, prune_probability, result,
                            begin, end);
   };
-  dispatch_work(worker, graph.n_points, n_threads, progress, executor);
+  ExecutionParams exec_params{100 * n_threads};
+  dispatch_work(worker, graph.n_points, n_threads, exec_params, progress,
+                executor);
   return result;
 }
 

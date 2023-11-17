@@ -46,7 +46,8 @@ void nn_query(const SparseNNGraph<Out, Idx> &reference_graph,
   };
   progress.set_n_iters(1);
   ExecutionParams exec_params{100 * n_threads};
-  dispatch_work(worker, nn_heap.n_points, n_threads, exec_params, progress, executor);
+  dispatch_work(worker, nn_heap.n_points, n_threads, exec_params, progress,
+                executor);
 }
 
 template <typename T, typename Container, typename Compare>

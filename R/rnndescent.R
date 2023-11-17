@@ -1817,7 +1817,8 @@ diversify <- function(data,
       graph_list = gl,
       metric = metric,
       prune_probability = prune_probability,
-      n_threads = n_threads
+      n_threads = n_threads,
+      verbose = verbose
     )
   } else if (is.logical(data)) {
     gl_div <- rnn_logical_diversify(
@@ -1825,7 +1826,8 @@ diversify <- function(data,
       graph_list = gl,
       metric = metric,
       prune_probability = prune_probability,
-      n_threads = n_threads
+      n_threads = n_threads,
+      verbose = verbose
     )
   } else {
     gl_div <- rnn_diversify(
@@ -1833,7 +1835,8 @@ diversify <- function(data,
       graph_list = gl,
       metric = metric,
       prune_probability = prune_probability,
-      n_threads = n_threads
+      n_threads = n_threads,
+      verbose = verbose
     )
   }
   res <- list_to_sparse(gl_div)
