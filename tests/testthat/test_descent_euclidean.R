@@ -283,6 +283,12 @@ check_query_nbrs(nn = qnbrs4, query = ui4, ref_range = 1:6, query_range = 7:10, 
 expect_equal(sum(qnbrs4$dist), ui4q_edsum, tol = 1e-6)
 expect_equal(rnbrs4$idx, rnbrs4_idx_copy)
 
+# initialize from existing matrix
+qnbrs4 <- graph_knn_query(reference = ui6, reference_graph = ui6_nnd, query = ui4, init = rnbrs4$idx, n_threads = 1)
+check_query_nbrs(nn = qnbrs4, query = ui4, ref_range = 1:6, query_range = 7:10, k = 4, expected_dist = ui10_eucd, tol = 1e-6)
+expect_equal(sum(qnbrs4$dist), ui4q_edsum, tol = 1e-6)
+expect_equal(rnbrs4$idx, rnbrs4_idx_copy)
+
 # augment with random
 set.seed(1337)
 rnbrs2 <- random_knn_query(reference = ui6, query = ui4, k = 2)

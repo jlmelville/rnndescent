@@ -1404,7 +1404,11 @@ graph_knn_query <- function(query,
       init$dist <-
         apply_alt_metric_uncorrection(metric, init$dist, is_sparse(reference))
     }
-  } else if (is.list(init) && !is.null(init$idx)) {
+  } else if ((is.list(init) && !is.null(init$idx)) || is.matrix(init)) {
+    if (is.matrix(init)) {
+      init <- list(idx = init)
+    }
+
     # user-supplied distances may need to be transformed to the actual metric
     if (use_alt_metric && !is.null(init$dist)) {
       init$dist <-
