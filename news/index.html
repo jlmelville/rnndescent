@@ -26,6 +26,7 @@
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
     <a class="dropdown-item" href="../articles/hubness.html">Hubness</a>
     <a class="dropdown-item" href="../articles/nearest-neighbor-descent.html">Nearest Neighbor Descent</a>
+    <a class="dropdown-item" href="../articles/querying-data.html">Querying Data</a>
     <a class="dropdown-item" href="../articles/random-partition-forests.html">Random Partition Forests</a>
   </div>
 </li>
@@ -52,6 +53,7 @@
 <h3 id="breaking-changes-0-0-15">Breaking Changes<a class="anchor" aria-label="anchor" href="#breaking-changes-0-0-15"></a></h3>
 <ul><li>Standalone distance functions have been removed. They hadn’t expanded to match all the distances available in the nearest neighbor functions, nor was sparse support added. Doing so would increase the size of this package’s API even further. They may show up in another package.</li>
 <li>The <code>local_scale_nn</code> has been removed, for similar reasons to the removal of the standalone distance functions. It remains in the <code>localscale</code> branch of the github repo.</li>
+<li>The search graph returned from <code>prepare_search_graph</code> is now transposed. This prevents having to repeatedly transpose inside every call to <code>graph_knn_query</code> if multiple queries are being made. You will need to either regenerate any saved search graphs or transpose them with <code>Matrix::t(search_graph)</code>.</li>
 </ul></div>
 </div>
     <div class="section level2">

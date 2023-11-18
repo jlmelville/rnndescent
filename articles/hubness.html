@@ -43,6 +43,7 @@
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
     <a class="dropdown-item" href="../articles/hubness.html">Hubness</a>
     <a class="dropdown-item" href="../articles/nearest-neighbor-descent.html">Nearest Neighbor Descent</a>
+    <a class="dropdown-item" href="../articles/querying-data.html">Querying Data</a>
     <a class="dropdown-item" href="../articles/random-partition-forests.html">Random Partition Forests</a>
   </div>
 </li>
@@ -711,9 +712,9 @@ graph:</p>
 <div class="sourceCode" id="cb52"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">g1000d_sgko</span><span class="op">)</span></span>
 <span><span class="co">#&gt;    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. </span></span>
-<span><span class="co">#&gt;   1.000   2.000   5.000   7.517   8.000 111.000</span></span>
+<span><span class="co">#&gt;   1.000   4.000   5.000   7.149   9.000  22.000</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">g1000d_sgko</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 106</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 18</span></span></code></pre></div>
 <p>This is not <em>quite</em> as skewed as the neighbor graph, but there
 is still a lot of room for improvement.</p>
 <p>At any rate, with the search graph in hand, we can now search it
