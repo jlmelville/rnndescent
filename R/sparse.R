@@ -78,6 +78,10 @@ rsparse_to_list <- function(spr) {
 
 csparse_to_list <- function(spc) {
   spct <- Matrix::t(spc)
+  tcsparse_to_list(spct)
+}
+
+tcsparse_to_list <- function(spct) {
   list(row_ptr = spct@p, col_idx = spct@i, dist = spct@x)
 }
 

@@ -52,12 +52,12 @@ test_that("single thread prepare", {
 
   set.seed(1337)
   sg_occp <-
-    prepare_search_graph(
+    Matrix::t(prepare_search_graph(
       data = ui10,
       graph = ui10_bf,
       diversify_prob = 0.5,
       pruning_degree_multiplier = NULL
-    )
+    ))
   expect_equal(
     sg_occp@x,
     c(
@@ -75,12 +75,12 @@ test_that("single thread prepare", {
 
 
   sg_trunc <-
-    prepare_search_graph(
+    Matrix::t(prepare_search_graph(
       data = ui10,
       graph = ui10_bf,
       diversify_prob = NULL,
       pruning_degree_multiplier = 1.5
-    )
+    ))
   expect_equal(
     sg_trunc@x,
     c(
@@ -101,12 +101,12 @@ test_that("single thread prepare", {
   expect_equal(sg_trunc@p, c(0, 3, 8, 14, 17, 21, 24, 28, 32, 35, 38))
 
   sg_occ_trunc <-
-    prepare_search_graph(
+    Matrix::t(prepare_search_graph(
       data = ui10,
       graph = ui10_bf,
       diversify_prob = 1,
       pruning_degree_multiplier = 0.5
-    )
+    ))
   expect_equal(
     sg_occ_trunc@x,
     c(
@@ -126,13 +126,13 @@ test_that("single thread prepare", {
 
 test_that("parallel prepare", {
   sg_full <-
-    prepare_search_graph(
+    Matrix::t(prepare_search_graph(
       data = ui10,
       graph = ui10_bf,
       diversify_prob = NULL,
       pruning_degree_multiplier = NULL,
       n_threads = 1
-    )
+    ))
 
   expect_s4_class(sg_full, "sparseMatrix")
   expect_equal(
@@ -155,13 +155,13 @@ test_that("parallel prepare", {
   expect_equal(sg_full@p, c(0, 3, 8, 14, 17, 21, 24, 28, 32, 35, 38))
 
   sg_occ <-
-    prepare_search_graph(
+    Matrix::t(prepare_search_graph(
       data = ui10,
       graph = ui10_bf,
       diversify_prob = 1,
       pruning_degree_multiplier = NULL,
       n_threads = 1
-    )
+    ))
   expect_equal(
     sg_occ@x,
     c(
@@ -175,13 +175,13 @@ test_that("parallel prepare", {
 
   set.seed(1337)
   sg_occp <-
-    prepare_search_graph(
+    Matrix::t(prepare_search_graph(
       data = ui10,
       graph = ui10_bf,
       diversify_prob = 0.5,
       pruning_degree_multiplier = NULL,
       n_threads = 1
-    )
+    ))
   # check we have more edges kept than when diversify_prob = 1
   expect_gt(length(sg_occp@x), length(sg_occ@x))
   # and that the returned edges are a subset of the undiversified graph
@@ -191,13 +191,13 @@ test_that("parallel prepare", {
 
 
   sg_trunc <-
-    prepare_search_graph(
+    Matrix::t(prepare_search_graph(
       data = ui10,
       graph = ui10_bf,
       diversify_prob = NULL,
       pruning_degree_multiplier = 1.5,
       n_threads = 1
-    )
+    ))
   expect_equal(
     sg_trunc@x,
     c(
@@ -218,13 +218,13 @@ test_that("parallel prepare", {
   expect_equal(sg_trunc@p, c(0, 3, 8, 14, 17, 21, 24, 28, 32, 35, 38))
 
   sg_occ_trunc <-
-    prepare_search_graph(
+    Matrix::t(prepare_search_graph(
       data = ui10,
       graph = ui10_bf,
       diversify_prob = 1,
       pruning_degree_multiplier = 0.5,
       n_threads = 1
-    )
+    ))
   expect_equal(
     sg_occ_trunc@x,
     c(
@@ -246,23 +246,23 @@ test_that("explicit zeros are preserved", {
   ui10_bf0 <- list(idx = ui10_bf$idx, dist = ui10_bf$dist)
   ui10_bf0$dist[10, 4] <- 0
   sg_0 <-
-    prepare_search_graph(
+    Matrix::t(prepare_search_graph(
       data = ui10,
       graph = ui10_bf0
-    )
+    ))
   expect_true(sg_0[10, 3] > 0)
 })
 
 test_that("column orientation", {
   sg_occ_trunc <-
-    prepare_search_graph(
+    Matrix::t(prepare_search_graph(
       data = t(ui10),
       graph = ui10_bf,
       diversify_prob = 1,
       pruning_degree_multiplier = 0.5,
       n_threads = 2,
       obs = "C"
-    )
+    ))
   expect_equal(
     sg_occ_trunc@x,
     c(

@@ -1477,7 +1477,7 @@ graph_knn_query <- function(query,
     reference_graph_list <- graph_to_list(reference_graph)
   } else {
     stopifnot(methods::is(reference_graph, "sparseMatrix"))
-    reference_graph_list <- csparse_to_list(reference_graph)
+    reference_graph_list <- tcsparse_to_list(reference_graph)
   }
 
   tsmessage(thread_msg("Searching nearest neighbor graph", n_threads = n_threads))
@@ -1793,7 +1793,8 @@ prepare_search_graph <- function(data,
     )
   }
   tsmessage("Finished preparing search graph")
-  res
+  # return this pre-transposed so we don't have to do it in graph_knn_query
+  Matrix::t(res)
 }
 
 # Harwood, B., & Drummond, T. (2016).

@@ -9,6 +9,10 @@ even further. They may show up in another package.
 * The `local_scale_nn ` has been removed, for similar reasons to the removal
 of the standalone distance functions. It remains in the `localscale` branch
 of the github repo.
+* The search graph returned from `prepare_search_graph` is now transposed. This
+prevents having to repeatedly transpose inside every call to `graph_knn_query`
+if multiple queries are being made. You will need to either regenerate any
+saved search graphs or transpose them with `Matrix::t(search_graph)`.
 
 # rnndescent 0.0.14
 
