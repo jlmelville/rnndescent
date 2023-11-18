@@ -1,0 +1,240 @@
+---
+title: "Nearest Neighbor Descent"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Nearest Neighbor Descent}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+bibliography: bibliography.bibtex
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(rnndescent)
+```
+
+Nearest Neighbor Descent [@dong2011efficient] (NND) is the main way to construct
+a k-nearest neighbors graph in `rnndescent`. Here's a brief description of the
+method.
+
+The idea behind NND is to start with an initial guess of the graph (typically
+randomly chosen neighbors) and then iteratively improving that guess by taking
+candidate neighbors which are neighbors of neighbors. For example: if an item
+`i` has a current neighbor `j`, then `j`'s neighbors are candidates for `i`'s
+neighbors. The "descent" part is in analogy with gradient descent, where you can
+see the sum of the distances in the graph as an objective function: as better
+neighbors enter the graph, the distances must get smaller.
+
+Conceptually it would seem that you would implement this algorithm with a loop
+like the following in each iteration:
+
+1. For each item `i` in the graph:
+2. For each item `j` in the neighbors of `i`:
+3. For each item `k` in the neighbors of `j`:
+4. If `k` is not already a neighbor of `i`:
+5. Calculate the distance between `i` and `k`, $d_{ik}$.
+6. If $d_{ik}$ is smaller than the neighbor with the largest distance in the 
+neighbor list of $i$, update the neighbor list of `i` with `k`.
+
+## Local Join
+
+The process described above involves a lot of looping and repeated fetching of
+neighbor vectors, so NND actually uses the concept of a "local join". One way to
+think of it is to consider an item `i` fielding requests for its nearest
+neighbors. It will be repeatedly asked for it by any other item which considers
+it a neighbor. So if we did some work at the start of each iteration to know all
+the items which consider `i` a neighbor, we can generate all the candidates
+neighbor pairs that `i` is involved with at once. Then we only need to iterate
+over the items in the graph. We do need to do the work of finding out who
+considers `i` a neighbor but that also only requires a loop over the graph also.
+
+To be clear, the same amount of work needs to be done, but by doing it in a
+different order, everything is a bit more efficient in terms of what needs to be
+fetched from memory.
+
+The up-shot of using the local join approach is that rather than iterating over
+the graph one item at a time, we end up a list of pairs of items `(i, j)` to 
+update the graph as a whole with. And because we are dealing with a kNN graph
+if we have a pair `(i, j)` we also have `(j, i)` as a potential update, at the
+cost of only one distance calculation. This has some challenges in terms of
+parallel implementation and it also makes caching distances a bit harder but
+it's still better than the more naive approach of explicitly looping over all
+neighbors-of-neighbors.
+
+## Other Heuristics
+
+Additionally, there are two other heuristics used to reduce the amount of work
+done. The first is that candidate neighbors are split into "new" and "old"
+candidates. A "new" candidate neighbor is any neighbor which entered the graph
+in the previous iteration. "Old" neighbors are everything else. For the local
+join, all possible pairs of "new" neighbors are used for updating the graph, but
+"old" neighbors are only ever paired with "new" neighbors, not other "old"
+neighbors. This is referred to as "incremental search" in the NND paper.
+
+Also, a tolerance $\delta$ is used to determine as an early stopping
+criterion. The total number of items in the graph is $kN$ where $k$ is the
+number of neighbors and $N$ is the number of items. During each iteration,
+a counter is incremented every time the graph is successfully updated. If at 
+the end of the iteration the number of updates is less than $\delta kN$ then
+the iteration stops.
+
+## PyNNDescent Modifications
+
+There is one other minor change to how PyNNDescent works versus the description
+in the NND paper, which `rnndescent` also uses, which is how sampling of
+candidates works. For the local join, we need to know not just the neighbors of
+`i`, but those items which consider `i` a neighbor, which we call the "reverse
+neighbors" of `i`. While there are always only $k$ "forward" neighbors of `i` in
+a graph, we don't control who is a neighbor of what, so `i` could be the
+neighbor of many (or even all) the other items in a dataset. Thus, building the
+reverse list can be a bit challenging as we need to be prepared for any item to
+have up to $N$ neighbors. In the NND paper, this is avoided by defining a sample
+rate $\rho$, which is used to sample from the k-nearest neighbors, and then the
+reverse neighbor list is only built from the sampled items. A subsequent
+down-sampling is then applied to the reverse neighbor list so that both the
+forward and reverse neighbor list only contain $\rho k$ items.
+
+Instead of a sample rate, `rnndescent` defines a `max_candidates` parameter
+determines the size of both the forward and reverse neighbor lists per item.
+If there are more candidates than the `max_candidates` value, the retained
+candidates are chosen randomly so this works like random sampling.
+
+Finally, instead of a random initialization, PyNNDescent uses a k-nearest
+neighbors graph from a random projection forest. There is an entire vignette
+explaining how RP forest works. This is also an option in `rnndescent`.
+
+## Example
+
+It's easy enough to run NND on a dataset. Here's an example using the `iris`
+dataset:
+
+```{r NND}
+iris_knn <- nnd_knn(iris, k = 15)
+```
+
+The contents of `iris_knn` is a list with two elements, both $N$ by $k$ matrices
+where $N$ is the number of items in the dataset and $k$ is the number of
+neighbors: `idx` contains the indices of the neighbors:
+
+```{r indices}
+iris_knn$idx[1:2, 1:5]
+```
+
+and `dist` contains the distances:
+
+```{r distances}
+iris_knn$dist[1:2, 1:5]
+```
+
+Apart from `k`, there are some parameters you may want to modify:
+
+* `metric` is the distance metric to use. The default is Euclidean distance.
+There are several metrics you can use. See the documentation for `nnd_knn` for
+the full list.
+* `init` is the initialization method. The default is `"rand"` which initializes
+the neighbors randomly. You may wish to use `"tree"` which uses a random
+projection forest to initialize the neighbors, similar to `rpf_build`. To
+control the tree building, you can pass the same sort of parameters that you
+would to `rpf_build` via the `init_args` parameter. See the vignette on RP
+forest for more details. You can also pass in a neighbor graph directly. This
+should have the same format as the output of `nnd_knn`, i.e. a list of two
+matrices of size $N$ by $k$. NND can be used to refine an existing graph
+generated by other methods, e.g.
+[RcppAnnoy](https://cran.r-project.org/package=RcppAnnoy) or
+[RcppHNSW](https://cran.r-project.org/package=RcppHNSW).
+* `n_iters` is the number of iterations of NND to carry out. The default is to choose
+based on $N$, the number of items in the dataset. The amount of work done per
+iteration decreases quite rapidly, so sticking with the default is usually
+sensible, especially if you don't change the convergence criterion `delta` (see
+below), because this often causes the algorithm to stop early anyway.
+* `delta` controls early stopping and must be a value between `0` and `1`. If in a
+given iteration, the number of changes to the neighbor graph is less than 
+`delta * k * N` then the algorithm stops. The default is `0.001` so you can 
+interpret that roughly as the neighbor graph needs to have changed by 0.1% to 
+avoid early stopping.
+* `max_candidates` controls the size of the forward and reverse neighbor lists.
+The default is to set this to whatever is smaller, `k` or `60`.
+* `n_threads` controls the number of threads to use. The default is to run as
+a single thread. The slow part of any approximate nearest neighbor algorithm
+is the distance calculation so using multiple threads is usually a good idea.
+* `ret_forest` if `TRUE`, and you have set `init = "tree"`, then the random
+projection forest used to initialize the neighbor graph is returned as well.
+If you want to generate new neighbors based on the original data you will want
+this.
+* `verbose` set to `TRUE` to get information about the progress of the NND.
+* `progress` this affects how the progress of NND is displayed when
+`verbose = TRUE`. The default `bar` shows a textual progress bar. You can also
+set `progress = "dist"` to show the current value of the convergence criterion
+and the sum of the distances at each iteration. This can help a bit to determine
+if more iterations or a different convergence criterion will help.
+
+Note that NND uses random number generation to determine the order of processing
+candidates, so for reproducible results you should set the random number seed
+explicitly. Also, the way that parallelism is implemented means that
+reproducibility is not possible for different settings of `n_threads` even with
+a consistent seed, e.g. going from `n_threads = 0` to `n_threads = 4` will give
+you different results, even if you `set.seed` with a fixed seed beforehand.
+
+## Troubleshooting
+
+If you have reason to believe you aren't getting the results out of NND that
+are sufficiently accurate, probably the best thing to do is to increase
+`max_candidates`. Reducing `delta` or increasing `n_iters` usually has less
+effect. Restarting `nnd_knn` with `init` set to the output of your previous
+run usually also helps, but is not a very time-efficient way to improve matters.
+
+Here is some (lightly edited) sample output when running
+
+```
+iris_knn <- nnd_knn(iris, k = 15, verbose = TRUE, progress = "dist")
+```
+
+```
+Running nearest neighbor descent for 7 iterations
+1 / 7
+heap sum = 647.85 num_updates = 3356 tol = 2.25
+2 / 7
+heap sum = 599.9 num_updates = 216 tol = 2.25
+3 / 7
+heap sum = 599.9 num_updates = 0 tol = 2.25
+Convergence: c = 0 tol = 2.25
+```
+
+This tells you that for a dataset of the size of `iris`, at most 7 iterations
+will run. The `1 / 7`, `2 / 7` and so on is logged at the end of each iteration.
+Following that is the sum of the distances of the neighbors in the heap, the
+number of updates to the neighbor graph and the convergence criterion. If 
+`num_updates` falls below `tol` then the algorithm stops. In this case, on the
+third iteration there were no updates at all, so the algorithm stopped early.
+
+In this case, almost certainly NND has found the exact nearest neighbors, so you
+wouldn't be worried about modifying the parameters. But if you were so inclined,
+the output shows you that there would be little point in increasing `n_iters` or
+reducing `delta`. This really only leaves `max_candidates` as an option.
+
+The vignette on dealing with [hubness](hubness.html) (where this can be an issue) 
+goes into a bit more detail on how to use different functions in `rnndescent`
+to deal with this sort of problem.
+
+## Querying New Data
+
+You can't. NND can only produce the k-nearest neighbors graph for the provided
+data. It doesn't produce an "index" of any kind that you can query. The value of
+NND and the local join really only makes sense if you can take advantage of
+the fact that calculating the distance $d_{ij}$ lets update the neighbor list
+of $i$ and $j$ at once.
+
+If you try to apply the concepts from NND to querying new data you quickly end
+up at a method that looks a lot like most greedy graph-based searches. For that,
+you should look at `graph_knn_query()`, although as noted above you can also
+use the random projection forest used to initialize the neighbor graph when
+`init = "tree"`. You will also probably want to augment the neighbor graph to
+make it more amenable for searching using `prepare_search_graph()`.
+
+## References
