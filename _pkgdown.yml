@@ -2,3 +2,11 @@ url: https://jlmelville.github.io/rnndescent/
 template:
   bootstrap: 5
 
+articles:
+- title: All vignettes
+  navbar: ~
+  contents:
+  - nearest-neighbor-descent
+  - random-partition-forests
+  - querying-data
+  - hubness
