@@ -60,6 +60,10 @@
 <li>The <code>local_scale_nn</code> has been removed, for similar reasons to the removal of the standalone distance functions. It remains in the <code>localscale</code> branch of the github repo.</li>
 <li>The search graph returned from <code>prepare_search_graph</code> is now transposed. This prevents having to repeatedly transpose inside every call to <code>graph_knn_query</code> if multiple queries are being made. You will need to either regenerate any saved search graphs or transpose them with <code>Matrix::t(search_graph)</code>.</li>
 </ul></div>
+<div class="section level3">
+<h3 id="new-features-0-0-15">New features<a class="anchor" aria-label="anchor" href="#new-features-0-0-15"></a></h3>
+<ul><li>New functions: <code>rnnd_build</code>, <code>rnnd_query</code> and <code>rnnd_prepare</code>. These functions streamline the process of building a k-nearest neighbor graph, preparing a search graph and querying it.</li>
+</ul></div>
 </div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.0.14" id="rnndescent-0014">rnndescent 0.0.14<a class="anchor" aria-label="anchor" href="#rnndescent-0014"></a></h2>

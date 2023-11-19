@@ -89,19 +89,17 @@
 <div class="section level2">
 <h2 id="documentation">Documentation<a class="anchor" aria-label="anchor" href="#documentation"></a>
 </h2>
-<p>See the <a href="https://jlmelville.github.io/rnndescent/articles/">articles</a>.</p>
+<p>See the <a href="https://jlmelville.github.io/rnndescent/articles/rnndescent.html">Get Started</a> article for the basics. The other <a href="https://jlmelville.github.io/rnndescent/articles/">vignettes</a> go into more detail.</p>
 </div>
 <div class="section level2">
 <h2 id="current-status">Current Status<a class="anchor" aria-label="anchor" href="#current-status"></a>
 </h2>
-<p><em>13 November 2023</em>. I have added most of the metrics that don’t need extra parameters for both sparse and non-sparse data, e.g. <code>braycurtis</code>, <code>dice</code>, <code>jaccard</code>, <code>hellinger</code> etc. See the <code>Missing Metrics</code> section at the end of this README for those which are not implemented. There are a few breaking changes (mainly around the hamming metric, see <code>NEWS.md</code> for the exact details).</p>
+<p><em>19 Nov 2023</em> The <code>rnnd_build</code> function and <code>rnnd_query</code> functions have been added which simplify creating a knn/building an index and querying it, respectively and should be the main way of using the package. The other functions remain should you need more flexibility. Some functions have been removed: the local scaling and the standalone distance functions. The latter could return in a different package at some point.</p>
 <div class="section level3">
 <h3 id="missing-features">Missing Features<a class="anchor" aria-label="anchor" href="#missing-features"></a>
 </h3>
 <p>Compared to pynndescent, rnndescent is currently lacking, in decreasing order of likelihood of implementation:</p>
 <ul>
-<li>Complete documentation, but it’s mostly there.</li>
-<li>A class to hide some of the complexities of pulling all the methods together simply.</li>
 <li>Only parallel batch queries are currently supported. This means that if you are trying to stream queries, where you are only querying one item at a time, you will get no parallelism.</li>
 <li>The index is always passed between the C++ and R layers when building an index and querying. This is useful for portability as its easy to serialize the index (you can use <code>saveRDS</code> like any R data for example), but it’s not very efficient. Keeping the index as an R-wrapped C++ class has its own downsides but would fix that.</li>
 <li>Some of the distance metrics. A large number are currently supported though. See <code>Missing Metrics</code> below for those that are currently not available.</li>
@@ -133,7 +131,11 @@
 <span><span class="co"># for you, but to avoid confusion, these examples will use a matrix</span></span>
 <span><span class="va">irism</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">iris</span><span class="op">[</span>, <span class="op">-</span><span class="fl">5</span><span class="op">]</span><span class="op">)</span></span>
 <span></span>
+<span><span class="co"># If you just want sensible defaults that will probably work:</span></span>
+<span><span class="co"># the nearest neighbor graph is in iris_index$graph</span></span>
+<span><span class="va">iris_index</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/rnnd_build.html">rnnd_build</a></span><span class="op">(</span><span class="va">irism</span><span class="op">)</span></span>
 <span></span>
+<span><span class="co"># For more control:</span></span>
 <span><span class="co"># Generate a Random Projection knn (set n_threads for parallel search):</span></span>
 <span><span class="va">iris_rp_nn</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/rpf_knn.html">rpf_knn</a></span><span class="op">(</span><span class="va">irism</span>, k <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span>
 <span></span>
@@ -197,6 +199,12 @@
 <span><span class="co"># 50 query items</span></span>
 <span><span class="va">iris_query</span> <span class="op">&lt;-</span> <span class="va">iris</span><span class="op">[</span><span class="va">iris</span><span class="op">$</span><span class="va">Species</span> <span class="op">==</span> <span class="st">"versicolor"</span>, <span class="op">]</span></span>
 <span></span>
+<span><span class="co"># The simple way. First build an index:</span></span>
+<span><span class="va">index</span> <span class="op">&lt;-</span> <span class="va">iris_index</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/rnnd_build.html">rnnd_build</a></span><span class="op">(</span><span class="va">iris_ref</span>, prepare <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="co"># Then query it</span></span>
+<span><span class="va">iris_query_nn</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/rnnd_query.html">rnnd_query</a></span><span class="op">(</span><span class="va">index</span>, <span class="va">iris_query</span>, k <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># For more control:</span></span>
 <span><span class="co"># First, find the approximate 10-nearest neighbor graph for the references:</span></span>
 <span><span class="va">iris_ref_knn</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/nnd_knn.html">nnd_knn</a></span><span class="op">(</span><span class="va">iris_ref</span>, k <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
 <span></span>
@@ -207,7 +215,7 @@
 <span>    query <span class="op">=</span> <span class="va">iris_query</span>,</span>
 <span>    reference <span class="op">=</span> <span class="va">iris_ref</span>,</span>
 <span>    reference_graph <span class="op">=</span> <span class="va">iris_ref_knn</span>,</span>
-<span>    k <span class="op">=</span> <span class="fl">4</span>,</span>
+<span>    k <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>    metric <span class="op">=</span> <span class="st">"euclidean"</span>,</span>
 <span>    verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
@@ -385,6 +393,7 @@
 <div class="section level2">
 <h2 id="old-news">Old News<a class="anchor" aria-label="anchor" href="#old-news"></a>
 </h2>
+<p><em>13 November 2023</em>. I have added most of the metrics that don’t need extra parameters for both sparse and non-sparse data, e.g. <code>braycurtis</code>, <code>dice</code>, <code>jaccard</code>, <code>hellinger</code> etc. See the <code>Missing Metrics</code> section at the end of this README for those which are not implemented. There are a few breaking changes (mainly around the hamming metric, see <code>NEWS.md</code> for the exact details).</p>
 <p><em>06 November 2023</em> Sparse data support has been added. You should be able to use e.g. a <code>dgCMatrix</code> with all the methods and currently supported metrics as easily as a dense matrix.</p>
 <p><em>30 October 2023</em> At last, a workable random partition forest implementation has been added. This can be used standalone (e.g. <code>rpf_knn</code>, <code>rpf_build</code>, <code>rpt_knn_query</code>) or as initialization to nearest neighbor descent (<code>nnd_knn(init = "tree", ...)</code>). The forest itself can be serialized with <code>saveRDS</code> but you will pay a price for that convenience by having to pass it back and forth from the R to C++ layer when querying. For now there is no access to the underlying C++ class via R like in RcppHNSW and RcppAnnoy so it may not be suitable for some use cases.</p>
 <p><em>19 October 2023</em> Inevitably 0.0.11 is here because of a bug in 0.0.10 where nearest neighbor descent was not correctly flagging new/old neighbors which reduced performance (but not the actual result).</p>

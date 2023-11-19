@@ -119,25 +119,19 @@ usual in R, these are 1-indexed.</li>
 </ul>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">iris_index</span><span class="op">$</span><span class="va">graph</span>, <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">x</span>, <span class="fl">3</span><span class="op">)</span></span>
 <span><span class="op">}</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $idx</span></span>
 <span><span class="co">#&gt;      [,1] [,2] [,3] [,4] [,5]</span></span>
-<span><span class="co">#&gt; [1,]    1   18   29    5   28</span></span>
+<span><span class="co">#&gt; [1,]    1   18    5   29   40</span></span>
 <span><span class="co">#&gt; [2,]    2   13   46   35   10</span></span>
-<span><span class="co">#&gt; [3,]    3   48    4    7   13</span></span>
-<span><span class="co">#&gt; [4,]    4   48   30   31    3</span></span>
-<span><span class="co">#&gt; [5,]    5    1   38   18   41</span></span>
-<span><span class="co">#&gt; [6,]    6   19   11   49   45</span></span>
+<span><span class="co">#&gt; [3,]    3   48    4    7   46</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $dist</span></span>
 <span><span class="co">#&gt;      [,1]      [,2]      [,3]      [,4]      [,5]</span></span>
 <span><span class="co">#&gt; [1,]    0 0.1000000 0.1414212 0.1414212 0.1414213</span></span>
 <span><span class="co">#&gt; [2,]    0 0.1414213 0.1414213 0.1414213 0.1732050</span></span>
-<span><span class="co">#&gt; [3,]    0 0.1414213 0.2449490 0.2645751 0.2645753</span></span>
-<span><span class="co">#&gt; [4,]    0 0.1414215 0.1732051 0.2236071 0.2449490</span></span>
-<span><span class="co">#&gt; [5,]    0 0.1414212 0.1414213 0.1732050 0.1732050</span></span>
-<span><span class="co">#&gt; [6,]    0 0.3316623 0.3464102 0.3605552 0.3741659</span></span></code></pre></div>
+<span><span class="co">#&gt; [3,]    0 0.1414213 0.2449490 0.2645751 0.2645753</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
@@ -156,25 +150,19 @@ usual in R, these are 1-indexed.</li>
 <span>  k <span class="op">=</span> <span class="fl">5</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">iris_odd_nn</span>, <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">x</span>, <span class="fl">3</span><span class="op">)</span></span>
 <span><span class="op">}</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $idx</span></span>
 <span><span class="co">#&gt;      [,1] [,2] [,3] [,4] [,5]</span></span>
-<span><span class="co">#&gt; [1,]    9   14   20    4   25</span></span>
+<span><span class="co">#&gt; [1,]    9   20   14    4   25</span></span>
 <span><span class="co">#&gt; [2,]   24    2   23   15    1</span></span>
-<span><span class="co">#&gt; [3,]   19    9    4   14   20</span></span>
-<span><span class="co">#&gt; [4,]   24    6   15    2   19</span></span>
-<span><span class="co">#&gt; [5,]    2    7   24   23   15</span></span>
-<span><span class="co">#&gt; [6,]   14   10    3   16   11</span></span>
+<span><span class="co">#&gt; [3,]   19    9    4   20   14</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $dist</span></span>
 <span><span class="co">#&gt;           [,1]      [,2]      [,3]      [,4]      [,5]</span></span>
 <span><span class="co">#&gt; [1,] 0.1000000 0.1414213 0.1414213 0.1732050 0.2236068</span></span>
 <span><span class="co">#&gt; [2,] 0.1414213 0.2449490 0.2645753 0.3000001 0.3000002</span></span>
-<span><span class="co">#&gt; [3,] 0.1414213 0.1732050 0.2236066 0.2449488 0.2449488</span></span>
-<span><span class="co">#&gt; [4,] 0.2236068 0.3000002 0.3162278 0.3316627 0.4123106</span></span>
-<span><span class="co">#&gt; [5,] 0.2999998 0.3464101 0.3605550 0.4242641 0.4690414</span></span>
-<span><span class="co">#&gt; [6,] 0.2828429 0.3316626 0.3464102 0.3605551 0.3605553</span></span></code></pre></div>
+<span><span class="co">#&gt; [3,] 0.1414213 0.1732050 0.2236066 0.2449488 0.2449488</span></span></code></pre></div>
 <p>The other way to do this is to use the standalone
 <code>rnnd_prepare</code> function:</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
