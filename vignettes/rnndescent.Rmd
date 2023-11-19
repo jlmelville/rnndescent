@@ -1,0 +1,136 @@
+---
+title: "rnndescent"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{rnndescent}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+bibliography: bibliography.bibtex
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+`rnndescent` is an R package for finding approximate nearest neighbors, based
+heavily on the Python package [PyNNDescent](https://github.com/lmcinnes/pynndescent) 
+by [Leland McInnes](https://github.com/lmcinnes), but is a fully independent
+reimplementation written in C++. It uses the following techniques:
+
+1. Initialization by creating a forest of random project trees
+[@dasgupta2008random].
+2. Optimization by using nearest neighbor descent
+[@dong2011efficient]. 
+3. For querying new data, graph diversification techniques
+from Fanng [@harwood2016fanng].
+
+The easiest way to find k-nearest neighbors and query new data is to use the
+`rnnd_build` and `rnnd_query` functions, which combine several of the available
+techniques into sensible defaults. For greater flexibility, the underlying 
+functions used by `rnnd_build` and `rnnd_query` can be used directly. The other
+vignettes in this package describe their use and go into more detail about the
+how the methods work.
+
+```{r setup}
+library(rnndescent)
+```
+
+## Find the k-nearest neighbors
+
+```{r build knn}
+iris_index <- rnnd_build(data = iris, k = 5)
+```
+
+### The Neighbor Graph Format
+
+The nearest neighbor graph format returned by all functions in this package is
+a list of two matrices:
+
+* `idx` -- a matrix of indices of the nearest neighbors. As usual in R, these
+are 1-indexed.
+* `dist` -- the equivalent distances.
+
+
+```{r neighbor graph}
+lapply(iris_index$graph, function(x) {
+  head(x)
+})
+```
+
+
+## Querying Data
+
+```{r iris split}
+iris_even <- iris[seq_len(nrow(iris)) %% 2 == 0, ]
+iris_odd <- iris[seq_len(nrow(iris)) %% 2 == 1, ]
+```
+
+Build the index as before but pass `prepare = TRUE`:
+
+```{r build prepared index}
+iris_even_index <- rnnd_build(data = iris_even, k = 5, prepare = TRUE)
+```
+
+```{r query index}
+iris_odd_nn <- rnnd_query(
+  index = iris_even_index,
+  query = iris_odd,
+  k = 5
+)
+lapply(iris_odd_nn, function(x) {
+  head(x)
+})
+```
+
+The other way to do this is to use the standalone `rnnd_prepare` function:
+
+```{r prepare index separately}
+iris_even_index <- rnnd_build(data = iris_even, k = 5)
+iris_even_index <- rnnd_prepare(iris_even_index)
+iris_odd_nn <- rnnd_query(
+  index = iris_even_index,
+  query = iris_odd,
+  k = 5
+)
+```
+
+If you don't prepare the index, `rnnd_query` will do it for you, but if you want
+to call `rnnd_query` multiple times, it will have to go through the preparation
+step each time, so it's more efficient to prepare the index separately.
+
+## Parallelism
+
+`rnndescent` is multi-threaded, but by default is single-threaded. Set
+`n_threads` to set the number of threads you want to use:
+
+```{r parallel}
+iris_even_index <- rnnd_build(data = iris_even, k = 5, n_threads = 2)
+```
+
+## Available Metrics
+
+Several different distances are available in `rnndescent` beyond the
+typically-supported Euclidean and Cosine-based distances in other nearest
+neighbor packages. See the [metrics](metrics.html) vignette for more details.
+
+## Supported Data Types
+
+* Dense matrices and data frames.
+* Sparse matrices, in the `dgCMatrix`. All the same distances are supported as
+for dense matrices.
+* Additionally, for dense binary data, if you supply it as a `logical` matrix,
+then for certain distances intended for binary data, specialized functions will
+be used to speed up the computation.
+
+## Parameters
+
+There are several options that `rnnd_build` and `rnnd_query` expose that can
+be modified to change the behavior of the different stages of the algorithm.
+See the documentation for those functions (e.g. `?rnnd_build`) or the
+[Random Partition Forests](random-partition-forests.html), [Nearest Neighbor Descent](nearest-neighbor-descent.html) and [Querying Data](querying-data.html)
+vignettes for more details.
+
+## References
