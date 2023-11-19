@@ -184,7 +184,8 @@ used to initialize the neighbor data.
 }
 }
 \description{
-Find Nearest Neighbors and Distances
+Uses Nearest Neighbor Descent (Dong and co-workers, 2011) to optimize an
+approximate nearest neighbor graph.
 }
 \examples{
 # Find 4 (approximate) nearest neighbors using Euclidean distance
