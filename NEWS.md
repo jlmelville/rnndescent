@@ -14,6 +14,12 @@ prevents having to repeatedly transpose inside every call to `graph_knn_query`
 if multiple queries are being made. You will need to either regenerate any
 saved search graphs or transpose them with `Matrix::t(search_graph)`.
 
+## New features
+
+* New functions: `rnnd_build`, `rnnd_query` and `rnnd_prepare`. These functions
+streamline the process of building a k-nearest neighbor graph, preparing a
+search graph and querying it.
+
 # rnndescent 0.0.14
 
 ## Breaking Changes

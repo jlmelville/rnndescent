@@ -56,7 +56,7 @@ are 1-indexed.
 
 ```{r neighbor graph}
 lapply(iris_index$graph, function(x) {
-  head(x)
+  head(x, 3)
 })
 ```
 
@@ -81,7 +81,7 @@ iris_odd_nn <- rnnd_query(
   k = 5
 )
 lapply(iris_odd_nn, function(x) {
-  head(x)
+  head(x, 3)
 })
 ```
 

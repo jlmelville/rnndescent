@@ -30,24 +30,26 @@ packages in the R ecosystem cannot do.
 
 ## Documentation
 
-See the [articles](https://jlmelville.github.io/rnndescent/articles/).
+See the 
+[Get Started](https://jlmelville.github.io/rnndescent/articles/rnndescent.html) 
+article for the basics. The other
+[vignettes](https://jlmelville.github.io/rnndescent/articles/) go into more
+detail.
 
 ## Current Status
 
-*13 November 2023*. I have added most of the metrics that don't need extra
-parameters for both sparse and non-sparse data, e.g. `braycurtis`, `dice`,
-`jaccard`, `hellinger` etc. See the `Missing Metrics` section at the end of this
-README for those which are not implemented. There are a few breaking changes
-(mainly around the hamming metric, see `NEWS.md` for the exact details).
+*19 Nov 2023* The `rnnd_build` function and `rnnd_query` functions have been
+added which simplify creating a knn/building an index and querying it,
+respectively and should be the main way of using the package. The other 
+functions remain should you need more flexibility. Some functions have been
+removed: the local scaling and the standalone distance functions. The latter
+could return in a different package at some point.
 
 ### Missing Features 
 
 Compared to pynndescent, rnndescent is currently lacking, in decreasing order
 of likelihood of implementation:
 
-* Complete documentation, but it's mostly there.
-* A class to hide some of the complexities of pulling all the methods together
-simply.
 * Only parallel batch queries are currently supported. This means that if you
 are trying to stream queries, where you are only querying one item at a time,
 you will get no parallelism.
@@ -109,7 +111,11 @@ library(rnndescent)
 # for you, but to avoid confusion, these examples will use a matrix
 irism <- as.matrix(iris[, -5])
 
+# If you just want sensible defaults that will probably work:
+# the nearest neighbor graph is in iris_index$graph
+iris_index <- rnnd_build(irism)
 
+# For more control:
 # Generate a Random Projection knn (set n_threads for parallel search):
 iris_rp_nn <- rpf_knn(irism, k = 15)
 
@@ -176,6 +182,12 @@ iris_ref <- iris[iris$Species %in% c("setosa", "versicolor"), ]
 # 50 query items
 iris_query <- iris[iris$Species == "versicolor", ]
 
+# The simple way. First build an index:
+index <- iris_index <- rnnd_build(iris_ref, prepare = TRUE)
+# Then query it
+iris_query_nn <- rnnd_query(index, iris_query, k = 10)
+
+# For more control:
 # First, find the approximate 10-nearest neighbor graph for the references:
 iris_ref_knn <- nnd_knn(iris_ref, k = 10)
 
@@ -186,7 +198,7 @@ iris_query_nn <-
     query = iris_query,
     reference = iris_ref,
     reference_graph = iris_ref_knn,
-    k = 4,
+    k = 10,
     metric = "euclidean",
     verbose = TRUE
   )
@@ -416,6 +428,12 @@ C++ implementation.
 * [nndescent](https://github.com/brj0/nndescent), another C++ implementation, with Python bindings.
 
 ## Old News
+
+*13 November 2023*. I have added most of the metrics that don't need extra
+parameters for both sparse and non-sparse data, e.g. `braycurtis`, `dice`,
+`jaccard`, `hellinger` etc. See the `Missing Metrics` section at the end of this
+README for those which are not implemented. There are a few breaking changes
+(mainly around the hamming metric, see `NEWS.md` for the exact details).
 
 *06 November 2023* Sparse data support has been added. You should be able to 
 use e.g. a `dgCMatrix` with all the methods and currently supported metrics as
