@@ -359,6 +359,17 @@ uiriscosq <-
 # handle ties where indices swap places
 expect_equal(sum(uiriscos$idx - uiriscosq$idx), 0)
 
+# test uncached
+uiriscosq_nocache <- rpf_knn_query(
+  uirism,
+  uirism,
+  uiriscos$forest,
+  k = 15,
+  n_threads = 2,
+  cache = FALSE
+)
+expect_equal(sum(uiriscos$idx - uiriscosq_nocache$idx), 0)
+
 set.seed(1337)
 uiriscosi <-
   rpf_knn(
@@ -412,7 +423,6 @@ test_that("sparse implicit margin", {
   set.seed(1337)
   sforest <- rpf_build(ui10sp, leaf_size = 3, n_trees = 2, margin = "implicit", metric = "cosine")
   expect_equal(sforest$actual_metric, "alternative-cosine")
-  # sforest$actual_metric <- "cosine"
   expect_true(sforest$sparse)
   sforest$sparse <- FALSE
   expect_equal(sforest, dforest)
@@ -472,6 +482,11 @@ test_that("sparse explicit margin", {
   res_dknn <- rpf_knn_query(ui10z4, ui10z6, forest = dknn6$forest, k = 4)
   expect_equal(res_forest, res_dknn)
 
+  # uncached
+  set.seed(1337)
+  res_dknn_nocache <- rpf_knn_query(ui10z4, ui10z6, forest = dknn6$forest, k = 4, cache = FALSE)
+  expect_equal(res_forest, res_dknn_nocache)
+
   # implict and explicit should give the same results for cosine also
   set.seed(1337)
   secknn <- rpf_knn(ui10sp, k = 4, leaf_size = 3, n_trees = 2, margin = "explicit", metric = "cosine")
@@ -485,4 +500,5 @@ test_that("sparse explicit margin", {
     margin = "explicit", metric = "cosine", use_alt_metric = FALSE
   )
   expect_equal(sacknn, secknn, tol = 1e-5)
+
 })
