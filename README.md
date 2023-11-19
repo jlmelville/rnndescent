@@ -28,6 +28,10 @@ Tantalizingly close to being releasable, you can now use rnndescent for:
 packages in the R ecosystem cannot do.
 * and a much larger number of metrics than most other packages.
 
+## Documentation
+
+See the [articles](https://jlmelville.github.io/rnndescent/articles/).
+
 ## Current Status
 
 *13 November 2023*. I have added most of the metrics that don't need extra
@@ -41,12 +45,31 @@ README for those which are not implemented. There are a few breaking changes
 Compared to pynndescent, rnndescent is currently lacking, in decreasing order
 of likelihood of implementation:
 
-* meaningful documentation.
-* a class to hide some of the complexities of pulling all the methods together
+* Complete documentation, but it's mostly there.
+* A class to hide some of the complexities of pulling all the methods together
 simply.
-* some of the distance metrics. A large number are currently supported though.
+* Only parallel batch queries are currently supported. This means that if you
+are trying to stream queries, where you are only querying one item at a time,
+you will get no parallelism.
+* The index is always passed between the C++ and R layers when building an index
+and querying. This is useful for portability as its easy to serialize the index
+(you can use `saveRDS` like any R data for example), but it's not very efficient.
+Keeping the index as an R-wrapped C++ class has its own downsides but would 
+fix that.
+* Some of the distance metrics. A large number are currently supported though.
 See `Missing Metrics` below for those that are currently not available.
-* custom metrics. This just isn't feasible with a C++ implementation.
+* Custom metrics. This just isn't feasible with a C++ implementation.
+
+The issues around index serialization and parallel behavior make `rnndescent`
+currently unsuitable for streaming applications where you are querying one item
+at a time. If you are doing batch queries, where you are querying multiple items
+at once, then `rnndescent` should be fine: for example, generating nearest
+neighbors for UMAP (maybe for use with
+[uwot](https://github.com/jlmelville/uwot)). Dimensionality reduction is my
+personal use case for nearest neighbors calculation and I would like to get
+`rnndescent` onto CRAN in a useful-for-something state. As a result I am not
+targeting an initial release to support the streaming case. I would like to fix
+this for a subsequent release.
 
 ## Installation
 
