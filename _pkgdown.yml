@@ -6,7 +6,7 @@ articles:
 - title: All vignettes
   navbar: ~
   contents:
-  - brute-force-search
+  - brute-force
   - nearest-neighbor-descent
   - random-partition-forests
   - querying-data
