@@ -83,6 +83,11 @@
 <li>and a much larger number of metrics than most other packages.</li>
 </ul>
 <div class="section level2">
+<h2 id="documentation">Documentation<a class="anchor" aria-label="anchor" href="#documentation"></a>
+</h2>
+<p>See the <a href="https://jlmelville.github.io/rnndescent/articles/">articles</a>.</p>
+</div>
+<div class="section level2">
 <h2 id="current-status">Current Status<a class="anchor" aria-label="anchor" href="#current-status"></a>
 </h2>
 <p><em>13 November 2023</em>. I have added most of the metrics that don’t need extra parameters for both sparse and non-sparse data, e.g. <code>braycurtis</code>, <code>dice</code>, <code>jaccard</code>, <code>hellinger</code> etc. See the <code>Missing Metrics</code> section at the end of this README for those which are not implemented. There are a few breaking changes (mainly around the hamming metric, see <code>NEWS.md</code> for the exact details).</p>
@@ -91,11 +96,14 @@
 </h3>
 <p>Compared to pynndescent, rnndescent is currently lacking, in decreasing order of likelihood of implementation:</p>
 <ul>
-<li>meaningful documentation.</li>
-<li>a class to hide some of the complexities of pulling all the methods together simply.</li>
-<li>some of the distance metrics. A large number are currently supported though. See <code>Missing Metrics</code> below for those that are currently not available.</li>
-<li>custom metrics. This just isn’t feasible with a C++ implementation.</li>
+<li>Complete documentation, but it’s mostly there.</li>
+<li>A class to hide some of the complexities of pulling all the methods together simply.</li>
+<li>Only parallel batch queries are currently supported. This means that if you are trying to stream queries, where you are only querying one item at a time, you will get no parallelism.</li>
+<li>The index is always passed between the C++ and R layers when building an index and querying. This is useful for portability as its easy to serialize the index (you can use <code>saveRDS</code> like any R data for example), but it’s not very efficient. Keeping the index as an R-wrapped C++ class has its own downsides but would fix that.</li>
+<li>Some of the distance metrics. A large number are currently supported though. See <code>Missing Metrics</code> below for those that are currently not available.</li>
+<li>Custom metrics. This just isn’t feasible with a C++ implementation.</li>
 </ul>
+<p>The issues around index serialization and parallel behavior make <code>rnndescent</code> currently unsuitable for streaming applications where you are querying one item at a time. If you are doing batch queries, where you are querying multiple items at once, then <code>rnndescent</code> should be fine: for example, generating nearest neighbors for UMAP (maybe for use with <a href="https://github.com/jlmelville/uwot" class="external-link">uwot</a>). Dimensionality reduction is my personal use case for nearest neighbors calculation and I would like to get <code>rnndescent</code> onto CRAN in a useful-for-something state. As a result I am not targeting an initial release to support the streaming case. I would like to fix this for a subsequent release.</p>
 </div>
 </div>
 <div class="section level2">
