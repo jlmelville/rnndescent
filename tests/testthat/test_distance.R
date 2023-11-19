@@ -95,6 +95,9 @@ test_that("Dot", {
     init = random_knn(bitdatasp, k = 4, metric = "dot")
   )
   expect_equal(spunc, spnoc, tol = 1e-7)
+
+  # query
+  bfsparse_query <- brute_force_knn_query(bitdatasp, bitdatasp, k = 4, metric = "dot", use_alt_metric = FALSE)
 })
 
 test_that("Hamming", {

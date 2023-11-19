@@ -1478,8 +1478,8 @@ public:
         y_data(std::move(y_data)), ny(this->y_ptr.size() - 1), ndim(ndim),
         distance_func(distance_func) {
     if (preprocess_func) {
-      preprocess_func(x_ind, x_ptr, x_data, ndim);
-      preprocess_func(y_ind, y_ptr, y_data, ndim);
+      preprocess_func(this->x_ind, this->x_ptr, this->x_data, ndim);
+      preprocess_func(this->y_ind, this->y_ptr, this->y_data, ndim);
     }
   }
 
