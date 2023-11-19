@@ -1,0 +1,52 @@
+---
+title: "Brute Force Search"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Brute Force Search}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(rnndescent)
+```
+
+If your dataset is sufficiently "small" (either in terms of number of points or
+number of dimensions) you can use brute force search to find the nearest
+neighbors: just calculate the distances between all pairs of points.
+
+This has the advantages of simplicity and accuracy. But it is of course very
+slow. That said as it can be easily parallelized, you can get a surprisingly
+long way with it, especially if you only need the k-nearest neighbors and won't
+be running a neighbor search multiple times.
+
+Let's calculate the exact 15 nearest neighbors for the `iris` dataset:
+
+```{r brute force knn}
+iris_nbrs <- brute_force_knn(iris, k = 15)
+lapply(iris_nbrs, function(x) {
+  head(x[, 1:5], 3)
+})
+```
+
+And here's an example of querying the odd items in the `iris` data against
+the even items (i.e. the indices in `iris_nbrs` will refer to the odd items):
+
+```{r brute force query}
+iris_even <- iris[seq_len(nrow(iris)) %% 2 == 0,]
+iris_odd <- iris[seq_len(nrow(iris)) %% 2 == 1,]
+iris_query_nbrs <-
+  brute_force_knn_query(query = iris_even,
+                        reference = iris_odd,
+                        k = 15)
+lapply(iris_query_nbrs, function(x) {
+  head(x[, 1:5], 3)
+})
+```
