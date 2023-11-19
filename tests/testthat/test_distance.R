@@ -156,6 +156,9 @@ test_that("Jaccard", {
   expect_equal(brute_force_knn(bitdata, k = 4, metric = "jaccard", use_alt_metric = FALSE), jbf, tol = 1e-7)
   expect_equal(jbf, brute_force_knn(lbitdata, k = 4, metric = "jaccard"), tol = 1e-7)
 
+  bfbin <- brute_force_knn(lbitdata, k = 4, metric = "jaccard")
+  expect_equal(bfbin, jbf)
+
   # check dense uncorrection
   set.seed(1337)
   dunc <- nnd_knn(bitdata,
