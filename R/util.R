@@ -57,9 +57,3 @@ lmerge <- function(l1, l2) {
   l1
 }
 
-# TRUE if the the neighbor input is in the list of dense matrix form
-is_dense_nn <- function(nn) {
-  is.list(nn) &&
-    is.matrix(nn$idx) &&
-    is.matrix(nn$dist) && all(dim(nn$idx) == dim(nn$dist))
-}
