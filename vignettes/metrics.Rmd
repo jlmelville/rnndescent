@@ -1,0 +1,130 @@
+---
+title: "Metrics"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Metrics}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+bibliography: bibliography.bibtex
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(rnndescent)
+```
+
+A lot of distance functions are implemented in `rnndescent`, which you can
+specify in every function which needs them with the `metric` parameter.
+Technically not all of these are metrics, but let's just let that slide. Typical
+are `"euclidean"` or `"cosine"` the latter being more common for document-based
+data. For binary data, `"hamming"` or `"jaccard"` might be a good place to
+start.
+
+The metrics here are a subset of those offered by the [PyNNDescent]()
+Python package which in turn reproduces those in the [scipy.spatial.distance](https://docs.scipy.org/doc/scipy/reference/spatial.distance.html#module-scipy.spatial.distance) module of [SciPy](https://scipy.org/). Many of the binary
+distances seem to have definitions shared with [@choi2010survey] so you may
+want to look in that reference for an exact definition.
+
+* `"braycurtis"`: [Bray-Curtis](https://en.wikipedia.org/wiki/Bray%E2%80%93Curtis_dissimilarity).
+* `"canberra"`: [Canberra](https://en.wikipedia.org/wiki/Canberra_distance).
+* `"chebyshev"`: [Chebyshev](https://en.wikipedia.org/wiki/Chebyshev_distance),
+also known as the L-infinity norm ($L_\infty$).
+* `"correlation"`: 1 minus the [Pearson correlation](https://en.wikipedia.org/wiki/Pearson_correlation_coefficient).
+* `"cosine"`: 1 minus the [cosine similarity](https://en.wikipedia.org/wiki/Cosine_similarity).
+* `"dice"`: the [Dice coefficient](https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient),
+also known as the Sørensen–Dice coefficient. Intended for binary data.
+* `"euclidean"`: the Euclidean distance, also known as the L2 norm.
+* `"hamming"`: the [Hamming distance](https://en.wikipedia.org/wiki/Hamming_distance). 
+Intended for binary data.
+* `"hellinger"`: the [Hellinger distance](https://en.wikipedia.org/wiki/Hellinger_distance).
+This is intended to be used with a probability distribution, so ensure that each 
+row of your input data contains non-negative values which sum to `1`.
+* `"jaccard"`: the [Jaccard index](https://en.wikipedia.org/wiki/Jaccard_index),
+also known as the Tanimoto coefficient. Intended for binary data.
+* `"jensenshannon"`: the [Jensen-Shannon divergence](https://en.wikipedia.org/wiki/Jensen%E2%80%93Shannon_divergence). 
+Like `"hellinger"`, this is intended to be used with a probability distribution.
+* `"kulsinski"`: the Kulsinski dissimilarity as defined in the Python package `scipy.spatial.distance.kulsinski` (this function is deprecated in scipy).
+Intended for binary data.
+* `"sqeuclidean"` (squared Euclidean)
+* `"manhattan"`: the Manhattan distance, also known as the L1 norm or [Taxicab distance](https://en.wikipedia.org/wiki/Taxicab_geometry).
+* `"rogerstanimoto"`: the [Rogers-Tanimoto coefficient](https://en.wikipedia.org/wiki/Qualitative_variation#Rogers%E2%80%93Tanimoto_coefficient).
+* `"russellrao"`: the [Russell-Rao coefficient](https://en.wikipedia.org/wiki/Qualitative_variation#Russel%E2%80%93Rao_coefficient).
+* `"sokalmichener"`. Intended for binary data.
+* `"sokalsneath"`: the [Sokal-Sneath coefficient](https://en.wikipedia.org/wiki/Qualitative_variation#Sokal%E2%80%93Sneath_coefficient).
+Intended for binary data.
+* `"spearmanr"`: 1 minus the [Spearman rank correlation](https://en.wikipedia.org/wiki/Spearman%27s_rank_correlation_coefficient)
+* `"symmetrickl"` symmetrized version of the [Kullback-Leibler divergence](https://en.wikipedia.org/wiki/Kullback%E2%80%93Leibler_divergence).
+The symmetrization is calculated as $D_{KL}(P||Q) + D_{KL}(Q||P)$.
+* `"tsss"` the Triangle Area Similarity-Sector Area Similarity or TS-SS metric 
+as described in [@7474366].
+* `"yule"` the Yule dissimilarity. Intended for binary data.
+
+For non-sparse data, the following variants are available with preprocessing:
+this trades memory for a potential speed up during the distance calculation.
+Some minor numerical differences should be expected compared to the
+non-preprocessed versions:
+
+* `"cosine-preprocess"`: `cosine` with preprocessing.
+* `"correlation-preprocess"`: `correlation` with preprocessing.
+
+## Specialized Binary Metrics
+
+Some metrics are intended for use with binary data. This means that:
+
+* Your numeric data should consist of only two distinct values, typically
+`0` and `1`. You will get unpredictable results otherwise.
+* If you provide the data as a `logical` matrix, a much faster implementation
+is used.
+
+The metrics you can use with binary data are:
+
+* `"dice"`
+* `"hamming"`
+* `"jaccard"`
+* `"kulsinski"`
+* `"matching"`
+* `"rogerstanimoto"`
+* `"russellrao"`
+* `"sokalmichener"`
+* `"sokalsneath"`
+* `"yule"`
+
+Here's an example of using binary data stored as 0s and 1s with the `"hamming"`
+metric:
+
+```{r binary data}
+set.seed(42)
+binary_data <- matrix(sample(c(0, 1), 100, replace = TRUE), ncol = 10)
+head(binary_data)
+```
+
+```{r hamming}
+nn <- brute_force_knn(binary_data, k = 4, metric = "hamming")
+```
+
+Now let's convert it to a logical matrix:
+
+```{r logical data}
+logical_data <- binary_data == 1
+head(logical_data)
+```
+
+```{r logical hamming}
+logical_nn <- brute_force_knn(logical_data, k = 4, metric = "hamming")
+```
+
+The results will be the same:
+
+```{r compare}
+all.equal(nn, logical_nn)
+```
+
+but on a real-world dataset, the logical version will be much faster.
+
+## References
