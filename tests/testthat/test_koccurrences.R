@@ -16,7 +16,7 @@ expect_equal(
 test_that("ignore missing results", {
   rnbrs$idx[10, 4] <- -1
   expect_equal(
-    k_occur(rnbrs$idx),
+    k_occur(rnbrs),
     c(3, 5, 6, 3, 5, 3, 5, 4, 2, 3)
   )
 })
