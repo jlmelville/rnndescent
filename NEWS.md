@@ -10,6 +10,8 @@ care about the knn graph and won't ever want to query new data.
 ## Bug fixes and minor improvements
 
 * The sparse `spearmanr` distance has been fixed.
+* During tree-building with `n_threads = 0`, progress/interrupt monitoring was
+not occurring.
 
 # rnndescent 0.0.15
 

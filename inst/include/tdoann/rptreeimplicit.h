@@ -251,7 +251,7 @@ make_forest(const BaseDistance<Out, Idx> &distance, std::size_t ndim,
   };
 
   progress.set_n_iters(1);
-  ExecutionParams exec_params{n_threads};
+  ExecutionParams exec_params(std::max(n_threads, static_cast<std::size_t>(1)));
   dispatch_work(worker, n_trees, n_threads, exec_params, progress, executor);
 
   return rp_forest;
@@ -470,7 +470,7 @@ search_forest(const std::vector<SearchTreeImplicit<Idx>> &forest,
   };
 
   progress.set_n_iters(n_queries);
-  ExecutionParams exec_params{n_threads};
+  ExecutionParams exec_params(std::max(n_threads, static_cast<std::size_t>(1)));
   dispatch_work(worker, n_queries, n_threads, exec_params, progress, executor);
 
   return current_graph;
