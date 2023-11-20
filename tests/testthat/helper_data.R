@@ -214,485 +214,93 @@ ui10_nn4 <- list(
 )
 
 # set.seed(1337)
-# rpf_build(ui10, metric = "euclidean", leaf_size = 4)
+# rpf_build(ui10, metric = "euclidean", leaf_size = 4, margin = "explicit")
 rpf_index_ls4e <-
-  list(
-    trees = list(
-      list(
-        hyperplanes = structure(
-          c(
-            0.900000095367432,
-            0,
-            -0.599999904632568,
-            0,
-            0,
-            0.900000095367432,
-            0,
-            -0.5,
-            0,
-            0, -0.299999952316284,
-            0,
-            -0.100000023841858,
-            0,
-            0,
-            0.100000001490116,
-            0,
-            0,
-            0,
-            0
-          ),
-          dim = 5:4
-        ),
-        offsets = c(
-          -7.62000131607056, NaN,
-          4.53999948501587, NaN, NaN
-        ),
-        children = structure(c(
-          1L, 0L, 3L,
-          3L, 6L, 2L, 3L, 4L, 6L, 10L
-        ), dim = c(5L, 2L)),
-        indices = c(
-          0L,
-          5L, 9L, 3L, 7L, 8L, 1L, 2L, 4L, 6L
-        ),
-        leaf_size = 4
-      ),
-      list(
-        hyperplanes = structure(
-          c(
-            0.0999999046325684,
-            1,
-            0,
-            0,
-            0,
-            0.300000190734863,
-            0.599999904632568,
-            0,
-            0,
-            0,
-            0, -0.399999976158142,
-            0,
-            0,
-            0,
-            0.100000001490116,
-            0,
-            0,
-            0,
-            0
-          ),
-          dim = 5:4
-        ),
-        offsets = c(
-          -1.4850001335144, -6.96000003814697, NaN, NaN,
-          NaN
-        ),
-        children = structure(c(
-          1L, 2L, 0L, 3L, 6L, 4L, 3L,
-          3L, 6L, 10L
-        ), dim = c(5L, 2L)),
-        indices = c(
-          0L, 5L, 9L, 1L,
-          2L, 6L, 3L, 4L, 7L, 8L
-        ),
-        leaf_size = 4
-      ),
-      list(
-        hyperplanes = structure(
-          c(
-            0.299999713897705,
-            0.599999904632568,
-            0,
-            0.400000095367432,
-            0,
-            0,
-            0,
-            0.400000095367432,
-            0.900000095367432,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0.299999952316284,
-            0.300000071525574,
-            0,
-            0.100000023841858,
-            0,
-            0,
-            0,
-            0.200000017881393,
-            0.300000011920929,
-            0,
-            -0.100000008940697,
-            0,
-            0,
-            0
-          ),
-          dim = c(7L, 4L)
-        ),
-        offsets = c(
-          -3.02999901771545, -6.70499992370605,
-          NaN,
-          -2.04000043869019,
-          NaN,
-          NaN,
-          NaN
-        ),
-        children = structure(c(
-          1L,
-          2L, 0L, 4L, 3L, 7L, 8L, 6L, 3L, 3L, 5L, 7L, 8L, 10L
-        ), dim = c(
-          7L,
-          2L
-        )),
-        indices = c(0L, 5L, 9L, 2L, 4L, 6L, 7L, 1L, 3L, 8L),
-        leaf_size = 4
-      ),
-      list(
-        hyperplanes = structure(
-          c(
-            0.0999999046325684,
-            -0.599999904632568,
-            0,
-            0,
-            0,
-            0.300000190734863,
-            -0.5,
-            0,
-            0,
-            0,
-            0,
-            -0.100000023841858,
-            0,
-            0,
-            0,
-            0.100000001490116,
-            -0.200000002980232,
-            0,
-            0,
-            0
-          ),
-          dim = 5:4
-        ),
-        offsets = c(
-          -1.4850001335144, 5.10999965667725, NaN,
-          NaN, NaN
-        ),
-        children = structure(c(
-          1L, 2L, 0L, 3L, 6L,
-          4L, 3L, 3L, 6L, 10L
-        ), dim = c(5L, 2L)),
-        indices = c(
-          1L,
-          2L, 6L, 0L, 5L, 9L, 3L, 4L, 7L, 8L
-        ),
-        leaf_size = 4
-      ),
-      list(
-        hyperplanes = structure(
-          c(
-            -0.0999999046325684,
-            0,
-            -0.300000190734863,
-            0,
-            0.400000095367432,
-            0,
-            0,
-            0.0999999046325684,
-            0,
-            0.300000190734863,
-            0,
-            0.299999952316284,
-            0,
-            0,
-            -0.299999952316284,
-            0,
-            -0.100000023841858,
-            0,
-            0,
-            0,
-            0,
-            -0.100000001490116,
-            0,
-            0.200000017881393,
-            0,
-            0,
-            0,
-            0
-          ),
-          dim = c(7L, 4L)
-        ),
-        offsets = c(
-          0.529999852180481,
-          NaN,
-          0.555000305175781,
-          NaN,
-          -3.14500045776367,
-          NaN,
-          NaN
-        ),
-        children = structure(c(
-          1L, 0L, 3L, 1L, 5L, 5L, 7L, 2L,
-          1L, 4L, 5L, 6L, 7L, 10L
-        ), dim = c(7L, 2L)),
-        indices = c(
-          8L,
-          0L, 1L, 3L, 6L, 5L, 9L, 2L, 4L, 7L
-        ),
-        leaf_size = 4
-      ),
-      list(
-        hyperplanes = structure(
-          c(
-            0.199999809265137,
-            -0.400000095367432,
-            0,
-            0,
-            -0.5,
-            0,
-            0,
-            0,
-            -0.299999952316284,
-            0,
-            0,
-            0,
-            0,
-            0,
-            -0.100000023841858,
-            0.299999952316284,
-            0,
-            0,
-            -0.299999952316284,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ),
-          dim = c(7L, 4L)
-        ),
-        offsets = c(
-          -0.824999034404755,
-          2.9900004863739,
-          NaN,
-          NaN,
-          2.65000009536743,
-          NaN,
-          NaN
-        ),
-        children = structure(c(
-          1L,
-          2L, 0L, 4L, 5L, 5L, 7L, 4L, 3L, 4L, 5L, 6L, 7L, 10L
-        ), dim = c(
-          7L,
-          2L
-        )),
-        indices = c(0L, 2L, 4L, 5L, 9L, 3L, 8L, 1L, 6L, 7L),
-        leaf_size = 4
-      ),
-      list(
-        hyperplanes = structure(
-          c(
-            -0.200000286102295, -0.400000095367432,
-            0,
-            0.599999904632568,
-            0,
-            0,
-            0,
-            0.400000095367432,
-            0,
-            0,
-            0.5,
-            0,
-            0,
-            0,
-            0,
-            -0.100000023841858,
-            0,
-            0.100000023841858,
-            0,
-            0,
-            0,
-            0.200000017881393,
-            0.100000008940697,
-            0,
-            0.200000002980232,
-            0,
-            0,
-            0
-          ),
-          dim = c(7L, 4L)
-        ),
-        offsets = c(
-          -0.37999901175499,
-          2.04000043869019,
-          NaN,
-          -5.10999965667725,
-          NaN,
-          NaN,
-          NaN
-        ),
-        children = structure(c(
-          1L, 2L, 0L, 4L, 1L, 4L, 6L, 6L,
-          3L, 1L, 5L, 4L, 6L, 10L
-        ), dim = c(7L, 2L)),
-        indices = c(
-          1L,
-          0L, 5L, 9L, 2L, 6L, 3L, 4L, 7L, 8L
-        ),
-        leaf_size = 4
-      )
-    ),
-    margin = "explicit",
-    actual_metric = "sqeuclidean",
-    version = "0.0.12",
-    use_alt_metric = TRUE,
-    original_metric = "euclidean",
-    sparse = FALSE,
-    type = "rnndescent:rpforest"
-  )
+  list(trees = list(list(hyperplanes = structure(c(-0.5, 0.300000190734863,
+                                                   0, 0, 0, -0.800000190734863, -0.300000190734863, 0, 0, 0, -0.200000047683716,
+                                                   0.100000023841858, 0, 0, 0, -0.300000011920929, -0.200000017881393,
+                                                   0, 0, 0), dim = 5:4), offsets = c(5.77000093460083, -0.555000305175781,
+                                                                                     NaN, NaN, NaN), children = structure(c(1L, 2L, 0L, 3L, 7L, 4L,
+                                                                                                                            3L, 3L, 7L, 10L), dim = c(5L, 2L)), indices = c(2L, 4L, 7L, 1L,
+                                                                                                                                                                            3L, 6L, 8L, 0L, 5L, 9L), leaf_size = 4), list(hyperplanes = structure(c(0.599999904632568,
+                                                                                                                                                                                                                                                    0.0999999046325684, 0.400000095367432, -0.400000095367432, 0,
+                                                                                                                                                                                                                                                    0, 0, 0, 0, 0.0999999046325684, 0.300000190734863, 0, -0.299999952316284,
+                                                                                                                                                                                                                                                    0, 0, 0, 0, 0, 0.399999976158142, 0, 0.100000023841858, 0, 0,
+                                                                                                                                                                                                                                                    0, 0, 0, 0, 0, 0.100000001490116, -0.100000008940697, 0, 0, 0,
+                                                                                                                                                                                                                                                    0, 0, 0), dim = c(9L, 4L)), offsets = c(-3.58499956130981, -1.4850001335144,
+                                                                                                                                                                                                                                                                                            -2.04000043869019, 3.14500045776367, NaN, NaN, NaN, NaN, NaN),
+                                                                                                                                                                                                                          children = structure(c(1L, 2L, 3L, 4L, 0L, 2L, 5L, 6L, 8L,
+                                                                                                                                                                                                                                                 8L, 7L, 6L, 5L, 2L, 5L, 6L, 8L, 10L), dim = c(9L, 2L)), indices = c(2L,
+                                                                                                                                                                                                                                                                                                                     6L, 0L, 5L, 9L, 1L, 4L, 7L, 3L, 8L), leaf_size = 3), list(
+                                                                                                                                                                                                                                                                                                                       hyperplanes = structure(c(1.09999990463257, -0.599999904632568,
+                                                                                                                                                                                                                                                                                                                                                 0, 0, 0.5, 0, 0, 0.700000047683716, -0.5, 0, 0, 0.199999809265137,
+                                                                                                                                                                                                                                                                                                                                                 0, 0, 0.399999976158142, -0.100000023841858, 0, 0, 0.100000023841858,
+                                                                                                                                                                                                                                                                                                                                                 0, 0, 0.100000001490116, -0.200000002980232, 0, 0, -0.100000001490116,
+                                                                                                                                                                                                                                                                                                                                                 0, 0), dim = c(7L, 4L)), offsets = c(-8.21500015258789, 5.10999965667725,
+                                                                                                                                                                                                                                                                                                                                                                                      NaN, NaN, -3.05499935150146, NaN, NaN), children = structure(c(1L,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                     2L, 0L, 2L, 5L, 5L, 8L, 4L, 3L, 2L, 5L, 6L, 8L, 10L), dim = c(7L,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   2L)), indices = c(2L, 6L, 0L, 5L, 9L, 1L, 4L, 7L, 3L, 8L),
+                                                                                                                                                                                                                                                                                                                       leaf_size = 3), list(hyperplanes = structure(c(-0.0999999046325684,
+                                                                                                                                                                                                                                                                                                                                                                      0, 0.800000190734863, 0, 0, -0.0999999046325684, 0, 0.299999952316284,
+                                                                                                                                                                                                                                                                                                                                                                      0, 0, -0.100000023841858, 0, 0.100000023841858, 0, 0, 0, 0, -0.100000008940697,
+                                                                                                                                                                                                                                                                                                                                                                      0, 0), dim = 5:4), offsets = c(0.934999287128448, NaN, -5.18500089645386,
+                                                                                                                                                                                                                                                                                                                                                                                                     NaN, NaN), children = structure(c(1L, 0L, 3L, 3L, 6L, 2L, 3L,
+                                                                                                                                                                                                                                                                                                                                                                                                                                       4L, 6L, 10L), dim = c(5L, 2L)), indices = c(3L, 7L, 8L, 0L, 5L,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   9L, 1L, 2L, 4L, 6L), leaf_size = 4), list(hyperplanes = structure(c(0.300000190734863,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       0.599999904632568, 0, 0, 0.400000095367432, 0, 0, -0.300000190734863,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       0.700000047683716, 0, 0, 0.5, 0, 0, 0.100000023841858, 0.100000023841858,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       0, 0, 0.200000047683716, 0, 0, -0.200000017881393, 0.100000001490116,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       0, 0, 0, 0, 0), dim = c(7L, 4L)), offsets = c(-0.555000305175781,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     -5.5649995803833, NaN, NaN, -3.71500062942505, NaN, NaN), children = structure(c(1L,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      2L, 0L, 2L, 5L, 5L, 8L, 4L, 3L, 2L, 5L, 6L, 8L, 10L), dim = c(7L,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    2L)), indices = c(5L, 9L, 2L, 4L, 7L, 0L, 1L, 6L, 3L, 8L), leaf_size = 3),
+                    list(hyperplanes = structure(c(-0.599999904632568, -0.0999999046325684,
+                                                   0, 0, 0, -0.5, -0.0999999046325684, 0, 0, 0, -0.100000023841858,
+                                                   -0.100000023841858, 0, 0, 0, -0.200000002980232, 0, 0, 0,
+                                                   0), dim = 5:4), offsets = c(5.10999965667725, 0.934999287128448,
+                                                                               NaN, NaN, NaN), children = structure(c(1L, 2L, 0L, 3L, 7L,
+                                                                                                                      4L, 3L, 3L, 7L, 10L), dim = c(5L, 2L)), indices = c(3L, 7L,
+                                                                                                                                                                          8L, 1L, 2L, 4L, 6L, 0L, 5L, 9L), leaf_size = 4), list(hyperplanes = structure(c(0.900000095367432,
+                                                                                                                                                                                                                                                          0, -0.599999904632568, 0, 0, 0.900000095367432, 0, -0.5,
+                                                                                                                                                                                                                                                          0, 0, -0.299999952316284, 0, -0.100000023841858, 0, 0, 0.100000001490116,
+                                                                                                                                                                                                                                                          0, 0, 0, 0), dim = 5:4), offsets = c(-7.62000131607056, NaN,
+                                                                                                                                                                                                                                                                                               4.53999948501587, NaN, NaN), children = structure(c(1L, 0L,
+                                                                                                                                                                                                                                                                                                                                                   3L, 3L, 6L, 2L, 3L, 4L, 6L, 10L), dim = c(5L, 2L)), indices = c(0L,
+                                                                                                                                                                                                                                                                                                                                                                                                                   5L, 9L, 3L, 7L, 8L, 1L, 2L, 4L, 6L), leaf_size = 4)), margin = "explicit",
+       actual_metric = "sqeuclidean", version = "0.0.12", use_alt_metric = TRUE,
+       original_metric = "euclidean", sparse = FALSE, type = "rnndescent:rpforest")
 
 # set.seed(1337)
-# rpf_build(ui10, metric = "euclidean", leaf_size = 4)
+# rpf_build(ui10, metric = "euclidean", leaf_size = 4, margin = "implicit")
 rpf_index_ls4i <-
-  list(
-    trees = list(
-      list(
-        normal_indices = structure(c(
-          9L, -1L,
-          3L, -1L, -1L, 4L, -1L, 2L, -1L, -1L
-        ), dim = c(5L, 2L)),
-        children = structure(c(
-          1L,
-          0L, 3L, 3L, 6L, 2L, 3L, 4L, 6L, 10L
-        ), dim = c(5L, 2L)),
-        indices = c(
-          0L,
-          5L, 9L, 3L, 7L, 8L, 1L, 2L, 4L, 6L
-        ),
-        leaf_size = 4
-      ),
-      list(
-        normal_indices = structure(c(
-          2L,
-          9L, -1L, -1L, -1L, 4L, 6L, -1L, -1L, -1L
-        ), dim = c(5L, 2L)),
-        children = structure(c(
-          1L, 2L, 0L, 3L, 6L, 4L, 3L, 3L, 6L,
-          10L
-        ), dim = c(5L, 2L)),
-        indices = c(
-          0L, 5L, 9L, 1L, 2L, 6L,
-          3L, 4L, 7L, 8L
-        ),
-        leaf_size = 4
-      ),
-      list(
-        normal_indices = structure(
-          c(
-            1L,
-            0L, -1L, 2L, -1L, -1L, -1L, 8L, 7L, -1L, 1L, -1L, -1L, -1L
-          ),
-          dim = c(
-            7L,
-            2L
-          )
-        ),
-        children = structure(c(
-          1L, 2L, 0L, 4L, 3L, 7L, 8L, 6L,
-          3L, 3L, 5L, 7L, 8L, 10L
-        ), dim = c(7L, 2L)),
-        indices = c(
-          0L, 5L,
-          9L, 2L, 4L, 6L, 7L, 1L, 3L, 8L
-        ),
-        leaf_size = 4
-      ),
-      list(
-        normal_indices = structure(c(
-          2L,
-          6L, -1L, -1L, -1L, 4L, 0L, -1L, -1L, -1L
-        ), dim = c(5L, 2L)),
-        children = structure(c(
-          1L, 2L, 0L, 3L, 6L, 4L, 3L, 3L, 6L,
-          10L
-        ), dim = c(5L, 2L)),
-        indices = c(
-          1L, 2L, 6L, 0L, 5L, 9L,
-          3L, 4L, 7L, 8L
-        ),
-        leaf_size = 4
-      ),
-      list(
-        normal_indices = structure(
-          c(8L, -1L, 1L, -1L, 5L, -1L, -1L, 3L, -1L, 4L, -1L, 2L, -1L, -1L),
-          dim = c(
-            7L,
-            2L
-          )
-        ),
-        children = structure(c(
-          1L, 0L, 3L, 1L, 5L, 5L, 7L, 2L,
-          1L, 4L, 5L, 6L, 7L, 10L
-        ), dim = c(7L, 2L)),
-        indices = c(
-          8L, 0L,
-          1L, 3L, 6L, 5L, 9L, 2L, 4L, 7L
-        ),
-        leaf_size = 4
-      ),
-      list(
-        normal_indices = structure(
-          c(
-            2L,
-            5L, -1L, -1L, 8L, -1L, -1L, 6L, 9L, -1L, -1L, 7L, -1L, -1L
-          ),
-          dim = c(
-            7L,
-            2L
-          )
-        ),
-        children = structure(c(
-          1L, 2L, 0L, 4L, 5L, 5L, 7L, 4L,
-          3L, 4L, 5L, 6L, 7L, 10L
-        ), dim = c(7L, 2L)),
-        indices = c(
-          0L, 2L,
-          4L, 5L, 9L, 3L, 8L, 1L, 6L, 7L
-        ),
-        leaf_size = 4
-      ),
-      list(
-        normal_indices = structure(
-          c(
-            1L,
-            1L, -1L, 0L, -1L, -1L, -1L, 7L, 2L, -1L, 6L, -1L, -1L, -1L
-          ),
-          dim = c(
-            7L,
-            2L
-          )
-        ),
-        children = structure(c(
-          1L, 2L, 0L, 4L, 1L, 4L, 6L, 6L,
-          3L, 1L, 5L, 4L, 6L, 10L
-        ), dim = c(7L, 2L)),
-        indices = c(
-          1L, 0L,
-          5L, 9L, 2L, 6L, 3L, 4L, 7L, 8L
-        ),
-        leaf_size = 4
-      )
-    ),
-    margin = "implicit",
-    actual_metric = "sqeuclidean",
-    version = "0.0.12",
-    use_alt_metric = TRUE,
-    original_metric = "euclidean",
-    sparse = FALSE,
-    type = "rnndescent:rpforest"
-  )
+  list(trees = list(list(normal_indices = structure(c(4L, 4L, -1L,
+                                                      -1L, -1L, 0L, 1L, -1L, -1L, -1L), dim = c(5L, 2L)), children = structure(c(1L,
+                                                                                                                                 2L, 0L, 3L, 7L, 4L, 3L, 3L, 7L, 10L), dim = c(5L, 2L)), indices = c(2L,
+                                                                                                                                                                                                     4L, 7L, 1L, 3L, 6L, 8L, 0L, 5L, 9L), leaf_size = 4), list(normal_indices = structure(c(4L,
+                                                                                                                                                                                                                                                                                            2L, 2L, 2L, -1L, -1L, -1L, -1L, -1L, 8L, 4L, 1L, 5L, -1L, -1L,
+                                                                                                                                                                                                                                                                                            -1L, -1L, -1L), dim = c(9L, 2L)), children = structure(c(1L,
+                                                                                                                                                                                                                                                                                                                                                     2L, 3L, 4L, 0L, 2L, 5L, 6L, 8L, 8L, 7L, 6L, 5L, 2L, 5L, 6L, 8L,
+                                                                                                                                                                                                                                                                                                                                                     10L), dim = c(9L, 2L)), indices = c(2L, 6L, 0L, 5L, 9L, 1L, 4L,
+                                                                                                                                                                                                                                                                                                                                                                                         7L, 3L, 8L), leaf_size = 3), list(normal_indices = structure(c(5L,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                        6L, -1L, -1L, 4L, -1L, -1L, 8L, 0L, -1L, -1L, 3L, -1L, -1L), dim = c(7L,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             2L)), children = structure(c(1L, 2L, 0L, 2L, 5L, 5L, 8L, 4L,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          3L, 2L, 5L, 6L, 8L, 10L), dim = c(7L, 2L)), indices = c(2L, 6L,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  0L, 5L, 9L, 1L, 4L, 7L, 3L, 8L), leaf_size = 3), list(normal_indices = structure(c(7L,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     -1L, 5L, -1L, -1L, 4L, -1L, 1L, -1L, -1L), dim = c(5L, 2L)),
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        children = structure(c(1L, 0L, 3L, 3L, 6L, 2L, 3L, 4L, 6L,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               10L), dim = c(5L, 2L)), indices = c(3L, 7L, 8L, 0L, 5L, 9L,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   1L, 2L, 4L, 6L), leaf_size = 4), list(normal_indices = structure(c(4L,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      5L, -1L, -1L, 6L, -1L, -1L, 1L, 7L, -1L, -1L, 3L, -1L, -1L), dim = c(7L,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           2L)), children = structure(c(1L, 2L, 0L, 2L, 5L, 5L, 8L, 4L,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        3L, 2L, 5L, 6L, 8L, 10L), dim = c(7L, 2L)), indices = c(5L, 9L,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                2L, 4L, 7L, 0L, 1L, 6L, 3L, 8L), leaf_size = 3), list(normal_indices = structure(c(6L,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   7L, -1L, -1L, -1L, 0L, 4L, -1L, -1L, -1L), dim = c(5L, 2L)),
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      children = structure(c(1L, 2L, 0L, 3L, 7L, 4L, 3L, 3L, 7L,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             10L), dim = c(5L, 2L)), indices = c(3L, 7L, 8L, 1L, 2L, 4L,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 6L, 0L, 5L, 9L), leaf_size = 4), list(normal_indices = structure(c(9L,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    -1L, 3L, -1L, -1L, 4L, -1L, 2L, -1L, -1L), dim = c(5L, 2L)),
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       children = structure(c(1L, 0L, 3L, 3L, 6L, 2L, 3L, 4L, 6L,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              10L), dim = c(5L, 2L)), indices = c(0L, 5L, 9L, 3L, 7L, 8L,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  1L, 2L, 4L, 6L), leaf_size = 4)), margin = "implicit", actual_metric = "sqeuclidean",
+       version = "0.0.12", use_alt_metric = TRUE, original_metric = "euclidean",
+       sparse = FALSE, type = "rnndescent:rpforest")

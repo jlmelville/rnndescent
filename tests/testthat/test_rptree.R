@@ -206,7 +206,7 @@ rpf_knnf3 <-
 expect_equal(length(rpf_knnf3$forest$trees), 3)
 rpf_f3f <- rpf_filter(rpf_knnf3, n_trees = 1)
 expect_equal(length(rpf_f3f$trees), 1)
-expect_equal(rpf_f3f$trees[[1]], rpf_knnf3$forest$trees[[2]])
+expect_equal(rpf_f3f$trees[[1]], rpf_knnf3$forest$trees[[1]])
 
 set.seed(1337)
 expect_equal(
@@ -220,7 +220,9 @@ set.seed(1337)
 rpi_knn <- rpf_knn(uirism[1:20, ], k = 4, verbose = FALSE, n_threads = 0, n_trees = 2, margin = "implicit")
 set.seed(1337)
 rpe_knn <- rpf_knn(uirism[1:20, ], k = 4, verbose = FALSE, n_threads = 0, n_trees = 2, margin = "explicit")
-expect_equal(rpe_knn, rpi_knn)
+expect_equal(rpe_knn$dist, rpi_knn$dist)
+# tied indices
+expect_equal(sum(rpe_knn$idx - rpi_knn$idx), 0)
 
 expected_rpfi_index <- list(
   trees = list(list(
@@ -289,7 +291,7 @@ rpf_knnfi3 <-
 expect_equal(length(rpf_knnfi3$forest$trees), 3)
 rpf_fi3f <- rpf_filter(rpf_knnfi3, n_trees = 1)
 expect_equal(length(rpf_fi3f$trees), 1)
-expect_equal(rpf_fi3f$trees[[1]], rpf_knnfi3$forest$trees[[2]])
+expect_equal(rpf_fi3f$trees[[1]], rpf_knnfi3$forest$trees[[1]])
 expect_equal(rpf_fi3f$margin, rpf_knnfi3$forest$margin)
 expect_equal(rpf_fi3f$actual_metric, rpf_knnfi3$forest$actual_metric)
 expect_equal(rpf_fi3f$version, rpf_knnfi3$forest$version)
@@ -311,7 +313,7 @@ rpf_knnff3 <-
 expect_equal(length(rpf_knnff3$forest$trees), 3)
 rpf_ff3f <- rpf_filter(rpf_knnff3, n_trees = 1)
 expect_equal(length(rpf_ff3f$trees), 1)
-expect_equal(rpf_ff3f$trees[[1]], rpf_knnff3$forest$trees[[2]])
+expect_equal(rpf_ff3f$trees[[1]], rpf_knnff3$forest$trees[[1]])
 expect_equal(rpf_ff3f$margin, rpf_knnff3$forest$margin)
 expect_equal(rpf_ff3f$actual_metric, rpf_knnff3$forest$actual_metric)
 expect_equal(rpf_ff3f$version, rpf_knnff3$forest$version)
@@ -523,7 +525,7 @@ test_that("sparse explicit margin", {
 
   s6_ff <- rpf_filter(sknn6)
   expect_equal(length(s6_ff$trees), 1)
-  expect_equal(s6_ff$trees[[1]], sknn6$forest$trees[[2]])
+  expect_equal(s6_ff$trees[[1]], sknn6$forest$trees[[1]])
 
   set.seed(1337)
   res_forest <- rpf_knn_query(ui10sp4, ui10sp6, forest = sforest6, k = 4)
