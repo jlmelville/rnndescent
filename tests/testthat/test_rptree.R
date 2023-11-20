@@ -403,6 +403,43 @@ ui6f <- rpf_knn(
 qnbrs4 <- graph_knn_query(reference = ui6, reference_graph = ui6f, query = ui4, init = ui6f$forest, k = 4)
 expect_equal(sum(qnbrs4$dist), ui4q_edsum, tol = 1e-6)
 
+test_that("binary data", {
+  # euclidean forces conversion to float data
+  set.seed(1337)
+  bin_euc_imp <- rpf_knn(lbitdata, k = 4, margin = "implicit")
+  set.seed(1337)
+  bin_euc_exp <- rpf_knn(lbitdata, k = 4, margin = "explicit")
+  expect_equal(bin_euc_imp, bin_euc_exp)
+
+  set.seed(1337)
+  bin_jac_imp <- rpf_knn(lbitdata, k = 4, margin = "implicit", metric = "jaccard")
+  set.seed(1337)
+  bin_jac_exp <- rpf_knn(lbitdata, k = 4, margin = "explicit", metric = "jaccard")
+  expect_equal(bin_jac_imp, bin_jac_exp)
+
+  set.seed(1337)
+  euc_forest_i <- rpf_build(lbitdata, leaf_size = 10, margin = "implicit")
+  bin_euc_impq <-
+    rpf_knn_query(
+      query = lbitdata,
+      reference = lbitdata,
+      forest = euc_forest_i,
+      k = 4
+    )
+  expect_equal(bin_euc_impq, bin_euc_imp)
+
+  set.seed(1337)
+  euc_forest_e <- rpf_build(lbitdata, leaf_size = 10, margin = "explicit")
+  bin_euc_expq <-
+    rpf_knn_query(
+      query = lbitdata,
+      reference = lbitdata,
+      forest = euc_forest_e,
+      k = 4
+    )
+  expect_equal(bin_euc_expq, bin_euc_exp)
+})
+
 test_that("sparse implicit margin", {
   set.seed(1337)
   dknn <- rpf_knn(ui10z, k = 4, leaf_size = 3, n_trees = 2, margin = "implicit")
@@ -500,5 +537,4 @@ test_that("sparse explicit margin", {
     margin = "explicit", metric = "cosine", use_alt_metric = FALSE
   )
   expect_equal(sacknn, secknn, tol = 1e-5)
-
 })
