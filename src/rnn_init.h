@@ -20,6 +20,8 @@
 #ifndef RNN_INIT_H
 #define RNN_INIT_H
 
+#include <algorithm>
+
 #include <Rcpp.h>
 
 #include "tdoann/distancebase.h"
@@ -38,9 +40,16 @@ void fill_random(NbrHeap &current_graph,
                  const tdoann::BaseDistance<typename NbrHeap::DistanceOut,
                                             typename NbrHeap::Index> &distance,
                  std::size_t n_threads, bool verbose) {
+
+  const auto end = current_graph.idx.end();
+  if (std::find(current_graph.idx.begin(), end, NbrHeap::npos()) == end) {
+    // no missing data, nothing to do
+    return;
+  }
+
   if (verbose) {
-    tsmessage() << "Filling graph with random neighbors (where needed)"
-                << "\n";
+    tsmessage()
+        << "Graph contains missing data: filling with random neighbors\n";
   }
 
   rnndescent::ParallelIntRNGAdapter<typename NbrHeap::Index,
@@ -51,7 +60,7 @@ void fill_random(NbrHeap &current_graph,
   tdoann::fill_random(current_graph, distance, rng_provider, n_threads,
                       fill_progress, executor);
   if (verbose) {
-    tsmessage() << "Done\n";
+    tsmessage() << "Finished random fill\n";
   }
 }
 
