@@ -494,6 +494,10 @@ test_that("sparse implicit margin", {
   set.seed(1337)
   squery4b <- rpf_knn_query(query = ui10sp4, reference = ui10sp6, forest = sforest6, k = 4)
   expect_equal(squery4b, squery4, tol = 1e-5)
+
+  set.seed(1337)
+  squery4b <- rpf_knn_query(query = ui10sp4, reference = ui10sp6, forest = sforest6, k = 4, cache = FALSE)
+  expect_equal(squery4b, squery4, tol = 1e-5)
 })
 
 
