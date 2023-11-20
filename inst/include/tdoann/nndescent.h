@@ -190,23 +190,23 @@ void flag_retained_new_candidates(NNDHeap<Out, Idx> &current_graph,
 
 // Pretty close to the NNDescentFull algorithm (#2 in the paper)
 template <typename Out, typename Idx>
-void nnd_build(NNDHeap<Out, Idx> &nn_heap,
+void nnd_build(NNDHeap<Out, Idx> &current_graph,
                SerialLocalJoin<Out, Idx> &local_join,
                std::size_t max_candidates, uint32_t n_iters, double delta,
                RandomGenerator &rand, NNDProgressBase &progress) {
-  const std::size_t n_points = nn_heap.n_points;
+  const std::size_t n_points = current_graph.n_points;
   for (auto iter = 0U; iter < n_iters; iter++) {
     NNHeap<Out, Idx> new_nbrs(n_points, max_candidates);
     decltype(new_nbrs) old_nbrs(n_points, max_candidates);
 
-    build_candidates(nn_heap, new_nbrs, old_nbrs, rand);
+    build_candidates(current_graph, new_nbrs, old_nbrs, rand);
 
-    flag_retained_new_candidates(nn_heap, new_nbrs);
+    flag_retained_new_candidates(current_graph, new_nbrs);
 
     auto num_updates =
-        local_join.execute(nn_heap, new_nbrs, old_nbrs, progress);
+        local_join.execute(current_graph, new_nbrs, old_nbrs, progress);
 
-    if (nnd_should_stop(progress, nn_heap, num_updates, delta)) {
+    if (nnd_should_stop(progress, current_graph, num_updates, delta)) {
       break;
     }
   }

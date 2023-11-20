@@ -225,12 +225,12 @@ public:
 };
 
 template <typename Out, typename Idx>
-void build_candidates(const NNDHeap<Out, Idx> &nn_heap,
+void build_candidates(const NNDHeap<Out, Idx> &current_graph,
                       NNHeap<Out, Idx> &new_nbrs, decltype(new_nbrs) &old_nbrs,
                       ParallelRandomProvider &parallel_rand,
                       std::size_t n_threads, const Executor &executor) {
   constexpr auto npos = static_cast<Idx>(-1);
-  const std::size_t n_nbrs = nn_heap.n_nbrs;
+  const std::size_t n_nbrs = current_graph.n_nbrs;
   LockingHeapAdder<Out, Idx> heap_adder;
 
   parallel_rand.initialize();
@@ -240,50 +240,50 @@ void build_candidates(const NNDHeap<Out, Idx> &nn_heap,
     for (auto i = begin, idx_offset = begin * n_nbrs; i < end;
          i++, idx_offset += n_nbrs) {
       for (auto idx_ij = idx_offset; idx_ij < idx_offset + n_nbrs; idx_ij++) {
-        const auto nbr = nn_heap.idx[idx_ij];
+        const auto nbr = current_graph.idx[idx_ij];
         if (nbr == npos) {
           continue;
         }
-        auto &nbrs = nn_heap.flags[idx_ij] == 1 ? new_nbrs : old_nbrs;
+        auto &nbrs = current_graph.flags[idx_ij] == 1 ? new_nbrs : old_nbrs;
         auto rand_weight = rand->unif();
         heap_adder.add(nbrs, i, nbr, rand_weight);
       }
     }
   };
-  dispatch_work(worker, nn_heap.n_points, n_threads, executor);
+  dispatch_work(worker, current_graph.n_points, n_threads, executor);
 }
 
 template <typename Out, typename Idx>
-void flag_new_candidates(NNDHeap<Out, Idx> &nn_heap,
+void flag_new_candidates(NNDHeap<Out, Idx> &current_graph,
                          const NNHeap<Out, Idx> &new_nbrs,
                          std::size_t n_threads, const Executor &executor) {
   auto worker = [&](std::size_t begin, std::size_t end) {
-    flag_retained_new_candidates(nn_heap, new_nbrs, begin, end);
+    flag_retained_new_candidates(current_graph, new_nbrs, begin, end);
   };
-  dispatch_work(worker, nn_heap.n_points, n_threads, executor);
+  dispatch_work(worker, current_graph.n_points, n_threads, executor);
 }
 
 template <typename Out, typename Idx>
-void nnd_build(NNDHeap<Out, Idx> &nn_heap,
+void nnd_build(NNDHeap<Out, Idx> &current_graph,
                ParallelLocalJoin<Out, Idx> &local_join,
                std::size_t max_candidates, uint32_t n_iters, double delta,
                NNDProgressBase &progress, ParallelRandomProvider &parallel_rand,
                std::size_t n_threads, const Executor &executor) {
-  const std::size_t n_points = nn_heap.n_points;
+  const std::size_t n_points = current_graph.n_points;
 
   for (auto iter = 0U; iter < n_iters; iter++) {
     NNHeap<Out, Idx> new_nbrs(n_points, max_candidates);
     decltype(new_nbrs) old_nbrs(n_points, max_candidates);
 
-    build_candidates(nn_heap, new_nbrs, old_nbrs, parallel_rand, n_threads,
-                     executor);
+    build_candidates(current_graph, new_nbrs, old_nbrs, parallel_rand,
+                     n_threads, executor);
 
-    flag_new_candidates(nn_heap, new_nbrs, n_threads, executor);
+    flag_new_candidates(current_graph, new_nbrs, n_threads, executor);
 
-    auto num_updates = local_join.execute(nn_heap, new_nbrs, old_nbrs, progress,
-                                          n_threads, executor);
+    auto num_updates = local_join.execute(current_graph, new_nbrs, old_nbrs,
+                                          progress, n_threads, executor);
 
-    if (nnd_should_stop(progress, nn_heap, num_updates, delta)) {
+    if (nnd_should_stop(progress, current_graph, num_updates, delta)) {
       break;
     }
   }

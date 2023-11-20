@@ -147,16 +147,16 @@ inline auto is_converged(unsigned long num_updates, double tol) -> bool {
 }
 
 template <typename NbrHeap>
-auto nnd_should_stop(NNDProgressBase &progress, const NbrHeap &nn_heap,
+auto nnd_should_stop(NNDProgressBase &progress, const NbrHeap &current_graph,
                      unsigned long num_updates, double delta) -> bool {
   if (progress.check_interrupt()) {
     return true;
   }
   progress.iter_finished();
 
-  const double tol = delta * nn_heap.n_nbrs * nn_heap.n_points;
+  const double tol = delta * current_graph.n_nbrs * current_graph.n_points;
   if (progress.get_reporting_action() == ReportingAction::HeapSum) {
-    double heap_sum_value = heap_sum(nn_heap);
+    double heap_sum_value = heap_sum(current_graph);
     std::ostringstream oss;
     oss << "heap sum = " << heap_sum_value << " num_updates = " << num_updates
         << " tol = " << tol;
