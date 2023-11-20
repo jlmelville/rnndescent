@@ -1,3 +1,9 @@
+# rnndescent 0.0.16
+
+## Bug fixes and minor improvements
+
+* The sparse `spearmanr` distance has been fixed.
+
 # rnndescent 0.0.15
 
 ## Breaking Changes

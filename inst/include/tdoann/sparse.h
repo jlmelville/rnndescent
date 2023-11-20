@@ -133,29 +133,6 @@ dense_union(typename std::vector<std::size_t>::const_iterator ind1_start,
   return {result_data1, result_data2};
 }
 
-template <typename DataIt>
-std::vector<double>
-sparse_rankdata(typename std::vector<std::size_t>::const_iterator ind_start,
-                std::size_t ind_size, DataIt data_start, std::size_t ndim) {
-  // Rank the non-zero data using dense rankdata function
-  auto ranks = rankdata(data_start, data_start + ind_size);
-
-  // Now account for the zeros - we use averaging for breaking ties
-  // the average of all N zeros is (N + 1) / 2
-  std::size_t num_zeros = ndim - ind_size;
-  double zero_rank = (num_zeros + 1) / 2.0;
-
-  // Positive value ranks can't be affected by the zero ranks, so we only need
-  // to adjust the ranks of any negative values so they rank below the zeros
-  for (size_t i = 0; i < ind_size; ++i) {
-    if (*(data_start + i) < 0) {
-      ranks[i] += zero_rank;
-    }
-  }
-
-  return ranks;
-}
-
 template <typename Out, typename DataIt>
 std::pair<std::vector<std::size_t>, std::vector<Out>>
 sparse_sum(typename std::vector<std::size_t>::const_iterator ind1_start,
@@ -797,8 +774,6 @@ Out sparse_hamming(typename std::vector<std::size_t>::const_iterator ind1_start,
   return static_cast<Out>(static_cast<double>(num_not_equal) / ndim);
 }
 
-#include <cmath> // For std::sqrt
-
 template <typename Out, typename DataIt>
 Out sparse_hellinger(
     typename std::vector<std::size_t>::const_iterator ind1_start,
@@ -809,7 +784,8 @@ Out sparse_hellinger(
   double result = 0.0;
   double l1_norm_x = 0.0;
   double l1_norm_y = 0.0;
-  std::size_t i1 = 0, i2 = 0;
+  std::size_t i1 = 0;
+  std::size_t i2 = 0;
 
   while (i1 < ind1_size && i2 < ind2_size) {
     const auto j1 = *(ind1_start + i1);
@@ -973,6 +949,41 @@ Out sparse_kulsinski(
   }
 }
 
+template <typename DataIt>
+std::pair<std::vector<double>, double>
+sparse_rankdata(typename std::vector<std::size_t>::const_iterator ind_start,
+                std::size_t ind_size, DataIt data_start, std::size_t ndim) {
+  // Rank the non-zero data using dense rankdata function
+  auto ranks = rankdata(data_start, data_start + ind_size);
+
+  // Now account for the zeros - we use averaging for breaking ties
+  // the average of all N zeros is (N + 1) / 2
+  std::size_t num_zeros = ndim - ind_size;
+
+  // Negative value ranks can't be affected by the zero ranks, so we only
+  // need to adjust the ranks of any positive values so they rank below the
+  // zeros
+  // also count the sum of the non-zero ranks while we are looping
+  double nz_rank_sum = 0.0;
+  for (size_t i = 0; i < ind_size; ++i) {
+    if (*(data_start + i) > 0) {
+      ranks[i] += num_zeros;
+    }
+    nz_rank_sum += ranks[i];
+  }
+
+  // as long as we always break ties with averaging, we know the total sum of
+  // ranks no matter how many ties
+  double total_rank_sum = ndim * (ndim + 1) / 2.0;
+
+  // Zero rank average = sum of zero rank / total number of zero elements
+  // use a negative value as a sentinel just in case we get a dense vector
+  double zero_rank =
+      ndim == ind_size ? -1.0 : (total_rank_sum - nz_rank_sum) / num_zeros;
+
+  return {ranks, zero_rank};
+}
+
 template <typename Out, typename DataIt>
 Out sparse_spearmanr(
     typename std::vector<std::size_t>::const_iterator ind1_start,
@@ -980,12 +991,82 @@ Out sparse_spearmanr(
     typename std::vector<std::size_t>::const_iterator ind2_start,
     std::size_t ind2_size, DataIt data2_start, std::size_t ndim) {
 
-  auto x_rank = sparse_rankdata(ind1_start, ind1_size, data1_start, ndim);
-  auto y_rank = sparse_rankdata(ind2_start, ind2_size, data2_start, ndim);
+  // Calculate the mean of ranks
+  double mean = (ndim + 1) / 2.0;
 
-  // Use sparse_correlation for the final correlation calculation
-  return sparse_correlation<Out>(ind1_start, ind1_size, x_rank.begin(),
-                                 ind2_start, ind2_size, y_rank.begin(), ndim);
+  auto [x_rank, x_rank0] =
+      sparse_rankdata(ind1_start, ind1_size, data1_start, ndim);
+  auto [y_rank, y_rank0] =
+      sparse_rankdata(ind2_start, ind2_size, data2_start, ndim);
+
+  const auto xc0 = x_rank0 < 0 ? 0.0 : x_rank0 - mean;
+  const auto yc0 = y_rank0 < 0 ? 0.0 : y_rank0 - mean;
+  const auto xc02 = xc0 * xc0;
+  const auto yc02 = yc0 * yc0;
+
+  double sum_xc2 = 0.0;
+  double sum_yc2 = 0.0;
+  double sum_xcyc = 0.0;
+
+  std::size_t i1 = 0;
+  std::size_t i2 = 0;
+  // the size of the union of the indices
+  std::size_t n = 0;
+
+  while (i1 < ind1_size && i2 < ind2_size) {
+    const auto j1 = *(ind1_start + i1);
+    const auto j2 = *(ind2_start + i2);
+
+    if (j1 == j2) {
+      const auto xc = x_rank[i1] - mean;
+      const auto yc = y_rank[i2] - mean;
+      sum_xc2 += xc * xc;
+      sum_yc2 += yc * yc;
+      sum_xcyc += xc * yc;
+      ++i1;
+      ++i2;
+      ++n;
+    } else if (j1 < j2) {
+      const auto xc = x_rank[i1] - mean;
+      sum_xc2 += xc * xc;
+      sum_yc2 += yc02;
+      sum_xcyc += xc * yc0;
+      ++i1;
+      ++n;
+    } else {
+      const auto yc = y_rank[i2] - mean;
+      sum_yc2 += yc * yc;
+      sum_xc2 += xc02;
+      sum_xcyc += xc0 * yc;
+      ++i2;
+      ++n;
+    }
+  }
+
+  // Pass over the tails
+  while (i1 < ind1_size) {
+    const auto xc = x_rank[i1] - mean;
+    sum_xc2 += xc * xc;
+    sum_yc2 += yc02;
+    sum_xcyc += xc * yc0;
+    ++i1;
+    ++n;
+  }
+  while (i2 < ind2_size) {
+    const auto yc = y_rank[i2] - mean;
+    sum_yc2 += yc * yc;
+    sum_xc2 += xc02;
+    sum_xcyc += xc0 * yc;
+    ++i2;
+    ++n;
+  }
+
+  std::size_t nzero_tail = ndim - n;
+  sum_xc2 += xc02 * nzero_tail;
+  sum_yc2 += yc02 * nzero_tail;
+  sum_xcyc += xc0 * yc0 * nzero_tail;
+
+  return 1.0 - (sum_xcyc / std::sqrt(sum_xc2 * sum_yc2));
 }
 
 template <typename Out, typename DataIt>

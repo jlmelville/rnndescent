@@ -264,6 +264,15 @@ test_that("Spearman Rank", {
 
   bfsparse <- brute_force_knn(bitdatasp, k = 4, metric = "spearmanr")
   expect_equal(bfdense, bfsparse, tol = 1e-6)
+
+  # test with negative values
+  set.seed(42)
+  m <- matrix(rnorm(10 * 10), nrow = 10)
+  mz <- m
+  mz[sample(length(m), 20)] <- 0
+  msp <- Matrix::drop0(mz)
+  expect_equal(brute_force_knn(mz, metric = "spearmanr", k = 4),
+               brute_force_knn(msp, metric = "spearmanr", k = 4), tol = 1e-7)
 })
 
 test_that("Symmetric KL", {
