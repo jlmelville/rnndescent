@@ -31,3 +31,7 @@ expect_equal(iris_queryp, iris_bf)
 
 iris_queryp2 <- rnnd_query(index = iris_prep, query = ui10, k = 4)
 expect_equal(iris_queryp2, iris_bf)
+
+# calling rnnd_perpare on a prepared index does nothing
+iris_prep2 <- rnnd_prepare(index = iris_prep)
+expect_equal(iris_prep2, iris_prep)

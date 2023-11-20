@@ -26,6 +26,8 @@ If you ran \code{\link[=rnnd_build]{rnnd_build()}} with \code{prepare = TRUE} yo
 function before calling \code{\link[=rnnd_query]{rnnd_query()}}. If you run \code{\link[=rnnd_query]{rnnd_query()}} on an
 index which has not been prepared, it will be prepared before the query is
 run.
+
+Calling \code{rnnd_prepare} on an already prepared index does nothing.
 }
 \examples{
 iris_even <- iris[seq_len(nrow(iris)) \%\% 2 == 0, ]

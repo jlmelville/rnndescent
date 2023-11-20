@@ -320,6 +320,8 @@ rnnd_build <- function(data,
 #' index which has not been prepared, it will be prepared before the query is
 #' run.
 #'
+#' Calling `rnnd_prepare` on an already prepared index does nothing.
+#'
 #' @param index An approximate nearest neighbor index produced by [rnnd_build()].
 #' @param n_threads Number of threads to use.
 #' @param verbose If `TRUE`, log information to the console.
@@ -347,6 +349,11 @@ rnnd_build <- function(data,
 rnnd_prepare <- function(index,
                          n_threads = 0,
                          verbose = FALSE) {
+  if (index$prep$is_prepared) {
+    tsmessage("Index already prepared")
+    return(index)
+  }
+
   if (!is.null(index$forest)) {
     index$search_forest <-
       rpf_filter(
@@ -368,9 +375,11 @@ rnnd_prepare <- function(index,
     verbose = verbose,
     obs = "C"
   )
-
   index$prep$is_prepared <- TRUE
   index$search_graph <- search_graph
+
+  # RP Forests can be large so after preparation we delete this
+  index$forest <- NULL
   index
 }
 
