@@ -57,7 +57,7 @@ prepare_init_graph <-
         if (!augment_low_k) {
           stop("Not enough initial neighbors provided for k = ", k)
         }
-      } else if (k < ncol(nn$dist)) {
+      } else if (k < ncol(nn$idx)) {
         nn$idx <- nn$idx[, 1:k, drop = FALSE]
       }
       # else k == ncol and we need do nothing

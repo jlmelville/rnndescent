@@ -67,3 +67,16 @@ test_that("sparse", {
   expect_equal(i2g$dist, dz6_4$dist, tol = 1e-6)
   expect_equal(i2g$idx, dz6_4$idx)
 })
+
+test_that("binary", {
+  set.seed(1337)
+  lb6 <- lbitdata[1:6, ]
+  lb4 <- lbitdata[7:10, ]
+  lbb <- random_knn_query(query = lb6, reference = lb4, k = 4, metric = "jaccard")
+  i2g <- prepare_init_graph(
+    query = Matrix::t(lb6), data = Matrix::t(lb4),
+    nn = lbb$idx, k = 4, metric = "jaccard"
+  )
+  expect_equal(i2g$dist, lbb$dist, tol = 1e-6)
+  expect_equal(i2g$idx, lbb$idx)
+})

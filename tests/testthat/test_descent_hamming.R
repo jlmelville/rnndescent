@@ -32,12 +32,37 @@ expect_equal(bit_rnn$dist, expected_hamm_dist, check.attributes = FALSE, tol = 1
 # multi-threading high memory
 set.seed(1337)
 bit_rnn <- nnd_knn(bitdata, 4,
-  metric = "hamming", n_threads = 1, ,
+  metric = "hamming",
+  n_threads = 1,
   max_candidates = 10,
   low_memory = FALSE
 )
 expect_equal(bit_rnn$idx, expected_hamm_idx, check.attributes = FALSE)
 expect_equal(bit_rnn$dist, expected_hamm_dist, check.attributes = FALSE, tol = 1e-7)
+
+# logical data and distance recalculation
+lbit_rnn <- nnd_knn(
+  lbitdata,
+  k = 4,
+  metric = "hamming",
+  init = random_knn(bitdata, k = 1, metric = "hamming")$idx,
+  max_candidates = 10
+)
+expect_equal(lbit_rnn$idx, expected_hamm_idx, check.attributes = FALSE)
+expect_equal(lbit_rnn$dist, expected_hamm_dist, check.attributes = FALSE, tol = 1e-7)
+
+# test using an excessive number of initial indices
+lbit_rnn <- nnd_knn(
+  lbitdata,
+  4,
+  metric = "hamming",
+  n_threads = 1,
+  init = random_knn(lbitdata, k = 5, metric = "hamming")$idx,
+  max_candidates = 10,
+  low_memory = FALSE
+)
+expect_equal(lbit_rnn$idx, expected_hamm_idx, check.attributes = FALSE)
+expect_equal(lbit_rnn$dist, expected_hamm_dist, check.attributes = FALSE, tol = 1e-7)
 
 # queries
 

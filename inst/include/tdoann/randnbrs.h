@@ -43,8 +43,7 @@ auto fill_random(NbrHeap &current_graph,
                  RandomIntGenerator<typename NbrHeap::Index> &rng,
                  typename NbrHeap::Index query,
                  typename NbrHeap::Index n_ref_points) {
-  const std::size_t max_samples = current_graph.n_nbrs;
-  for (std::size_t j = 0; j < max_samples; j++) {
+  for (std::size_t j = 0; j < n_ref_points; j++) {
     if (current_graph.is_full(query)) {
       return;
     }
