@@ -416,6 +416,9 @@ test_that("binary data", {
   set.seed(1337)
   bin_jac_exp <- rpf_knn(lbitdata, k = 4, margin = "explicit", metric = "jaccard")
   expect_equal(bin_jac_imp, bin_jac_exp)
+  set.seed(1337)
+  bin_jac_aut <- rpf_knn(lbitdata, k = 4, margin = "auto", metric = "jaccard")
+  expect_equal(bin_jac_aut, bin_jac_imp)
 
   set.seed(1337)
   euc_forest_i <- rpf_build(lbitdata, leaf_size = 10, margin = "implicit")
@@ -438,6 +441,17 @@ test_that("binary data", {
       k = 4
     )
   expect_equal(bin_euc_expq, bin_euc_exp)
+
+  set.seed(1337)
+  euc_forest_a <- rpf_build(lbitdata, leaf_size = 10, margin = "auto")
+  bin_euc_autq <-
+    rpf_knn_query(
+      query = lbitdata,
+      reference = lbitdata,
+      forest = euc_forest_a,
+      k = 4
+    )
+  expect_equal(bin_euc_autq, bin_euc_exp)
 })
 
 test_that("sparse implicit margin", {
