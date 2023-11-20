@@ -332,6 +332,11 @@ test_that("sparse", {
   spnbrs <- nnd_knn(ui10sp, k = 4, n_threads = 0, metric = "euclidean", use_alt_metric = FALSE)
   expect_equal(dznbrs, spnbrs, tol = 1e-7)
 
+  # sparse uncorrection
+  set.seed(1337)
+  spnbrs <- nnd_knn(ui10sp, k = 4, n_threads = 0, metric = "euclidean", init = random_knn(ui10sp, k = 4))
+  expect_equal(dznbrs, spnbrs, tol = 1e-7)
+
   g6 <- brute_force_knn(ui10z6, k = 4)
   set.seed(1337)
   dq4 <- graph_knn_query(reference = ui10z6, query = ui10z4, reference_graph = g6, k = 4)

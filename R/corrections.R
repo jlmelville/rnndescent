@@ -55,6 +55,7 @@ apply_dense_alt_metric_uncorrection <- function(metric, dist) {
 }
 
 apply_sparse_alt_metric_uncorrection <- function(metric, dist) {
+  # browser()
   switch(metric,
     cosine = apply(dist, c(1, 2), uncorrect_alternative_cosine),
     euclidean = dist * dist,

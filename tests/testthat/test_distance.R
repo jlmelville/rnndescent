@@ -305,6 +305,32 @@ test_that("true angular", {
   expect_equal(bfdensena, bfsparsena, tol = 1e-5)
   expect_equal(bfdensena$idx[, 10], 1:10)
   expect_equal(bfdensena$dist[, 10], rep(1.0, 10), tol = 1e-3)
+
+  # more uncorrections
+  set.seed(42)
+  true_nnd <-
+    nnd_knn(
+      bitdata,
+      k = 4,
+      init = random_knn(bitdata, k = 4, metric = "trueangular"),
+      metric = "trueangular",
+      max_candidates = 8
+    )
+  true_bf <- brute_force_knn(bitdata, k = 4, metric = "trueangular")
+  expect_equal(true_nnd, true_bf)
+  set.seed(42)
+  spinit <- random_knn(bitdatasp, k = 4, metric = "trueangular")
+  spinit$idx[1, 2] <- 0
+  spinit$dist[1, 2] <- NA
+  true_nnd <-
+    nnd_knn(
+      bitdatasp,
+      k = 4,
+      init = spinit,
+      metric = "trueangular",
+      max_candidates = 8
+    )
+  expect_equal(true_nnd, true_bf, tol = 1e-4)
 })
 
 test_that("TS-SS", {
