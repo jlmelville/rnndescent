@@ -1141,7 +1141,7 @@ nnd_knn <- function(data,
     res$dist <-
       apply_alt_metric_correction(metric, res$dist, is_sparse(data))
   }
-  if (any(init$idx == 0)) {
+  if (any(res$idx == 0)) {
     tsmessage(
       "Warning: NN Descent failed to find ",
       k,
