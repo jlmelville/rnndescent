@@ -40,8 +40,10 @@ library(rnndescent)
 
 ## Find the k-nearest neighbors
 
-```{r build knn}
-iris_index <- rnnd_build(data = iris, k = 5)
+If you just want the k-nearest neighbors of some `data`, use `rnnd_knn`:
+
+```{r build index}
+iris_knn <- rnnd_knn(data = iris, k = 5)
 ```
 
 ### The Neighbor Graph Format
@@ -55,11 +57,34 @@ are 1-indexed.
 
 
 ```{r neighbor graph}
+lapply(iris_knn, function(x) {
+  head(x, 3)
+})
+```
+
+## Build an Index
+
+`rnnd_knn` returns the k-nearest neighbors, but does not return any "index" that
+you can use to query new data. To do that, use `rnnd_build`:
+
+```{r build index}
+iris_index <- rnnd_build(data = iris, k = 5)
+```
+
+The index is also a list but with a lot more components (none of which are 
+intended for manual examination), apart from the the neighbor graph which can
+be found under the `graph` component in the same format as the return value of
+`rnnd_knn`:
+
+
+```{r neighbor graph}
 lapply(iris_index$graph, function(x) {
   head(x, 3)
 })
 ```
 
+Be aware that for large and high-dimensional data, the returned index can get
+**very** large, especially if you set `n_trees` to a large value.
 
 ## Querying Data
 
@@ -99,7 +124,10 @@ iris_odd_nn <- rnnd_query(
 
 If you don't prepare the index, `rnnd_query` will do it for you, but if you want
 to call `rnnd_query` multiple times, it will have to go through the preparation
-step each time, so it's more efficient to prepare the index separately.
+step each time, so it's more efficient to prepare the index separately. Another
+advantage of preparing the index as soon as possible is that the index will be
+reduced in size, as the number of trees used for querying data is usually
+substantially smaller than the number used for building the index.
 
 ## Parallelism
 

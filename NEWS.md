@@ -1,5 +1,12 @@
 # rnndescent 0.0.16
 
+## New features
+
+* New function: `rnnd_knn`. Behaves a lot like `rnnd_build`, but *only* returns
+the knn graph with no index built. The index can be very large in size for
+high dimensional or large datasets, so this function is useful if you only
+care about the knn graph and won't ever want to query new data.
+
 ## Bug fixes and minor improvements
 
 * The sparse `spearmanr` distance has been fixed.

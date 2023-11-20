@@ -52,9 +52,10 @@ are trying to stream queries, where you are only querying one item at a time,
 you will get no parallelism.
 * The index is always passed between the C++ and R layers when building an index
 and querying. This is useful for portability as its easy to serialize the index
-(you can use `saveRDS` like any R data for example), but it's not very efficient.
-Keeping the index as an R-wrapped C++ class has its own downsides but would 
-fix that.
+(you can use `saveRDS` like any R data for example), but it's not very
+efficient. Keeping the index as an R-wrapped C++ class has its own downsides but
+would fix that.
+* The index can also get *very* large for large (and high-dimensional) datasets.
 * Some of the distance metrics. A large number are currently supported though.
 See `Missing Metrics` below for those that are currently not available.
 * Custom metrics. This just isn't feasible with a C++ implementation.
@@ -109,8 +110,11 @@ library(rnndescent)
 irism <- as.matrix(iris[, -5])
 
 # If you just want sensible defaults that will probably work:
-# the nearest neighbor graph is in iris_index$graph
+iris_knn <- rnnd_knn(irism, k = 15)
+
+# If you would like to query new data, then you should build an index
 iris_index <- rnnd_build(irism)
+# the nearest neighbor graph is in iris_index$graph
 
 # For more control:
 # Generate a Random Projection knn (set n_threads for parallel search):

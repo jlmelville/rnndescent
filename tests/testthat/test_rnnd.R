@@ -35,3 +35,10 @@ expect_equal(iris_queryp2, iris_bf)
 # calling rnnd_perpare on a prepared index does nothing
 iris_prep2 <- rnnd_prepare(index = iris_prep)
 expect_equal(iris_prep2, iris_prep)
+
+set.seed(1337)
+iris_knn <- rnnd_knn(
+  data = ui10,
+  k = 4,
+)
+expect_equal(iris_knn, iris_index$graph)
