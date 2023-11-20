@@ -103,8 +103,10 @@ into more detail about the how the methods work.</p>
 <div class="section level2">
 <h2 id="find-the-k-nearest-neighbors">Find the k-nearest neighbors<a class="anchor" aria-label="anchor" href="#find-the-k-nearest-neighbors"></a>
 </h2>
+<p>If you just want the k-nearest neighbors of some <code>data</code>,
+use <code>rnnd_knn</code>:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">iris_index</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rnnd_build.html">rnnd_build</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">iris</span>, k <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">iris_knn</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rnnd_knn.html">rnnd_knn</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">iris</span>, k <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span></code></pre></div>
 <div class="section level3">
 <h3 id="the-neighbor-graph-format">The Neighbor Graph Format<a class="anchor" aria-label="anchor" href="#the-neighbor-graph-format"></a>
 </h3>
@@ -118,12 +120,12 @@ usual in R, these are 1-indexed.</li>
 <code>dist</code> – the equivalent distances.</li>
 </ul>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">iris_index</span><span class="op">$</span><span class="va">graph</span>, <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span></span>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">iris_knn</span>, <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">x</span>, <span class="fl">3</span><span class="op">)</span></span>
 <span><span class="op">}</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $idx</span></span>
 <span><span class="co">#&gt;      [,1] [,2] [,3] [,4] [,5]</span></span>
-<span><span class="co">#&gt; [1,]    1   18   29    5   40</span></span>
+<span><span class="co">#&gt; [1,]    1   18    5   29   28</span></span>
 <span><span class="co">#&gt; [2,]    2   13   46   35   10</span></span>
 <span><span class="co">#&gt; [3,]    3   48    4    7   46</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -135,15 +137,46 @@ usual in R, these are 1-indexed.</li>
 </div>
 </div>
 <div class="section level2">
+<h2 id="build-an-index">Build an Index<a class="anchor" aria-label="anchor" href="#build-an-index"></a>
+</h2>
+<p><code>rnnd_knn</code> returns the k-nearest neighbors, but does not
+return any “index” that you can use to query new data. To do that, use
+<code>rnnd_build</code>:</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">iris_index</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rnnd_build.html">rnnd_build</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">iris</span>, k <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span></code></pre></div>
+<p>The index is also a list but with a lot more components (none of
+which are intended for manual examination), apart from the the neighbor
+graph which can be found under the <code>graph</code> component in the
+same format as the return value of <code>rnnd_knn</code>:</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">iris_index</span><span class="op">$</span><span class="va">graph</span>, <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">x</span>, <span class="fl">3</span><span class="op">)</span></span>
+<span><span class="op">}</span><span class="op">)</span></span>
+<span><span class="co">#&gt; $idx</span></span>
+<span><span class="co">#&gt;      [,1] [,2] [,3] [,4] [,5]</span></span>
+<span><span class="co">#&gt; [1,]    1   18   29    5   28</span></span>
+<span><span class="co">#&gt; [2,]    2   13   46   35   10</span></span>
+<span><span class="co">#&gt; [3,]    3   48    4    7   13</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $dist</span></span>
+<span><span class="co">#&gt;      [,1]      [,2]      [,3]      [,4]      [,5]</span></span>
+<span><span class="co">#&gt; [1,]    0 0.1000000 0.1414212 0.1414212 0.1414213</span></span>
+<span><span class="co">#&gt; [2,]    0 0.1414213 0.1414213 0.1414213 0.1732050</span></span>
+<span><span class="co">#&gt; [3,]    0 0.1414213 0.2449490 0.2645751 0.2645753</span></span></code></pre></div>
+<p>Be aware that for large and high-dimensional data, the returned index
+can get <strong>very</strong> large, especially if you set
+<code>n_trees</code> to a large value.</p>
+</div>
+<div class="section level2">
 <h2 id="querying-data">Querying Data<a class="anchor" aria-label="anchor" href="#querying-data"></a>
 </h2>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">iris_even</span> <span class="op">&lt;-</span> <span class="va">iris</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">iris</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/r/base/Arithmetic.html" class="external-link">%%</a></span> <span class="fl">2</span> <span class="op">==</span> <span class="fl">0</span>, <span class="op">]</span></span>
 <span><span class="va">iris_odd</span> <span class="op">&lt;-</span> <span class="va">iris</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">iris</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/r/base/Arithmetic.html" class="external-link">%%</a></span> <span class="fl">2</span> <span class="op">==</span> <span class="fl">1</span>, <span class="op">]</span></span></code></pre></div>
 <p>Build the index as before but pass <code>prepare = TRUE</code>:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">iris_even_index</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rnnd_build.html">rnnd_build</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">iris_even</span>, k <span class="op">=</span> <span class="fl">5</span>, prepare <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">iris_odd_nn</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rnnd_query.html">rnnd_query</a></span><span class="op">(</span></span>
 <span>  index <span class="op">=</span> <span class="va">iris_even_index</span>,</span>
 <span>  query <span class="op">=</span> <span class="va">iris_odd</span>,</span>
@@ -165,7 +198,7 @@ usual in R, these are 1-indexed.</li>
 <span><span class="co">#&gt; [3,] 0.1414213 0.1732050 0.2236066 0.2449488 0.2449488</span></span></code></pre></div>
 <p>The other way to do this is to use the standalone
 <code>rnnd_prepare</code> function:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">iris_even_index</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rnnd_build.html">rnnd_build</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">iris_even</span>, k <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span>
 <span><span class="va">iris_even_index</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rnnd_prepare.html">rnnd_prepare</a></span><span class="op">(</span><span class="va">iris_even_index</span><span class="op">)</span></span>
 <span><span class="va">iris_odd_nn</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rnnd_query.html">rnnd_query</a></span><span class="op">(</span></span>
@@ -176,7 +209,11 @@ usual in R, these are 1-indexed.</li>
 <p>If you don’t prepare the index, <code>rnnd_query</code> will do it
 for you, but if you want to call <code>rnnd_query</code> multiple times,
 it will have to go through the preparation step each time, so it’s more
-efficient to prepare the index separately.</p>
+efficient to prepare the index separately. Another advantage of
+preparing the index as soon as possible is that the index will be
+reduced in size, as the number of trees used for querying data is
+usually substantially smaller than the number used for building the
+index.</p>
 </div>
 <div class="section level2">
 <h2 id="parallelism">Parallelism<a class="anchor" aria-label="anchor" href="#parallelism"></a>
@@ -184,7 +221,7 @@ efficient to prepare the index separately.</p>
 <p><code>rnndescent</code> is multi-threaded, but by default is
 single-threaded. Set <code>n_threads</code> to set the number of threads
 you want to use:</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">iris_even_index</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rnnd_build.html">rnnd_build</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">iris_even</span>, k <span class="op">=</span> <span class="fl">5</span>, n_threads <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">

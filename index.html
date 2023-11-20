@@ -102,6 +102,7 @@
 <ul>
 <li>Only parallel batch queries are currently supported. This means that if you are trying to stream queries, where you are only querying one item at a time, you will get no parallelism.</li>
 <li>The index is always passed between the C++ and R layers when building an index and querying. This is useful for portability as its easy to serialize the index (you can use <code>saveRDS</code> like any R data for example), but it’s not very efficient. Keeping the index as an R-wrapped C++ class has its own downsides but would fix that.</li>
+<li>The index can also get <em>very</em> large for large (and high-dimensional) datasets.</li>
 <li>Some of the distance metrics. A large number are currently supported though. See <code>Missing Metrics</code> below for those that are currently not available.</li>
 <li>Custom metrics. This just isn’t feasible with a C++ implementation.</li>
 </ul>
@@ -132,8 +133,11 @@
 <span><span class="va">irism</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">iris</span><span class="op">[</span>, <span class="op">-</span><span class="fl">5</span><span class="op">]</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># If you just want sensible defaults that will probably work:</span></span>
-<span><span class="co"># the nearest neighbor graph is in iris_index$graph</span></span>
+<span><span class="va">iris_knn</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/rnnd_knn.html">rnnd_knn</a></span><span class="op">(</span><span class="va">irism</span>, k <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># If you would like to query new data, then you should build an index</span></span>
 <span><span class="va">iris_index</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/rnnd_build.html">rnnd_build</a></span><span class="op">(</span><span class="va">irism</span><span class="op">)</span></span>
+<span><span class="co"># the nearest neighbor graph is in iris_index$graph</span></span>
 <span></span>
 <span><span class="co"># For more control:</span></span>
 <span><span class="co"># Generate a Random Projection knn (set n_threads for parallel search):</span></span>
