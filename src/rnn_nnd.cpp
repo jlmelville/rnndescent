@@ -80,7 +80,8 @@ template <typename Out, typename Idx>
 List nn_descent_impl(const tdoann::BaseDistance<Out, Idx> &distance,
                      const IntegerMatrix &nn_idx, const NumericMatrix &nn_dist,
                      std::size_t max_candidates, uint32_t n_iters, double delta,
-                     bool low_memory, std::size_t n_threads, bool verbose,
+                     bool low_memory, bool weight_by_degree,
+                     std::size_t n_threads, bool verbose,
                      const std::string &progress_type) {
   auto nnd_heap =
       r_to_knn_heap<tdoann::NNDHeap<Out, Idx>>(nn_idx, nn_dist, n_threads);
@@ -96,13 +97,14 @@ List nn_descent_impl(const tdoann::BaseDistance<Out, Idx> &distance,
         create_parallel_local_join(nnd_heap, distance, low_memory);
     rnndescent::ParallelRNGAdapter<rnndescent::PcgRand> parallel_rand;
     tdoann::nnd_build(nnd_heap, *local_join_ptr, max_candidates, n_iters, delta,
-                      *nnd_progress_ptr, parallel_rand, n_threads, executor);
+                      weight_by_degree, *nnd_progress_ptr, parallel_rand,
+                      n_threads, executor);
   } else {
     auto local_join_ptr =
         create_serial_local_join(nnd_heap, distance, low_memory);
     rnndescent::RRand rand;
     tdoann::nnd_build(nnd_heap, *local_join_ptr, max_candidates, n_iters, delta,
-                      rand, *nnd_progress_ptr);
+                      weight_by_degree, rand, *nnd_progress_ptr);
   }
 
   return heap_to_r(nnd_heap, n_threads, nnd_progress_ptr->get_base_progress(),
@@ -113,12 +115,12 @@ List nn_descent_impl(const tdoann::BaseDistance<Out, Idx> &distance,
 List rnn_descent(const NumericMatrix &data, const IntegerMatrix &nn_idx,
                  const NumericMatrix &nn_dist, const std::string &metric,
                  std::size_t max_candidates, uint32_t n_iters, double delta,
-                 bool low_memory, std::size_t n_threads, bool verbose,
-                 const std::string &progress_type) {
+                 bool low_memory, bool weight_by_degree, std::size_t n_threads,
+                 bool verbose, const std::string &progress_type) {
   auto distance_ptr = create_self_distance(data, metric);
   return nn_descent_impl(*distance_ptr, nn_idx, nn_dist, max_candidates,
-                         n_iters, delta, low_memory, n_threads, verbose,
-                         progress_type);
+                         n_iters, delta, low_memory, weight_by_degree,
+                         n_threads, verbose, progress_type);
 }
 
 // [[Rcpp::export]]
@@ -126,12 +128,12 @@ List rnn_logical_descent(const LogicalMatrix &data, const IntegerMatrix &nn_idx,
                          const NumericMatrix &nn_dist,
                          const std::string &metric, std::size_t max_candidates,
                          uint32_t n_iters, double delta, bool low_memory,
-                         std::size_t n_threads, bool verbose,
-                         const std::string &progress_type) {
+                         bool weight_by_degree, std::size_t n_threads,
+                         bool verbose, const std::string &progress_type) {
   auto distance_ptr = create_self_distance(data, metric);
   return nn_descent_impl(*distance_ptr, nn_idx, nn_dist, max_candidates,
-                         n_iters, delta, low_memory, n_threads, verbose,
-                         progress_type);
+                         n_iters, delta, low_memory, weight_by_degree,
+                         n_threads, verbose, progress_type);
 }
 
 // [[Rcpp::export]]
@@ -140,12 +142,13 @@ List rnn_sparse_descent(const IntegerVector &ind, const IntegerVector &ptr,
                         const IntegerMatrix &nn_idx,
                         const NumericMatrix &nn_dist, const std::string &metric,
                         std::size_t max_candidates, uint32_t n_iters,
-                        double delta, bool low_memory, std::size_t n_threads,
-                        bool verbose, const std::string &progress_type) {
+                        double delta, bool low_memory, bool weight_by_degree,
+                        std::size_t n_threads, bool verbose,
+                        const std::string &progress_type) {
   auto distance_ptr = create_sparse_self_distance(ind, ptr, data, ndim, metric);
   return nn_descent_impl(*distance_ptr, nn_idx, nn_dist, max_candidates,
-                         n_iters, delta, low_memory, n_threads, verbose,
-                         progress_type);
+                         n_iters, delta, low_memory, weight_by_degree,
+                         n_threads, verbose, progress_type);
 }
 
 // NOLINTEND(modernize-use-trailing-return-type)

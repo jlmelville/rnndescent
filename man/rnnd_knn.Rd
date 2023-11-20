@@ -17,6 +17,7 @@ rnnd_knn(
   n_iters = NULL,
   delta = 0.001,
   max_candidates = NULL,
+  weight_by_degree = FALSE,
   low_memory = TRUE,
   n_threads = 0,
   verbose = FALSE,
@@ -180,6 +181,15 @@ be updated at each iteration.}
 item in each iteration. Use relative to \code{k} to emulate the "rho"
 sampling parameter in the nearest neighbor descent paper. By default, this
 is set to \code{k} or \code{60}, whichever is smaller.}
+
+\item{weight_by_degree}{If \code{TRUE}, then candidates for the local join are
+weighted according to their in-degree, so that if there are more than
+\code{max_candidates} in a candidate list, candidates with a smaller degree are
+favored for retention. This prevents items with large numbers of edges
+crowding out other items and for high-dimensional data is likely to provide
+a small improvement in accuracy. Because this incurs a small extra cost of
+counting the degree of each node, and because it tends to delay early
+convergence, by default this is \code{FALSE}.}
 
 \item{low_memory}{If \code{TRUE}, use a lower memory, but more
 computationally expensive approach to index construction. If set to

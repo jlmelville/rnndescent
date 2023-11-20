@@ -222,16 +222,32 @@ public:
       nbrs.checked_push(item_j, dist_ij, item_i);
     }
   }
+
+  void add(NNHeap<Out, Idx> &nbrs, Idx item_i, Idx item_j, Out weight_i,
+           Out weight_j) {
+    {
+      std::lock_guard<std::mutex> guard(mutexes[item_i % n_mutexes]);
+      nbrs.checked_push(item_i, weight_j, item_j);
+    }
+    if (item_i != item_j) {
+      std::lock_guard<std::mutex> guard(mutexes[item_j % n_mutexes]);
+      nbrs.checked_push(item_j, weight_i, item_i);
+    }
+  }
 };
 
 template <typename Out, typename Idx>
 void build_candidates(const NNDHeap<Out, Idx> &current_graph,
                       NNHeap<Out, Idx> &new_nbrs, decltype(new_nbrs) &old_nbrs,
+                      bool weight_by_degree,
                       ParallelRandomProvider &parallel_rand,
                       std::size_t n_threads, const Executor &executor) {
   constexpr auto npos = static_cast<Idx>(-1);
   const std::size_t n_nbrs = current_graph.n_nbrs;
   LockingHeapAdder<Out, Idx> heap_adder;
+
+  auto k_occurrences = weight_by_degree ? count_reverse_neighbors(current_graph)
+                                        : std::vector<std::size_t>();
 
   parallel_rand.initialize();
   auto worker = [&](std::size_t begin, std::size_t end) {
@@ -246,7 +262,12 @@ void build_candidates(const NNDHeap<Out, Idx> &current_graph,
         }
         auto &nbrs = current_graph.flags[idx_ij] == 1 ? new_nbrs : old_nbrs;
         auto rand_weight = rand->unif();
-        heap_adder.add(nbrs, i, nbr, rand_weight);
+        if (weight_by_degree) {
+          heap_adder.add(nbrs, i, nbr, rand_weight * k_occurrences[i],
+                         rand_weight * k_occurrences[nbr]);
+        } else {
+          heap_adder.add(nbrs, i, nbr, rand_weight);
+        }
       }
     }
   };
@@ -267,16 +288,17 @@ template <typename Out, typename Idx>
 void nnd_build(NNDHeap<Out, Idx> &current_graph,
                ParallelLocalJoin<Out, Idx> &local_join,
                std::size_t max_candidates, uint32_t n_iters, double delta,
-               NNDProgressBase &progress, ParallelRandomProvider &parallel_rand,
-               std::size_t n_threads, const Executor &executor) {
+               bool weight_by_degree, NNDProgressBase &progress,
+               ParallelRandomProvider &parallel_rand, std::size_t n_threads,
+               const Executor &executor) {
   const std::size_t n_points = current_graph.n_points;
 
   for (auto iter = 0U; iter < n_iters; iter++) {
     NNHeap<Out, Idx> new_nbrs(n_points, max_candidates);
     decltype(new_nbrs) old_nbrs(n_points, max_candidates);
 
-    build_candidates(current_graph, new_nbrs, old_nbrs, parallel_rand,
-                     n_threads, executor);
+    build_candidates(current_graph, new_nbrs, old_nbrs, weight_by_degree,
+                     parallel_rand, n_threads, executor);
 
     flag_new_candidates(current_graph, new_nbrs, n_threads, executor);
 

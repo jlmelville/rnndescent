@@ -6,6 +6,10 @@
 the knn graph with no index built. The index can be very large in size for
 high dimensional or large datasets, so this function is useful if you only
 care about the knn graph and won't ever want to query new data.
+* New parameter: for `nnd_knn` and `rnnd_build`: `weight_by_degree`. If set
+to `TRUE`, then the candidate list in nearest neighbor descent is weighted in
+favor of low-degree items, which should make for a more diverse local join.
+There is a minor increase in computation but also a minor increase in accuracy.
 
 ## Bug fixes and minor improvements
 

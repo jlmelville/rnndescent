@@ -161,10 +161,13 @@ public:
 template <typename Out, typename Idx>
 void build_candidates(const NNDHeap<Out, Idx> &current_graph,
                       NNHeap<Out, Idx> &new_nbrs, decltype(new_nbrs) &old_nbrs,
-                      RandomGenerator &rand) {
+                      bool weight_by_degree, RandomGenerator &rand) {
   constexpr auto npos = static_cast<Idx>(-1);
   const std::size_t n_points = current_graph.n_points;
   const std::size_t n_nbrs = current_graph.n_nbrs;
+
+  auto k_occurrences = weight_by_degree ? count_reverse_neighbors(current_graph)
+                                        : std::vector<std::size_t>();
 
   for (std::size_t i = 0, idx_offset = 0; i < n_points;
        i++, idx_offset += n_nbrs) {
@@ -175,7 +178,14 @@ void build_candidates(const NNDHeap<Out, Idx> &current_graph,
       }
       auto &nbrs = current_graph.flags[idx_ij] == 1 ? new_nbrs : old_nbrs;
       auto rand_weight = rand.unif(); // pairs will be processed in random order
-      nbrs.checked_push_pair(i, rand_weight, nbr);
+      if (weight_by_degree) {
+        nbrs.checked_push(i, rand_weight * k_occurrences[nbr], nbr);
+        if (i != nbr) {
+          nbrs.checked_push(nbr, rand_weight * k_occurrences[i], i);
+        }
+      } else {
+        nbrs.checked_push_pair(i, rand_weight, nbr);
+      }
     }
   }
 }
@@ -193,13 +203,14 @@ template <typename Out, typename Idx>
 void nnd_build(NNDHeap<Out, Idx> &current_graph,
                SerialLocalJoin<Out, Idx> &local_join,
                std::size_t max_candidates, uint32_t n_iters, double delta,
-               RandomGenerator &rand, NNDProgressBase &progress) {
+               bool weight_by_degree, RandomGenerator &rand,
+               NNDProgressBase &progress) {
   const std::size_t n_points = current_graph.n_points;
   for (auto iter = 0U; iter < n_iters; iter++) {
     NNHeap<Out, Idx> new_nbrs(n_points, max_candidates);
     decltype(new_nbrs) old_nbrs(n_points, max_candidates);
 
-    build_candidates(current_graph, new_nbrs, old_nbrs, rand);
+    build_candidates(current_graph, new_nbrs, old_nbrs, weight_by_degree, rand);
 
     flag_retained_new_candidates(current_graph, new_nbrs);
 
