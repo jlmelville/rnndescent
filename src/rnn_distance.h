@@ -377,16 +377,6 @@ create_self_distance(std::vector<In> data_vec, std::size_t ndim,
                                                          ndim, metric);
 }
 
-// Factory function to return a VectorDistance
-template <typename Idx = RNN_DEFAULT_IDX>
-std::unique_ptr<tdoann::VectorDistance<RNN_DEFAULT_IN, RNN_DEFAULT_DIST, Idx>>
-create_self_vector_distance(const Rcpp::NumericMatrix &data,
-                            const std::string &metric) {
-  return create_self_distance_impl<
-      tdoann::VectorDistance<RNN_DEFAULT_IN, RNN_DEFAULT_DIST, Idx>>(data,
-                                                                     metric);
-}
-
 // Sparse distances
 
 template <typename... Args>
