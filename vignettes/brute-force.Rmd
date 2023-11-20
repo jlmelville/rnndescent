@@ -40,12 +40,14 @@ And here's an example of querying the odd items in the `iris` data against
 the even items (i.e. the indices in `iris_nbrs` will refer to the odd items):
 
 ```{r brute force query}
-iris_even <- iris[seq_len(nrow(iris)) %% 2 == 0,]
-iris_odd <- iris[seq_len(nrow(iris)) %% 2 == 1,]
+iris_even <- iris[seq_len(nrow(iris)) %% 2 == 0, ]
+iris_odd <- iris[seq_len(nrow(iris)) %% 2 == 1, ]
 iris_query_nbrs <-
-  brute_force_knn_query(query = iris_even,
-                        reference = iris_odd,
-                        k = 15)
+  brute_force_knn_query(
+    query = iris_even,
+    reference = iris_odd,
+    k = 15
+  )
 lapply(iris_query_nbrs, function(x) {
   head(x[, 1:5], 3)
 })

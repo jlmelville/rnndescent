@@ -443,7 +443,6 @@ rnnd_query <-
            n_threads = 0,
            verbose = FALSE,
            obs = "R") {
-
     unprepared <- !index$prep$is_prepared
     if (unprepared) {
       tsmessage("Preparing search graph")

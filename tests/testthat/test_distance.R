@@ -272,7 +272,9 @@ test_that("Spearman Rank", {
   mz[sample(length(m), 20)] <- 0
   msp <- Matrix::drop0(mz)
   expect_equal(brute_force_knn(mz, metric = "spearmanr", k = 4),
-               brute_force_knn(msp, metric = "spearmanr", k = 4), tol = 1e-7)
+    brute_force_knn(msp, metric = "spearmanr", k = 4),
+    tol = 1e-7
+  )
 })
 
 test_that("Symmetric KL", {
