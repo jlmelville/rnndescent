@@ -450,6 +450,7 @@ rnnd_query <-
            query,
            k = 30,
            epsilon = 0.1,
+           init = NULL,
            n_threads = 0,
            verbose = FALSE,
            obs = "R") {
@@ -460,10 +461,8 @@ rnnd_query <-
         rnnd_prepare(index, n_threads = n_threads, verbose = verbose)
     }
 
-    if (!is.null(index$search_forest)) {
+    if (is.null(init) && !is.null(index$search_forest)) {
       init <- index$search_forest
-    } else {
-      init <- NULL
     }
 
     query <- x2m(query)
