@@ -1306,6 +1306,7 @@ nnd_knn <- function(data,
       )
     }
   } else {
+    tsmessage("Initializing from user-supplied graph")
     # user-supplied input may need to be transformed to the actual metric
     if (use_alt_metric &&
       !is.null(init) && is.list(init) && !is.null(init$dist)) {
@@ -1983,6 +1984,7 @@ graph_knn_query <- function(query,
         apply_alt_metric_uncorrection(metric, init$dist, is_sparse(reference))
     }
   } else if ((is.list(init) && !is.null(init$idx)) || is.matrix(init)) {
+    tsmessage("Initializing from user-supplied graph")
     if (is.matrix(init)) {
       init <- list(idx = init)
     }
@@ -2058,7 +2060,13 @@ graph_knn_query <- function(query,
     reference_graph_list <- tcsparse_to_list(reference_graph)
   }
 
-  tsmessage(thread_msg("Searching nearest neighbor graph", n_threads = n_threads))
+  tsmessage(
+    thread_msg(
+      "Searching nearest neighbor graph with epsilon = ",
+      epsilon,
+      n_threads = n_threads
+    )
+  )
 
   if (is_sparse(reference)) {
     res <-
