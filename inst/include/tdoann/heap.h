@@ -184,8 +184,8 @@ template <typename NbrHeap> auto heap_sum(const NbrHeap &heap) -> double {
   return hsum;
 }
 
-template <typename T> auto limit_max() -> T {
-  return (std::numeric_limits<T>::max)();
+template <typename T> auto limit_inf() -> T {
+  return (std::numeric_limits<T>::infinity)();
 }
 
 // Base class storing neighbor data as a series of heaps
@@ -205,7 +205,7 @@ public:
 
   NNDHeap(std::size_t n_points, std::size_t n_nbrs)
       : n_points(n_points), n_nbrs(n_nbrs), idx(n_points * n_nbrs, npos()),
-        dist(n_points * n_nbrs, (std::numeric_limits<Out>::max)()),
+        dist(n_points * n_nbrs, (std::numeric_limits<Out>::infinity)()),
         n_nbrs1(n_nbrs - 1), flags(n_points * n_nbrs, 0) {}
 
   NNDHeap(const NNDHeap &) = default;
@@ -310,7 +310,7 @@ public:
 
 // Like NNDHeap, but no flag vector
 template <typename Out = float, typename Idx = uint32_t,
-          Out (*max_dist_func)() = limit_max>
+          Out (*max_dist_func)() = limit_inf>
 struct NNHeap {
   using DistanceOut = Out;
   using Index = Idx;
