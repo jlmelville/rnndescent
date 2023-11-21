@@ -138,11 +138,13 @@ you won't get any speed up from using multiple threads.
 
 ### `epsilon`
 
-`epsilon` controls how much exploration of the neighbors of a candidate to do.
-The default value is `0.1`. The larger the value, the more back-tracking is
-permitted. The exact meaning of the value is related to how large a distance is
-considered "close enough" the current neighbor list of the query to be worth
-exploring.
+`epsilon` controls how much exploration of the neighbors of a candidate to do,
+as suggested by [@iwasaki2018optimization]. The default value is `0.1`, which
+is also the default of the 
+[NGT](https://github.com/yahoojapan/NGT/blob/main/python/README-ngtpy.md)
+library. The larger the value, the more back-tracking is permitted. The exact
+meaning of the value is related to how large a distance is considered "close
+enough" the current neighbor list of the query to be worth exploring.
 
 `epsilon = 0.1` means that the query-candidate distance is allowed to be 10%
 larger than the largest distance in the neighbor list. If you set `epsilon =
@@ -156,7 +158,9 @@ determined by the distance metric and the dimensionality of the data itself.
 I recommend leaving this as the default, and only modifying it if you find that
 the search is unreasonably slow (in which case make `epsilon` smaller) or
 unreasonably inaccurate (in which case make `epsilon` larger). Yes, not very
-helpful I know.
+helpful I know. In the benchmarking done in [@dobson2023scaling] using a similar
+back-tracking method, `epsilon = 0.25` was the maximum value used and in
+[@wang2021comprehensive] `epsilon = 0.1` was used.
  
 ### `init`
 

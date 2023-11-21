@@ -32,8 +32,9 @@ index was sparse, the \code{query} data must also be sparse. and vice versa.}
 
 \item{k}{Number of nearest neighbors to return.}
 
-\item{epsilon}{Controls trade-off between accuracy and search cost, by
-specifying a distance tolerance on whether to explore the neighbors of
+\item{epsilon}{Controls trade-off between accuracy and search cost, as
+described by Iwasaki and Miyazaki (2018). Setting \code{epsilon} to a positive
+value specifies a distance tolerance on whether to explore the neighbors of
 candidate points. The larger the value, the more neighbors will be
 searched. A value of 0.1 allows query-candidate distances to be 10\% larger
 than the current most-distant neighbor of the query point, 0.2 means 20\%,
@@ -67,7 +68,8 @@ the approximate nearest neighbor index, a list containing:
 }
 \description{
 Takes a nearest neighbor index produced by \code{\link[=rnnd_build]{rnnd_build()}} and uses it to
-find the nearest neighbors of a query set of observations. If the index was
+find the nearest neighbors of a query set of observations, using a
+back-tracking search similar to Iwasaki and Miyazaki (2018). If the index was
 not prepared for searching (i.e. only used to generate a k-nearest neighbor
 graph), it will be prepared before the querying begins, using the graph
 diversification method of Harwood and Drummond (2016). As this can be a
@@ -88,6 +90,11 @@ Harwood, B., & Drummond, T. (2016).
 Fanng: Fast approximate nearest neighbour graphs.
 In \emph{Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition}
 (pp. 5713-5722).
+
+Iwasaki, M., & Miyazaki, D. (2018).
+Optimization of indexing based on k-nearest neighbor graph for proximity search in high-dimensional data.
+\emph{arXiv preprint} \emph{arXiv:1810.07355}.
+\url{https://arxiv.org/abs/1810.07355}
 }
 \seealso{
 \code{\link[=rnnd_query]{rnnd_query()}}, \code{\link[=rnnd_prepare]{rnnd_prepare()}}

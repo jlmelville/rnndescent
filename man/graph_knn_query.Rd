@@ -126,15 +126,16 @@ If the input distances are omitted, they will be calculated for you.
 \code{\link[=rpf_knn]{rpf_knn()}} with \code{ret_forest = TRUE}.
 }}
 
-\item{epsilon}{Controls trade-off between accuracy and search cost, by
-specifying a distance tolerance on whether to explore the neighbors of
-candidate points. The larger the value, the more neighbors will be
-searched. A value of 0.1 allows query-candidate distances to be 10\% larger
-than the current most-distant neighbor of the query point, 0.2 means 20\%,
-and so on. Suggested values are between 0-0.5, although this value is
-highly dependent on the distribution of distances in the dataset (higher
-dimensional data should choose a smaller cutoff). Too large a value of
-\code{epsilon} will result in the query search approaching brute force
+\item{epsilon}{Controls trade-off between accuracy and search cost, as
+described by Iwasaki and Miyazaki (2018), by specifying a distance
+tolerance on whether to explore the neighbors of candidate points. The
+larger the value, the more neighbors will be searched. A value of 0.1
+allows query-candidate distances to be 10\% larger than the current
+most-distant neighbor of the query point, 0.2 means 20\%, and so on.
+Suggested values are between 0-0.5, although this value is highly dependent
+on the distribution of distances in the dataset (higher dimensional data
+should choose a smaller cutoff). Too large a value of \code{epsilon} will result
+in the query search approaching brute force
 comparison. Use this parameter in conjunction with
 \code{\link[=prepare_search_graph]{prepare_search_graph()}} to prevent excessive run time. Default is 0.1.}
 

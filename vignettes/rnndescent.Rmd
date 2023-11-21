@@ -24,15 +24,17 @@ reimplementation written in C++. It uses the following techniques:
 [@dasgupta2008random].
 2. Optimization by using nearest neighbor descent
 [@dong2011efficient]. 
-3. For querying new data, graph diversification techniques
-from Fanng [@harwood2016fanng].
+3. For building a search graph, graph diversification techniques
+from FANNG [@harwood2016fanng].
+4. For querying new data, the back-tracking search from NGT
+[@iwasaki2018optimization] (without dynamic degree-adjustment).
 
 The easiest way to find k-nearest neighbors and query new data is to use the
-`rnnd_build` and `rnnd_query` functions, which combine several of the available
-techniques into sensible defaults. For greater flexibility, the underlying 
-functions used by `rnnd_build` and `rnnd_query` can be used directly. The other
-vignettes in this package describe their use and go into more detail about the
-how the methods work.
+`rnnd_knn` function, which combine several of the available techniques into
+sensible defaults use the `rnnd_build` and `rnnd_query` functions. For greater
+flexibility, the underlying functions used by `rnnd_build` and `rnnd_query` can
+be used directly. The other vignettes in this package describe their use and go
+into more detail about the how the methods work.
 
 ```{r setup}
 library(rnndescent)

@@ -13,7 +13,8 @@ by the great Leland McInnes. As the name suggests, it uses the Nearest Neighbor
 Descent method ([Dong et al., 2011](https://doi.org/10.1145/1963405.1963487)), 
 but also makes use of Random Partition Trees 
 ([Dasgupta and Freund, 2008](https://doi.org/10.1145/1374376.1374452))
-as well as some other things too.
+as well as ideas from [FANNG](https://doi.org/10.1109/CVPR.2016.616) and 
+[NGT](https://github.com/yahoojapan/NGT).
 
 Tantalizingly close to being releasable, you can now use rnndescent for:
 

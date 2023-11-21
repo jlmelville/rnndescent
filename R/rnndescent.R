@@ -388,7 +388,8 @@ rnnd_prepare <- function(index,
 #' Query Approximate Nearest Neighbors Index
 #'
 #' Takes a nearest neighbor index produced by [rnnd_build()] and uses it to
-#' find the nearest neighbors of a query set of observations. If the index was
+#' find the nearest neighbors of a query set of observations, using a
+#' back-tracking search similar to Iwasaki and Miyazaki (2018). If the index was
 #' not prepared for searching (i.e. only used to generate a k-nearest neighbor
 #' graph), it will be prepared before the querying begins, using the graph
 #' diversification method of Harwood and Drummond (2016). As this can be a
@@ -409,8 +410,9 @@ rnnd_prepare <- function(index,
 #'   Sparse and non-sparse data cannot be mixed, so if the data used to build
 #'   index was sparse, the `query` data must also be sparse. and vice versa.
 #' @param k Number of nearest neighbors to return.
-#' @param epsilon Controls trade-off between accuracy and search cost, by
-#'   specifying a distance tolerance on whether to explore the neighbors of
+#' @param epsilon Controls trade-off between accuracy and search cost, as
+#'   described by Iwasaki and Miyazaki (2018). Setting `epsilon` to a positive
+#'   value specifies a distance tolerance on whether to explore the neighbors of
 #'   candidate points. The larger the value, the more neighbors will be
 #'   searched. A value of 0.1 allows query-candidate distances to be 10% larger
 #'   than the current most-distant neighbor of the query point, 0.2 means 20%,
@@ -446,6 +448,11 @@ rnnd_prepare <- function(index,
 #' Fanng: Fast approximate nearest neighbour graphs.
 #' In *Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition*
 #' (pp. 5713-5722).
+#'
+#' Iwasaki, M., & Miyazaki, D. (2018).
+#' Optimization of indexing based on k-nearest neighbor graph for proximity search in high-dimensional data.
+#' *arXiv preprint* *arXiv:1810.07355*.
+#' <https://arxiv.org/abs/1810.07355>
 #' @export
 rnnd_query <-
   function(index,
@@ -1842,15 +1849,16 @@ random_knn_query <-
 #'       If the input distances are omitted, they will be calculated for you.
 #'  1. A random projection forest, such as that returned from [rpf_build()] or
 #'     [rpf_knn()] with `ret_forest = TRUE`.
-#' @param epsilon Controls trade-off between accuracy and search cost, by
-#'   specifying a distance tolerance on whether to explore the neighbors of
-#'   candidate points. The larger the value, the more neighbors will be
-#'   searched. A value of 0.1 allows query-candidate distances to be 10% larger
-#'   than the current most-distant neighbor of the query point, 0.2 means 20%,
-#'   and so on. Suggested values are between 0-0.5, although this value is
-#'   highly dependent on the distribution of distances in the dataset (higher
-#'   dimensional data should choose a smaller cutoff). Too large a value of
-#'   `epsilon` will result in the query search approaching brute force
+#' @param epsilon Controls trade-off between accuracy and search cost, as
+#'   described by Iwasaki and Miyazaki (2018), by specifying a distance
+#'   tolerance on whether to explore the neighbors of candidate points. The
+#'   larger the value, the more neighbors will be searched. A value of 0.1
+#'   allows query-candidate distances to be 10% larger than the current
+#'   most-distant neighbor of the query point, 0.2 means 20%, and so on.
+#'   Suggested values are between 0-0.5, although this value is highly dependent
+#'   on the distribution of distances in the dataset (higher dimensional data
+#'   should choose a smaller cutoff). Too large a value of `epsilon` will result
+#'   in the query search approaching brute force
 #'   comparison. Use this parameter in conjunction with
 #'   [prepare_search_graph()] to prevent excessive run time. Default is 0.1.
 #' @param n_threads Number of threads to use.
@@ -1910,7 +1918,6 @@ random_knn_query <-
 #' Optimization of indexing based on k-nearest neighbor graph for proximity
 #' search in high-dimensional data.
 #' *arXiv preprint arXiv:1810.07355*.
-#'
 #' @export
 graph_knn_query <- function(query,
                             reference,
