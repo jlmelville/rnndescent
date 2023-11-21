@@ -75,6 +75,7 @@ defaults. It does not return an index for later querying.</p>
 <span>  n_iters <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  delta <span class="op">=</span> <span class="fl">0.001</span>,</span>
 <span>  max_candidates <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  weight_by_degree <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  low_memory <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  n_threads <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">FALSE</span>,</span>
@@ -241,6 +242,17 @@ be updated at each iteration.</p></dd>
 item in each iteration. Use relative to <code>k</code> to emulate the "rho"
 sampling parameter in the nearest neighbor descent paper. By default, this
 is set to <code>k</code> or <code>60</code>, whichever is smaller.</p></dd>
+
+
+<dt>weight_by_degree</dt>
+<dd><p>If <code>TRUE</code>, then candidates for the local join are
+weighted according to their in-degree, so that if there are more than
+<code>max_candidates</code> in a candidate list, candidates with a smaller degree are
+favored for retention. This prevents items with large numbers of edges
+crowding out other items and for high-dimensional data is likely to provide
+a small improvement in accuracy. Because this incurs a small extra cost of
+counting the degree of each node, and because it tends to delay early
+convergence, by default this is <code>FALSE</code>.</p></dd>
 
 
 <dt>low_memory</dt>

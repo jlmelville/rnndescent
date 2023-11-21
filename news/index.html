@@ -57,6 +57,7 @@
 <div class="section level3">
 <h3 id="new-features-0-0-16">New features<a class="anchor" aria-label="anchor" href="#new-features-0-0-16"></a></h3>
 <ul><li>New function: <code>rnnd_knn</code>. Behaves a lot like <code>rnnd_build</code>, but <em>only</em> returns the knn graph with no index built. The index can be very large in size for high dimensional or large datasets, so this function is useful if you only care about the knn graph and won’t ever want to query new data.</li>
+<li>New parameter: for <code>nnd_knn</code> and <code>rnnd_build</code>: <code>weight_by_degree</code>. If set to <code>TRUE</code>, then the candidate list in nearest neighbor descent is weighted in favor of low-degree items, which should make for a more diverse local join. There is a minor increase in computation but also a minor increase in accuracy.</li>
 </ul></div>
 <div class="section level3">
 <h3 id="bug-fixes-and-minor-improvements-0-0-16">Bug fixes and minor improvements<a class="anchor" aria-label="anchor" href="#bug-fixes-and-minor-improvements-0-0-16"></a></h3>
