@@ -290,6 +290,7 @@ rnnd_build <- function(data,
     weight_by_degree = weight_by_degree,
     n_threads = n_threads,
     verbose = verbose,
+    progress = progress,
     obs = "C"
   )
 
@@ -733,6 +734,7 @@ rnnd_knn <- function(data,
     weight_by_degree = weight_by_degree,
     n_threads = n_threads,
     verbose = verbose,
+    progress = progress,
     obs = "C"
   )
 }
