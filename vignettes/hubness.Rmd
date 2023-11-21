@@ -629,6 +629,34 @@ nn_accuracy(g1000d_nnbf, g1000d_nnd_k30, k = 15)
 That's a big improvement, but increasing `k` in this way can be quite expensive
 in terms of run time.
 
+### Use More Candidates
+
+Another way to improve accuracy is to increase the number of candidates that
+are considered at each iteration. This is controlled by the `max_candidates`
+parameter. Let's try increasing that to `30`:
+
+```{r NND 1000D max_candidates 30}
+g1000d_nnd_mc30 <- nnd_knn(g1000d, k = 15, metric = "euclidean", max_candidates = 30)
+nn_accuracy(g1000d_nnbf, g1000d_nnd_mc30)
+```
+
+Not as good as increasing `k`, but also not as time-consuming and still an
+improvement over the default setting (which is set to be the same as `k`).
+This should probably be your first choice for improving accuracy.
+
+### Decrease the convergence tolerance
+
+You could set `delta` to lower than the default of `0.001` or even to `0` to
+force the algorithm to run until convergence:
+
+```{r NND 1000D tol 0}
+g1000d_nnd_tol0 <- nnd_knn(g1000d, k = 15, metric = "euclidean", delta = 0)
+nn_accuracy(g1000d_nnbf, g1000d_nnd_tol0)
+```
+
+But as you can see, it's unlikely to achieve very much. The default parameters
+do a pretty good job of balancing accuracy and speed.
+
 ### Merging Multiple Independent Results
 
 What about taking advantage of the stochastic nature of the algorithm? If the
@@ -836,11 +864,21 @@ a back-tracking search.
 If you are concerned with potential hubs interfering with the accuracy of the
 neighbor graph, I suggest the following steps:
 
-1. Generate a neighbor graph with `nnd_knn` and default parameters.
+1. Generate a neighbor graph with `nnd_knn` and default parameters, or even
+for just 1 iteration.
 2. Evaluate the hubness of the graph with `k_occur`.
 3. If the maximum k-occurrence exceeds a threshold (maybe `10 * k` is a good
-starting point), then use `prepare_search_graph` and `graph_knn_query` with 
-back-tracking search (set `epsilon > 0`) to refine the results further.
+starting point), then you could try the following:
+4. Restart `nnd_knn` (you as may as well use the output from the first
+step as the initialization) with `max_candidates` set to a larger
+value. You probably don't want to set it larger than `60`.
+5. Repeat step 4 to get a second graph.
+6. Merge the graphs from steps 4 and 5 with `merge_knn`.
+7. Use the merged graph for `prepare_search_graph`, and then run
+`graph_knn_query` with back-tracking search (set `epsilon > 0`) to refine the
+results further.
+8 If in step 3, the maximum k-occurrence is *less* than the threshold, then
+you are probably ok to run `nnd_knn` with defaults.
 
 This should provide a robust approach to producing accurate approximate
 nearest neighbors without spending time on unnecessary graph search when the
