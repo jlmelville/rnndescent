@@ -258,8 +258,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // rnn_descent
-List rnn_descent(const NumericMatrix& data, const IntegerMatrix& nn_idx, const NumericMatrix& nn_dist, const std::string& metric, std::size_t max_candidates, uint32_t n_iters, double delta, bool low_memory, bool weight_by_degree, std::size_t n_threads, bool verbose, const std::string& progress_type);
-RcppExport SEXP _rnndescent_rnn_descent(SEXP dataSEXP, SEXP nn_idxSEXP, SEXP nn_distSEXP, SEXP metricSEXP, SEXP max_candidatesSEXP, SEXP n_itersSEXP, SEXP deltaSEXP, SEXP low_memorySEXP, SEXP weight_by_degreeSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP, SEXP progress_typeSEXP) {
+List rnn_descent(const NumericMatrix& data, const IntegerMatrix& nn_idx, const NumericMatrix& nn_dist, const std::string& metric, std::size_t max_candidates, uint32_t n_iters, double delta, bool low_memory, bool weight_by_degree, double revival_prob, std::size_t n_threads, bool verbose, const std::string& progress_type);
+RcppExport SEXP _rnndescent_rnn_descent(SEXP dataSEXP, SEXP nn_idxSEXP, SEXP nn_distSEXP, SEXP metricSEXP, SEXP max_candidatesSEXP, SEXP n_itersSEXP, SEXP deltaSEXP, SEXP low_memorySEXP, SEXP weight_by_degreeSEXP, SEXP revival_probSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP, SEXP progress_typeSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -272,16 +272,17 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type delta(deltaSEXP);
     Rcpp::traits::input_parameter< bool >::type low_memory(low_memorySEXP);
     Rcpp::traits::input_parameter< bool >::type weight_by_degree(weight_by_degreeSEXP);
+    Rcpp::traits::input_parameter< double >::type revival_prob(revival_probSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type n_threads(n_threadsSEXP);
     Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
     Rcpp::traits::input_parameter< const std::string& >::type progress_type(progress_typeSEXP);
-    rcpp_result_gen = Rcpp::wrap(rnn_descent(data, nn_idx, nn_dist, metric, max_candidates, n_iters, delta, low_memory, weight_by_degree, n_threads, verbose, progress_type));
+    rcpp_result_gen = Rcpp::wrap(rnn_descent(data, nn_idx, nn_dist, metric, max_candidates, n_iters, delta, low_memory, weight_by_degree, revival_prob, n_threads, verbose, progress_type));
     return rcpp_result_gen;
 END_RCPP
 }
 // rnn_logical_descent
-List rnn_logical_descent(const LogicalMatrix& data, const IntegerMatrix& nn_idx, const NumericMatrix& nn_dist, const std::string& metric, std::size_t max_candidates, uint32_t n_iters, double delta, bool low_memory, bool weight_by_degree, std::size_t n_threads, bool verbose, const std::string& progress_type);
-RcppExport SEXP _rnndescent_rnn_logical_descent(SEXP dataSEXP, SEXP nn_idxSEXP, SEXP nn_distSEXP, SEXP metricSEXP, SEXP max_candidatesSEXP, SEXP n_itersSEXP, SEXP deltaSEXP, SEXP low_memorySEXP, SEXP weight_by_degreeSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP, SEXP progress_typeSEXP) {
+List rnn_logical_descent(const LogicalMatrix& data, const IntegerMatrix& nn_idx, const NumericMatrix& nn_dist, const std::string& metric, std::size_t max_candidates, uint32_t n_iters, double delta, bool low_memory, bool weight_by_degree, double revival_prob, std::size_t n_threads, bool verbose, const std::string& progress_type);
+RcppExport SEXP _rnndescent_rnn_logical_descent(SEXP dataSEXP, SEXP nn_idxSEXP, SEXP nn_distSEXP, SEXP metricSEXP, SEXP max_candidatesSEXP, SEXP n_itersSEXP, SEXP deltaSEXP, SEXP low_memorySEXP, SEXP weight_by_degreeSEXP, SEXP revival_probSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP, SEXP progress_typeSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -294,16 +295,17 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type delta(deltaSEXP);
     Rcpp::traits::input_parameter< bool >::type low_memory(low_memorySEXP);
     Rcpp::traits::input_parameter< bool >::type weight_by_degree(weight_by_degreeSEXP);
+    Rcpp::traits::input_parameter< double >::type revival_prob(revival_probSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type n_threads(n_threadsSEXP);
     Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
     Rcpp::traits::input_parameter< const std::string& >::type progress_type(progress_typeSEXP);
-    rcpp_result_gen = Rcpp::wrap(rnn_logical_descent(data, nn_idx, nn_dist, metric, max_candidates, n_iters, delta, low_memory, weight_by_degree, n_threads, verbose, progress_type));
+    rcpp_result_gen = Rcpp::wrap(rnn_logical_descent(data, nn_idx, nn_dist, metric, max_candidates, n_iters, delta, low_memory, weight_by_degree, revival_prob, n_threads, verbose, progress_type));
     return rcpp_result_gen;
 END_RCPP
 }
 // rnn_sparse_descent
-List rnn_sparse_descent(const IntegerVector& ind, const IntegerVector& ptr, const NumericVector& data, std::size_t ndim, const IntegerMatrix& nn_idx, const NumericMatrix& nn_dist, const std::string& metric, std::size_t max_candidates, uint32_t n_iters, double delta, bool low_memory, bool weight_by_degree, std::size_t n_threads, bool verbose, const std::string& progress_type);
-RcppExport SEXP _rnndescent_rnn_sparse_descent(SEXP indSEXP, SEXP ptrSEXP, SEXP dataSEXP, SEXP ndimSEXP, SEXP nn_idxSEXP, SEXP nn_distSEXP, SEXP metricSEXP, SEXP max_candidatesSEXP, SEXP n_itersSEXP, SEXP deltaSEXP, SEXP low_memorySEXP, SEXP weight_by_degreeSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP, SEXP progress_typeSEXP) {
+List rnn_sparse_descent(const IntegerVector& ind, const IntegerVector& ptr, const NumericVector& data, std::size_t ndim, const IntegerMatrix& nn_idx, const NumericMatrix& nn_dist, const std::string& metric, std::size_t max_candidates, uint32_t n_iters, double delta, bool low_memory, bool weight_by_degree, double revival_prob, std::size_t n_threads, bool verbose, const std::string& progress_type);
+RcppExport SEXP _rnndescent_rnn_sparse_descent(SEXP indSEXP, SEXP ptrSEXP, SEXP dataSEXP, SEXP ndimSEXP, SEXP nn_idxSEXP, SEXP nn_distSEXP, SEXP metricSEXP, SEXP max_candidatesSEXP, SEXP n_itersSEXP, SEXP deltaSEXP, SEXP low_memorySEXP, SEXP weight_by_degreeSEXP, SEXP revival_probSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP, SEXP progress_typeSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -319,10 +321,11 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type delta(deltaSEXP);
     Rcpp::traits::input_parameter< bool >::type low_memory(low_memorySEXP);
     Rcpp::traits::input_parameter< bool >::type weight_by_degree(weight_by_degreeSEXP);
+    Rcpp::traits::input_parameter< double >::type revival_prob(revival_probSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type n_threads(n_threadsSEXP);
     Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
     Rcpp::traits::input_parameter< const std::string& >::type progress_type(progress_typeSEXP);
-    rcpp_result_gen = Rcpp::wrap(rnn_sparse_descent(ind, ptr, data, ndim, nn_idx, nn_dist, metric, max_candidates, n_iters, delta, low_memory, weight_by_degree, n_threads, verbose, progress_type));
+    rcpp_result_gen = Rcpp::wrap(rnn_sparse_descent(ind, ptr, data, ndim, nn_idx, nn_dist, metric, max_candidates, n_iters, delta, low_memory, weight_by_degree, revival_prob, n_threads, verbose, progress_type));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -875,9 +878,9 @@ static const R_CallMethodDef CallEntries[] = {
     {"_rnndescent_rnn_sparse_idx_to_graph_query", (DL_FUNC) &_rnndescent_rnn_sparse_idx_to_graph_query, 11},
     {"_rnndescent_rnn_merge_nn", (DL_FUNC) &_rnndescent_rnn_merge_nn, 7},
     {"_rnndescent_rnn_merge_nn_all", (DL_FUNC) &_rnndescent_rnn_merge_nn_all, 4},
-    {"_rnndescent_rnn_descent", (DL_FUNC) &_rnndescent_rnn_descent, 12},
-    {"_rnndescent_rnn_logical_descent", (DL_FUNC) &_rnndescent_rnn_logical_descent, 12},
-    {"_rnndescent_rnn_sparse_descent", (DL_FUNC) &_rnndescent_rnn_sparse_descent, 15},
+    {"_rnndescent_rnn_descent", (DL_FUNC) &_rnndescent_rnn_descent, 13},
+    {"_rnndescent_rnn_logical_descent", (DL_FUNC) &_rnndescent_rnn_logical_descent, 13},
+    {"_rnndescent_rnn_sparse_descent", (DL_FUNC) &_rnndescent_rnn_sparse_descent, 16},
     {"_rnndescent_rnn_sparse_diversify", (DL_FUNC) &_rnndescent_rnn_sparse_diversify, 9},
     {"_rnndescent_rnn_diversify", (DL_FUNC) &_rnndescent_rnn_diversify, 6},
     {"_rnndescent_rnn_logical_diversify", (DL_FUNC) &_rnndescent_rnn_logical_diversify, 6},

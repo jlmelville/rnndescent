@@ -61,16 +61,16 @@ rnn_merge_nn_all <- function(nn_graphs, is_query, n_threads, verbose) {
     .Call(`_rnndescent_rnn_merge_nn_all`, nn_graphs, is_query, n_threads, verbose)
 }
 
-rnn_descent <- function(data, nn_idx, nn_dist, metric, max_candidates, n_iters, delta, low_memory, weight_by_degree, n_threads, verbose, progress_type) {
-    .Call(`_rnndescent_rnn_descent`, data, nn_idx, nn_dist, metric, max_candidates, n_iters, delta, low_memory, weight_by_degree, n_threads, verbose, progress_type)
+rnn_descent <- function(data, nn_idx, nn_dist, metric, max_candidates, n_iters, delta, low_memory, weight_by_degree, revival_prob, n_threads, verbose, progress_type) {
+    .Call(`_rnndescent_rnn_descent`, data, nn_idx, nn_dist, metric, max_candidates, n_iters, delta, low_memory, weight_by_degree, revival_prob, n_threads, verbose, progress_type)
 }
 
-rnn_logical_descent <- function(data, nn_idx, nn_dist, metric, max_candidates, n_iters, delta, low_memory, weight_by_degree, n_threads, verbose, progress_type) {
-    .Call(`_rnndescent_rnn_logical_descent`, data, nn_idx, nn_dist, metric, max_candidates, n_iters, delta, low_memory, weight_by_degree, n_threads, verbose, progress_type)
+rnn_logical_descent <- function(data, nn_idx, nn_dist, metric, max_candidates, n_iters, delta, low_memory, weight_by_degree, revival_prob, n_threads, verbose, progress_type) {
+    .Call(`_rnndescent_rnn_logical_descent`, data, nn_idx, nn_dist, metric, max_candidates, n_iters, delta, low_memory, weight_by_degree, revival_prob, n_threads, verbose, progress_type)
 }
 
-rnn_sparse_descent <- function(ind, ptr, data, ndim, nn_idx, nn_dist, metric, max_candidates, n_iters, delta, low_memory, weight_by_degree, n_threads, verbose, progress_type) {
-    .Call(`_rnndescent_rnn_sparse_descent`, ind, ptr, data, ndim, nn_idx, nn_dist, metric, max_candidates, n_iters, delta, low_memory, weight_by_degree, n_threads, verbose, progress_type)
+rnn_sparse_descent <- function(ind, ptr, data, ndim, nn_idx, nn_dist, metric, max_candidates, n_iters, delta, low_memory, weight_by_degree, revival_prob, n_threads, verbose, progress_type) {
+    .Call(`_rnndescent_rnn_sparse_descent`, ind, ptr, data, ndim, nn_idx, nn_dist, metric, max_candidates, n_iters, delta, low_memory, weight_by_degree, revival_prob, n_threads, verbose, progress_type)
 }
 
 rnn_sparse_diversify <- function(ind, ptr, data, ndim, graph_list, metric, prune_probability, n_threads, verbose) {
