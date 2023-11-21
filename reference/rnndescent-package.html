@@ -43,7 +43,13 @@
       </ul><form class="form-inline my-2 my-lg-0" role="search">
         <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="../search.json" id="search-input" placeholder="Search for" autocomplete="off"></form>
 
-      <ul class="navbar-nav"></ul></div>
+      <ul class="navbar-nav"><li class="nav-item">
+  <a class="external-link nav-link" href="https://github.com/jlmelville/rnndescent/" aria-label="github">
+    <span class="fab fa fab fa-github fa-lg"></span>
+     
+  </a>
+</li>
+      </ul></div>
 
     
   </div>
@@ -51,7 +57,7 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="" class="logo" alt=""><h1>rnndescent: Nearest Neighbor Descent Method for Approximate Nearest Neighbors</h1>
-      
+      <small class="dont-index">Source: <a href="https://github.com/jlmelville/rnndescent/blob/HEAD/R/rnndescent-package.R" class="external-link"><code>R/rnndescent-package.R</code></a></small>
       <div class="d-none name"><code>rnndescent-package.Rd</code></div>
     </div>
 
@@ -64,17 +70,24 @@
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>The rnndescent package provides functions to create approximate nearest
-neighbors using the Nearest Neighbor Descent and Random Partition Tree
-methods. In comparison to other packages, it offers more metrics and can be
-used with sparse matrices. For querying new data, it uses graph
-diversification methods to improve the search performance. The package also
-provides functions to diagnose hubness in nearest neighbor results.</p>
+neighbors using the Nearest Neighbor Descent (Dong and co-workers, 2010) and
+Random Partition Tree (Dasgupta and Freund, 2008) methods. In comparison to
+other packages, it offers more metrics and can be used with sparse matrices.
+For querying new data, it uses graph diversification methods (Harwood and
+Drummond, 2016) and back-tracking (Iwasakai and Miyazaki, 2018) to improve
+the search performance. The package also provides functions to diagnose
+hubness in nearest neighbor results (Radovanovic and co-workers, 2010).</p>
+<p>This library is based heavily on the PyNNDescent Python library.</p>
 <p>General resources:</p><ul><li><p>Website for the rnndescent package: <a href="https://github.com/jlmelville/rnndescent" class="external-link">https://github.com/jlmelville/rnndescent</a></p></li>
+<li><p>Documentation for the rnndescent package: <a href="https://jlmelville.github.io/rnndescent/">https://jlmelville.github.io/rnndescent/</a></p></li>
 <li><p>Website of the PyNNDescent package: <a href="https://github.com/lmcinnes/pynndescent" class="external-link">https://github.com/lmcinnes/pynndescent</a></p></li>
-</ul><p>Resources on specific topics:</p><ul><li><p>Create exact nearest neighbors: <code><a href="brute_force_knn.html">brute_force_knn()</a></code>, <code><a href="brute_force_knn_query.html">brute_force_knn_query()</a></code></p></li>
-<li><p>Create approximate nearest neighbors: <code><a href="rpf_knn.html">rpf_knn()</a></code>, <code><a href="nnd_knn.html">nnd_knn()</a></code></p></li>
-<li><p>Querying new data: <code><a href="prepare_search_graph.html">prepare_search_graph()</a></code>, <code><a href="graph_knn_query.html">graph_knn_query()</a></code></p></li>
-<li><p>Diagnostics and hubness: <code><a href="k_occur.html">k_occur()</a></code></p></li>
+</ul><p>Resources on specific topics:</p><ul><li><p>Find the approximate nearest neighbors: <code><a href="rnnd_knn.html">rnnd_knn()</a></code></p></li>
+<li><p>Create a search index and query new neighbors: <code><a href="rnnd_build.html">rnnd_build()</a></code> and <code><a href="rnnd_prepare.html">rnnd_prepare()</a></code>.</p></li>
+<li><p>Query new neighbors (or refine an existing knn graph): <code><a href="rnnd_query.html">rnnd_query()</a></code>.</p></li>
+</ul><p>Lower-level functions:</p><ul><li><p>Find exact nearest neighbors: <code><a href="brute_force_knn.html">brute_force_knn()</a></code>, <code><a href="brute_force_knn_query.html">brute_force_knn_query()</a></code>.</p></li>
+<li><p>Find approximate nearest neighbors: <code><a href="rpf_knn.html">rpf_knn()</a></code>, <code><a href="nnd_knn.html">nnd_knn()</a></code>.</p></li>
+<li><p>Querying new data: <code><a href="prepare_search_graph.html">prepare_search_graph()</a></code>, <code><a href="graph_knn_query.html">graph_knn_query()</a></code>.</p></li>
+<li><p>Diagnostics and hubness: <code><a href="k_occur.html">k_occur()</a></code>.</p></li>
 </ul></div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
@@ -83,10 +96,6 @@ Random projection trees and low dimensional manifolds.
 In <em>Proceedings of the fortieth annual ACM symposium on Theory of computing</em>
 (pp. 537-546).
 <a href="https://doi.org/10.1145/1374376.1374452" class="external-link">https://doi.org/10.1145/1374376.1374452</a>.</p>
-<p>Radovanovic, M., Nanopoulos, A., &amp; Ivanovic, M. (2010).
-Hubs in space: Popular nearest neighbors in high-dimensional data.
-<em>Journal of Machine Learning Research</em>, <em>11</em>, 2487-2531.
-<a href="https://www.jmlr.org/papers/v11/radovanovic10a.html" class="external-link">https://www.jmlr.org/papers/v11/radovanovic10a.html</a></p>
 <p>Dong, W., Moses, C., &amp; Li, K. (2011, March).
 Efficient k-nearest neighbor graph construction for generic similarity measures.
 In <em>Proceedings of the 20th international conference on World Wide Web</em>
@@ -97,10 +106,20 @@ ACM.
 Fanng: Fast approximate nearest neighbour graphs.
 In <em>Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition</em>
 (pp. 5713-5722).</p>
+<p>Radovanovic, M., Nanopoulos, A., &amp; Ivanovic, M. (2010).
+Hubs in space: Popular nearest neighbors in high-dimensional data.
+<em>Journal of Machine Learning Research</em>, <em>11</em>, 2487-2531.
+<a href="https://www.jmlr.org/papers/v11/radovanovic10a.html" class="external-link">https://www.jmlr.org/papers/v11/radovanovic10a.html</a></p>
+<p>Iwasaki, M., &amp; Miyazaki, D. (2018).
+Optimization of indexing based on k-nearest neighbor graph for proximity search in high-dimensional data.
+<em>arXiv preprint</em> <em>arXiv:1810.07355</em>.
+<a href="https://arxiv.org/abs/1810.07355" class="external-link">https://arxiv.org/abs/1810.07355</a></p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index"><p>Useful links:</p><ul><li><p><a href="https://jlmelville.github.io/rnndescent/">https://jlmelville.github.io/rnndescent/</a></p></li>
+<li><p><a href="https://github.com/jlmelville/rnndescent" class="external-link">https://github.com/jlmelville/rnndescent</a></p></li>
+<li><p>Report bugs at <a href="https://github.com/jlmelville/rnndescent/issues" class="external-link">https://github.com/jlmelville/rnndescent/issues</a></p></li>
 </ul></div>
     </div>
     <div class="section level2">

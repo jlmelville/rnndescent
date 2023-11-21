@@ -41,7 +41,13 @@
       </ul><form class="form-inline my-2 my-lg-0" role="search">
         <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="../search.json" id="search-input" placeholder="Search for" autocomplete="off"></form>
 
-      <ul class="navbar-nav"></ul></div>
+      <ul class="navbar-nav"><li class="nav-item">
+  <a class="external-link nav-link" href="https://github.com/jlmelville/rnndescent/" aria-label="github">
+    <span class="fab fa fab fa-github fa-lg"></span>
+     
+  </a>
+</li>
+      </ul></div>
 
     
   </div>
@@ -49,7 +55,7 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="" class="logo" alt=""><h1>Query Exact Nearest Neighbors by Brute Force</h1>
-      
+      <small class="dont-index">Source: <a href="https://github.com/jlmelville/rnndescent/blob/HEAD/R/rnndescent.R" class="external-link"><code>R/rnndescent.R</code></a></small>
       <div class="d-none name"><code>brute_force_knn_query.Rd</code></div>
     </div>
 
@@ -197,9 +203,9 @@ items in <code>reference</code>.</p></li>
 <span class="r-in"><span>  reference <span class="op">=</span> <span class="va">iris_ref</span>,</span></span>
 <span class="r-in"><span>  k <span class="op">=</span> <span class="fl">4</span>, metric <span class="op">=</span> <span class="st">"euclidean"</span>, verbose <span class="op">=</span> <span class="cn">TRUE</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 07:05:28 Using alt metric 'sqeuclidean' for 'euclidean'</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 07:05:28 Calculating brute force k-nearest neighbors from reference with k = 4</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 07:05:28 Finished</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 18:14:44 Using alt metric 'sqeuclidean' for 'euclidean'</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 18:14:44 Calculating brute force k-nearest neighbors from reference with k = 4</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 18:14:44 Finished</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Manhattan (l1) distance</span></span></span>
 <span class="r-in"><span><span class="va">iris_query_nn</span> <span class="op">&lt;-</span> <span class="fu">brute_force_knn_query</span><span class="op">(</span><span class="va">iris_query</span>,</span></span>

@@ -60,7 +60,14 @@
         <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="../search.json" id="search-input" placeholder="Search for" autocomplete="off">
 </form>
 
-      <ul class="navbar-nav"></ul>
+      <ul class="navbar-nav">
+<li class="nav-item">
+  <a class="external-link nav-link" href="https://github.com/jlmelville/rnndescent/" aria-label="github">
+    <span class="fab fa fab fa-github fa-lg"></span>
+     
+  </a>
+</li>
+      </ul>
 </div>
 
     
@@ -75,7 +82,7 @@
       <img src="" class="logo" alt=""><h1>Querying Data</h1>
             
       
-      
+      <small class="dont-index">Source: <a href="https://github.com/jlmelville/rnndescent/blob/HEAD/vignettes/querying-data.Rmd" class="external-link"><code>vignettes/querying-data.Rmd</code></a></small>
       <div class="d-none name"><code>querying-data.Rmd</code></div>
     </div>
 
@@ -214,10 +221,13 @@ a time, you won’t get any speed up from using multiple threads.</p>
 <code>epsilon</code><a class="anchor" aria-label="anchor" href="#epsilon"></a>
 </h3>
 <p><code>epsilon</code> controls how much exploration of the neighbors
-of a candidate to do. The default value is <code>0.1</code>. The larger
-the value, the more back-tracking is permitted. The exact meaning of the
-value is related to how large a distance is considered “close enough”
-the current neighbor list of the query to be worth exploring.</p>
+of a candidate to do, as suggested by <span class="citation">(Iwasaki
+and Miyazaki 2018)</span>. The default value is <code>0.1</code>, which
+is also the default of the <a href="https://github.com/yahoojapan/NGT/blob/main/python/README-ngtpy.md" class="external-link">NGT</a>
+library. The larger the value, the more back-tracking is permitted. The
+exact meaning of the value is related to how large a distance is
+considered “close enough” the current neighbor list of the query to be
+worth exploring.</p>
 <p><code>epsilon = 0.1</code> means that the query-candidate distance is
 allowed to be 10% larger than the largest distance in the neighbor list.
 If you set <code>epsilon = 0.2</code>, for example, then the
@@ -230,7 +240,11 @@ that is determined by the distance metric and the dimensionality of the
 data itself. I recommend leaving this as the default, and only modifying
 it if you find that the search is unreasonably slow (in which case make
 <code>epsilon</code> smaller) or unreasonably inaccurate (in which case
-make <code>epsilon</code> larger). Yes, not very helpful I know.</p>
+make <code>epsilon</code> larger). Yes, not very helpful I know. In the
+benchmarking done in <span class="citation">(Dobson et al. 2023)</span>
+using a similar back-tracking method, <code>epsilon = 0.25</code> was
+the maximum value used and in <span class="citation">(Wang et al.
+2021)</span> <code>epsilon = 0.1</code> was used.</p>
 </div>
 <div class="section level3">
 <h3 id="init">
@@ -403,7 +417,7 @@ a histogram of how the edges are distributed:</p>
 <p><img src="querying-data_files/figure-html/iris%20search%20graph%20histogram-1.png" width="700"></p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/range.html" class="external-link">range</a></span><span class="op">(</span><span class="va">search_graph_edges</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 10 22</span></span></code></pre></div>
+<span><span class="co">#&gt; [1]  9 22</span></span></code></pre></div>
 <p>So most items have around about <code>k = 15</code> edges just like
 the nearest neighbor graph. But some have have the maximum number of
 edges and few have only 10 edges.</p>
@@ -430,6 +444,17 @@ Analysis.”</span> <em>arXiv Preprint arXiv:2305.04359</em>.
 Harwood, Ben, and Tom Drummond. 2016. <span>“Fanng: Fast Approximate
 Nearest Neighbour Graphs.”</span> In <em>Proceedings of the IEEE
 Conference on Computer Vision and Pattern Recognition</em>, 5713–22.
+</div>
+<div id="ref-iwasaki2018optimization" class="csl-entry">
+Iwasaki, Masajiro, and Daisuke Miyazaki. 2018. <span>“Optimization of
+Indexing Based on k-Nearest Neighbor Graph for Proximity Search in
+High-Dimensional Data.”</span> <em>arXiv Preprint arXiv:1810.07355</em>.
+</div>
+<div id="ref-wang2021comprehensive" class="csl-entry">
+Wang, Mengzhao, Xiaoliang Xu, Qiang Yue, and Yuxiang Wang. 2021.
+<span>“A Comprehensive Survey and Experimental Comparison of Graph-Based
+Approximate Nearest Neighbor Search.”</span> <em>arXiv Preprint
+arXiv:2101.12631</em>.
 </div>
 </div>
 </div>
