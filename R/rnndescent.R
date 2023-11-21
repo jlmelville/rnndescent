@@ -421,6 +421,8 @@ rnnd_prepare <- function(index,
 #'   comparison. Use this parameter in conjunction with [rnnd_prepare()] to
 #'   prevent excessive run time. Default is 0.1.
 #' @param n_threads Number of threads to use.
+#' @param init An optional matrix of `k` initial nearest neighbors for each
+#'  query point.
 #' @param verbose If `TRUE`, log information to the console.
 #' @param obs set to `"C"` to indicate that the input `data` orientation stores
 #'   each observation as a column. The default `"R"` means that observations are

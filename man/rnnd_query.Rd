@@ -9,6 +9,7 @@ rnnd_query(
   query,
   k = 30,
   epsilon = 0.1,
+  init = NULL,
   n_threads = 0,
   verbose = FALSE,
   obs = "R"
@@ -42,6 +43,9 @@ dimensional data should choose a smaller cutoff). Too large a value of
 \code{epsilon} will result in the query search approaching brute force
 comparison. Use this parameter in conjunction with \code{\link[=rnnd_prepare]{rnnd_prepare()}} to
 prevent excessive run time. Default is 0.1.}
+
+\item{init}{An optional matrix of \code{k} initial nearest neighbors for each
+query point.}
 
 \item{n_threads}{Number of threads to use.}
 
