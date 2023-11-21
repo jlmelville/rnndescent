@@ -628,6 +628,35 @@ calculation. For example, double the number of neighbors to
 can be quite expensive in terms of run time.</p>
 </div>
 <div class="section level3">
+<h3 id="use-more-candidates">Use More Candidates<a class="anchor" aria-label="anchor" href="#use-more-candidates"></a>
+</h3>
+<p>Another way to improve accuracy is to increase the number of
+candidates that are considered at each iteration. This is controlled by
+the <code>max_candidates</code> parameter. Let’s try increasing that to
+<code>30</code>:</p>
+<div class="sourceCode" id="cb46"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">g1000d_nnd_mc30</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/nnd_knn.html">nnd_knn</a></span><span class="op">(</span><span class="va">g1000d</span>, k <span class="op">=</span> <span class="fl">15</span>, metric <span class="op">=</span> <span class="st">"euclidean"</span>, max_candidates <span class="op">=</span> <span class="fl">30</span><span class="op">)</span></span>
+<span><span class="fu">nn_accuracy</span><span class="op">(</span><span class="va">g1000d_nnbf</span>, <span class="va">g1000d_nnd_mc30</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 0.8752</span></span></code></pre></div>
+<p>Not as good as increasing <code>k</code>, but also not as
+time-consuming and still an improvement over the default setting (which
+is set to be the same as <code>k</code>). This should probably be your
+first choice for improving accuracy.</p>
+</div>
+<div class="section level3">
+<h3 id="decrease-the-convergence-tolerance">Decrease the convergence tolerance<a class="anchor" aria-label="anchor" href="#decrease-the-convergence-tolerance"></a>
+</h3>
+<p>You could set <code>delta</code> to lower than the default of
+<code>0.001</code> or even to <code>0</code> to force the algorithm to
+run until convergence:</p>
+<div class="sourceCode" id="cb47"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">g1000d_nnd_tol0</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/nnd_knn.html">nnd_knn</a></span><span class="op">(</span><span class="va">g1000d</span>, k <span class="op">=</span> <span class="fl">15</span>, metric <span class="op">=</span> <span class="st">"euclidean"</span>, delta <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
+<span><span class="fu">nn_accuracy</span><span class="op">(</span><span class="va">g1000d_nnbf</span>, <span class="va">g1000d_nnd_tol0</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 0.7881333</span></span></code></pre></div>
+<p>But as you can see, it’s unlikely to achieve very much. The default
+parameters do a pretty good job of balancing accuracy and speed.</p>
+</div>
+<div class="section level3">
 <h3 id="merging-multiple-independent-results">Merging Multiple Independent Results<a class="anchor" aria-label="anchor" href="#merging-multiple-independent-results"></a>
 </h3>
 <p>What about taking advantage of the stochastic nature of the
@@ -636,22 +665,22 @@ then we could generate two graphs from two separate runs, and then merge
 the results.</p>
 <p>Let’s repeat NND and see what the accuracy of this new result is
 like.</p>
-<div class="sourceCode" id="cb46"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb48"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">g1000d_nnd_rep</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/nnd_knn.html">nnd_knn</a></span><span class="op">(</span><span class="va">g1000d</span>, k <span class="op">=</span> <span class="fl">15</span>, metric <span class="op">=</span> <span class="st">"euclidean"</span><span class="op">)</span></span>
 <span><span class="fu">nn_accuracy</span><span class="op">(</span><span class="va">g1000d_nnbf</span>, <span class="va">g1000d_nnd_rep</span>, k <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 0.7812</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 0.7776</span></span></code></pre></div>
 <p>That’s similar to the first run. That’s re-assuring in the sense that
 the variance of the accuracy doesn’t seem to be that high between one
 run to the next. But hopefully that doesn’t also mean that NND is
 producing a very similar neighbor graph each time, in which case merging
 them won’t be very helpful. Time to find out:</p>
-<div class="sourceCode" id="cb47"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb49"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">g1000d_nnd_merge</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/merge_knn.html">merge_knn</a></span><span class="op">(</span><span class="va">g1000d_nnd</span>, <span class="va">g1000d_nnd_rep</span><span class="op">)</span></span>
 <span><span class="fu">nn_accuracy</span><span class="op">(</span><span class="va">g1000d_nnbf</span>, <span class="va">g1000d_nnd_merge</span>, k <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 0.9078667</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 0.9058</span></span></code></pre></div>
 <p>That’s a big improvement. So it does seem like there is some
 diversity in the results.</p>
-<div class="sourceCode" id="cb48"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb50"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">g1000d_nnd_rep_acc</span> <span class="op">&lt;-</span> <span class="fu">nn_accuracyv</span><span class="op">(</span><span class="va">g1000d_nnbf</span>, <span class="va">g1000d_nnd_rep</span>, k <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span></span>
 <span>  <span class="va">g1000d_nnd_acc</span>,</span>
@@ -661,9 +690,9 @@ diversity in the results.</p>
 <span>  ylab <span class="op">=</span> <span class="st">"accuracy run 2"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p><img src="hubness_files/figure-html/NND%20100D%20compare%20accuracy-1.png" width="700"></p>
-<div class="sourceCode" id="cb49"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb51"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/cor.html" class="external-link">cor</a></span><span class="op">(</span><span class="va">g1000d_nnd_acc</span>, <span class="va">g1000d_nnd_rep_acc</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 0.5265773</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 0.5680036</span></span></code></pre></div>
 <p>Despite the similar overall accuracies, there’s quite a large
 variance between runs in terms of which items have accurate
 neighborhoods.</p>
@@ -678,7 +707,7 @@ parallel.</p>
 <code>rnndescent</code> is to convert the neighbor graph into a search
 graph, and then query it with the original data.</p>
 <p>First, the preparation step:</p>
-<div class="sourceCode" id="cb50"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb52"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">g1000d_search_graph</span> <span class="op">&lt;-</span></span>
 <span>  <span class="fu"><a href="../reference/prepare_search_graph.html">prepare_search_graph</a></span><span class="op">(</span></span>
 <span>    data <span class="op">=</span> <span class="va">g1000d</span>,</span>
@@ -710,11 +739,11 @@ reintroduced due to the edge reduction, but hopefully the distribution
 of edges is a bit more equitable.</p>
 <p>Here is a summary and histogram of the k-occurrences of the search
 graph:</p>
-<div class="sourceCode" id="cb51"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb53"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">g1000d_sgko</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/k_occur.html">k_occur</a></span><span class="op">(</span><span class="va">g1000d_search_graph</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/hist.html" class="external-link">hist</a></span><span class="op">(</span><span class="va">g1000d_sgko</span>, main <span class="op">=</span> <span class="st">"search graph k-occurrences"</span>, xlab <span class="op">=</span> <span class="st">"k-occurrences"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="hubness_files/figure-html/histogram%20of%20k-occurrences%20of%20search%20graph-1.png" width="700"></p>
-<div class="sourceCode" id="cb52"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb54"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">g1000d_sgko</span><span class="op">)</span></span>
 <span><span class="co">#&gt;    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. </span></span>
 <span><span class="co">#&gt;   1.000   4.000   5.000   7.186   9.000  22.000</span></span>
@@ -724,7 +753,7 @@ graph:</p>
 is still a lot of room for improvement.</p>
 <p>At any rate, with the search graph in hand, we can now search it
 using our original data as a query:</p>
-<div class="sourceCode" id="cb53"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb55"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">g1000d_search</span> <span class="op">&lt;-</span></span>
 <span>  <span class="fu"><a href="../reference/graph_knn_query.html">graph_knn_query</a></span><span class="op">(</span></span>
 <span>    query <span class="op">=</span> <span class="va">g1000d</span>,</span>
@@ -736,7 +765,7 @@ using our original data as a query:</p>
 <span>    epsilon <span class="op">=</span> <span class="fl">0.1</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
 <p>Are the results improved?</p>
-<div class="sourceCode" id="cb54"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb56"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">nn_accuracy</span><span class="op">(</span><span class="va">g1000d_nnbf</span>, <span class="va">g1000d_search</span>, k <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 0.9978</span></span></code></pre></div>
 <p>Yes, the accuracy is now nearly perfect. The disadvantages of the
@@ -753,7 +782,7 @@ neighbor graph. You are not required to use a search graph as the
 argument to the <code>reference_graph</code> parameter. Here is the
 back-tracking search using the neighbor graph directly and everything
 else the same:</p>
-<div class="sourceCode" id="cb55"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb57"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">g1000d_nnd_search</span> <span class="op">&lt;-</span></span>
 <span>  <span class="fu"><a href="../reference/graph_knn_query.html">graph_knn_query</a></span><span class="op">(</span></span>
 <span>    query <span class="op">=</span> <span class="va">g1000d</span>,</span>
@@ -768,7 +797,7 @@ else the same:</p>
 <span><span class="co">#&gt; [1] 0.9845333</span></span></code></pre></div>
 <p>Accuracies are nearly as good. You can save even more time by turning
 off back-tracking (<code>epsilon = 0</code>):</p>
-<div class="sourceCode" id="cb56"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb58"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">g1000d_nnd_search0</span> <span class="op">&lt;-</span></span>
 <span>  <span class="fu"><a href="../reference/graph_knn_query.html">graph_knn_query</a></span><span class="op">(</span></span>
 <span>    query <span class="op">=</span> <span class="va">g1000d</span>,</span>
@@ -783,7 +812,7 @@ off back-tracking (<code>epsilon = 0</code>):</p>
 <span><span class="co">#&gt; [1] 0.8286667</span></span></code></pre></div>
 <p>but accuracies are now noticeably less improved. Using the search
 graph without back-tracking gives slightly better accuracies:</p>
-<div class="sourceCode" id="cb57"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb59"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">g1000d_search0</span> <span class="op">&lt;-</span></span>
 <span>  <span class="fu"><a href="../reference/graph_knn_query.html">graph_knn_query</a></span><span class="op">(</span></span>
 <span>    query <span class="op">=</span> <span class="va">g1000d</span>,</span>
@@ -829,13 +858,23 @@ initialization and a back-tracking search.</li>
 accuracy of the neighbor graph, I suggest the following steps:</p>
 <ol style="list-style-type: decimal">
 <li>Generate a neighbor graph with <code>nnd_knn</code> and default
-parameters.</li>
+parameters, or even for just 1 iteration.</li>
 <li>Evaluate the hubness of the graph with <code>k_occur</code>.</li>
 <li>If the maximum k-occurrence exceeds a threshold (maybe
-<code>10 * k</code> is a good starting point), then use
-<code>prepare_search_graph</code> and <code>graph_knn_query</code> with
-back-tracking search (set <code>epsilon &gt; 0</code>) to refine the
-results further.</li>
+<code>10 * k</code> is a good starting point), then you could try the
+following:</li>
+<li>Restart <code>nnd_knn</code> (you as may as well use the output from
+the first step as the initialization) with <code>max_candidates</code>
+set to a larger value. You probably don’t want to set it larger than
+<code>60</code>.</li>
+<li>Repeat step 4 to get a second graph.</li>
+<li>Merge the graphs from steps 4 and 5 with
+<code>merge_knn</code>.</li>
+<li>Use the merged graph for <code>prepare_search_graph</code>, and then
+run <code>graph_knn_query</code> with back-tracking search (set
+<code>epsilon &gt; 0</code>) to refine the results further. 8 If in step
+3, the maximum k-occurrence is <em>less</em> than the threshold, then
+you are probably ok to run <code>nnd_knn</code> with defaults.</li>
 </ol>
 <p>This should provide a robust approach to producing accurate
 approximate nearest neighbors without spending time on unnecessary graph
