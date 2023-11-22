@@ -2,6 +2,7 @@ pandoc: 2.19.2
 pkgdown: 2.0.7
 pkgdown_sha: ~
 articles:
+  sparse-example: sparse-example.html
   brute-force: brute-force.html
   hubness: hubness.html
   metrics: metrics.html
@@ -9,7 +10,7 @@ articles:
   querying-data: querying-data.html
   random-partition-forests: random-partition-forests.html
   rnndescent: rnndescent.html
-last_built: 2023-11-22T02:13Z
+last_built: 2023-11-22T23:37Z
 urls:
   reference: https://jlmelville.github.io/rnndescent/reference
   article: https://jlmelville.github.io/rnndescent/articles
