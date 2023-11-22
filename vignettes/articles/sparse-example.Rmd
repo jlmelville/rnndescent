@@ -213,7 +213,7 @@ we need to convert the tf-idf matrix:
 
 ```{r create sparse matrix}
 tfidf_sp <-
-  Matrix::sparseMatrix(
+  sparseMatrix(
     i = tfidf$i,
     j = tfidf$j,
     x = tfidf$v,
@@ -226,7 +226,7 @@ matrices, so we have to be a bit more creative. An L2 normalization looks like:
 
 ```{r L2 normalize}
 tfidf_spl2 <-
-  Matrix::Diagonal(x = 1 / sqrt(Matrix::rowSums(tfidf_sp^2))) %*% tfidf_sp
+  Diagonal(x = 1 / sqrt(rowSums(tfidf_sp^2))) %*% tfidf_sp
 ```
 
 I'm going to use a divergence-based distance metric which assumes that each
@@ -242,10 +242,10 @@ l1_normalize <- function(X) {
     sum(abs(x))
   })
   res[as.integer(names(tmp)) + 1] <- tmp
-  Matrix::Diagonal(x = 1 / res) %*% X
+  Diagonal(x = 1 / res) %*% X
 }
 tfidf_spl1 <- l1_normalize(tfidf_sp)
-head(Matrix::rowSums(tfidf_spl1))
+head(rowSums(tfidf_spl1))
 ```
 ```
 [1] 1 1 1 1 1 1
@@ -410,7 +410,7 @@ just see what the most popular words in Pride & Prejudice are with this method:
 
 ```{r popular Pride & Prejudice words}
 pap <- tfidf_sp[data_processed$book == "Pride & Prejudice", ]
-mean_pap <- Matrix::colMeans(pap)
+mean_pap <- colMeans(pap)
 names(mean_pap) <- colnames(tfidf)
 mean_pap[mean_pap > 0] |>
   sort(decreasing = TRUE) |>
@@ -427,7 +427,7 @@ character names (and, er, `'said'`).
 If we apply this to the dataset as a whole:
 
 ```{r dataset words}
-mean_tfidf <- Matrix::colMeans(tfidf_sp)
+mean_tfidf <- colMeans(tfidf_sp)
 names(mean_tfidf) <- colnames(tfidf)
 mean_tfidf[mean_tfidf > 0] |>
   sort(decreasing = TRUE) |>
@@ -442,7 +442,7 @@ Now we have more generic words, although `said` is still there. Way to go,
 `said`.
 
 ```{r popular words}
-mean_popular_tfidf <- Matrix::colMeans(tfidf_sp[popular_indices, ])
+mean_popular_tfidf <- colMeans(tfidf_sp[popular_indices, ])
 names(mean_popular_tfidf) <- colnames(tfidf)
 mean_popular_tfidf[mean_popular_tfidf > 0] %>%
   sort(decreasing = TRUE) %>%
@@ -456,7 +456,7 @@ mean_popular_tfidf[mean_popular_tfidf > 0] %>%
 There's `love` right at the top. Not a lot of overlap with the average words.
 
 ```{r unpopular words}
-mean_unpopular_tfidf <- Matrix::colMeans(tfidf_sp[unpopular_indices, ])
+mean_unpopular_tfidf <- colMeans(tfidf_sp[unpopular_indices, ])
 names(mean_unpopular_tfidf) <- colnames(tfidf)
 mean_unpopular_tfidf[mean_unpopular_tfidf > 0] |>
   sort(decreasing = TRUE) |>
