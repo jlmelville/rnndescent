@@ -12,3 +12,7 @@ articles:
   - querying-data
   - hubness
   - metrics
+- title: Articles
+  desc: Some longer, more involved examples.
+  contents:
+  - articles/sparse-example
