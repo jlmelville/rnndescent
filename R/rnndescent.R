@@ -2242,7 +2242,10 @@ graph_knn_query <- function(query,
 #'   `q` will be in the neighbor list of `p` so there is no need to retain it in
 #'   the neighbor list of `i`. You may also set this to `NULL` to skip any
 #'   occlusion pruning. Note that occlusion pruning is carried out twice, once
-#'   to the forward neighbors, and once to the reverse neighbors.
+#'   to the forward neighbors, and once to the reverse neighbors. Reducing this
+#'   value will result in a more dense graph. This is similar to increasing the
+#'   "alpha" parameter used by in the DiskAnn pruning method of Subramanya and
+#'   co-workers (2014).
 #' @param pruning_degree_multiplier How strongly to truncate the final neighbor
 #'   list for each item. The neighbor list of each item will be truncated to
 #'   retain only the closest `d` neighbors, where
@@ -2289,6 +2292,10 @@ graph_knn_query <- function(query,
 #' Fanng: Fast approximate nearest neighbour graphs.
 #' In *Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition*
 #' (pp. 5713-5722).
+#'
+#' Jayaram Subramanya, S., Devvrit, F., Simhadri, H. V., Krishnawamy, R., & Kadekodi, R. (2019).
+#' Diskann: Fast accurate billion-point nearest neighbor search on a single node.
+#' *Advances in Neural Information Processing Systems*, *32*.
 #' @export
 prepare_search_graph <- function(data,
                                  graph,
@@ -2404,6 +2411,13 @@ prepare_search_graph <- function(data,
 # In *Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition*
 # (pp. 5713-5722).
 # "Occlusion pruning"
+#
+# prune_probability behaves a bit like (but in the opposite direction of) alpha
+# Jayaram Subramanya, S., Devvrit, F., Simhadri, H. V., Krishnawamy, R., & Kadekodi, R. (2019).
+# Diskann: Fast accurate billion-point nearest neighbor search on a single node.
+# Advances in Neural Information Processing Systems, 32.
+# the pynndescent implementation at cmuparlay/pbbsbench uses alpha instead of
+# a prune_probability (see also https://arxiv.org/abs/2305.04359)
 diversify <- function(data,
                       graph,
                       metric = "euclidean",
@@ -2415,36 +2429,29 @@ diversify <- function(data,
   stopifnot(methods::is(graph, "sparseMatrix"))
   gl <- csparse_to_list(graph)
 
+  tsmessage("Occlusion pruning with probability: ")
+  args <- list(
+    graph_list = gl,
+    metric = metric,
+    prune_probability = prune_probability,
+    n_threads = n_threads,
+    verbose = verbose
+  )
   if (is_sparse(data)) {
-    gl_div <- rnn_sparse_diversify(
+    gl_div <- do.call(rnn_sparse_diversify, c(args, list(
       ind = data@i,
       ptr = data@p,
       data = data@x,
-      ndim = nrow(data),
-      graph_list = gl,
-      metric = metric,
-      prune_probability = prune_probability,
-      n_threads = n_threads,
-      verbose = verbose
-    )
+      ndim = nrow(data)
+    )))
   } else if (is.logical(data)) {
-    gl_div <- rnn_logical_diversify(
-      data = data,
-      graph_list = gl,
-      metric = metric,
-      prune_probability = prune_probability,
-      n_threads = n_threads,
-      verbose = verbose
-    )
+    gl_div <- do.call(rnn_logical_diversify, c(args, list(
+      data = data
+    )))
   } else {
-    gl_div <- rnn_diversify(
-      data = data,
-      graph_list = gl,
-      metric = metric,
-      prune_probability = prune_probability,
-      n_threads = n_threads,
-      verbose = verbose
-    )
+    gl_div <- do.call(rnn_diversify, c(args, list(
+      data = data
+    )))
   }
   res <- list_to_sparse(gl_div)
   nnz_after <- Matrix::nnzero(res)

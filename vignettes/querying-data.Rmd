@@ -288,14 +288,30 @@ the longest edges are removed until the number of edges is below the threshold.
 
 To control all this pruning the following parameters are available:
 
-* `diversify_prob`: the probability of a neighbor being removed if it is found
-  to be an "occlusion". This should take a value between `0` (no diversification)
-  and `1` (remove as many edges as possible). The default is `1.0`.
-* `pruning_degree_multiplier`: controls how many edges to remove after the
-  occlusion pruning relative to the number of neighbors in the original nearest
-  neighbor graph. The default is `1.5` which means to allow as many as 50%
-  more edge than the original graph. So if the input graph was for `k = 15`,
-  each item in the search graph will have at most `15 * 1.5 = 22` edges.
+### Diversification Probability
+
+`diversify_prob` is the probability of a neighbor being removed if it is found
+to be an "occlusion". This should take a value between `0` (no diversification)
+and `1` (remove as many edges as possible). The default is `1.0`.
+  
+The
+[DiskAnn/Vamana](https://papers.nips.cc/paper_files/paper/2019/hash/09853c7fb1d3f8ee67a61b6bf4a7f8e6-Abstract.html)
+method's pruning algorithm is almost identical but instead of a probability,
+uses a related parameter called `alpha`, which acts in the opposite direction:
+increasing `alpha` increases the density of the graph. Why am I telling you
+this? The [pbbsbench implementation of PyNNDescent](https://github.com/cmuparlay/pbbsbench/blob/9553d354b5cf18153d4ea6370664c383316174eb/benchmarks/ANN/pyNNDescent/pynn_index.h#L235) uses `alpha` instead of `diversify_prob` and
+in the accompanying paper [@dobson2023scaling] they mention that the use of
+`alpha` yields "modest improvements" -- from context this seems to mean relative
+to using `diversify_prob = 1.0`. I can't give an exact mapping between the two
+values unfortunately.
+
+### Degree Pruning
+
+`pruning_degree_multiplier` controls how many edges to remove after the
+occlusion pruning relative to the number of neighbors in the original nearest
+neighbor graph. The default is `1.5` which means to allow as many as 50% more
+edge than the original graph. So if the input graph was for `k = 15`, each item
+in the search graph will have at most `15 * 1.5 = 22` edges.
   
 Let's see how this works on the `iris` neighbors:
 

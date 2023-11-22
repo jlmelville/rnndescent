@@ -45,7 +45,7 @@ could return in a different package at some point.
 
 ### Missing Features 
 
-Compared to pynndescent, rnndescent is currently lacking, in decreasing order
+Compared to PyNNDescent, `rnndescent` is currently lacking, in decreasing order
 of likelihood of implementation:
 
 * Only parallel batch queries are currently supported. This means that if you
@@ -71,6 +71,10 @@ personal use case for nearest neighbors calculation and I would like to get
 `rnndescent` onto CRAN in a useful-for-something state. As a result I am not
 targeting an initial release to support the streaming case. I would like to fix
 this for a subsequent release.
+
+Also there is no specialized distance code to take advantage of AVX etc., so
+`rnndescent` is going to run slower than other packages. This wouldn't be
+allowed on CRAN anyway, but might be a nice-to-have for installing from github.
 
 ## Installation
 

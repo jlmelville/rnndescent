@@ -303,3 +303,32 @@ test_that("sparse data prep same as dense", {
 
   expect_equal(sgsp, sgdz)
 })
+
+test_that("prune twice with different prob", {
+  iris_knn <- brute_force_knn(iris, k = 15)
+  set.seed(42)
+  sg1 <-
+    prepare_search_graph(iris,
+                         iris_knn,
+                         diversify_prob = 1.0,
+                         pruning_degree_multiplier = NULL)
+  set.seed(42)
+  sg1_0.5 <-
+    prepare_search_graph(iris,
+                         sg1,
+                         diversify_prob = 0.5,
+                         pruning_degree_multiplier = NULL)
+
+  set.seed(42)
+  sg0.5 <-
+    prepare_search_graph(iris,
+                         iris_knn,
+                         diversify_prob = 0.5,
+                         pruning_degree_multiplier = NULL)
+
+  # pruning prob 1 gives the most sparse, 0.5 the least sparse
+  # 1 then 0.5 is in-between (somewhat similar to Vamana)
+  expect_gt(Matrix::nnzero(sg0.5), Matrix::nnzero(sg1))
+  expect_gt(Matrix::nnzero(sg1_0.5), Matrix::nnzero(sg1))
+  expect_gt(Matrix::nnzero(sg0.5), Matrix::nnzero(sg1_0.5))
+})

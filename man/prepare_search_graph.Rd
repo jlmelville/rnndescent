@@ -96,7 +96,10 @@ then the nearer neighbor \code{p} is said to "occlude" \code{q}. It is likely th
 \code{q} will be in the neighbor list of \code{p} so there is no need to retain it in
 the neighbor list of \code{i}. You may also set this to \code{NULL} to skip any
 occlusion pruning. Note that occlusion pruning is carried out twice, once
-to the forward neighbors, and once to the reverse neighbors.}
+to the forward neighbors, and once to the reverse neighbors. Reducing this
+value will result in a more dense graph. This is similar to increasing the
+"alpha" parameter used by in the DiskAnn pruning method of Subramanya and
+co-workers (2014).}
 
 \item{pruning_degree_multiplier}{How strongly to truncate the final neighbor
 list for each item. The neighbor list of each item will be truncated to
@@ -193,4 +196,8 @@ Harwood, B., & Drummond, T. (2016).
 Fanng: Fast approximate nearest neighbour graphs.
 In \emph{Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition}
 (pp. 5713-5722).
+
+Jayaram Subramanya, S., Devvrit, F., Simhadri, H. V., Krishnawamy, R., & Kadekodi, R. (2019).
+Diskann: Fast accurate billion-point nearest neighbor search on a single node.
+\emph{Advances in Neural Information Processing Systems}, \emph{32}.
 }
