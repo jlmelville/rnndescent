@@ -382,20 +382,33 @@ below the threshold.</li>
 </ol>
 <p>To control all this pruning the following parameters are
 available:</p>
-<ul>
-<li>
-<code>diversify_prob</code>: the probability of a neighbor being
+<div class="section level3">
+<h3 id="diversification-probability">Diversification Probability<a class="anchor" aria-label="anchor" href="#diversification-probability"></a>
+</h3>
+<p><code>diversify_prob</code> is the probability of a neighbor being
 removed if it is found to be an “occlusion”. This should take a value
 between <code>0</code> (no diversification) and <code>1</code> (remove
-as many edges as possible). The default is <code>1.0</code>.</li>
-<li>
-<code>pruning_degree_multiplier</code>: controls how many edges to
+as many edges as possible). The default is <code>1.0</code>.</p>
+<p>The <a href="https://papers.nips.cc/paper_files/paper/2019/hash/09853c7fb1d3f8ee67a61b6bf4a7f8e6-Abstract.html" class="external-link">DiskAnn/Vamana</a>
+method’s pruning algorithm is almost identical but instead of a
+probability, uses a related parameter called <code>alpha</code>, which
+acts in the opposite direction: increasing <code>alpha</code> increases
+the density of the graph. Why am I telling you this? The <a href="https://github.com/cmuparlay/pbbsbench/blob/9553d354b5cf18153d4ea6370664c383316174eb/benchmarks/ANN/pyNNDescent/pynn_index.h#L235" class="external-link">pbbsbench
+implementation of PyNNDescent</a> uses <code>alpha</code> instead of
+<code>diversify_prob</code> and in the accompanying paper <span class="citation">(Dobson et al. 2023)</span> they mention that the use
+of <code>alpha</code> yields “modest improvements” – from context this
+seems to mean relative to using <code>diversify_prob = 1.0</code>. I
+can’t give an exact mapping between the two values unfortunately.</p>
+</div>
+<div class="section level3">
+<h3 id="degree-pruning">Degree Pruning<a class="anchor" aria-label="anchor" href="#degree-pruning"></a>
+</h3>
+<p><code>pruning_degree_multiplier</code> controls how many edges to
 remove after the occlusion pruning relative to the number of neighbors
 in the original nearest neighbor graph. The default is <code>1.5</code>
 which means to allow as many as 50% more edge than the original graph.
 So if the input graph was for <code>k = 15</code>, each item in the
-search graph will have at most <code>15 * 1.5 = 22</code> edges.</li>
-</ul>
+search graph will have at most <code>15 * 1.5 = 22</code> edges.</p>
 <p>Let’s see how this works on the <code>iris</code> neighbors:</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span></span>
@@ -417,7 +430,7 @@ a histogram of how the edges are distributed:</p>
 <p><img src="querying-data_files/figure-html/iris%20search%20graph%20histogram-1.png" width="700"></p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/range.html" class="external-link">range</a></span><span class="op">(</span><span class="va">search_graph_edges</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1]  9 22</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 11 22</span></span></code></pre></div>
 <p>So most items have around about <code>k = 15</code> edges just like
 the nearest neighbor graph. But some have have the maximum number of
 edges and few have only 10 edges.</p>
@@ -429,6 +442,7 @@ edges and few have only 10 edges.</p>
 <span>  init <span class="op">=</span> <span class="va">rpf_index</span>,</span>
 <span>  k <span class="op">=</span> <span class="fl">15</span></span>
 <span><span class="op">)</span></span></code></pre></div>
+</div>
 </div>
 <div class="section level2 unnumbered">
 <h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>

@@ -833,7 +833,31 @@ graph without back-tracking gives slightly better accuracies:</p>
 <span><span class="fu">nn_accuracy</span><span class="op">(</span><span class="va">g1000d_nnbf</span>, <span class="va">g1000d_search0</span>, k <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 0.8467333</span></span></code></pre></div>
 <p>but it seems like some sort of back-tracking is to be recommended
-with this approach.</p>
+with this approach. The downside is that you could be searching through
+a large proportion of the dataset, in which case you would save time by
+using the <code>brute_force_query</code>.</p>
+<p>In conjunction with <code>epsilon</code>, you can also use
+<code>max_search_fraction</code> which will terminate the search if the
+fraction of the dataset searched exceeds the specified value. Set it to
+a value between 0 and 1, e.g. <code>max_search_fraction = 0.1</code> if
+you don’t want more than 10% of the reference data being searched. The
+default is <code>1</code>, so that <code>epsilon</code> entirely
+controls the search termination. A similar parameter is used in <span class="citation">(Harwood and Drummond 2016)</span>.</p>
+<div class="sourceCode" id="cb60"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">g1000d_nnd_search_max</span> <span class="op">&lt;-</span></span>
+<span>  <span class="fu"><a href="../reference/graph_knn_query.html">graph_knn_query</a></span><span class="op">(</span></span>
+<span>    query <span class="op">=</span> <span class="va">g1000d</span>,</span>
+<span>    reference <span class="op">=</span> <span class="va">g1000d</span>,</span>
+<span>    reference_graph <span class="op">=</span> <span class="va">g1000d_nnd</span>,</span>
+<span>    k <span class="op">=</span> <span class="fl">15</span>,</span>
+<span>    metric <span class="op">=</span> <span class="st">"euclidean"</span>,</span>
+<span>    init <span class="op">=</span> <span class="va">g1000d_nnd</span>,</span>
+<span>    epsilon <span class="op">=</span> <span class="fl">0.1</span>,</span>
+<span>    max_search_fraction <span class="op">=</span> <span class="fl">0.1</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="fu">nn_accuracy</span><span class="op">(</span><span class="va">g1000d_nnbf</span>, <span class="va">g1000d_nnd_search_max</span>, k <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 0.8228667</span></span></code></pre></div>
+<p>Accuracies are again reduced.</p>
 </div>
 </div>
 <div class="section level2">
@@ -925,6 +949,11 @@ Flexer, Arthur. 2016. <span>“An Empirical Analysis of Hubness in
 Unsupervised Distance-Based Outlier Detection.”</span> In <em>2016 IEEE
 16th International Conference on Data Mining Workshops (ICDMW)</em>,
 716–23. IEEE.
+</div>
+<div id="ref-harwood2016fanng" class="csl-entry">
+Harwood, Ben, and Tom Drummond. 2016. <span>“Fanng: Fast Approximate
+Nearest Neighbour Graphs.”</span> In <em>Proceedings of the IEEE
+Conference on Computer Vision and Pattern Recognition</em>, 5713–22.
 </div>
 <div id="ref-low2013hubness" class="csl-entry">
 Low, Thomas, Christian Borgelt, Sebastian Stober, and Andreas

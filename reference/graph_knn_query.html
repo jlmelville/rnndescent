@@ -73,6 +73,7 @@
 <span>  metric <span class="op">=</span> <span class="st">"euclidean"</span>,</span>
 <span>  init <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  epsilon <span class="op">=</span> <span class="fl">0.1</span>,</span>
+<span>  max_search_fraction <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  use_alt_metric <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  n_threads <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">FALSE</span>,</span>
@@ -191,9 +192,17 @@ most-distant neighbor of the query point, 0.2 means 20%, and so on.
 Suggested values are between 0-0.5, although this value is highly dependent
 on the distribution of distances in the dataset (higher dimensional data
 should choose a smaller cutoff). Too large a value of <code>epsilon</code> will result
-in the query search approaching brute force
-comparison. Use this parameter in conjunction with
-<code><a href="prepare_search_graph.html">prepare_search_graph()</a></code> to prevent excessive run time. Default is 0.1.</p></dd>
+in the query search approaching brute force comparison. Use this parameter
+in conjunction with <code>max_search_fraction</code> and <code><a href="prepare_search_graph.html">prepare_search_graph()</a></code> to
+prevent excessive run time. Default is 0.1.</p></dd>
+
+
+<dt>max_search_fraction</dt>
+<dd><p>Maximum fraction of the reference data to search.
+This is a value between 0 (search none of the reference data) and 1 (search
+all of the data if necessary). This works in conjunction with <code>epsilon</code> and
+will terminate the search early if the specified fraction of the reference
+data has been searched. Default is 1.</p></dd>
 
 
 <dt>use_alt_metric</dt>
@@ -264,11 +273,11 @@ search in high-dimensional data.
 <span class="r-in"><span><span class="va">iris_query_nn</span> <span class="op">&lt;-</span> <span class="fu">graph_knn_query</span><span class="op">(</span><span class="va">iris_query</span>, <span class="va">iris_ref</span>, <span class="va">iris_ref_graph</span>,</span></span>
 <span class="r-in"><span>  k <span class="op">=</span> <span class="fl">4</span>, metric <span class="op">=</span> <span class="st">"euclidean"</span>, verbose <span class="op">=</span> <span class="cn">TRUE</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 18:14:45 Using alt metric 'sqeuclidean' for 'euclidean'</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 18:14:45 Initializing from random neighbors</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 18:14:45 Generating random k-nearest neighbor graph from reference with k = 4</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 18:14:45 Searching nearest neighbor graph with epsilon = 0.1</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 18:14:45 Finished</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 02:13:25 Using alt metric 'sqeuclidean' for 'euclidean'</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 02:13:25 Initializing from random neighbors</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 02:13:25 Generating random k-nearest neighbor graph from reference with k = 4</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 02:13:25 Searching nearest neighbor graph with epsilon = 0.1 and max_search_fraction = 1</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 02:13:25 Finished</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># A more complete example, converting the initial knn into a search graph</span></span></span>
 <span class="r-in"><span><span class="co"># and using a filtered random projection forest to initialize the search</span></span></span>

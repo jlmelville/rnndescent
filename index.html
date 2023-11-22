@@ -105,7 +105,7 @@
 <div class="section level3">
 <h3 id="missing-features">Missing Features<a class="anchor" aria-label="anchor" href="#missing-features"></a>
 </h3>
-<p>Compared to pynndescent, rnndescent is currently lacking, in decreasing order of likelihood of implementation:</p>
+<p>Compared to PyNNDescent, <code>rnndescent</code> is currently lacking, in decreasing order of likelihood of implementation:</p>
 <ul>
 <li>Only parallel batch queries are currently supported. This means that if you are trying to stream queries, where you are only querying one item at a time, you will get no parallelism.</li>
 <li>The index is always passed between the C++ and R layers when building an index and querying. This is useful for portability as its easy to serialize the index (you can use <code>saveRDS</code> like any R data for example), but it’s not very efficient. Keeping the index as an R-wrapped C++ class has its own downsides but would fix that.</li>
@@ -114,6 +114,7 @@
 <li>Custom metrics. This just isn’t feasible with a C++ implementation.</li>
 </ul>
 <p>The issues around index serialization and parallel behavior make <code>rnndescent</code> currently unsuitable for streaming applications where you are querying one item at a time. If you are doing batch queries, where you are querying multiple items at once, then <code>rnndescent</code> should be fine: for example, generating nearest neighbors for UMAP (maybe for use with <a href="https://github.com/jlmelville/uwot" class="external-link">uwot</a>). Dimensionality reduction is my personal use case for nearest neighbors calculation and I would like to get <code>rnndescent</code> onto CRAN in a useful-for-something state. As a result I am not targeting an initial release to support the streaming case. I would like to fix this for a subsequent release.</p>
+<p>Also there is no specialized distance code to take advantage of AVX etc., so <code>rnndescent</code> is going to run slower than other packages. This wouldn’t be allowed on CRAN anyway, but might be a nice-to-have for installing from github.</p>
 </div>
 </div>
 <div class="section level2">
