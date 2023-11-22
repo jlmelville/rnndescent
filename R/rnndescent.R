@@ -2309,11 +2309,18 @@ prepare_search_graph <- function(data,
       diversify_prob >= 0
     )
   }
-  n_nbrs <- check_graph(graph)$k
-  max_degree <- max(round(n_nbrs * pruning_degree_multiplier), 1)
 
-  tsmessage("Converting graph to sparse format")
-  sp <- graph_to_csparse(graph)
+  if (is_sparse(graph)) {
+    sp <- Matrix::t(graph)
+    n_nbrs <- mean(diff(sp@p))
+    max_degree <- max(round(n_nbrs * pruning_degree_multiplier), 1)
+  }
+  else {
+    n_nbrs <- check_graph(graph)$k
+    max_degree <- max(round(n_nbrs * pruning_degree_multiplier), 1)
+    tsmessage("Converting graph to sparse format")
+    sp <- graph_to_csparse(graph)
+  }
 
   sp <- preserve_zeros(sp)
 
