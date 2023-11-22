@@ -173,16 +173,16 @@ rnn_score_forest <- function(idx, search_forest, n_trees, n_threads, verbose = F
     .Call(`_rnndescent_rnn_score_forest`, idx, search_forest, n_trees, n_threads, verbose)
 }
 
-rnn_query <- function(reference, reference_graph_list, query, nn_idx, nn_dist, metric = "euclidean", epsilon = 0.1, n_threads = 0L, verbose = FALSE) {
-    .Call(`_rnndescent_rnn_query`, reference, reference_graph_list, query, nn_idx, nn_dist, metric, epsilon, n_threads, verbose)
+rnn_query <- function(reference, reference_graph_list, query, nn_idx, nn_dist, metric, epsilon, max_search_fraction, n_threads, verbose) {
+    .Call(`_rnndescent_rnn_query`, reference, reference_graph_list, query, nn_idx, nn_dist, metric, epsilon, max_search_fraction, n_threads, verbose)
 }
 
-rnn_logical_query <- function(reference, reference_graph_list, query, nn_idx, nn_dist, metric = "euclidean", epsilon = 0.1, n_threads = 0L, verbose = FALSE) {
-    .Call(`_rnndescent_rnn_logical_query`, reference, reference_graph_list, query, nn_idx, nn_dist, metric, epsilon, n_threads, verbose)
+rnn_logical_query <- function(reference, reference_graph_list, query, nn_idx, nn_dist, metric, epsilon, max_search_fraction, n_threads, verbose) {
+    .Call(`_rnndescent_rnn_logical_query`, reference, reference_graph_list, query, nn_idx, nn_dist, metric, epsilon, max_search_fraction, n_threads, verbose)
 }
 
-rnn_sparse_query <- function(ref_ind, ref_ptr, ref_data, query_ind, query_ptr, query_data, ndim, reference_graph_list, nn_idx, nn_dist, metric = "euclidean", epsilon = 0.1, n_threads = 0L, verbose = FALSE) {
-    .Call(`_rnndescent_rnn_sparse_query`, ref_ind, ref_ptr, ref_data, query_ind, query_ptr, query_data, ndim, reference_graph_list, nn_idx, nn_dist, metric, epsilon, n_threads, verbose)
+rnn_sparse_query <- function(ref_ind, ref_ptr, ref_data, query_ind, query_ptr, query_data, ndim, reference_graph_list, nn_idx, nn_dist, metric, epsilon, max_search_fraction, n_threads, verbose) {
+    .Call(`_rnndescent_rnn_sparse_query`, ref_ind, ref_ptr, ref_data, query_ind, query_ptr, query_data, ndim, reference_graph_list, nn_idx, nn_dist, metric, epsilon, max_search_fraction, n_threads, verbose)
 }
 
 is_binary_metric <- function(metric) {

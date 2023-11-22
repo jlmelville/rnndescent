@@ -835,8 +835,33 @@ nn_accuracy(g1000d_nnbf, g1000d_search0, k = 15)
 ```
 
 but it seems like some sort of back-tracking is to be recommended with this
-approach.
+approach. The downside is that you could be searching through a large proportion
+of the dataset, in which case you would save time by using the 
+`brute_force_query`.
 
+In conjunction with `epsilon`, you can also use `max_search_fraction` which will
+terminate the search if the fraction of the dataset searched exceeds the
+specified value. Set it to a value between 0 and 1, e.g.
+`max_search_fraction = 0.1` if you don't want more than 10% of the reference 
+data being searched. The default is `1`, so that `epsilon` entirely controls 
+the search termination. A similar parameter is used in [@harwood2016fanng].
+
+```{r search at most 10% of the data}
+g1000d_nnd_search_max <-
+  graph_knn_query(
+    query = g1000d,
+    reference = g1000d,
+    reference_graph = g1000d_nnd,
+    k = 15,
+    metric = "euclidean",
+    init = g1000d_nnd,
+    epsilon = 0.1,
+    max_search_fraction = 0.1
+  )
+nn_accuracy(g1000d_nnbf, g1000d_nnd_search_max, k = 15)
+```
+
+Accuracies are again reduced.
 
 ## Conclusions
 

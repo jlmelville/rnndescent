@@ -12,6 +12,7 @@ graph_knn_query(
   metric = "euclidean",
   init = NULL,
   epsilon = 0.1,
+  max_search_fraction = 1,
   use_alt_metric = TRUE,
   n_threads = 0,
   verbose = FALSE,
@@ -135,9 +136,15 @@ most-distant neighbor of the query point, 0.2 means 20\%, and so on.
 Suggested values are between 0-0.5, although this value is highly dependent
 on the distribution of distances in the dataset (higher dimensional data
 should choose a smaller cutoff). Too large a value of \code{epsilon} will result
-in the query search approaching brute force
-comparison. Use this parameter in conjunction with
-\code{\link[=prepare_search_graph]{prepare_search_graph()}} to prevent excessive run time. Default is 0.1.}
+in the query search approaching brute force comparison. Use this parameter
+in conjunction with \code{max_search_fraction} and \code{\link[=prepare_search_graph]{prepare_search_graph()}} to
+prevent excessive run time. Default is 0.1.}
+
+\item{max_search_fraction}{Maximum fraction of the reference data to search.
+This is a value between 0 (search none of the reference data) and 1 (search
+all of the data if necessary). This works in conjunction with \code{epsilon} and
+will terminate the search early if the specified fraction of the reference
+data has been searched. Default is 1.}
 
 \item{use_alt_metric}{If \code{TRUE}, use faster metrics that maintain the
 ordering of distances internally (e.g. squared Euclidean distances if using

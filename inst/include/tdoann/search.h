@@ -37,12 +37,16 @@
 namespace tdoann {
 
 template <typename Out, typename Idx>
-void nn_query(const SparseNNGraph<Out, Idx> &reference_graph,
+void nn_query(const SparseNNGraph<Out, Idx> &search_graph,
               NNHeap<Out, Idx> &nn_heap, const BaseDistance<Out, Idx> &distance,
-              double epsilon, std::size_t n_threads, ProgressBase &progress,
+              double epsilon, std::size_t max_distance_calculations,
+              std::size_t n_threads, ProgressBase &progress,
               const Executor &executor) {
+  std::vector<std::size_t> n_searches(nn_heap.n_points, 0UL);
+
   auto worker = [&](std::size_t begin, std::size_t end) {
-    non_search_query(nn_heap, distance, reference_graph, epsilon, begin, end);
+    non_search_query(nn_heap, distance, search_graph, epsilon,
+                     max_distance_calculations, n_searches, begin, end);
   };
   progress.set_n_iters(1);
   ExecutionParams exec_params{100 * n_threads};
@@ -61,7 +65,9 @@ template <typename Out, typename Idx>
 void non_search_query(NNHeap<Out, Idx> &current_graph,
                       const BaseDistance<Out, Idx> &distance,
                       const SparseNNGraph<Out, Idx> &search_graph,
-                      double epsilon, std::size_t begin, std::size_t end) {
+                      double epsilon, std::size_t max_distance_calculations,
+                      std::vector<std::size_t> &n_searches, std::size_t begin,
+                      std::size_t end) {
   constexpr auto npos = static_cast<Idx>(-1);
 
   const std::size_t n_nbrs = current_graph.n_nbrs;
@@ -83,7 +89,9 @@ void non_search_query(NNHeap<Out, Idx> &current_graph,
         distance_scale *
         static_cast<double>(current_graph.max_distance(query_idx));
 
-    while (!seed_set.empty()) {
+    std::size_t n_searches_for_query = 0;
+    while (!seed_set.empty() &&
+           n_searches_for_query < max_distance_calculations) {
       auto vertex = seed_set.pop();
       auto d_vertex = vertex.first;
       if (static_cast<double>(d_vertex) >= distance_bound) {
@@ -98,6 +106,10 @@ void non_search_query(NNHeap<Out, Idx> &current_graph,
           continue;
         }
         auto dist = distance.calculate(candidate_idx, query_idx);
+        n_searches_for_query++;
+        if (n_searches_for_query >= max_distance_calculations) {
+          break;
+        }
         if (static_cast<double>(dist) >= distance_bound) {
           continue;
         }
@@ -108,6 +120,7 @@ void non_search_query(NNHeap<Out, Idx> &current_graph,
             static_cast<double>(current_graph.max_distance(query_idx));
       }
     } // next candidate
+    n_searches[query_idx] = n_searches_for_query;
   }
 }
 

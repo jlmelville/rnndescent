@@ -420,8 +420,13 @@ rnnd_prepare <- function(index,
 #'   highly dependent on the distribution of distances in the dataset (higher
 #'   dimensional data should choose a smaller cutoff). Too large a value of
 #'   `epsilon` will result in the query search approaching brute force
-#'   comparison. Use this parameter in conjunction with [rnnd_prepare()] to
-#'   prevent excessive run time. Default is 0.1.
+#'   comparison. Use this parameter in conjunction with `max_search_fraction`
+#'   and [rnnd_prepare()] to prevent excessive run time. Default is 0.1.
+#' @param max_search_fraction Maximum fraction of the reference data to search.
+#'  This is a value between 0 (search none of the reference data) and 1 (search
+#'  all of the data if necessary). This works in conjunction with `epsilon` and
+#'  will terminate the search early if the specified fraction of the reference
+#'  data has been searched. Default is 1.
 #' @param n_threads Number of threads to use.
 #' @param init An optional matrix of `k` initial nearest neighbors for each
 #'  query point.
@@ -459,6 +464,7 @@ rnnd_query <-
            query,
            k = 30,
            epsilon = 0.1,
+           max_search_fraction = 1,
            init = NULL,
            n_threads = 0,
            verbose = FALSE,
@@ -486,6 +492,7 @@ rnnd_query <-
       metric = index$original_metric,
       init = init,
       epsilon = epsilon,
+      max_search_fraction = max_search_fraction,
       use_alt_metric = index$use_alt_metric,
       n_threads = n_threads,
       verbose = verbose,
@@ -1858,9 +1865,14 @@ random_knn_query <-
 #'   Suggested values are between 0-0.5, although this value is highly dependent
 #'   on the distribution of distances in the dataset (higher dimensional data
 #'   should choose a smaller cutoff). Too large a value of `epsilon` will result
-#'   in the query search approaching brute force
-#'   comparison. Use this parameter in conjunction with
-#'   [prepare_search_graph()] to prevent excessive run time. Default is 0.1.
+#'   in the query search approaching brute force comparison. Use this parameter
+#'   in conjunction with `max_search_fraction` and [prepare_search_graph()] to
+#'   prevent excessive run time. Default is 0.1.
+#' @param max_search_fraction Maximum fraction of the reference data to search.
+#'  This is a value between 0 (search none of the reference data) and 1 (search
+#'  all of the data if necessary). This works in conjunction with `epsilon` and
+#'  will terminate the search early if the specified fraction of the reference
+#'  data has been searched. Default is 1.
 #' @param n_threads Number of threads to use.
 #' @param verbose If `TRUE`, log information to the console.
 #' @param obs set to `"C"` to indicate that the input `query` and `reference`
@@ -1926,6 +1938,7 @@ graph_knn_query <- function(query,
                             metric = "euclidean",
                             init = NULL,
                             epsilon = 0.1,
+                            max_search_fraction = 1.0,
                             use_alt_metric = TRUE,
                             n_threads = 0,
                             verbose = FALSE,
@@ -2073,54 +2086,54 @@ graph_knn_query <- function(query,
     thread_msg(
       "Searching nearest neighbor graph with epsilon = ",
       epsilon,
+      " and max_search_fraction = ",
+      max_search_fraction,
       n_threads = n_threads
     )
   )
 
+  args <- list(
+    reference_graph_list = reference_graph_list,
+    nn_idx = init$idx,
+    nn_dist = init$dist,
+    metric = actual_metric,
+    epsilon = epsilon,
+    max_search_fraction = max_search_fraction,
+    n_threads = n_threads,
+    verbose = verbose
+  )
   if (is_sparse(reference)) {
-    res <-
-      rnn_sparse_query(
-        ref_ind = reference@i,
-        ref_ptr = reference@p,
-        ref_data = reference@x,
-        query_ind = query@i,
-        query_ptr = query@p,
-        query_data = query@x,
-        ndim = nrow(reference),
-        reference_graph_list = reference_graph_list,
-        nn_idx = init$idx,
-        nn_dist = init$dist,
-        metric = actual_metric,
-        epsilon = epsilon,
-        n_threads = n_threads,
-        verbose = verbose
+    res <- do.call(
+      rnn_sparse_query,
+      c(
+        list(
+          ref_ind = reference@i,
+          ref_ptr = reference@p,
+          ref_data = reference@x,
+          query_ind = query@i,
+          query_ptr = query@p,
+          query_data = query@x,
+          ndim = nrow(reference)
+        ),
+        args
       )
+    )
   } else if (is.logical(reference)) {
-    res <-
-      rnn_logical_query(
-        reference = reference,
-        reference_graph_list = reference_graph_list,
-        query = query,
-        nn_idx = init$idx,
-        nn_dist = init$dist,
-        metric = actual_metric,
-        epsilon = epsilon,
-        n_threads = n_threads,
-        verbose = verbose
+    res <- do.call(
+      rnn_logical_query,
+      c(
+        list(reference = reference, query = query),
+        args
       )
+    )
   } else {
-    res <-
-      rnn_query(
-        reference = reference,
-        reference_graph_list = reference_graph_list,
-        query = query,
-        nn_idx = init$idx,
-        nn_dist = init$dist,
-        metric = actual_metric,
-        epsilon = epsilon,
-        n_threads = n_threads,
-        verbose = verbose
+    res <- do.call(
+      rnn_query,
+      c(
+        list(reference = reference, query = query),
+        args
       )
+    )
   }
   if (use_alt_metric) {
     res$dist <-
@@ -2321,8 +2334,7 @@ prepare_search_graph <- function(data,
     sp <- Matrix::t(graph)
     n_nbrs <- mean(diff(sp@p))
     max_degree <- max(round(n_nbrs * pruning_degree_multiplier), 1)
-  }
-  else {
+  } else {
     n_nbrs <- check_graph(graph)$k
     max_degree <- max(round(n_nbrs * pruning_degree_multiplier), 1)
     tsmessage("Converting graph to sparse format")

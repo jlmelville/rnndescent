@@ -309,22 +309,25 @@ test_that("prune twice with different prob", {
   set.seed(42)
   sg1 <-
     prepare_search_graph(iris,
-                         iris_knn,
-                         diversify_prob = 1.0,
-                         pruning_degree_multiplier = NULL)
+      iris_knn,
+      diversify_prob = 1.0,
+      pruning_degree_multiplier = NULL
+    )
   set.seed(42)
   sg1_0.5 <-
     prepare_search_graph(iris,
-                         sg1,
-                         diversify_prob = 0.5,
-                         pruning_degree_multiplier = NULL)
+      sg1,
+      diversify_prob = 0.5,
+      pruning_degree_multiplier = NULL
+    )
 
   set.seed(42)
   sg0.5 <-
     prepare_search_graph(iris,
-                         iris_knn,
-                         diversify_prob = 0.5,
-                         pruning_degree_multiplier = NULL)
+      iris_knn,
+      diversify_prob = 0.5,
+      pruning_degree_multiplier = NULL
+    )
 
   # pruning prob 1 gives the most sparse, 0.5 the least sparse
   # 1 then 0.5 is in-between (somewhat similar to Vamana)
