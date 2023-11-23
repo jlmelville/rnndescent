@@ -1,33 +1,5 @@
 # Sparse ------------------------------------------------------------------
 
-#' Convert Neighbor Graph to Sparse Distance Matrix
-#'
-#' Distances are stored column-wise, i.e. the neighbors of the first
-#' observation in `nn` are in the first column of the matrix, neighbors of the
-#' second observation are in the second column, and so on.
-#'
-#' Zero distances are dropped. In the typical (non-bipartite) graph case, an
-#' observation is usually a neighbor of itself with a distance of zero. These
-#' distances are *not* retained in the output, and hence if the number of
-#' neighbors in `nn` is `k`, only `k - 1` neighbors are stored in the sparse
-#' matrix.
-#'
-#' @param nn A nearest neighbor graph.
-#' @return the data in `nn` as a sparse distance matrix in `dgCMatrix` format.
-#' @examples
-#' # find 4 nearest neighbors of first ten iris data
-#' i10nn <- brute_force_knn(iris[1:10, ], k = 4)
-#' # Nearest neighbors of each item is itself
-#' all(i10nn$idx[, 1] == 1:10) # TRUE
-#' # Convert to sparse
-#' i10nnsp <- nn_to_sparse(i10nn)
-#' # 3 neighbors are retained in the sparse format because we drop 0 distances
-#' all(diff(i10nnsp@p) == 3) # TRUE
-#' @export
-nn_to_sparse <- function(nn) {
-  graph_to_sparse(nn, repr = "C", drop0 = TRUE, transpose = TRUE)
-}
-
 graph_to_sparse <- function(graph, repr, drop0 = FALSE, transpose = FALSE) {
   idx <- graph$idx
   dist <- graph$dist

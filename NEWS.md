@@ -1,5 +1,9 @@
 # rnndescent 0.0.16
 
+## Breaking changes
+
+* The `nn_to_sparse` function has been removed.
+
 ## New features
 
 * New function: `rnnd_knn`. Behaves a lot like `rnnd_build`, but *only* returns
