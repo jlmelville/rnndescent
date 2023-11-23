@@ -16,3 +16,4 @@ articles:
   desc: Some longer, more involved examples.
   contents:
   - articles/sparse-example
+  - articles/fmnist-example
