@@ -63,13 +63,19 @@
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.0.16" id="rnndescent-0016">rnndescent 0.0.16<a class="anchor" aria-label="anchor" href="#rnndescent-0016"></a></h2>
 <div class="section level3">
+<h3 id="breaking-changes-0-0-16">Breaking changes<a class="anchor" aria-label="anchor" href="#breaking-changes-0-0-16"></a></h3>
+<ul><li>The <code>nn_to_sparse</code> function has been removed.</li>
+</ul></div>
+<div class="section level3">
 <h3 id="new-features-0-0-16">New features<a class="anchor" aria-label="anchor" href="#new-features-0-0-16"></a></h3>
 <ul><li>New function: <code>rnnd_knn</code>. Behaves a lot like <code>rnnd_build</code>, but <em>only</em> returns the knn graph with no index built. The index can be very large in size for high dimensional or large datasets, so this function is useful if you only care about the knn graph and won’t ever want to query new data.</li>
+<li>New parameter for <code>rnnd_query</code> and <code>graph_knn_query</code>: <code>max_search_fraction</code>. This parameter controls the maximum number of nodes that can be searched during querying. If the number of nodes searched exceeds this fraction of the total number of nodes in the graph, the search will be terminated. This can be used in combination with <code>epsilon</code> to avoid excessive search times.</li>
 </ul></div>
 <div class="section level3">
 <h3 id="bug-fixes-and-minor-improvements-0-0-16">Bug fixes and minor improvements<a class="anchor" aria-label="anchor" href="#bug-fixes-and-minor-improvements-0-0-16"></a></h3>
 <ul><li>The sparse <code>spearmanr</code> distance has been fixed.</li>
 <li>During tree-building with <code>n_threads = 0</code>, progress/interrupt monitoring was not occurring.</li>
+<li>You can provide a user-defined graph to the <code>init</code> parameter of <code>rnnd_query</code>.</li>
 </ul></div>
 </div>
     <div class="section level2">
