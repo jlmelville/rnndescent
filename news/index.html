@@ -69,6 +69,7 @@
 <div class="section level3">
 <h3 id="new-features-0-0-16">New features<a class="anchor" aria-label="anchor" href="#new-features-0-0-16"></a></h3>
 <ul><li>New function: <code>rnnd_knn</code>. Behaves a lot like <code>rnnd_build</code>, but <em>only</em> returns the knn graph with no index built. The index can be very large in size for high dimensional or large datasets, so this function is useful if you only care about the knn graph and won’t ever want to query new data.</li>
+<li>New function: <code>nn_overlap</code>. Measures the overlap of two knn graphs via their shared indices. A similar function was used extensively in some vignettes so it may have sufficient utility to be useful to others.</li>
 <li>New parameter for <code>rnnd_query</code> and <code>graph_knn_query</code>: <code>max_search_fraction</code>. This parameter controls the maximum number of nodes that can be searched during querying. If the number of nodes searched exceeds this fraction of the total number of nodes in the graph, the search will be terminated. This can be used in combination with <code>epsilon</code> to avoid excessive search times.</li>
 </ul></div>
 <div class="section level3">
