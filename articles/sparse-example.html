@@ -242,7 +242,8 @@ would involve:</p>
 <ul>
 <li>Potentially converting this to a dense representation. As we only
 have 7,000 rows this is not a huge memory burden. But if you decided to
-use the origin data, you would now have a matrix 10 times the size.</li>
+use the original data, you would now have a matrix 10 times the
+size.</li>
 <li>Do some linear dimensionality reduction to a more dense
 representation, e.g. Truncated SVD to a few hundred (at most)
 dimensions. Or maybe a random projection? In a lot of these cases, there
@@ -342,8 +343,7 @@ than average. These could definitely be considered hubs.</p>
 <p>And here is how many anti-hubs we have:</p>
 <div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">k_occurrences</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
-<pre><code>sum(k_occurrences == 1)
-[1] 129</code></pre>
+<pre><code>[1] 129</code></pre>
 <p>So 129 pieces of text in the corpus are not considered to be in the
 top-15 neighbors of any other piece of text. Not quite 2% of the
 dataset.</p>
@@ -443,6 +443,8 @@ Prejudice are with this method:</p>
 0.01630534 0.01513324 0.01446493 0.01388111 0.01355313 0.01307697 0.01266730 0.01200490 0.01169455 0.01152472</code></pre>
 <p>Now we have more generic words, although <code>said</code> is still
 there. Way to go, <code>said</code>.</p>
+<p>What do the popular words look like (and is <code>said</code> in
+there too?):</p>
 <div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mean_popular_tfidf</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/colSums.html" class="external-link">colMeans</a></span><span class="op">(</span><span class="va">tfidf_sp</span><span class="op">[</span><span class="va">popular_indices</span>, <span class="op">]</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">mean_popular_tfidf</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">tfidf</span><span class="op">)</span></span>
@@ -451,8 +453,9 @@ there. Way to go, <code>said</code>.</p>
 <span>  <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fl">10</span><span class="op">)</span></span></code></pre></div>
 <pre><code>      love      quite       well       feel      think       like      shall       sure    nothing        yes 
 0.08188918 0.07007464 0.06825873 0.06808318 0.06540969 0.06223084 0.06055058 0.05710714 0.05624428 0.05375587 </code></pre>
-<p>There’s <code>love</code> right at the top. Not a lot of overlap with
-the average words.</p>
+<p>There’s <code>love</code> right at the top. No <code>said</code> to
+be seen, and not a lot of overlap with the average words.</p>
+<p>Onto the unpopular text.</p>
 <div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mean_unpopular_tfidf</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/colSums.html" class="external-link">colMeans</a></span><span class="op">(</span><span class="va">tfidf_sp</span><span class="op">[</span><span class="va">unpopular_indices</span>, <span class="op">]</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">mean_unpopular_tfidf</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">tfidf</span><span class="op">)</span></span>
@@ -466,8 +469,9 @@ it Tolstoy said about unhappy families? I wouldn’t necessarily expect a
 theme to emerge from chunks of text which have nothing in common with
 anything else.</p>
 <p>So there you have scientific proof that if you want to sound like
-Jane Austen, write about love. If you don’t want to sound like Jane
-Austen, use “every” a lot. And “Harriet”.</p>
+Jane Austen, write about “love”. “think” and “feel”. If you
+<em>don’t</em> want to sound like classic Jane Austen, sprinkle in an
+“every” and a “long”. Also “Harriet”. Good luck.</p>
 </div>
 </div>
 <div class="section level2">
