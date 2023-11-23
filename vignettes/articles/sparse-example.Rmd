@@ -193,7 +193,7 @@ So nearly 20,000 columns. That's a lot of dimensions. For a lot of downstream
 analysis with dimensionality reduction a typical workflow would involve:
 
 * Potentially converting this to a dense representation. As we only have 7,000
-rows this is not a huge memory burden. But if you decided to use the origin
+rows this is not a huge memory burden. But if you decided to use the original
 data, you would now have a matrix 10 times the size.
 * Do some linear dimensionality reduction to a more dense representation, e.g.
 Truncated SVD to a few hundred (at most) dimensions. Or maybe a random
@@ -316,7 +316,6 @@ And here is how many anti-hubs we have:
 sum(k_occurrences == 1)
 ```
 ```
-sum(k_occurrences == 1)
 [1] 129
 ```
 
@@ -441,6 +440,8 @@ mean_tfidf[mean_tfidf > 0] |>
 Now we have more generic words, although `said` is still there. Way to go, 
 `said`.
 
+What do the popular words look like (and is `said` in there too?):
+
 ```{r popular words}
 mean_popular_tfidf <- colMeans(tfidf_sp[popular_indices, ])
 names(mean_popular_tfidf) <- colnames(tfidf)
@@ -453,7 +454,10 @@ mean_popular_tfidf[mean_popular_tfidf > 0] %>%
 0.08188918 0.07007464 0.06825873 0.06808318 0.06540969 0.06223084 0.06055058 0.05710714 0.05624428 0.05375587 
 ```
 
-There's `love` right at the top. Not a lot of overlap with the average words.
+There's `love` right at the top. No `said` to be seen, and not a lot of overlap
+with the average words.
+
+Onto the unpopular text.
 
 ```{r unpopular words}
 mean_unpopular_tfidf <- colMeans(tfidf_sp[unpopular_indices, ])
@@ -472,8 +476,9 @@ said about unhappy families? I wouldn't necessarily expect a theme to emerge
 from chunks of text which have nothing in common with anything else.
 
 So there you have scientific proof that if you want to sound like Jane Austen,
-write about love. If you don't want to sound like Jane Austen, use "every" a
-lot. And "Harriet".
+write about "love". "think" and "feel". If you *don't* want to sound like
+classic Jane Austen, sprinkle in an "every" and a "long". Also "Harriet". Good
+luck.
 
 ## UMAP
 
