@@ -273,7 +273,7 @@ it’s not currently available for them).</p>
 the HNSW parameters are <code>M = 16</code> and
 <code>ef_construction = 200</code>.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">hnsw_index</span> <span class="op">&lt;-</span> <span class="fu">hnsw_build</span><span class="op">(</span><span class="fu">uwot</span><span class="fu">:::</span><span class="fu">x2m</span><span class="op">(</span><span class="va">fmnist_train</span><span class="op">)</span>, verbose <span class="op">=</span> <span class="cn">TRUE</span>, n_threads <span class="op">=</span> <span class="fl">6</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">hnsw_index</span> <span class="op">&lt;-</span> <span class="fu">hnsw_build</span><span class="op">(</span><span class="fu">uwot</span><span class="fu">:::</span><span class="fu">x2m</span><span class="op">(</span><span class="va">fmnist_train</span><span class="op">)</span>, n_threads <span class="op">=</span> <span class="fl">6</span><span class="op">)</span></span></code></pre></div>
 <p>Index building took 17 seconds. For searching, the default search
 parameter is <code>ef = 15</code>.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
@@ -384,7 +384,6 @@ the k-nearest neighbor tasks. Now we must.</p>
 <span>    <span class="va">fmnist_train</span>,</span>
 <span>    k <span class="op">=</span> <span class="fl">15</span>,</span>
 <span>    prepare <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>    verbose <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>    n_threads <span class="op">=</span> <span class="fl">6</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
 <p>Building the index takes around 17 seconds. Like Annoy we can
@@ -397,8 +396,7 @@ but we don’t need to worry about that for now.</p>
 <span>    index <span class="op">=</span> <span class="va">rnnd_index</span>,</span>
 <span>    query <span class="op">=</span> <span class="va">fmnist_test</span>,</span>
 <span>    k <span class="op">=</span> <span class="fl">15</span>,</span>
-<span>    n_threads <span class="op">=</span> <span class="fl">6</span>,</span>
-<span>    verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>    n_threads <span class="op">=</span> <span class="fl">6</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
 <p>For 15 neighbors, the querying took about 2 seconds.</p>
 <div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
