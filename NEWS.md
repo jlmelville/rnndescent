@@ -10,6 +10,9 @@
 the knn graph with no index built. The index can be very large in size for
 high dimensional or large datasets, so this function is useful if you only
 care about the knn graph and won't ever want to query new data.
+* New function: `nn_overlap`. Measures the overlap of two knn graphs via their
+shared indices. A similar function was used extensively in some vignettes so
+it may have sufficient utility to be useful to others.
 * New parameter for `rnnd_query` and `graph_knn_query`: `max_search_fraction`.
 This parameter controls the maximum number of nodes that can be searched during
 querying. If the number of nodes searched exceeds this fraction of the total

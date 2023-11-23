@@ -2663,3 +2663,99 @@ merge_knnl <- function(nn_graphs,
     verbose = verbose
   )
 }
+
+# Overlap -----------------------------------------------------------------
+
+#' Overlap between two nearest neighbor graphs
+#'
+#' Calculates the overlap between two nearest neighbor graphs. The overlap is
+#' defined as the number of neighbors in common between the two graphs. The
+#' graph format is the same as that returned by e.g. [nnd_knn()] and should be
+#' of dimensions n by k, where n is the number of points and k is the number of
+#' neighbors. If you pass a neighbor graph directly, the index matrix will be
+#' extracted if present. If the two graphs have different numbers of neighbors,
+#' then the smaller number of neighbors is used.
+#'
+#' @param idx1 Indices of a nearest neighbor graph, i.e. a matrix of nearest
+#'   neighbor indices. Can also be a list containing an `idx` element.
+#' @param idx2 Indices of a nearest neighbor graph, i.e. a matrix of nearest
+#'   neighbor indices. Can also be a list containing an `idx` element. This is
+#'   considered to be the ground truth.
+#' @param k Number of neighbors to consider. If `NULL`, then the minimum of the
+#'   number of neighbors in `idx1` and `idx2` is used.
+#' @param ret_vec If `TRUE`, also return a vector containing the per-item overlap.
+#' @return The mean overlap between `idx1` and `idx2`. If `ret_vec = TRUE`,
+#'  then a list containing the mean overlap and the overlap of each item in
+#'  is returned with names `mean` and `overlaps`, respectively.
+#' @examples
+#' set.seed(1337)
+#' # Generate two random neighbor graphs for iris
+#' iris_rnn1 <- random_knn(iris, k = 15)
+#' iris_rnn2 <- random_knn(iris, k = 15)
+#'
+#' # Overlap between the two graphs
+#' mean_overlap <- nn_overlap(iris_rnn1, iris_rnn2)
+#'
+#' # Also get a vector of per-item overlap
+#' overlap_res <- nn_overlap(iris_rnn1, iris_rnn2, ret_vec = TRUE)
+#' summary(overlap_res$overlaps)
+#' @export
+nn_overlap <-
+  function(idx1,
+           idx2,
+           k = NULL,
+           ret_vec = FALSE) {
+    vec <- nn_overlapv(idx1, idx2, k)
+    mean_overlap <- mean(vec)
+    if (ret_vec) {
+      res <- list(
+        mean = mean_overlap,
+        overlaps = vec
+      )
+    } else {
+      res <- mean_overlap
+    }
+    res
+  }
+
+nn_overlapv <-
+  function(idx,
+           ref_idx,
+           k = NULL) {
+    if (is.list(idx)) {
+      idx <- idx$idx
+    }
+    if (is.list(ref_idx)) {
+      ref_idx <- ref_idx$idx
+    }
+
+    if (is.null(k)) {
+      k <- min(ncol(idx), ncol(ref_idx))
+    }
+
+    if (ncol(ref_idx) < k) {
+      stop("Not enough columns in ref_idx for k = ", k)
+    }
+
+    n <- nrow(idx)
+    if (nrow(ref_idx) != n) {
+      stop("Not enough rows in ref_idx")
+    }
+
+    nbr_start <- 1
+    nbr_end <- k
+
+    ref_start <- nbr_start
+    ref_end <- nbr_end
+
+    nbr_range <- nbr_start:nbr_end
+    ref_range <- ref_start:ref_end
+
+    total_intersect <- rep(0, times = n)
+    for (i in 1:n) {
+      total_intersect[i] <-
+        length(intersect(idx[i, nbr_range], ref_idx[i, ref_range]))
+    }
+
+    total_intersect / k
+  }

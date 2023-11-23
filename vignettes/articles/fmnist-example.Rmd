@@ -107,73 +107,9 @@ fmnist_train_bf <- brute_force_knn(
 ```
 
 This took nearly ten minutes to get done. Plenty of scope here for the
-approximate nearest neighbor methods to be a lot faster. We also need a function
+approximate nearest neighbor methods to be a lot faster. We also use `nn_overlap`
 to compare the overlap of the approximate nearest neighbor indices with the
-exact results:
-
-```{r nn accuracy}
-nn_accuracyv <-
-  function(idx,
-           ref_idx,
-           k = NULL,
-           include_self = TRUE,
-           verbose = TRUE) {
-    if (is.list(idx)) {
-      idx <- idx$idx
-    }
-    if (is.list(ref_idx)) {
-      ref_idx <- ref_idx$idx
-    }
-
-    if (is.null(k)) {
-      k <- min(ncol(idx), ncol(ref_idx))
-    }
-
-    if (ncol(ref_idx) < k) {
-      stop("Not enough columns in ref_idx for k = ", k)
-    }
-
-    n <- nrow(idx)
-    if (nrow(ref_idx) != n) {
-      stop("Not enough rows in ref_idx")
-    }
-
-    nbr_start <- 1
-    nbr_end <- k
-
-    ref_start <- nbr_start
-    ref_end <- nbr_end
-    if (!include_self) {
-      ref_start <- ref_start + 1
-      if (nbr_end < ncol(ref_idx)) {
-        ref_end <- ref_end + 1
-      } else {
-        nbr_end <- nbr_end - 1
-      }
-    }
-
-    nbr_range <- nbr_start:nbr_end
-    ref_range <- ref_start:ref_end
-
-    total_intersect <- rep(0, times = n)
-    for (i in 1:n) {
-      total_intersect[i] <-
-        length(intersect(idx[i, nbr_range], ref_idx[i, ref_range]))
-    }
-
-    total_intersect / k
-  }
-
-nn_accuracy <-
-  function(idx,
-           ref_idx,
-           k = NULL,
-           include_self = TRUE,
-           verbose = TRUE) {
-    vec <- nn_accuracyv(idx, ref_idx, k, include_self, verbose)
-    sum(vec) / length(vec)
-  }
-```
+exact results.
 
 ### rnndescent
 
@@ -190,7 +126,7 @@ fmnist_train_rnnd <- rnnd_knn(fmnist_train, k = 15, n_threads = 6, verbose = TRU
 This took 11 seconds. How accurate are the results?
 
 ```{r rnnd knn accuracy}
-nn_accuracy(fmnist_train_rnnd, fmnist_train_bf)
+nn_overlap(fmnist_train_rnnd, fmnist_train_bf)
 ```
 ```
 0.9871422
@@ -223,7 +159,7 @@ fmnist_train_hnsw <- hnsw_search(uwot:::x2m(fmnist_train), hnsw_index, k = 15, n
 A very impressive 3 seconds for index searching.
 
 ```{r hnsw knn accuracy}
-nn_accuracy(fmnist_train_hnsw, fmnist_train_bf)
+nn_overlap(fmnist_train_hnsw, fmnist_train_bf)
 ```
 ```
 [1] 0.9748644
@@ -267,7 +203,7 @@ fmnist_train_annoy <-
 The search took around 16 seconds. 
 
 ```{r annoy knn accuracy}
-nn_accuracy(fmnist_train_annoy, fmnist_train_bf)
+nn_overlap(fmnist_train_annoy, fmnist_train_bf)
 ```
 ```
 [1] 0.9590367
@@ -308,7 +244,7 @@ Search time is not terribly affected: it still takes 16 seconds. What about
 accuracy?
 
 ```{r annoy accuracy for smaller annoy index}
-nn_accuracy(fmnist_train_annoy, fmnist_train_bf)
+nn_overlap(fmnist_train_annoy, fmnist_train_bf)
 ```
 ```
 [1] 0.9502022
@@ -372,7 +308,7 @@ fmnist_test_rnnd <-
 For 15 neighbors, the querying took about 2 seconds.
 
 ```{r rnnd accuracy}
-nn_accuracy(fmnist_test_rnnd, fmnist_test_bf)
+nn_overlap(fmnist_test_rnnd, fmnist_test_bf)
 ```
 ```
 [1] 0.95952
@@ -398,7 +334,7 @@ Index searching is fast. I will round it up to 1 second, but it was more like
 0.65 seconds.
 
 ```{r hnsw search accuracy}
-nn_accuracy(fmnist_test_hnsw, fmnist_test_bf)
+nn_overlap(fmnist_test_hnsw, fmnist_test_bf)
 ```
 ```
 [1] 0.9551133
@@ -427,7 +363,7 @@ fmnist_test_annoy <-
 The search took around 3 seconds.
   
 ```{r annoy search accuracy}
-nn_accuracy(fmnist_test_annoy, fmnist_test_bf)
+nn_overlap(fmnist_test_annoy, fmnist_test_bf)
 ```
 ```
 [1] 0.9458733
