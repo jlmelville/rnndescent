@@ -210,7 +210,7 @@ function converts for us. For building the HNSW parameters are `M = 16` and
 `ef_construction = 200`.
 
 ```{r build hnsw index}
-hnsw_index <- hnsw_build(uwot:::x2m(fmnist_train), verbose = TRUE, n_threads = 6)
+hnsw_index <- hnsw_build(uwot:::x2m(fmnist_train), n_threads = 6)
 ```
 
 Index building took 17 seconds. For searching, the default search parameter is
@@ -351,7 +351,6 @@ rnnd_index <-
     fmnist_train,
     k = 15,
     prepare = TRUE,
-    verbose = TRUE,
     n_threads = 6
   )
 ```
@@ -367,8 +366,7 @@ fmnist_test_rnnd <-
     index = rnnd_index,
     query = fmnist_test,
     k = 15,
-    n_threads = 6,
-    verbose = TRUE
+    n_threads = 6
   )
 ```
 For 15 neighbors, the querying took about 2 seconds.
