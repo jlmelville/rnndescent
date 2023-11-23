@@ -3,7 +3,7 @@ Package: rnndescent
 Title: Nearest Neighbor Descent Method for Approximate Nearest Neighbors
 Version: 0.0.16
 Authors@R: c(
-    person("James", "Melville", , "jlmelville@gmail.com", role = c("aut", "cre")),
+    person("James", "Melville", , "jlmelville@gmail.com", role = c("aut", "cre", "cph")),
     person("Vitalie", "Spinu", role = "ctb")
   )
 Description: The Nearest Neighbor Descent method (Dong and co-workers,
@@ -11,7 +11,8 @@ Description: The Nearest Neighbor Descent method (Dong and co-workers,
     neighbors. This is based heavily on the Python implementation,
     "PyNNDescent" (<https://github.com/lmcinnes/pynndescent>).
 License: GPL (>= 3)
-URL: https://jlmelville.github.io/rnndescent/, https://github.com/jlmelville/rnndescent
+URL: https://jlmelville.github.io/rnndescent/,
+    https://github.com/jlmelville/rnndescent
 BugReports: https://github.com/jlmelville/rnndescent/issues
 Imports: 
     dqrng,
