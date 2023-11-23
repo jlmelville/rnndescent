@@ -237,14 +237,14 @@ Dasgupta, S., & Freund, Y. (2008, May).
 Random projection trees and low dimensional manifolds.
 In \emph{Proceedings of the fortieth annual ACM symposium on Theory of computing}
 (pp. 537-546).
-\url{https://doi.org/10.1145/1374376.1374452}.
+\doi{10.1145/1374376.1374452}.
 
 Dong, W., Moses, C., & Li, K. (2011, March).
 Efficient k-nearest neighbor graph construction for generic similarity measures.
 In \emph{Proceedings of the 20th international conference on World Wide Web}
 (pp. 577-586).
 ACM.
-\url{https://doi.org/10.1145/1963405.1963487}.
+\doi{10.1145/1963405.1963487}.
 }
 \seealso{
 \code{\link[=rnnd_build]{rnnd_build()}}, \code{\link[=rnnd_query]{rnnd_query()}}, \code{\link[=rnnd_prepare]{rnnd_prepare()}}

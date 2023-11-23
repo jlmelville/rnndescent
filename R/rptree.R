@@ -157,7 +157,7 @@
 #' Random projection trees and low dimensional manifolds.
 #' In *Proceedings of the fortieth annual ACM symposium on Theory of computing*
 #' (pp. 537-546).
-#' <https://doi.org/10.1145/1374376.1374452>.
+#' \doi{10.1145/1374376.1374452}.
 #' @seealso rpf_filter, nnd_knn
 #' @export
 rpf_knn <- function(data,
@@ -338,7 +338,7 @@ rpf_knn <- function(data,
 #' Random projection trees and low dimensional manifolds.
 #' In *Proceedings of the fortieth annual ACM symposium on Theory of computing*
 #' (pp. 537-546).
-#' <https://doi.org/10.1145/1374376.1374452>.
+#' \doi{10.1145/1374376.1374452}.
 #' @seealso [rpf_knn_query()]
 #' @examples
 #' # Build a forest of 10 trees from the odd rows
@@ -522,7 +522,7 @@ rpf_build <- function(data,
 #' Random projection trees and low dimensional manifolds.
 #' In *Proceedings of the fortieth annual ACM symposium on Theory of computing*
 #' (pp. 537-546).
-#' <https://doi.org/10.1145/1374376.1374452>.
+#' \doi{10.1145/1374376.1374452}.
 #' @seealso [rpf_build()]
 #' @examples
 #' # Build a forest of 10 trees from the odd rows

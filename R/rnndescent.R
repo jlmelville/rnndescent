@@ -221,14 +221,14 @@
 #' Random projection trees and low dimensional manifolds.
 #' In *Proceedings of the fortieth annual ACM symposium on Theory of computing*
 #' (pp. 537-546).
-#' <https://doi.org/10.1145/1374376.1374452>.
+#' \doi{10.1145/1374376.1374452}.
 #'
 #' Dong, W., Moses, C., & Li, K. (2011, March).
 #' Efficient k-nearest neighbor graph construction for generic similarity measures.
 #' In *Proceedings of the 20th international conference on World Wide Web*
 #' (pp. 577-586).
 #' ACM.
-#' <https://doi.org/10.1145/1963405.1963487>.
+#' \doi{10.1145/1963405.1963487}.
 #'
 #' Harwood, B., & Drummond, T. (2016).
 #' Fanng: Fast approximate nearest neighbour graphs.
@@ -678,14 +678,14 @@ rnnd_query <-
 #' Random projection trees and low dimensional manifolds.
 #' In *Proceedings of the fortieth annual ACM symposium on Theory of computing*
 #' (pp. 537-546).
-#' <https://doi.org/10.1145/1374376.1374452>.
+#' \doi{10.1145/1374376.1374452}.
 #'
 #' Dong, W., Moses, C., & Li, K. (2011, March).
 #' Efficient k-nearest neighbor graph construction for generic similarity measures.
 #' In *Proceedings of the 20th international conference on World Wide Web*
 #' (pp. 577-586).
 #' ACM.
-#' <https://doi.org/10.1145/1963405.1963487>.
+#' \doi{10.1145/1963405.1963487}.
 #'
 #' @export
 rnnd_knn <- function(data,
@@ -1227,14 +1227,14 @@ random_knn <-
 #' Random projection trees and low dimensional manifolds.
 #' In *Proceedings of the fortieth annual ACM symposium on Theory of computing*
 #' (pp. 537-546).
-#' <https://doi.org/10.1145/1374376.1374452>.
+#' \doi{10.1145/1374376.1374452}.
 #'
 #' Dong, W., Moses, C., & Li, K. (2011, March).
 #' Efficient k-nearest neighbor graph construction for generic similarity measures.
 #' In *Proceedings of the 20th international conference on World Wide Web*
 #' (pp. 577-586).
 #' ACM.
-#' <https://doi.org/10.1145/1963405.1963487>.
+#' \doi{10.1145/1963405.1963487}.
 #' @export
 nnd_knn <- function(data,
                     k = NULL,

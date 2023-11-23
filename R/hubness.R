@@ -60,7 +60,7 @@
 #' Bratic, B., Houle, M. E., Kurbalija, V., Oria, V., & Radovanovic, M. (2019).
 #' The Influence of Hubness on NN-Descent.
 #' *International Journal on Artificial Intelligence Tools*, *28*(06), 1960002.
-#' <https://doi.org/10.1142/S0218213019600029>
+#' \doi{10.1142/S0218213019600029}
 #' @export
 k_occur <- function(idx,
                     k = NULL,
