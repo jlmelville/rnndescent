@@ -6,10 +6,10 @@ Authors@R: c(
     person("James", "Melville", , "jlmelville@gmail.com", role = c("aut", "cre", "cph")),
     person("Vitalie", "Spinu", role = "ctb")
   )
-Description: The Nearest Neighbor Descent method (Dong and co-workers,
-    <doi:10.1145/1963405.1963487>) for finding approximate nearest
-    neighbors. This is based heavily on the Python implementation,
-    "PyNNDescent" (<https://github.com/lmcinnes/pynndescent>).
+Description: The Nearest Neighbor Descent method for finding approximate
+    nearest neighbors by by Dong and co-workers (2010)
+    <doi:10.1145/1963405.1963487>. Based on the Python package
+    'PyNNDescent' <https://github.com/lmcinnes/pynndescent>.
 License: GPL (>= 3)
 URL: https://jlmelville.github.io/rnndescent/,
     https://github.com/jlmelville/rnndescent
