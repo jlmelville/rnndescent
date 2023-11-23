@@ -34,7 +34,7 @@
 #'   * Find exact nearest neighbors: [brute_force_knn()], [brute_force_knn_query()].
 #'   * Find approximate nearest neighbors: [rpf_knn()], [nnd_knn()].
 #'   * Querying new data: [prepare_search_graph()], [graph_knn_query()].
-#'   * Diagnostics and hubness: [k_occur()].
+#'   * Diagnostics and hubness: [k_occur()], [nn_overlap()].
 #'
 #' @references
 #' Dasgupta, S., & Freund, Y. (2008, May).

@@ -39,7 +39,7 @@ Lower-level functions:
 \item Find exact nearest neighbors: \code{\link[=brute_force_knn]{brute_force_knn()}}, \code{\link[=brute_force_knn_query]{brute_force_knn_query()}}.
 \item Find approximate nearest neighbors: \code{\link[=rpf_knn]{rpf_knn()}}, \code{\link[=nnd_knn]{nnd_knn()}}.
 \item Querying new data: \code{\link[=prepare_search_graph]{prepare_search_graph()}}, \code{\link[=graph_knn_query]{graph_knn_query()}}.
-\item Diagnostics and hubness: \code{\link[=k_occur]{k_occur()}}.
+\item Diagnostics and hubness: \code{\link[=k_occur]{k_occur()}}, \code{\link[=nn_overlap]{nn_overlap()}}.
 }
 }
 \references{
