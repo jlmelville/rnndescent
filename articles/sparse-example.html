@@ -550,7 +550,12 @@ similarities in the input space, so we use
 <code>metric = "euclidean"</code> rather than
 <code>"jensenshannon"</code>:</p>
 <div class="sourceCode" id="cb46"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">umap_nbrs</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/brute_force_knn.html">brute_force_knn</a></span><span class="op">(</span><span class="va">js_umap</span> , k <span class="op">=</span> <span class="fl">15</span>, n_threads <span class="op">=</span> <span class="fl">6</span>, metric <span class="op">=</span> <span class="st">"euclidean"</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">umap_nbrs</span> <span class="op">&lt;-</span></span>
+<span>  <span class="fu"><a href="../reference/brute_force_knn.html">brute_force_knn</a></span><span class="op">(</span><span class="va">js_umap</span>,</span>
+<span>    k <span class="op">=</span> <span class="fl">15</span>,</span>
+<span>    n_threads <span class="op">=</span> <span class="fl">6</span>,</span>
+<span>    metric <span class="op">=</span> <span class="st">"euclidean"</span></span>
+<span>  <span class="op">)</span></span></code></pre></div>
 <p>Now we can measure the overlap between the two neighbor graphs:</p>
 <div class="sourceCode" id="cb47"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/nn_overlap.html">nn_overlap</a></span><span class="op">(</span><span class="va">umap_nbrs</span>, <span class="va">tfidfl1_js_bf</span><span class="op">)</span></span></code></pre></div>

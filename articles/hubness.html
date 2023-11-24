@@ -627,7 +627,7 @@ run to the next. But hopefully that doesn’t also mean that NND is
 producing a very similar neighbor graph each time, in which case merging
 them won’t be very helpful. Time to find out:</p>
 <div class="sourceCode" id="cb47"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">g1000d_nnd_merge</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/merge_knn.html">merge_knn</a></span><span class="op">(</span><span class="va">g1000d_nnd</span>, <span class="va">g1000d_nnd_rep</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">g1000d_nnd_merge</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/merge_knn.html">merge_knn</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">g1000d_nnd</span>, <span class="va">g1000d_nnd_rep</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/nn_overlap.html">nn_overlap</a></span><span class="op">(</span><span class="va">g1000d_nnbf</span>, <span class="va">g1000d_nnd_merge</span>, k <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 0.9058</span></span></code></pre></div>
 <p>That’s a big improvement. So it does seem like there is some
