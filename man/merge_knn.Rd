@@ -2,28 +2,20 @@
 % Please edit documentation in R/rnndescent.R
 \name{merge_knn}
 \alias{merge_knn}
-\title{Merge two approximate nearest neighbors graphs}
+\title{Merge multiple approximate nearest neighbors graphs}
 \usage{
-merge_knn(
-  nn_graph1,
-  nn_graph2,
-  is_query = FALSE,
-  n_threads = 0,
-  verbose = FALSE
-)
+merge_knn(nn_graphs, is_query = FALSE, n_threads = 0, verbose = FALSE)
 }
 \arguments{
-\item{nn_graph1}{A nearest neighbor graph to merge. Should consist of a list
+\item{nn_graphs}{A list of nearest neighbor graph to merge. Each item in the
+list should consist of a sub-list
 containing:
 \itemize{
 \item \code{idx} an n by k matrix containing the k nearest neighbor indices.
 \item \code{dist} an n by k matrix containing k nearest neighbor distances.
+The number of neighbors can differ between graphs, but the merged result
+will have the same number of neighbors as the first graph in the list.
 }}
-
-\item{nn_graph2}{Another nearest neighbor graph to merge with the same
-format as \code{nn_graph1}. The number of neighbors can differ between
-graphs, but the merged result will have the same number of neighbors as
-specified in \code{nn_graph1}.}
 
 \item{is_query}{If \code{TRUE} then the graphs are treated as the result of a knn
 query, not a knn building process. Or: is the graph bipartite? This should
@@ -35,7 +27,7 @@ is a neighbor of \code{i} with distance \code{d}, then it is assumed that \code{
 neighbor of \code{p} with the same distance. If \code{is_query = TRUE}, then \code{i} and
 \code{p} are indexes into two different datasets and the symmetry does not hold.
 If you aren't sure what case applies to you, it's safe (but potentially
-inefficient) to set \code{is_query = TRUE}}
+inefficient) to set \code{is_query = TRUE}.}
 
 \item{n_threads}{Number of threads to use.}
 
@@ -44,17 +36,19 @@ inefficient) to set \code{is_query = TRUE}}
 \value{
 a list containing:
 \itemize{
-\item \code{idx} an n by k matrix containing the merged nearest neighbor
-indices.
-\item \code{dist} an n by k matrix containing the merged nearest neighbor
-distances.
+\item \code{idx} an n by k matrix containing the merged nearest neighbor indices.
+\item \code{dist} an n by k matrix containing the merged nearest neighbor distances.
 }
 
-The size of \code{k} in the output graph is the same as that of
-\code{nn_graph1}.
+The size of \code{k} in the output graph is the same as that of the first
+item in \code{nn_graphs}.
 }
 \description{
-Merge two approximate nearest neighbors graphs
+\code{merge_knn} takes a list of nearest neighbor graphs and merges them into a
+single graph, with the same number of neighbors as the first graph. This is
+useful to combine the results of multiple different nearest neighbor
+searches: the output will be at least as accurate as the most accurate of the
+two input graphs, and ideally will be more accurate than either.
 }
 \examples{
 set.seed(1337)
@@ -62,9 +56,11 @@ set.seed(1337)
 # starting from a different random initialization each time
 iris_rnn1 <- nnd_knn(iris, k = 15, n_iters = 1)
 iris_rnn2 <- nnd_knn(iris, k = 15, n_iters = 1)
+iris_rnn3 <- nnd_knn(iris, k = 15, n_iters = 1)
 
-# Merged results should be an improvement over either individual results
-iris_mnn <- merge_knn(iris_rnn1, iris_rnn2)
+# Merged results should be an improvement over individual results
+iris_mnn <- merge_knn(list(iris_rnn1, iris_rnn2, iris_rnn3))
 sum(iris_mnn$dist) < sum(iris_rnn1$dist)
 sum(iris_mnn$dist) < sum(iris_rnn2$dist)
+sum(iris_mnn$dist) < sum(iris_rnn3$dist)
 }

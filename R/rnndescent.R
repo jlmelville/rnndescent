@@ -2541,68 +2541,13 @@ reverse_knn_sp <- function(graph) {
 
 # Merge -------------------------------------------------------------------
 
-#' Merge two approximate nearest neighbors graphs
+#' Merge multiple approximate nearest neighbors graphs
 #'
-#' @param nn_graph1 A nearest neighbor graph to merge. Should consist of a list
-#'   containing:
-#'   * `idx` an n by k matrix containing the k nearest neighbor indices.
-#'   * `dist` an n by k matrix containing k nearest neighbor distances.
-#' @param nn_graph2 Another nearest neighbor graph to merge with the same
-#'   format as `nn_graph1`. The number of neighbors can differ between
-#'   graphs, but the merged result will have the same number of neighbors as
-#'   specified in `nn_graph1`.
-#' @param is_query If `TRUE` then the graphs are treated as the result of a knn
-#'   query, not a knn building process. Or: is the graph bipartite? This should
-#'   be set to `TRUE` if `nn_graphs` are the results of using e.g.
-#'   [graph_knn_query()] or [random_knn_query()], and set to `FALSE` if these
-#'   are the results of [nnd_knn()] or [random_knn()]. The difference is that if
-#'   `is_query = FALSE`, if an index `p` is found in `nn_graph1[i, ]`, i.e. `p`
-#'   is a neighbor of `i` with distance `d`, then it is assumed that `i` is a
-#'   neighbor of `p` with the same distance. If `is_query = TRUE`, then `i` and
-#'   `p` are indexes into two different datasets and the symmetry does not hold.
-#'   If you aren't sure what case applies to you, it's safe (but potentially
-#'   inefficient) to set `is_query = TRUE`
-#' @param n_threads Number of threads to use.
-#' @param verbose If `TRUE`, log information to the console.
-#' @return a list containing:
-#'   * `idx` an n by k matrix containing the merged nearest neighbor
-#'   indices.
-#'   * `dist` an n by k matrix containing the merged nearest neighbor
-#'    distances.
-#'
-#'   The size of `k` in the output graph is the same as that of
-#'   `nn_graph1`.
-#' @examples
-#' set.seed(1337)
-#' # Nearest neighbor descent with 15 neighbors for iris three times,
-#' # starting from a different random initialization each time
-#' iris_rnn1 <- nnd_knn(iris, k = 15, n_iters = 1)
-#' iris_rnn2 <- nnd_knn(iris, k = 15, n_iters = 1)
-#'
-#' # Merged results should be an improvement over either individual results
-#' iris_mnn <- merge_knn(iris_rnn1, iris_rnn2)
-#' sum(iris_mnn$dist) < sum(iris_rnn1$dist)
-#' sum(iris_mnn$dist) < sum(iris_rnn2$dist)
-#' @export
-merge_knn <- function(nn_graph1,
-                      nn_graph2,
-                      is_query = FALSE,
-                      n_threads = 0,
-                      verbose = FALSE) {
-  validate_are_mergeable(nn_graph1, nn_graph2)
-
-  rnn_merge_nn(
-    nn_graph1$idx,
-    nn_graph1$dist,
-    nn_graph2$idx,
-    nn_graph2$dist,
-    is_query,
-    n_threads = n_threads,
-    verbose = verbose
-  )
-}
-
-#' Merge a list of approximate nearest neighbors graphs
+#' `merge_knn` takes a list of nearest neighbor graphs and merges them into a
+#' single graph, with the same number of neighbors as the first graph. This is
+#' useful to combine the results of multiple different nearest neighbor
+#' searches: the output will be at least as accurate as the most accurate of the
+#' two input graphs, and ideally will be more accurate than either.
 #'
 #' @param nn_graphs A list of nearest neighbor graph to merge. Each item in the
 #'   list should consist of a sub-list
@@ -2639,16 +2584,12 @@ merge_knn <- function(nn_graph1,
 #' iris_rnn3 <- nnd_knn(iris, k = 15, n_iters = 1)
 #'
 #' # Merged results should be an improvement over individual results
-#' iris_mnn <- merge_knnl(list(iris_rnn1, iris_rnn2, iris_rnn3))
+#' iris_mnn <- merge_knn(list(iris_rnn1, iris_rnn2, iris_rnn3))
 #' sum(iris_mnn$dist) < sum(iris_rnn1$dist)
 #' sum(iris_mnn$dist) < sum(iris_rnn2$dist)
 #' sum(iris_mnn$dist) < sum(iris_rnn3$dist)
-#'
-#' # and slightly faster than running:
-#' # iris_mnn <- merge_knn(iris_rnn1, iris_rnn2)
-#' # iris_mnn <- merge_knn(iris_mnn, iris_rnn3)
 #' @export
-merge_knnl <- function(nn_graphs,
+merge_knn <- function(nn_graphs,
                        is_query = FALSE,
                        n_threads = 0,
                        verbose = FALSE) {
@@ -2656,6 +2597,8 @@ merge_knnl <- function(nn_graphs,
     return(list())
   }
   validate_are_mergeablel(nn_graphs)
+
+  tsmessage("Merging graphs")
 
   rnn_merge_nn_all(nn_graphs,
     is_query,

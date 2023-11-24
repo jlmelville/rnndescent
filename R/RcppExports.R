@@ -53,10 +53,6 @@ rnn_sparse_idx_to_graph_query <- function(ref_ind, ref_ptr, ref_data, query_ind,
     .Call(`_rnndescent_rnn_sparse_idx_to_graph_query`, ref_ind, ref_ptr, ref_data, query_ind, query_ptr, query_data, ndim, idx, metric, n_threads, verbose)
 }
 
-rnn_merge_nn <- function(nn_idx1, nn_dist1, nn_idx2, nn_dist2, is_query, n_threads, verbose) {
-    .Call(`_rnndescent_rnn_merge_nn`, nn_idx1, nn_dist1, nn_idx2, nn_dist2, is_query, n_threads, verbose)
-}
-
 rnn_merge_nn_all <- function(nn_graphs, is_query, n_threads, verbose) {
     .Call(`_rnndescent_rnn_merge_nn_all`, nn_graphs, is_query, n_threads, verbose)
 }

@@ -53,25 +53,12 @@ void add_graph(NeighborHeap &heap, const IntegerMatrix &nn_idx,
 }
 
 // [[Rcpp::export]]
-List rnn_merge_nn(const IntegerMatrix &nn_idx1, const NumericMatrix &nn_dist1,
-                  const IntegerMatrix &nn_idx2, const NumericMatrix &nn_dist2,
-                  bool is_query, std::size_t n_threads, bool verbose) {
-  tdoann::NNHeap<RNN_DEFAULT_DIST> nn_merged(nn_idx1.nrow(), nn_idx1.ncol());
-
-  if (verbose) {
-    ts("Merging graphs");
-  }
-  add_graph(nn_merged, nn_idx1, nn_dist1, is_query, n_threads);
-  add_graph(nn_merged, nn_idx2, nn_dist2, is_query, n_threads);
-
-  RParallelExecutor executor;
-  tdoann::NullProgress progress;
-  return heap_to_r(nn_merged, n_threads, progress, executor);
-}
-
-// [[Rcpp::export]]
 List rnn_merge_nn_all(const List &nn_graphs, bool is_query,
                       std::size_t n_threads, bool verbose) {
+  if (verbose) {
+    tsmessage() << "Merging graphs";
+  }
+
   const auto n_graphs = nn_graphs.size();
 
   RPProgress progress(static_cast<std::size_t>(n_graphs), verbose);

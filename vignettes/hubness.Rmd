@@ -613,7 +613,7 @@ neighbor graph each time, in which case merging them won't be very helpful. Time
 to find out:
 
 ```{r merge}
-g1000d_nnd_merge <- merge_knn(g1000d_nnd, g1000d_nnd_rep)
+g1000d_nnd_merge <- merge_knn(list(g1000d_nnd, g1000d_nnd_rep))
 nn_overlap(g1000d_nnbf, g1000d_nnd_merge, k = 15)
 ```
 

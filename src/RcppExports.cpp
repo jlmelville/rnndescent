@@ -226,23 +226,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// rnn_merge_nn
-List rnn_merge_nn(const IntegerMatrix& nn_idx1, const NumericMatrix& nn_dist1, const IntegerMatrix& nn_idx2, const NumericMatrix& nn_dist2, bool is_query, std::size_t n_threads, bool verbose);
-RcppExport SEXP _rnndescent_rnn_merge_nn(SEXP nn_idx1SEXP, SEXP nn_dist1SEXP, SEXP nn_idx2SEXP, SEXP nn_dist2SEXP, SEXP is_querySEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const IntegerMatrix& >::type nn_idx1(nn_idx1SEXP);
-    Rcpp::traits::input_parameter< const NumericMatrix& >::type nn_dist1(nn_dist1SEXP);
-    Rcpp::traits::input_parameter< const IntegerMatrix& >::type nn_idx2(nn_idx2SEXP);
-    Rcpp::traits::input_parameter< const NumericMatrix& >::type nn_dist2(nn_dist2SEXP);
-    Rcpp::traits::input_parameter< bool >::type is_query(is_querySEXP);
-    Rcpp::traits::input_parameter< std::size_t >::type n_threads(n_threadsSEXP);
-    Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
-    rcpp_result_gen = Rcpp::wrap(rnn_merge_nn(nn_idx1, nn_dist1, nn_idx2, nn_dist2, is_query, n_threads, verbose));
-    return rcpp_result_gen;
-END_RCPP
-}
 // rnn_merge_nn_all
 List rnn_merge_nn_all(const List& nn_graphs, bool is_query, std::size_t n_threads, bool verbose);
 RcppExport SEXP _rnndescent_rnn_merge_nn_all(SEXP nn_graphsSEXP, SEXP is_querySEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
@@ -873,7 +856,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_rnndescent_rnn_idx_to_graph_query", (DL_FUNC) &_rnndescent_rnn_idx_to_graph_query, 6},
     {"_rnndescent_rnn_logical_idx_to_graph_query", (DL_FUNC) &_rnndescent_rnn_logical_idx_to_graph_query, 6},
     {"_rnndescent_rnn_sparse_idx_to_graph_query", (DL_FUNC) &_rnndescent_rnn_sparse_idx_to_graph_query, 11},
-    {"_rnndescent_rnn_merge_nn", (DL_FUNC) &_rnndescent_rnn_merge_nn, 7},
     {"_rnndescent_rnn_merge_nn_all", (DL_FUNC) &_rnndescent_rnn_merge_nn_all, 4},
     {"_rnndescent_rnn_descent", (DL_FUNC) &_rnndescent_rnn_descent, 11},
     {"_rnndescent_rnn_logical_descent", (DL_FUNC) &_rnndescent_rnn_logical_descent, 11},

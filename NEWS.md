@@ -3,6 +3,9 @@
 ## Breaking changes
 
 * The `nn_to_sparse` function has been removed.
+* The `merge_knn` function has been removed, and `merge_knnl` has been renamed
+  to `merge_knn`. If you were running e.g. `merge_knn(nn1, nn2)`, you must now
+  use `merge_knn(list(nn1, nn2))`.
 
 ## New features
 
