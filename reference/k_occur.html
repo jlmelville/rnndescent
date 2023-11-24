@@ -147,8 +147,6 @@ The Influence of Hubness on NN-Descent.
 <span class="r-in"><span><span class="va">iris_ko</span> <span class="op">&lt;-</span> <span class="fu">k_occur</span><span class="op">(</span><span class="va">iris_nbrs</span><span class="op">$</span><span class="va">idx</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="co"># items 42 and 107 are not in 15 nearest neighbors of any other members of</span></span></span>
 <span class="r-in"><span><span class="co"># iris</span></span></span>
-<span class="r-in"><span><span class="co"># for convenience you can also pass iris_nbrs directly:</span></span></span>
-<span class="r-in"><span><span class="co"># iris_ko &lt;- k_occur(iris_nbrs)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="va">iris_ko</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span> <span class="co"># they are only their own nearest neighbor</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1]  42 107</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">iris_ko</span><span class="op">)</span> <span class="co"># most "popular" item appears on 29 15-nearest neighbor lists</span></span></span>
