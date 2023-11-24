@@ -4,12 +4,11 @@
 \alias{merge_knn}
 \title{Merge multiple approximate nearest neighbors graphs}
 \usage{
-merge_knn(nn_graphs, is_query = FALSE, n_threads = 0, verbose = FALSE)
+merge_knn(graphs, is_query = FALSE, n_threads = 0, verbose = FALSE)
 }
 \arguments{
-\item{nn_graphs}{A list of nearest neighbor graph to merge. Each item in the
-list should consist of a sub-list
-containing:
+\item{graphs}{A list of nearest neighbor graphs to merge. Each item in the
+list should consist of a sub-list containing:
 \itemize{
 \item \code{idx} an n by k matrix containing the k nearest neighbor indices.
 \item \code{dist} an n by k matrix containing k nearest neighbor distances.

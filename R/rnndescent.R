@@ -2586,9 +2586,8 @@ reverse_knn_sp <- function(graph) {
 #' searches: the output will be at least as accurate as the most accurate of the
 #' two input graphs, and ideally will be more accurate than either.
 #'
-#' @param nn_graphs A list of nearest neighbor graph to merge. Each item in the
-#'   list should consist of a sub-list
-#'   containing:
+#' @param graphs A list of nearest neighbor graphs to merge. Each item in the
+#'   list should consist of a sub-list containing:
 #'   * `idx` an n by k matrix containing the k nearest neighbor indices.
 #'   * `dist` an n by k matrix containing k nearest neighbor distances.
 #'   The number of neighbors can differ between graphs, but the merged result
@@ -2626,16 +2625,16 @@ reverse_knn_sp <- function(graph) {
 #' sum(iris_mnn$dist) < sum(iris_rnn2$dist)
 #' sum(iris_mnn$dist) < sum(iris_rnn3$dist)
 #' @export
-merge_knn <- function(nn_graphs,
-                       is_query = FALSE,
-                       n_threads = 0,
-                       verbose = FALSE) {
-  if (length(nn_graphs) == 0) {
+merge_knn <- function(graphs,
+                      is_query = FALSE,
+                      n_threads = 0,
+                      verbose = FALSE) {
+  if (length(graphs) == 0) {
     return(list())
   }
-  validate_are_mergeablel(nn_graphs)
+  validate_are_mergeablel(graphs)
 
-  rnn_merge_nn_all(nn_graphs,
+  rnn_merge_nn_all(graphs,
     is_query,
     n_threads = n_threads,
     verbose = verbose
@@ -2676,18 +2675,18 @@ merge_knn <- function(nn_graphs,
 #' iris_rnn2 <- random_knn(iris, k = 15)
 #'
 #' # Overlap between the two graphs
-#' mean_overlap <- nn_overlap(iris_rnn1, iris_rnn2)
+#' mean_overlap <- neighbor_overlap(iris_rnn1, iris_rnn2)
 #'
 #' # Also get a vector of per-item overlap
-#' overlap_res <- nn_overlap(iris_rnn1, iris_rnn2, ret_vec = TRUE)
+#' overlap_res <- neighbor_overlap(iris_rnn1, iris_rnn2, ret_vec = TRUE)
 #' summary(overlap_res$overlaps)
 #' @export
-nn_overlap <-
+neighbor_overlap <-
   function(idx1,
            idx2,
            k = NULL,
            ret_vec = FALSE) {
-    vec <- nn_overlapv(idx1, idx2, k)
+    vec <- neighbor_overlapv(idx1, idx2, k)
     mean_overlap <- mean(vec)
     if (ret_vec) {
       res <- list(
@@ -2700,7 +2699,7 @@ nn_overlap <-
     res
   }
 
-nn_overlapv <-
+neighbor_overlapv <-
   function(idx,
            ref_idx,
            k = NULL) {

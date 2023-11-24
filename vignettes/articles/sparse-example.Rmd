@@ -567,7 +567,7 @@ umap_nbrs <-
 Now we can measure the overlap between the two neighbor graphs:
 
 ```{r overlap}
-nn_overlap(umap_nbrs, tfidfl1_js_bf)
+neighbor_overlap(umap_nbrs, tfidfl1_js_bf)
 ```
 ```
 0.1604303

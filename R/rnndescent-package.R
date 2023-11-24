@@ -37,7 +37,7 @@
 #'   * Find exact nearest neighbors: [brute_force_knn()], [brute_force_knn_query()].
 #'   * Merging graphs: [merge_knn()].
 #'   * Hubness: [k_occur()].
-#'   * Overlap/accuracy of two neighbor graphs: [nn_overlap()].
+#'   * Overlap/accuracy of two neighbor graphs: [neighbor_overlap()].
 #'
 #' Some lower-level functions are also available if you want more control than
 #' the `rnnd_*` functions provide:

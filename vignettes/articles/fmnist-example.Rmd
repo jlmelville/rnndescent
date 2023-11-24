@@ -107,7 +107,7 @@ fmnist_train_bf <- brute_force_knn(
 ```
 
 This took nearly ten minutes to get done. Plenty of scope here for the
-approximate nearest neighbor methods to be a lot faster. We also use `nn_overlap`
+approximate nearest neighbor methods to be a lot faster. We also use `neighbor_overlap`
 to compare the overlap of the approximate nearest neighbor indices with the
 exact results.
 
@@ -126,7 +126,7 @@ fmnist_train_rnnd <- rnnd_knn(fmnist_train, k = 15, n_threads = 6, verbose = TRU
 This took 11 seconds. How accurate are the results?
 
 ```{r rnnd knn accuracy}
-nn_overlap(fmnist_train_rnnd, fmnist_train_bf)
+neighbor_overlap(fmnist_train_rnnd, fmnist_train_bf)
 ```
 ```
 0.9871422
@@ -159,7 +159,7 @@ fmnist_train_hnsw <- hnsw_search(uwot:::x2m(fmnist_train), hnsw_index, k = 15, n
 A very impressive 3 seconds for index searching.
 
 ```{r hnsw knn accuracy}
-nn_overlap(fmnist_train_hnsw, fmnist_train_bf)
+neighbor_overlap(fmnist_train_hnsw, fmnist_train_bf)
 ```
 ```
 [1] 0.9748644
@@ -203,7 +203,7 @@ fmnist_train_annoy <-
 The search took around 16 seconds. 
 
 ```{r annoy knn accuracy}
-nn_overlap(fmnist_train_annoy, fmnist_train_bf)
+neighbor_overlap(fmnist_train_annoy, fmnist_train_bf)
 ```
 ```
 [1] 0.9590367
@@ -244,7 +244,7 @@ Search time is not terribly affected: it still takes 16 seconds. What about
 accuracy?
 
 ```{r annoy accuracy for smaller annoy index}
-nn_overlap(fmnist_train_annoy, fmnist_train_bf)
+neighbor_overlap(fmnist_train_annoy, fmnist_train_bf)
 ```
 ```
 [1] 0.9502022
@@ -308,7 +308,7 @@ fmnist_test_rnnd <-
 For 15 neighbors, the querying took about 2 seconds.
 
 ```{r rnnd accuracy}
-nn_overlap(fmnist_test_rnnd, fmnist_test_bf)
+neighbor_overlap(fmnist_test_rnnd, fmnist_test_bf)
 ```
 ```
 [1] 0.95952
@@ -334,7 +334,7 @@ Index searching is fast. I will round it up to 1 second, but it was more like
 0.65 seconds.
 
 ```{r hnsw search accuracy}
-nn_overlap(fmnist_test_hnsw, fmnist_test_bf)
+neighbor_overlap(fmnist_test_hnsw, fmnist_test_bf)
 ```
 ```
 [1] 0.9551133
@@ -363,7 +363,7 @@ fmnist_test_annoy <-
 The search took around 3 seconds.
   
 ```{r annoy search accuracy}
-nn_overlap(fmnist_test_annoy, fmnist_test_bf)
+neighbor_overlap(fmnist_test_annoy, fmnist_test_bf)
 ```
 ```
 [1] 0.9458733

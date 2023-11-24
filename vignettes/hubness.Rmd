@@ -34,7 +34,7 @@ k-occurrences of a neighbor graph to identify when NND is at risk of producing
 less accurate results. We will also look at some ways to ameliorate the effects
 of hubness. This will make use of some utility functions in `rnndescent` which
 can be useful for assessing the accuracy of the approximate nearest neighbors:
-`k_occur`, `nn_overlap`, and `merge_knn`.
+`k_occur`, `neighbor_overlap`, and `merge_knn`.
 
 First, to control the pseudo-random number generation:
 
@@ -66,7 +66,7 @@ function:
 g2d_nnd <- nnd_knn(g2d, k = 15, metric = "euclidean")
 ```
 
-To calculate the accuracy of NND we will use the `nn_overlap` function to
+To calculate the accuracy of NND we will use the `neighbor_overlap` function to
 find the mean overlap of the nearest neighbor indices produced by the methods.
 
 `0` means that none of the exact 15-nearest neighbors were in the list of
@@ -75,7 +75,7 @@ find the mean overlap of the nearest neighbor indices produced by the methods.
 With low-dimensional data, nearest neighbor descent does very well:
 
 ```{r 2D nnd accuracy}
-nn_overlap(g2d_nnbf, g2d_nnd, k = 15)
+neighbor_overlap(g2d_nnbf, g2d_nnd, k = 15)
 ```
 
 Now let's see what happens with a high-dimensional (1000 features):
@@ -100,7 +100,7 @@ g1000d_nnd <- nnd_knn(g1000d, k = 15, metric = "euclidean")
 ...and see how well it does:
 
 ```{r 1000D nnd accuracy}
-nn_overlap(g1000d_nnbf, g1000d_nnd, k = 15)
+neighbor_overlap(g1000d_nnbf, g1000d_nnd, k = 15)
 ```
 
 Still OK, but not as good as we might like.
@@ -148,7 +148,7 @@ nn_rrmsev <- function(nn, ref) {
 
 We don't include the first nearest neighbor distances, as these are invariably
 the self distances which leads to an uninteresting number of zero error results.
-This measure of error is a bit less strict than `nn_overlap` as a neighbor
+This measure of error is a bit less strict than `neighbor_overlap` as a neighbor
 that is outside the true kNN, but which has a comparable distance, will be
 penalized a less harshly than a more distant point.
 
@@ -169,13 +169,13 @@ of errors, where an appreciable number of items have zero RRMS distance errors,
 but there a few items which have the largest error.
 
 We can also get out the overlap on a per-item basis. If you set `ret_vec =
-TRUE`, `nn_overlap` will now return a list with the individual overlaps as the
+TRUE`, `neighbor_overlap` will now return a list with the individual overlaps as the
 `overlaps` vector (the overall mean average overlap is returned as the `mean`
 item). Here is a histograms of the accuracies:
 
 ```{r hist 1000D}
 g1000d_nnd_acc <-
-  nn_overlap(g1000d_nnbf, g1000d_nnd, k = 15, ret_vec = TRUE)$overlaps
+  neighbor_overlap(g1000d_nnbf, g1000d_nnd, k = 15, ret_vec = TRUE)$overlaps
 hist(g1000d_nnd_acc,
   main = "1000D accuracy",
   xlab = "accuracy",
@@ -488,7 +488,7 @@ g1000d_nndkoi1 <- k_occur(g1000d_nnd_iter1$idx, k = 15)
 How accurate are these results?
 
 ```{r unconverged NND accuracy}
-nn_overlap(g1000d_nnbf, g1000d_nnd_iter1, k = 15)
+neighbor_overlap(g1000d_nnbf, g1000d_nnd_iter1, k = 15)
 ```
 
 Ok, I think we can all agree we do *not* have an accurate neighbor graph. But
@@ -532,7 +532,7 @@ g2d_nndkoi1 <- k_occur(g2d_nnd_iter1$idx, k = 15)
 hist(g2d_nndkoi1, main = "2D 15-NND (1 iter)", xlab = "k-occurrences")
 summary(g2d_nndkoi1)
 sum(g2d_nndkoi1 == 1)
-nn_overlap(g2d_nnbf, g2d_nnd_iter1, k = 15)
+neighbor_overlap(g2d_nnbf, g2d_nnd_iter1, k = 15)
 ```
 
 We can see that the neighbor graph is also not very accurate after 1 iteration
@@ -559,7 +559,7 @@ top-15 accuracy:
 
 ```{r NND 1000D truncated 30}
 g1000d_nnd_k30 <- nnd_knn(g1000d, k = 30, metric = "euclidean")
-nn_overlap(g1000d_nnbf, g1000d_nnd_k30, k = 15)
+neighbor_overlap(g1000d_nnbf, g1000d_nnd_k30, k = 15)
 ```
 
 That's a big improvement, but increasing `k` in this way can be quite expensive
@@ -573,7 +573,7 @@ parameter. Let's try increasing that to `30`:
 
 ```{r NND 1000D max_candidates 30}
 g1000d_nnd_mc30 <- nnd_knn(g1000d, k = 15, metric = "euclidean", max_candidates = 30)
-nn_overlap(g1000d_nnbf, g1000d_nnd_mc30)
+neighbor_overlap(g1000d_nnbf, g1000d_nnd_mc30)
 ```
 
 Not as good as increasing `k`, but also not as time-consuming and still an
@@ -587,7 +587,7 @@ force the algorithm to run until convergence:
 
 ```{r NND 1000D tol 0}
 g1000d_nnd_tol0 <- nnd_knn(g1000d, k = 15, metric = "euclidean", delta = 0)
-nn_overlap(g1000d_nnbf, g1000d_nnd_tol0)
+neighbor_overlap(g1000d_nnbf, g1000d_nnd_tol0)
 ```
 
 But as you can see, it's unlikely to achieve very much. The default parameters
@@ -603,7 +603,7 @@ Let's repeat NND and see what the accuracy of this new result is like.
 
 ```{r NND 1000D repeat}
 g1000d_nnd_rep <- nnd_knn(g1000d, k = 15, metric = "euclidean")
-nn_overlap(g1000d_nnbf, g1000d_nnd_rep, k = 15)
+neighbor_overlap(g1000d_nnbf, g1000d_nnd_rep, k = 15)
 ```
 
 That's similar to the first run. That's re-assuring in the sense that the
@@ -614,7 +614,7 @@ to find out:
 
 ```{r merge}
 g1000d_nnd_merge <- merge_knn(list(g1000d_nnd, g1000d_nnd_rep))
-nn_overlap(g1000d_nnbf, g1000d_nnd_merge, k = 15)
+neighbor_overlap(g1000d_nnbf, g1000d_nnd_merge, k = 15)
 ```
 
 That's a big improvement. So it does seem like there is some diversity in the
@@ -622,7 +622,7 @@ results.
 
 ```{r NND 100D compare accuracy}
 g1000d_nnd_rep_acc <-
-  nn_overlap(g1000d_nnbf, g1000d_nnd_rep, k = 15, ret_vec = TRUE)$overlaps
+  neighbor_overlap(g1000d_nnbf, g1000d_nnd_rep, k = 15, ret_vec = TRUE)$overlaps
 plot(
   g1000d_nnd_acc,
   g1000d_nnd_rep_acc,
@@ -707,7 +707,7 @@ g1000d_search <-
 Are the results improved?
 
 ```{r accuracy with search graph}
-nn_overlap(g1000d_nnbf, g1000d_search, k = 15)
+neighbor_overlap(g1000d_nnbf, g1000d_search, k = 15)
 ```
 
 Yes, the accuracy is now nearly perfect. The disadvantages of the search graph
@@ -734,7 +734,7 @@ g1000d_nnd_search <-
     init = g1000d_nnd,
     epsilon = 0.1
   )
-nn_overlap(g1000d_nnbf, g1000d_nnd_search, k = 15)
+neighbor_overlap(g1000d_nnbf, g1000d_nnd_search, k = 15)
 ```
 
 Accuracies are nearly as good. You can save even more time by turning off
@@ -751,7 +751,7 @@ g1000d_nnd_search0 <-
     init = g1000d_nnd,
     epsilon = 0
   )
-nn_overlap(g1000d_nnbf, g1000d_nnd_search0, k = 15)
+neighbor_overlap(g1000d_nnbf, g1000d_nnd_search0, k = 15)
 ```
 
 but accuracies are now noticeably less improved. Using the search graph without
@@ -768,7 +768,7 @@ g1000d_search0 <-
     init = g1000d_nnd,
     epsilon = 0
   )
-nn_overlap(g1000d_nnbf, g1000d_search0, k = 15)
+neighbor_overlap(g1000d_nnbf, g1000d_search0, k = 15)
 ```
 
 but it seems like some sort of back-tracking is to be recommended with this
@@ -795,7 +795,7 @@ g1000d_nnd_search_max <-
     epsilon = 0.1,
     max_search_fraction = 0.1
   )
-nn_overlap(g1000d_nnbf, g1000d_nnd_search_max, k = 15)
+neighbor_overlap(g1000d_nnbf, g1000d_nnd_search_max, k = 15)
 ```
 
 Accuracies are again reduced.

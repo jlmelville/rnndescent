@@ -41,7 +41,7 @@ graphs and how well the approximation is working:
 \item Find exact nearest neighbors: \code{\link[=brute_force_knn]{brute_force_knn()}}, \code{\link[=brute_force_knn_query]{brute_force_knn_query()}}.
 \item Merging graphs: \code{\link[=merge_knn]{merge_knn()}}.
 \item Hubness: \code{\link[=k_occur]{k_occur()}}.
-\item Overlap/accuracy of two neighbor graphs: \code{\link[=nn_overlap]{nn_overlap()}}.
+\item Overlap/accuracy of two neighbor graphs: \code{\link[=neighbor_overlap]{neighbor_overlap()}}.
 }
 
 Some lower-level functions are also available if you want more control than
