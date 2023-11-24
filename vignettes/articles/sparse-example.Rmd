@@ -544,6 +544,35 @@ you must take care not to over-interpret this. When I re-run UMAP multiple times
 the clusters do move about, but "Pride & Prejudice" and "Sense & Sensibility"
 usually end up together. 
 
+### Neighbor Preservation
+
+To get a more quantitative sense of how well this reduction has preserved
+the high-dimensional structure, we can calculate the nearest neighbors in the
+2D space and compare them to the nearest neighbors in the high-dimensional
+space. 
+
+With only two dimensions, brute force search is very fast. UMAP uses the 
+*Euclidean* distance in the output embedding to match the similarities in the
+input space, so we use `metric = "euclidean"` rather than `"jensenshannon"`:
+
+```{r 2D neighbors}
+umap_nbrs <- brute_force_knn(js_umap , k = 15, n_threads = 6, metric = "euclidean")
+```
+
+Now we can measure the overlap between the two neighbor graphs:
+
+```{r overlap}
+nn_overlap(umap_nbrs, tfidfl1_js_bf)
+```
+```
+0.1604303
+```
+
+So on average 16% of the neighbor list was retained after embedding into 2D.
+Although this doesn't sound like much, this actually pretty standard for UMAP
+(and maybe a bit better than normal). Your numbers are going to vary a bit from
+this, but hopefully not by much.
+
 ## Conclusion
 
 Whatever you think of my text analysis skills, the point is that `rnndescent`
