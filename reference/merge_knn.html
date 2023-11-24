@@ -79,15 +79,14 @@ two input graphs, and ideally will be more accurate than either.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">merge_knn</span><span class="op">(</span><span class="va">nn_graphs</span>, is_query <span class="op">=</span> <span class="cn">FALSE</span>, n_threads <span class="op">=</span> <span class="fl">0</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">merge_knn</span><span class="op">(</span><span class="va">graphs</span>, is_query <span class="op">=</span> <span class="cn">FALSE</span>, n_threads <span class="op">=</span> <span class="fl">0</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
-    <dl><dt>nn_graphs</dt>
-<dd><p>A list of nearest neighbor graph to merge. Each item in the
-list should consist of a sub-list
-containing:</p><ul><li><p><code>idx</code> an n by k matrix containing the k nearest neighbor indices.</p></li>
+    <dl><dt>graphs</dt>
+<dd><p>A list of nearest neighbor graphs to merge. Each item in the
+list should consist of a sub-list containing:</p><ul><li><p><code>idx</code> an n by k matrix containing the k nearest neighbor indices.</p></li>
 <li><p><code>dist</code> an n by k matrix containing k nearest neighbor distances.
 The number of neighbors can differ between graphs, but the merged result
 will have the same number of neighbors as the first graph in the list.</p></li>
