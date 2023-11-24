@@ -22,8 +22,9 @@ iris_index_prep <-
 expect_equal(iris_prep, iris_index_prep)
 
 iris_bf <- brute_force_knn_query(ui10, ui10, k = 4)
-iris_query <- rnnd_query(index = iris_index, query = ui10, k = 4)
+msg <-capture_everything(iris_query <- rnnd_query(index = iris_index, query = ui10, k = 4, verbose = TRUE))
 expect_equal(iris_query, iris_bf)
+expect_match(msg, "max distance")
 
 iris_queryp <-
   rnnd_query(index = iris_index_prep, query = ui10, k = 4)

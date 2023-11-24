@@ -420,7 +420,9 @@ rnnd_prepare <- function(index,
 #'   dimensional data should choose a smaller cutoff). Too large a value of
 #'   `epsilon` will result in the query search approaching brute force
 #'   comparison. Use this parameter in conjunction with `max_search_fraction`
-#'   and [rnnd_prepare()] to prevent excessive run time. Default is 0.1.
+#'   and [rnnd_prepare()] to prevent excessive run time. Default is 0.1. If you
+#'   set `verbose = TRUE`, statistics of the number of distance calculations
+#'   will be logged which can help you tune `epsilon`.
 #' @param max_search_fraction Maximum fraction of the reference data to search.
 #'  This is a value between 0 (search none of the reference data) and 1 (search
 #'  all of the data if necessary). This works in conjunction with `epsilon` and
@@ -1906,7 +1908,9 @@ random_knn_query <-
 #'   should choose a smaller cutoff). Too large a value of `epsilon` will result
 #'   in the query search approaching brute force comparison. Use this parameter
 #'   in conjunction with `max_search_fraction` and [prepare_search_graph()] to
-#'   prevent excessive run time. Default is 0.1.
+#'   prevent excessive run time. Default is 0.1. If you set `verbose = TRUE`,
+#'   statistics of the number of distance calculations will be logged which
+#'   can help you tune `epsilon`.
 #' @param max_search_fraction Maximum fraction of the reference data to search.
 #'  This is a value between 0 (search none of the reference data) and 1 (search
 #'  all of the data if necessary). This works in conjunction with `epsilon` and

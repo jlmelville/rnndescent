@@ -29,6 +29,9 @@ used in combination with `epsilon` to avoid excessive search times.
 * During tree-building with `n_threads = 0`, progress/interrupt monitoring was
 not occurring.
 * You can provide a user-defined graph to the `init` parameter of `rnnd_query`.
+* `rnnd_query`: if `verbose = TRUE`, a summary of the min, max and average
+number of distance queries will be logged. This can help tune `epsilon` and
+`max_search_fraction`.
 
 # rnndescent 0.0.15
 

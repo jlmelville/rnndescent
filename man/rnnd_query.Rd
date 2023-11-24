@@ -44,7 +44,10 @@ highly dependent on the distribution of distances in the dataset (higher
 dimensional data should choose a smaller cutoff). Too large a value of
 \code{epsilon} will result in the query search approaching brute force
 comparison. Use this parameter in conjunction with \code{max_search_fraction}
-and \code{\link[=rnnd_prepare]{rnnd_prepare()}} to prevent excessive run time. Default is 0.1.}
+and \code{\link[=rnnd_prepare]{rnnd_prepare()}} to prevent excessive run time. Default is 0.1.
+If you set \code{verbose = TRUE},
+statistics of the number of distance calculations will be logged which
+can help you tune \code{epsilon}.}
 
 \item{max_search_fraction}{Maximum fraction of the reference data to search.
 This is a value between 0 (search none of the reference data) and 1 (search

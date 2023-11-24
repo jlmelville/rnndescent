@@ -40,11 +40,11 @@ template <typename Out, typename Idx>
 void nn_query(const SparseNNGraph<Out, Idx> &search_graph,
               NNHeap<Out, Idx> &nn_heap, const BaseDistance<Out, Idx> &distance,
               double epsilon, std::size_t max_distance_calculations,
-              std::size_t n_threads, ProgressBase &progress,
-              const Executor &executor) {
+              std::vector<std::size_t> &distance_counts, std::size_t n_threads,
+              ProgressBase &progress, const Executor &executor) {
   auto worker = [&](std::size_t begin, std::size_t end) {
     non_search_query(nn_heap, distance, search_graph, epsilon,
-                     max_distance_calculations, begin, end);
+                     max_distance_calculations, distance_counts, begin, end);
   };
   progress.set_n_iters(1);
   ExecutionParams exec_params{100 * n_threads};
@@ -64,6 +64,7 @@ void non_search_query(NNHeap<Out, Idx> &current_graph,
                       const BaseDistance<Out, Idx> &distance,
                       const SparseNNGraph<Out, Idx> &search_graph,
                       double epsilon, std::size_t max_distance_calculations,
+                      std::vector<std::size_t> &distance_counts,
                       std::size_t begin, std::size_t end) {
   constexpr auto npos = static_cast<Idx>(-1);
 
@@ -117,6 +118,7 @@ void non_search_query(NNHeap<Out, Idx> &current_graph,
             static_cast<double>(current_graph.max_distance(query_idx));
       }
     } // next candidate
+    distance_counts[query_idx] = n_searches_for_query;
   }
 }
 

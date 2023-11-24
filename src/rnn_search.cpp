@@ -19,6 +19,10 @@
 
 // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers,modernize-use-trailing-return-type,readability-magic-numbers)
 
+#include <cmath>
+#include <iomanip>
+#include <sstream>
+
 #include <Rcpp.h>
 
 #include "tdoann/search.h"
@@ -36,6 +40,12 @@ using Rcpp::List;
 using Rcpp::LogicalMatrix;
 using Rcpp::NumericMatrix;
 using Rcpp::NumericVector;
+
+std::string fmt_double(double d, int precision = 2) {
+  std::ostringstream oss;
+  oss << std::fixed << std::setprecision(precision) << d;
+  return oss.str();
+}
 
 template <typename Out, typename Idx>
 List nn_query_impl(const tdoann::BaseDistance<Out, Idx> &distance,
@@ -58,10 +68,38 @@ List nn_query_impl(const tdoann::BaseDistance<Out, Idx> &distance,
   // k initial guesses
   fill_random(nn_heap, distance, n_threads, verbose);
 
+  std::vector<std::size_t> distance_counts(nn_heap.n_points, 0);
+
   RParallelExecutor executor;
   RPProgress progress(verbose);
   tdoann::nn_query(search_graph, nn_heap, distance, epsilon,
-                   max_distance_calculations, n_threads, progress, executor);
+                   max_distance_calculations, distance_counts, n_threads,
+                   progress, executor);
+
+  if (verbose) {
+    std::size_t min_count = 0UL;
+    std::size_t max_count = 0UL;
+    std::size_t sum_counts = 0UL;
+    double n_points = static_cast<double>(search_graph.n_points);
+    for (auto count : distance_counts) {
+      if (count > max_count) {
+        max_count = count;
+      }
+      if (count < min_count) {
+        min_count = count;
+      }
+      sum_counts += count;
+    }
+    double avg_count = sum_counts / distance_counts.size();
+
+    tsmessage() << "min distance calculation = " << min_count << " ("
+                << fmt_double(100.0 * min_count / n_points) << "%) of reference data\n";
+    tsmessage() << "max distance calculation = " << max_count << " ("
+                << fmt_double(100.0 * max_count / n_points) << "%) of reference data\n";
+    tsmessage() << "avg distance calculation = " << std::lround(avg_count)
+                << " (" << fmt_double(100.0 * avg_count / n_points)
+                << "%) of reference data\n";
+  }
 
   return heap_to_r(nn_heap, n_threads, progress, executor);
 }
