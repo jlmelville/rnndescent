@@ -2,7 +2,7 @@
 % Please edit documentation in R/rnndescent.R
 \name{nnd_knn}
 \alias{nnd_knn}
-\title{Find Nearest Neighbors and Distances}
+\title{Find nearest neighbors using nearest neighbor descent}
 \usage{
 nnd_knn(
   data,
@@ -184,8 +184,13 @@ used to initialize the neighbor data.
 }
 }
 \description{
-Uses Nearest Neighbor Descent (Dong and co-workers, 2011) to optimize an
-approximate nearest neighbor graph.
+Uses the Nearest Neighbor Descent method due to Dong and co-workers (2011)
+to optimize an approximate nearest neighbor graph.
+}
+\details{
+If no initial graph is provided, a random graph is generated, or you may also
+specify the use of a graph generated from a forest of random projection
+trees, using the method of Dasgupta and Freund (2008).
 }
 \examples{
 # Find 4 (approximate) nearest neighbors using Euclidean distance

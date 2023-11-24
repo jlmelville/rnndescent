@@ -2,7 +2,7 @@
 % Please edit documentation in R/rnndescent.R
 \name{graph_knn_query}
 \alias{graph_knn_query}
-\title{Find Nearest Neighbors and Distances}
+\title{Query a search graph for nearest neighbors}
 \usage{
 graph_knn_query(
   query,
@@ -174,7 +174,16 @@ specifying the row of the neighbor in \code{reference}.
 }
 }
 \description{
-Find Nearest Neighbors and Distances
+Run queries against a search graph, to return nearest neighbors taken from
+the reference data used to build that graph.
+}
+\details{
+A greedy beam search is used to query the graph, combining two search pruning
+strategies. The first, due to Iwasaki and Miyazaki (2018), only considers
+new candidates within a relative distance of the current furthest neighbor
+in the query's graph. The second, due to Harwood and Drummond (2016), puts a
+limit on the absolute number of distance calculations to carry out. See the
+\code{epsilon} and \code{max_search_fraction} parameters respectively.
 }
 \examples{
 # 100 reference iris items
@@ -209,10 +218,6 @@ iris_query_nn <- graph_knn_query(iris_query, iris_ref, iris_ref_search_graph,
 
 }
 \references{
-Hajebi, K., Abbasi-Yadkori, Y., Shahbazi, H., & Zhang, H. (2011, June).
-Fast approximate nearest-neighbor search with k-nearest neighbor graph.
-In \emph{Twenty-Second International Joint Conference on Artificial Intelligence}.
-
 Harwood, B., & Drummond, T. (2016).
 Fanng: Fast approximate nearest neighbour graphs.
 In \emph{Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition}

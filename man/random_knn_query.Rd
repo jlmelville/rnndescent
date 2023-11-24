@@ -2,7 +2,7 @@
 % Please edit documentation in R/rnndescent.R
 \name{random_knn_query}
 \alias{random_knn_query}
-\title{Nearest Neighbors Query by Random Selection}
+\title{Query nearest neighbors by random selection}
 \usage{
 random_knn_query(
   query,
@@ -124,7 +124,9 @@ an approximate nearest neighbor graph as a list containing:
 }
 }
 \description{
-Nearest Neighbors Query by Random Selection
+Run queries against reference data to return randomly selected neighbors.
+This is not a useful query method on its own, but can be used with other
+methods which require initialization.
 }
 \examples{
 # 100 reference iris items

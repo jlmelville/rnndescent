@@ -2,7 +2,7 @@
 % Please edit documentation in R/rptree.R
 \name{rpf_filter}
 \alias{rpf_filter}
-\title{Filter a Random Projection Forest}
+\title{Keep the best trees in a random projection forest}
 \usage{
 rpf_filter(nn, forest = NULL, n_trees = 1, n_threads = 0, verbose = FALSE)
 }
@@ -29,10 +29,7 @@ A forest with the best scoring \code{n_trees} trees.
 \description{
 Reduce the size of a random projection forest, by scoring each tree against
 a k-nearest neighbors graph. Only the top N trees will be retained which
-allows for a faster querying. Rather than rely on an RP Forest solely for
-approximate nearest neighbor querying, it is probably more cost-effective to
-use a small number of trees to initialize the search space and then use that
-as input to a search graph.
+allows for a faster querying.
 }
 \details{
 Trees are scored based on how well each leaf reflects the neighbors as
@@ -41,6 +38,11 @@ neighbor data as you can and it does not need to come directly from
 searching the \code{forest}: for example, the nearest neighbor data from running
 \code{\link[=nnd_knn]{nnd_knn()}} to optimize the neighbor data output from an RP Forest is a
 good choice.
+
+Rather than rely on an RP Forest solely for approximate nearest neighbor
+querying, it is probably more cost-effective to use a small number of trees
+to initialize the neighbor list for use in a graph search via
+\code{\link[=graph_knn_query]{graph_knn_query()}}.
 }
 \examples{
 # Build a knn with a forest of 10 trees using the odd rows

@@ -2,7 +2,7 @@
 % Please edit documentation in R/rnndescent.R
 \name{prepare_search_graph}
 \alias{prepare_search_graph}
-\title{Nearest Neighbor Graph Refinement}
+\title{Convert a nearest neighbor graph into a search graph}
 \usage{
 prepare_search_graph(
   data,
@@ -131,7 +131,8 @@ matrix, suitable for use with \code{\link[=graph_knn_query]{graph_knn_query()}}.
 \description{
 Create a graph using existing nearest neighbor data to balance search
 speed and accuracy using the occlusion pruning and truncation strategies
-of Harwood and Drummond (2016).
+of Harwood and Drummond (2016). The resulting search graph should be more
+efficient for querying new data than the original nearest neighbor graph.
 }
 \details{
 An approximate nearest neighbor graph is not very useful for querying via
@@ -200,4 +201,7 @@ In \emph{Proceedings of the IEEE Conference on Computer Vision and Pattern Recog
 Jayaram Subramanya, S., Devvrit, F., Simhadri, H. V., Krishnawamy, R., & Kadekodi, R. (2019).
 Diskann: Fast accurate billion-point nearest neighbor search on a single node.
 \emph{Advances in Neural Information Processing Systems}, \emph{32}.
+}
+\seealso{
+\code{\link[=graph_knn_query]{graph_knn_query()}}
 }

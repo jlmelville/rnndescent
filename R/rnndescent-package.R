@@ -1,6 +1,7 @@
 #' @useDynLib rnndescent, .registration = TRUE
 # Suppress R CMD check note "Namespace in Imports field not imported from"
 #' @importFrom dqrng dqset.seed
+#' @importFrom Rcpp sourceCpp
 #' @docType package
 #' @name rnndescent-package
 #' @keywords internal
@@ -15,26 +16,37 @@
 #' the search performance. The package also provides functions to diagnose
 #' hubness in nearest neighbor results (Radovanovic and co-workers, 2010).
 #'
-#' This library is based heavily on the PyNNDescent Python library.
+#' This library is based heavily on the 'PyNNDescent' Python library.
 #'
 #' General resources:
 #'
-#'   * Website for the rnndescent package: <https://github.com/jlmelville/rnndescent>
-#'   * Documentation for the rnndescent package: <https://jlmelville.github.io/rnndescent/>
-#'   * Website of the PyNNDescent package: <https://github.com/lmcinnes/pynndescent>
+#'   * Website for the 'rnndescent' package: <https://github.com/jlmelville/rnndescent>
+#'   * Documentation for the 'rnndescent' package: <https://jlmelville.github.io/rnndescent/>
+#'   * Website of the 'PyNNDescent' package: <https://github.com/lmcinnes/pynndescent>
 #'
-#' Resources on specific topics:
+#' The following functions provide the main interface to the package, with
+#' useful defaults:
 #'
 #'   * Find the approximate nearest neighbors: [rnnd_knn()]
 #'   * Create a search index and query new neighbors: [rnnd_build()] and [rnnd_prepare()].
 #'   * Query new neighbors (or refine an existing knn graph): [rnnd_query()].
 #'
-#' Lower-level functions:
+#' Some diagnostic and helper functions to help explore the the structure of the
+#' graphs and how well the approximation is working:
 #'
 #'   * Find exact nearest neighbors: [brute_force_knn()], [brute_force_knn_query()].
+#'   * Merging graphs: [merge_knn()].
+#'   * Hubness: [k_occur()].
+#'   * Overlap/accuracy of two neighbor graphs: [nn_overlap()].
+#'
+#' Some lower-level functions are also available if you want more control than
+#' the `rnnd_*` functions provide:
+#'
 #'   * Find approximate nearest neighbors: [rpf_knn()], [nnd_knn()].
-#'   * Querying new data: [prepare_search_graph()], [graph_knn_query()].
-#'   * Diagnostics and hubness: [k_occur()], [nn_overlap()].
+#'   * Generating random neighbors: [random_knn()], [random_knn_query()].
+#'   * Building an index: [rpf_build()], [rpf_filter()].
+#'   * Querying an index for new data: [rpf_knn_query()], [prepare_search_graph()],
+#'      [graph_knn_query()].
 #'
 #' @references
 #' Dasgupta, S., & Freund, Y. (2008, May).

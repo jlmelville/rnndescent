@@ -1,7 +1,8 @@
-#' Find Nearest Neighbors and Distances Using A Random Projection Forest
+#' Find nearest neighbors using a random projection forest
 #'
-#' Find approximate nearest neighbors using a "forest" of Random Projection
-#' Trees (Dasgupta and Freund, 2008).
+#' Returns the approximate k-nearest neighbor graph of a dataset by searching
+#' multiple random projection trees, a variant of k-d trees originated by
+#' Dasgupta and Freund (2008).
 #'
 #' @param data Matrix of `n` items to generate neighbors for, with observations
 #'   in the rows and features in the columns. Optionally, input can be passed
@@ -140,25 +141,18 @@
 #' # evaluating whether an item is a neighbor of itself by setting
 #' # `include_self = FALSE`:
 #' iris_rp <- rpf_knn(iris, k = 4, n_trees = 3, include_self = FALSE)
-#' # Use it with e.g. `nnd_knn` -- this should be better than a random start
-#' iris_nnd <- nnd_knn(iris, k = 4, init = iris_rp)
-#' # but note you can also run nnd_knn(iris, k = 4, init = "tree") to initialize
-#' # from an RP forest directly
-#'
 #' # for future querying you may want to also return the RP forest:
 #' iris_rpf <- rpf_knn(iris,
 #'   k = 4, n_trees = 3, include_self = FALSE,
 #'   ret_forest = TRUE
 #' )
-#' # forest and nn data can be used to create a smaller forest for querying
-#' # filtered_forest <- rpf_filter(iris_rpf)
 #' @references
 #' Dasgupta, S., & Freund, Y. (2008, May).
 #' Random projection trees and low dimensional manifolds.
 #' In *Proceedings of the fortieth annual ACM symposium on Theory of computing*
 #' (pp. 537-546).
 #' \doi{10.1145/1374376.1374452}.
-#' @seealso rpf_filter, nnd_knn
+#' @seealso [rpf_filter()], [nnd_knn()]
 #' @export
 rpf_knn <- function(data,
                     k,
@@ -213,9 +207,9 @@ rpf_knn <- function(data,
   res
 }
 
-#' Create a Random Projection Forest
+#' Create a random projection forest nearest neighbor index
 #'
-#' Build a "forest" of Random Projection Trees (Dasgupta and Freund, 2008),
+#' Builds a "forest" of Random Projection Trees (Dasgupta and Freund, 2008),
 #' which can later be searched to find approximate nearest neighbors.
 #'
 #' @param data Matrix of `n` items to generate the index for, with observations
@@ -467,10 +461,10 @@ rpf_build <- function(data,
   forest
 }
 
-#' Search a Random Projection Forest
+#' Query a random projection forest index for nearest neighbors
 #'
 #' Run queries against a "forest" of Random Projection Trees (Dasgupta and
-#' Freund, 2008), to return nearest neighbors from the reference data used
+#' Freund, 2008), to return nearest neighbors taken from the reference data used
 #' to build the forest.
 #'
 #' @param query Matrix of `n` query items, with observations in the rows and
@@ -631,14 +625,11 @@ rpf_knn_query <- function(query,
   res
 }
 
-#' Filter a Random Projection Forest
+#' Keep the best trees in a random projection forest
 #'
 #' Reduce the size of a random projection forest, by scoring each tree against
 #' a k-nearest neighbors graph. Only the top N trees will be retained which
-#' allows for a faster querying. Rather than rely on an RP Forest solely for
-#' approximate nearest neighbor querying, it is probably more cost-effective to
-#' use a small number of trees to initialize the search space and then use that
-#' as input to a search graph.
+#' allows for a faster querying.
 #'
 #' Trees are scored based on how well each leaf reflects the neighbors as
 #' specified in the nearest neighbor data. It's best to use as accurate nearest
@@ -646,6 +637,11 @@ rpf_knn_query <- function(query,
 #' searching the `forest`: for example, the nearest neighbor data from running
 #' [nnd_knn()] to optimize the neighbor data output from an RP Forest is a
 #' good choice.
+#'
+#' Rather than rely on an RP Forest solely for approximate nearest neighbor
+#' querying, it is probably more cost-effective to use a small number of trees
+#' to initialize the neighbor list for use in a graph search via
+#' [graph_knn_query()].
 #'
 #' @param nn Nearest neighbor data in the dense list format. This should be
 #'   derived from the same data that was used to build the `forest`.

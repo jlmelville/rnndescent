@@ -2,7 +2,7 @@
 % Please edit documentation in R/rnndescent.R
 \name{rnnd_build}
 \alias{rnnd_build}
-\title{Build Approximate Nearest Neighbors Index and KNN Graph}
+\title{Build approximate nearest neighbors index and neighbor graph}
 \usage{
 rnnd_build(
   data,

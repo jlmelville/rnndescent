@@ -2,7 +2,7 @@
 % Please edit documentation in R/rnndescent.R
 \name{random_knn}
 \alias{random_knn}
-\title{Randomly select nearest neighbors.}
+\title{Find nearest neighbors by random selection}
 \usage{
 random_knn(
   data,
@@ -114,7 +114,9 @@ a random neighbor graph as a list containing:
 }
 }
 \description{
-Randomly select nearest neighbors.
+Create a neighbor graph by randomly selecting neighbors. This is not a useful
+nearest neighbor method on its own, but can be used with other methods which
+require initialization, such as \code{\link[=nnd_knn]{nnd_knn()}}.
 }
 \examples{
 # Find 4 random neighbors and calculate their Euclidean distance

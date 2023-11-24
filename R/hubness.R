@@ -1,19 +1,20 @@
 # Hubness -----------------------------------------------------------------
 
-#' k-Occurrence
+#' Quantify hubness of a nearest neighbor graph
 #'
-#' Calculates the the k-occurrence for a given nearest neighbor matrix
+#' `k_occur` returns a vector of the k-occurrences of a nearest neighbor graph
+#' as defined by  Radovanovic and co-workers (2010). The k-occurrence of an
+#' object is the number of times it occurs among the k-nearest neighbors of
+#' objects in a dataset.
 #'
-#' The k-occurrence of an object is the number of times it occurs among the
-#' k-nearest neighbors of objects in a dataset. This can take values between 0
-#' and the size of the dataset. The larger the k-occurrence for an object, the
-#' more "popular" it is. Very large values of the k-occurrence (much larger than
-#' k) indicates that an object is a "hub" and also implies the existence of
-#' "anti-hubs": objects that never appear as k-nearest neighbors of other
-#' objects.
+#' The k-occurrence can take values between 0 and the size of the dataset. The
+#' larger the k-occurrence for an object, the more "popular" it is. Very large
+#' values of the k-occurrence (much larger than k) indicates that an object is a
+#' "hub" and also implies the existence of "anti-hubs": objects that never
+#' appear as k-nearest neighbors of other objects.
 #'
-#' The presence of hubs can reduce the accuracy of nearest-neighbor descent
-#' and other approximate nearest neighbor algorithms in terms of retrieving the
+#' The presence of hubs can reduce the accuracy of nearest-neighbor descent and
+#' other approximate nearest neighbor algorithms in terms of retrieving the
 #' exact k-nearest neighbors. However the appearance of hubs can still be
 #' detected in these approximate results, so calculating the k-occurrences for
 #' the output of nearest neighbor descent is a useful diagnostic step.

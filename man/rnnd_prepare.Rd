@@ -2,7 +2,7 @@
 % Please edit documentation in R/rnndescent.R
 \name{rnnd_prepare}
 \alias{rnnd_prepare}
-\title{Prepare Approximate Nearest Neighbors Index for Querying}
+\title{Prepare approximate nearest neighbors index for querying}
 \usage{
 rnnd_prepare(index, n_threads = 0, verbose = FALSE)
 }

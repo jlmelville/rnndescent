@@ -2,7 +2,7 @@
 % Please edit documentation in R/rnndescent.R
 \name{brute_force_knn_query}
 \alias{brute_force_knn_query}
-\title{Query Exact Nearest Neighbors by Brute Force}
+\title{Query exact nearest neighbors by brute force}
 \usage{
 brute_force_knn_query(
   query,
@@ -119,7 +119,15 @@ items in \code{reference}.
 }
 }
 \description{
-Query Exact Nearest Neighbors by Brute Force
+Returns the exact nearest neighbors of query data to the reference data. A
+brute force search is carried out: all possible pairs of reference and query
+points are compared, and the nearest neighbors are returned.
+}
+\details{
+This is accurate but scales poorly with dataset size, so use with caution
+with larger datasets. Having the exact neighbors as a ground truth to compare
+with approximate results is useful for benchmarking and determining
+parameter settings of the approximate methods.
 }
 \examples{
 # 100 reference iris items

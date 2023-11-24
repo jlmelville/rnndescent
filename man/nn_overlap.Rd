@@ -2,7 +2,7 @@
 % Please edit documentation in R/rnndescent.R
 \name{nn_overlap}
 \alias{nn_overlap}
-\title{Overlap between two nearest neighbor graphs}
+\title{Overlap between the indices of two nearest neighbor graphs}
 \usage{
 nn_overlap(idx1, idx2, k = NULL, ret_vec = FALSE)
 }
@@ -25,11 +25,16 @@ then a list containing the mean overlap and the overlap of each item in
 is returned with names \code{mean} and \code{overlaps}, respectively.
 }
 \description{
-Calculates the overlap between two nearest neighbor graphs. The overlap is
-defined as the number of neighbors in common between the two graphs. The
-graph format is the same as that returned by e.g. \code{\link[=nnd_knn]{nnd_knn()}} and should be
-of dimensions n by k, where n is the number of points and k is the number of
-neighbors. If you pass a neighbor graph directly, the index matrix will be
+Calculates the mean average number of neighbors in common between the two
+graphs. The per-item overlap can also be returned. This function can be
+useful as a measure of accuracy of approximation algorithms, if the
+exact nearest neighbors are known, or as a measure of diversity of two
+different approximate graphs.
+}
+\details{
+The graph format is the same as that returned by e.g. \code{\link[=nnd_knn]{nnd_knn()}} and should
+be of dimensions n by k, where n is the number of points and k is the number
+of neighbors. If you pass a neighbor graph directly, the index matrix will be
 extracted if present. If the two graphs have different numbers of neighbors,
 then the smaller number of neighbors is used.
 }

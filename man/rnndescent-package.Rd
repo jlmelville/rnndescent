@@ -18,28 +18,40 @@ Drummond, 2016) and back-tracking (Iwasakai and Miyazaki, 2018) to improve
 the search performance. The package also provides functions to diagnose
 hubness in nearest neighbor results (Radovanovic and co-workers, 2010).
 
-This library is based heavily on the PyNNDescent Python library.
+This library is based heavily on the 'PyNNDescent' Python library.
 
 General resources:
 \itemize{
-\item Website for the rnndescent package: \url{https://github.com/jlmelville/rnndescent}
-\item Documentation for the rnndescent package: \url{https://jlmelville.github.io/rnndescent/}
-\item Website of the PyNNDescent package: \url{https://github.com/lmcinnes/pynndescent}
+\item Website for the 'rnndescent' package: \url{https://github.com/jlmelville/rnndescent}
+\item Documentation for the 'rnndescent' package: \url{https://jlmelville.github.io/rnndescent/}
+\item Website of the 'PyNNDescent' package: \url{https://github.com/lmcinnes/pynndescent}
 }
 
-Resources on specific topics:
+The following functions provide the main interface to the package, with
+useful defaults:
 \itemize{
 \item Find the approximate nearest neighbors: \code{\link[=rnnd_knn]{rnnd_knn()}}
 \item Create a search index and query new neighbors: \code{\link[=rnnd_build]{rnnd_build()}} and \code{\link[=rnnd_prepare]{rnnd_prepare()}}.
 \item Query new neighbors (or refine an existing knn graph): \code{\link[=rnnd_query]{rnnd_query()}}.
 }
 
-Lower-level functions:
+Some diagnostic and helper functions to help explore the the structure of the
+graphs and how well the approximation is working:
 \itemize{
 \item Find exact nearest neighbors: \code{\link[=brute_force_knn]{brute_force_knn()}}, \code{\link[=brute_force_knn_query]{brute_force_knn_query()}}.
+\item Merging graphs: \code{\link[=merge_knn]{merge_knn()}}.
+\item Hubness: \code{\link[=k_occur]{k_occur()}}.
+\item Overlap/accuracy of two neighbor graphs: \code{\link[=nn_overlap]{nn_overlap()}}.
+}
+
+Some lower-level functions are also available if you want more control than
+the \verb{rnnd_*} functions provide:
+\itemize{
 \item Find approximate nearest neighbors: \code{\link[=rpf_knn]{rpf_knn()}}, \code{\link[=nnd_knn]{nnd_knn()}}.
-\item Querying new data: \code{\link[=prepare_search_graph]{prepare_search_graph()}}, \code{\link[=graph_knn_query]{graph_knn_query()}}.
-\item Diagnostics and hubness: \code{\link[=k_occur]{k_occur()}}, \code{\link[=nn_overlap]{nn_overlap()}}.
+\item Generating random neighbors: \code{\link[=random_knn]{random_knn()}}, \code{\link[=random_knn_query]{random_knn_query()}}.
+\item Building an index: \code{\link[=rpf_build]{rpf_build()}}, \code{\link[=rpf_filter]{rpf_filter()}}.
+\item Querying an index for new data: \code{\link[=rpf_knn_query]{rpf_knn_query()}}, \code{\link[=prepare_search_graph]{prepare_search_graph()}},
+\code{\link[=graph_knn_query]{graph_knn_query()}}.
 }
 }
 \references{

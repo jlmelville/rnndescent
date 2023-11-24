@@ -2,7 +2,7 @@
 % Please edit documentation in R/rnndescent.R
 \name{rnnd_query}
 \alias{rnnd_query}
-\title{Query Approximate Nearest Neighbors Index}
+\title{Query an index for approximate nearest neighbors}
 \usage{
 rnnd_query(
   index,

@@ -1,6 +1,6 @@
 # API ---------------------------------------------------------------------
 
-#' Build Approximate Nearest Neighbors Index and KNN Graph
+#' Build approximate nearest neighbors index and neighbor graph
 #'
 #' This function builds an approximate nearest neighbors graph with convenient
 #' defaults. It will also optionally prepare the index for querying new data,
@@ -310,7 +310,7 @@ rnnd_build <- function(data,
   index
 }
 
-#' Prepare Approximate Nearest Neighbors Index for Querying
+#' Prepare approximate nearest neighbors index for querying
 #'
 #' Takes a nearest neighbor index produced by `rnnd_build` and uses the graph
 #' diversification method of Harwood and Drummond (2016) to prepare a nearest
@@ -384,8 +384,7 @@ rnnd_prepare <- function(index,
   index
 }
 
-
-#' Query Approximate Nearest Neighbors Index
+#' Query an index for approximate nearest neighbors
 #'
 #' Takes a nearest neighbor index produced by [rnnd_build()] and uses it to
 #' find the nearest neighbors of a query set of observations, using a
@@ -502,18 +501,18 @@ rnnd_query <-
   }
 
 
-#' Build Approximate Nearest Neighbors Graph
+#' Find approximate nearest neighbors
 #'
-#' This function builds an approximate nearest neighbors graph with convenient
-#' defaults. It does not return an index for later querying.
+#' This function builds an approximate nearest neighbors graph of the provided
+#' data using convenient defaults. It does not return an index for later
+#' querying, to speed the graph construction and reduce the size and complexity
+#' of the return value.
 #'
 #' The process of k-nearest neighbor graph construction using Random Projection
 #' Forests (Dasgupta and Freund, 2008) for initialization and Nearest Neighbor
-#' Descent (Dong and co-workers, 2011) for refinement.
-#'
-#' If you are sure you will not want to query new data then compared to
-#' [rnnd_build()] this function has the advantage of not storing the index,
-#' which can be very large.
+#' Descent (Dong and co-workers, 2011) for refinement. If you are sure you will
+#' not want to query new data then compared to [rnnd_build()] this function has
+#' the advantage of not storing the index, which can be very large.
 #'
 #' @param data Matrix of `n` items to generate neighbors for, with observations
 #'   in the rows and features in the columns. Optionally, input can be passed
@@ -737,7 +736,16 @@ rnnd_knn <- function(data,
 
 # kNN Construction --------------------------------------------------------
 
-#' Calculate Exact Nearest Neighbors by Brute Force
+#' Find exact nearest neighbors by brute force
+#'
+#' Returns the exact nearest neighbors of a dataset. A brute force search is
+#' carried out: all possible pairs of points are compared, and the nearest
+#' neighbors are returned.
+#'
+#' This method is accurate but scales poorly with dataset size, so use with
+#' caution with larger datasets. Having the exact neighbors as a ground truth to
+#' compare with approximate results is useful for benchmarking and determining
+#' parameter settings of the approximate methods.
 #'
 #' @param data Matrix of `n` items to generate neighbors for, with observations
 #'   in the rows and features in the columns. Optionally, input can be passed
@@ -896,7 +904,11 @@ brute_force_knn <- function(data,
   res
 }
 
-#' Randomly select nearest neighbors.
+#' Find nearest neighbors by random selection
+#'
+#' Create a neighbor graph by randomly selecting neighbors. This is not a useful
+#' nearest neighbor method on its own, but can be used with other methods which
+#' require initialization, such as [nnd_knn()].
 #'
 #' @param data Matrix of `n` items to generate random neighbors for, with
 #'   observations in the rows and features in the columns. Optionally, input can
@@ -1037,10 +1049,14 @@ random_knn <-
     res
   }
 
-#' Find Nearest Neighbors and Distances
+#' Find nearest neighbors using nearest neighbor descent
 #'
-#' Uses Nearest Neighbor Descent (Dong and co-workers, 2011) to optimize an
-#' approximate nearest neighbor graph.
+#' Uses the Nearest Neighbor Descent method due to Dong and co-workers (2011)
+#' to optimize an approximate nearest neighbor graph.
+#'
+#' If no initial graph is provided, a random graph is generated, or you may also
+#' specify the use of a graph generated from a forest of random projection
+#' trees, using the method of Dasgupta and Freund (2008).
 #'
 #' @param data Matrix of `n` items to generate neighbors for, with observations
 #'   in the rows and features in the columns. Optionally, input can be passed
@@ -1417,7 +1433,16 @@ nnd_knn <- function(data,
 
 # kNN Queries -------------------------------------------------------------
 
-#' Query Exact Nearest Neighbors by Brute Force
+#' Query exact nearest neighbors by brute force
+#'
+#' Returns the exact nearest neighbors of query data to the reference data. A
+#' brute force search is carried out: all possible pairs of reference and query
+#' points are compared, and the nearest neighbors are returned.
+#'
+#' This is accurate but scales poorly with dataset size, so use with caution
+#' with larger datasets. Having the exact neighbors as a ground truth to compare
+#' with approximate results is useful for benchmarking and determining
+#' parameter settings of the approximate methods.
 #'
 #' @param query Matrix of `n` query items, with observations in the rows and
 #'   features in the columns. Optionally, the data may be passed with the
@@ -1595,7 +1620,11 @@ brute_force_knn_query <- function(query,
   res
 }
 
-#' Nearest Neighbors Query by Random Selection
+#' Query nearest neighbors by random selection
+#'
+#' Run queries against reference data to return randomly selected neighbors.
+#' This is not a useful query method on its own, but can be used with other
+#' methods which require initialization.
 #'
 #' @param query Matrix of `n` query items, with observations in the rows and
 #'   features in the columns. Optionally, the data may be passed with the
@@ -1756,7 +1785,17 @@ random_knn_query <-
     res
   }
 
-#' Find Nearest Neighbors and Distances
+#' Query a search graph for nearest neighbors
+#'
+#' Run queries against a search graph, to return nearest neighbors taken from
+#' the reference data used to build that graph.
+#'
+#' A greedy beam search is used to query the graph, combining two search pruning
+#' strategies. The first, due to Iwasaki and Miyazaki (2018), only considers
+#' new candidates within a relative distance of the current furthest neighbor
+#' in the query's graph. The second, due to Harwood and Drummond (2016), puts a
+#' limit on the absolute number of distance calculations to carry out. See the
+#' `epsilon` and `max_search_fraction` parameters respectively.
 #'
 #' @param query Matrix of `n` query items, with observations in the rows and
 #'   features in the columns. Optionally, the data may be passed with the
@@ -1917,10 +1956,6 @@ random_knn_query <-
 #' )
 #'
 #' @references
-#' Hajebi, K., Abbasi-Yadkori, Y., Shahbazi, H., & Zhang, H. (2011, June).
-#' Fast approximate nearest-neighbor search with k-nearest neighbor graph.
-#' In *Twenty-Second International Joint Conference on Artificial Intelligence*.
-#'
 #' Harwood, B., & Drummond, T. (2016).
 #' Fanng: Fast approximate nearest neighbour graphs.
 #' In *Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition*
@@ -2145,11 +2180,12 @@ graph_knn_query <- function(query,
 
 # Search Graph Preparation ------------------------------------------------
 
-#' Nearest Neighbor Graph Refinement
+#' Convert a nearest neighbor graph into a search graph
 #'
 #' Create a graph using existing nearest neighbor data to balance search
 #' speed and accuracy using the occlusion pruning and truncation strategies
-#' of Harwood and Drummond (2016).
+#' of Harwood and Drummond (2016). The resulting search graph should be more
+#' efficient for querying new data than the original nearest neighbor graph.
 #'
 #' An approximate nearest neighbor graph is not very useful for querying via
 #' [graph_knn_query()], especially if the query data is initialized randomly:
@@ -2309,6 +2345,7 @@ graph_knn_query <- function(query,
 #' Jayaram Subramanya, S., Devvrit, F., Simhadri, H. V., Krishnawamy, R., & Kadekodi, R. (2019).
 #' Diskann: Fast accurate billion-point nearest neighbor search on a single node.
 #' *Advances in Neural Information Processing Systems*, *32*.
+#' @seealso [graph_knn_query()]
 #' @export
 prepare_search_graph <- function(data,
                                  graph,
@@ -2598,8 +2635,6 @@ merge_knn <- function(nn_graphs,
   }
   validate_are_mergeablel(nn_graphs)
 
-  tsmessage("Merging graphs")
-
   rnn_merge_nn_all(nn_graphs,
     is_query,
     n_threads = n_threads,
@@ -2609,13 +2644,17 @@ merge_knn <- function(nn_graphs,
 
 # Overlap -----------------------------------------------------------------
 
-#' Overlap between two nearest neighbor graphs
+#' Overlap between the indices of two nearest neighbor graphs
 #'
-#' Calculates the overlap between two nearest neighbor graphs. The overlap is
-#' defined as the number of neighbors in common between the two graphs. The
-#' graph format is the same as that returned by e.g. [nnd_knn()] and should be
-#' of dimensions n by k, where n is the number of points and k is the number of
-#' neighbors. If you pass a neighbor graph directly, the index matrix will be
+#' Calculates the mean average number of neighbors in common between the two
+#' graphs. The per-item overlap can also be returned. This function can be
+#' useful as a measure of accuracy of approximation algorithms, if the
+#' exact nearest neighbors are known, or as a measure of diversity of two
+#' different approximate graphs.
+#'
+#' The graph format is the same as that returned by e.g. [nnd_knn()] and should
+#' be of dimensions n by k, where n is the number of points and k is the number
+#' of neighbors. If you pass a neighbor graph directly, the index matrix will be
 #' extracted if present. If the two graphs have different numbers of neighbors,
 #' then the smaller number of neighbors is used.
 #'

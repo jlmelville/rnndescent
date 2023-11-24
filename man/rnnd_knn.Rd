@@ -2,7 +2,7 @@
 % Please edit documentation in R/rnndescent.R
 \name{rnnd_knn}
 \alias{rnnd_knn}
-\title{Build Approximate Nearest Neighbors Graph}
+\title{Find approximate nearest neighbors}
 \usage{
 rnnd_knn(
   data,
@@ -214,17 +214,17 @@ the approximate nearest neighbor index, a list containing:
 }
 }
 \description{
-This function builds an approximate nearest neighbors graph with convenient
-defaults. It does not return an index for later querying.
+This function builds an approximate nearest neighbors graph of the provided
+data using convenient defaults. It does not return an index for later
+querying, to speed the graph construction and reduce the size and complexity
+of the return value.
 }
 \details{
 The process of k-nearest neighbor graph construction using Random Projection
 Forests (Dasgupta and Freund, 2008) for initialization and Nearest Neighbor
-Descent (Dong and co-workers, 2011) for refinement.
-
-If you are sure you will not want to query new data then compared to
-\code{\link[=rnnd_build]{rnnd_build()}} this function has the advantage of not storing the index,
-which can be very large.
+Descent (Dong and co-workers, 2011) for refinement. If you are sure you will
+not want to query new data then compared to \code{\link[=rnnd_build]{rnnd_build()}} this function has
+the advantage of not storing the index, which can be very large.
 }
 \examples{
 
