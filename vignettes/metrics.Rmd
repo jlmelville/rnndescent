@@ -26,10 +26,13 @@ are `"euclidean"` or `"cosine"` the latter being more common for document-based
 data. For binary data, `"hamming"` or `"jaccard"` might be a good place to
 start.
 
-The metrics here are a subset of those offered by the [PyNNDescent]()
-Python package which in turn reproduces those in the [scipy.spatial.distance](https://docs.scipy.org/doc/scipy/reference/spatial.distance.html#module-scipy.spatial.distance) module of [SciPy](https://scipy.org/). Many of the binary
-distances seem to have definitions shared with [@choi2010survey] so you may
-want to look in that reference for an exact definition.
+The metrics here are a subset of those offered by the
+[PyNNDescent](https://github.com/lmcinnes/pynndescent/tree/master) Python
+package which in turn reproduces those in the
+[scipy.spatial.distance](https://docs.scipy.org/doc/scipy/reference/spatial.distance.html#module-scipy.spatial.distance)
+module of [SciPy](https://scipy.org/). Many of the binary distances seem to have
+definitions shared with [@choi2010survey] so you may want to look in that
+reference for an exact definition.
 
 * `"braycurtis"`: [Bray-Curtis](https://en.wikipedia.org/wiki/Bray%E2%80%93Curtis_dissimilarity).
 * `"canberra"`: [Canberra](https://en.wikipedia.org/wiki/Canberra_distance).
