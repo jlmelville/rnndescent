@@ -556,7 +556,12 @@ With only two dimensions, brute force search is very fast. UMAP uses the
 input space, so we use `metric = "euclidean"` rather than `"jensenshannon"`:
 
 ```{r 2D neighbors}
-umap_nbrs <- brute_force_knn(js_umap , k = 15, n_threads = 6, metric = "euclidean")
+umap_nbrs <-
+  brute_force_knn(js_umap,
+    k = 15,
+    n_threads = 6,
+    metric = "euclidean"
+  )
 ```
 
 Now we can measure the overlap between the two neighbor graphs:
