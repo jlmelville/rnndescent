@@ -140,7 +140,10 @@ highly dependent on the distribution of distances in the dataset (higher
 dimensional data should choose a smaller cutoff). Too large a value of
 <code>epsilon</code> will result in the query search approaching brute force
 comparison. Use this parameter in conjunction with <code>max_search_fraction</code>
-and <code><a href="rnnd_prepare.html">rnnd_prepare()</a></code> to prevent excessive run time. Default is 0.1.</p></dd>
+and <code><a href="rnnd_prepare.html">rnnd_prepare()</a></code> to prevent excessive run time. Default is 0.1.
+If you set <code>verbose = TRUE</code>,
+statistics of the number of distance calculations will be logged which
+can help you tune <code>epsilon</code>.</p></dd>
 
 
 <dt>max_search_fraction</dt>
