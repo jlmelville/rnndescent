@@ -45,8 +45,6 @@
 #' iris_ko <- k_occur(iris_nbrs$idx)
 #' # items 42 and 107 are not in 15 nearest neighbors of any other members of
 #' # iris
-#' # for convenience you can also pass iris_nbrs directly:
-#' # iris_ko <- k_occur(iris_nbrs)
 #' which(iris_ko == 1) # they are only their own nearest neighbor
 #' max(iris_ko) # most "popular" item appears on 29 15-nearest neighbor lists
 #' which(iris_ko == max(iris_ko)) # it's iris item 64
