@@ -374,10 +374,8 @@ For more on hubness and nearest neighbors, see for example
 
 ## Supported Metrics
 
-Euclidean, Manhattan, Cosine, Correlation (1 - the Pearson correlation,
-implemented as cosine distance on row-centered data) and Hamming. Note that
-these have been implemented in a simple fashion, so no clever (but non-portable)
-optimizations using AVX/SSE or specialized `popcount` routines are used.
+Many. See the [metrics article](https://jlmelville.github.io/rnndescent/articles/metrics.html)
+for a list.
 
 ## Citation
 
