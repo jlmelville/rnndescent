@@ -149,7 +149,7 @@ neighbor_overlap(iris_index$graph, iris_knn_improved)
 
 As there was no change to the graph, the overlap is 100%. More details on this
 can be found in the [hubness](hubness.html) vignette and a more ambitious
-dataset is covered in the [FMNIST article](articles/fmnist-example.html).
+dataset is covered in the [FMNIST article](https://jlmelville.github.io/rnndescent/articles/fmnist-example.html).
 
 ## Parallelism
 
