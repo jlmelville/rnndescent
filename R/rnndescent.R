@@ -244,7 +244,7 @@ rnnd_build <- function(data,
                        delta = 0.001,
                        max_candidates = NULL,
                        low_memory = TRUE,
-                       weight_by_degree = FALSE
+                       weight_by_degree = FALSE,
                        n_search_trees = 1,
                        pruning_degree_multiplier = 1.5,
                        diversify_prob = 1.0,
