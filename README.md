@@ -36,14 +36,65 @@ detail.
 
 ## Current Status
 
-*19 Nov 2023* The `rnnd_build` function and `rnnd_query` functions have been
-added which simplify creating a knn/building an index and querying it,
-respectively and should be the main way of using the package. The other 
-functions remain should you need more flexibility. Some functions have been
-removed: the local scaling and the standalone distance functions. The latter
-could return in a different package at some point.
+*24 Nov 2023* A new function `rnnd_knn` has been added if you just want the
+k-nearest neighbors graph for a dataset (i.e. no querying). I have also removed
+some other functions and made some other breaking changes as I prepare for
+CRAN submission. See the [NEWS](NEWS.md) for details.
 
-### Missing Features 
+## Installation
+
+No CRAN release, so you must install from this repo:
+
+```r
+# install.packages("pak")
+pak::pkg_install("jlmelville/rnndescent")
+```
+
+This packages makes use of C++ code which must be compiled. You may have to
+carry out a few extra steps before being able to build:
+
+**Windows**: install
+[Rtools](https://cran.r-project.org/bin/windows/Rtools/) and ensure
+`C:\Rtools\bin` is on your path.
+
+**Mac OS X**: using a custom `~/.R/Makevars`
+[may cause linking errors](https://github.com/jlmelville/uwot/issues/1).
+This sort of thing is a potential problem on all platforms but seems to bite
+Mac owners more.
+[The R for Mac OS X FAQ](https://cran.r-project.org/bin/macosx/RMacOSX-FAQ.html#Installation-of-source-packages)
+may be helpful here to work out what you can get away with. To be on the safe
+side, I would advise building without a custom `Makevars`.
+
+`rnndescent` uses C++17. This shouldn't be too big a problem but not all R 
+platforms support it (sorry if this affects you).
+
+## Example
+
+```R
+library(rnndescent)
+
+# Find 15-knn
+iris_knn <- rnnd_knn(iris, k = 15)
+
+# Build an index
+iris_even <- iris[seq_len(nrow(iris)) %% 2 == 0, ]
+# Specify the number of neighbors you are likely to want to query for
+iris_index <- rnnd_build(iris_index, k = 15)
+
+# Query then index
+iris_odd <- iris[seq_len(nrow(iris)) %% 2 == 1, ]
+iris_query_nn <- rnnd_query(index = iris_index, query = iris_odd, k = 15)
+```
+
+For more details, please see the
+[documentation](https://jlmelville.github.io/rnndescent/articles/).
+
+## Supported Metrics
+
+Many. See the [metrics article](https://jlmelville.github.io/rnndescent/articles/metrics.html)
+for a list.
+
+## Missing Features 
 
 Compared to PyNNDescent, `rnndescent` is currently lacking, in decreasing order
 of likelihood of implementation:
@@ -75,307 +126,6 @@ this for a subsequent release.
 Also there is no specialized distance code to take advantage of AVX etc., so
 `rnndescent` is going to run slower than other packages. This wouldn't be
 allowed on CRAN anyway, but might be a nice-to-have for installing from github.
-
-## Installation
-
-No CRAN release, so you must install from this repo:
-
-```r
-# install.packages("pak")
-pak::pkg_install("jlmelville/rnndescent")
-```
-
-This packages makes use of C++ code which must be compiled. You may have to
-carry out a few extra steps before being able to build:
-
-**Windows**: install
-[Rtools](https://cran.r-project.org/bin/windows/Rtools/) and ensure
-`C:\Rtools\bin` is on your path.
-
-**Mac OS X**: using a custom `~/.R/Makevars`
-[may cause linking errors](https://github.com/jlmelville/uwot/issues/1).
-This sort of thing is a potential problem on all platforms but seems to bite
-Mac owners more.
-[The R for Mac OS X FAQ](https://cran.r-project.org/bin/macosx/RMacOSX-FAQ.html#Installation-of-source-packages)
-may be helpful here to work out what you can get away with. To be on the safe
-side, I would advise building without a custom `Makevars`.
-
-rnndescent uses C++17. This shouldn't be too big a problem but not all R 
-platforms support it (sorry if this affects you).
-
-## Example
-
-Optimizing an initial set of approximate nearest neighbors:
-
-```R
-library(rnndescent)
-
-# both hnsw_knn and nnd_knn will remove non-numeric columns from data-frames
-# for you, but to avoid confusion, these examples will use a matrix
-irism <- as.matrix(iris[, -5])
-
-# If you just want sensible defaults that will probably work:
-iris_knn <- rnnd_knn(irism, k = 15)
-
-# If you would like to query new data, then you should build an index
-iris_index <- rnnd_build(irism)
-# the nearest neighbor graph is in iris_index$graph
-
-# For more control:
-# Generate a Random Projection knn (set n_threads for parallel search):
-iris_rp_nn <- rpf_knn(irism, k = 15)
-
-# nn descent improves results: set verbose = TRUE and progress = "dist", to 
-# track distance sum progress over iterations
-res <-
-  nnd_knn(irism,
-    metric = "euclidean",
-    init = iris_rp_nn,
-    verbose = TRUE,
-    progress = "dist"
-  )
-
-# search can be multi-threaded
-res <-
-  nnd_knn(
-    irism,
-    metric = "euclidean",
-    init = iris_rp_nn,
-    verbose = TRUE,
-    n_threads = 4
-  )
-
-# a (potentially) faster version of the algorithm is available that avoids some 
-# repeated distance calculations at the cost of using more memory. Currently off
-# by default.
-res <-
-  nnd_knn(
-    irism,
-    metric = "euclidean",
-    init = iris_rp_nn,
-    verbose = TRUE,
-    n_threads = 4,
-    low_memory = FALSE
-  )
-  
-# You can optimize results from other methods or packages too:  
-# install.packages("RcppHNSW")
-# Use settings that don't get perfect results straight away
-iris_hnsw_nn <-
-  RcppHNSW::hnsw_knn(irism,
-    k = 15,
-    M = 2,
-    distance = "euclidean"
-  )
-
-res <-
-  nnd_knn(
-    irism,
-    metric = "euclidean",
-    init = iris_hnsw_nn,
-    verbose = TRUE,
-    n_threads = 4,
-    low_memory = FALSE
-  )
-```
-
-You can also search the neighbor graph with new query items:
-
-```R
-# 100 reference iris items
-iris_ref <- iris[iris$Species %in% c("setosa", "versicolor"), ]
-
-# 50 query items
-iris_query <- iris[iris$Species == "versicolor", ]
-
-# The simple way. First build an index:
-index <- iris_index <- rnnd_build(iris_ref, prepare = TRUE)
-# Then query it
-iris_query_nn <- rnnd_query(index, iris_query, k = 10)
-
-# For more control:
-# First, find the approximate 10-nearest neighbor graph for the references:
-iris_ref_knn <- nnd_knn(iris_ref, k = 10)
-
-# For each item in iris_query find the 10 nearest neighbors in iris_ref
-# You need to pass both the reference data and the knn graph.
-iris_query_nn <-
-  graph_knn_query(
-    query = iris_query,
-    reference = iris_ref,
-    reference_graph = iris_ref_knn,
-    k = 10,
-    metric = "euclidean",
-    verbose = TRUE
-  )
-```
-
-Although the above example shows the basic procedure of building the graph and
-then querying new data with it, the raw nearest neighbor graph isn't very
-efficient in general. It's highly advisable to use a refined search graph based
-on the original data and neighbor graph:
-
-```R
-iris_search_graph <-
-  prepare_search_graph(iris_ref, iris_ref_knn, verbose = TRUE)
-iris_query_nn <-
-  graph_knn_query(
-    query = iris_query,
-    reference = iris_ref,
-    reference_graph = iris_search_graph,
-    k = 4,
-    metric = "euclidean",
-    verbose = TRUE
-  )
-```
-
-See the help text to `prepare_search_graph` for various parameters you can 
-change to control the trade off between speed and search accuracy.
-
-## Initialization
-
-The default for `nnd_knn` is to initialize with random neighbors. Set
-`init = "tree"` to use the random partition tree initialization.
-
-```R
-library(rnndescent)
-
-irism <- as.matrix(iris[, -5])
-
-# picks indices at random and then carries out nearest neighbor descent
-res <- nnd_knn(irism,
-  k = 15,
-  metric = "euclidean",
-  n_threads = 4
-)
-
-# if you want the random indices and their distances:
-iris_rand_nn <-
-  random_knn(irism,
-    k = 15,
-    metric = "euclidean",
-    n_threads = 4
-  )
-  
-# use RP tree initialization
-res <- nnd_knn(irism,
-  k = 15,
-  metric = "euclidean",
-  n_threads = 4,
-  init = "tree"
-)
-```
-
-For initializing a knn query, there is also `random_knn_query`.
-
-## Brute Force
-
-For comparison with exact results, there is also `brute_force_knn` and
-`brute_force_knn_query` functions, that will generate the exact nearest
-neighbors by the simple process of trying every possible pair in the dataset.
-Obviously this becomes a very time consuming process as your dataset grows in
-size, even with multithreading (although the `iris` dataset in the example below
-doesn't present any issues).
-
-```R
-iris_exact_nn <-
-  brute_force_knn(irism,
-    k = 15,
-    metric = "euclidean",
-    n_threads = 4
-  )
-```
-
-## Merging
-
-Also available are two functions for merging multiple approximate nearest neighbor
-graphs, which will result in a new graph which is at least as good as the best
-graph provided. For merging pairs of graphs, use `merge_knn`:
-
-```R
-set.seed(1337)
-# Nearest neighbor descent with 15 neighbors for iris three times,
-# starting from a different random initialization each time
-iris_rnn1 <- nnd_knn(iris, k = 15, n_iters = 1)
-iris_rnn2 <- nnd_knn(iris, k = 15, n_iters = 1)
-
-# Merged results should be an improvement over either individual results
-iris_mnn <- merge_knn(list(iris_rnn1, iris_rnn2))
-sum(iris_mnn$dist) < sum(iris_rnn1$dist)
-sum(iris_mnn$dist) < sum(iris_rnn2$dist)
-```
-
-If you have more than two graphs stored in memory, it's more efficient to use
-the list-based version, `merge_knnl`:
-
-```R
-set.seed(1337)
-# Nearest neighbor descent with 15 neighbors for iris three times,
-# starting from a different random initialization each time
-iris_rnn1 <- nnd_knn(iris, k = 15, n_iters = 1)
-iris_rnn2 <- nnd_knn(iris, k = 15, n_iters = 1)
-iris_rnn3 <- nnd_knn(iris, k = 15, n_iters = 1)
-
-iris_mnn <- merge_knnl(list(iris_rnn1, iris_rnn2, iris_rnn3))
-```
-
-## Hubness Diagnostic
-
-The `k_occur` function takes an `idx` matrix and returns a vector of the
-k-occurrences for each item in the dataset. This is just the number of times an
-item was found in the k-nearest neighbor list of another item. If you think of
-the `idx` matrix as representing a directed graph where the element `idx[i, j]`
-in the matrix is an edge from node `i` to node `idx[i, j]`, then the
-k_occurrences are calculated by reversing each edge and then counts the number
-of edges incident to each node. Alternatively, in the nomenclature of nearest
-neighbor descent, it's the size of the "reverse neighbor" list for each node.
-
-```R
-iris_nnd <- nnd_knn(iris, k = 15)
-kos <- k_occur(iris_nnd$idx)
-```
-
-The k-occurrence can take a value between 0 and `N` the number of items in the
-dataset. Values much larger than `k` indicate that the item is potentially a
-hub. The presence of hubs in a dataset can reduce the accuracy of the
-approximate nearest neighbors returned by nearest neighbor descent, but the
-presence of hubs as determined by the distribution of k-occurrences is quite
-robust even in the case of an approximate nearest neighbor graph of low
-accuracy. Therefore calculating the k-occurrences on the output of nearest
-neighbor descent is worth doing: if the maximum k-occurrence is a lot larger
-than `k` (I suggest `10 * k` as a danger sign), then the accuracy of the
-approximate nearest neighbors may be compromised. Items with low k-occurrences
-are most likely to be affected in this way. Increasing `k` or the
-`max_candidates` parameter can help in these situations. Alternatively, querying
-the data against itself with `graph_knn_query` can help:
-
-```R
-# Purposely don't do a very good job with NND so we have something to improve
-iris_nnd <- nnd_knn(iris, k = 15, n_iters = 1)
-iris_search_graph <-
-  prepare_search_graph(iris, iris_nnd)
-
-# query and reference are the same
-iris_query_nn <-
-  graph_knn_query(
-    query = iris,
-    reference = iris,
-    reference_graph = iris_search_graph,
-    init = iris_nnd,
-    k = 15
-  )
-# Compare 
-sum(iris_nnd$dist)
-sum(iris_query_nn$dist)
-```
-
-For more on hubness and nearest neighbors, see for example 
-[Radovanović and co-workers, 2010](https://www.jmlr.org/papers/v11/radovanovic10a.html).
-
-## Supported Metrics
-
-Many. See the [metrics article](https://jlmelville.github.io/rnndescent/articles/metrics.html)
-for a list.
 
 ## Citation
 
@@ -431,6 +181,13 @@ C++ implementation.
 * [nndescent](https://github.com/brj0/nndescent), another C++ implementation, with Python bindings.
 
 ## Old News
+
+*19 Nov 2023* The `rnnd_build` function and `rnnd_query` functions have been
+added which simplify creating a knn/building an index and querying it,
+respectively and should be the main way of using the package. The other 
+functions remain should you need more flexibility. Some functions have been
+removed: the local scaling and the standalone distance functions. The latter
+could return in a different package at some point.
 
 *13 November 2023*. I have added most of the metrics that don't need extra
 parameters for both sparse and non-sparse data, e.g. `braycurtis`, `dice`,
