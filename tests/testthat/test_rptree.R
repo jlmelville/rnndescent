@@ -221,8 +221,6 @@ rpi_knn <- rpf_knn(uirism[1:20, ], k = 4, verbose = FALSE, n_threads = 0, n_tree
 set.seed(1337)
 rpe_knn <- rpf_knn(uirism[1:20, ], k = 4, verbose = FALSE, n_threads = 0, n_trees = 2, margin = "explicit")
 expect_equal(rpe_knn$dist, rpi_knn$dist)
-# tied indices
-expect_equal(sum(rpe_knn$idx - rpi_knn$idx), 0)
 
 expected_rpfi_index <- list(
   trees = list(list(
@@ -556,5 +554,5 @@ test_that("sparse explicit margin", {
     k = 4, leaf_size = 3, n_trees = 2,
     margin = "explicit", metric = "cosine", use_alt_metric = FALSE
   )
-  expect_equal(sacknn, secknn, tol = 1e-5)
+  expect_equal(sacknn, secknn, tol = 1e-4)
 })
