@@ -103,21 +103,7 @@
 <div class="section level2">
 <h2 id="current-status">Current Status<a class="anchor" aria-label="anchor" href="#current-status"></a>
 </h2>
-<p><em>19 Nov 2023</em> The <code>rnnd_build</code> function and <code>rnnd_query</code> functions have been added which simplify creating a knn/building an index and querying it, respectively and should be the main way of using the package. The other functions remain should you need more flexibility. Some functions have been removed: the local scaling and the standalone distance functions. The latter could return in a different package at some point.</p>
-<div class="section level3">
-<h3 id="missing-features">Missing Features<a class="anchor" aria-label="anchor" href="#missing-features"></a>
-</h3>
-<p>Compared to PyNNDescent, <code>rnndescent</code> is currently lacking, in decreasing order of likelihood of implementation:</p>
-<ul>
-<li>Only parallel batch queries are currently supported. This means that if you are trying to stream queries, where you are only querying one item at a time, you will get no parallelism.</li>
-<li>The index is always passed between the C++ and R layers when building an index and querying. This is useful for portability as its easy to serialize the index (you can use <code>saveRDS</code> like any R data for example), but it’s not very efficient. Keeping the index as an R-wrapped C++ class has its own downsides but would fix that.</li>
-<li>The index can also get <em>very</em> large for large (and high-dimensional) datasets.</li>
-<li>Some of the distance metrics. A large number are currently supported though. See <code>Missing Metrics</code> below for those that are currently not available.</li>
-<li>Custom metrics. This just isn’t feasible with a C++ implementation.</li>
-</ul>
-<p>The issues around index serialization and parallel behavior make <code>rnndescent</code> currently unsuitable for streaming applications where you are querying one item at a time. If you are doing batch queries, where you are querying multiple items at once, then <code>rnndescent</code> should be fine: for example, generating nearest neighbors for UMAP (maybe for use with <a href="https://github.com/jlmelville/uwot" class="external-link">uwot</a>). Dimensionality reduction is my personal use case for nearest neighbors calculation and I would like to get <code>rnndescent</code> onto CRAN in a useful-for-something state. As a result I am not targeting an initial release to support the streaming case. I would like to fix this for a subsequent release.</p>
-<p>Also there is no specialized distance code to take advantage of AVX etc., so <code>rnndescent</code> is going to run slower than other packages. This wouldn’t be allowed on CRAN anyway, but might be a nice-to-have for installing from github.</p>
-</div>
+<p><em>24 Nov 2023</em> A new function <code>rnnd_knn</code> has been added if you just want the k-nearest neighbors graph for a dataset (i.e. no querying). I have also removed some other functions and made some other breaking changes as I prepare for CRAN submission. See the <a href="NEWS.html">NEWS</a> for details.</p>
 </div>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
@@ -129,228 +115,45 @@
 <p>This packages makes use of C++ code which must be compiled. You may have to carry out a few extra steps before being able to build:</p>
 <p><strong>Windows</strong>: install <a href="https://cran.r-project.org/bin/windows/Rtools/" class="external-link">Rtools</a> and ensure <code>C:\Rtools\bin</code> is on your path.</p>
 <p><strong>Mac OS X</strong>: using a custom <code>~/.R/Makevars</code> <a href="https://github.com/jlmelville/uwot/issues/1" class="external-link">may cause linking errors</a>. This sort of thing is a potential problem on all platforms but seems to bite Mac owners more. <a href="https://cran.r-project.org/bin/macosx/RMacOSX-FAQ.html#Installation-of-source-packages" class="external-link">The R for Mac OS X FAQ</a> may be helpful here to work out what you can get away with. To be on the safe side, I would advise building without a custom <code>Makevars</code>.</p>
-<p>rnndescent uses C++17. This shouldn’t be too big a problem but not all R platforms support it (sorry if this affects you).</p>
+<p><code>rnndescent</code> uses C++17. This shouldn’t be too big a problem but not all R platforms support it (sorry if this affects you).</p>
 </div>
 <div class="section level2">
 <h2 id="example">Example<a class="anchor" aria-label="anchor" href="#example"></a>
 </h2>
-<p>Optimizing an initial set of approximate nearest neighbors:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://jlmelville.github.io/rnndescent/">rnndescent</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># both hnsw_knn and nnd_knn will remove non-numeric columns from data-frames</span></span>
-<span><span class="co"># for you, but to avoid confusion, these examples will use a matrix</span></span>
-<span><span class="va">irism</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">iris</span><span class="op">[</span>, <span class="op">-</span><span class="fl">5</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="co"># Find 15-knn</span></span>
+<span><span class="va">iris_knn</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/rnnd_knn.html">rnnd_knn</a></span><span class="op">(</span><span class="va">iris</span>, k <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># If you just want sensible defaults that will probably work:</span></span>
-<span><span class="va">iris_knn</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/rnnd_knn.html">rnnd_knn</a></span><span class="op">(</span><span class="va">irism</span>, k <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span>
+<span><span class="co"># Build an index</span></span>
+<span><span class="va">iris_even</span> <span class="op">&lt;-</span> <span class="va">iris</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">iris</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/r/base/Arithmetic.html" class="external-link">%%</a></span> <span class="fl">2</span> <span class="op">==</span> <span class="fl">0</span>, <span class="op">]</span></span>
+<span><span class="co"># Specify the number of neighbors you are likely to want to query for</span></span>
+<span><span class="va">iris_index</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/rnnd_build.html">rnnd_build</a></span><span class="op">(</span><span class="va">iris_index</span>, k <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># If you would like to query new data, then you should build an index</span></span>
-<span><span class="va">iris_index</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/rnnd_build.html">rnnd_build</a></span><span class="op">(</span><span class="va">irism</span><span class="op">)</span></span>
-<span><span class="co"># the nearest neighbor graph is in iris_index$graph</span></span>
-<span></span>
-<span><span class="co"># For more control:</span></span>
-<span><span class="co"># Generate a Random Projection knn (set n_threads for parallel search):</span></span>
-<span><span class="va">iris_rp_nn</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/rpf_knn.html">rpf_knn</a></span><span class="op">(</span><span class="va">irism</span>, k <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># nn descent improves results: set verbose = TRUE and progress = "dist", to </span></span>
-<span><span class="co"># track distance sum progress over iterations</span></span>
-<span><span class="va">res</span> <span class="op">&lt;-</span></span>
-<span>  <span class="fu"><a href="reference/nnd_knn.html">nnd_knn</a></span><span class="op">(</span><span class="va">irism</span>,</span>
-<span>    metric <span class="op">=</span> <span class="st">"euclidean"</span>,</span>
-<span>    init <span class="op">=</span> <span class="va">iris_rp_nn</span>,</span>
-<span>    verbose <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>    progress <span class="op">=</span> <span class="st">"dist"</span></span>
-<span>  <span class="op">)</span></span>
-<span></span>
-<span><span class="co"># search can be multi-threaded</span></span>
-<span><span class="va">res</span> <span class="op">&lt;-</span></span>
-<span>  <span class="fu"><a href="reference/nnd_knn.html">nnd_knn</a></span><span class="op">(</span></span>
-<span>    <span class="va">irism</span>,</span>
-<span>    metric <span class="op">=</span> <span class="st">"euclidean"</span>,</span>
-<span>    init <span class="op">=</span> <span class="va">iris_rp_nn</span>,</span>
-<span>    verbose <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>    n_threads <span class="op">=</span> <span class="fl">4</span></span>
-<span>  <span class="op">)</span></span>
-<span></span>
-<span><span class="co"># a (potentially) faster version of the algorithm is available that avoids some </span></span>
-<span><span class="co"># repeated distance calculations at the cost of using more memory. Currently off</span></span>
-<span><span class="co"># by default.</span></span>
-<span><span class="va">res</span> <span class="op">&lt;-</span></span>
-<span>  <span class="fu"><a href="reference/nnd_knn.html">nnd_knn</a></span><span class="op">(</span></span>
-<span>    <span class="va">irism</span>,</span>
-<span>    metric <span class="op">=</span> <span class="st">"euclidean"</span>,</span>
-<span>    init <span class="op">=</span> <span class="va">iris_rp_nn</span>,</span>
-<span>    verbose <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>    n_threads <span class="op">=</span> <span class="fl">4</span>,</span>
-<span>    low_memory <span class="op">=</span> <span class="cn">FALSE</span></span>
-<span>  <span class="op">)</span></span>
-<span>  </span>
-<span><span class="co"># You can optimize results from other methods or packages too:  </span></span>
-<span><span class="co"># install.packages("RcppHNSW")</span></span>
-<span><span class="co"># Use settings that don't get perfect results straight away</span></span>
-<span><span class="va">iris_hnsw_nn</span> <span class="op">&lt;-</span></span>
-<span>  <span class="fu">RcppHNSW</span><span class="fu">::</span><span class="fu">hnsw_knn</span><span class="op">(</span><span class="va">irism</span>,</span>
-<span>    k <span class="op">=</span> <span class="fl">15</span>,</span>
-<span>    M <span class="op">=</span> <span class="fl">2</span>,</span>
-<span>    distance <span class="op">=</span> <span class="st">"euclidean"</span></span>
-<span>  <span class="op">)</span></span>
-<span></span>
-<span><span class="va">res</span> <span class="op">&lt;-</span></span>
-<span>  <span class="fu"><a href="reference/nnd_knn.html">nnd_knn</a></span><span class="op">(</span></span>
-<span>    <span class="va">irism</span>,</span>
-<span>    metric <span class="op">=</span> <span class="st">"euclidean"</span>,</span>
-<span>    init <span class="op">=</span> <span class="va">iris_hnsw_nn</span>,</span>
-<span>    verbose <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>    n_threads <span class="op">=</span> <span class="fl">4</span>,</span>
-<span>    low_memory <span class="op">=</span> <span class="cn">FALSE</span></span>
-<span>  <span class="op">)</span></span></code></pre></div>
-<p>You can also search the neighbor graph with new query items:</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># 100 reference iris items</span></span>
-<span><span class="va">iris_ref</span> <span class="op">&lt;-</span> <span class="va">iris</span><span class="op">[</span><span class="va">iris</span><span class="op">$</span><span class="va">Species</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"setosa"</span>, <span class="st">"versicolor"</span><span class="op">)</span>, <span class="op">]</span></span>
-<span></span>
-<span><span class="co"># 50 query items</span></span>
-<span><span class="va">iris_query</span> <span class="op">&lt;-</span> <span class="va">iris</span><span class="op">[</span><span class="va">iris</span><span class="op">$</span><span class="va">Species</span> <span class="op">==</span> <span class="st">"versicolor"</span>, <span class="op">]</span></span>
-<span></span>
-<span><span class="co"># The simple way. First build an index:</span></span>
-<span><span class="va">index</span> <span class="op">&lt;-</span> <span class="va">iris_index</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/rnnd_build.html">rnnd_build</a></span><span class="op">(</span><span class="va">iris_ref</span>, prepare <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co"># Then query it</span></span>
-<span><span class="va">iris_query_nn</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/rnnd_query.html">rnnd_query</a></span><span class="op">(</span><span class="va">index</span>, <span class="va">iris_query</span>, k <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># For more control:</span></span>
-<span><span class="co"># First, find the approximate 10-nearest neighbor graph for the references:</span></span>
-<span><span class="va">iris_ref_knn</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/nnd_knn.html">nnd_knn</a></span><span class="op">(</span><span class="va">iris_ref</span>, k <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># For each item in iris_query find the 10 nearest neighbors in iris_ref</span></span>
-<span><span class="co"># You need to pass both the reference data and the knn graph.</span></span>
-<span><span class="va">iris_query_nn</span> <span class="op">&lt;-</span></span>
-<span>  <span class="fu"><a href="reference/graph_knn_query.html">graph_knn_query</a></span><span class="op">(</span></span>
-<span>    query <span class="op">=</span> <span class="va">iris_query</span>,</span>
-<span>    reference <span class="op">=</span> <span class="va">iris_ref</span>,</span>
-<span>    reference_graph <span class="op">=</span> <span class="va">iris_ref_knn</span>,</span>
-<span>    k <span class="op">=</span> <span class="fl">10</span>,</span>
-<span>    metric <span class="op">=</span> <span class="st">"euclidean"</span>,</span>
-<span>    verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
-<span>  <span class="op">)</span></span></code></pre></div>
-<p>Although the above example shows the basic procedure of building the graph and then querying new data with it, the raw nearest neighbor graph isn’t very efficient in general. It’s highly advisable to use a refined search graph based on the original data and neighbor graph:</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">iris_search_graph</span> <span class="op">&lt;-</span></span>
-<span>  <span class="fu"><a href="reference/prepare_search_graph.html">prepare_search_graph</a></span><span class="op">(</span><span class="va">iris_ref</span>, <span class="va">iris_ref_knn</span>, verbose <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="va">iris_query_nn</span> <span class="op">&lt;-</span></span>
-<span>  <span class="fu"><a href="reference/graph_knn_query.html">graph_knn_query</a></span><span class="op">(</span></span>
-<span>    query <span class="op">=</span> <span class="va">iris_query</span>,</span>
-<span>    reference <span class="op">=</span> <span class="va">iris_ref</span>,</span>
-<span>    reference_graph <span class="op">=</span> <span class="va">iris_search_graph</span>,</span>
-<span>    k <span class="op">=</span> <span class="fl">4</span>,</span>
-<span>    metric <span class="op">=</span> <span class="st">"euclidean"</span>,</span>
-<span>    verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
-<span>  <span class="op">)</span></span></code></pre></div>
-<p>See the help text to <code>prepare_search_graph</code> for various parameters you can change to control the trade off between speed and search accuracy.</p>
-</div>
-<div class="section level2">
-<h2 id="initialization">Initialization<a class="anchor" aria-label="anchor" href="#initialization"></a>
-</h2>
-<p>The default for <code>nnd_knn</code> is to initialize with random neighbors. Set <code>init = "tree"</code> to use the random partition tree initialization.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://jlmelville.github.io/rnndescent/">rnndescent</a></span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">irism</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">iris</span><span class="op">[</span>, <span class="op">-</span><span class="fl">5</span><span class="op">]</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># picks indices at random and then carries out nearest neighbor descent</span></span>
-<span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/nnd_knn.html">nnd_knn</a></span><span class="op">(</span><span class="va">irism</span>,</span>
-<span>  k <span class="op">=</span> <span class="fl">15</span>,</span>
-<span>  metric <span class="op">=</span> <span class="st">"euclidean"</span>,</span>
-<span>  n_threads <span class="op">=</span> <span class="fl">4</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># if you want the random indices and their distances:</span></span>
-<span><span class="va">iris_rand_nn</span> <span class="op">&lt;-</span></span>
-<span>  <span class="fu"><a href="reference/random_knn.html">random_knn</a></span><span class="op">(</span><span class="va">irism</span>,</span>
-<span>    k <span class="op">=</span> <span class="fl">15</span>,</span>
-<span>    metric <span class="op">=</span> <span class="st">"euclidean"</span>,</span>
-<span>    n_threads <span class="op">=</span> <span class="fl">4</span></span>
-<span>  <span class="op">)</span></span>
-<span>  </span>
-<span><span class="co"># use RP tree initialization</span></span>
-<span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/nnd_knn.html">nnd_knn</a></span><span class="op">(</span><span class="va">irism</span>,</span>
-<span>  k <span class="op">=</span> <span class="fl">15</span>,</span>
-<span>  metric <span class="op">=</span> <span class="st">"euclidean"</span>,</span>
-<span>  n_threads <span class="op">=</span> <span class="fl">4</span>,</span>
-<span>  init <span class="op">=</span> <span class="st">"tree"</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-<p>For initializing a knn query, there is also <code>random_knn_query</code>.</p>
-</div>
-<div class="section level2">
-<h2 id="brute-force">Brute Force<a class="anchor" aria-label="anchor" href="#brute-force"></a>
-</h2>
-<p>For comparison with exact results, there is also <code>brute_force_knn</code> and <code>brute_force_knn_query</code> functions, that will generate the exact nearest neighbors by the simple process of trying every possible pair in the dataset. Obviously this becomes a very time consuming process as your dataset grows in size, even with multithreading (although the <code>iris</code> dataset in the example below doesn’t present any issues).</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">iris_exact_nn</span> <span class="op">&lt;-</span></span>
-<span>  <span class="fu"><a href="reference/brute_force_knn.html">brute_force_knn</a></span><span class="op">(</span><span class="va">irism</span>,</span>
-<span>    k <span class="op">=</span> <span class="fl">15</span>,</span>
-<span>    metric <span class="op">=</span> <span class="st">"euclidean"</span>,</span>
-<span>    n_threads <span class="op">=</span> <span class="fl">4</span></span>
-<span>  <span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level2">
-<h2 id="merging">Merging<a class="anchor" aria-label="anchor" href="#merging"></a>
-</h2>
-<p>Also available are two functions for merging multiple approximate nearest neighbor graphs, which will result in a new graph which is at least as good as the best graph provided. For merging pairs of graphs, use <code>merge_knn</code>:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1337</span><span class="op">)</span></span>
-<span><span class="co"># Nearest neighbor descent with 15 neighbors for iris three times,</span></span>
-<span><span class="co"># starting from a different random initialization each time</span></span>
-<span><span class="va">iris_rnn1</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/nnd_knn.html">nnd_knn</a></span><span class="op">(</span><span class="va">iris</span>, k <span class="op">=</span> <span class="fl">15</span>, n_iters <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
-<span><span class="va">iris_rnn2</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/nnd_knn.html">nnd_knn</a></span><span class="op">(</span><span class="va">iris</span>, k <span class="op">=</span> <span class="fl">15</span>, n_iters <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Merged results should be an improvement over either individual results</span></span>
-<span><span class="va">iris_mnn</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/merge_knn.html">merge_knn</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">iris_rnn1</span>, <span class="va">iris_rnn2</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">iris_mnn</span><span class="op">$</span><span class="va">dist</span><span class="op">)</span> <span class="op">&lt;</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">iris_rnn1</span><span class="op">$</span><span class="va">dist</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">iris_mnn</span><span class="op">$</span><span class="va">dist</span><span class="op">)</span> <span class="op">&lt;</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">iris_rnn2</span><span class="op">$</span><span class="va">dist</span><span class="op">)</span></span></code></pre></div>
-<p>If you have more than two graphs stored in memory, it’s more efficient to use the list-based version, <code>merge_knnl</code>:</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1337</span><span class="op">)</span></span>
-<span><span class="co"># Nearest neighbor descent with 15 neighbors for iris three times,</span></span>
-<span><span class="co"># starting from a different random initialization each time</span></span>
-<span><span class="va">iris_rnn1</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/nnd_knn.html">nnd_knn</a></span><span class="op">(</span><span class="va">iris</span>, k <span class="op">=</span> <span class="fl">15</span>, n_iters <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
-<span><span class="va">iris_rnn2</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/nnd_knn.html">nnd_knn</a></span><span class="op">(</span><span class="va">iris</span>, k <span class="op">=</span> <span class="fl">15</span>, n_iters <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
-<span><span class="va">iris_rnn3</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/nnd_knn.html">nnd_knn</a></span><span class="op">(</span><span class="va">iris</span>, k <span class="op">=</span> <span class="fl">15</span>, n_iters <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">iris_mnn</span> <span class="op">&lt;-</span> <span class="fu">merge_knnl</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">iris_rnn1</span>, <span class="va">iris_rnn2</span>, <span class="va">iris_rnn3</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level2">
-<h2 id="hubness-diagnostic">Hubness Diagnostic<a class="anchor" aria-label="anchor" href="#hubness-diagnostic"></a>
-</h2>
-<p>The <code>k_occur</code> function takes an <code>idx</code> matrix and returns a vector of the k-occurrences for each item in the dataset. This is just the number of times an item was found in the k-nearest neighbor list of another item. If you think of the <code>idx</code> matrix as representing a directed graph where the element <code>idx[i, j]</code> in the matrix is an edge from node <code>i</code> to node <code>idx[i, j]</code>, then the k_occurrences are calculated by reversing each edge and then counts the number of edges incident to each node. Alternatively, in the nomenclature of nearest neighbor descent, it’s the size of the “reverse neighbor” list for each node.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">iris_nnd</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/nnd_knn.html">nnd_knn</a></span><span class="op">(</span><span class="va">iris</span>, k <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span>
-<span><span class="va">kos</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/k_occur.html">k_occur</a></span><span class="op">(</span><span class="va">iris_nnd</span><span class="op">$</span><span class="va">idx</span><span class="op">)</span></span></code></pre></div>
-<p>The k-occurrence can take a value between 0 and <code>N</code> the number of items in the dataset. Values much larger than <code>k</code> indicate that the item is potentially a hub. The presence of hubs in a dataset can reduce the accuracy of the approximate nearest neighbors returned by nearest neighbor descent, but the presence of hubs as determined by the distribution of k-occurrences is quite robust even in the case of an approximate nearest neighbor graph of low accuracy. Therefore calculating the k-occurrences on the output of nearest neighbor descent is worth doing: if the maximum k-occurrence is a lot larger than <code>k</code> (I suggest <code>10 * k</code> as a danger sign), then the accuracy of the approximate nearest neighbors may be compromised. Items with low k-occurrences are most likely to be affected in this way. Increasing <code>k</code> or the <code>max_candidates</code> parameter can help in these situations. Alternatively, querying the data against itself with <code>graph_knn_query</code> can help:</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Purposely don't do a very good job with NND so we have something to improve</span></span>
-<span><span class="va">iris_nnd</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/nnd_knn.html">nnd_knn</a></span><span class="op">(</span><span class="va">iris</span>, k <span class="op">=</span> <span class="fl">15</span>, n_iters <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
-<span><span class="va">iris_search_graph</span> <span class="op">&lt;-</span></span>
-<span>  <span class="fu"><a href="reference/prepare_search_graph.html">prepare_search_graph</a></span><span class="op">(</span><span class="va">iris</span>, <span class="va">iris_nnd</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># query and reference are the same</span></span>
-<span><span class="va">iris_query_nn</span> <span class="op">&lt;-</span></span>
-<span>  <span class="fu"><a href="reference/graph_knn_query.html">graph_knn_query</a></span><span class="op">(</span></span>
-<span>    query <span class="op">=</span> <span class="va">iris</span>,</span>
-<span>    reference <span class="op">=</span> <span class="va">iris</span>,</span>
-<span>    reference_graph <span class="op">=</span> <span class="va">iris_search_graph</span>,</span>
-<span>    init <span class="op">=</span> <span class="va">iris_nnd</span>,</span>
-<span>    k <span class="op">=</span> <span class="fl">15</span></span>
-<span>  <span class="op">)</span></span>
-<span><span class="co"># Compare </span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">iris_nnd</span><span class="op">$</span><span class="va">dist</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">iris_query_nn</span><span class="op">$</span><span class="va">dist</span><span class="op">)</span></span></code></pre></div>
-<p>For more on hubness and nearest neighbors, see for example <a href="https://www.jmlr.org/papers/v11/radovanovic10a.html" class="external-link">Radovanović and co-workers, 2010</a>.</p>
+<span><span class="co"># Query then index</span></span>
+<span><span class="va">iris_odd</span> <span class="op">&lt;-</span> <span class="va">iris</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">iris</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/r/base/Arithmetic.html" class="external-link">%%</a></span> <span class="fl">2</span> <span class="op">==</span> <span class="fl">1</span>, <span class="op">]</span></span>
+<span><span class="va">iris_query_nn</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/rnnd_query.html">rnnd_query</a></span><span class="op">(</span>index <span class="op">=</span> <span class="va">iris_index</span>, query <span class="op">=</span> <span class="va">iris_odd</span>, k <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span></code></pre></div>
+<p>For more details, please see the <a href="https://jlmelville.github.io/rnndescent/articles/">documentation</a>.</p>
 </div>
 <div class="section level2">
 <h2 id="supported-metrics">Supported Metrics<a class="anchor" aria-label="anchor" href="#supported-metrics"></a>
 </h2>
 <p>Many. See the <a href="https://jlmelville.github.io/rnndescent/articles/metrics.html">metrics article</a> for a list.</p>
+</div>
+<div class="section level2">
+<h2 id="missing-features">Missing Features<a class="anchor" aria-label="anchor" href="#missing-features"></a>
+</h2>
+<p>Compared to PyNNDescent, <code>rnndescent</code> is currently lacking, in decreasing order of likelihood of implementation:</p>
+<ul>
+<li>Only parallel batch queries are currently supported. This means that if you are trying to stream queries, where you are only querying one item at a time, you will get no parallelism.</li>
+<li>The index is always passed between the C++ and R layers when building an index and querying. This is useful for portability as its easy to serialize the index (you can use <code>saveRDS</code> like any R data for example), but it’s not very efficient. Keeping the index as an R-wrapped C++ class has its own downsides but would fix that.</li>
+<li>The index can also get <em>very</em> large for large (and high-dimensional) datasets.</li>
+<li>Some of the distance metrics. A large number are currently supported though. See <code>Missing Metrics</code> below for those that are currently not available.</li>
+<li>Custom metrics. This just isn’t feasible with a C++ implementation.</li>
+</ul>
+<p>The issues around index serialization and parallel behavior make <code>rnndescent</code> currently unsuitable for streaming applications where you are querying one item at a time. If you are doing batch queries, where you are querying multiple items at once, then <code>rnndescent</code> should be fine: for example, generating nearest neighbors for UMAP (maybe for use with <a href="https://github.com/jlmelville/uwot" class="external-link">uwot</a>). Dimensionality reduction is my personal use case for nearest neighbors calculation and I would like to get <code>rnndescent</code> onto CRAN in a useful-for-something state. As a result I am not targeting an initial release to support the streaming case. I would like to fix this for a subsequent release.</p>
+<p>Also there is no specialized distance code to take advantage of AVX etc., so <code>rnndescent</code> is going to run slower than other packages. This wouldn’t be allowed on CRAN anyway, but might be a nice-to-have for installing from github.</p>
 </div>
 <div class="section level2">
 <h2 id="citation">Citation<a class="anchor" aria-label="anchor" href="#citation"></a>
@@ -407,6 +210,7 @@
 <div class="section level2">
 <h2 id="old-news">Old News<a class="anchor" aria-label="anchor" href="#old-news"></a>
 </h2>
+<p><em>19 Nov 2023</em> The <code>rnnd_build</code> function and <code>rnnd_query</code> functions have been added which simplify creating a knn/building an index and querying it, respectively and should be the main way of using the package. The other functions remain should you need more flexibility. Some functions have been removed: the local scaling and the standalone distance functions. The latter could return in a different package at some point.</p>
 <p><em>13 November 2023</em>. I have added most of the metrics that don’t need extra parameters for both sparse and non-sparse data, e.g. <code>braycurtis</code>, <code>dice</code>, <code>jaccard</code>, <code>hellinger</code> etc. See the <code>Missing Metrics</code> section at the end of this README for those which are not implemented. There are a few breaking changes (mainly around the hamming metric, see <code>NEWS.md</code> for the exact details).</p>
 <p><em>06 November 2023</em> Sparse data support has been added. You should be able to use e.g. a <code>dgCMatrix</code> with all the methods and currently supported metrics as easily as a dense matrix.</p>
 <p><em>30 October 2023</em> At last, a workable random partition forest implementation has been added. This can be used standalone (e.g. <code>rpf_knn</code>, <code>rpf_build</code>, <code>rpt_knn_query</code>) or as initialization to nearest neighbor descent (<code>nnd_knn(init = "tree", ...)</code>). The forest itself can be serialized with <code>saveRDS</code> but you will pay a price for that convenience by having to pass it back and forth from the R to C++ layer when querying. For now there is no access to the underlying C++ class via R like in RcppHNSW and RcppAnnoy so it may not be suitable for some use cases.</p>

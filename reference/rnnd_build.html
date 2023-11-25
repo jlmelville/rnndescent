@@ -115,8 +115,12 @@ matrix first (otherwise you will get the slower dense numerical version).</p></d
 
 
 <dt>k</dt>
-<dd><p>Number of nearest neighbors to return. Optional if <code>init</code> is
-specified.</p></dd>
+<dd><p>Number of nearest neighbors to build the index for. You can specify
+a different number when running <code>rnnd_query</code>, but the index is calibrated
+using this value so it's recommended to set <code>k</code> according to the likely
+number of neighbors you will want to retrieve. Optional if <code>init</code> is
+specified, in which case <code>k</code> can be inferred from the <code>init</code> data. If you
+do both, then the specified version of <code>k</code> will take precedence.</p></dd>
 
 
 <dt>metric</dt>
