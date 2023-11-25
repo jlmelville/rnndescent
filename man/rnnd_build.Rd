@@ -38,8 +38,12 @@ internally, so if your data columns are \code{logical} and intended to be used
 with the specialized binary \code{metric}s, you should convert it to a logical
 matrix first (otherwise you will get the slower dense numerical version).}
 
-\item{k}{Number of nearest neighbors to return. Optional if \code{init} is
-specified.}
+\item{k}{Number of nearest neighbors to build the index for. You can specify
+a different number when running \code{rnnd_query}, but the index is calibrated
+using this value so it's recommended to set \code{k} according to the likely
+number of neighbors you will want to retrieve. Optional if \code{init} is
+specified, in which case \code{k} can be inferred from the \code{init} data. If you
+do both, then the specified version of \code{k} will take precedence.}
 
 \item{metric}{Type of distance calculation to use. One of:
 \itemize{
