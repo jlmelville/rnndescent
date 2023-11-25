@@ -1,3 +1,7 @@
+# rnndescent 0.1.0
+
+Initial CRAN submission.
+
 # rnndescent 0.0.16
 
 ## Breaking changes
