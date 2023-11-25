@@ -247,5 +247,5 @@ ACM.
 \doi{10.1145/1963405.1963487}.
 }
 \seealso{
-\code{\link[=rnnd_build]{rnnd_build()}}, \code{\link[=rnnd_query]{rnnd_query()}}, \code{\link[=rnnd_prepare]{rnnd_prepare()}}
+\code{\link[=rnnd_build]{rnnd_build()}}, \code{\link[=rnnd_query]{rnnd_query()}}
 }

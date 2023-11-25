@@ -28,7 +28,7 @@
 #' useful defaults:
 #'
 #'   * Find the approximate nearest neighbors: [rnnd_knn()]
-#'   * Create a search index and query new neighbors: [rnnd_build()] and [rnnd_prepare()].
+#'   * Create a search index and query new neighbors: [rnnd_build()].
 #'   * Query new neighbors (or refine an existing knn graph): [rnnd_query()].
 #'
 #' Some diagnostic and helper functions to help explore the the structure of the

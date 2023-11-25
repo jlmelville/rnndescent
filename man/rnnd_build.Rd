@@ -18,7 +18,6 @@ rnnd_build(
   delta = 0.001,
   max_candidates = NULL,
   low_memory = TRUE,
-  prepare = FALSE,
   n_search_trees = 1,
   pruning_degree_multiplier = 1.5,
   diversify_prob = 1,
@@ -191,16 +190,8 @@ computationally expensive approach to index construction. If set to
 using a smaller number of threads, so this is worth trying if you have the
 memory to spare.}
 
-\item{prepare}{If \code{TRUE}, prepare the index for querying. The default is
-\code{FALSE} and will only do enough work to calculate the k-nearest neighbor
-graph for the input \code{data}. To prepare the index for querying later, you
-can always call \code{\link[=rnnd_prepare]{rnnd_prepare()}} subsequently. This parameter is provided
-for convenience if your goal is to immediately query the index after
-building.}
-
 \item{n_search_trees, }{the number of trees to keep in the search forest as
-part of index preparation. The default is \code{1}. Ignored if
-\code{prepare = FALSE}.}
+part of index preparation. The default is \code{1}.}
 
 \item{pruning_degree_multiplier}{How strongly to truncate the final neighbor
 list for each item. The neighbor list of each item will be truncated to
@@ -254,36 +245,27 @@ the approximate nearest neighbor index, a list containing:
 \item \code{dist} an n by k matrix containing the nearest neighbor distances.
 }
 \item Other list items are intended only for internal use by other functions
-such as \code{\link[=rnnd_prepare]{rnnd_prepare()}} and \code{\link[=rnnd_query]{rnnd_query()}}.
+such as \code{\link[=rnnd_query]{rnnd_query()}}.
 }
 }
 \description{
 This function builds an approximate nearest neighbors graph with convenient
-defaults. It will also optionally prepare the index for querying new data,
-for later use with \code{\link[=rnnd_query]{rnnd_query()}}. For more control over the process, please
-see the other functions in the package.
+defaults, then prepares the index for querying new data, for later use with
+\code{\link[=rnnd_query]{rnnd_query()}}. For more control over the process, please see the other
+functions in the package.
 }
 \details{
 The process of k-nearest neighbor graph construction using Random Projection
 Forests (Dasgupta and Freund, 2008) for initialization and Nearest Neighbor
-Descent (Dong and co-workers, 2011) for refinement. Index preparation,
-if followed, uses the graph diversification method of Harwood and Drummond
-(2016).
+Descent (Dong and co-workers, 2011) for refinement. Index preparation, uses
+the graph diversification method of Harwood and Drummond (2016).
 }
 \examples{
 iris_even <- iris[seq_len(nrow(iris)) \%\% 2 == 0, ]
 iris_odd <- iris[seq_len(nrow(iris)) \%\% 2 == 1, ]
 
 # Find 4 (approximate) nearest neighbors using Euclidean distance
-iris_knn <- rnnd_build(iris, k = 4)
-
-# Can also prepare the index for later querying in the same step
-iris_even_index <- rnnd_build(iris_even, k = 4, prepare = TRUE)
-iris_odd_nbrs <- rnnd_query(index = iris_even_index, query = iris_odd, k = 4)
-
-# You can prepare the index later using prepare = TRUE just saves a step
 iris_even_index <- rnnd_build(iris_even, k = 4)
-iris_even_index <- rnnd_prepare(iris_even_index)
 iris_odd_nbrs <- rnnd_query(index = iris_even_index, query = iris_odd, k = 4)
 
 }
@@ -307,5 +289,5 @@ In \emph{Proceedings of the IEEE Conference on Computer Vision and Pattern Recog
 (pp. 5713-5722).
 }
 \seealso{
-\code{\link[=rnnd_query]{rnnd_query()}}, \code{\link[=rnnd_prepare]{rnnd_prepare()}}
+\code{\link[=rnnd_query]{rnnd_query()}}
 }

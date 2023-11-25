@@ -42,7 +42,7 @@ library(rnndescent)
 
 ## Find the k-nearest neighbors
 
-If you just want the k-nearest neighbors of some `data`, use `rnnd_knn`:
+If you just want the k-nearest neighbors of some data, use `rnnd_knn`:
 
 ```{r build knn}
 iris_knn <- rnnd_knn(data = iris, k = 5)
@@ -67,10 +67,17 @@ lapply(iris_knn, function(x) {
 ## Build an Index
 
 `rnnd_knn` returns the k-nearest neighbors, but does not return any "index" that
-you can use to query new data. To do that, use `rnnd_build`:
+you can use to query new data. To do that, use `rnnd_build`. Normally you would
+query the index with different from that which you used to build the index, so
+let's split `iris` up:
+
+```{r iris split}
+iris_even <- iris[seq_len(nrow(iris)) %% 2 == 0, ]
+iris_odd <- iris[seq_len(nrow(iris)) %% 2 == 1, ]
+```
 
 ```{r build index}
-iris_index <- rnnd_build(data = iris, k = 5)
+iris_index <- rnnd_build(iris_even, k = 5)
 ```
 
 The index is also a list but with a lot more components (none of which are 
@@ -85,24 +92,15 @@ lapply(iris_index$graph, function(x) {
 ```
 
 Be aware that for large and high-dimensional data, the returned index can get
-**very** large, especially if you set `n_trees` to a large value.
+**very** large, especially if you set `n_search_trees` to a large value.
 
 ## Querying Data
 
-```{r iris split}
-iris_even <- iris[seq_len(nrow(iris)) %% 2 == 0, ]
-iris_odd <- iris[seq_len(nrow(iris)) %% 2 == 1, ]
-```
-
-Build the index as before but pass `prepare = TRUE`:
-
-```{r build prepared index}
-iris_even_index <- rnnd_build(data = iris_even, k = 5, prepare = TRUE)
-```
+To query new data, use `rnnd_query`:
 
 ```{r query index}
 iris_odd_nn <- rnnd_query(
-  index = iris_even_index,
+  index = iris_index,
   query = iris_odd,
   k = 5
 )
@@ -111,24 +109,47 @@ lapply(iris_odd_nn, function(x) {
 })
 ```
 
-The other way to do this is to use the standalone `rnnd_prepare` function:
+You don't need to keep the data that was used to build the index around, because
+internally, the index stores that (that's one of the reasons the index can get
+large).
 
-```{r prepare index separately}
-iris_even_index <- rnnd_build(data = iris_even, k = 5)
-iris_even_index <- rnnd_prepare(iris_even_index)
-iris_odd_nn <- rnnd_query(
-  index = iris_even_index,
-  query = iris_odd,
+Another use for `rnnd_query` is to improve the quality of a k-nearest neighbor
+graph. We are using for a `query` the same data we used to build `iris_index`
+and specifying via the `init` parameter the knn graph we already generated:
+
+```{r query knn data}
+iris_knn_improved <- rnnd_query(
+  index = iris_index,
+  query = iris_even,
+  init = iris_index$graph,
   k = 5
+) 
+```
+
+If the k-nearest neighbor graph in `index$graph` isn't sufficiently high
+quality, then result of running `rnnd_query` on the same data should be an
+improvement. Exactly how much better is hard to say, but you can always compare
+the sum of the distances:
+
+```{r sum distances}
+c(
+  sum(iris_index$graph$dist),
+  sum(iris_knn_improved$dist)
 )
 ```
 
-If you don't prepare the index, `rnnd_query` will do it for you, but if you want
-to call `rnnd_query` multiple times, it will have to go through the preparation
-step each time, so it's more efficient to prepare the index separately. Another
-advantage of preparing the index as soon as possible is that the index will be
-reduced in size, as the number of trees used for querying data is usually
-substantially smaller than the number used for building the index.
+In this case, the initial knn has not been improved, which is hardly surprising
+due to the size of the dataset. Another function that might be of use is the
+`neighbor_overlap` function to see how many neighbors are shared
+between the two graphs:
+
+```{r neighbor overlap}
+neighbor_overlap(iris_index$graph, iris_knn_improved)
+```
+
+As there was no change to the graph, the overlap is 100%. More details on this
+can be found in the [hubness](hubness.html) vignette and a more ambitious
+dataset is covered in the [FMNIST article](articles/fmnist-example.html).
 
 ## Parallelism
 
@@ -136,7 +157,7 @@ substantially smaller than the number used for building the index.
 `n_threads` to set the number of threads you want to use:
 
 ```{r parallel}
-iris_even_index <- rnnd_build(data = iris_even, k = 5, n_threads = 2)
+iris_index <- rnnd_build(data = iris_even, k = 5, n_threads = 2)
 ```
 
 ## Available Metrics

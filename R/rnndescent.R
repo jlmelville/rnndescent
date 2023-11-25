@@ -3,15 +3,14 @@
 #' Build approximate nearest neighbors index and neighbor graph
 #'
 #' This function builds an approximate nearest neighbors graph with convenient
-#' defaults. It will also optionally prepare the index for querying new data,
-#' for later use with [rnnd_query()]. For more control over the process, please
-#' see the other functions in the package.
+#' defaults, then prepares the index for querying new data, for later use with
+#' [rnnd_query()]. For more control over the process, please see the other
+#' functions in the package.
 #'
 #' The process of k-nearest neighbor graph construction using Random Projection
 #' Forests (Dasgupta and Freund, 2008) for initialization and Nearest Neighbor
-#' Descent (Dong and co-workers, 2011) for refinement. Index preparation,
-#' if followed, uses the graph diversification method of Harwood and Drummond
-#' (2016).
+#' Descent (Dong and co-workers, 2011) for refinement. Index preparation, uses
+#' the graph diversification method of Harwood and Drummond (2016).
 #'
 #' @param data Matrix of `n` items to generate neighbors for, with observations
 #'   in the rows and features in the columns. Optionally, input can be passed
@@ -149,15 +148,8 @@
 #'   `FALSE`, you should see a noticeable speed improvement, especially when
 #'   using a smaller number of threads, so this is worth trying if you have the
 #'   memory to spare.
-#' @param prepare If `TRUE`, prepare the index for querying. The default is
-#'   `FALSE` and will only do enough work to calculate the k-nearest neighbor
-#'   graph for the input `data`. To prepare the index for querying later, you
-#'   can always call [rnnd_prepare()] subsequently. This parameter is provided
-#'   for convenience if your goal is to immediately query the index after
-#'   building.
 #' @param n_search_trees, the number of trees to keep in the search forest as
-#'   part of index preparation. The default is `1`. Ignored if
-#'   `prepare = FALSE`.
+#'   part of index preparation. The default is `1`.
 #' @param diversify_prob the degree of diversification of the search graph
 #'   by removing unnecessary edges through occlusion pruning. This should take a
 #'   value between `0` (no diversification) and `1` (remove as many edges as
@@ -198,22 +190,14 @@
 #'        * `idx` an n by k matrix containing the nearest neighbor indices.
 #'        * `dist` an n by k matrix containing the nearest neighbor distances.
 #'    * Other list items are intended only for internal use by other functions
-#'    such as [rnnd_prepare()] and [rnnd_query()].
-#' @seealso [rnnd_query()], [rnnd_prepare()]
+#'    such as [rnnd_query()].
+#' @seealso [rnnd_query()]
 #' @examples
 #' iris_even <- iris[seq_len(nrow(iris)) %% 2 == 0, ]
 #' iris_odd <- iris[seq_len(nrow(iris)) %% 2 == 1, ]
 #'
 #' # Find 4 (approximate) nearest neighbors using Euclidean distance
-#' iris_knn <- rnnd_build(iris, k = 4)
-#'
-#' # Can also prepare the index for later querying in the same step
-#' iris_even_index <- rnnd_build(iris_even, k = 4, prepare = TRUE)
-#' iris_odd_nbrs <- rnnd_query(index = iris_even_index, query = iris_odd, k = 4)
-#'
-#' # You can prepare the index later using prepare = TRUE just saves a step
 #' iris_even_index <- rnnd_build(iris_even, k = 4)
-#' iris_even_index <- rnnd_prepare(iris_even_index)
 #' iris_odd_nbrs <- rnnd_query(index = iris_even_index, query = iris_odd, k = 4)
 #'
 #' @references
@@ -248,7 +232,6 @@ rnnd_build <- function(data,
                        delta = 0.001,
                        max_candidates = NULL,
                        low_memory = TRUE,
-                       prepare = FALSE,
                        n_search_trees = 1,
                        pruning_degree_multiplier = 1.5,
                        diversify_prob = 1.0,
@@ -297,63 +280,8 @@ rnnd_build <- function(data,
   )
 
   index$data <- data
-
   index$original_metric <- metric
   index$use_alt_metric <- use_alt_metric
-
-  if (prepare) {
-    tsmessage("Preparing index for searching")
-    index <-
-      rnnd_prepare(index, n_threads = n_threads, verbose = verbose)
-  }
-
-  index
-}
-
-#' Prepare approximate nearest neighbors index for querying
-#'
-#' Takes a nearest neighbor index produced by `rnnd_build` and uses the graph
-#' diversification method of Harwood and Drummond (2016) to prepare a nearest
-#' neighbor index for use in querying with [rnnd_query()].
-#'
-#' If you ran [rnnd_build()] with `prepare = TRUE` you do not need to run this
-#' function before calling [rnnd_query()]. If you run [rnnd_query()] on an
-#' index which has not been prepared, it will be prepared before the query is
-#' run.
-#'
-#' Calling `rnnd_prepare` on an already prepared index does nothing.
-#'
-#' @param index An approximate nearest neighbor index produced by [rnnd_build()].
-#' @param n_threads Number of threads to use.
-#' @param verbose If `TRUE`, log information to the console.
-#' @return the approximate nearest neighbor index, prepared for querying.
-#' @seealso [rnnd_build()], [rnnd_query()]
-#' @examples
-#' iris_even <- iris[seq_len(nrow(iris)) %% 2 == 0, ]
-#' iris_odd <- iris[seq_len(nrow(iris)) %% 2 == 1, ]
-#'
-#' # Build index for knn only
-#' iris_even_index <- rnnd_build(iris_even, k = 4)
-#'
-#' # Prepare it for querying
-#' iris_even_index <- rnnd_prepare(iris_even_index)
-#'
-#' # Query new data
-#' iris_odd_nbrs <- rnnd_query(index = iris_even_index, query = iris_odd, k = 4)
-#'
-#' @references
-#' Harwood, B., & Drummond, T. (2016).
-#' Fanng: Fast approximate nearest neighbour graphs.
-#' In *Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition*
-#' (pp. 5713-5722).
-#' @export
-rnnd_prepare <- function(index,
-                         n_threads = 0,
-                         verbose = FALSE) {
-  if (index$prep$is_prepared) {
-    tsmessage("Index already prepared")
-    return(index)
-  }
 
   if (!is.null(index$forest)) {
     index$search_forest <-
@@ -388,13 +316,10 @@ rnnd_prepare <- function(index,
 #'
 #' Takes a nearest neighbor index produced by [rnnd_build()] and uses it to
 #' find the nearest neighbors of a query set of observations, using a
-#' back-tracking search similar to Iwasaki and Miyazaki (2018). If the index was
-#' not prepared for searching (i.e. only used to generate a k-nearest neighbor
-#' graph), it will be prepared before the querying begins, using the graph
-#' diversification method of Harwood and Drummond (2016). As this can be a
-#' time-consuming process, if you plan to query the index multiple times, it
-#' is recommended to run [rnnd_prepare()] on the index first (or ensure you
-#' pass `prepare = TRUE` to [rnnd_build()]).
+#' back-tracking search with the search size determined by the method of
+#' Iwasaki and Miyazaki (2018). For further control over the search effort, the
+#' total number of distance calculations can also be bounded, similar to the
+#' method of Harwood and Drummond (2016).
 #'
 #' @param index A nearest neighbor index produced by [rnnd_build()].
 #' @param query Matrix of `n` query items, with observations in the rows and
@@ -419,10 +344,10 @@ rnnd_prepare <- function(index,
 #'   highly dependent on the distribution of distances in the dataset (higher
 #'   dimensional data should choose a smaller cutoff). Too large a value of
 #'   `epsilon` will result in the query search approaching brute force
-#'   comparison. Use this parameter in conjunction with `max_search_fraction`
-#'   and [rnnd_prepare()] to prevent excessive run time. Default is 0.1. If you
-#'   set `verbose = TRUE`, statistics of the number of distance calculations
-#'   will be logged which can help you tune `epsilon`.
+#'   comparison. Use this parameter in conjunction with `max_search_fraction` to
+#'   prevent excessive run time. Default is 0.1. If you set `verbose = TRUE`,
+#'   statistics of the number of distance calculations will be logged which can
+#'   help you tune `epsilon`.
 #' @param max_search_fraction Maximum fraction of the reference data to search.
 #'  This is a value between 0 (search none of the reference data) and 1 (search
 #'  all of the data if necessary). This works in conjunction with `epsilon` and
@@ -441,12 +366,12 @@ rnnd_prepare <- function(index,
 #' @return the approximate nearest neighbor index, a list containing:
 #'  * `idx` an n by k matrix containing the nearest neighbor indices.
 #'  * `dist` an n by k matrix containing the nearest neighbor distances.
-#' @seealso [rnnd_query()], [rnnd_prepare()]
+#' @seealso [rnnd_query()]
 #' @examples
 #' iris_even <- iris[seq_len(nrow(iris)) %% 2 == 0, ]
 #' iris_odd <- iris[seq_len(nrow(iris)) %% 2 == 1, ]
 #'
-#' iris_even_index <- rnnd_build(iris_even, k = 4, prepare = TRUE)
+#' iris_even_index <- rnnd_build(iris_even, k = 4)
 #' iris_odd_nbrs <- rnnd_query(index = iris_even_index, query = iris_odd, k = 4)
 #'
 #' @references
@@ -470,13 +395,6 @@ rnnd_query <-
            n_threads = 0,
            verbose = FALSE,
            obs = "R") {
-    unprepared <- !index$prep$is_prepared
-    if (unprepared) {
-      tsmessage("Preparing search graph")
-      index <-
-        rnnd_prepare(index, n_threads = n_threads, verbose = verbose)
-    }
-
     if (is.null(init) && !is.null(index$search_forest)) {
       init <- index$search_forest
     }
@@ -668,7 +586,7 @@ rnnd_query <-
 #' @return the approximate nearest neighbor index, a list containing:
 #'    * `idx` an n by k matrix containing the nearest neighbor indices.
 #'    * `dist` an n by k matrix containing the nearest neighbor distances.
-#' @seealso [rnnd_build()], [rnnd_query()], [rnnd_prepare()]
+#' @seealso [rnnd_build()], [rnnd_query()]
 #' @examples
 #'
 #' # Find 4 (approximate) nearest neighbors using Euclidean distance

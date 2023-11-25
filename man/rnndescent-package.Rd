@@ -31,7 +31,7 @@ The following functions provide the main interface to the package, with
 useful defaults:
 \itemize{
 \item Find the approximate nearest neighbors: \code{\link[=rnnd_knn]{rnnd_knn()}}
-\item Create a search index and query new neighbors: \code{\link[=rnnd_build]{rnnd_build()}} and \code{\link[=rnnd_prepare]{rnnd_prepare()}}.
+\item Create a search index and query new neighbors: \code{\link[=rnnd_build]{rnnd_build()}}.
 \item Query new neighbors (or refine an existing knn graph): \code{\link[=rnnd_query]{rnnd_query()}}.
 }
 

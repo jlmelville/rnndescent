@@ -2,6 +2,12 @@
 
 ## Breaking changes
 
+* `rnnd_build` now always prepares the search graph.
+* The `rnnd_prepare` function has been removed. The option to not prepare
+the search graph during index building only made sense if you were only
+interested in the k-nearest neighbor graph. Now that `rnnd_knn` exists for
+that purpose (see below), the logic of index building has been substantially
+simplified.
 * The `nn_to_sparse` function has been removed.
 * The `merge_knn` function has been removed, and `merge_knnl` has been renamed
   to `merge_knn`. If you were running e.g. `merge_knn(nn1, nn2)`, you must now

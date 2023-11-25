@@ -43,11 +43,10 @@ and so on. Suggested values are between 0-0.5, although this value is
 highly dependent on the distribution of distances in the dataset (higher
 dimensional data should choose a smaller cutoff). Too large a value of
 \code{epsilon} will result in the query search approaching brute force
-comparison. Use this parameter in conjunction with \code{max_search_fraction}
-and \code{\link[=rnnd_prepare]{rnnd_prepare()}} to prevent excessive run time. Default is 0.1.
-If you set \code{verbose = TRUE},
-statistics of the number of distance calculations will be logged which
-can help you tune \code{epsilon}.}
+comparison. Use this parameter in conjunction with \code{max_search_fraction} to
+prevent excessive run time. Default is 0.1. If you set \code{verbose = TRUE},
+statistics of the number of distance calculations will be logged which can
+help you tune \code{epsilon}.}
 
 \item{max_search_fraction}{Maximum fraction of the reference data to search.
 This is a value between 0 (search none of the reference data) and 1 (search
@@ -79,19 +78,16 @@ the approximate nearest neighbor index, a list containing:
 \description{
 Takes a nearest neighbor index produced by \code{\link[=rnnd_build]{rnnd_build()}} and uses it to
 find the nearest neighbors of a query set of observations, using a
-back-tracking search similar to Iwasaki and Miyazaki (2018). If the index was
-not prepared for searching (i.e. only used to generate a k-nearest neighbor
-graph), it will be prepared before the querying begins, using the graph
-diversification method of Harwood and Drummond (2016). As this can be a
-time-consuming process, if you plan to query the index multiple times, it
-is recommended to run \code{\link[=rnnd_prepare]{rnnd_prepare()}} on the index first (or ensure you
-pass \code{prepare = TRUE} to \code{\link[=rnnd_build]{rnnd_build()}}).
+back-tracking search with the search size determined by the method of
+Iwasaki and Miyazaki (2018). For further control over the search effort, the
+total number of distance calculations can also be bounded, similar to the
+method of Harwood and Drummond (2016).
 }
 \examples{
 iris_even <- iris[seq_len(nrow(iris)) \%\% 2 == 0, ]
 iris_odd <- iris[seq_len(nrow(iris)) \%\% 2 == 1, ]
 
-iris_even_index <- rnnd_build(iris_even, k = 4, prepare = TRUE)
+iris_even_index <- rnnd_build(iris_even, k = 4)
 iris_odd_nbrs <- rnnd_query(index = iris_even_index, query = iris_odd, k = 4)
 
 }
@@ -107,5 +103,5 @@ Optimization of indexing based on k-nearest neighbor graph for proximity search 
 \url{https://arxiv.org/abs/1810.07355}
 }
 \seealso{
-\code{\link[=rnnd_query]{rnnd_query()}}, \code{\link[=rnnd_prepare]{rnnd_prepare()}}
+\code{\link[=rnnd_query]{rnnd_query()}}
 }
