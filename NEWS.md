@@ -1,4 +1,33 @@
+# rnndescent devel
+
+* New parameter: for `nnd_knn` and `rnnd_build`: `weight_by_degree`. If set
+to `TRUE`, then the candidate list in nearest neighbor descent is weighted in
+favor of low-degree items, which should make for a more diverse local join.
+There is a minor increase in computation but also a minor increase in accuracy.
+the knn graph with no index built. The index can be very large in size for high
+dimensional or large datasets, so this function is useful if you only care about
+the knn graph and won't ever want to query new data.
+* New parameter for `rnnd_query` and `graph_knn_query`: `max_search_fraction`.
+This parameter controls the maximum number of nodes that can be searched during
+querying. If the number of nodes searched exceeds this fraction of the total
+number of nodes in the graph, the search will be terminated. This can be
+used in combination with `epsilon` to avoid excessive search times.
+
 # rnndescent 0.0.16
+
+## Breaking changes
+
+* `rnnd_build` now always prepares the search graph.
+* The `rnnd_prepare` function has been removed. The option to not prepare
+the search graph during index building only made sense if you were only
+interested in the k-nearest neighbor graph. Now that `rnnd_knn` exists for
+that purpose (see below), the logic of index building has been substantially
+simplified.
+* The `nn_to_sparse` function has been removed.
+* The `merge_knn` function has been removed, and `merge_knnl` has been renamed
+  to `merge_knn`. If you were running e.g. `merge_knn(nn1, nn2)`, you must now
+  use `merge_knn(list(nn1, nn2))`. Also the parameter `nn_graphs` has been 
+  renamed `graphs`.
 
 ## New features
 
@@ -6,16 +35,19 @@
 the knn graph with no index built. The index can be very large in size for
 high dimensional or large datasets, so this function is useful if you only
 care about the knn graph and won't ever want to query new data.
-* New parameter: for `nnd_knn` and `rnnd_build`: `weight_by_degree`. If set
-to `TRUE`, then the candidate list in nearest neighbor descent is weighted in
-favor of low-degree items, which should make for a more diverse local join.
-There is a minor increase in computation but also a minor increase in accuracy.
+* New function: `neighbor_overlap`. Measures the overlap of two knn graphs via
+their shared indices. A similar function was used extensively in some vignettes
+so it may have sufficient utility to be useful to others.
 
 ## Bug fixes and minor improvements
 
 * The sparse `spearmanr` distance has been fixed.
 * During tree-building with `n_threads = 0`, progress/interrupt monitoring was
 not occurring.
+* You can provide a user-defined graph to the `init` parameter of `rnnd_query`.
+* `rnnd_query`: if `verbose = TRUE`, a summary of the min, max and average
+number of distance queries will be logged. This can help tune `epsilon` and
+`max_search_fraction`.
 
 # rnndescent 0.0.15
 

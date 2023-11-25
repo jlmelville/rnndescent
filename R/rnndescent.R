@@ -1,17 +1,16 @@
 # API ---------------------------------------------------------------------
 
-#' Build Approximate Nearest Neighbors Index and KNN Graph
+#' Build approximate nearest neighbors index and neighbor graph
 #'
 #' This function builds an approximate nearest neighbors graph with convenient
-#' defaults. It will also optionally prepare the index for querying new data,
-#' for later use with [rnnd_query()]. For more control over the process, please
-#' see the other functions in the package.
+#' defaults, then prepares the index for querying new data, for later use with
+#' [rnnd_query()]. For more control over the process, please see the other
+#' functions in the package.
 #'
 #' The process of k-nearest neighbor graph construction using Random Projection
 #' Forests (Dasgupta and Freund, 2008) for initialization and Nearest Neighbor
-#' Descent (Dong and co-workers, 2011) for refinement. Index preparation,
-#' if followed, uses the graph diversification method of Harwood and Drummond
-#' (2016).
+#' Descent (Dong and co-workers, 2011) for refinement. Index preparation, uses
+#' the graph diversification method of Harwood and Drummond (2016).
 #'
 #' @param data Matrix of `n` items to generate neighbors for, with observations
 #'   in the rows and features in the columns. Optionally, input can be passed
@@ -22,8 +21,12 @@
 #'   internally, so if your data columns are `logical` and intended to be used
 #'   with the specialized binary `metric`s, you should convert it to a logical
 #'   matrix first (otherwise you will get the slower dense numerical version).
-#' @param k Number of nearest neighbors to return. Optional if `init` is
-#'   specified.
+#' @param k Number of nearest neighbors to build the index for. You can specify
+#'   a different number when running `rnnd_query`, but the index is calibrated
+#'   using this value so it's recommended to set `k` according to the likely
+#'   number of neighbors you will want to retrieve. Optional if `init` is
+#'   specified, in which case `k` can be inferred from the `init` data. If you
+#'   do both, then the specified version of `k` will take precedence.
 #' @param metric Type of distance calculation to use. One of:
 #'   - `"braycurtis"`
 #'   - `"canberra"`
@@ -157,15 +160,8 @@
 #'   a small improvement in accuracy. Because this incurs a small extra cost of
 #'   counting the degree of each node, and because it tends to delay early
 #'   convergence, by default this is `FALSE`.
-#' @param prepare If `TRUE`, prepare the index for querying. The default is
-#'   `FALSE` and will only do enough work to calculate the k-nearest neighbor
-#'   graph for the input `data`. To prepare the index for querying later, you
-#'   can always call [rnnd_prepare()] subsequently. This parameter is provided
-#'   for convenience if your goal is to immediately query the index after
-#'   building.
 #' @param n_search_trees, the number of trees to keep in the search forest as
-#'   part of index preparation. The default is `1`. Ignored if
-#'   `prepare = FALSE`.
+#'   part of index preparation. The default is `1`.
 #' @param diversify_prob the degree of diversification of the search graph
 #'   by removing unnecessary edges through occlusion pruning. This should take a
 #'   value between `0` (no diversification) and `1` (remove as many edges as
@@ -206,22 +202,14 @@
 #'        * `idx` an n by k matrix containing the nearest neighbor indices.
 #'        * `dist` an n by k matrix containing the nearest neighbor distances.
 #'    * Other list items are intended only for internal use by other functions
-#'    such as [rnnd_prepare()] and [rnnd_query()].
-#' @seealso [rnnd_query()], [rnnd_prepare()]
+#'    such as [rnnd_query()].
+#' @seealso [rnnd_query()]
 #' @examples
 #' iris_even <- iris[seq_len(nrow(iris)) %% 2 == 0, ]
 #' iris_odd <- iris[seq_len(nrow(iris)) %% 2 == 1, ]
 #'
 #' # Find 4 (approximate) nearest neighbors using Euclidean distance
-#' iris_knn <- rnnd_build(iris, k = 4)
-#'
-#' # Can also prepare the index for later querying in the same step
-#' iris_even_index <- rnnd_build(iris_even, k = 4, prepare = TRUE)
-#' iris_odd_nbrs <- rnnd_query(index = iris_even_index, query = iris_odd, k = 4)
-#'
-#' # You can prepare the index later using prepare = TRUE just saves a step
 #' iris_even_index <- rnnd_build(iris_even, k = 4)
-#' iris_even_index <- rnnd_prepare(iris_even_index)
 #' iris_odd_nbrs <- rnnd_query(index = iris_even_index, query = iris_odd, k = 4)
 #'
 #' @references
@@ -229,14 +217,14 @@
 #' Random projection trees and low dimensional manifolds.
 #' In *Proceedings of the fortieth annual ACM symposium on Theory of computing*
 #' (pp. 537-546).
-#' <https://doi.org/10.1145/1374376.1374452>.
+#' \doi{10.1145/1374376.1374452}.
 #'
 #' Dong, W., Moses, C., & Li, K. (2011, March).
 #' Efficient k-nearest neighbor graph construction for generic similarity measures.
 #' In *Proceedings of the 20th international conference on World Wide Web*
 #' (pp. 577-586).
 #' ACM.
-#' <https://doi.org/10.1145/1963405.1963487>.
+#' \doi{10.1145/1963405.1963487}.
 #'
 #' Harwood, B., & Drummond, T. (2016).
 #' Fanng: Fast approximate nearest neighbour graphs.
@@ -256,8 +244,7 @@ rnnd_build <- function(data,
                        delta = 0.001,
                        max_candidates = NULL,
                        low_memory = TRUE,
-                       weight_by_degree = FALSE,
-                       prepare = FALSE,
+                       weight_by_degree = FALSE
                        n_search_trees = 1,
                        pruning_degree_multiplier = 1.5,
                        diversify_prob = 1.0,
@@ -307,63 +294,8 @@ rnnd_build <- function(data,
   )
 
   index$data <- data
-
   index$original_metric <- metric
   index$use_alt_metric <- use_alt_metric
-
-  if (prepare) {
-    tsmessage("Preparing index for searching")
-    index <-
-      rnnd_prepare(index, n_threads = n_threads, verbose = verbose)
-  }
-
-  index
-}
-
-#' Prepare Approximate Nearest Neighbors Index for Querying
-#'
-#' Takes a nearest neighbor index produced by `rnnd_build` and uses the graph
-#' diversification method of Harwood and Drummond (2016) to prepare a nearest
-#' neighbor index for use in querying with [rnnd_query()].
-#'
-#' If you ran [rnnd_build()] with `prepare = TRUE` you do not need to run this
-#' function before calling [rnnd_query()]. If you run [rnnd_query()] on an
-#' index which has not been prepared, it will be prepared before the query is
-#' run.
-#'
-#' Calling `rnnd_prepare` on an already prepared index does nothing.
-#'
-#' @param index An approximate nearest neighbor index produced by [rnnd_build()].
-#' @param n_threads Number of threads to use.
-#' @param verbose If `TRUE`, log information to the console.
-#' @return the approximate nearest neighbor index, prepared for querying.
-#' @seealso [rnnd_build()], [rnnd_query()]
-#' @examples
-#' iris_even <- iris[seq_len(nrow(iris)) %% 2 == 0, ]
-#' iris_odd <- iris[seq_len(nrow(iris)) %% 2 == 1, ]
-#'
-#' # Build index for knn only
-#' iris_even_index <- rnnd_build(iris_even, k = 4)
-#'
-#' # Prepare it for querying
-#' iris_even_index <- rnnd_prepare(iris_even_index)
-#'
-#' # Query new data
-#' iris_odd_nbrs <- rnnd_query(index = iris_even_index, query = iris_odd, k = 4)
-#'
-#' @references
-#' Harwood, B., & Drummond, T. (2016).
-#' Fanng: Fast approximate nearest neighbour graphs.
-#' In *Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition*
-#' (pp. 5713-5722).
-#' @export
-rnnd_prepare <- function(index,
-                         n_threads = 0,
-                         verbose = FALSE) {
-  if (index$prep$is_prepared) {
-    tsmessage("Index already prepared")
-    return(index)
-  }
 
   if (!is.null(index$forest)) {
     index$search_forest <-
@@ -394,17 +326,14 @@ rnnd_prepare <- function(index,
   index
 }
 
-
-#' Query Approximate Nearest Neighbors Index
+#' Query an index for approximate nearest neighbors
 #'
 #' Takes a nearest neighbor index produced by [rnnd_build()] and uses it to
-#' find the nearest neighbors of a query set of observations. If the index was
-#' not prepared for searching (i.e. only used to generate a k-nearest neighbor
-#' graph), it will be prepared before the querying begins, using the graph
-#' diversification method of Harwood and Drummond (2016). As this can be a
-#' time-consuming process, if you plan to query the index multiple times, it
-#' is recommended to run [rnnd_prepare()] on the index first (or ensure you
-#' pass `prepare = TRUE` to [rnnd_build()]).
+#' find the nearest neighbors of a query set of observations, using a
+#' back-tracking search with the search size determined by the method of
+#' Iwasaki and Miyazaki (2018). For further control over the search effort, the
+#' total number of distance calculations can also be bounded, similar to the
+#' method of Harwood and Drummond (2016).
 #'
 #' @param index A nearest neighbor index produced by [rnnd_build()].
 #' @param query Matrix of `n` query items, with observations in the rows and
@@ -419,8 +348,9 @@ rnnd_prepare <- function(index,
 #'   Sparse and non-sparse data cannot be mixed, so if the data used to build
 #'   index was sparse, the `query` data must also be sparse. and vice versa.
 #' @param k Number of nearest neighbors to return.
-#' @param epsilon Controls trade-off between accuracy and search cost, by
-#'   specifying a distance tolerance on whether to explore the neighbors of
+#' @param epsilon Controls trade-off between accuracy and search cost, as
+#'   described by Iwasaki and Miyazaki (2018). Setting `epsilon` to a positive
+#'   value specifies a distance tolerance on whether to explore the neighbors of
 #'   candidate points. The larger the value, the more neighbors will be
 #'   searched. A value of 0.1 allows query-candidate distances to be 10% larger
 #'   than the current most-distant neighbor of the query point, 0.2 means 20%,
@@ -428,9 +358,18 @@ rnnd_prepare <- function(index,
 #'   highly dependent on the distribution of distances in the dataset (higher
 #'   dimensional data should choose a smaller cutoff). Too large a value of
 #'   `epsilon` will result in the query search approaching brute force
-#'   comparison. Use this parameter in conjunction with [rnnd_prepare()] to
-#'   prevent excessive run time. Default is 0.1.
+#'   comparison. Use this parameter in conjunction with `max_search_fraction` to
+#'   prevent excessive run time. Default is 0.1. If you set `verbose = TRUE`,
+#'   statistics of the number of distance calculations will be logged which can
+#'   help you tune `epsilon`.
+#' @param max_search_fraction Maximum fraction of the reference data to search.
+#'  This is a value between 0 (search none of the reference data) and 1 (search
+#'  all of the data if necessary). This works in conjunction with `epsilon` and
+#'  will terminate the search early if the specified fraction of the reference
+#'  data has been searched. Default is 1.
 #' @param n_threads Number of threads to use.
+#' @param init An optional matrix of `k` initial nearest neighbors for each
+#'  query point.
 #' @param verbose If `TRUE`, log information to the console.
 #' @param obs set to `"C"` to indicate that the input `data` orientation stores
 #'   each observation as a column. The default `"R"` means that observations are
@@ -441,12 +380,12 @@ rnnd_prepare <- function(index,
 #' @return the approximate nearest neighbor index, a list containing:
 #'  * `idx` an n by k matrix containing the nearest neighbor indices.
 #'  * `dist` an n by k matrix containing the nearest neighbor distances.
-#' @seealso [rnnd_query()], [rnnd_prepare()]
+#' @seealso [rnnd_query()]
 #' @examples
 #' iris_even <- iris[seq_len(nrow(iris)) %% 2 == 0, ]
 #' iris_odd <- iris[seq_len(nrow(iris)) %% 2 == 1, ]
 #'
-#' iris_even_index <- rnnd_build(iris_even, k = 4, prepare = TRUE)
+#' iris_even_index <- rnnd_build(iris_even, k = 4)
 #' iris_odd_nbrs <- rnnd_query(index = iris_even_index, query = iris_odd, k = 4)
 #'
 #' @references
@@ -454,26 +393,24 @@ rnnd_prepare <- function(index,
 #' Fanng: Fast approximate nearest neighbour graphs.
 #' In *Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition*
 #' (pp. 5713-5722).
+#'
+#' Iwasaki, M., & Miyazaki, D. (2018).
+#' Optimization of indexing based on k-nearest neighbor graph for proximity search in high-dimensional data.
+#' *arXiv preprint* *arXiv:1810.07355*.
+#' <https://arxiv.org/abs/1810.07355>
 #' @export
 rnnd_query <-
   function(index,
            query,
            k = 30,
            epsilon = 0.1,
+           max_search_fraction = 1,
+           init = NULL,
            n_threads = 0,
            verbose = FALSE,
            obs = "R") {
-    unprepared <- !index$prep$is_prepared
-    if (unprepared) {
-      tsmessage("Preparing search graph")
-      index <-
-        rnnd_prepare(index, n_threads = n_threads, verbose = verbose)
-    }
-
-    if (!is.null(index$search_forest)) {
+    if (is.null(init) && !is.null(index$search_forest)) {
       init <- index$search_forest
-    } else {
-      init <- NULL
     }
 
     query <- x2m(query)
@@ -488,6 +425,7 @@ rnnd_query <-
       metric = index$original_metric,
       init = init,
       epsilon = epsilon,
+      max_search_fraction = max_search_fraction,
       use_alt_metric = index$use_alt_metric,
       n_threads = n_threads,
       verbose = verbose,
@@ -497,18 +435,18 @@ rnnd_query <-
   }
 
 
-#' Build Approximate Nearest Neighbors Graph
+#' Find approximate nearest neighbors
 #'
-#' This function builds an approximate nearest neighbors graph with convenient
-#' defaults. It does not return an index for later querying.
+#' This function builds an approximate nearest neighbors graph of the provided
+#' data using convenient defaults. It does not return an index for later
+#' querying, to speed the graph construction and reduce the size and complexity
+#' of the return value.
 #'
 #' The process of k-nearest neighbor graph construction using Random Projection
 #' Forests (Dasgupta and Freund, 2008) for initialization and Nearest Neighbor
-#' Descent (Dong and co-workers, 2011) for refinement.
-#'
-#' If you are sure you will not want to query new data then compared to
-#' [rnnd_build()] this function has the advantage of not storing the index,
-#' which can be very large.
+#' Descent (Dong and co-workers, 2011) for refinement. If you are sure you will
+#' not want to query new data then compared to [rnnd_build()] this function has
+#' the advantage of not storing the index, which can be very large.
 #'
 #' @param data Matrix of `n` items to generate neighbors for, with observations
 #'   in the rows and features in the columns. Optionally, input can be passed
@@ -670,7 +608,7 @@ rnnd_query <-
 #' @return the approximate nearest neighbor index, a list containing:
 #'    * `idx` an n by k matrix containing the nearest neighbor indices.
 #'    * `dist` an n by k matrix containing the nearest neighbor distances.
-#' @seealso [rnnd_build()], [rnnd_query()], [rnnd_prepare()]
+#' @seealso [rnnd_build()], [rnnd_query()]
 #' @examples
 #'
 #' # Find 4 (approximate) nearest neighbors using Euclidean distance
@@ -681,14 +619,14 @@ rnnd_query <-
 #' Random projection trees and low dimensional manifolds.
 #' In *Proceedings of the fortieth annual ACM symposium on Theory of computing*
 #' (pp. 537-546).
-#' <https://doi.org/10.1145/1374376.1374452>.
+#' \doi{10.1145/1374376.1374452}.
 #'
 #' Dong, W., Moses, C., & Li, K. (2011, March).
 #' Efficient k-nearest neighbor graph construction for generic similarity measures.
 #' In *Proceedings of the 20th international conference on World Wide Web*
 #' (pp. 577-586).
 #' ACM.
-#' <https://doi.org/10.1145/1963405.1963487>.
+#' \doi{10.1145/1963405.1963487}.
 #'
 #' @export
 rnnd_knn <- function(data,
@@ -742,7 +680,16 @@ rnnd_knn <- function(data,
 
 # kNN Construction --------------------------------------------------------
 
-#' Calculate Exact Nearest Neighbors by Brute Force
+#' Find exact nearest neighbors by brute force
+#'
+#' Returns the exact nearest neighbors of a dataset. A brute force search is
+#' carried out: all possible pairs of points are compared, and the nearest
+#' neighbors are returned.
+#'
+#' This method is accurate but scales poorly with dataset size, so use with
+#' caution with larger datasets. Having the exact neighbors as a ground truth to
+#' compare with approximate results is useful for benchmarking and determining
+#' parameter settings of the approximate methods.
 #'
 #' @param data Matrix of `n` items to generate neighbors for, with observations
 #'   in the rows and features in the columns. Optionally, input can be passed
@@ -901,7 +848,11 @@ brute_force_knn <- function(data,
   res
 }
 
-#' Randomly select nearest neighbors.
+#' Find nearest neighbors by random selection
+#'
+#' Create a neighbor graph by randomly selecting neighbors. This is not a useful
+#' nearest neighbor method on its own, but can be used with other methods which
+#' require initialization, such as [nnd_knn()].
 #'
 #' @param data Matrix of `n` items to generate random neighbors for, with
 #'   observations in the rows and features in the columns. Optionally, input can
@@ -1042,10 +993,14 @@ random_knn <-
     res
   }
 
-#' Find Nearest Neighbors and Distances
+#' Find nearest neighbors using nearest neighbor descent
 #'
-#' Uses Nearest Neighbor Descent (Dong and co-workers, 2011) to optimize an
-#' approximate nearest neighbor graph.
+#' Uses the Nearest Neighbor Descent method due to Dong and co-workers (2011)
+#' to optimize an approximate nearest neighbor graph.
+#'
+#' If no initial graph is provided, a random graph is generated, or you may also
+#' specify the use of a graph generated from a forest of random projection
+#' trees, using the method of Dasgupta and Freund (2008).
 #'
 #' @param data Matrix of `n` items to generate neighbors for, with observations
 #'   in the rows and features in the columns. Optionally, input can be passed
@@ -1240,14 +1195,14 @@ random_knn <-
 #' Random projection trees and low dimensional manifolds.
 #' In *Proceedings of the fortieth annual ACM symposium on Theory of computing*
 #' (pp. 537-546).
-#' <https://doi.org/10.1145/1374376.1374452>.
+#' \doi{10.1145/1374376.1374452}.
 #'
 #' Dong, W., Moses, C., & Li, K. (2011, March).
 #' Efficient k-nearest neighbor graph construction for generic similarity measures.
 #' In *Proceedings of the 20th international conference on World Wide Web*
 #' (pp. 577-586).
 #' ACM.
-#' <https://doi.org/10.1145/1963405.1963487>.
+#' \doi{10.1145/1963405.1963487}.
 #' @export
 nnd_knn <- function(data,
                     k = NULL,
@@ -1337,6 +1292,7 @@ nnd_knn <- function(data,
       )
     }
   } else {
+    tsmessage("Initializing from user-supplied graph")
     # user-supplied input may need to be transformed to the actual metric
     if (use_alt_metric &&
       !is.null(init) && is.list(init) && !is.null(init$dist)) {
@@ -1433,7 +1389,16 @@ nnd_knn <- function(data,
 
 # kNN Queries -------------------------------------------------------------
 
-#' Query Exact Nearest Neighbors by Brute Force
+#' Query exact nearest neighbors by brute force
+#'
+#' Returns the exact nearest neighbors of query data to the reference data. A
+#' brute force search is carried out: all possible pairs of reference and query
+#' points are compared, and the nearest neighbors are returned.
+#'
+#' This is accurate but scales poorly with dataset size, so use with caution
+#' with larger datasets. Having the exact neighbors as a ground truth to compare
+#' with approximate results is useful for benchmarking and determining
+#' parameter settings of the approximate methods.
 #'
 #' @param query Matrix of `n` query items, with observations in the rows and
 #'   features in the columns. Optionally, the data may be passed with the
@@ -1611,7 +1576,11 @@ brute_force_knn_query <- function(query,
   res
 }
 
-#' Nearest Neighbors Query by Random Selection
+#' Query nearest neighbors by random selection
+#'
+#' Run queries against reference data to return randomly selected neighbors.
+#' This is not a useful query method on its own, but can be used with other
+#' methods which require initialization.
 #'
 #' @param query Matrix of `n` query items, with observations in the rows and
 #'   features in the columns. Optionally, the data may be passed with the
@@ -1772,7 +1741,17 @@ random_knn_query <-
     res
   }
 
-#' Find Nearest Neighbors and Distances
+#' Query a search graph for nearest neighbors
+#'
+#' Run queries against a search graph, to return nearest neighbors taken from
+#' the reference data used to build that graph.
+#'
+#' A greedy beam search is used to query the graph, combining two search pruning
+#' strategies. The first, due to Iwasaki and Miyazaki (2018), only considers
+#' new candidates within a relative distance of the current furthest neighbor
+#' in the query's graph. The second, due to Harwood and Drummond (2016), puts a
+#' limit on the absolute number of distance calculations to carry out. See the
+#' `epsilon` and `max_search_fraction` parameters respectively.
 #'
 #' @param query Matrix of `n` query items, with observations in the rows and
 #'   features in the columns. Optionally, the data may be passed with the
@@ -1872,17 +1851,25 @@ random_knn_query <-
 #'       If the input distances are omitted, they will be calculated for you.
 #'  1. A random projection forest, such as that returned from [rpf_build()] or
 #'     [rpf_knn()] with `ret_forest = TRUE`.
-#' @param epsilon Controls trade-off between accuracy and search cost, by
-#'   specifying a distance tolerance on whether to explore the neighbors of
-#'   candidate points. The larger the value, the more neighbors will be
-#'   searched. A value of 0.1 allows query-candidate distances to be 10% larger
-#'   than the current most-distant neighbor of the query point, 0.2 means 20%,
-#'   and so on. Suggested values are between 0-0.5, although this value is
-#'   highly dependent on the distribution of distances in the dataset (higher
-#'   dimensional data should choose a smaller cutoff). Too large a value of
-#'   `epsilon` will result in the query search approaching brute force
-#'   comparison. Use this parameter in conjunction with
-#'   [prepare_search_graph()] to prevent excessive run time. Default is 0.1.
+#' @param epsilon Controls trade-off between accuracy and search cost, as
+#'   described by Iwasaki and Miyazaki (2018), by specifying a distance
+#'   tolerance on whether to explore the neighbors of candidate points. The
+#'   larger the value, the more neighbors will be searched. A value of 0.1
+#'   allows query-candidate distances to be 10% larger than the current
+#'   most-distant neighbor of the query point, 0.2 means 20%, and so on.
+#'   Suggested values are between 0-0.5, although this value is highly dependent
+#'   on the distribution of distances in the dataset (higher dimensional data
+#'   should choose a smaller cutoff). Too large a value of `epsilon` will result
+#'   in the query search approaching brute force comparison. Use this parameter
+#'   in conjunction with `max_search_fraction` and [prepare_search_graph()] to
+#'   prevent excessive run time. Default is 0.1. If you set `verbose = TRUE`,
+#'   statistics of the number of distance calculations will be logged which
+#'   can help you tune `epsilon`.
+#' @param max_search_fraction Maximum fraction of the reference data to search.
+#'  This is a value between 0 (search none of the reference data) and 1 (search
+#'  all of the data if necessary). This works in conjunction with `epsilon` and
+#'  will terminate the search early if the specified fraction of the reference
+#'  data has been searched. Default is 1.
 #' @param n_threads Number of threads to use.
 #' @param verbose If `TRUE`, log information to the console.
 #' @param obs set to `"C"` to indicate that the input `query` and `reference`
@@ -1927,10 +1914,6 @@ random_knn_query <-
 #' )
 #'
 #' @references
-#' Hajebi, K., Abbasi-Yadkori, Y., Shahbazi, H., & Zhang, H. (2011, June).
-#' Fast approximate nearest-neighbor search with k-nearest neighbor graph.
-#' In *Twenty-Second International Joint Conference on Artificial Intelligence*.
-#'
 #' Harwood, B., & Drummond, T. (2016).
 #' Fanng: Fast approximate nearest neighbour graphs.
 #' In *Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition*
@@ -1940,7 +1923,6 @@ random_knn_query <-
 #' Optimization of indexing based on k-nearest neighbor graph for proximity
 #' search in high-dimensional data.
 #' *arXiv preprint arXiv:1810.07355*.
-#'
 #' @export
 graph_knn_query <- function(query,
                             reference,
@@ -1949,6 +1931,7 @@ graph_knn_query <- function(query,
                             metric = "euclidean",
                             init = NULL,
                             epsilon = 0.1,
+                            max_search_fraction = 1.0,
                             use_alt_metric = TRUE,
                             n_threads = 0,
                             verbose = FALSE,
@@ -2016,6 +1999,7 @@ graph_knn_query <- function(query,
         apply_alt_metric_uncorrection(metric, init$dist, is_sparse(reference))
     }
   } else if ((is.list(init) && !is.null(init$idx)) || is.matrix(init)) {
+    tsmessage("Initializing from user-supplied graph")
     if (is.matrix(init)) {
       init <- list(idx = init)
     }
@@ -2091,52 +2075,58 @@ graph_knn_query <- function(query,
     reference_graph_list <- tcsparse_to_list(reference_graph)
   }
 
-  tsmessage(thread_msg("Searching nearest neighbor graph", n_threads = n_threads))
+  tsmessage(
+    thread_msg(
+      "Searching nearest neighbor graph with epsilon = ",
+      epsilon,
+      " and max_search_fraction = ",
+      max_search_fraction,
+      n_threads = n_threads
+    )
+  )
 
+  args <- list(
+    reference_graph_list = reference_graph_list,
+    nn_idx = init$idx,
+    nn_dist = init$dist,
+    metric = actual_metric,
+    epsilon = epsilon,
+    max_search_fraction = max_search_fraction,
+    n_threads = n_threads,
+    verbose = verbose
+  )
   if (is_sparse(reference)) {
-    res <-
-      rnn_sparse_query(
-        ref_ind = reference@i,
-        ref_ptr = reference@p,
-        ref_data = reference@x,
-        query_ind = query@i,
-        query_ptr = query@p,
-        query_data = query@x,
-        ndim = nrow(reference),
-        reference_graph_list = reference_graph_list,
-        nn_idx = init$idx,
-        nn_dist = init$dist,
-        metric = actual_metric,
-        epsilon = epsilon,
-        n_threads = n_threads,
-        verbose = verbose
+    res <- do.call(
+      rnn_sparse_query,
+      c(
+        list(
+          ref_ind = reference@i,
+          ref_ptr = reference@p,
+          ref_data = reference@x,
+          query_ind = query@i,
+          query_ptr = query@p,
+          query_data = query@x,
+          ndim = nrow(reference)
+        ),
+        args
       )
+    )
   } else if (is.logical(reference)) {
-    res <-
-      rnn_logical_query(
-        reference = reference,
-        reference_graph_list = reference_graph_list,
-        query = query,
-        nn_idx = init$idx,
-        nn_dist = init$dist,
-        metric = actual_metric,
-        epsilon = epsilon,
-        n_threads = n_threads,
-        verbose = verbose
+    res <- do.call(
+      rnn_logical_query,
+      c(
+        list(reference = reference, query = query),
+        args
       )
+    )
   } else {
-    res <-
-      rnn_query(
-        reference = reference,
-        reference_graph_list = reference_graph_list,
-        query = query,
-        nn_idx = init$idx,
-        nn_dist = init$dist,
-        metric = actual_metric,
-        epsilon = epsilon,
-        n_threads = n_threads,
-        verbose = verbose
+    res <- do.call(
+      rnn_query,
+      c(
+        list(reference = reference, query = query),
+        args
       )
+    )
   }
   if (use_alt_metric) {
     res$dist <-
@@ -2148,11 +2138,12 @@ graph_knn_query <- function(query,
 
 # Search Graph Preparation ------------------------------------------------
 
-#' Nearest Neighbor Graph Refinement
+#' Convert a nearest neighbor graph into a search graph
 #'
 #' Create a graph using existing nearest neighbor data to balance search
 #' speed and accuracy using the occlusion pruning and truncation strategies
-#' of Harwood and Drummond (2016).
+#' of Harwood and Drummond (2016). The resulting search graph should be more
+#' efficient for querying new data than the original nearest neighbor graph.
 #'
 #' An approximate nearest neighbor graph is not very useful for querying via
 #' [graph_knn_query()], especially if the query data is initialized randomly:
@@ -2258,7 +2249,10 @@ graph_knn_query <- function(query,
 #'   `q` will be in the neighbor list of `p` so there is no need to retain it in
 #'   the neighbor list of `i`. You may also set this to `NULL` to skip any
 #'   occlusion pruning. Note that occlusion pruning is carried out twice, once
-#'   to the forward neighbors, and once to the reverse neighbors.
+#'   to the forward neighbors, and once to the reverse neighbors. Reducing this
+#'   value will result in a more dense graph. This is similar to increasing the
+#'   "alpha" parameter used by in the DiskAnn pruning method of Subramanya and
+#'   co-workers (2014).
 #' @param pruning_degree_multiplier How strongly to truncate the final neighbor
 #'   list for each item. The neighbor list of each item will be truncated to
 #'   retain only the closest `d` neighbors, where
@@ -2305,6 +2299,11 @@ graph_knn_query <- function(query,
 #' Fanng: Fast approximate nearest neighbour graphs.
 #' In *Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition*
 #' (pp. 5713-5722).
+#'
+#' Jayaram Subramanya, S., Devvrit, F., Simhadri, H. V., Krishnawamy, R., & Kadekodi, R. (2019).
+#' Diskann: Fast accurate billion-point nearest neighbor search on a single node.
+#' *Advances in Neural Information Processing Systems*, *32*.
+#' @seealso [graph_knn_query()]
 #' @export
 prepare_search_graph <- function(data,
                                  graph,
@@ -2325,11 +2324,17 @@ prepare_search_graph <- function(data,
       diversify_prob >= 0
     )
   }
-  n_nbrs <- check_graph(graph)$k
-  max_degree <- max(round(n_nbrs * pruning_degree_multiplier), 1)
 
-  tsmessage("Converting graph to sparse format")
-  sp <- graph_to_csparse(graph)
+  if (is_sparse(graph)) {
+    sp <- Matrix::t(graph)
+    n_nbrs <- mean(diff(sp@p))
+    max_degree <- max(round(n_nbrs * pruning_degree_multiplier), 1)
+  } else {
+    n_nbrs <- check_graph(graph)$k
+    max_degree <- max(round(n_nbrs * pruning_degree_multiplier), 1)
+    tsmessage("Converting graph to sparse format")
+    sp <- graph_to_csparse(graph)
+  }
 
   sp <- preserve_zeros(sp)
 
@@ -2413,6 +2418,13 @@ prepare_search_graph <- function(data,
 # In *Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition*
 # (pp. 5713-5722).
 # "Occlusion pruning"
+#
+# prune_probability behaves a bit like (but in the opposite direction of) alpha
+# Jayaram Subramanya, S., Devvrit, F., Simhadri, H. V., Krishnawamy, R., & Kadekodi, R. (2019).
+# Diskann: Fast accurate billion-point nearest neighbor search on a single node.
+# Advances in Neural Information Processing Systems, 32.
+# the pynndescent implementation at cmuparlay/pbbsbench uses alpha instead of
+# a prune_probability (see also https://arxiv.org/abs/2305.04359)
 diversify <- function(data,
                       graph,
                       metric = "euclidean",
@@ -2424,36 +2436,29 @@ diversify <- function(data,
   stopifnot(methods::is(graph, "sparseMatrix"))
   gl <- csparse_to_list(graph)
 
+  tsmessage("Occlusion pruning with probability: ")
+  args <- list(
+    graph_list = gl,
+    metric = metric,
+    prune_probability = prune_probability,
+    n_threads = n_threads,
+    verbose = verbose
+  )
   if (is_sparse(data)) {
-    gl_div <- rnn_sparse_diversify(
+    gl_div <- do.call(rnn_sparse_diversify, c(args, list(
       ind = data@i,
       ptr = data@p,
       data = data@x,
-      ndim = nrow(data),
-      graph_list = gl,
-      metric = metric,
-      prune_probability = prune_probability,
-      n_threads = n_threads,
-      verbose = verbose
-    )
+      ndim = nrow(data)
+    )))
   } else if (is.logical(data)) {
-    gl_div <- rnn_logical_diversify(
-      data = data,
-      graph_list = gl,
-      metric = metric,
-      prune_probability = prune_probability,
-      n_threads = n_threads,
-      verbose = verbose
-    )
+    gl_div <- do.call(rnn_logical_diversify, c(args, list(
+      data = data
+    )))
   } else {
-    gl_div <- rnn_diversify(
-      data = data,
-      graph_list = gl,
-      metric = metric,
-      prune_probability = prune_probability,
-      n_threads = n_threads,
-      verbose = verbose
-    )
+    gl_div <- do.call(rnn_diversify, c(args, list(
+      data = data
+    )))
   }
   res <- list_to_sparse(gl_div)
   nnz_after <- Matrix::nnzero(res)
@@ -2531,72 +2536,16 @@ reverse_knn_sp <- function(graph) {
 
 # Merge -------------------------------------------------------------------
 
-#' Merge two approximate nearest neighbors graphs
+#' Merge multiple approximate nearest neighbors graphs
 #'
-#' @param nn_graph1 A nearest neighbor graph to merge. Should consist of a list
-#'   containing:
-#'   * `idx` an n by k matrix containing the k nearest neighbor indices.
-#'   * `dist` an n by k matrix containing k nearest neighbor distances.
-#' @param nn_graph2 Another nearest neighbor graph to merge with the same
-#'   format as `nn_graph1`. The number of neighbors can differ between
-#'   graphs, but the merged result will have the same number of neighbors as
-#'   specified in `nn_graph1`.
-#' @param is_query If `TRUE` then the graphs are treated as the result of a knn
-#'   query, not a knn building process. Or: is the graph bipartite? This should
-#'   be set to `TRUE` if `nn_graphs` are the results of using e.g.
-#'   [graph_knn_query()] or [random_knn_query()], and set to `FALSE` if these
-#'   are the results of [nnd_knn()] or [random_knn()]. The difference is that if
-#'   `is_query = FALSE`, if an index `p` is found in `nn_graph1[i, ]`, i.e. `p`
-#'   is a neighbor of `i` with distance `d`, then it is assumed that `i` is a
-#'   neighbor of `p` with the same distance. If `is_query = TRUE`, then `i` and
-#'   `p` are indexes into two different datasets and the symmetry does not hold.
-#'   If you aren't sure what case applies to you, it's safe (but potentially
-#'   inefficient) to set `is_query = TRUE`
-#' @param n_threads Number of threads to use.
-#' @param verbose If `TRUE`, log information to the console.
-#' @return a list containing:
-#'   * `idx` an n by k matrix containing the merged nearest neighbor
-#'   indices.
-#'   * `dist` an n by k matrix containing the merged nearest neighbor
-#'    distances.
+#' `merge_knn` takes a list of nearest neighbor graphs and merges them into a
+#' single graph, with the same number of neighbors as the first graph. This is
+#' useful to combine the results of multiple different nearest neighbor
+#' searches: the output will be at least as accurate as the most accurate of the
+#' two input graphs, and ideally will be more accurate than either.
 #'
-#'   The size of `k` in the output graph is the same as that of
-#'   `nn_graph1`.
-#' @examples
-#' set.seed(1337)
-#' # Nearest neighbor descent with 15 neighbors for iris three times,
-#' # starting from a different random initialization each time
-#' iris_rnn1 <- nnd_knn(iris, k = 15, n_iters = 1)
-#' iris_rnn2 <- nnd_knn(iris, k = 15, n_iters = 1)
-#'
-#' # Merged results should be an improvement over either individual results
-#' iris_mnn <- merge_knn(iris_rnn1, iris_rnn2)
-#' sum(iris_mnn$dist) < sum(iris_rnn1$dist)
-#' sum(iris_mnn$dist) < sum(iris_rnn2$dist)
-#' @export
-merge_knn <- function(nn_graph1,
-                      nn_graph2,
-                      is_query = FALSE,
-                      n_threads = 0,
-                      verbose = FALSE) {
-  validate_are_mergeable(nn_graph1, nn_graph2)
-
-  rnn_merge_nn(
-    nn_graph1$idx,
-    nn_graph1$dist,
-    nn_graph2$idx,
-    nn_graph2$dist,
-    is_query,
-    n_threads = n_threads,
-    verbose = verbose
-  )
-}
-
-#' Merge a list of approximate nearest neighbors graphs
-#'
-#' @param nn_graphs A list of nearest neighbor graph to merge. Each item in the
-#'   list should consist of a sub-list
-#'   containing:
+#' @param graphs A list of nearest neighbor graphs to merge. Each item in the
+#'   list should consist of a sub-list containing:
 #'   * `idx` an n by k matrix containing the k nearest neighbor indices.
 #'   * `dist` an n by k matrix containing k nearest neighbor distances.
 #'   The number of neighbors can differ between graphs, but the merged result
@@ -2629,27 +2578,123 @@ merge_knn <- function(nn_graph1,
 #' iris_rnn3 <- nnd_knn(iris, k = 15, n_iters = 1)
 #'
 #' # Merged results should be an improvement over individual results
-#' iris_mnn <- merge_knnl(list(iris_rnn1, iris_rnn2, iris_rnn3))
+#' iris_mnn <- merge_knn(list(iris_rnn1, iris_rnn2, iris_rnn3))
 #' sum(iris_mnn$dist) < sum(iris_rnn1$dist)
 #' sum(iris_mnn$dist) < sum(iris_rnn2$dist)
 #' sum(iris_mnn$dist) < sum(iris_rnn3$dist)
-#'
-#' # and slightly faster than running:
-#' # iris_mnn <- merge_knn(iris_rnn1, iris_rnn2)
-#' # iris_mnn <- merge_knn(iris_mnn, iris_rnn3)
 #' @export
-merge_knnl <- function(nn_graphs,
-                       is_query = FALSE,
-                       n_threads = 0,
-                       verbose = FALSE) {
-  if (length(nn_graphs) == 0) {
+merge_knn <- function(graphs,
+                      is_query = FALSE,
+                      n_threads = 0,
+                      verbose = FALSE) {
+  if (length(graphs) == 0) {
     return(list())
   }
-  validate_are_mergeablel(nn_graphs)
+  validate_are_mergeablel(graphs)
 
-  rnn_merge_nn_all(nn_graphs,
+  rnn_merge_nn_all(graphs,
     is_query,
     n_threads = n_threads,
     verbose = verbose
   )
 }
+
+# Overlap -----------------------------------------------------------------
+
+#' Overlap between the indices of two nearest neighbor graphs
+#'
+#' Calculates the mean average number of neighbors in common between the two
+#' graphs. The per-item overlap can also be returned. This function can be
+#' useful as a measure of accuracy of approximation algorithms, if the
+#' exact nearest neighbors are known, or as a measure of diversity of two
+#' different approximate graphs.
+#'
+#' The graph format is the same as that returned by e.g. [nnd_knn()] and should
+#' be of dimensions n by k, where n is the number of points and k is the number
+#' of neighbors. If you pass a neighbor graph directly, the index matrix will be
+#' extracted if present. If the two graphs have different numbers of neighbors,
+#' then the smaller number of neighbors is used.
+#'
+#' @param idx1 Indices of a nearest neighbor graph, i.e. a matrix of nearest
+#'   neighbor indices. Can also be a list containing an `idx` element.
+#' @param idx2 Indices of a nearest neighbor graph, i.e. a matrix of nearest
+#'   neighbor indices. Can also be a list containing an `idx` element. This is
+#'   considered to be the ground truth.
+#' @param k Number of neighbors to consider. If `NULL`, then the minimum of the
+#'   number of neighbors in `idx1` and `idx2` is used.
+#' @param ret_vec If `TRUE`, also return a vector containing the per-item overlap.
+#' @return The mean overlap between `idx1` and `idx2`. If `ret_vec = TRUE`,
+#'  then a list containing the mean overlap and the overlap of each item in
+#'  is returned with names `mean` and `overlaps`, respectively.
+#' @examples
+#' set.seed(1337)
+#' # Generate two random neighbor graphs for iris
+#' iris_rnn1 <- random_knn(iris, k = 15)
+#' iris_rnn2 <- random_knn(iris, k = 15)
+#'
+#' # Overlap between the two graphs
+#' mean_overlap <- neighbor_overlap(iris_rnn1, iris_rnn2)
+#'
+#' # Also get a vector of per-item overlap
+#' overlap_res <- neighbor_overlap(iris_rnn1, iris_rnn2, ret_vec = TRUE)
+#' summary(overlap_res$overlaps)
+#' @export
+neighbor_overlap <-
+  function(idx1,
+           idx2,
+           k = NULL,
+           ret_vec = FALSE) {
+    vec <- neighbor_overlapv(idx1, idx2, k)
+    mean_overlap <- mean(vec)
+    if (ret_vec) {
+      res <- list(
+        mean = mean_overlap,
+        overlaps = vec
+      )
+    } else {
+      res <- mean_overlap
+    }
+    res
+  }
+
+neighbor_overlapv <-
+  function(idx,
+           ref_idx,
+           k = NULL) {
+    if (is.list(idx)) {
+      idx <- idx$idx
+    }
+    if (is.list(ref_idx)) {
+      ref_idx <- ref_idx$idx
+    }
+
+    if (is.null(k)) {
+      k <- min(ncol(idx), ncol(ref_idx))
+    }
+
+    if (ncol(ref_idx) < k) {
+      stop("Not enough columns in ref_idx for k = ", k)
+    }
+
+    n <- nrow(idx)
+    if (nrow(ref_idx) != n) {
+      stop("Not enough rows in ref_idx")
+    }
+
+    nbr_start <- 1
+    nbr_end <- k
+
+    ref_start <- nbr_start
+    ref_end <- nbr_end
+
+    nbr_range <- nbr_start:nbr_end
+    ref_range <- ref_start:ref_end
+
+    total_intersect <- rep(0, times = n)
+    for (i in 1:n) {
+      total_intersect[i] <-
+        length(intersect(idx[i, nbr_range], ref_idx[i, ref_range]))
+    }
+
+    total_intersect / k
+  }

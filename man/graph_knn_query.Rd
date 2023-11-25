@@ -2,7 +2,7 @@
 % Please edit documentation in R/rnndescent.R
 \name{graph_knn_query}
 \alias{graph_knn_query}
-\title{Find Nearest Neighbors and Distances}
+\title{Query a search graph for nearest neighbors}
 \usage{
 graph_knn_query(
   query,
@@ -12,6 +12,7 @@ graph_knn_query(
   metric = "euclidean",
   init = NULL,
   epsilon = 0.1,
+  max_search_fraction = 1,
   use_alt_metric = TRUE,
   n_threads = 0,
   verbose = FALSE,
@@ -126,17 +127,26 @@ If the input distances are omitted, they will be calculated for you.
 \code{\link[=rpf_knn]{rpf_knn()}} with \code{ret_forest = TRUE}.
 }}
 
-\item{epsilon}{Controls trade-off between accuracy and search cost, by
-specifying a distance tolerance on whether to explore the neighbors of
-candidate points. The larger the value, the more neighbors will be
-searched. A value of 0.1 allows query-candidate distances to be 10\% larger
-than the current most-distant neighbor of the query point, 0.2 means 20\%,
-and so on. Suggested values are between 0-0.5, although this value is
-highly dependent on the distribution of distances in the dataset (higher
-dimensional data should choose a smaller cutoff). Too large a value of
-\code{epsilon} will result in the query search approaching brute force
-comparison. Use this parameter in conjunction with
-\code{\link[=prepare_search_graph]{prepare_search_graph()}} to prevent excessive run time. Default is 0.1.}
+\item{epsilon}{Controls trade-off between accuracy and search cost, as
+described by Iwasaki and Miyazaki (2018), by specifying a distance
+tolerance on whether to explore the neighbors of candidate points. The
+larger the value, the more neighbors will be searched. A value of 0.1
+allows query-candidate distances to be 10\% larger than the current
+most-distant neighbor of the query point, 0.2 means 20\%, and so on.
+Suggested values are between 0-0.5, although this value is highly dependent
+on the distribution of distances in the dataset (higher dimensional data
+should choose a smaller cutoff). Too large a value of \code{epsilon} will result
+in the query search approaching brute force comparison. Use this parameter
+in conjunction with \code{max_search_fraction} and \code{\link[=prepare_search_graph]{prepare_search_graph()}} to
+prevent excessive run time. Default is 0.1. If you set \code{verbose = TRUE},
+statistics of the number of distance calculations will be logged which
+can help you tune \code{epsilon}.}
+
+\item{max_search_fraction}{Maximum fraction of the reference data to search.
+This is a value between 0 (search none of the reference data) and 1 (search
+all of the data if necessary). This works in conjunction with \code{epsilon} and
+will terminate the search early if the specified fraction of the reference
+data has been searched. Default is 1.}
 
 \item{use_alt_metric}{If \code{TRUE}, use faster metrics that maintain the
 ordering of distances internally (e.g. squared Euclidean distances if using
@@ -166,7 +176,16 @@ specifying the row of the neighbor in \code{reference}.
 }
 }
 \description{
-Find Nearest Neighbors and Distances
+Run queries against a search graph, to return nearest neighbors taken from
+the reference data used to build that graph.
+}
+\details{
+A greedy beam search is used to query the graph, combining two search pruning
+strategies. The first, due to Iwasaki and Miyazaki (2018), only considers
+new candidates within a relative distance of the current furthest neighbor
+in the query's graph. The second, due to Harwood and Drummond (2016), puts a
+limit on the absolute number of distance calculations to carry out. See the
+\code{epsilon} and \code{max_search_fraction} parameters respectively.
 }
 \examples{
 # 100 reference iris items
@@ -201,10 +220,6 @@ iris_query_nn <- graph_knn_query(iris_query, iris_ref, iris_ref_search_graph,
 
 }
 \references{
-Hajebi, K., Abbasi-Yadkori, Y., Shahbazi, H., & Zhang, H. (2011, June).
-Fast approximate nearest-neighbor search with k-nearest neighbor graph.
-In \emph{Twenty-Second International Joint Conference on Artificial Intelligence}.
-
 Harwood, B., & Drummond, T. (2016).
 Fanng: Fast approximate nearest neighbour graphs.
 In \emph{Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition}

@@ -2,7 +2,7 @@
 % Please edit documentation in R/hubness.R
 \name{k_occur}
 \alias{k_occur}
-\title{k-Occurrence}
+\title{Quantify hubness of a nearest neighbor graph}
 \usage{
 k_occur(idx, k = NULL, include_self = TRUE)
 }
@@ -34,19 +34,20 @@ object in \code{idx} was found in the nearest neighbor list of the objects
 represented by the row indices of \code{idx}.
 }
 \description{
-Calculates the the k-occurrence for a given nearest neighbor matrix
+\code{k_occur} returns a vector of the k-occurrences of a nearest neighbor graph
+as defined by  Radovanovic and co-workers (2010). The k-occurrence of an
+object is the number of times it occurs among the k-nearest neighbors of
+objects in a dataset.
 }
 \details{
-The k-occurrence of an object is the number of times it occurs among the
-k-nearest neighbors of objects in a dataset. This can take values between 0
-and the size of the dataset. The larger the k-occurrence for an object, the
-more "popular" it is. Very large values of the k-occurrence (much larger than
-k) indicates that an object is a "hub" and also implies the existence of
-"anti-hubs": objects that never appear as k-nearest neighbors of other
-objects.
+The k-occurrence can take values between 0 and the size of the dataset. The
+larger the k-occurrence for an object, the more "popular" it is. Very large
+values of the k-occurrence (much larger than k) indicates that an object is a
+"hub" and also implies the existence of "anti-hubs": objects that never
+appear as k-nearest neighbors of other objects.
 
-The presence of hubs can reduce the accuracy of nearest-neighbor descent
-and other approximate nearest neighbor algorithms in terms of retrieving the
+The presence of hubs can reduce the accuracy of nearest-neighbor descent and
+other approximate nearest neighbor algorithms in terms of retrieving the
 exact k-nearest neighbors. However the appearance of hubs can still be
 detected in these approximate results, so calculating the k-occurrences for
 the output of nearest neighbor descent is a useful diagnostic step.
@@ -56,8 +57,6 @@ iris_nbrs <- brute_force_knn(iris, k = 15)
 iris_ko <- k_occur(iris_nbrs$idx)
 # items 42 and 107 are not in 15 nearest neighbors of any other members of
 # iris
-# for convenience you can also pass iris_nbrs directly:
-# iris_ko <- k_occur(iris_nbrs)
 which(iris_ko == 1) # they are only their own nearest neighbor
 max(iris_ko) # most "popular" item appears on 29 15-nearest neighbor lists
 which(iris_ko == max(iris_ko)) # it's iris item 64
@@ -73,5 +72,5 @@ Hubs in space: Popular nearest neighbors in high-dimensional data.
 Bratic, B., Houle, M. E., Kurbalija, V., Oria, V., & Radovanovic, M. (2019).
 The Influence of Hubness on NN-Descent.
 \emph{International Journal on Artificial Intelligence Tools}, \emph{28}(06), 1960002.
-\url{https://doi.org/10.1142/S0218213019600029}
+\doi{10.1142/S0218213019600029}
 }

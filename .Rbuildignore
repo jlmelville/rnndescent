@@ -14,3 +14,4 @@
 ^pkgdown$
 ^\.vscode$
 ^\.clang-tidy$
+^vignettes/articles$

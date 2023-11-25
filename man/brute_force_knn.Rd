@@ -2,7 +2,7 @@
 % Please edit documentation in R/rnndescent.R
 \name{brute_force_knn}
 \alias{brute_force_knn}
-\title{Calculate Exact Nearest Neighbors by Brute Force}
+\title{Find exact nearest neighbors by brute force}
 \usage{
 brute_force_knn(
   data,
@@ -106,7 +106,15 @@ the nearest neighbor graph as a list containing:
 }
 }
 \description{
-Calculate Exact Nearest Neighbors by Brute Force
+Returns the exact nearest neighbors of a dataset. A brute force search is
+carried out: all possible pairs of points are compared, and the nearest
+neighbors are returned.
+}
+\details{
+This method is accurate but scales poorly with dataset size, so use with
+caution with larger datasets. Having the exact neighbors as a ground truth to
+compare with approximate results is useful for benchmarking and determining
+parameter settings of the approximate methods.
 }
 \examples{
 # Find the 4 nearest neighbors using Euclidean distance

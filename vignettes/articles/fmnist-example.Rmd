@@ -1,0 +1,385 @@
+---
+title: "Fashion MNIST Example"
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  eval = FALSE
+)
+```
+
+The vignettes are not able to run on large datasets, which is a pity because
+there is little need for approximate nearest neighbor search on small datasets.
+So this document compares building an index for the
+[FMNIST](https://github.com/zalandoresearch/fashion-mnist) training dataset,
+querying against the test dataset, and evaluating accuracy and rough timings. It
+compares the rnndescent with the R bindings for
+[Annoy](https://cran.r-project.org/package=RcppAnnoy) and
+[HNSW](https://cran.r-project.org/package=RcppHNSW).
+
+## This is not a Vignette
+
+This article doesn't contain any "live" documentation nor do I paste the output.
+Having to install packages of github and also doing brute force search is not
+very user-friendly, so only run this code if you know what you are letting
+yourself in for. 
+
+### How Slow Is This Going to Be?
+
+On my 8th gen Intel i7 laptop with six cores, the slowest part is the brute
+force search which takes about 10 minutes. If you have a reasonably modern
+machine it shouldn't be tying up your computer for hours on end.
+
+I made no particular efforts to be super accurate with timings. I ran all of
+the approximate nearest neighbor methods several times and reporting to the
+nearest second seems fine. I also did not shut down any other programs on my
+computer while these were running, but I also didn't actively carry out other
+activities on the machine either.
+
+## Setup
+
+Some packages need installing. To get to the Fashion MNIST dataset, I use the
+[snedata](jlmelville/snedata) package which is not on CRAN. Therefore in turn
+you will need to install via another package, e.g. 
+[devtools](https://cran.r-project.org/package=devtools) or in this case
+[pak](https://cran.r-project.org/package=pak):
+
+```{r install}
+install.packages("pak")
+pak::pkg_install("jlmelville/snedata")
+install.packages(c("RcppHNSW", "RcppAnnoy", "uwot"))
+```
+
+```{r setup}
+library(rnndescent)
+library(RcppHNSW)
+library(RcppAnnoy)
+library(uwot)
+library(snedata)
+```
+
+We are installing and using `uwot`, not because we want to do any dimensionality
+reduction, but because I want to re-use some convenient functions that will
+make running the code a lot easier (especially with `RcppAnnoy`). These are
+internal functions, but fortunately I am close personal friends with the `uwot`
+maintainer and I know these won't be going away any time soon (but yet another
+reason why this isn't a vignette).
+
+## Data Setup
+
+Download the Fashion MNIST data. 
+
+```{r download FMNIST}
+fmnist <- snedata::download_fashion_mnist()
+```
+
+This is in the same format as the famous
+[MNIST](https://en.wikipedia.org/wiki/MNIST_database) data, but instead of being
+images of handwritten images, it's images of different types of clothing.
+
+The typical split is the first 60,000 images as the training set, and the rest
+as the test set.
+
+```{r create training/test split}
+fmnist_train <- head(fmnist, 60000)
+fmnist_test <- tail(fmnist, 10000)
+```
+
+## k-Nearest Neighbors
+
+I will look at finding `k = 15` neighbors for each data point, which is in the
+ballpark of most evaluations, and also the default setting for the number of
+neighbors to find in UMAP.
+
+### Exact k-Nearest Neighbors
+
+To see how much faster the approximate nearest neighbors approaches are and at
+what cost in accuracy, we need to generate the exact nearest neighbors:
+
+```{r exact k-nearest neigbors}
+fmnist_train_bf <- brute_force_knn(
+  fmnist_train,
+  k = 15,
+  n_threads = 6,
+)
+```
+
+This took nearly ten minutes to get done. Plenty of scope here for the
+approximate nearest neighbor methods to be a lot faster. We also use `neighbor_overlap`
+to compare the overlap of the approximate nearest neighbor indices with the
+exact results.
+
+### rnndescent
+
+While all the methods here can find k-nearest neighbors by building an index
+and then querying that index with the original data, `rnndescent` can extract
+the k-nearest neighbors directly from the index without a separate query step.
+The query step will produce a more accurate result, but it's always worth
+trying the initial knn graph.
+
+```{r rnnd knn}
+fmnist_train_rnnd <- rnnd_knn(fmnist_train, k = 15, n_threads = 6, verbose = TRUE)
+```
+
+This took 11 seconds. How accurate are the results?
+
+```{r rnnd knn accuracy}
+neighbor_overlap(fmnist_train_rnnd, fmnist_train_bf)
+```
+```
+0.9871422
+```
+
+Basically 99% accuracy. That's pretty good, if I do say so myself.
+
+Now onto HNSW and Annoy who will need to build the indices and then query them
+separately (note that they could use the same or a similar technique for
+extracting the knn graph from their index directly but it's not currently
+available for them).
+
+### HNSW
+
+The HNSW functions only take matrices, not dataframes. The `x2m` internal uwot
+function converts for us. For building the HNSW parameters are `M = 16` and
+`ef_construction = 200`.
+
+```{r build hnsw index}
+hnsw_index <- hnsw_build(uwot:::x2m(fmnist_train), n_threads = 6)
+```
+
+Index building took 17 seconds. For searching, the default search parameter is
+`ef = 15`.
+
+```{r search hnsw index with train}
+fmnist_train_hnsw <- hnsw_search(uwot:::x2m(fmnist_train), hnsw_index, k = 15, n_threads = 6)
+```
+
+A very impressive 3 seconds for index searching.
+
+```{r hnsw knn accuracy}
+neighbor_overlap(fmnist_train_hnsw, fmnist_train_bf)
+```
+```
+[1] 0.9748644
+```
+
+So HNSW delivers 97% accuracy in 20 seconds or so.
+
+### Annoy
+
+RcppAnnoy is rather bare-bones in terms of higher level functions for searching
+a batch of data. Fortunately, uwot uses Annoy internally for its nearest
+neighbor search, so we can make use of those functions (again we need to convert
+the data to a matrix).
+
+I'm using the `uwot` settings for the index and search parameters. We use
+`n_trees = 50` to build:
+
+```{r build annoy index}
+annoy_index <-
+  uwot:::annoy_build(uwot:::x2m(fmnist_train),
+    metric = "euclidean",
+    n_trees = 50
+  )
+```
+
+Annoy index build took 24 seconds. The search parameter `search_k` is set to
+`2 * k * n_trees`:
+
+```{r search annoy index with train}
+fmnist_train_annoy <-
+  uwot:::annoy_search(
+    uwot:::x2m(fmnist_train),
+    k = 15,
+    ann = annoy_index,
+    search_k = 2 * 15 * 50,
+    tmpdir = tempdir(),
+    n_threads = 6
+  )
+```
+
+The search took around 16 seconds. 
+
+```{r annoy knn accuracy}
+neighbor_overlap(fmnist_train_annoy, fmnist_train_bf)
+```
+```
+[1] 0.9590367
+```
+
+For a similar accuracy, Annoy is a bit slower than HNSW and `rnndescent` but is
+a bit hobbled by how the multi-threaded query search is implemented in `uwot`,
+where the index is written to disk so that each C++ thread can read its own copy
+into memory.
+
+Also, the balance of `n_trees` to `search_k` may be a bit too heavily skewed in
+favor of tree building. We could probably build fewer trees (which is slow)
+and spend (relatively) more time searching:
+
+```{r build annoy index with fewer trees}
+annoy_index <-
+  uwot:::annoy_build(uwot:::x2m(fmnist_train),
+    metric = "euclidean",
+    n_trees = 30
+  )
+```
+
+Build time is down to 15 seconds. 
+
+```{r search smaller annoy index with train}
+fmnist_train_annoy <-
+  uwot:::annoy_search(
+    uwot:::x2m(fmnist_train),
+    k = 15,
+    ann = annoy_index,
+    search_k = 2 * 15 * 50,
+    tmpdir = tempdir(),
+    n_threads = 6
+  )
+```
+
+Search time is not terribly affected: it still takes 16 seconds. What about 
+accuracy?
+
+```{r annoy accuracy for smaller annoy index}
+neighbor_overlap(fmnist_train_annoy, fmnist_train_bf)
+```
+```
+[1] 0.9502022
+```
+
+So we can get the time down to around 31 seconds without overly affecting
+accuracy. We'll use the smaller index for the next section too.
+
+## Neighbor Search
+
+Separate from k-nearest neighbor creation is querying an existing search index
+with new data. We will do this by searching the indexes we already created 
+with the FMNIST test data.
+
+### Exact Nearest Neighbors
+
+Again we need the ground truth of the exact neighbors:
+
+```{r exact query neighbors}
+fmnist_test_bf <-
+  brute_force_knn_query(
+    query = fmnist_test,
+    reference = fmnist_train,
+    k = 15,
+    n_threads = 6,
+  )
+```
+
+This took about 90 seconds: we have much less data, so the brute force search is
+more reasonable. But we would still like our approximate methods to be a lot
+faster than that.
+
+### rnndescent
+
+We avoided having to build an index with `rnndescent` for the k-nearest neighbor tasks. Now we must.
+
+```{r build rnnd index}
+rnnd_index <-
+  rnnd_build(
+    fmnist_train,
+    k = 15,
+    prepare = TRUE,
+    n_threads = 6
+  )
+```
+
+Building the index takes around 17 seconds. Like Annoy we can probably afford to
+be building far fewer search trees, and we can save a few seconds in the index
+building without affecting downstream accuracy but we don't need to worry
+about that for now.
+
+```{r search rnnd index}
+fmnist_test_rnnd <-
+  rnnd_query(
+    index = rnnd_index,
+    query = fmnist_test,
+    k = 15,
+    n_threads = 6
+  )
+```
+For 15 neighbors, the querying took about 2 seconds.
+
+```{r rnnd accuracy}
+neighbor_overlap(fmnist_test_rnnd, fmnist_test_bf)
+```
+```
+[1] 0.95952
+```
+
+So we get 96% accuracy on the test set in about 19 seconds.
+
+### HNSW
+
+We can make use of the pre-existing HNSW index we built for looking for the 
+k-nearest neighbor graph, so we need only query the data.
+
+```{r search hnsw index with test}
+fmnist_test_hnsw <-
+  hnsw_search(uwot:::x2m(fmnist_test),
+    hnsw_index,
+    k = 15,
+    n_threads = 6
+  )
+```
+
+Index searching is fast. I will round it up to 1 second, but it was more like
+0.65 seconds.
+
+```{r hnsw search accuracy}
+neighbor_overlap(fmnist_test_hnsw, fmnist_test_bf)
+```
+```
+[1] 0.9551133
+```
+
+So if we include the index build time, HNSW delivers 96% accuracy in 17 seconds
+or so.
+
+### Annoy
+
+Like HSNW, we will re-use the Annoy index from the k-nearest neighbors graph
+building. This is the one where we set `n_trees = 30`.
+
+```{r search annoy index}
+fmnist_test_annoy <-
+  uwot:::annoy_search(
+    uwot:::x2m(fmnist_test),
+    k = 15,
+    ann = annoy_index,
+    search_k = 3 * 15 * 30,
+    tmpdir = tempdir(),
+    n_threads = 6
+  )
+```
+
+The search took around 3 seconds.
+  
+```{r annoy search accuracy}
+neighbor_overlap(fmnist_test_annoy, fmnist_test_bf)
+```
+```
+[1] 0.9458733
+```
+
+So 95% accuracy with a total time (including index building) of 18 seconds. 
+
+## Conclusion
+
+In this real world setting, all the approximate nearest neighbor methods tested
+here perform comparably. rnndescent can produce a k-nearest neighbor graph
+a little bit faster than the other two methods, but in a querying scenario it's
+all pretty much the same.
+
+The big caveat here is how optimal the hyperparameters are and if you really
+would want to be tweaking them anyway: you can probably just do a brute force
+search and be done with it unless you think you are going to find a set of
+parameters that you will be using for several index building or querying
+tasks.

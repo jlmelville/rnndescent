@@ -2,7 +2,7 @@
 % Please edit documentation in R/rptree.R
 \name{rpf_build}
 \alias{rpf_build}
-\title{Create a Random Projection Forest}
+\title{Create a random projection forest nearest neighbor index}
 \usage{
 rpf_build(
   data,
@@ -154,7 +154,7 @@ are going to search the forest, you will also need to store the \code{data} used
 to build it and provide it during the search.
 }
 \description{
-Build a "forest" of Random Projection Trees (Dasgupta and Freund, 2008),
+Builds a "forest" of Random Projection Trees (Dasgupta and Freund, 2008),
 which can later be searched to find approximate nearest neighbors.
 }
 \examples{
@@ -173,7 +173,7 @@ Dasgupta, S., & Freund, Y. (2008, May).
 Random projection trees and low dimensional manifolds.
 In \emph{Proceedings of the fortieth annual ACM symposium on Theory of computing}
 (pp. 537-546).
-\url{https://doi.org/10.1145/1374376.1374452}.
+\doi{10.1145/1374376.1374452}.
 }
 \seealso{
 \code{\link[=rpf_knn_query]{rpf_knn_query()}}

@@ -2,7 +2,7 @@
 % Please edit documentation in R/rnndescent.R
 \name{prepare_search_graph}
 \alias{prepare_search_graph}
-\title{Nearest Neighbor Graph Refinement}
+\title{Convert a nearest neighbor graph into a search graph}
 \usage{
 prepare_search_graph(
   data,
@@ -96,7 +96,10 @@ then the nearer neighbor \code{p} is said to "occlude" \code{q}. It is likely th
 \code{q} will be in the neighbor list of \code{p} so there is no need to retain it in
 the neighbor list of \code{i}. You may also set this to \code{NULL} to skip any
 occlusion pruning. Note that occlusion pruning is carried out twice, once
-to the forward neighbors, and once to the reverse neighbors.}
+to the forward neighbors, and once to the reverse neighbors. Reducing this
+value will result in a more dense graph. This is similar to increasing the
+"alpha" parameter used by in the DiskAnn pruning method of Subramanya and
+co-workers (2014).}
 
 \item{pruning_degree_multiplier}{How strongly to truncate the final neighbor
 list for each item. The neighbor list of each item will be truncated to
@@ -128,7 +131,8 @@ matrix, suitable for use with \code{\link[=graph_knn_query]{graph_knn_query()}}.
 \description{
 Create a graph using existing nearest neighbor data to balance search
 speed and accuracy using the occlusion pruning and truncation strategies
-of Harwood and Drummond (2016).
+of Harwood and Drummond (2016). The resulting search graph should be more
+efficient for querying new data than the original nearest neighbor graph.
 }
 \details{
 An approximate nearest neighbor graph is not very useful for querying via
@@ -193,4 +197,11 @@ Harwood, B., & Drummond, T. (2016).
 Fanng: Fast approximate nearest neighbour graphs.
 In \emph{Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition}
 (pp. 5713-5722).
+
+Jayaram Subramanya, S., Devvrit, F., Simhadri, H. V., Krishnawamy, R., & Kadekodi, R. (2019).
+Diskann: Fast accurate billion-point nearest neighbor search on a single node.
+\emph{Advances in Neural Information Processing Systems}, \emph{32}.
+}
+\seealso{
+\code{\link[=graph_knn_query]{graph_knn_query()}}
 }

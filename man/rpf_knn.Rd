@@ -2,7 +2,7 @@
 % Please edit documentation in R/rptree.R
 \name{rpf_knn}
 \alias{rpf_knn}
-\title{Find Nearest Neighbors and Distances Using A Random Projection Forest}
+\title{Find nearest neighbors using a random projection forest}
 \usage{
 rpf_knn(
   data,
@@ -174,8 +174,9 @@ neighbor graph, which can be used to query new data.
 is represented with an index of \code{0} and a distance of \code{NA}.
 }
 \description{
-Find approximate nearest neighbors using a "forest" of Random Projection
-Trees (Dasgupta and Freund, 2008).
+Returns the approximate k-nearest neighbor graph of a dataset by searching
+multiple random projection trees, a variant of k-d trees originated by
+Dasgupta and Freund (2008).
 }
 \examples{
 # Find 4 (approximate) nearest neighbors using Euclidean distance
@@ -187,26 +188,19 @@ iris_nn <- rpf_knn(iris, k = 4, metric = "euclidean", leaf_size = 3)
 # evaluating whether an item is a neighbor of itself by setting
 # `include_self = FALSE`:
 iris_rp <- rpf_knn(iris, k = 4, n_trees = 3, include_self = FALSE)
-# Use it with e.g. `nnd_knn` -- this should be better than a random start
-iris_nnd <- nnd_knn(iris, k = 4, init = iris_rp)
-# but note you can also run nnd_knn(iris, k = 4, init = "tree") to initialize
-# from an RP forest directly
-
 # for future querying you may want to also return the RP forest:
 iris_rpf <- rpf_knn(iris,
   k = 4, n_trees = 3, include_self = FALSE,
   ret_forest = TRUE
 )
-# forest and nn data can be used to create a smaller forest for querying
-# filtered_forest <- rpf_filter(iris_rpf)
 }
 \references{
 Dasgupta, S., & Freund, Y. (2008, May).
 Random projection trees and low dimensional manifolds.
 In \emph{Proceedings of the fortieth annual ACM symposium on Theory of computing}
 (pp. 537-546).
-\url{https://doi.org/10.1145/1374376.1374452}.
+\doi{10.1145/1374376.1374452}.
 }
 \seealso{
-rpf_filter, nnd_knn
+\code{\link[=rpf_filter]{rpf_filter()}}, \code{\link[=nnd_knn]{nnd_knn()}}
 }

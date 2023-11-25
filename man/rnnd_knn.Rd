@@ -2,7 +2,7 @@
 % Please edit documentation in R/rnndescent.R
 \name{rnnd_knn}
 \alias{rnnd_knn}
-\title{Build Approximate Nearest Neighbors Graph}
+\title{Find approximate nearest neighbors}
 \usage{
 rnnd_knn(
   data,
@@ -224,17 +224,17 @@ the approximate nearest neighbor index, a list containing:
 }
 }
 \description{
-This function builds an approximate nearest neighbors graph with convenient
-defaults. It does not return an index for later querying.
+This function builds an approximate nearest neighbors graph of the provided
+data using convenient defaults. It does not return an index for later
+querying, to speed the graph construction and reduce the size and complexity
+of the return value.
 }
 \details{
 The process of k-nearest neighbor graph construction using Random Projection
 Forests (Dasgupta and Freund, 2008) for initialization and Nearest Neighbor
-Descent (Dong and co-workers, 2011) for refinement.
-
-If you are sure you will not want to query new data then compared to
-\code{\link[=rnnd_build]{rnnd_build()}} this function has the advantage of not storing the index,
-which can be very large.
+Descent (Dong and co-workers, 2011) for refinement. If you are sure you will
+not want to query new data then compared to \code{\link[=rnnd_build]{rnnd_build()}} this function has
+the advantage of not storing the index, which can be very large.
 }
 \examples{
 
@@ -247,15 +247,15 @@ Dasgupta, S., & Freund, Y. (2008, May).
 Random projection trees and low dimensional manifolds.
 In \emph{Proceedings of the fortieth annual ACM symposium on Theory of computing}
 (pp. 537-546).
-\url{https://doi.org/10.1145/1374376.1374452}.
+\doi{10.1145/1374376.1374452}.
 
 Dong, W., Moses, C., & Li, K. (2011, March).
 Efficient k-nearest neighbor graph construction for generic similarity measures.
 In \emph{Proceedings of the 20th international conference on World Wide Web}
 (pp. 577-586).
 ACM.
-\url{https://doi.org/10.1145/1963405.1963487}.
+\doi{10.1145/1963405.1963487}.
 }
 \seealso{
-\code{\link[=rnnd_build]{rnnd_build()}}, \code{\link[=rnnd_query]{rnnd_query()}}, \code{\link[=rnnd_prepare]{rnnd_prepare()}}
+\code{\link[=rnnd_build]{rnnd_build()}}, \code{\link[=rnnd_query]{rnnd_query()}}
 }

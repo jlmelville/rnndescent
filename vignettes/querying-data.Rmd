@@ -138,11 +138,13 @@ you won't get any speed up from using multiple threads.
 
 ### `epsilon`
 
-`epsilon` controls how much exploration of the neighbors of a candidate to do.
-The default value is `0.1`. The larger the value, the more back-tracking is
-permitted. The exact meaning of the value is related to how large a distance is
-considered "close enough" the current neighbor list of the query to be worth
-exploring.
+`epsilon` controls how much exploration of the neighbors of a candidate to do,
+as suggested by [@iwasaki2018optimization]. The default value is `0.1`, which
+is also the default of the 
+[NGT](https://github.com/yahoojapan/NGT/blob/main/python/README-ngtpy.md)
+library. The larger the value, the more back-tracking is permitted. The exact
+meaning of the value is related to how large a distance is considered "close
+enough" the current neighbor list of the query to be worth exploring.
 
 `epsilon = 0.1` means that the query-candidate distance is allowed to be 10%
 larger than the largest distance in the neighbor list. If you set `epsilon =
@@ -156,7 +158,9 @@ determined by the distance metric and the dimensionality of the data itself.
 I recommend leaving this as the default, and only modifying it if you find that
 the search is unreasonably slow (in which case make `epsilon` smaller) or
 unreasonably inaccurate (in which case make `epsilon` larger). Yes, not very
-helpful I know.
+helpful I know. In the benchmarking done in [@dobson2023scaling] using a similar
+back-tracking method, `epsilon = 0.25` was the maximum value used and in
+[@wang2021comprehensive] `epsilon = 0.1` was used.
  
 ### `init`
 
@@ -284,14 +288,30 @@ the longest edges are removed until the number of edges is below the threshold.
 
 To control all this pruning the following parameters are available:
 
-* `diversify_prob`: the probability of a neighbor being removed if it is found
-  to be an "occlusion". This should take a value between `0` (no diversification)
-  and `1` (remove as many edges as possible). The default is `1.0`.
-* `pruning_degree_multiplier`: controls how many edges to remove after the
-  occlusion pruning relative to the number of neighbors in the original nearest
-  neighbor graph. The default is `1.5` which means to allow as many as 50%
-  more edge than the original graph. So if the input graph was for `k = 15`,
-  each item in the search graph will have at most `15 * 1.5 = 22` edges.
+### Diversification Probability
+
+`diversify_prob` is the probability of a neighbor being removed if it is found
+to be an "occlusion". This should take a value between `0` (no diversification)
+and `1` (remove as many edges as possible). The default is `1.0`.
+  
+The
+[DiskAnn/Vamana](https://papers.nips.cc/paper_files/paper/2019/hash/09853c7fb1d3f8ee67a61b6bf4a7f8e6-Abstract.html)
+method's pruning algorithm is almost identical but instead of a probability,
+uses a related parameter called `alpha`, which acts in the opposite direction:
+increasing `alpha` increases the density of the graph. Why am I telling you
+this? The [pbbsbench implementation of PyNNDescent](https://github.com/cmuparlay/pbbsbench/blob/9553d354b5cf18153d4ea6370664c383316174eb/benchmarks/ANN/pyNNDescent/pynn_index.h#L235) uses `alpha` instead of `diversify_prob` and
+in the accompanying paper [@dobson2023scaling] they mention that the use of
+`alpha` yields "modest improvements" -- from context this seems to mean relative
+to using `diversify_prob = 1.0`. I can't give an exact mapping between the two
+values unfortunately.
+
+### Degree Pruning
+
+`pruning_degree_multiplier` controls how many edges to remove after the
+occlusion pruning relative to the number of neighbors in the original nearest
+neighbor graph. The default is `1.5` which means to allow as many as 50% more
+edge than the original graph. So if the input graph was for `k = 15`, each item
+in the search graph will have at most `15 * 1.5 = 22` edges.
   
 Let's see how this works on the `iris` neighbors:
 

@@ -6,28 +6,52 @@
 \alias{rnndescent-package}
 \title{rnndescent: Nearest Neighbor Descent Method for Approximate Nearest Neighbors}
 \description{
-The Nearest Neighbor Descent method (Dong and co-workers, \doi{10.1145/1963405.1963487}) for finding approximate nearest neighbors. This is based heavily on the Python implementation, "PyNNDescent" (\url{https://github.com/lmcinnes/pynndescent}).
+The Nearest Neighbor Descent method for finding approximate nearest neighbors by by Dong and co-workers (2010) \doi{10.1145/1963405.1963487}. Based on the Python package 'PyNNDescent' \url{https://github.com/lmcinnes/pynndescent}.
 }
 \details{
 The rnndescent package provides functions to create approximate nearest
-neighbors using the Nearest Neighbor Descent and Random Partition Tree
-methods. In comparison to other packages, it offers more metrics and can be
-used with sparse matrices. For querying new data, it uses graph
-diversification methods to improve the search performance. The package also
-provides functions to diagnose hubness in nearest neighbor results.
+neighbors using the Nearest Neighbor Descent (Dong and co-workers, 2010) and
+Random Partition Tree (Dasgupta and Freund, 2008) methods. In comparison to
+other packages, it offers more metrics and can be used with sparse matrices.
+For querying new data, it uses graph diversification methods (Harwood and
+Drummond, 2016) and back-tracking (Iwasakai and Miyazaki, 2018) to improve
+the search performance. The package also provides functions to diagnose
+hubness in nearest neighbor results (Radovanovic and co-workers, 2010).
+
+This library is based heavily on the 'PyNNDescent' Python library.
 
 General resources:
 \itemize{
-\item Website for the rnndescent package: \url{https://github.com/jlmelville/rnndescent}
-\item Website of the PyNNDescent package: \url{https://github.com/lmcinnes/pynndescent}
+\item Website for the 'rnndescent' package: \url{https://github.com/jlmelville/rnndescent}
+\item Documentation for the 'rnndescent' package: \url{https://jlmelville.github.io/rnndescent/}
+\item Website of the 'PyNNDescent' package: \url{https://github.com/lmcinnes/pynndescent}
 }
 
-Resources on specific topics:
+The following functions provide the main interface to the package, with
+useful defaults:
 \itemize{
-\item Create exact nearest neighbors: \code{\link[=brute_force_knn]{brute_force_knn()}}, \code{\link[=brute_force_knn_query]{brute_force_knn_query()}}
-\item Create approximate nearest neighbors: \code{\link[=rpf_knn]{rpf_knn()}}, \code{\link[=nnd_knn]{nnd_knn()}}
-\item Querying new data: \code{\link[=prepare_search_graph]{prepare_search_graph()}}, \code{\link[=graph_knn_query]{graph_knn_query()}}
-\item Diagnostics and hubness: \code{\link[=k_occur]{k_occur()}}
+\item Find the approximate nearest neighbors: \code{\link[=rnnd_knn]{rnnd_knn()}}
+\item Create a search index and query new neighbors: \code{\link[=rnnd_build]{rnnd_build()}}.
+\item Query new neighbors (or refine an existing knn graph): \code{\link[=rnnd_query]{rnnd_query()}}.
+}
+
+Some diagnostic and helper functions to help explore the the structure of the
+graphs and how well the approximation is working:
+\itemize{
+\item Find exact nearest neighbors: \code{\link[=brute_force_knn]{brute_force_knn()}}, \code{\link[=brute_force_knn_query]{brute_force_knn_query()}}.
+\item Merging graphs: \code{\link[=merge_knn]{merge_knn()}}.
+\item Hubness: \code{\link[=k_occur]{k_occur()}}.
+\item Overlap/accuracy of two neighbor graphs: \code{\link[=neighbor_overlap]{neighbor_overlap()}}.
+}
+
+Some lower-level functions are also available if you want more control than
+the \verb{rnnd_*} functions provide:
+\itemize{
+\item Find approximate nearest neighbors: \code{\link[=rpf_knn]{rpf_knn()}}, \code{\link[=nnd_knn]{nnd_knn()}}.
+\item Generating random neighbors: \code{\link[=random_knn]{random_knn()}}, \code{\link[=random_knn_query]{random_knn_query()}}.
+\item Building an index: \code{\link[=rpf_build]{rpf_build()}}, \code{\link[=rpf_filter]{rpf_filter()}}.
+\item Querying an index for new data: \code{\link[=rpf_knn_query]{rpf_knn_query()}}, \code{\link[=prepare_search_graph]{prepare_search_graph()}},
+\code{\link[=graph_knn_query]{graph_knn_query()}}.
 }
 }
 \references{
@@ -35,34 +59,41 @@ Dasgupta, S., & Freund, Y. (2008, May).
 Random projection trees and low dimensional manifolds.
 In \emph{Proceedings of the fortieth annual ACM symposium on Theory of computing}
 (pp. 537-546).
-\url{https://doi.org/10.1145/1374376.1374452}.
-
-Radovanovic, M., Nanopoulos, A., & Ivanovic, M. (2010).
-Hubs in space: Popular nearest neighbors in high-dimensional data.
-\emph{Journal of Machine Learning Research}, \emph{11}, 2487-2531.
-\url{https://www.jmlr.org/papers/v11/radovanovic10a.html}
+\doi{10.1145/1374376.1374452}.
 
 Dong, W., Moses, C., & Li, K. (2011, March).
 Efficient k-nearest neighbor graph construction for generic similarity measures.
 In \emph{Proceedings of the 20th international conference on World Wide Web}
 (pp. 577-586).
 ACM.
-\url{https://doi.org/10.1145/1963405.1963487}.
+\doi{10.1145/1963405.1963487}.
 
 Harwood, B., & Drummond, T. (2016).
 Fanng: Fast approximate nearest neighbour graphs.
 In \emph{Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition}
 (pp. 5713-5722).
+
+Radovanovic, M., Nanopoulos, A., & Ivanovic, M. (2010).
+Hubs in space: Popular nearest neighbors in high-dimensional data.
+\emph{Journal of Machine Learning Research}, \emph{11}, 2487-2531.
+\url{https://www.jmlr.org/papers/v11/radovanovic10a.html}
+
+Iwasaki, M., & Miyazaki, D. (2018).
+Optimization of indexing based on k-nearest neighbor graph for proximity search in high-dimensional data.
+\emph{arXiv preprint} \emph{arXiv:1810.07355}.
+\url{https://arxiv.org/abs/1810.07355}
 }
 \seealso{
 Useful links:
 \itemize{
   \item \url{https://jlmelville.github.io/rnndescent/}
+  \item \url{https://github.com/jlmelville/rnndescent}
+  \item Report bugs at \url{https://github.com/jlmelville/rnndescent/issues}
 }
 
 }
 \author{
-\strong{Maintainer}: James Melville \email{jlmelville@gmail.com}
+\strong{Maintainer}: James Melville \email{jlmelville@gmail.com} [copyright holder]
 
 Other contributors:
 \itemize{

@@ -1,9 +1,5 @@
 # Internals ---------------------------------------------------------------
 
-#' @useDynLib rnndescent, .registration = TRUE
-#' @importFrom Rcpp sourceCpp
-# Suppress R CMD check note "Namespace in Imports field not imported from"
-#' @importFrom dqrng dqset.seed
 .onUnload <- function(libpath) {
   library.dynam.unload("rnndescent", libpath)
 }

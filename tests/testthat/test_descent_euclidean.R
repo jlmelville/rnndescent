@@ -301,6 +301,10 @@ qnbrs4 <- graph_knn_query(reference = ui6, reference_graph = ui6_nnd, query = ui
 check_query_nbrs(nn = qnbrs4, query = ui4, ref_range = 1:6, query_range = 7:10, k = 4, expected_dist = ui10_eucd, tol = 1e-6)
 expect_equal(sum(qnbrs4$dist), ui4q_edsum, tol = 1e-6)
 
+# max_search_fraction
+qnbrs4 <- graph_knn_query(reference = ui6, reference_graph = ui6_nnd, query = ui4, k = 4, max_search_fraction = 0.0, init = rnbrs4)
+expect_equal(qnbrs4, rnbrs4)
+
 # errors
 expect_error(graph_knn_query(
   reference = ui4, reference_graph = ui4_nnd,

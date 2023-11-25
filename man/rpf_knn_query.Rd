@@ -2,7 +2,7 @@
 % Please edit documentation in R/rptree.R
 \name{rpf_knn_query}
 \alias{rpf_knn_query}
-\title{Search a Random Projection Forest}
+\title{Query a random projection forest index for nearest neighbors}
 \usage{
 rpf_knn_query(
   query,
@@ -74,7 +74,7 @@ is represented with an index of \code{0} and a distance of \code{NA}.
 }
 \description{
 Run queries against a "forest" of Random Projection Trees (Dasgupta and
-Freund, 2008), to return nearest neighbors from the reference data used
+Freund, 2008), to return nearest neighbors taken from the reference data used
 to build the forest.
 }
 \examples{
@@ -93,7 +93,7 @@ Dasgupta, S., & Freund, Y. (2008, May).
 Random projection trees and low dimensional manifolds.
 In \emph{Proceedings of the fortieth annual ACM symposium on Theory of computing}
 (pp. 537-546).
-\url{https://doi.org/10.1145/1374376.1374452}.
+\doi{10.1145/1374376.1374452}.
 }
 \seealso{
 \code{\link[=rpf_build]{rpf_build()}}
