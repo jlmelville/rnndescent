@@ -1,3 +1,9 @@
+## Resubmission
+
+This is a resubmission. In this version I have:
+
+* Fixed a typo and incorrect formatting in the DESCRIPTION.
+
 ## R CMD check results
 
 0 errors | 0 warnings | 2 notes
