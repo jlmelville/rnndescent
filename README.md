@@ -4,6 +4,10 @@
 [![R-CMD-check](https://github.com/jlmelville/rnndescent/workflows/R-CMD-check/badge.svg)](https://github.com/jlmelville/rnndescent/actions)
 [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/jlmelville/rnndescent?branch=master&svg=true)](https://ci.appveyor.com/project/jlmelville/rnndescent)
 [![Coverage Status](https://img.shields.io/codecov/c/github/jlmelville/rnndescent/master.svg)](https://app.codecov.io/github/jlmelville/rnndescent?branch=master)
+[![CRAN Status Badge](http://www.r-pkg.org/badges/version/rnndescent)](https://cran.r-project.org/package=rnndescent)
+[![Dependencies](https://tinyverse.netlify.com/badge/rnndescent)](https://cran.r-project.org/package=rnndescent)
+[![CRAN Monthly Downloads](https://cranlogs.r-pkg.org/badges/rnndescent)](https://cran.r-project.org/package=rnndescent)
+![CRAN Downloads](http://cranlogs.r-pkg.org/badges/grand-total/rnndescent)
 [![Last Commit](https://img.shields.io/github/last-commit/jlmelville/rnndescent)](https://github.com/jlmelville/rnndescent)
 <!-- badges: end -->
 
