@@ -32,7 +32,7 @@
     
     <a class="navbar-brand me-2" href="index.html">rnndescent</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.1.9000</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -216,23 +216,6 @@
 <a href="https://github.com/brj0/nndescent" class="external-link">nndescent</a>, another C++ implementation, with Python bindings.</li>
 </ul>
 </div>
-<div class="section level2">
-<h2 id="old-news">Old News<a class="anchor" aria-label="anchor" href="#old-news"></a>
-</h2>
-<p><em>24 Nov 2023</em> A new function <code>rnnd_knn</code> has been added if you just want the k-nearest neighbors graph for a dataset (i.e. no querying). I have also removed some other functions and made some other breaking changes as I prepare for CRAN submission. See the <a href="NEWS.html">NEWS</a> for details.</p>
-<p><em>19 Nov 2023</em> The <code>rnnd_build</code> function and <code>rnnd_query</code> functions have been added which simplify creating a knn/building an index and querying it, respectively and should be the main way of using the package. The other functions remain should you need more flexibility. Some functions have been removed: the local scaling and the standalone distance functions. The latter could return in a different package at some point.</p>
-<p><em>13 November 2023</em>. I have added most of the metrics that don’t need extra parameters for both sparse and non-sparse data, e.g. <code>braycurtis</code>, <code>dice</code>, <code>jaccard</code>, <code>hellinger</code> etc. See the <code>Missing Metrics</code> section at the end of this README for those which are not implemented. There are a few breaking changes (mainly around the hamming metric, see <code>NEWS.md</code> for the exact details).</p>
-<p><em>06 November 2023</em> Sparse data support has been added. You should be able to use e.g. a <code>dgCMatrix</code> with all the methods and currently supported metrics as easily as a dense matrix.</p>
-<p><em>30 October 2023</em> At last, a workable random partition forest implementation has been added. This can be used standalone (e.g. <code>rpf_knn</code>, <code>rpf_build</code>, <code>rpt_knn_query</code>) or as initialization to nearest neighbor descent (<code>nnd_knn(init = "tree", ...)</code>). The forest itself can be serialized with <code>saveRDS</code> but you will pay a price for that convenience by having to pass it back and forth from the R to C++ layer when querying. For now there is no access to the underlying C++ class via R like in RcppHNSW and RcppAnnoy so it may not be suitable for some use cases.</p>
-<p><em>19 October 2023</em> Inevitably 0.0.11 is here because of a bug in 0.0.10 where nearest neighbor descent was not correctly flagging new/old neighbors which reduced performance (but not the actual result).</p>
-<p><em>18 October 2023</em> A long-postponed major internal refactoring means I might be able to make a bit of progress on this package. For now, the <code>cosine</code> and <code>correlation</code> metrics have migrated to not preprocessing their data (these versions are still available as <code>cosine-preprocess</code> and <code>correlation-preprocess</code> respectively). Also, I have exported the distance metrics as R functions (e.g. <code>cosine_distance</code>, <code>euclidean_distance</code>).</p>
-<p><em>18 September 2021</em> The <code>"hamming"</code> metric now supports integer-valued (not just binary) inputs, thanks to a contribution from <a href="https://github.com/vspinu" class="external-link">Vitalie Spinu</a>. The older metric code path for binary data only is supported via <code>metric = "bhamming"</code>.</p>
-<p><em>20 June 2021</em> A big step forward in usefulness with the addition of the <code>prepare_search_graph</code> function which creates and prunes an undirected search graph from the neighbor graph for use with the (now re-named) <code>graph_knn_query</code> function. The latter is now also capable of backtracking search and performs fairly well.</p>
-<p><em>4 October 2020</em> Added <code>"correlation"</code> as a metric and the <code>k_occur</code> function to help diagnose potential <a href="https://www.jmlr.org/papers/v11/radovanovic10a.html" class="external-link">hubness</a> in a dataset.</p>
-<p><em>23 November 2019</em> Added <code>merge_knn</code> and <code>merge_knnl</code> for combining multiple nn results.</p>
-<p><em>15 November 2019</em> It is now possible to query a reference set of data to produce the approximate knn graph relative to the references (i.e. none of the queries will be selected as neighbors) via <code>nnd_knn_query</code> (and related <code>brute_force</code> and <code>random</code> variants).</p>
-<p><em>27 October 2019</em> <code>rnndescent</code> creeps towards usability. A multi-threaded implementation (using <a href="https://cran.r-project.org/package=RcppParallel" class="external-link">RcppParallel</a>) has now been added.</p>
-</div>
 </div>
   </main><aside class="col-md-3"><div class="links">
 <h2 data-toc-skip>Links</h2>
@@ -273,6 +256,9 @@
 <li><a href="https://github.com/jlmelville/rnndescent/actions" class="external-link"><img src="https://github.com/jlmelville/rnndescent/workflows/R-CMD-check/badge.svg" alt="R-CMD-check"></a></li>
 <li><a href="https://ci.appveyor.com/project/jlmelville/rnndescent" class="external-link"><img src="https://ci.appveyor.com/api/projects/status/github/jlmelville/rnndescent?branch=master&amp;svg=true" alt="AppVeyor Build Status"></a></li>
 <li><a href="https://app.codecov.io/github/jlmelville/rnndescent?branch=master" class="external-link"><img src="https://img.shields.io/codecov/c/github/jlmelville/rnndescent/master.svg" alt="Coverage Status"></a></li>
+<li><a href="https://cran.r-project.org/package=rnndescent" class="external-link"><img src="http://www.r-pkg.org/badges/version/rnndescent" alt="CRAN Status Badge"></a></li>
+<li><a href="https://cran.r-project.org/package=rnndescent" class="external-link"><img src="https://tinyverse.netlify.com/badge/rnndescent" alt="Dependencies"></a></li>
+<li><a href="https://cran.r-project.org/package=rnndescent" class="external-link"><img src="https://cranlogs.r-pkg.org/badges/rnndescent" alt="CRAN Monthly Downloads"></a></li>
 <li><a href="https://github.com/jlmelville/rnndescent" class="external-link"><img src="https://img.shields.io/github/last-commit/jlmelville/rnndescent" alt="Last Commit"></a></li>
 </ul>
 </div>
