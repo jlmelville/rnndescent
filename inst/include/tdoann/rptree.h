@@ -745,27 +745,32 @@ search_forest(const std::vector<SearchTree<In, Idx>> &forest,
 // Search Tree scoring/filtering
 
 template <typename Idx>
-std::size_t compute_overlap(const std::unordered_set<Idx> &indices_set,
+std::size_t compute_overlap(const std::unordered_set<Idx> &leaf_indices_set,
                             const std::vector<Idx> &nn_indices,
                             std::size_t n_neighbors) {
   constexpr auto sentinel = static_cast<Idx>(-1);
-  std::size_t overlap = 0;
+  std::size_t overlap = 0UL;
 
-  for (const auto &idx : indices_set) {
-    if (idx == sentinel) {
+  const auto nn_indices_begin = nn_indices.begin();
+
+  // for each item in the leaf
+  for (const Idx &leaf_idx : leaf_indices_set) {
+    if (leaf_idx == sentinel) {
       continue;
     }
 
-    auto nn_start = nn_indices.begin() + idx * n_neighbors;
-    auto nn_end = nn_indices.begin() + (idx + 1) * n_neighbors;
+    // neighbors of the leaf item in the graph
+    auto nn_start = nn_indices_begin + (leaf_idx * n_neighbors);
+    auto nn_end = nn_start + n_neighbors;
 
+    // count how many neighbors of the leaf item are also in the leaf
     for (auto it = nn_start; it != nn_end; ++it) {
-      auto nn_idx = *it;
+      Idx nn_idx = *it;
       if (nn_idx == sentinel) {
         continue;
       }
 
-      if (indices_set.find(nn_idx) != indices_set.end()) {
+      if (leaf_indices_set.find(nn_idx) != leaf_indices_set.end()) {
         ++overlap;
       }
     }
@@ -779,14 +784,16 @@ double score_tree(const Tree &tree,
                   const std::vector<typename Tree::Index> &nn_indices,
                   uint32_t n_neighbors) {
   std::size_t overlap_sum = 0;
+  const auto idx_begin = tree.indices.begin();
   for (std::size_t i = 0; i < tree.children.size(); ++i) {
     if (tree.is_leaf(i)) {
       auto [start, end] = tree.children[i];
-      auto leaf_start = tree.indices.begin() + start;
-      auto leaf_end = tree.indices.begin() + end;
+      auto leaf_start = idx_begin + start;
+      auto leaf_end = idx_begin + end;
       std::unordered_set<typename Tree::Index> indices_set(leaf_start,
                                                            leaf_end);
-      overlap_sum += compute_overlap(indices_set, nn_indices, n_neighbors);
+      overlap_sum += compute_overlap(indices_set, nn_indices,
+                                     static_cast<std::size_t>(n_neighbors));
     }
   }
   return overlap_sum / static_cast<double>(nn_indices.size() / n_neighbors);

@@ -6,7 +6,7 @@
 \alias{rnndescent-package}
 \title{rnndescent: Nearest Neighbor Descent Method for Approximate Nearest Neighbors}
 \description{
-The Nearest Neighbor Descent method for finding approximate nearest neighbors by by Dong and co-workers (2010) \doi{10.1145/1963405.1963487}. Based on the Python package 'PyNNDescent' \url{https://github.com/lmcinnes/pynndescent}.
+The Nearest Neighbor Descent method for finding approximate nearest neighbors by Dong and co-workers (2010) \doi{10.1145/1963405.1963487}. Based on the 'Python' package 'PyNNDescent' \url{https://github.com/lmcinnes/pynndescent}.
 }
 \details{
 The rnndescent package provides functions to create approximate nearest

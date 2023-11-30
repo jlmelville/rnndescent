@@ -93,9 +93,11 @@ List nn_query_impl(const tdoann::BaseDistance<Out, Idx> &distance,
     double avg_count = sum_counts / distance_counts.size();
 
     tsmessage() << "min distance calculation = " << min_count << " ("
-                << fmt_double(100.0 * min_count / n_points) << "%) of reference data\n";
+                << fmt_double(100.0 * min_count / n_points)
+                << "%) of reference data\n";
     tsmessage() << "max distance calculation = " << max_count << " ("
-                << fmt_double(100.0 * max_count / n_points) << "%) of reference data\n";
+                << fmt_double(100.0 * max_count / n_points)
+                << "%) of reference data\n";
     tsmessage() << "avg distance calculation = " << std::lround(avg_count)
                 << " (" << fmt_double(100.0 * avg_count / n_points)
                 << "%) of reference data\n";

@@ -687,10 +687,26 @@ rpf_filter <-
       forest <- nn$forest
     }
 
-    n_unfiltered_trees <- length(forest)
+    unfiltered_trees <- forest$trees
+    n_unfiltered_trees <- length(unfiltered_trees)
+    if (n_unfiltered_trees < 1) {
+      stop("Invalid forest: no trees")
+    }
     if (n_trees < 1 || n_trees > n_unfiltered_trees) {
       stop("n_trees must be between 1 and ", n_unfiltered_trees)
     }
+
+    n_orig_idx <- length(unfiltered_trees[[1]]$indices)
+    if (n_orig_idx != nrow(nn$idx)) {
+      stop(
+        "Mismatched forest and neighbor graph: forest has ",
+        n_orig_idx,
+        " items, but neighbor graph has ",
+        nrow(nn$idx),
+        " items"
+      )
+    }
+
     tsmessage(thread_msg("Keeping ", n_trees, " best search trees",
       n_threads = n_threads
     ))

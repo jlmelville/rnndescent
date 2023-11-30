@@ -181,7 +181,7 @@ items and then query the remaining 100:
 ```{r forest knn with forest}
 iris_knn_with_forest <-
   rpf_knn(iris[1:50, ], k = 15, ret_forest = TRUE)
-iris_query <-
+iris_query_virginica <-
   rpf_knn_query(
     query = iris[51:150, ],
     reference = iris[1:50, ],
@@ -284,8 +284,8 @@ neighbor descent. In that case, keeping the entire forest for querying new data
 is probably unnecessary: we can keep only the "best" trees. PyNNDescent only
 keeps one tree for this purpose. For determining what tree is "best", we mean
 the tree that reproduces the k-nearest neighbor graph most effectively. You can
-do this by comparing a k-nearest neighbor graph with that produced by a single
-tree. The `rpf_filter` function does this for you:
+do this by comparing an existing k-nearest neighbor graph with that produced by
+a single tree. The `rpf_filter` function does this for you:
 
 ```{r filter}
 iris_filtered <-
