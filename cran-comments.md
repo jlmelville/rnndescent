@@ -1,27 +1,7 @@
-## Resubmission
+## New Patch Release
 
-This is a resubmission. In this version I have:
-
-* Fixed a typo and incorrect formatting in the DESCRIPTION.
-
-## R CMD check results
-
-0 errors | 0 warnings | 2 notes
-
-There are 2 NOTEs:
-
-* This is a new submission:
-checking CRAN incoming feasibility ... NOTE
-Maintainer: 'James Melville <jlmelville@gmail.com>'
-
-New submission
-
-* On Linux, there is a message about package size:
-N  checking installed package size ...
-     installed size is 21.7Mb
-     sub-directories of 1Mb or more:
-       libs  20.2Mb
-This is due to the majority of the package being written in C++.
+This is a new minor release to fix ASAN/UBSAN issues that were reported by 
+CRAN checks for the recent 0.1.1 release.
 
 ## Test environments
 
@@ -38,3 +18,38 @@ This is due to the majority of the package being written in C++.
 * win-builder (devel)
 * mac OS X Monterey (on github actions) R 4.3.2
 * local mac OS X Sonoma R 4.3.2
+
+## CRAN Checks
+
+There are no WARNINGs or ERRORs.
+
+There is 1 NOTE remaining from the previous release. On Linux, there is a 
+message about package size:
+
+* checking installed package size ... NOTE
+    installed size is 21.6Mb
+    sub-directories of 1Mb or more:
+      libs  20.2Mb
+
+This is due to the majority of the package being written in C++ and is not
+affected by this patch release.
+
+There is 1 new NOTE:
+
+* checking CRAN incoming feasibility ... NOTE
+Maintainer: 'James Melville <jlmelville@gmail.com>'
+
+Days since last update: 3
+
+This is intentional to address the ASAN/UBSAN issues.
+
+### Additional Issues
+
+There are 3 Additional Issues on the CRAN checks page:
+
+clang-ASAN clang-UBSAN gcc-ASAN
+
+This release is intended to fix these. As noted in the test environments, I
+checked GCC ASAN/UBSAN using rhub for both this and the previous release, but
+the issues do not reproduce in that container. I apologize for the
+inconvenience.

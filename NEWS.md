@@ -1,4 +1,9 @@
-# rnndescent 0.1.1.9000
+# rnndescent 0.1.2
+
+## Bug fixes and minor improvements
+
+* Some internal Address/Undefined Behavior Sanitizer fixes discovered by CRAN
+checks on the 0.1.1 submission have been fixed.
 
 # rnndescent 0.1.1
 
