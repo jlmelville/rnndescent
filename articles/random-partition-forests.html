@@ -266,7 +266,7 @@ we build the forest (and get the 15-nearest neighbors) for the first 50
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">iris_knn_with_forest</span> <span class="op">&lt;-</span></span>
 <span>  <span class="fu"><a href="../reference/rpf_knn.html">rpf_knn</a></span><span class="op">(</span><span class="va">iris</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">50</span>, <span class="op">]</span>, k <span class="op">=</span> <span class="fl">15</span>, ret_forest <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="va">iris_query</span> <span class="op">&lt;-</span></span>
+<span><span class="va">iris_query_virginica</span> <span class="op">&lt;-</span></span>
 <span>  <span class="fu"><a href="../reference/rpf_knn_query.html">rpf_knn_query</a></span><span class="op">(</span></span>
 <span>    query <span class="op">=</span> <span class="va">iris</span><span class="op">[</span><span class="fl">51</span><span class="op">:</span><span class="fl">150</span>, <span class="op">]</span>,</span>
 <span>    reference <span class="op">=</span> <span class="va">iris</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">50</span>, <span class="op">]</span>,</span>
@@ -363,9 +363,9 @@ that case, keeping the entire forest for querying new data is probably
 unnecessary: we can keep only the “best” trees. PyNNDescent only keeps
 one tree for this purpose. For determining what tree is “best”, we mean
 the tree that reproduces the k-nearest neighbor graph most effectively.
-You can do this by comparing a k-nearest neighbor graph with that
-produced by a single tree. The <code>rpf_filter</code> function does
-this for you:</p>
+You can do this by comparing an existing k-nearest neighbor graph with
+that produced by a single tree. The <code>rpf_filter</code> function
+does this for you:</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">iris_filtered</span> <span class="op">&lt;-</span></span>
 <span>  <span class="fu"><a href="../reference/rpf_filter.html">rpf_filter</a></span><span class="op">(</span></span>

@@ -199,7 +199,7 @@ can get <strong>very</strong> large, especially if you set
 <span><span class="op">}</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $idx</span></span>
 <span><span class="co">#&gt;      [,1] [,2] [,3] [,4] [,5]</span></span>
-<span><span class="co">#&gt; [1,]    9   20   14    4   25</span></span>
+<span><span class="co">#&gt; [1,]    9   14   20    4   25</span></span>
 <span><span class="co">#&gt; [2,]   24    2   23   15    1</span></span>
 <span><span class="co">#&gt; [3,]   19    9    4   14   20</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -221,7 +221,7 @@ the <code>init</code> parameter the knn graph we already generated:</p>
 <span>  query <span class="op">=</span> <span class="va">iris_even</span>,</span>
 <span>  init <span class="op">=</span> <span class="va">iris_index</span><span class="op">$</span><span class="va">graph</span>,</span>
 <span>  k <span class="op">=</span> <span class="fl">5</span></span>
-<span><span class="op">)</span> </span></code></pre></div>
+<span><span class="op">)</span></span></code></pre></div>
 <p>If the k-nearest neighbor graph in <code>index$graph</code> isn’t
 sufficiently high quality, then result of running
 <code>rnnd_query</code> on the same data should be an improvement.
@@ -232,14 +232,14 @@ sum of the distances:</p>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">iris_index</span><span class="op">$</span><span class="va">graph</span><span class="op">$</span><span class="va">dist</span><span class="op">)</span>,</span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">iris_knn_improved</span><span class="op">$</span><span class="va">dist</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 124.5203 124.3317</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 124.3317 124.3317</span></span></code></pre></div>
 <p>In this case, the initial knn has not been improved, which is hardly
 surprising due to the size of the dataset. Another function that might
 be of use is the <code>neighbor_overlap</code> function to see how many
 neighbors are shared between the two graphs:</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/neighbor_overlap.html">neighbor_overlap</a></span><span class="op">(</span><span class="va">iris_index</span><span class="op">$</span><span class="va">graph</span>, <span class="va">iris_knn_improved</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 0.9946667</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 1</span></span></code></pre></div>
 <p>As there was no change to the graph, the overlap is 100%. More
 details on this can be found in the <a href="hubness.html">hubness</a>
 vignette and a more ambitious dataset is covered in the <a href="https://jlmelville.github.io/rnndescent/articles/fmnist-example.html">FMNIST
