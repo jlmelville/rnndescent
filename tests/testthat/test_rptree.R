@@ -208,6 +208,28 @@ rpf_f3f <- rpf_filter(rpf_knnf3, n_trees = 1)
 expect_equal(length(rpf_f3f$trees), 1)
 expect_equal(rpf_f3f$trees[[1]], rpf_knnf3$forest$trees[[1]])
 
+
+test_that("can't pass mismatched forest and nn to filter", {
+  iris_knn_with_forest <-
+    rpf_knn(iris[1:50, ], k = 15, ret_forest = TRUE)
+  iris_query_virginica <-
+    rpf_knn_query(
+      query = iris[51:150, ],
+      reference = iris[1:50, ],
+      forest = iris_knn_with_forest$forest,
+      k = 15
+    )
+
+  iris_forest <- rpf_build(iris, leaf_size = 15)
+  expect_error(
+    rpf_filter(
+      nn = iris_query_virginica,
+      forest = iris_forest,
+      n_trees = 1
+    ), "Mismatched"
+  )
+})
+
 set.seed(1337)
 expect_equal(
   rpf_build(ui10, metric = "euclidean", leaf_size = 4, n_threads = 0),

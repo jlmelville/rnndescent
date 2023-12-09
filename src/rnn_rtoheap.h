@@ -36,11 +36,9 @@ void r_add_to_knn_heap(NbrHeap &heap, const Rcpp::IntegerMatrix &nn_idx,
                        const Rcpp::NumericMatrix &nn_dist,
                        std::size_t n_threads, bool missing_ok = true,
                        int max_idx = RNND_MAX_IDX, bool transpose = true) {
-  auto nn_idx_copy = Rcpp::clone(nn_idx);
-  zero_index(nn_idx_copy, max_idx, missing_ok);
-  auto nn_idxv = Rcpp::as<std::vector<typename NbrHeap::Index>>(nn_idx_copy);
+  auto nn_idxv = r_to_idx<typename NbrHeap::Index>(nn_idx, max_idx);
   auto nn_distv = Rcpp::as<std::vector<typename NbrHeap::DistanceOut>>(nn_dist);
-  std::size_t n_points = nn_idx_copy.nrow();
+  std::size_t n_points = nn_dist.nrow();
 
   RInterruptableProgress progress;
   RParallelExecutor executor;
@@ -63,11 +61,9 @@ void r_add_to_query_heap(NbrHeap &heap, const Rcpp::IntegerMatrix &nn_idx,
                          const Rcpp::NumericMatrix &nn_dist,
                          std::size_t n_threads, bool missing_ok = true,
                          int max_idx = RNND_MAX_IDX, bool transpose = true) {
-  auto nn_idx_copy = Rcpp::clone(nn_idx);
-  zero_index(nn_idx_copy, max_idx, missing_ok);
-  auto nn_idxv = Rcpp::as<std::vector<typename NbrHeap::Index>>(nn_idx_copy);
+  auto nn_idxv = r_to_idx<typename NbrHeap::Index>(nn_idx, max_idx);
   auto nn_distv = Rcpp::as<std::vector<typename NbrHeap::DistanceOut>>(nn_dist);
-  std::size_t n_points = nn_idx_copy.nrow();
+  std::size_t n_points = nn_dist.nrow();
 
   RInterruptableProgress progress;
   RParallelExecutor executor;

@@ -12,6 +12,10 @@ articles:
   - querying-data
   - hubness
   - metrics
+- title: What's New
+  desc: "A summary of the latest changes to `uwot`."
+  contents:
+   - articles/whatsnew
 - title: Articles
   desc: Some longer, more involved examples.
   contents:

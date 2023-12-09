@@ -123,7 +123,7 @@ iris_knn_improved <- rnnd_query(
   query = iris_even,
   init = iris_index$graph,
   k = 5
-) 
+)
 ```
 
 If the k-nearest neighbor graph in `index$graph` isn't sufficiently high

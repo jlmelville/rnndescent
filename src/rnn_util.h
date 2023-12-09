@@ -93,7 +93,28 @@ inline auto r_to_idx(const Rcpp::IntegerMatrix &nn_idx,
   Rcpp::IntegerMatrix nn_idx_copy = Rcpp::clone(nn_idx);
   constexpr bool missing_ok = true;
   zero_index(nn_idx_copy, max_idx, missing_ok);
-  return Rcpp::as<std::vector<Int>>(nn_idx_copy);
+
+  // don't use Rcpp::as because we may need to static cast missing value -1 to
+  // the equivalent unsigned (very large) value
+  std::vector<Int> idx_vec;
+  idx_vec.reserve(nn_idx_copy.nrow() * nn_idx_copy.ncol());
+  for (int i = 0; i < nn_idx_copy.ncol(); ++i) {
+    for (int j = 0; j < nn_idx_copy.nrow(); ++j) {
+      idx_vec.push_back(static_cast<Int>(nn_idx_copy(j, i)));
+    }
+  }
+  return idx_vec;
+}
+
+// this assumes the input is already zero-indexed
+template <typename Int>
+inline auto r0_to_idx(const Rcpp::IntegerVector &nn_idx) -> std::vector<Int> {
+  std::vector<Int> idx_vec;
+  idx_vec.reserve(nn_idx.size());
+  for (int i = 0; i < nn_idx.size(); ++i) {
+    idx_vec.push_back(static_cast<Int>(nn_idx(i)));
+  }
+  return idx_vec;
 }
 
 template <typename Int>
@@ -102,7 +123,16 @@ inline auto r_to_idxt(const Rcpp::IntegerMatrix &nn_idx,
   auto nn_idx_copy = Rcpp::clone(nn_idx);
   constexpr bool missing_ok = true;
   zero_index(nn_idx_copy, max_idx, missing_ok);
-  return Rcpp::as<std::vector<Int>>(Rcpp::transpose(nn_idx_copy));
+  nn_idx_copy = Rcpp::transpose(nn_idx_copy);
+
+  std::vector<Int> idx_vec;
+  idx_vec.reserve(nn_idx_copy.nrow() * nn_idx_copy.ncol());
+  for (int i = 0; i < nn_idx_copy.ncol(); ++i) {
+    for (int j = 0; j < nn_idx_copy.nrow(); ++j) {
+      idx_vec.push_back(static_cast<Int>(nn_idx_copy(j, i)));
+    }
+  }
+  return idx_vec;
 }
 
 template <typename Out = RNN_DEFAULT_DIST, typename Idx = RNN_DEFAULT_IDX>

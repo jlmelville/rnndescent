@@ -1,4 +1,4 @@
-# rnndescent devel
+# rnndescent (development version)
 
 * New parameter: for `nnd_knn` and `rnnd_build`: `weight_by_degree`. If set
 to `TRUE`, then the candidate list in nearest neighbor descent is weighted in
@@ -12,6 +12,21 @@ This parameter controls the maximum number of nodes that can be searched during
 querying. If the number of nodes searched exceeds this fraction of the total
 number of nodes in the graph, the search will be terminated. This can be
 used in combination with `epsilon` to avoid excessive search times.
+
+# rnndescent 0.1.3
+
+CRAN resubmission to fix lingering UBSAN errors.
+
+# rnndescent 0.1.2
+
+## Bug fixes and minor improvements
+
+* Some internal Address/Undefined Behavior Sanitizer fixes discovered by CRAN
+checks on the 0.1.1 submission have been fixed.
+
+# rnndescent 0.1.1
+
+Initial CRAN submission.
 
 # rnndescent 0.0.16
 

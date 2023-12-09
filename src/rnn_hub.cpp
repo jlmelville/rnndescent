@@ -23,7 +23,6 @@
 
 #include "rnn_util.h"
 
-using Rcpp::as;
 using Rcpp::IntegerMatrix;
 using Rcpp::IntegerVector;
 
@@ -32,14 +31,12 @@ IntegerVector rnn_reverse_nbr_size(const IntegerMatrix &nn_idx,
                                    std::size_t nnbrs, std::size_t len,
                                    bool include_self = false) {
   const std::size_t nobs = nn_idx.nrow();
-  auto data = as<std::vector<std::size_t>>(nn_idx);
   constexpr auto missing = static_cast<std::size_t>(-1);
   std::vector<std::size_t> n_reverse(len);
 
   for (std::size_t i = 0; i < nnbrs; i++) {
-    const auto inobs = nobs * i;
     for (std::size_t j = 0; j < nobs; j++) {
-      auto jnbr = data[inobs + j];
+      auto jnbr = static_cast<std::size_t>(nn_idx(j, i));
       if (jnbr == missing) {
         continue;
       }
