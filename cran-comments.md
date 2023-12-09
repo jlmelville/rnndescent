@@ -1,27 +1,7 @@
 ## Resubmission
 
-This is a resubmission. In this version I have:
-
-* Fixed a typo and incorrect formatting in the DESCRIPTION.
-
-## R CMD check results
-
-0 errors | 0 warnings | 2 notes
-
-There are 2 NOTEs:
-
-* This is a new submission:
-checking CRAN incoming feasibility ... NOTE
-Maintainer: 'James Melville <jlmelville@gmail.com>'
-
-New submission
-
-* On Linux, there is a message about package size:
-N  checking installed package size ...
-     installed size is 21.7Mb
-     sub-directories of 1Mb or more:
-       libs  20.2Mb
-This is due to the majority of the package being written in C++.
+This is a resubmission to fix ASAN/UBSAN issues that were not fixed in the
+previous resubmission.
 
 ## Test environments
 
@@ -38,3 +18,27 @@ This is due to the majority of the package being written in C++.
 * win-builder (devel)
 * mac OS X Monterey (on github actions) R 4.3.2
 * local mac OS X Sonoma R 4.3.2
+
+## CRAN Checks
+
+There are no WARNINGs or ERRORs.
+
+There is 1 NOTE remaining from the previous release. On Linux, there is a 
+message about package size:
+
+* checking installed package size ... NOTE
+  installed size is 21.6Mb
+  sub-directories of 1Mb or more:
+    libs 20.2Mb
+
+This is due to the majority of the package being written in C++ and is not
+affected by this patch release.
+
+### Additional Issues
+
+There are 3 Additional Issues on the CRAN checks page:
+
+clang-ASAN clang-UBSAN gcc-ASAN
+
+This release is intended to fix these. The previous resubmission fixed the ASAN
+errors so only the UBSAN error remains to be fixed by this resubmission.

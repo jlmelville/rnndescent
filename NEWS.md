@@ -1,4 +1,10 @@
-# rnndescent 0.1.1.9000
+# rnndescent 0.1.3
+
+CRAN resubmission to fix lingering UBSAN errors.
+
+# rnndescent 0.1.2
+
+CRAN resubmission to fix ASAN errors.
 
 # rnndescent 0.1.1
 
