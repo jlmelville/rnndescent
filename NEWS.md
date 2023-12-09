@@ -1,3 +1,7 @@
+# rnndescent 0.1.3
+
+CRAN resubmission to fix lingering UBSAN errors.
+
 # rnndescent 0.1.2
 
 ## Bug fixes and minor improvements

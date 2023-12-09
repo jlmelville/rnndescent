@@ -311,7 +311,7 @@ tdoann::SearchTree<In, Idx> r_to_search_tree(List tree_list) {
     cpp_children[i] = std::make_pair(children(i, 0), children(i, 1));
   }
 
-  auto cpp_indices = Rcpp::as<std::vector<Idx>>(indices);
+  auto cpp_indices = r0_to_idx<Idx>(indices);
 
   return tdoann::SearchTree<In, Idx>(
       std::move(cpp_hyperplanes), std::move(cpp_offsets),
@@ -339,7 +339,7 @@ tdoann::SearchTreeImplicit<Idx> r_to_search_tree_implicit(List tree_list) {
     cpp_children[i] = std::make_pair(children(i, 0), children(i, 1));
   }
 
-  auto cpp_indices = Rcpp::as<std::vector<Idx>>(indices);
+  auto cpp_indices = r0_to_idx<Idx>(indices);
 
   return tdoann::SearchTreeImplicit<Idx>(std::move(cpp_normal_indices),
                                          std::move(cpp_children),

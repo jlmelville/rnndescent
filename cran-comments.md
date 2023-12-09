@@ -1,7 +1,7 @@
 ## New Patch Release
 
-This is a new minor release to fix ASAN/UBSAN issues that were reported by 
-CRAN checks for the recent 0.1.1 release.
+This is a resubmission to fix ASAN/UBSAN issues that were not fixed in the
+previous resubmission.
 
 ## Test environments
 
@@ -27,21 +27,12 @@ There is 1 NOTE remaining from the previous release. On Linux, there is a
 message about package size:
 
 * checking installed package size ... NOTE
-    installed size is 21.6Mb
-    sub-directories of 1Mb or more:
-      libs  20.2Mb
+  installed size is 21.6Mb
+  sub-directories of 1Mb or more:
+    libs 20.2Mb
 
 This is due to the majority of the package being written in C++ and is not
 affected by this patch release.
-
-There is 1 new NOTE:
-
-* checking CRAN incoming feasibility ... NOTE
-Maintainer: 'James Melville <jlmelville@gmail.com>'
-
-Days since last update: 3
-
-This is intentional to address the ASAN/UBSAN issues.
 
 ### Additional Issues
 
@@ -49,7 +40,5 @@ There are 3 Additional Issues on the CRAN checks page:
 
 clang-ASAN clang-UBSAN gcc-ASAN
 
-This release is intended to fix these. As noted in the test environments, I
-checked GCC ASAN/UBSAN using rhub for both this and the previous release, but
-the issues do not reproduce in that container. I apologize for the
-inconvenience.
+This release is intended to fix these. The previous resubmission fixed the ASAN
+errors so only the UBSAN error remains to be fixed by this resubmission.

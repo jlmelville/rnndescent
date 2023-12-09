@@ -106,6 +106,17 @@ inline auto r_to_idx(const Rcpp::IntegerMatrix &nn_idx,
   return idx_vec;
 }
 
+// this assumes the input is already zero-indexed
+template <typename Int>
+inline auto r0_to_idx(const Rcpp::IntegerVector &nn_idx) -> std::vector<Int> {
+  std::vector<Int> idx_vec;
+  idx_vec.reserve(nn_idx.size());
+  for (int i = 0; i < nn_idx.size(); ++i) {
+    idx_vec.push_back(static_cast<Int>(nn_idx(i)));
+  }
+  return idx_vec;
+}
+
 template <typename Int>
 inline auto r_to_idxt(const Rcpp::IntegerMatrix &nn_idx,
                       int max_idx = RNND_MAX_IDX) -> std::vector<Int> {
