@@ -1,5 +1,12 @@
 # rnndescent (development version)
 
+## Bug fixes and minor improvements
+
+* Fix a factor of 2 error in the TS-SS metric. This does affect the returned
+neighbors, just the distances. Thank you to reporter 
+[Henry Linder](https://github.com/mhlinder)
+(<https://github.com/jlmelville/rnndescent/issues/8>).
+
 # rnndescent 0.1.3
 
 CRAN resubmission to fix lingering UBSAN errors.
