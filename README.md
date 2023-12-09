@@ -40,8 +40,9 @@ detail.
 
 ## Current Status
 
-*27 November 2023*: Frabjous day, `rnndescent` is now on CRAN. The version
-number has been bumped to 0.1.1.
+*08 December 2023*: Version 0.1.3 has been released. This deals with some UBSAN
+and ASAN problems when missing data was present in the k-nearest neighbors
+graph.
 
 ## Installation
 
