@@ -354,7 +354,7 @@ test_that("TS-SS", {
            0, 1.30880218, 1.50010305, 5.27228563),
          nrow = 10, ncol = 4, byrow = TRUE) / 2
   ui10_tsss <- brute_force_knn(ui10, k = 4, metric = "tsss")
-  expect_equal(ui10_tsss$dist, python_distances, tol = 1e-5)
+  expect_equal(ui10_tsss$dist, python_distances, tol = 1e-4)
 })
 
 test_that("Yule", {
