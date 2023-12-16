@@ -2,8 +2,8 @@
 
 ## Bug fixes and minor improvements
 
-* Fix a factor of 2 error in the TS-SS metric. This does affect the returned
-neighbors, just the distances. Thank you to reporter 
+* Fix a factor of 2 error in the TS-SS metric. This does not affect the returned
+neighbors, just the distances. Thank you to reporter
 [Henry Linder](https://github.com/mhlinder)
 (<https://github.com/jlmelville/rnndescent/issues/8>).
 
@@ -35,7 +35,7 @@ simplified.
 * The `nn_to_sparse` function has been removed.
 * The `merge_knn` function has been removed, and `merge_knnl` has been renamed
   to `merge_knn`. If you were running e.g. `merge_knn(nn1, nn2)`, you must now
-  use `merge_knn(list(nn1, nn2))`. Also the parameter `nn_graphs` has been 
+  use `merge_knn(list(nn1, nn2))`. Also the parameter `nn_graphs` has been
   renamed `graphs`.
 
 ## New features
@@ -67,11 +67,11 @@ number of distance queries will be logged. This can help tune `epsilon` and
 
 ## Breaking Changes
 
-* Standalone distance functions have been removed. They hadn't expanded to 
+* Standalone distance functions have been removed. They hadn't expanded to
 match all the distances available in the nearest neighbor functions, nor was
 sparse support added. Doing so would increase the size of this package's API
 even further. They may show up in another package.
-* The `local_scale_nn ` has been removed, for similar reasons to the removal
+* The `local_scale_nn` has been removed, for similar reasons to the removal
 of the standalone distance functions. It remains in the `localscale` branch
 of the github repo.
 * The search graph returned from `prepare_search_graph` is now transposed. This
@@ -94,16 +94,16 @@ you pass a `logical` matrix to `data`, `reference` or `query` parameter
 (depending on the function) and specify `metric = "hamming"` you will
 automatically get the binary-specific version of the hamming metric.
 * The `hamming` and `bhamming` metrics are now normalized with respect to the
-number of features, to be consistent with the other binary-style metrics (and 
-PyNNDescent). If you need the old distances, multiply the distance matrix by 
+number of features, to be consistent with the other binary-style metrics (and
+PyNNDescent). If you need the old distances, multiply the distance matrix by
 the number of columns, e.g. do something like:
-    
+
     ```R
     res <- brute_force_knn(X, metric = "hamming")
     res$dist <- res$dist * ncol(X)
     ```
 
-* The metric `l2sqr` has been renamed `sqeuclidean` to be consistent with 
+* The metric `l2sqr` has been renamed `sqeuclidean` to be consistent with
 PyNNDescent.
 
 ## New features
@@ -113,8 +113,8 @@ of metrics. See the rdoc for the full list of supported metrics. Currently, most
 of the metrics from PyNNDescent which don't require extra parameters are
 supported. The number of specialized binary metrics has also been expanded.
 * New parameter for `rpf_knn` and `rpf_build`: `max_tree_depth` this controls
-the depth of the tree and was set to 100 internally. This default has been 
-doubled to 200 and can now be user-controlled. If `verbose = TRUE` and the 
+the depth of the tree and was set to 100 internally. This default has been
+doubled to 200 and can now be user-controlled. If `verbose = TRUE` and the
 largest leaf in the forest exceeds the `leaf_size` parameter, a message warning
 you about this will be logged and indicates that the maximum tree depth has
 been exceeded. Increasing `max_tree_depth` may not be the answer: it's more
@@ -127,7 +127,7 @@ your dataset and a random initialization might be a better use of your time.
 
 * Sparse data is now supported. Pass a `dgCMatrix` to the `data`, `reference` or
 `query` parameters where you would usually use a dense matrix or data frame.
-`cosine`, `euclidean`, `manhattan`, `hamming` and `correlation` are all 
+`cosine`, `euclidean`, `manhattan`, `hamming` and `correlation` are all
 available, but alternative versions in the dense case, e.g. `cosine-preprocess`
 or the  binary-specific `bhamming` for dense data is not.
 * A new `init` option for `graph_knn_query`: you can now pass an RP forest and
@@ -139,7 +139,7 @@ enough). This will also use the metric data in the forest, so setting `metric`
 
 ## Bug fixes and minor improvements
 
-* If the knn graph you pass to `prepare_search_graph` or to `graph_knn_query` 
+* If the knn graph you pass to `prepare_search_graph` or to `graph_knn_query`
 contains missing data, this will no longer cause an error (it still might not be
 the best idea though).
 
@@ -180,15 +180,15 @@ reflects that they do some preprocessing of the data up front to make
 subsequent distance calculations faster. I have endeavored to avoid unnecessary
 allocations or copying in this preprocessing, but there is still a chance of
 more memory usage.
-* The `cosine` and `correlation` metrics are still available as an option, but 
+* The `cosine` and `correlation` metrics are still available as an option, but
 now use an implementation that doesn't do any preprocessing. The preprocessing
 and non-preprocessing version should give the same numerical results, give or
 take some minor numerical differences, but when the distance should be zero,
-the preprocessing versions may give values which are slightly different from 
+the preprocessing versions may give values which are slightly different from
 zero (e.g. 1e-7).
 * New functions: `correlation_distance`, `cosine_distance`,
 `euclidean_distance`, `hamming_distance`, `l2sqr_distance`, `manhattan_distance`
-for calculating the distance between two vectors, which may be useful for 
+for calculating the distance between two vectors, which may be useful for
 more arbitrary distance calculations than the nearest neighbor routines here,
 although they won't be as efficient (they do call the same C++ code, though).
 The cosine and correlation calculations here use the non-preprocessing
@@ -265,8 +265,8 @@ implementation of RcppParallel's `parallelFor` loop that works with
 
 * For some reason, I thought it would be ok to use the `dqrng` sample routines
 from inside a thread, despite it clearly using the R API extensively. It's not
-ok and causes lots of crashes. There is now a re-implementation of `dqrng`'s 
-sample routines using plain `std::vector`s in `src/rnn_sample.h`. That file is 
+ok and causes lots of crashes. There is now a re-implementation of `dqrng`'s
+sample routines using plain `std::vector`s in `src/rnn_sample.h`. That file is
 licensed under the AGPL (`rnndescent` as a whole remains GPL3).
 
 # rnndescent 0.0.5 (23 November 2019)
@@ -281,8 +281,8 @@ in memory at once.
 
 ## Bug fixes and minor improvements
 
-* There was a thread-locking issue to do with converting R matrices to the 
-internal heap data structure that affected `nnd_knn` with `n_threads > 1` 
+* There was a thread-locking issue to do with converting R matrices to the
+internal heap data structure that affected `nnd_knn` with `n_threads > 1`
 and `random_knn` with `n_threads > 1` and `order_by_distance = TRUE`.
 * Potential minor speed improvement for `nnd_knn` with `n_threads > 1` due to
 the use of a mutex pool.
@@ -318,14 +318,14 @@ mode, and `nnd_knn_query` has a low and high memory version.
 
 ## Bug fixes and minor improvements
 
-* Incremental search in nearest neighbor descent didn't work correctly, 
+* Incremental search in nearest neighbor descent didn't work correctly,
 because retained new neighbors were marked as new rather than old. This made the
 search repeat distance calculations unnecessarily.
 * Heap initialization ignored existing distances in the input distance matrix.
-* The `l2` metric has been renamed to `l2sqr` to more accurately reflect what 
+* The `l2` metric has been renamed to `l2sqr` to more accurately reflect what
 it is: the square of the L2 (Euclidean) metric.
-* New option `use_alt_metric`. Set to `FALSE` if you don't want alternative, 
-faster metrics (which keep the distance ordering of `metric`) to be used in 
+* New option `use_alt_metric`. Set to `FALSE` if you don't want alternative,
+faster metrics (which keep the distance ordering of `metric`) to be used in
 internal calculations. Currently only applies to `metric = "euclidean"`, where
 the squared Euclidean distance is used internally. Only worth setting this to
 `FALSE` if you think the alternative is causing numerical issues (which is
@@ -335,9 +335,9 @@ a bug, so please report it!).
 of work done in parallel before checking for user interrupt request and updating
 any progress.
 * `random_knn` now returns its results in sorted order. You can turn this off
-with `order_distances = FALSE`, if you don't need the sorting (e.g. you are 
+with `order_distances = FALSE`, if you don't need the sorting (e.g. you are
 using the results as input to something else).
-* Progress bars for the `brute_force` and `random` methods should now be 
+* Progress bars for the `brute_force` and `random` methods should now be
 correct.
 
 # rnndescent 0.0.2 (7 November 2019)
@@ -362,9 +362,9 @@ Also, a number of changes inspired by recent work in
 opposite meaning. It now also works when using multiple threads. While it
 follows the pynndescent implementation, it's still experimental, so
 `low_memory = TRUE` by default for the moment.
-* The `low_memory = FALSE` implementation for `n_threads = 0` (originally 
+* The `low_memory = FALSE` implementation for `n_threads = 0` (originally
 equivalent to `use_set = TRUE`) is faster.
-* New parameter `block_size`, which balances interleaving of queuing updates 
+* New parameter `block_size`, which balances interleaving of queuing updates
 versus applying them to the current graph.
 
 ## Bug fixes and minor improvements
