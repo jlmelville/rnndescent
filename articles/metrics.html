@@ -170,7 +170,11 @@ rank correlation</a>
 divergence</a>. The symmetrization is calculated as <span class="math inline">\(D_{KL}(P||Q) + D_{KL}(Q||P)\)</span>.</li>
 <li>
 <code>"tsss"</code> the Triangle Area Similarity-Sector Area
-Similarity or TS-SS metric as described in <span class="citation">(Heidarian and Dinneen 2016)</span>.</li>
+Similarity or TS-SS metric as described in <span class="citation">(Heidarian and Dinneen 2016)</span>. Compared to
+results in PyNNDescent (as of version 0.5.11), distances are smaller by
+a factor of 2 in this package. This does not affect the returned nearest
+neighbors, only the distances. Multiply them by 2 if you need to get
+closer to the PyNNDescent results.</li>
 <li>
 <code>"yule"</code> the Yule dissimilarity. Intended for binary
 data.</li>
