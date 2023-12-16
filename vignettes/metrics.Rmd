@@ -65,7 +65,10 @@ Intended for binary data.
 * `"symmetrickl"` symmetrized version of the [Kullback-Leibler divergence](https://en.wikipedia.org/wiki/Kullback%E2%80%93Leibler_divergence).
 The symmetrization is calculated as $D_{KL}(P||Q) + D_{KL}(Q||P)$.
 * `"tsss"` the Triangle Area Similarity-Sector Area Similarity or TS-SS metric 
-as described in [@7474366].
+as described in [@7474366]. Compared to results in PyNNDescent (as of version 
+0.5.11), distances are smaller by a factor of 2 in this package. This does not
+affect the returned nearest neighbors, only the distances. Multiply them by 2
+if you need to get closer to the PyNNDescent results.
 * `"yule"` the Yule dissimilarity. Intended for binary data.
 
 For non-sparse data, the following variants are available with preprocessing:

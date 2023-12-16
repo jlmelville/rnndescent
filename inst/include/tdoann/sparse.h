@@ -1380,7 +1380,7 @@ Out sparse_tsss(typename std::vector<std::size_t>::const_iterator ind1_start,
 
   Out sector =
       std::pow((std::sqrt(d_euc_squared) + magnitude_difference), 2) * theta;
-  Out triangle = norm_x * norm_y * std::sin(theta) / 2.0;
+  Out triangle = norm_x * norm_y * std::sin(theta) / 4.0;
 
   return triangle * sector;
 }

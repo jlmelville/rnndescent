@@ -337,6 +337,24 @@ test_that("TS-SS", {
   bfdense <- brute_force_knn(bitdata, k = 4, metric = "tsss")
   bfsparse <- brute_force_knn(bitdatasp, k = 4, metric = "tsss")
   expect_equal(bfdense, bfsparse)
+
+  #8: TS-SS distances seem to be off by a factor of 2 compared to the definiton
+  # in the paper. rnndescent was designed to reproduce the PyNNDescent results
+  # which we will test against below and divide by 2
+  python_distances <-
+    matrix(c(0, 0.29106654, 1.50010305, 1.76843838,
+           0, 0.20153333, 0.34656114, 0.369184,
+           0, 0.09994711, 0.27364606, 0.49758044,
+           0, 0.15930582, 0.44352352, 0.78938532,
+           0, 0.06631046, 0.19698709, 0.27364606,
+           0, 0.29106654, 0.75232326, 1.30880218,
+           0, 0.09994711, 0.19698709, 0.20153333,
+           0, 0.06631046, 0.34656114, 0.44352352,
+           0, 0.15930582, 0.9577528, 1.0852265,
+           0, 1.30880218, 1.50010305, 5.27228563),
+         nrow = 10, ncol = 4, byrow = TRUE) / 2
+  ui10_tsss <- brute_force_knn(ui10, k = 4, metric = "tsss")
+  expect_equal(ui10_tsss$dist, python_distances, tol = 1e-4)
 })
 
 test_that("Yule", {
