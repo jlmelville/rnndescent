@@ -6,9 +6,6 @@
 to `TRUE`, then the candidate list in nearest neighbor descent is weighted in
 favor of low-degree items, which should make for a more diverse local join.
 There is a minor increase in computation but also a minor increase in accuracy.
-the knn graph with no index built. The index can be very large in size for high
-dimensional or large datasets, so this function is useful if you only care about
-the knn graph and won't ever want to query new data.
 * New parameter for `rnnd_query` and `graph_knn_query`: `max_search_fraction`.
 This parameter controls the maximum number of nodes that can be searched during
 querying. If the number of nodes searched exceeds this fraction of the total
