@@ -286,7 +286,6 @@ rnnd_index <-
   rnnd_build(
     fmnist_train,
     k = 15,
-    prepare = TRUE,
     n_threads = 6
   )
 ```
