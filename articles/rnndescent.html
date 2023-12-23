@@ -137,7 +137,7 @@ usual in R, these are 1-indexed.</li>
 <span><span class="op">}</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $idx</span></span>
 <span><span class="co">#&gt;      [,1] [,2] [,3] [,4] [,5]</span></span>
-<span><span class="co">#&gt; [1,]    1   18    5   29   28</span></span>
+<span><span class="co">#&gt; [1,]    1   18    5   29   40</span></span>
 <span><span class="co">#&gt; [2,]    2   13   46   35   10</span></span>
 <span><span class="co">#&gt; [3,]    3   48    4    7   13</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -232,7 +232,7 @@ sum of the distances:</p>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">iris_index</span><span class="op">$</span><span class="va">graph</span><span class="op">$</span><span class="va">dist</span><span class="op">)</span>,</span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">iris_knn_improved</span><span class="op">$</span><span class="va">dist</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 124.3881 124.3881</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 124.3317 124.3317</span></span></code></pre></div>
 <p>In this case, the initial knn has not been improved, which is hardly
 surprising due to the size of the dataset. Another function that might
 be of use is the <code>neighbor_overlap</code> function to see how many
