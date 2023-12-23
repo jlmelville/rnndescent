@@ -2436,7 +2436,7 @@ diversify <- function(data,
   stopifnot(methods::is(graph, "sparseMatrix"))
   gl <- csparse_to_list(graph)
 
-  tsmessage("Occlusion pruning with probability: ")
+  tsmessage("Occlusion pruning with probability: ", prune_probability)
   args <- list(
     graph_list = gl,
     metric = metric,
