@@ -61,7 +61,7 @@ List nn_query_impl(const tdoann::BaseDistance<Out, Idx> &distance,
       static_cast<std::size_t>(search_graph.n_points * max_search_fraction);
 
   if (max_search_fraction < 1 && verbose) {
-    tsmessage() << " max distance calculation = " << max_distance_calculations
+    tsmessage() << "max distance calculation = " << max_distance_calculations
                 << "\n";
   }
   // replace missing data with randomly chosen neighbors so all points have
