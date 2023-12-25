@@ -39,12 +39,14 @@ namespace tdoann {
 template <typename Out, typename Idx>
 void nn_query(const SparseNNGraph<Out, Idx> &search_graph,
               NNHeap<Out, Idx> &nn_heap, const BaseDistance<Out, Idx> &distance,
-              double epsilon, std::size_t max_distance_calculations,
+              double epsilon,
+              const std::vector<std::size_t> &max_distance_calculations_vec,
               std::vector<std::size_t> &distance_counts, std::size_t n_threads,
               ProgressBase &progress, const Executor &executor) {
   auto worker = [&](std::size_t begin, std::size_t end) {
     non_search_query(nn_heap, distance, search_graph, epsilon,
-                     max_distance_calculations, distance_counts, begin, end);
+                     max_distance_calculations_vec, distance_counts, begin,
+                     end);
   };
   progress.set_n_iters(1);
   ExecutionParams exec_params{100 * n_threads};
@@ -60,18 +62,20 @@ auto pop(std::priority_queue<T, Container, Compare> &queue) -> T {
 }
 
 template <typename Out, typename Idx>
-void non_search_query(NNHeap<Out, Idx> &current_graph,
-                      const BaseDistance<Out, Idx> &distance,
-                      const SparseNNGraph<Out, Idx> &search_graph,
-                      double epsilon, std::size_t max_distance_calculations,
-                      std::vector<std::size_t> &distance_counts,
-                      std::size_t begin, std::size_t end) {
+void non_search_query(
+    NNHeap<Out, Idx> &current_graph, const BaseDistance<Out, Idx> &distance,
+    const SparseNNGraph<Out, Idx> &search_graph, double epsilon,
+    const std::vector<std::size_t> &max_distance_calculations_vec,
+    std::vector<std::size_t> &distance_counts, std::size_t begin,
+    std::size_t end) {
   constexpr auto npos = static_cast<Idx>(-1);
 
   const std::size_t n_nbrs = current_graph.n_nbrs;
   const double distance_scale = 1.0 + epsilon;
 
   for (std::size_t query_idx = begin; query_idx < end; query_idx++) {
+    const std::size_t max_distance_calculations =
+        max_distance_calculations_vec[query_idx];
     auto visited = create_set(search_graph.n_points);
     NbrQueue<Out, Idx> seed_set;
     for (std::size_t j = 0; j < n_nbrs; j++) {

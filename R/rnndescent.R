@@ -2043,15 +2043,32 @@ graph_knn_query <- function(query,
     reference_graph_list <- tcsparse_to_list(reference_graph)
   }
 
-  tsmessage(
-    thread_msg(
-      "Searching nearest neighbor graph with epsilon = ",
-      epsilon,
-      " and max_search_fraction = ",
-      max_search_fraction,
-      n_threads = n_threads
+  if (length(max_search_fraction) > 1) {
+    if (length(max_search_fraction) != ncol(query)) {
+      stop("max_search_fraction must be a scalar or a vector of length ncol(query)")
+    }
+    tsmessage(
+      thread_msg(
+        "Searching nearest neighbor graph with epsilon = ",
+        epsilon,
+        " and max_search_fraction = ",
+        formatC(max_search_fraction[1]), " ...",
+        n_threads = n_threads
+      )
     )
-  )
+  }
+  else {
+    tsmessage(
+      thread_msg(
+        "Searching nearest neighbor graph with epsilon = ",
+        epsilon,
+        " and max_search_fraction = ",
+        max_search_fraction,
+        n_threads = n_threads
+      )
+    )
+    max_search_fraction <- rep(max_search_fraction, ncol(query))
+  }
 
   args <- list(
     reference_graph_list = reference_graph_list,

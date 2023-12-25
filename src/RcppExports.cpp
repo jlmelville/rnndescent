@@ -766,7 +766,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // rnn_query
-List rnn_query(const NumericMatrix& reference, const List& reference_graph_list, const NumericMatrix& query, const IntegerMatrix& nn_idx, const NumericMatrix& nn_dist, const std::string& metric, double epsilon, double max_search_fraction, std::size_t n_threads, bool verbose);
+List rnn_query(const NumericMatrix& reference, const List& reference_graph_list, const NumericMatrix& query, const IntegerMatrix& nn_idx, const NumericMatrix& nn_dist, const std::string& metric, double epsilon, const NumericVector& max_search_fraction, std::size_t n_threads, bool verbose);
 RcppExport SEXP _rnndescent_rnn_query(SEXP referenceSEXP, SEXP reference_graph_listSEXP, SEXP querySEXP, SEXP nn_idxSEXP, SEXP nn_distSEXP, SEXP metricSEXP, SEXP epsilonSEXP, SEXP max_search_fractionSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -778,7 +778,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const NumericMatrix& >::type nn_dist(nn_distSEXP);
     Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
     Rcpp::traits::input_parameter< double >::type epsilon(epsilonSEXP);
-    Rcpp::traits::input_parameter< double >::type max_search_fraction(max_search_fractionSEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type max_search_fraction(max_search_fractionSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type n_threads(n_threadsSEXP);
     Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
     rcpp_result_gen = Rcpp::wrap(rnn_query(reference, reference_graph_list, query, nn_idx, nn_dist, metric, epsilon, max_search_fraction, n_threads, verbose));
@@ -786,7 +786,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // rnn_logical_query
-List rnn_logical_query(const LogicalMatrix& reference, const List& reference_graph_list, const LogicalMatrix& query, const IntegerMatrix& nn_idx, const NumericMatrix& nn_dist, const std::string& metric, double epsilon, double max_search_fraction, std::size_t n_threads, bool verbose);
+List rnn_logical_query(const LogicalMatrix& reference, const List& reference_graph_list, const LogicalMatrix& query, const IntegerMatrix& nn_idx, const NumericMatrix& nn_dist, const std::string& metric, double epsilon, const NumericVector& max_search_fraction, std::size_t n_threads, bool verbose);
 RcppExport SEXP _rnndescent_rnn_logical_query(SEXP referenceSEXP, SEXP reference_graph_listSEXP, SEXP querySEXP, SEXP nn_idxSEXP, SEXP nn_distSEXP, SEXP metricSEXP, SEXP epsilonSEXP, SEXP max_search_fractionSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -798,7 +798,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const NumericMatrix& >::type nn_dist(nn_distSEXP);
     Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
     Rcpp::traits::input_parameter< double >::type epsilon(epsilonSEXP);
-    Rcpp::traits::input_parameter< double >::type max_search_fraction(max_search_fractionSEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type max_search_fraction(max_search_fractionSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type n_threads(n_threadsSEXP);
     Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
     rcpp_result_gen = Rcpp::wrap(rnn_logical_query(reference, reference_graph_list, query, nn_idx, nn_dist, metric, epsilon, max_search_fraction, n_threads, verbose));
@@ -806,7 +806,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // rnn_sparse_query
-List rnn_sparse_query(const IntegerVector& ref_ind, const IntegerVector& ref_ptr, const NumericVector& ref_data, const IntegerVector& query_ind, const IntegerVector& query_ptr, const NumericVector& query_data, std::size_t ndim, const List& reference_graph_list, const IntegerMatrix& nn_idx, const NumericMatrix& nn_dist, const std::string& metric, double epsilon, double max_search_fraction, std::size_t n_threads, bool verbose);
+List rnn_sparse_query(const IntegerVector& ref_ind, const IntegerVector& ref_ptr, const NumericVector& ref_data, const IntegerVector& query_ind, const IntegerVector& query_ptr, const NumericVector& query_data, std::size_t ndim, const List& reference_graph_list, const IntegerMatrix& nn_idx, const NumericMatrix& nn_dist, const std::string& metric, double epsilon, const NumericVector& max_search_fraction, std::size_t n_threads, bool verbose);
 RcppExport SEXP _rnndescent_rnn_sparse_query(SEXP ref_indSEXP, SEXP ref_ptrSEXP, SEXP ref_dataSEXP, SEXP query_indSEXP, SEXP query_ptrSEXP, SEXP query_dataSEXP, SEXP ndimSEXP, SEXP reference_graph_listSEXP, SEXP nn_idxSEXP, SEXP nn_distSEXP, SEXP metricSEXP, SEXP epsilonSEXP, SEXP max_search_fractionSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -823,7 +823,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const NumericMatrix& >::type nn_dist(nn_distSEXP);
     Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
     Rcpp::traits::input_parameter< double >::type epsilon(epsilonSEXP);
-    Rcpp::traits::input_parameter< double >::type max_search_fraction(max_search_fractionSEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type max_search_fraction(max_search_fractionSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type n_threads(n_threadsSEXP);
     Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
     rcpp_result_gen = Rcpp::wrap(rnn_sparse_query(ref_ind, ref_ptr, ref_data, query_ind, query_ptr, query_data, ndim, reference_graph_list, nn_idx, nn_dist, metric, epsilon, max_search_fraction, n_threads, verbose));

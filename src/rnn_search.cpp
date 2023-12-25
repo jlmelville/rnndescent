@@ -52,18 +52,20 @@ List nn_query_impl(const tdoann::BaseDistance<Out, Idx> &distance,
                    const List &reference_graph_list,
                    const IntegerMatrix &nn_idx, const NumericMatrix &nn_dist,
                    const std::string &metric, double epsilon,
-                   double max_search_fraction, std::size_t n_threads,
-                   bool verbose) {
+                   const NumericVector &max_search_fraction,
+                   std::size_t n_threads, bool verbose) {
   const auto search_graph = r_to_sparse_graph<Out, Idx>(reference_graph_list);
   auto nn_heap = r_to_query_heap<tdoann::NNHeap<Out, Idx>>(nn_idx, nn_dist);
 
-  auto max_distance_calculations =
-      static_cast<std::size_t>(search_graph.n_points * max_search_fraction);
-
-  if (max_search_fraction < 1 && verbose) {
-    tsmessage() << "max distance calculation = " << max_distance_calculations
-                << "\n";
+  auto max_search_fraction_vec =
+      Rcpp::as<std::vector<double>>(max_search_fraction);
+  std::vector<std::size_t> max_distance_calculations_vec;
+  max_distance_calculations_vec.reserve(max_search_fraction_vec.size());
+  for (std::size_t i = 0; i < max_search_fraction_vec.size(); ++i) {
+    max_distance_calculations_vec.push_back(static_cast<std::size_t>(
+        search_graph.n_points * max_search_fraction_vec[i]));
   }
+
   // replace missing data with randomly chosen neighbors so all points have
   // k initial guesses
   fill_random(nn_heap, distance, n_threads, verbose);
@@ -73,7 +75,7 @@ List nn_query_impl(const tdoann::BaseDistance<Out, Idx> &distance,
   RParallelExecutor executor;
   RPProgress progress(verbose);
   tdoann::nn_query(search_graph, nn_heap, distance, epsilon,
-                   max_distance_calculations, distance_counts, n_threads,
+                   max_distance_calculations_vec, distance_counts, n_threads,
                    progress, executor);
 
   if (verbose) {
@@ -110,7 +112,7 @@ List nn_query_impl(const tdoann::BaseDistance<Out, Idx> &distance,
 List rnn_query(const NumericMatrix &reference, const List &reference_graph_list,
                const NumericMatrix &query, const IntegerMatrix &nn_idx,
                const NumericMatrix &nn_dist, const std::string &metric,
-               double epsilon, double max_search_fraction,
+               double epsilon, const NumericVector &max_search_fraction,
                std::size_t n_threads, bool verbose) {
   auto distance_ptr = create_query_distance(reference, query, metric);
   return nn_query_impl(*distance_ptr, reference_graph_list, nn_idx, nn_dist,
@@ -123,7 +125,7 @@ List rnn_logical_query(const LogicalMatrix &reference,
                        const List &reference_graph_list,
                        const LogicalMatrix &query, const IntegerMatrix &nn_idx,
                        const NumericMatrix &nn_dist, const std::string &metric,
-                       double epsilon, double max_search_fraction,
+                       double epsilon, const NumericVector &max_search_fraction,
                        std::size_t n_threads, bool verbose) {
   auto distance_ptr = create_query_distance(reference, query, metric);
   return nn_query_impl(*distance_ptr, reference_graph_list, nn_idx, nn_dist,
@@ -132,14 +134,17 @@ List rnn_logical_query(const LogicalMatrix &reference,
 }
 
 // [[Rcpp::export]]
-List rnn_sparse_query(
-    const IntegerVector &ref_ind, const IntegerVector &ref_ptr,
-    const NumericVector &ref_data, const IntegerVector &query_ind,
-    const IntegerVector &query_ptr, const NumericVector &query_data,
-    std::size_t ndim, const List &reference_graph_list,
-    const IntegerMatrix &nn_idx, const NumericMatrix &nn_dist,
-    const std::string &metric, double epsilon, double max_search_fraction,
-    std::size_t n_threads, bool verbose) {
+List rnn_sparse_query(const IntegerVector &ref_ind,
+                      const IntegerVector &ref_ptr,
+                      const NumericVector &ref_data,
+                      const IntegerVector &query_ind,
+                      const IntegerVector &query_ptr,
+                      const NumericVector &query_data, std::size_t ndim,
+                      const List &reference_graph_list,
+                      const IntegerMatrix &nn_idx, const NumericMatrix &nn_dist,
+                      const std::string &metric, double epsilon,
+                      const NumericVector &max_search_fraction,
+                      std::size_t n_threads, bool verbose) {
   auto distance_ptr =
       create_sparse_query_distance(ref_ind, ref_ptr, ref_data, query_ind,
                                    query_ptr, query_data, ndim, metric);
