@@ -2296,10 +2296,8 @@ prepare_search_graph <- function(data,
   if (is_sparse(graph)) {
     sp <- Matrix::t(graph)
     n_nbrs <- mean(diff(sp@p))
-    max_degree <- max(round(n_nbrs * pruning_degree_multiplier), 1)
   } else {
     n_nbrs <- check_graph(graph)$k
-    max_degree <- max(round(n_nbrs * pruning_degree_multiplier), 1)
     tsmessage("Converting graph to sparse format")
     sp <- graph_to_csparse(graph)
   }
@@ -2357,7 +2355,7 @@ prepare_search_graph <- function(data,
 
   if (!is.null(pruning_degree_multiplier) &&
     !is.infinite(pruning_degree_multiplier)) {
-    max_degree <- round(n_nbrs * pruning_degree_multiplier)
+    max_degree <- max(round(n_nbrs * pruning_degree_multiplier), 1)
     tsmessage("Degree pruning merged graph to max degree: ", max_degree)
     res <-
       degree_prune(
