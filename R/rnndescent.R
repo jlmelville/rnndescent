@@ -176,6 +176,12 @@
 #'   half as many of the reverse neighbors, although exactly which neighbors are
 #'   retained is also dependent on any occlusion pruning that occurs. Set this
 #'   to `NULL` to skip this step.
+#' @param prune_reverse If `TRUE`, prune the reverse neighbors of each item
+#'   before the reverse graph diversification step using
+#'   `pruning_degree_multiplier`. Because the number of reverse neighbors can be
+#'   much larger than the number of forward neighbors, this can help to avoid
+#'   excessive computation during the diversification step, with little overall
+#'   effect on the final search graph. Default is `FALSE`.
 #' @param n_threads Number of threads to use.
 #' @param verbose If `TRUE`, log information to the console.
 #' @param progress Determines the type of progress information logged during the
@@ -239,6 +245,7 @@ rnnd_build <- function(data,
                        n_search_trees = 1,
                        pruning_degree_multiplier = 1.5,
                        diversify_prob = 1.0,
+                       prune_reverse = FALSE,
                        n_threads = 0,
                        verbose = FALSE,
                        progress = "bar",
@@ -280,6 +287,7 @@ rnnd_build <- function(data,
     pruning_degree_multiplier = pruning_degree_multiplier,
     diversify_prob = diversify_prob,
     n_search_trees = n_search_trees,
+    prune_reverse = prune_reverse,
     is_prepared = FALSE
   )
 
@@ -305,6 +313,7 @@ rnnd_build <- function(data,
     use_alt_metric = index$use_alt_metric,
     diversify_prob = index$prep$diversify_prob,
     pruning_degree_multiplier = index$prep$pruning_degree_multiplier,
+    prune_reverse = index$prep$prune_reverse,
     n_threads = n_threads,
     verbose = verbose,
     obs = "C"
@@ -2239,6 +2248,12 @@ graph_knn_query <- function(query,
 #'   half as many of the reverse neighbors, although exactly which neighbors are
 #'   retained is also dependent on any occlusion pruning that occurs. Set this
 #'   to `NULL` to skip this step.
+#' @param prune_reverse If `TRUE`, prune the reverse neighbors of each item
+#'   before the reverse graph diversification step using
+#'   `pruning_degree_multiplier`. Because the number of reverse neighbors can be
+#'   much larger than the number of forward neighbors, this can help to avoid
+#'   excessive computation during the diversification step, with little overall
+#'   effect on the final search graph. Default is `FALSE`.
 #' @param n_threads Number of threads to use.
 #' @param verbose If `TRUE`, log information to the console.
 #' @param obs set to `"C"` to indicate that the input `data` orientation stores
@@ -2286,6 +2301,7 @@ prepare_search_graph <- function(data,
                                  use_alt_metric = TRUE,
                                  diversify_prob = 1.0,
                                  pruning_degree_multiplier = 1.5,
+                                 prune_reverse = FALSE,
                                  n_threads = 0,
                                  verbose = FALSE,
                                  obs = "R") {
@@ -2346,6 +2362,19 @@ prepare_search_graph <- function(data,
   }
   rsp <- reverse_knn_sp(fdiv)
   if (!is.null(diversify_prob) && diversify_prob > 0) {
+    if (prune_reverse && !is.null(pruning_degree_multiplier) &&
+        !is.infinite(pruning_degree_multiplier)) {
+      max_degree <- max(round(n_nbrs * pruning_degree_multiplier), 1)
+      tsmessage("Degree pruning reverse graph to max degree: ", max_degree)
+      rsp <-
+        degree_prune(
+          rsp,
+          max_degree = max_degree,
+          verbose = verbose,
+          n_threads = n_threads
+        )
+    }
+
     tsmessage("Diversifying reverse graph")
     rdiv <- diversify(
       data,

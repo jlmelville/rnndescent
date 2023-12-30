@@ -9,6 +9,15 @@ neighbors, just the distances. Thank you to reporter
 * New parameter for `prepare_search_graph`: `use_alt_metric`. This behaves like
 the existing `use_alt_metric` parameters in other functions and may speed up
 the index preparation step in e.g. `rnnd_build`.
+* New parameter for `rnnd_build` and `prepare_search_graph`: `prune_reverse`. If
+set to `TRUE` the reverse graph will be pruned using the
+`pruning_degree_multiplier` parameter before any diversification. This can help
+prevent an excessive amount of time being spent in the diversification step in
+the case where an item has a large number of neighbors (in the reverse graph
+this can be as large as the number of items in the dataset). Pruning of the
+merged graph still occurs, so this is an additional pruning step. This should
+have little effect on search results, but for backwards compatibility, the
+default is `FALSE`.
 
 # rnndescent 0.1.3
 
