@@ -18,6 +18,9 @@ used in combination with `epsilon` to avoid excessive search times.
 neighbors, just the distances. Thank you to reporter
 [Henry Linder](https://github.com/mhlinder)
 (<https://github.com/jlmelville/rnndescent/issues/8>).
+* New parameter for `prepare_search_graph`: `use_alt_metric`. This behaves like
+the existing `use_alt_metric` parameters in other functions and may speed up
+the index preparation step in e.g. `rnnd_build`.
 
 # rnndescent 0.1.3
 

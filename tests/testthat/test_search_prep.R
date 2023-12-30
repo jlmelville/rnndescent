@@ -302,6 +302,18 @@ test_that("sparse data prep same as dense", {
     )
 
   expect_equal(sgsp, sgdz)
+
+  set.seed(1337)
+  sgsp_noalt <-
+    prepare_search_graph(
+      data = ui10sp,
+      graph = ui10dz_bf,
+      diversify_prob = 1,
+      pruning_degree_multiplier = 0.5,
+      use_alt_metric = FALSE
+    )
+
+  expect_equal(sgsp_noalt, sgdz, tol = 1e-7)
 })
 
 test_that("prune twice with different prob", {

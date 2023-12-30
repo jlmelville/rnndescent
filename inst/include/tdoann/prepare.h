@@ -106,35 +106,51 @@ void remove_long_edges_impl(const SparseNNGraph<Out, Idx> &graph,
                             RandomGenerator &rand, double prune_probability,
                             SparseNNGraph<Out, Idx> &result, std::size_t begin,
                             std::size_t end) {
+  static constexpr auto zero = Out{};
   for (std::size_t i = begin; i < end; i++) {
     const std::size_t n_nbrs = graph.n_nbrs(i);
     if (n_nbrs == 0) {
       continue;
     }
+    std::vector<uint8_t> retained(n_nbrs, 1);
+
+    const std::size_t row_ptr_i = graph.row_ptr[i];
+
     // order neighbors by increasing distance
-    auto ordered = order(graph.dist.begin() + graph.row_ptr[i],
-                         graph.dist.begin() + graph.row_ptr[i + 1]);
+    std::vector<std::size_t> ordered =
+        order(graph.dist.begin() + row_ptr_i,
+              graph.dist.begin() + graph.row_ptr[i + 1]);
     // loop starts at 1: we always keep the nearest neighbor so we start with
     // the next nearest neighbor
     for (std::size_t j = 1; j < n_nbrs; j++) {
-      const auto jth_nearest = ordered[j];
-      Idx nbr_j = graph.index(i, jth_nearest);
-      Out dist_ij = graph.distance(i, jth_nearest);
+      const std::size_t jth_nearest = ordered[j];
+      const std::size_t ijn = row_ptr_i + jth_nearest;
+      Idx nbr_j = graph.col_idx[ijn];
+      Out dist_ij = graph.dist[ijn];
+
       // check the distance between j and all retained neighbors (k) so far
       for (std::size_t k = 0; k < j; k++) {
-        const auto kth_nearest = ordered[k];
-        if (result.is_marked_for_deletion(i, kth_nearest)) {
+        const std::size_t kth_nearest = ordered[k];
+        if (!retained[kth_nearest]) {
           // k was already considered an occlusion, no need to test
           continue;
         }
-        Idx nbr_k = graph.index(i, kth_nearest);
+        Idx nbr_k = graph.col_idx[row_ptr_i + kth_nearest];
         Out dist_jk = distance.calculate(nbr_j, nbr_k);
         auto rand_val = rand.unif();
         if (dist_jk < dist_ij && rand_val < prune_probability) {
           // j occludes k, mark j for deletion
-          result.mark_for_deletion(i, jth_nearest);
+          retained[jth_nearest] = 0;
           break;
         }
+      }
+    }
+
+    const std::size_t result_row_ptr_i = result.row_ptr[i];
+    for (std::size_t j = 0; j < n_nbrs; j++) {
+      const std::size_t jth_nearest = ordered[j];
+      if (!retained[jth_nearest]) {
+        result.dist[result_row_ptr_i + jth_nearest] = zero;
       }
     }
   }

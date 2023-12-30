@@ -8,6 +8,7 @@ prepare_search_graph(
   data,
   graph,
   metric = "euclidean",
+  use_alt_metric = TRUE,
   diversify_prob = 1,
   pruning_degree_multiplier = 1.5,
   n_threads = 0,
@@ -85,6 +86,13 @@ a dense numeric vector of 0s and 1s):
 \item \code{"sokalsneath"}
 \item \code{"yule"}
 }}
+
+\item{use_alt_metric}{If \code{TRUE}, use faster metrics that maintain the
+ordering of distances internally (e.g. squared Euclidean distances if using
+\code{metric = "euclidean"}), then apply a correction at the end. Probably
+the only reason to set this to \code{FALSE} is if you suspect that some
+sort of numeric issue is occurring with your data in the alternative code
+path.}
 
 \item{diversify_prob}{the degree of diversification of the search graph
 by removing unnecessary edges through occlusion pruning. This should take a

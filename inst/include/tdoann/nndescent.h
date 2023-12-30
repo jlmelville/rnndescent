@@ -52,17 +52,18 @@ public:
                const NNHeap<Out, Idx> &new_nbrs, decltype(new_nbrs) &old_nbrs,
                NNDProgressBase &progress) -> unsigned long {
     const auto n_points = new_nbrs.n_points;
-    const auto max_candidates = new_nbrs.n_nbrs;
+    const auto max_new_candidates = new_nbrs.n_nbrs;
+    const auto max_old_candidates = old_nbrs.n_nbrs;
     progress.set_n_batches(n_points);
     unsigned long num_updates = 0UL;
     for (Idx i = 0; i < n_points; i++) {
-      for (Idx j = 0; j < max_candidates; j++) {
-        // (new, new) pairs from j -> max_candidates
+      for (Idx j = 0; j < max_new_candidates; j++) {
+        // (new, new) pairs from j -> max_new_candidates
         auto new_j = new_nbrs.index(i, j);
         if (new_j == npos) {
           continue;
         }
-        for (auto k = j; k < max_candidates; k++) {
+        for (auto k = j; k < max_new_candidates; k++) {
           auto new_k = new_nbrs.index(i, k);
           if (new_k == npos) {
             continue;
@@ -70,8 +71,8 @@ public:
           num_updates += this->update(current_graph, new_j, new_k);
         }
 
-        // (new, old) pairs from 0 -> max_candidates
-        for (Idx k = 0; k < max_candidates; k++) {
+        // (new, old) pairs from 0 -> max_old_candidates
+        for (Idx k = 0; k < max_old_candidates; k++) {
           auto old_k = old_nbrs.index(i, k);
           if (old_k == npos) {
             continue;

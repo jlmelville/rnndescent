@@ -312,6 +312,7 @@ rnnd_build <- function(data,
     data = index$data,
     graph = index$graph,
     metric = index$original_metric,
+    use_alt_metric = index$use_alt_metric,
     diversify_prob = index$prep$diversify_prob,
     pruning_degree_multiplier = index$prep$pruning_degree_multiplier,
     n_threads = n_threads,
@@ -2239,6 +2240,12 @@ graph_knn_query <- function(query,
 #'   - `"sokalmichener"`
 #'   - `"sokalsneath"`
 #'   - `"yule"`
+#' @param use_alt_metric If `TRUE`, use faster metrics that maintain the
+#'   ordering of distances internally (e.g. squared Euclidean distances if using
+#'   `metric = "euclidean"`), then apply a correction at the end. Probably
+#'   the only reason to set this to `FALSE` is if you suspect that some
+#'   sort of numeric issue is occurring with your data in the alternative code
+#'   path.
 #' @param diversify_prob the degree of diversification of the search graph
 #'   by removing unnecessary edges through occlusion pruning. This should take a
 #'   value between `0` (no diversification) and `1` (remove as many edges as
@@ -2308,6 +2315,7 @@ graph_knn_query <- function(query,
 prepare_search_graph <- function(data,
                                  graph,
                                  metric = "euclidean",
+                                 use_alt_metric = TRUE,
                                  diversify_prob = 1.0,
                                  pruning_degree_multiplier = 1.5,
                                  n_threads = 0,
@@ -2325,30 +2333,35 @@ prepare_search_graph <- function(data,
     )
   }
 
+  actual_metric <-
+    get_actual_metric(use_alt_metric, metric, data, verbose)
+
   if (is_sparse(graph)) {
     sp <- Matrix::t(graph)
     n_nbrs <- mean(diff(sp@p))
-    max_degree <- max(round(n_nbrs * pruning_degree_multiplier), 1)
   } else {
     n_nbrs <- check_graph(graph)$k
-    max_degree <- max(round(n_nbrs * pruning_degree_multiplier), 1)
     tsmessage("Converting graph to sparse format")
     sp <- graph_to_csparse(graph)
   }
 
   sp <- preserve_zeros(sp)
 
+  if (use_alt_metric) {
+    sp@x <-
+      apply_alt_metric_uncorrection(metric, sp@x, is_sparse(data))
+  }
+
   data <- x2m(data)
   if (obs == "R") {
     data <- Matrix::t(data)
   }
-
   if (!is.null(diversify_prob) && diversify_prob > 0) {
     tsmessage("Diversifying forward graph")
     fdiv <- diversify(
       data,
       sp,
-      metric = metric,
+      metric = actual_metric,
       prune_probability = diversify_prob,
       verbose = verbose,
       n_threads = n_threads
@@ -2369,7 +2382,7 @@ prepare_search_graph <- function(data,
     rdiv <- diversify(
       data,
       rsp,
-      metric = metric,
+      metric = actual_metric,
       prune_probability = diversify_prob,
       verbose = verbose,
       n_threads = n_threads
@@ -2389,7 +2402,7 @@ prepare_search_graph <- function(data,
 
   if (!is.null(pruning_degree_multiplier) &&
     !is.infinite(pruning_degree_multiplier)) {
-    max_degree <- round(n_nbrs * pruning_degree_multiplier)
+    max_degree <- max(round(n_nbrs * pruning_degree_multiplier), 1)
     tsmessage("Degree pruning merged graph to max degree: ", max_degree)
     res <-
       degree_prune(
@@ -2408,6 +2421,12 @@ prepare_search_graph <- function(data,
       "% sparse)"
     )
   }
+
+  if (use_alt_metric) {
+    res@x <-
+      apply_alt_metric_correction(metric, res@x, is_sparse(data))
+  }
+
   tsmessage("Finished preparing search graph")
   # return this pre-transposed so we don't have to do it in graph_knn_query
   Matrix::t(res)
