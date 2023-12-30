@@ -11,6 +11,7 @@ prepare_search_graph(
   use_alt_metric = TRUE,
   diversify_prob = 1,
   pruning_degree_multiplier = 1.5,
+  prune_reverse = FALSE,
   n_threads = 0,
   verbose = FALSE,
   obs = "R"
@@ -120,6 +121,13 @@ setting this to \code{1.5} will keep all the forward neighbors and then
 half as many of the reverse neighbors, although exactly which neighbors are
 retained is also dependent on any occlusion pruning that occurs. Set this
 to \code{NULL} to skip this step.}
+
+\item{prune_reverse}{If \code{TRUE}, prune the reverse neighbors of each item
+before the reverse graph diversification step using
+\code{pruning_degree_multiplier}. Because the number of reverse neighbors can be
+much larger than the number of forward neighbors, this can help to avoid
+excessive computation during the diversification step, with little overall
+effect on the final search graph. Default is \code{FALSE}.}
 
 \item{n_threads}{Number of threads to use.}
 
