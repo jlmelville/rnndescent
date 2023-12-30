@@ -80,6 +80,7 @@ efficient for querying new data than the original nearest neighbor graph.</p>
 <span>  <span class="va">data</span>,</span>
 <span>  <span class="va">graph</span>,</span>
 <span>  metric <span class="op">=</span> <span class="st">"euclidean"</span>,</span>
+<span>  use_alt_metric <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  diversify_prob <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  pruning_degree_multiplier <span class="op">=</span> <span class="fl">1.5</span>,</span>
 <span>  n_threads <span class="op">=</span> <span class="fl">0</span>,</span>
@@ -152,6 +153,15 @@ a dense numeric vector of 0s and 1s):</p><ul><li><p><code>"dice"</code></p></li>
 <li><p><code>"sokalsneath"</code></p></li>
 <li><p><code>"yule"</code></p></li>
 </ul></dd>
+
+
+<dt>use_alt_metric</dt>
+<dd><p>If <code>TRUE</code>, use faster metrics that maintain the
+ordering of distances internally (e.g. squared Euclidean distances if using
+<code>metric = "euclidean"</code>), then apply a correction at the end. Probably
+the only reason to set this to <code>FALSE</code> is if you suspect that some
+sort of numeric issue is occurring with your data in the alternative code
+path.</p></dd>
 
 
 <dt>diversify_prob</dt>
@@ -277,11 +287,11 @@ Diskann: Fast accurate billion-point nearest neighbor search on a single node.
 <span class="r-in"><span>  reference_graph <span class="op">=</span> <span class="va">ref_search_graph</span>, k <span class="op">=</span> <span class="fl">4</span>, metric <span class="op">=</span> <span class="st">"euclidean"</span>,</span></span>
 <span class="r-in"><span>  verbose <span class="op">=</span> <span class="cn">TRUE</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 07:12:42 Using alt metric 'sqeuclidean' for 'euclidean'</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 07:12:42 Initializing from random neighbors</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 07:12:42 Generating random k-nearest neighbor graph from reference with k = 4</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 07:12:42 Searching nearest neighbor graph with epsilon = 0.1 and max_search_fraction = 1</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 07:12:42 Finished</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 05:59:14 Using alt metric 'sqeuclidean' for 'euclidean'</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 05:59:14 Initializing from random neighbors</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 05:59:14 Generating random k-nearest neighbor graph from reference with k = 4</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 05:59:14 Searching nearest neighbor graph with epsilon = 0.1 and max_search_fraction = 1</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 05:59:14 Finished</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
