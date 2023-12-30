@@ -22,6 +22,7 @@ rnnd_build(
   n_search_trees = 1,
   pruning_degree_multiplier = 1.5,
   diversify_prob = 1,
+  prune_reverse = FALSE,
   n_threads = 0,
   verbose = FALSE,
   progress = "bar",
@@ -230,6 +231,13 @@ then the nearer neighbor \code{p} is said to "occlude" \code{q}. It is likely th
 the neighbor list of \code{i}. You may also set this to \code{NULL} to skip any
 occlusion pruning. Note that occlusion pruning is carried out twice, once
 to the forward neighbors, and once to the reverse neighbors.}
+
+\item{prune_reverse}{If \code{TRUE}, prune the reverse neighbors of each item
+before the reverse graph diversification step using
+\code{pruning_degree_multiplier}. Because the number of reverse neighbors can be
+much larger than the number of forward neighbors, this can help to avoid
+excessive computation during the diversification step, with little overall
+effect on the final search graph. Default is \code{FALSE}.}
 
 \item{n_threads}{Number of threads to use.}
 

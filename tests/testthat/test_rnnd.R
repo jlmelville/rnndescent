@@ -24,3 +24,13 @@ iris_knn <- rnnd_knn(
   k = 4,
 )
 expect_equal(iris_knn, iris_index$graph)
+
+set.seed(1337)
+iris_index_pr <- rnnd_build(
+  data = ui10,
+  k = 4,
+  diversify_prob = 1.0,
+  prune_reverse = TRUE
+)
+iris_query_pr <- rnnd_query(index = iris_index_pr, query = ui10, k = 4)
+expect_equal(iris_query_pr, iris_bf)
