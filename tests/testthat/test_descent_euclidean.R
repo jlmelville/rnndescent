@@ -137,6 +137,11 @@ set.seed(1337)
 iris_nnd <- nnd_knn(uirism, k = 15, init = "tree")
 expect_equal(sum(iris_nnd$dist), ui_edsum, tol = 1e-3)
 
+# weight by degree
+set.seed(1337)
+iris_nndw <- nnd_knn(uirism, k = 15, init = "tree", weight_by_degree = TRUE)
+expect_equal(sum(iris_nndw$dist), ui_edsum, tol = 1e-3)
+
 # initialize from existing knn graph with missing data
 set.seed(1337)
 iris_nbrs_missing <- iris_nbrs

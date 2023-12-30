@@ -551,6 +551,45 @@ give highly accurate results in high dimensions. And with the help of
 k-occurrences, we can even detect that it might be happening. But what can we do
 about it?
 
+### Weight candidates by degree
+
+When creating the local join list for each object, we only have space for
+`max_candidates` candidates. If there's more than that, then the candidates are
+randomly chosen. But with a uniform random weighting, low-degree items could get
+crowded out of over-subscribed candidate lists, but don't get an opportunity to
+appear in many other lists. Hub items, on the other hand, are going to appear
+on multiple candidate lists, so even if they get crowded out of a few lists,
+they are still going to be involved in the local join.
+
+So what if, instead of weighting the candidates randomly but uniformly, we
+weight the random selection by the degree of the candidate? A hub with a large
+degree will tend to have a larger weight, and due to how `rnndescent`'s
+internal heap implementation works, will make it more likely to be evicted
+from the heap. Conversely, a low-degree item will tend to have a lower weight.
+
+This should give a more equitable distribution of candidates. However, there is
+a small cost to doing this. At each iteration, we need to calculate and store 
+the k-occurrence of each item in the current state of the graph. Honestly, this
+isn't a huge amount of work, but as a result `weight_by_degree = FALSE` by
+default. For the high-dimensional case, it's worth trying though:
+
+```{r NND 1000D weight by degree}
+g1000d_nnd_w <-
+  nnd_knn(g1000d,
+    k = 15,
+    metric = "euclidean",
+    weight_by_degree = TRUE
+  )
+neighbor_overlap(g1000d_nnbf, g1000d_nnd_w)
+```
+
+Like a 2%ish improvement. It's not nothing. And despite the extra computation
+and $O\left(kN\right)$ storage required to calculate the k-occurrences in each
+iteration, with high-dimensional data the distance calculations tend to dominate
+the run time, so there's no reason to *not* set `weight_by_degree = TRUE`
+in this case. However, for the rest of the vignette, we'll keep it set to `FALSE`
+(the default) so it's easier to evaluate the contribution of other changes.
+
 ### Use More Neighbors
 
 One simple (slightly expensive) way is to keep more neighbors in the
@@ -818,6 +857,8 @@ number of neighbors and then truncating the result to the desired size, at the
 cost of a longer run-time and memory usage.
 * Alternatively, you can run the the nearest neighbor descent multiple times
 from different random starting points and merge the results.
+* Setting `weight_by_degree = TRUE` is probably worth doing, albeit it gives
+a very modest improvement.
 * More accurate and efficient results are obtained by converting the nearest
 neighbor descent results into a search graph and then querying the graph with
 the original data, using the nearest neighbor results for initialization and

@@ -152,6 +152,14 @@
 #'   `FALSE`, you should see a noticeable speed improvement, especially when
 #'   using a smaller number of threads, so this is worth trying if you have the
 #'   memory to spare.
+#' @param weight_by_degree If `TRUE`, then candidates for the local join are
+#'   weighted according to their in-degree, so that if there are more than
+#'   `max_candidates` in a candidate list, candidates with a smaller degree are
+#'   favored for retention. This prevents items with large numbers of edges
+#'   crowding out other items and for high-dimensional data is likely to provide
+#'   a small improvement in accuracy. Because this incurs a small extra cost of
+#'   counting the degree of each node, and because it tends to delay early
+#'   convergence, by default this is `FALSE`.
 #' @param n_search_trees, the number of trees to keep in the search forest as
 #'   part of index preparation. The default is `1`.
 #' @param diversify_prob the degree of diversification of the search graph
@@ -242,6 +250,7 @@ rnnd_build <- function(data,
                        delta = 0.001,
                        max_candidates = NULL,
                        low_memory = TRUE,
+                       weight_by_degree = FALSE,
                        n_search_trees = 1,
                        pruning_degree_multiplier = 1.5,
                        diversify_prob = 1.0,
@@ -272,6 +281,7 @@ rnnd_build <- function(data,
     delta = delta,
     max_candidates = max_candidates,
     low_memory = low_memory,
+    weight_by_degree = weight_by_degree,
     n_threads = n_threads,
     verbose = verbose,
     progress = progress,
@@ -584,6 +594,14 @@ rnnd_query <-
 #'   `FALSE`, you should see a noticeable speed improvement, especially when
 #'   using a smaller number of threads, so this is worth trying if you have the
 #'   memory to spare.
+#' @param weight_by_degree If `TRUE`, then candidates for the local join are
+#'   weighted according to their in-degree, so that if there are more than
+#'   `max_candidates` in a candidate list, candidates with a smaller degree are
+#'   favored for retention. This prevents items with large numbers of edges
+#'   crowding out other items and for high-dimensional data is likely to provide
+#'   a small improvement in accuracy. Because this incurs a small extra cost of
+#'   counting the degree of each node, and because it tends to delay early
+#'   convergence, by default this is `FALSE`.
 #' @param n_threads Number of threads to use.
 #' @param verbose If `TRUE`, log information to the console.
 #' @param progress Determines the type of progress information logged during the
@@ -633,6 +651,7 @@ rnnd_knn <- function(data,
                      n_iters = NULL,
                      delta = 0.001,
                      max_candidates = NULL,
+                     weight_by_degree = FALSE,
                      low_memory = TRUE,
                      n_threads = 0,
                      verbose = FALSE,
@@ -660,6 +679,7 @@ rnnd_knn <- function(data,
     delta = delta,
     max_candidates = max_candidates,
     low_memory = low_memory,
+    weight_by_degree = weight_by_degree,
     n_threads = n_threads,
     verbose = verbose,
     progress = progress,
@@ -1091,6 +1111,14 @@ random_knn <-
 #'   `FALSE`, you should see a noticeable speed improvement, especially
 #'   when using a smaller number of threads, so this is worth trying if you have
 #'   the memory to spare.
+#' @param weight_by_degree If `TRUE`, then candidates for the local join are
+#'   weighted according to their in-degree, so that if there are more than
+#'   `max_candidates` in a candidate list, candidates with a smaller degree are
+#'   favored for retention. This prevents items with large numbers of edges
+#'   crowding out other items and for high-dimensional data is likely to provide
+#'   a small improvement in accuracy. Because this incurs a small extra cost of
+#'   counting the degree of each node, and because it tends to delay early
+#'   convergence, by default this is `FALSE`.
 #' @param use_alt_metric If `TRUE`, use faster metrics that maintain the
 #'   ordering of distances internally (e.g. squared Euclidean distances if using
 #'   `metric = "euclidean"`), then apply a correction at the end. Probably
@@ -1195,6 +1223,7 @@ nnd_knn <- function(data,
                     max_candidates = NULL,
                     delta = 0.001,
                     low_memory = TRUE,
+                    weight_by_degree = FALSE,
                     use_alt_metric = TRUE,
                     n_threads = 0,
                     verbose = FALSE,
@@ -1327,6 +1356,7 @@ nnd_knn <- function(data,
     max_candidates = max_candidates,
     delta = delta,
     low_memory = low_memory,
+    weight_by_degree = weight_by_degree,
     n_threads = n_threads,
     verbose = verbose,
     progress_type = progress

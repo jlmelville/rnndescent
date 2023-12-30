@@ -18,6 +18,7 @@ rnnd_build(
   delta = 0.001,
   max_candidates = NULL,
   low_memory = TRUE,
+  weight_by_degree = FALSE,
   n_search_trees = 1,
   pruning_degree_multiplier = 1.5,
   diversify_prob = 1,
@@ -194,6 +195,15 @@ computationally expensive approach to index construction. If set to
 \code{FALSE}, you should see a noticeable speed improvement, especially when
 using a smaller number of threads, so this is worth trying if you have the
 memory to spare.}
+
+\item{weight_by_degree}{If \code{TRUE}, then candidates for the local join are
+weighted according to their in-degree, so that if there are more than
+\code{max_candidates} in a candidate list, candidates with a smaller degree are
+favored for retention. This prevents items with large numbers of edges
+crowding out other items and for high-dimensional data is likely to provide
+a small improvement in accuracy. Because this incurs a small extra cost of
+counting the degree of each node, and because it tends to delay early
+convergence, by default this is \code{FALSE}.}
 
 \item{n_search_trees, }{the number of trees to keep in the search forest as
 part of index preparation. The default is \code{1}.}

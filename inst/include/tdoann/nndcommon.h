@@ -230,6 +230,23 @@ void flag_retained_new_candidates(NNDHeap<Out, Idx> &current_graph,
     }
   }
 }
+
+template <typename NbrHeap>
+std::vector<std::size_t> count_reverse_neighbors(const NbrHeap &current_graph) {
+  constexpr auto npos = static_cast<typename NbrHeap::Index>(-1);
+  std::vector<std::size_t> counts(current_graph.n_points, 0);
+  const auto nnbrs = current_graph.n_nbrs;
+
+  for (std::size_t i = 0, ij = 0; i < current_graph.n_points; ++i) {
+    for (std::size_t j = 0; j < nnbrs; ++j, ++ij) {
+      const auto idx = current_graph.idx[ij];
+      if (idx != npos) {
+        counts[idx]++;
+      }
+    }
+  }
+  return counts;
+}
 } // namespace tdoann
 
 #endif // TDOANN_NNDPROGRESS_H
