@@ -119,7 +119,7 @@ List rnn_descent(const NumericMatrix &data, const IntegerMatrix &nn_idx,
                  bool verbose, const std::string &progress_type) {
   auto distance_ptr = create_self_distance(data, metric);
   return nn_descent_impl(*distance_ptr, nn_idx, nn_dist, max_candidates,
-                         n_iters, delta, low_memory, weight_by_degree, 
+                         n_iters, delta, low_memory, weight_by_degree,
                          n_threads, verbose, progress_type);
 }
 
@@ -147,7 +147,7 @@ List rnn_sparse_descent(const IntegerVector &ind, const IntegerVector &ptr,
                         const std::string &progress_type) {
   auto distance_ptr = create_sparse_self_distance(ind, ptr, data, ndim, metric);
   return nn_descent_impl(*distance_ptr, nn_idx, nn_dist, max_candidates,
-                         n_iters, delta, low_memory, weight_by_degree, 
+                         n_iters, delta, low_memory, weight_by_degree,
                          n_threads, verbose, progress_type);
 }
 
