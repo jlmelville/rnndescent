@@ -34,3 +34,14 @@ iris_index_pr <- rnnd_build(
 )
 iris_query_pr <- rnnd_query(index = iris_index_pr, query = ui10, k = 4)
 expect_equal(iris_query_pr, iris_bf)
+
+
+set.seed(1337)
+iris_index_w <- rnnd_build(
+  data = ui10,
+  k = 4,
+  diversify_prob = 1.0,
+  weight_by_degree = TRUE
+)
+iris_query_w <- rnnd_query(index = iris_index_w, query = ui10, k = 4)
+expect_equal(iris_query_pr, iris_bf)
