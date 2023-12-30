@@ -239,7 +239,7 @@ public:
 template <typename Out, typename Idx>
 void build_candidates(const NNDHeap<Out, Idx> &current_graph,
                       NNHeap<Out, Idx> &new_nbrs, decltype(new_nbrs) &old_nbrs,
-                      bool weight_by_degree, double revival_prob,
+                      bool weight_by_degree,
                       ParallelRandomProvider &parallel_rand,
                       std::size_t n_threads, const Executor &executor) {
   constexpr auto npos = static_cast<Idx>(-1);
@@ -259,7 +259,7 @@ void build_candidates(const NNDHeap<Out, Idx> &current_graph,
         if (nbr == npos) {
           continue;
         }
-        auto &nbrs = current_graph.flags[idx_ij] == 1 || rand->unif() < revival_prob ? new_nbrs : old_nbrs;
+        auto &nbrs = current_graph.flags[idx_ij] == 1 ? new_nbrs : old_nbrs;
         auto rand_weight = rand->unif();
         if (weight_by_degree) {
           heap_adder.add(nbrs, i, nbr, rand_weight * k_occurrences[i],
@@ -287,7 +287,7 @@ template <typename Out, typename Idx>
 void nnd_build(NNDHeap<Out, Idx> &current_graph,
                ParallelLocalJoin<Out, Idx> &local_join,
                std::size_t max_candidates, uint32_t n_iters, double delta,
-               bool weight_by_degree, double revival_prob, NNDProgressBase &progress,
+               bool weight_by_degree, NNDProgressBase &progress,
                ParallelRandomProvider &parallel_rand, std::size_t n_threads,
                const Executor &executor) {
   const std::size_t n_points = current_graph.n_points;
@@ -297,7 +297,7 @@ void nnd_build(NNDHeap<Out, Idx> &current_graph,
     decltype(new_nbrs) old_nbrs(n_points, max_candidates);
 
     build_candidates(current_graph, new_nbrs, old_nbrs, weight_by_degree,
-                     revival_prob, parallel_rand, n_threads, executor);
+                     parallel_rand, n_threads, executor);
 
     flag_new_candidates(current_graph, new_nbrs, n_threads, executor);
 

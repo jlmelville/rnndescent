@@ -80,7 +80,7 @@ template <typename Out, typename Idx>
 List nn_descent_impl(const tdoann::BaseDistance<Out, Idx> &distance,
                      const IntegerMatrix &nn_idx, const NumericMatrix &nn_dist,
                      std::size_t max_candidates, uint32_t n_iters, double delta,
-                     bool low_memory, bool weight_by_degree, double revival_prob,
+                     bool low_memory, bool weight_by_degree,
                      std::size_t n_threads, bool verbose,
                      const std::string &progress_type) {
   auto nnd_heap =
@@ -97,7 +97,7 @@ List nn_descent_impl(const tdoann::BaseDistance<Out, Idx> &distance,
         create_parallel_local_join(nnd_heap, distance, low_memory);
     rnndescent::ParallelRNGAdapter<rnndescent::PcgRand> parallel_rand;
     tdoann::nnd_build(nnd_heap, *local_join_ptr, max_candidates, n_iters, delta,
-                      weight_by_degree, revival_prob, *nnd_progress_ptr, parallel_rand,
+                      weight_by_degree, *nnd_progress_ptr, parallel_rand,
                       n_threads, executor);
   } else {
     auto local_join_ptr =
@@ -115,11 +115,11 @@ List nn_descent_impl(const tdoann::BaseDistance<Out, Idx> &distance,
 List rnn_descent(const NumericMatrix &data, const IntegerMatrix &nn_idx,
                  const NumericMatrix &nn_dist, const std::string &metric,
                  std::size_t max_candidates, uint32_t n_iters, double delta,
-                 bool low_memory, bool weight_by_degree, double revival_prob, std::size_t n_threads,
+                 bool low_memory, bool weight_by_degree, std::size_t n_threads,
                  bool verbose, const std::string &progress_type) {
   auto distance_ptr = create_self_distance(data, metric);
   return nn_descent_impl(*distance_ptr, nn_idx, nn_dist, max_candidates,
-                         n_iters, delta, low_memory, weight_by_degree, revival_prob,
+                         n_iters, delta, low_memory, weight_by_degree, 
                          n_threads, verbose, progress_type);
 }
 
@@ -128,11 +128,11 @@ List rnn_logical_descent(const LogicalMatrix &data, const IntegerMatrix &nn_idx,
                          const NumericMatrix &nn_dist,
                          const std::string &metric, std::size_t max_candidates,
                          uint32_t n_iters, double delta, bool low_memory,
-                         bool weight_by_degree, double revival_prob, std::size_t n_threads,
+                         bool weight_by_degree, std::size_t n_threads,
                          bool verbose, const std::string &progress_type) {
   auto distance_ptr = create_self_distance(data, metric);
   return nn_descent_impl(*distance_ptr, nn_idx, nn_dist, max_candidates,
-                         n_iters, delta, low_memory, weight_by_degree, revival_prob,
+                         n_iters, delta, low_memory, weight_by_degree,
                          n_threads, verbose, progress_type);
 }
 
@@ -143,11 +143,11 @@ List rnn_sparse_descent(const IntegerVector &ind, const IntegerVector &ptr,
                         const NumericMatrix &nn_dist, const std::string &metric,
                         std::size_t max_candidates, uint32_t n_iters,
                         double delta, bool low_memory, bool weight_by_degree,
-                        double revival_prob, std::size_t n_threads, bool verbose,
+                        std::size_t n_threads, bool verbose,
                         const std::string &progress_type) {
   auto distance_ptr = create_sparse_self_distance(ind, ptr, data, ndim, metric);
   return nn_descent_impl(*distance_ptr, nn_idx, nn_dist, max_candidates,
-                         n_iters, delta, low_memory, weight_by_degree, revival_prob,
+                         n_iters, delta, low_memory, weight_by_degree, 
                          n_threads, verbose, progress_type);
 }
 

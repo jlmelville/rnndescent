@@ -580,7 +580,7 @@ g1000d_nnd_w <-
     metric = "euclidean",
     weight_by_degree = TRUE
   )
-nn_accuracy(g1000d_nnbf, g1000d_nnd_w)
+neighbor_overlap(g1000d_nnbf, g1000d_nnd_w)
 ```
 
 Like a 2%ish improvement. It's not nothing. And despite the extra computation

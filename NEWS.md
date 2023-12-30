@@ -6,11 +6,6 @@
 to `TRUE`, then the candidate list in nearest neighbor descent is weighted in
 favor of low-degree items, which should make for a more diverse local join.
 There is a minor increase in computation but also a minor increase in accuracy.
-* New parameter for `rnnd_query` and `graph_knn_query`: `max_search_fraction`.
-This parameter controls the maximum number of nodes that can be searched during
-querying. If the number of nodes searched exceeds this fraction of the total
-number of nodes in the graph, the search will be terminated. This can be
-used in combination with `epsilon` to avoid excessive search times.
 
 ## Bug fixes and minor improvements
 
@@ -62,6 +57,11 @@ care about the knn graph and won't ever want to query new data.
 * New function: `neighbor_overlap`. Measures the overlap of two knn graphs via
 their shared indices. A similar function was used extensively in some vignettes
 so it may have sufficient utility to be useful to others.
+* New parameter for `rnnd_query` and `graph_knn_query`: `max_search_fraction`.
+This parameter controls the maximum number of nodes that can be searched during
+querying. If the number of nodes searched exceeds this fraction of the total
+number of nodes in the graph, the search will be terminated. This can be
+used in combination with `epsilon` to avoid excessive search times.
 
 ## Bug fixes and minor improvements
 

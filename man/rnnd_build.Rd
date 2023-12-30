@@ -204,13 +204,6 @@ a small improvement in accuracy. Because this incurs a small extra cost of
 counting the degree of each node, and because it tends to delay early
 convergence, by default this is \code{FALSE}.}
 
-\item{prepare}{If \code{TRUE}, prepare the index for querying. The default is
-\code{FALSE} and will only do enough work to calculate the k-nearest neighbor
-graph for the input \code{data}. To prepare the index for querying later, you
-can always call \code{\link[=rnnd_prepare]{rnnd_prepare()}} subsequently. This parameter is provided
-for convenience if your goal is to immediately query the index after
-building.}
-
 \item{n_search_trees, }{the number of trees to keep in the search forest as
 part of index preparation. The default is \code{1}.}
 
