@@ -66,6 +66,7 @@
 <h3 id="bug-fixes-and-minor-improvements-development-version">Bug fixes and minor improvements<a class="anchor" aria-label="anchor" href="#bug-fixes-and-minor-improvements-development-version"></a></h3>
 <ul><li>Fix a factor of 2 error in the TS-SS metric. This does not affect the returned neighbors, just the distances. Thank you to reporter <a href="https://github.com/mhlinder" class="external-link">Henry Linder</a> (<a href="https://github.com/jlmelville/rnndescent/issues/8" class="external-link uri">https://github.com/jlmelville/rnndescent/issues/8</a>).</li>
 <li>New parameter for <code>prepare_search_graph</code>: <code>use_alt_metric</code>. This behaves like the existing <code>use_alt_metric</code> parameters in other functions and may speed up the index preparation step in e.g. <code>rnnd_build</code>.</li>
+<li>New parameter for <code>rnnd_build</code> and <code>prepare_search_graph</code>: <code>prune_reverse</code>. If set to <code>TRUE</code> the reverse graph will be pruned using the <code>pruning_degree_multiplier</code> parameter before any diversification. This can help prevent an excessive amount of time being spent in the diversification step in the case where an item has a large number of neighbors (in the reverse graph this can be as large as the number of items in the dataset). Pruning of the merged graph still occurs, so this is an additional pruning step. This should have little effect on search results, but for backwards compatibility, the default is <code>FALSE</code>.</li>
 </ul></div>
 </div>
     <div class="section level2">

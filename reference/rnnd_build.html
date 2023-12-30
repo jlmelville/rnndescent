@@ -93,6 +93,7 @@ functions in the package.</p>
 <span>  n_search_trees <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  pruning_degree_multiplier <span class="op">=</span> <span class="fl">1.5</span>,</span>
 <span>  diversify_prob <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  prune_reverse <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  n_threads <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  progress <span class="op">=</span> <span class="st">"bar"</span>,</span>
@@ -303,6 +304,15 @@ then the nearer neighbor <code>p</code> is said to "occlude" <code>q</code>. It 
 the neighbor list of <code>i</code>. You may also set this to <code>NULL</code> to skip any
 occlusion pruning. Note that occlusion pruning is carried out twice, once
 to the forward neighbors, and once to the reverse neighbors.</p></dd>
+
+
+<dt>prune_reverse</dt>
+<dd><p>If <code>TRUE</code>, prune the reverse neighbors of each item
+before the reverse graph diversification step using
+<code>pruning_degree_multiplier</code>. Because the number of reverse neighbors can be
+much larger than the number of forward neighbors, this can help to avoid
+excessive computation during the diversification step, with little overall
+effect on the final search graph. Default is <code>FALSE</code>.</p></dd>
 
 
 <dt>n_threads</dt>
