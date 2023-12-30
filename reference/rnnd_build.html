@@ -90,6 +90,7 @@ functions in the package.</p>
 <span>  delta <span class="op">=</span> <span class="fl">0.001</span>,</span>
 <span>  max_candidates <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  low_memory <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  weight_by_degree <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  n_search_trees <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  pruning_degree_multiplier <span class="op">=</span> <span class="fl">1.5</span>,</span>
 <span>  diversify_prob <span class="op">=</span> <span class="fl">1</span>,</span>
@@ -271,6 +272,17 @@ computationally expensive approach to index construction. If set to
 <code>FALSE</code>, you should see a noticeable speed improvement, especially when
 using a smaller number of threads, so this is worth trying if you have the
 memory to spare.</p></dd>
+
+
+<dt>weight_by_degree</dt>
+<dd><p>If <code>TRUE</code>, then candidates for the local join are
+weighted according to their in-degree, so that if there are more than
+<code>max_candidates</code> in a candidate list, candidates with a smaller degree are
+favored for retention. This prevents items with large numbers of edges
+crowding out other items and for high-dimensional data is likely to provide
+a small improvement in accuracy. Because this incurs a small extra cost of
+counting the degree of each node, and because it tends to delay early
+convergence, by default this is <code>FALSE</code>.</p></dd>
 
 
 <dt>n_search_trees, </dt>

@@ -63,6 +63,10 @@
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="development version" id="rnndescent-development-version">rnndescent (development version)<a class="anchor" aria-label="anchor" href="#rnndescent-development-version"></a></h2>
 <div class="section level3">
+<h3 id="new-features-development-version">New features<a class="anchor" aria-label="anchor" href="#new-features-development-version"></a></h3>
+<ul><li>New parameter: for <code>nnd_knn</code> and <code>rnnd_build</code>: <code>weight_by_degree</code>. If set to <code>TRUE</code>, then the candidate list in nearest neighbor descent is weighted in favor of low-degree items, which should make for a more diverse local join. There is a minor increase in computation but also a minor increase in accuracy.</li>
+</ul></div>
+<div class="section level3">
 <h3 id="bug-fixes-and-minor-improvements-development-version">Bug fixes and minor improvements<a class="anchor" aria-label="anchor" href="#bug-fixes-and-minor-improvements-development-version"></a></h3>
 <ul><li>Fix a factor of 2 error in the TS-SS metric. This does not affect the returned neighbors, just the distances. Thank you to reporter <a href="https://github.com/mhlinder" class="external-link">Henry Linder</a> (<a href="https://github.com/jlmelville/rnndescent/issues/8" class="external-link uri">https://github.com/jlmelville/rnndescent/issues/8</a>).</li>
 <li>New parameter for <code>prepare_search_graph</code>: <code>use_alt_metric</code>. This behaves like the existing <code>use_alt_metric</code> parameters in other functions and may speed up the index preparation step in e.g. <code>rnnd_build</code>.</li>
