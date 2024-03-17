@@ -9,6 +9,8 @@ There is a minor increase in computation but also a minor increase in accuracy.
 
 ## Bug fixes and minor improvements
 
+* `rnnd_build` generated an error when preparing the search graph for some 
+metrics (notably `cosine` and `jaccard`).
 * Fix a factor of 2 error in the TS-SS metric. This does not affect the returned
 neighbors, just the distances. Thank you to reporter
 [Henry Linder](https://github.com/mhlinder)
