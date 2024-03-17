@@ -137,9 +137,9 @@ usual in R, these are 1-indexed.</li>
 <span><span class="op">}</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $idx</span></span>
 <span><span class="co">#&gt;      [,1] [,2] [,3] [,4] [,5]</span></span>
-<span><span class="co">#&gt; [1,]    1   18    5   29   40</span></span>
+<span><span class="co">#&gt; [1,]    1   18    5   29   28</span></span>
 <span><span class="co">#&gt; [2,]    2   13   46   35   10</span></span>
-<span><span class="co">#&gt; [3,]    3   48    4    7   13</span></span>
+<span><span class="co">#&gt; [3,]    3   48    4    7   46</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $dist</span></span>
 <span><span class="co">#&gt;      [,1]      [,2]      [,3]      [,4]      [,5]</span></span>
@@ -201,7 +201,7 @@ can get <strong>very</strong> large, especially if you set
 <span><span class="co">#&gt;      [,1] [,2] [,3] [,4] [,5]</span></span>
 <span><span class="co">#&gt; [1,]    9   14   20    4   25</span></span>
 <span><span class="co">#&gt; [2,]   24    2   23   15    1</span></span>
-<span><span class="co">#&gt; [3,]   19    9    4   20   14</span></span>
+<span><span class="co">#&gt; [3,]   19    9    4   14   20</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $dist</span></span>
 <span><span class="co">#&gt;           [,1]      [,2]      [,3]      [,4]      [,5]</span></span>
@@ -232,14 +232,14 @@ sum of the distances:</p>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">iris_index</span><span class="op">$</span><span class="va">graph</span><span class="op">$</span><span class="va">dist</span><span class="op">)</span>,</span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">iris_knn_improved</span><span class="op">$</span><span class="va">dist</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 124.3317 124.3317</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 124.5203 124.3317</span></span></code></pre></div>
 <p>In this case, the initial knn has not been improved, which is hardly
 surprising due to the size of the dataset. Another function that might
 be of use is the <code>neighbor_overlap</code> function to see how many
 neighbors are shared between the two graphs:</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/neighbor_overlap.html">neighbor_overlap</a></span><span class="op">(</span><span class="va">iris_index</span><span class="op">$</span><span class="va">graph</span>, <span class="va">iris_knn_improved</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 1</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 0.9946667</span></span></code></pre></div>
 <p>As there was no change to the graph, the overlap is 100%. More
 details on this can be found in the <a href="hubness.html">hubness</a>
 vignette and a more ambitious dataset is covered in the <a href="https://jlmelville.github.io/rnndescent/articles/fmnist-example.html">FMNIST
@@ -286,7 +286,7 @@ details.</p>
 <div class="section level2 unnumbered">
 <h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
-<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0">
 <div id="ref-dasgupta2008random" class="csl-entry">
 Dasgupta, Sanjoy, and Yoav Freund. 2008. <span>“Random Projection Trees
 and Low Dimensional Manifolds.”</span> In <em>Proceedings of the
