@@ -46,7 +46,13 @@ inline auto r_seed() -> uint64_t {
 }
 
 inline auto create_dqrng() -> dqrng::rng64_t {
-  return std::make_shared<dqrng::random_64bit_wrapper<pcg64>>();
+  auto seed1 = r_seed();
+  auto seed2 = r_seed();
+  return dqrng::generator<pcg64>(seed1, seed2);
+}
+
+inline auto create_dqrng(uint64_t seed, uint64_t seed2) -> dqrng::rng64_t {
+  return dqrng::generator<pcg64>(seed, seed2);
 }
 
 inline auto combine_seeds(uint32_t msw, uint32_t lsw) -> uint64_t {
@@ -65,8 +71,7 @@ struct TauRand : public tdoann::RandomGenerator {
   std::unique_ptr<tdoann::tau_prng> prng{nullptr};
 
   TauRand(uint64_t seed, uint64_t seed2) {
-    dqrng::rng64_t rng = create_dqrng();
-    rng->seed(seed, seed2);
+    dqrng::rng64_t rng = create_dqrng(seed, seed2);
 
     // Stitch together 3 64-bit ints from 6 32-bit ones
     std::vector<uint32_t> tau_seeds32;
@@ -112,17 +117,11 @@ private:
   dqrng::rng64_t rng;
 
 public:
-
   // Not thread safe
-  DQIntSampler() : rng(create_dqrng()) {
-    auto seed1 = r_seed();
-    auto seed2 = r_seed();
-    rng->seed(seed1, seed2);
-  }
+  DQIntSampler() : rng(create_dqrng()) {}
 
-  DQIntSampler(uint64_t seed, uint64_t seed2) : rng(create_dqrng()) {
-    rng->seed(seed, seed2);
-  }
+  DQIntSampler(uint64_t seed, uint64_t seed2)
+      : rng(create_dqrng(seed, seed2)) {}
 
   // Generates a random integer in range [0, n)
   Int rand_int(Int n) override {
@@ -138,7 +137,6 @@ public:
     return result;
   }
 };
-
 
 template <typename Int, template <typename> class RNG>
 class ParallelIntRNGAdapter : public tdoann::ParallelRandomIntProvider<Int> {
@@ -157,9 +155,9 @@ public:
   // random numbers in each window, but they are related to the random number
   // seed
   std::unique_ptr<tdoann::RandomIntGenerator<Int>>
-    get_parallel_instance(uint64_t seed2) override {
-      return std::make_unique<RNG<Int>>(seed, seed2);
-    }
+  get_parallel_instance(uint64_t seed2) override {
+    return std::make_unique<RNG<Int>>(seed, seed2);
+  }
 };
 
 } // namespace rnndescent

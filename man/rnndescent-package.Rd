@@ -98,6 +98,7 @@ Useful links:
 Other contributors:
 \itemize{
   \item Vitalie Spinu [contributor]
+  \item Ralf Stubner [contributor]
 }
 
 }

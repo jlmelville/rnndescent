@@ -1,10 +1,11 @@
 Type: Package
 Package: rnndescent
 Title: Nearest Neighbor Descent Method for Approximate Nearest Neighbors
-Version: 0.1.4.9000
+Version: 0.1.5
 Authors@R: c(
     person("James", "Melville", , "jlmelville@gmail.com", role = c("aut", "cre", "cph")),
-    person("Vitalie", "Spinu", role = "ctb")
+    person("Vitalie", "Spinu", role = "ctb"),
+    person("Ralf", "Stubner", role = "ctb")
   )
 Description: The Nearest Neighbor Descent method for finding approximate
     nearest neighbors by Dong and co-workers (2010)

@@ -1,4 +1,8 @@
-# rnndescent (development version)
+# rnndescent 0.1.5
+
+* This is a minor release to change an internal API to support an upcoming
+release for dqrng. See <https://github.com/daqana/dqrng/issues/80>. Thank you
+to [Ralf Stubner](https://github.com/rstub) for the report and a patch.
 
 # rnndescent 0.1.4
 
