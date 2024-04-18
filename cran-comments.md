@@ -40,4 +40,8 @@ affected by this patch release.
 
 ## Downstream dependencies
 
-There are no downstream dependencies.
+I checked 1 reverse dependency from CRAN, comparing R CMD check results across
+CRAN and dev versions of this package.
+
+ * I saw 0 new problems
+ * I failed to check 0 packages
