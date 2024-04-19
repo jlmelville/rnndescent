@@ -40,9 +40,10 @@ detail.
 
 ## Current Status
 
-*18 March 2024*: Version 0.1.4 has been released to CRAN. This is a bug fix
-release. Most notably, it fixes an issue where `rnnd_build` would fail
-with `metric = "cosine"`.
+*18 April 2024*: Version 0.1.5 has been released to CRAN. This is an internal
+API change to support a forthcoming release of
+[dqrng](https://cran.r-project.org/package=dqrng), so you should notice no
+changes on upgrading.
 
 ## Installation
 
