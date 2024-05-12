@@ -208,14 +208,16 @@ uncorrect_true_angular <- function(dist) {
   -log2(cos(pi * res))
 }
 
+float32_max <- 3.4028235e+38
+
 uncorrect_alternative_jaccard <- function(dist) {
-  ifelse(dist >= (1.0 - 1.e-10), 0.0, -log2(1.0 - dist))
+  ifelse(dist >= (1.0 - 1.e-10), float32_max, -log2(1.0 - dist))
 }
 
 uncorrect_alternative_hellinger <- function(dist) {
-  ifelse(dist >= (1.0 - 1.e-10), 0.0, -log2(1.0 - (dist * dist)))
+  ifelse(dist >= (1.0 - 1.e-10), float32_max, -log2(1.0 - (dist * dist)))
 }
 
 uncorrect_alternative_cosine <- function(dist) {
-  ifelse(dist >= (1.0 - 1.e-10), 0.0, -log2(1.0 - dist))
+  ifelse(dist >= (1.0 - 1.e-10), float32_max, -log2(1.0 - dist))
 }

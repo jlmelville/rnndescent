@@ -2359,12 +2359,12 @@ prepare_search_graph <- function(data,
     sp <- graph_to_csparse(graph)
   }
 
-  sp <- preserve_zeros(sp)
-
   if (use_alt_metric) {
     sp@x <-
       apply_alt_metric_uncorrection(metric, sp@x, is_sparse(data))
   }
+
+  sp <- preserve_zeros(sp)
 
   data <- x2m(data)
   if (obs == "R") {
