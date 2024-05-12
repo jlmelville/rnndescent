@@ -1,6 +1,7 @@
 library(rnndescent)
-context("sparse search/build")
+context("Sparse search/build")
 
+#14: Alt metric gave the wrong results (because of a bad uncorrection)
 
 # [1,] . . 1 . . . . . 1 1 . 1 . 1 . 1 1 2 1
 # [2,] 1 1 . 1 1 1 1 1 . . 1 . 1 . 1 . . . .
@@ -72,6 +73,12 @@ index_graph_dist <- matrix(c(
   0, 0.711325, 1
 ), nrow = 3, byrow = TRUE)
 
+search_graph <- Matrix::sparseMatrix(
+  i = c(1L, 2L, 0L, 0L, 1L) + 1,
+  j = c(0L, 0L, 1L, 2L, 2L) + 1,
+  x = c(1, 0.7113249, 1, 0.7113249, 1),
+  dims = c(3, 3),
+)
 
 k3_idx <- matrix(c(
   2, 1, 3,
@@ -100,6 +107,7 @@ test_that("sparse no alt metric", {
   nndes_index <- rnnd_build(data = xsp, k = 3, metric = "cosine", use_alt_metric = FALSE)
   expect_equal(nndes_index$graph$idx, index_graph_idx)
   expect_equal(nndes_index$graph$dist, index_graph_dist, tol = 1e-6)
+  expect_equal(nndes_index$search_graph, search_graph, tol = 1e-7)
 
   k1_query <- rnnd_query(nndes_index, query = ysp, k = 1)
   expect_equal(k1_query$idx, k3_idx[, 1, drop = FALSE])
@@ -119,6 +127,7 @@ test_that("dense no alt metric", {
   nndes_index <- rnnd_build(data = xd, k = 3, metric = "cosine", use_alt_metric = FALSE)
   expect_equal(nndes_index$graph$idx, index_graph_idx)
   expect_equal(nndes_index$graph$dist, index_graph_dist, tol = 1e-6)
+  expect_equal(nndes_index$search_graph, search_graph, tol = 1e-7)
 
   k1_query <- rnnd_query(nndes_index, query = yd, k = 1)
   expect_equal(k1_query$idx, k3_idx[, 1, drop = FALSE])
@@ -133,43 +142,45 @@ test_that("dense no alt metric", {
   expect_equal(k3_query$dist, k3_dist, tol = 1e-6)
 })
 
-# test_that("sparse alt metric", {
-#   set.seed(2024)
-#   nndes_index <- rnnd_build(data = xsp, k = 3, metric = "cosine", use_alt_metric = TRUE)
-#   expect_equal(nndes_index$graph$idx, index_graph_idx)
-#   expect_equal(nndes_index$graph$dist, index_graph_dist, tol = 1e-6)
-#
-#   k1_query <- rnnd_query(nndes_index, query = ysp, k = 1)
-#   expect_equal(k1_query$idx, k3_idx[, 1, drop = FALSE])
-#   expect_equal(k1_query$dist, k3_dist[, 1, drop = FALSE], tol = 1e-6)
-#
-#   k2_query <- rnnd_query(nndes_index, query = ysp, k = 2)
-#   expect_equal(k2_query$idx, k3_idx[, 1:2])
-#   expect_equal(k2_query$dist, k3_dist[, 1:2], tol = 1e-6)
-#
-#   k3_query <- rnnd_query(nndes_index, query = ysp, k = 3)
-#   expect_equal(k3_query$idx, k3_idx)
-#   expect_equal(k3_query$dist, k3_dist, tol = 1e-6)
-# })
-#
-# test_that("dense alt metric", {
-#   set.seed(2024)
-#   nndes_index <- rnnd_build(data = xd, k = 3, metric = "cosine", use_alt_metric = TRUE)
-#   expect_equal(nndes_index$graph$idx, index_graph_idx)
-#   expect_equal(nndes_index$graph$dist, index_graph_dist, tol = 1e-6)
-#
-#   k1_query <- rnnd_query(nndes_index, query = yd, k = 1)
-#   expect_equal(k1_query$idx, k3_idx[, 1, drop = FALSE])
-#   expect_equal(k1_query$dist, k3_dist[, 1, drop = FALSE], tol = 1e-6)
-#
-#   k2_query <- rnnd_query(nndes_index, query = yd, k = 2)
-#   expect_equal(k2_query$idx, k3_idx[, 1:2])
-#   expect_equal(k2_query$dist, k3_dist[, 1:2], tol = 1e-6)
-#
-#   k3_query <- rnnd_query(nndes_index, query = yd, k = 3)
-#   expect_equal(k3_query$idx, k3_idx)
-#   expect_equal(k3_query$dist, k3_dist, tol = 1e-6)
-# })
+test_that("sparse alt metric", {
+  set.seed(2024)
+  nndes_index <- rnnd_build(data = xsp, k = 3, metric = "cosine", use_alt_metric = TRUE)
+  expect_equal(nndes_index$graph$idx, index_graph_idx)
+  expect_equal(nndes_index$graph$dist, index_graph_dist, tol = 1e-6)
+  expect_equal(nndes_index$search_graph, search_graph, tol = 1e-7)
+
+  k1_query <- rnnd_query(nndes_index, query = ysp, k = 1)
+  expect_equal(k1_query$idx, k3_idx[, 1, drop = FALSE])
+  expect_equal(k1_query$dist, k3_dist[, 1, drop = FALSE], tol = 1e-6)
+
+  k2_query <- rnnd_query(nndes_index, query = ysp, k = 2)
+  expect_equal(k2_query$idx, k3_idx[, 1:2])
+  expect_equal(k2_query$dist, k3_dist[, 1:2], tol = 1e-6)
+
+  k3_query <- rnnd_query(nndes_index, query = ysp, k = 3)
+  expect_equal(k3_query$idx, k3_idx)
+  expect_equal(k3_query$dist, k3_dist, tol = 1e-6)
+})
+
+test_that("dense alt metric", {
+  set.seed(2024)
+  nndes_index <- rnnd_build(data = xd, k = 3, metric = "cosine", use_alt_metric = TRUE)
+  expect_equal(nndes_index$graph$idx, index_graph_idx)
+  expect_equal(nndes_index$graph$dist, index_graph_dist, tol = 1e-6)
+  expect_equal(nndes_index$search_graph, search_graph, tol = 1e-7)
+
+  k1_query <- rnnd_query(nndes_index, query = yd, k = 1)
+  expect_equal(k1_query$idx, k3_idx[, 1, drop = FALSE])
+  expect_equal(k1_query$dist, k3_dist[, 1, drop = FALSE], tol = 1e-6)
+
+  k2_query <- rnnd_query(nndes_index, query = yd, k = 2)
+  expect_equal(k2_query$idx, k3_idx[, 1:2])
+  expect_equal(k2_query$dist, k3_dist[, 1:2], tol = 1e-6)
+
+  k3_query <- rnnd_query(nndes_index, query = yd, k = 3)
+  expect_equal(k3_query$idx, k3_idx)
+  expect_equal(k3_query$dist, k3_dist, tol = 1e-6)
+})
 
 test_that("k=2 builds", {
   set.seed(2024)
