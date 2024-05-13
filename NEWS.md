@@ -1,5 +1,12 @@
 # rnndescent (development version)
 
+## Bug fixes and minor improvements
+
+* Building an index with the `"cosine"`, `"jaccard"` or `"hellinger"` metrics
+could give incorrect results if maximally-dissimilar items were in the nearest
+neighbors. Thank you to [Maciej Beręsewicz](https://github.com/BERENZ) for the
+report (<https://github.com/jlmelville/rnndescent/issues/14>).
+
 # rnndescent 0.1.5
 
 * This is a minor release to change an internal API to support an upcoming
