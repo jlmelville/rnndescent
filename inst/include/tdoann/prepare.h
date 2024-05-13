@@ -106,7 +106,7 @@ void remove_long_edges_impl(const SparseNNGraph<Out, Idx> &graph,
                             RandomGenerator &rand, double prune_probability,
                             SparseNNGraph<Out, Idx> &result, std::size_t begin,
                             std::size_t end) {
-  static constexpr auto zero = Out{};
+  static constexpr auto zero = Out{0};
   for (std::size_t i = begin; i < end; i++) {
     const std::size_t n_nbrs = graph.n_nbrs(i);
     if (n_nbrs == 0) {

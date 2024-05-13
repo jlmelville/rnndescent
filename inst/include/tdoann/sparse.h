@@ -294,7 +294,7 @@ sparse_mul(typename std::vector<std::size_t>::const_iterator ind1_start,
 
     if (j1 == j2) {
       auto val = static_cast<Out>(*(data1_start + i1) * *(data2_start + i2));
-      if (val != Out(0)) {
+      if (val != Out{0}) {
         result_ind.push_back(j1);
         result_data.push_back(val);
       }
@@ -357,7 +357,7 @@ Out sparse_bray_curtis(
   }
 
   return denominator == 0.0
-             ? Out{}
+             ? Out{0}
              : static_cast<Out>(numerator) / static_cast<Out>(denominator);
 }
 
@@ -379,18 +379,18 @@ Out sparse_canberra(
       auto abs_val1 = std::abs(*(data1_start + i1));
       auto abs_val2 = std::abs(*(data2_start + i2));
       auto denom = abs_val1 + abs_val2;
-      if (denom > Out{}) {
+      if (denom > Out{0}) {
         result += std::abs(abs_val1 - abs_val2) / denom;
       }
       ++i1;
       ++i2;
     } else if (j1 < j2) {
-      if (*(data1_start + i1) != Out{}) {
+      if (*(data1_start + i1) != Out{0}) {
         result += 1.0;
       }
       ++i1;
     } else {
-      if (*(data2_start + i2) != Out{}) {
+      if (*(data2_start + i2) != Out{0}) {
         result += 1.0;
       }
       ++i2;
@@ -398,14 +398,14 @@ Out sparse_canberra(
   }
 
   while (i1 < ind1_size) {
-    if (*(data1_start + i1) != Out{}) {
+    if (*(data1_start + i1) != Out{0}) {
       result += 1.0;
     }
     ++i1;
   }
 
   while (i2 < ind2_size) {
-    if (*(data2_start + i2) != Out{}) {
+    if (*(data2_start + i2) != Out{0}) {
       result += 1.0;
     }
     ++i2;
@@ -467,7 +467,7 @@ Out sparse_correlation(
   Out dot_product{0};
 
   if (ind1_size == 0 && ind2_size == 0) {
-    return (ndim == 0) ? Out(0) : Out(1);
+    return (ndim == 0) ? Out{0} : Out(1);
   }
 
   for (std::size_t i = 0; i < ind1_size; ++i) {
@@ -492,11 +492,11 @@ Out sparse_correlation(
 
   Out norm1 =
       std::sqrt(std::inner_product(shifted_data1.begin(), shifted_data1.end(),
-                                   shifted_data1.begin(), Out(0)) +
+                                   shifted_data1.begin(), Out{0}) +
                 (ndim - ind1_size) * mu_x * mu_x);
   Out norm2 =
       std::sqrt(std::inner_product(shifted_data2.begin(), shifted_data2.end(),
-                                   shifted_data2.begin(), Out(0)) +
+                                   shifted_data2.begin(), Out{0}) +
                 (ndim - ind2_size) * mu_y * mu_y);
 
   auto dot_prod = sparse_mul<Out>(ind1_start, ind1_size, shifted_data1.begin(),
@@ -528,7 +528,7 @@ Out sparse_correlation(
   dot_product += mu_x * mu_y * (ndim - all_indices.size());
 
   if (norm1 == 0.0 && norm2 == 0.0) {
-    return Out(0);
+    return Out{0};
   } else if (dot_product == 0.0) {
     return Out(1);
   } else {
@@ -589,7 +589,7 @@ Out sparse_cosine(typename std::vector<std::size_t>::const_iterator ind1_start,
   norm2 = std::sqrt(norm2);
 
   if (norm1 == 0.0 && norm2 == 0.0) {
-    return Out(0);
+    return Out{0};
   } else if (norm1 == 0.0 || norm2 == 0.0) {
     return Out(1);
   } else {
@@ -633,7 +633,7 @@ Out sparse_alternative_cosine(
   }
 
   if (norm_x == 0.0 && norm_y == 0.0) {
-    return Out(0);
+    return Out{0};
   } else if (norm_x == 0.0 || norm_y == 0.0) {
     return FLOAT32_MAX;
   } else if (result <= 0.0) {
@@ -657,7 +657,7 @@ Out sparse_dice(typename std::vector<std::size_t>::const_iterator ind1_start,
   std::size_t num_not_equal = num_non_zero - num_true_true;
 
   if (num_not_equal == 0) {
-    return Out{};
+    return Out{0};
   } else {
     return static_cast<Out>(static_cast<double>(num_not_equal) /
                             (2 * num_true_true + num_not_equal));
@@ -690,7 +690,7 @@ Out sparse_dot(typename std::vector<std::size_t>::const_iterator ind1_start,
     }
   }
 
-  if (result <= Out{}) {
+  if (result <= Out{0}) {
     return 1.0;
   } else {
     return 1.0 - result;
@@ -819,7 +819,7 @@ Out sparse_hellinger(
   }
 
   if (l1_norm_x == 0 && l1_norm_y == 0) {
-    return Out{};
+    return Out{0};
   } else if (l1_norm_x == 0 || l1_norm_y == 0) {
     return static_cast<Out>(1.0);
   } else {
@@ -865,7 +865,7 @@ Out sparse_alternative_hellinger(
   }
 
   if (l1_norm_x == 0 && l1_norm_y == 0) {
-    return Out{};
+    return Out{0};
   } else if (l1_norm_x == 0 || l1_norm_y == 0 || result <= 0) {
     return std::numeric_limits<Out>::max();
   } else {
@@ -886,7 +886,7 @@ Out sparse_jaccard(typename std::vector<std::size_t>::const_iterator ind1_start,
   std::size_t num_non_zero = ind1_size + ind2_size - num_equal;
 
   if (num_non_zero == 0) {
-    return Out{};
+    return Out{0};
   } else {
     return static_cast<Out>(static_cast<double>(num_non_zero - num_equal) /
                             num_non_zero);
@@ -905,7 +905,7 @@ Out sparse_alternative_jaccard(
   std::size_t num_non_zero = ind1_size + ind2_size - num_equal;
 
   if (num_non_zero == 0) {
-    return Out{};
+    return Out{0};
   } else if (num_equal == 0) {
     return std::numeric_limits<Out>::max();
   } else {
@@ -941,7 +941,7 @@ Out sparse_kulsinski(
   std::size_t num_not_equal = num_non_zero - num_true_true;
 
   if (num_not_equal == 0) {
-    return Out{};
+    return Out{0};
   } else {
     return static_cast<Out>(
         static_cast<double>(num_not_equal - num_true_true + ndim) /
@@ -1214,7 +1214,7 @@ Out sparse_russell_rao(
   }
 
   if (num_true_true == ind1_size && num_true_true == ind2_size) {
-    return Out{};
+    return Out{0};
   } else {
     return static_cast<Out>(static_cast<double>(ndim - num_true_true) / ndim);
   }
@@ -1249,7 +1249,7 @@ Out sparse_sokal_sneath(
   std::size_t num_not_equal = num_non_zero - num_true_true;
 
   if (num_not_equal == 0) {
-    return Out{};
+    return Out{0};
   } else {
     return static_cast<Out>(num_not_equal /
                             (0.5 * num_true_true + num_not_equal));
@@ -1420,7 +1420,7 @@ Out sparse_yule(typename std::vector<std::size_t>::const_iterator ind1_start,
       ndim - num_true_true - num_true_false - num_false_true;
 
   if (num_true_false == 0 || num_false_true == 0) {
-    return Out{};
+    return Out{0};
   } else {
     return static_cast<Out>(2.0 * num_true_false * num_false_true) /
            static_cast<Out>(num_true_true * num_false_false +

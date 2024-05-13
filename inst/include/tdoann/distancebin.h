@@ -56,7 +56,7 @@ Out bdice(const BitVec &x, Idx i, const BitVec &y, Idx j, std::size_t len,
   }
 
   if (num_not_equal == 0) {
-    return Out{};
+    return Out{0};
   } else {
     return static_cast<Out>(static_cast<double>(num_not_equal) /
                             (2 * num_true_true + num_not_equal));
@@ -93,7 +93,7 @@ Out bjaccard(const BitVec &x, Idx i, const BitVec &y, Idx j, std::size_t len,
   }
 
   if (union_count == 0) {
-    return Out(0);
+    return Out{0};
   } else {
     return static_cast<Out>(static_cast<double>(union_count - intersection) /
                             union_count);
@@ -116,7 +116,7 @@ Out bkulsinski(const BitVec &x, Idx i, const BitVec &y, Idx j, std::size_t len,
   }
 
   if (num_not_equal == 0) {
-    return Out(0);
+    return Out{0};
   } else {
     return static_cast<Out>(
         static_cast<double>(num_not_equal - num_true_true + ndim) /
@@ -175,7 +175,7 @@ Out brussell_rao(const BitVec &x, Idx i, const BitVec &y, Idx j,
   }
 
   if (num_true_true == num_x_true && num_true_true == num_y_true) {
-    return Out(0);
+    return Out{0};
   } else {
     return static_cast<Out>(ndim - num_true_true) / static_cast<Out>(ndim);
   }
@@ -216,7 +216,7 @@ Out bsokal_sneath(const BitVec &x, Idx i, const BitVec &y, Idx j,
   }
 
   if (num_not_equal == 0) {
-    return Out(0);
+    return Out{0};
   } else {
     return static_cast<Out>(num_not_equal) /
            static_cast<Out>(0.5 * num_true_true + num_not_equal);
@@ -245,7 +245,7 @@ Out byule(const BitVec &x, Idx i, const BitVec &y, Idx j, std::size_t len,
   num_false_false = ndim - num_true_true - num_true_false - num_false_true;
 
   if (num_true_false == 0 || num_false_true == 0) {
-    return Out(0);
+    return Out{0};
   } else {
     return static_cast<Out>(2.0 * num_true_false * num_false_true) /
            static_cast<Out>(num_true_true * num_false_false +

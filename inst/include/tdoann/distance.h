@@ -56,10 +56,10 @@ Out bray_curtis(const It xbegin, const It xend, const It ybegin) {
     denominator += std::abs(*xit + *yit);
   }
 
-  if (denominator > Out{}) {
+  if (denominator > Out{0}) {
     return numerator / denominator;
   } else {
-    return Out{};
+    return Out{0};
   }
 }
 
@@ -71,7 +71,7 @@ Out canberra(const It xbegin, const It xend, const It ybegin) {
     const auto yi = *yit;
     const auto denominator = std::abs(xi) + std::abs(yi);
 
-    if (denominator > Out{}) {
+    if (denominator > Out{0}) {
       result += std::abs(xi - yi) / denominator;
     }
   }
@@ -184,7 +184,7 @@ template <typename Out, typename It> auto dice(It xbegin, It xend, It ybegin) {
   }
 
   if (num_not_equal == 0) {
-    return Out{};
+    return Out{0};
   } else {
     return static_cast<Out>(static_cast<double>(num_not_equal) /
                             (2 * num_true_true + num_not_equal));
@@ -247,7 +247,7 @@ auto hellinger(const It xbegin, const It xend, const It ybegin) {
   }
 
   if (l1_norm_x == 0 && l1_norm_y == 0) {
-    return Out{};
+    return Out{0};
   } else if (l1_norm_x == 0 || l1_norm_y == 0) {
     return static_cast<Out>(1.0);
   } else {
@@ -271,7 +271,7 @@ auto alternative_hellinger(const It xbegin, const It xend, const It ybegin) {
   constexpr Out FLOAT32_MAX = std::numeric_limits<Out>::max();
 
   if (l1_norm_x == 0 && l1_norm_y == 0) {
-    return Out{};
+    return Out{0};
   } else if (l1_norm_x == 0 || l1_norm_y == 0 || result <= 0) {
     return FLOAT32_MAX;
   } else {
@@ -301,7 +301,7 @@ auto jaccard(It xbegin, It xend, It ybegin) {
   }
 
   if (num_non_zero == 0) {
-    return Out{};
+    return Out{0};
   } else {
     return static_cast<Out>(static_cast<double>(num_non_zero - num_equal) /
                             num_non_zero);
@@ -320,7 +320,7 @@ Out alternative_jaccard(It xbegin, It xend, It ybegin) {
   }
 
   if (num_non_zero == 0) {
-    return Out{};
+    return Out{0};
   }
   if (num_equal == 0) {
     return std::numeric_limits<Out>::max();
@@ -373,7 +373,7 @@ auto kulsinski(It xbegin, It xend, It ybegin) {
   }
 
   if (num_not_equal == 0) {
-    return Out(0);
+    return Out{0};
   } else {
     return static_cast<Out>(
         static_cast<double>(num_not_equal - num_true_true + length) /
@@ -430,7 +430,7 @@ auto russell_rao(It xbegin, It xend, It ybegin) {
   }
 
   if (num_true_true == num_x_nonzero && num_true_true == num_y_nonzero) {
-    return Out(0);
+    return Out{0};
   } else {
     return static_cast<Out>(length - num_true_true) / static_cast<Out>(length);
   }
@@ -467,7 +467,7 @@ auto sokal_sneath(It xbegin, It xend, It ybegin) {
   }
 
   if (num_not_equal == 0) {
-    return Out(0);
+    return Out{0};
   } else {
     return static_cast<Out>(num_not_equal) /
            static_cast<Out>(0.5 * num_true_true + num_not_equal);
@@ -598,7 +598,7 @@ template <typename Out, typename It> auto yule(It xbegin, It xend, It ybegin) {
                     num_true_false - num_false_true;
 
   if (num_true_false == 0 || num_false_true == 0) {
-    return Out(0);
+    return Out{0};
   } else {
     return static_cast<Out>(2.0 * num_true_false * num_false_true) /
            static_cast<Out>(num_true_true * num_false_false +
