@@ -320,10 +320,12 @@ Out alternative_jaccard(It xbegin, It xend, It ybegin) {
   }
 
   if (num_non_zero == 0) {
-    return Out(0);
-  } else {
-    return -std::log2(static_cast<double>(num_equal) / num_non_zero);
+    return Out{};
   }
+  if (num_equal == 0) {
+    return std::numeric_limits<Out>::max();
+  }
+  return -std::log2(static_cast<double>(num_equal) / num_non_zero);
 }
 
 template <typename Out, typename It>
