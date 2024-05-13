@@ -27,7 +27,7 @@ namespace dqsample {
 
 // sample size items in the range [0 + offset, end + offset)
 template <typename INT>
-inline auto replacement(dqrng::rng64_t &rng, INT end, INT size, int offset)
+inline auto replacement(std::shared_ptr<dqrng::random_64bit_generator> &rng, INT end, INT size, int offset)
     -> std::vector<INT> {
   std::vector<INT> result(size);
   auto generator = [=, &rng]() -> INT {
@@ -38,7 +38,7 @@ inline auto replacement(dqrng::rng64_t &rng, INT end, INT size, int offset)
 }
 
 template <typename INT>
-auto no_replacement_shuffle(dqrng::rng64_t &rng, INT end, INT size,
+auto no_replacement_shuffle(std::shared_ptr<dqrng::random_64bit_generator> &rng, INT end, INT size,
                             int offset = 0) -> std::vector<INT> {
   std::vector<INT> tmp(end);
   std::iota(tmp.begin(), tmp.end(), static_cast<INT>(offset));
@@ -52,7 +52,7 @@ auto no_replacement_shuffle(dqrng::rng64_t &rng, INT end, INT size,
 }
 
 template <typename INT, typename SET>
-auto no_replacement_set(dqrng::rng64_t &rng, INT end, INT size, int offset)
+auto no_replacement_set(std::shared_ptr<dqrng::random_64bit_generator> &rng, INT end, INT size, int offset)
     -> std::vector<INT> {
   std::vector<INT> result(size);
 
@@ -70,7 +70,7 @@ auto no_replacement_set(dqrng::rng64_t &rng, INT end, INT size, int offset)
 // Sample size points from the range [0 + offset, end + offset) with or without
 // replacement
 template <typename INT>
-inline auto sample(std::vector<INT> &result, dqrng::rng64_t &rng, INT end,
+inline auto sample(std::vector<INT> &result, std::shared_ptr<dqrng::random_64bit_generator> &rng, INT end,
                    INT size, bool replace = false, int offset = 0) -> bool {
   if (replace || size <= 1) {
     result = replacement<INT>(rng, end, size, offset);
