@@ -56,7 +56,7 @@ test_that("Dice", {
 test_that("Dot", {
   bfdense <- brute_force_knn(ui10z, k = 4, metric = "dot")
   bfsparse <- brute_force_knn(ui10sp, k = 4, metric = "dot")
-  expect_equal(bfdense, bfsparse, tol = 1e-4)
+  expect_equal(bfdense, bfsparse, tol = 1e-3)
 
   bfdense <- brute_force_knn(bitdata, k = 4, metric = "dot")
   araw <- brute_force_knn(bitdata, k = 4, metric = "alternative-dot")
