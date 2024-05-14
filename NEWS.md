@@ -1,4 +1,9 @@
-# rnndescent (development version)
+# rnndescent 0.1.6
+
+* This is a patch release to fix an issue that occurred with the recent release
+of a new version of 'dqrng' on CRAN. Unfortunately, version 0.1.5 didn't quite
+work out. A fix for incorrect behavior for some metrics is also included (see
+below).
 
 ## Bug fixes and minor improvements
 
