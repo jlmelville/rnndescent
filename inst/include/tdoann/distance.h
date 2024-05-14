@@ -44,35 +44,35 @@ namespace tdoann {
 
 template <typename Out, typename It>
 Out squared_euclidean(const It xbegin, const It xend, const It ybegin);
-template <typename It> std::vector<double> rankdata(It begin, It end);
+template <typename Out, typename It>
+std::vector<Out> rankdata(It begin, It end);
 
 template <typename Out, typename It>
 Out bray_curtis(const It xbegin, const It xend, const It ybegin) {
-  Out numerator = 0.0;
-  Out denominator = 0.0;
+  Out numerator = 0;
+  Out denominator = 0;
 
   for (It xit = xbegin, yit = ybegin; xit != xend; ++xit, ++yit) {
     numerator += std::abs(*xit - *yit);
     denominator += std::abs(*xit + *yit);
   }
 
-  if (denominator > Out{0}) {
-    return numerator / denominator;
-  } else {
-    return Out{0};
+  if (denominator == 0) {
+    return 0;
   }
+  return numerator / denominator;
 }
 
 template <typename Out, typename It>
 Out canberra(const It xbegin, const It xend, const It ybegin) {
-  Out result = 0.0;
+  Out result = 0;
   for (auto xit = xbegin, yit = ybegin; xit != xend; ++xit, ++yit) {
     const auto xi = *xit;
     const auto yi = *yit;
     const auto denominator = std::abs(xi) + std::abs(yi);
 
-    if (denominator > Out{0}) {
-      result += std::abs(xi - yi) / denominator;
+    if (denominator > 0) {
+      result += std::abs(xi - yi) / static_cast<Out>(denominator);
     }
   }
   return result;
@@ -88,10 +88,9 @@ Out chebyshev(const It xbegin, const It xend, const It ybegin) {
 }
 
 template <typename Out, typename It>
-inline Out correlation(const It xbegin, const It xend, const It ybegin) {
-  // calculate mean
-  Out xmu = 0.0;
-  Out ymu = 0.0;
+Out correlation(const It xbegin, const It xend, const It ybegin) {
+  Out xmu = 0;
+  Out ymu = 0;
   for (It xit = xbegin, yit = ybegin; xit != xend; ++xit, ++yit) {
     xmu += *xit;
     ymu += *yit;
@@ -100,10 +99,9 @@ inline Out correlation(const It xbegin, const It xend, const It ybegin) {
   xmu /= n;
   ymu /= n;
 
-  // cosine on mean centered data
-  Out res = 0.0;
-  Out normx = 0.0;
-  Out normy = 0.0;
+  Out res = 0;
+  Out normx = 0;
+  Out normy = 0;
   for (It xit = xbegin, yit = ybegin; xit != xend; ++xit, ++yit) {
     Out x = *xit - xmu;
     Out y = *yit - ymu;
@@ -112,22 +110,20 @@ inline Out correlation(const It xbegin, const It xend, const It ybegin) {
     normy += y * y;
   }
 
-  constexpr Out zero = 0.0;
-  if (normx == zero && normy == zero) {
-    return zero;
+  if (normx == 0 && normy == 0) {
+    return 0;
   }
-  constexpr Out one = 1.0;
-  if (normx == zero || normy == zero) {
-    return one;
+  if (normx == 0 || normy == 0) {
+    return 1;
   }
-  return one - (res / std::sqrt(normx * normy));
+  return 1 - (res / std::sqrt(normx * normy));
 }
 
 template <typename Out, typename It>
 Out cosine(const It xbegin, const It xend, const It ybegin) {
-  Out result = 0.0;
-  Out norm_x = 0.0;
-  Out norm_y = 0.0;
+  Out result = 0;
+  Out norm_x = 0;
+  Out norm_y = 0;
 
   for (It xit = xbegin, yit = ybegin; xit != xend; ++xit, ++yit) {
     Out x = *xit;
@@ -137,20 +133,20 @@ Out cosine(const It xbegin, const It xend, const It ybegin) {
     norm_y += y * y;
   }
 
-  if (norm_x == 0.0 && norm_y == 0.0) {
-    return 0.0;
+  if (norm_x == 0 && norm_y == 0) {
+    return 0;
   }
-  if (norm_x == 0.0 || norm_y == 0.0) {
-    return 1.0;
+  if (norm_x == 0 || norm_y == 0) {
+    return 1;
   }
-  return 1.0 - (result / std::sqrt(norm_x * norm_y));
+  return 1 - (result / std::sqrt(norm_x * norm_y));
 }
 
 template <typename Out, typename It>
 Out alternative_cosine(const It xbegin, const It xend, const It ybegin) {
-  Out result = 0.0;
-  Out norm_x = 0.0;
-  Out norm_y = 0.0;
+  Out result = 0;
+  Out norm_x = 0;
+  Out norm_y = 0;
 
   for (It xit = xbegin, yit = ybegin; xit != xend; ++xit, ++yit) {
     Out x = *xit;
@@ -160,20 +156,17 @@ Out alternative_cosine(const It xbegin, const It xend, const It ybegin) {
     norm_y += y * y;
   }
 
-  if (norm_x == 0.0 && norm_y == 0.0) {
-    return 0.0;
+  if (norm_x == 0 && norm_y == 0) {
+    return 0;
   }
 
-  Out max_value = std::numeric_limits<Out>::max();
-  if (norm_x == 0.0 || norm_y == 0.0 || result <= 0.0) {
-    return max_value;
+  if (norm_x == 0 || norm_y == 0 || result <= 0) {
+    return std::numeric_limits<Out>::max();
   }
-
-  result = std::sqrt(norm_x * norm_y) / result;
-  return std::log2(result);
+  return std::log2(std::sqrt(norm_x * norm_y) / result);
 }
 
-template <typename Out, typename It> auto dice(It xbegin, It xend, It ybegin) {
+template <typename Out, typename It> Out dice(It xbegin, It xend, It ybegin) {
   std::size_t num_true_true = 0;
   std::size_t num_not_equal = 0;
   for (It xit = xbegin, yit = ybegin; xit != xend; ++xit, ++yit) {
@@ -184,38 +177,34 @@ template <typename Out, typename It> auto dice(It xbegin, It xend, It ybegin) {
   }
 
   if (num_not_equal == 0) {
-    return Out{0};
-  } else {
-    return static_cast<Out>(static_cast<double>(num_not_equal) /
-                            (2 * num_true_true + num_not_equal));
+    return 0;
   }
+  return num_not_equal / static_cast<Out>(2 * num_true_true + num_not_equal);
 }
 
 template <typename Out, typename It>
-auto dot(const It xbegin, const It xend, const It ybegin) {
+Out dot(const It xbegin, const It xend, const It ybegin) {
   Out result = 0;
   for (auto xit = xbegin, yit = ybegin; xit != xend; ++xit, ++yit) {
     result += (*xit) * (*yit);
   }
 
-  if (result <= 0.0) {
-    return static_cast<Out>(1.0);
-  } else {
-    return static_cast<Out>(1.0) - result;
+  if (result <= 0) {
+    return 1;
   }
+  return 1 - result;
 }
 
 template <typename Out, typename It>
-auto alternative_dot(const It xbegin, const It xend, const It ybegin) {
+Out alternative_dot(const It xbegin, const It xend, const It ybegin) {
   Out result = 0;
   for (auto xit = xbegin, yit = ybegin; xit != xend; ++xit, ++yit) {
     result += (*xit) * (*yit);
   }
 
-  if (result <= 0.0) {
+  if (result <= 0) {
     return std::numeric_limits<Out>::max();
   }
-
   return -std::log2(result);
 }
 
@@ -226,19 +215,18 @@ Out euclidean(const It xbegin, const It xend, const It ybegin) {
 
 template <typename Out, typename It>
 Out hamming(const It xbegin, const It xend, const It ybegin) {
-  Out sum{0};
+  Out sum = 0;
   for (It xit = xbegin, yit = ybegin; xit != xend; ++xit, ++yit) {
     sum += *xit != *yit;
   }
-  return static_cast<Out>(static_cast<double>(sum) /
-                          std::distance(xbegin, xend));
+  return sum / static_cast<Out>(std::distance(xbegin, xend));
 }
 
 template <typename Out, typename It>
-auto hellinger(const It xbegin, const It xend, const It ybegin) {
-  Out result = 0.0;
-  Out l1_norm_x = 0.0;
-  Out l1_norm_y = 0.0;
+Out hellinger(const It xbegin, const It xend, const It ybegin) {
+  Out result = 0;
+  Out l1_norm_x = 0;
+  Out l1_norm_y = 0;
 
   for (auto xit = xbegin, yit = ybegin; xit != xend; ++xit, ++yit) {
     result += std::sqrt((*xit) * (*yit));
@@ -247,20 +235,19 @@ auto hellinger(const It xbegin, const It xend, const It ybegin) {
   }
 
   if (l1_norm_x == 0 && l1_norm_y == 0) {
-    return Out{0};
-  } else if (l1_norm_x == 0 || l1_norm_y == 0) {
-    return static_cast<Out>(1.0);
-  } else {
-    return std::sqrt(static_cast<Out>(1.0) -
-                     result / std::sqrt(l1_norm_x * l1_norm_y));
+    return 0;
   }
+  if (l1_norm_x == 0 || l1_norm_y == 0) {
+    return 1;
+  }
+  return std::sqrt(1 - result / std::sqrt(l1_norm_x * l1_norm_y));
 }
 
 template <typename Out, typename It>
-auto alternative_hellinger(const It xbegin, const It xend, const It ybegin) {
-  Out result = 0.0;
-  Out l1_norm_x = 0.0;
-  Out l1_norm_y = 0.0;
+Out alternative_hellinger(const It xbegin, const It xend, const It ybegin) {
+  Out result = 0;
+  Out l1_norm_x = 0;
+  Out l1_norm_y = 0;
 
   for (auto xit = xbegin, yit = ybegin; xit != xend; ++xit, ++yit) {
     result += std::sqrt((*xit) * (*yit));
@@ -268,21 +255,20 @@ auto alternative_hellinger(const It xbegin, const It xend, const It ybegin) {
     l1_norm_y += *yit;
   }
 
-  constexpr Out FLOAT32_MAX = std::numeric_limits<Out>::max();
+  constexpr Out FLOAT_MAX = std::numeric_limits<Out>::max();
 
   if (l1_norm_x == 0 && l1_norm_y == 0) {
-    return Out{0};
-  } else if (l1_norm_x == 0 || l1_norm_y == 0 || result <= 0) {
-    return FLOAT32_MAX;
-  } else {
-    result = std::sqrt(l1_norm_x * l1_norm_y) / result;
-    return std::log2(result);
+    return 0;
   }
+  if (l1_norm_x == 0 || l1_norm_y == 0 || result <= 0) {
+    return FLOAT_MAX;
+  }
+  return std::log2(std::sqrt(l1_norm_x * l1_norm_y) / result);
 }
 
 template <typename Out, typename It>
-auto inner_product(const It xbegin, const It xend, const It ybegin) {
-  Out sum{0};
+Out inner_product(const It xbegin, const It xend, const It ybegin) {
+  Out sum = 0;
   for (It xit = xbegin, yit = ybegin; xit != xend; ++xit, ++yit) {
     sum += *xit * *yit;
   }
@@ -290,7 +276,7 @@ auto inner_product(const It xbegin, const It xend, const It ybegin) {
 }
 
 template <typename Out, typename It>
-auto jaccard(It xbegin, It xend, It ybegin) {
+Out jaccard(It xbegin, It xend, It ybegin) {
   std::size_t num_non_zero = 0;
   std::size_t num_equal = 0;
   for (It xit = xbegin, yit = ybegin; xit != xend; ++xit, ++yit) {
@@ -301,11 +287,10 @@ auto jaccard(It xbegin, It xend, It ybegin) {
   }
 
   if (num_non_zero == 0) {
-    return Out{0};
-  } else {
-    return static_cast<Out>(static_cast<double>(num_non_zero - num_equal) /
-                            num_non_zero);
+    return 0;
   }
+  return static_cast<Out>(num_non_zero - num_equal) /
+         static_cast<Out>(num_non_zero);
 }
 
 template <typename Out, typename It>
@@ -320,12 +305,12 @@ Out alternative_jaccard(It xbegin, It xend, It ybegin) {
   }
 
   if (num_non_zero == 0) {
-    return Out{0};
+    return 0;
   }
   if (num_equal == 0) {
     return std::numeric_limits<Out>::max();
   }
-  return -std::log2(static_cast<double>(num_equal) / num_non_zero);
+  return -std::log2(static_cast<Out>(num_equal) / num_non_zero);
 }
 
 template <typename Out, typename It>
@@ -339,21 +324,24 @@ Out jensen_shannon_divergence(It xbegin, It xend, It ybegin) {
     l1_norm_y += std::abs(*(ybegin + i));
   }
 
-  constexpr Out FLOAT32_EPS = std::numeric_limits<float>::epsilon();
-  l1_norm_x += FLOAT32_EPS * ndim;
-  l1_norm_y += FLOAT32_EPS * ndim;
+  constexpr Out EPS = std::numeric_limits<Out>::epsilon();
+  l1_norm_x += EPS * ndim;
+  l1_norm_y += EPS * ndim;
 
   Out result = 0.0;
   for (std::size_t i = 0; i < ndim; ++i) {
-    const Out xi = *(xbegin + i) + FLOAT32_EPS;
-    const Out yi = *(ybegin + i) + FLOAT32_EPS;
-    const Out m = 0.5 * (xi / l1_norm_x + yi / l1_norm_y);
+    const Out xi = *(xbegin + i) + EPS;
+    const Out yi = *(ybegin + i) + EPS;
+    const Out xil1 = xi / l1_norm_x;
+    const Out yil1 = yi / l1_norm_y;
 
-    if (xi > FLOAT32_EPS) {
-      result += 0.5 * (xi / l1_norm_x) * std::log((xi / l1_norm_x) / m);
+    const Out m = 0.5 * (xil1 + yil1);
+
+    if (xi > EPS) {
+      result += 0.5 * xil1 * std::log(xil1 / m);
     }
-    if (yi > FLOAT32_EPS) {
-      result += 0.5 * (yi / l1_norm_y) * std::log((yi / l1_norm_y) / m);
+    if (yi > EPS) {
+      result += 0.5 * yil1 * std::log(yil1 / m);
     }
   }
 
@@ -361,7 +349,7 @@ Out jensen_shannon_divergence(It xbegin, It xend, It ybegin) {
 }
 
 template <typename Out, typename It>
-auto kulsinski(It xbegin, It xend, It ybegin) {
+Out kulsinski(It xbegin, It xend, It ybegin) {
   std::size_t num_true_true = 0;
   std::size_t num_not_equal = 0;
   std::size_t length = std::distance(xbegin, xend);
@@ -373,17 +361,15 @@ auto kulsinski(It xbegin, It xend, It ybegin) {
   }
 
   if (num_not_equal == 0) {
-    return Out{0};
-  } else {
-    return static_cast<Out>(
-        static_cast<double>(num_not_equal - num_true_true + length) /
-        (num_not_equal + length));
+    return 0;
   }
+  return (num_not_equal - num_true_true + length) /
+         static_cast<Out>(num_not_equal + length);
 }
 
 template <typename Out, typename It>
 Out manhattan(const It xbegin, const It xend, const It ybegin) {
-  Out sum{0};
+  Out sum = 0;
   for (It xit = xbegin, yit = ybegin; xit != xend; ++xit, ++yit) {
     sum += std::abs(*xit - *yit);
   }
@@ -391,7 +377,7 @@ Out manhattan(const It xbegin, const It xend, const It ybegin) {
 }
 
 template <typename Out, typename It>
-auto matching(It xbegin, It xend, It ybegin) {
+Out matching(It xbegin, It xend, It ybegin) {
   std::size_t num_not_equal = 0;
   std::size_t length = std::distance(xbegin, xend);
   for (It xit = xbegin, yit = ybegin; xit != xend; ++xit, ++yit) {
@@ -400,22 +386,22 @@ auto matching(It xbegin, It xend, It ybegin) {
     num_not_equal += x_true != y_true;
   }
 
-  return static_cast<Out>(static_cast<double>(num_not_equal) / length);
+  return num_not_equal / static_cast<Out>(length);
 }
 
 template <typename Out, typename It>
-auto rogers_tanimoto(It xbegin, It xend, It ybegin) {
+Out rogers_tanimoto(It xbegin, It xend, It ybegin) {
   std::size_t num_not_equal = 0;
   std::size_t length = std::distance(xbegin, xend);
   for (It xit = xbegin, yit = ybegin; xit != xend; ++xit, ++yit) {
     num_not_equal += (*xit != 0) != (*yit != 0);
   }
 
-  return static_cast<Out>((2.0 * num_not_equal) / (length + num_not_equal));
+  return (2 * num_not_equal) / static_cast<Out>(length + num_not_equal);
 }
 
 template <typename Out, typename It>
-auto russell_rao(It xbegin, It xend, It ybegin) {
+Out russell_rao(It xbegin, It xend, It ybegin) {
   std::size_t num_true_true = 0;
   std::size_t num_x_nonzero = 0;
   std::size_t num_y_nonzero = 0;
@@ -430,10 +416,9 @@ auto russell_rao(It xbegin, It xend, It ybegin) {
   }
 
   if (num_true_true == num_x_nonzero && num_true_true == num_y_nonzero) {
-    return Out{0};
-  } else {
-    return static_cast<Out>(length - num_true_true) / static_cast<Out>(length);
+    return 0;
   }
+  return (length - num_true_true) / static_cast<Out>(length);
 }
 
 template <typename Out, typename It>
@@ -450,12 +435,12 @@ Out sokal_michener(It xbegin, It xend, It ybegin) {
 
   // the same as (2.0 * num_not_equal) / (ndim + num_not_equal)
   // but avoid having to calculate ndim as std::difference(xbegin, xend);
-  const double nne2 = num_not_equal + num_not_equal;
-  return static_cast<Out>(nne2 / (num_equal + nne2));
+  const auto nne2 = static_cast<Out>(num_not_equal + num_not_equal);
+  return nne2 / (num_equal + nne2);
 }
 
 template <typename Out, typename It>
-auto sokal_sneath(It xbegin, It xend, It ybegin) {
+Out sokal_sneath(It xbegin, It xend, It ybegin) {
   std::size_t num_true_true = 0;
   std::size_t num_not_equal = 0;
 
@@ -467,26 +452,24 @@ auto sokal_sneath(It xbegin, It xend, It ybegin) {
   }
 
   if (num_not_equal == 0) {
-    return Out{0};
-  } else {
-    return static_cast<Out>(num_not_equal) /
-           static_cast<Out>(0.5 * num_true_true + num_not_equal);
+    return 0;
   }
+  return num_not_equal / static_cast<Out>(0.5 * num_true_true + num_not_equal);
 }
 
 template <typename Out, typename It>
 Out spearmanr(It xbegin, It xend, It ybegin) {
-  auto x_rank = rankdata(xbegin, xend);
-  auto y_rank = rankdata(ybegin, ybegin + std::distance(xbegin, xend));
+  auto x_rank = rankdata<Out>(xbegin, xend);
+  auto y_rank = rankdata<Out>(ybegin, ybegin + std::distance(xbegin, xend));
 
   return correlation<Out>(x_rank.begin(), x_rank.end(), y_rank.begin());
 }
 
 template <typename Out, typename It>
 Out squared_euclidean(const It xbegin, const It xend, const It ybegin) {
-  Out sum{0};
+  Out sum = 0;
   for (It xit = xbegin, yit = ybegin; xit != xend; ++xit, ++yit) {
-    const Out diff = *xit - *yit;
+    const auto diff = *xit - *yit;
     sum += diff * diff;
   }
   return sum;
@@ -504,21 +487,21 @@ Out symmetric_kl_divergence(It xbegin, It xend, It ybegin) {
     l1_norm_y += std::abs(*(ybegin + i));
   }
 
-  constexpr Out FLOAT32_EPS = std::numeric_limits<float>::epsilon();
-  l1_norm_x += FLOAT32_EPS * ndim;
-  l1_norm_y += FLOAT32_EPS * ndim;
+  constexpr auto EPS = std::numeric_limits<Out>::epsilon();
+  l1_norm_x += EPS * ndim;
+  l1_norm_y += EPS * ndim;
 
-  Out result = 0.0;
+  Out result = 0;
   for (std::size_t i = 0; i < ndim; ++i) {
-    const Out xi = *(xbegin + i) + FLOAT32_EPS;
-    const Out yi = *(ybegin + i) + FLOAT32_EPS;
-    const Out pdf_xi = xi / l1_norm_x;
-    const Out pdf_yi = yi / l1_norm_y;
+    const auto xi = *(xbegin + i) + EPS;
+    const auto yi = *(ybegin + i) + EPS;
+    const auto pdf_xi = xi / l1_norm_x;
+    const auto pdf_yi = yi / l1_norm_y;
 
-    if (pdf_xi > FLOAT32_EPS) {
+    if (pdf_xi > EPS) {
       result += pdf_xi * std::log(pdf_xi / pdf_yi);
     }
-    if (pdf_yi > FLOAT32_EPS) {
+    if (pdf_yi > EPS) {
       result += pdf_yi * std::log(pdf_yi / pdf_xi);
     }
   }
@@ -528,9 +511,9 @@ Out symmetric_kl_divergence(It xbegin, It xend, It ybegin) {
 
 template <typename Out, typename It>
 Out true_angular(It xbegin, It xend, It ybegin) {
-  Out result = 0.0;
-  Out norm_x = 0.0;
-  Out norm_y = 0.0;
+  Out result = 0;
+  Out norm_x = 0;
+  Out norm_y = 0;
 
   for (It xit = xbegin, yit = ybegin; xit != xend; ++xit, ++yit) {
     result += *xit * *yit;
@@ -538,23 +521,23 @@ Out true_angular(It xbegin, It xend, It ybegin) {
     norm_y += *yit * *yit;
   }
 
-  if (norm_x == 0.0 && norm_y == 0.0) {
-    return 0.0;
-  } else if (norm_x == 0.0 || norm_y == 0.0 || result <= 0.0) {
-    return std::numeric_limits<Out>::max();
-  } else {
-    result /= std::sqrt(norm_x) * std::sqrt(norm_y);
-    result = std::clamp(result, Out(-1), Out(1));
-    result = std::acos(result) / M_PI;
-    return 1.0 - result;
+  if (norm_x == 0 && norm_y == 0) {
+    return 0;
   }
+  if (norm_x == 0 || norm_y == 0 || result <= 0) {
+    return std::numeric_limits<Out>::max();
+  }
+  result /= std::sqrt(norm_x) * std::sqrt(norm_y);
+  result = std::clamp(result, Out{-1}, Out{1});
+  result = std::acos(result) / M_PI;
+  return 1 - result;
 }
 
 template <typename Out, typename It> Out tsss(It xbegin, It xend, It ybegin) {
-  Out d_euc_squared = 0.0;
-  Out d_cos = 0.0;
-  Out norm_x = 0.0;
-  Out norm_y = 0.0;
+  Out d_euc_squared = 0;
+  Out d_cos = 0;
+  Out norm_x = 0;
+  Out norm_y = 0;
 
   for (auto xit = xbegin, yit = ybegin; xit != xend; ++xit, ++yit) {
     Out diff = *xit - *yit;
@@ -570,17 +553,17 @@ template <typename Out, typename It> Out tsss(It xbegin, It xend, It ybegin) {
   d_cos /= norm_x * norm_y;
   // very real chance of d_cos being outside [-1, 1] range and causing acos
   // to give a NaN when comparing a point with itself
-  d_cos = std::clamp(d_cos, Out(-1), Out(1));
+  d_cos = std::clamp(d_cos, Out{-1}, Out{1});
   Out theta = std::acos(d_cos) + (M_PI / 18.0); // Add 10 degrees in radians
 
   Out sector =
       std::pow((std::sqrt(d_euc_squared) + magnitude_difference), 2) * theta;
-  Out triangle = norm_x * norm_y * std::sin(theta) / 4.0;
+  Out triangle = norm_x * norm_y * std::sin(theta) / 4;
 
   return triangle * sector;
 }
 
-template <typename Out, typename It> auto yule(It xbegin, It xend, It ybegin) {
+template <typename Out, typename It> Out yule(It xbegin, It xend, It ybegin) {
   std::size_t num_true_true = 0;
   std::size_t num_true_false = 0;
   std::size_t num_false_true = 0;
@@ -598,16 +581,16 @@ template <typename Out, typename It> auto yule(It xbegin, It xend, It ybegin) {
                     num_true_false - num_false_true;
 
   if (num_true_false == 0 || num_false_true == 0) {
-    return Out{0};
-  } else {
-    return static_cast<Out>(2.0 * num_true_false * num_false_true) /
-           static_cast<Out>(num_true_true * num_false_false +
-                            num_true_false * num_false_true);
+    return 0;
   }
+  return (2 * num_true_false * num_false_true) /
+         static_cast<Out>(num_true_true * num_false_false +
+                          num_true_false * num_false_true);
 }
 
-template <typename It> std::vector<double> rankdata(It begin, It end) {
-  std::vector<double> ranks(std::distance(begin, end));
+template <typename Out, typename It>
+std::vector<Out> rankdata(It begin, It end) {
+  std::vector<Out> ranks(std::distance(begin, end));
   std::vector<size_t> indices(ranks.size());
   std::iota(indices.begin(), indices.end(), 0);
 
@@ -622,13 +605,13 @@ template <typename It> std::vector<double> rankdata(It begin, It end) {
   // Handle ties by averaging ranks
   for (size_t i = 0; i < ranks.size();) {
     size_t j = i;
-    double sum_ranks = 0.0;
+    Out sum_ranks = 0;
     while (j < ranks.size() && *(begin + indices[i]) == *(begin + indices[j])) {
       sum_ranks += ranks[indices[j]];
       ++j;
     }
 
-    double average_rank = sum_ranks / (j - i);
+    Out average_rank = sum_ranks / (j - i);
     for (size_t k = i; k < j; ++k) {
       ranks[indices[k]] = average_rank;
     }
@@ -641,7 +624,8 @@ template <typename It> std::vector<double> rankdata(It begin, It end) {
 
 // Note that this is done *in-place* to avoid unnecessary copying
 template <typename T> void normalize(std::vector<T> &vec, std::size_t ndim) {
-  constexpr T MIN_NORM = 1e-30;
+  constexpr T MIN_NORM = std::numeric_limits<T>::min();
+
   for (auto start_it = vec.begin(); start_it != vec.end(); start_it += ndim) {
     T norm = std::sqrt(std::inner_product(start_it, start_it + ndim, start_it,
                                           T{0})) +

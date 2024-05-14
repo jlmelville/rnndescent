@@ -143,12 +143,12 @@ get_sparse_metric_map() {
   return metric_map;
 }
 
-template <typename In>
+template <typename In, typename Out>
 const std::unordered_map<std::string, tdoann::SparsePreprocessFunc<In>> &
 get_sparse_preprocess_map() {
   static const std::unordered_map<std::string, tdoann::SparsePreprocessFunc<In>>
-      map = {{"dot", tdoann::sparse_normalize<In>},
-             {"alternative-dot", tdoann::sparse_normalize<In>}};
+      map = {{"dot", tdoann::sparse_normalize<In, Out>},
+             {"alternative-dot", tdoann::sparse_normalize<In, Out>}};
   return map;
 }
 
@@ -180,7 +180,7 @@ get_sparse_distance_funcs(const std::string &metric) {
   auto distance_func = metric_map.at(metric);
 
   tdoann::SparsePreprocessFunc<In> preprocess_func = nullptr;
-  const auto &preprocess_map = get_sparse_preprocess_map<In>();
+  const auto &preprocess_map = get_sparse_preprocess_map<In, Out>();
   if (preprocess_map.count(metric) > 0) {
     preprocess_func = preprocess_map.at(metric);
   }

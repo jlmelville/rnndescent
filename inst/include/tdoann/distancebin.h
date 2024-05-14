@@ -56,11 +56,9 @@ Out bdice(const BitVec &x, Idx i, const BitVec &y, Idx j, std::size_t len,
   }
 
   if (num_not_equal == 0) {
-    return Out{0};
-  } else {
-    return static_cast<Out>(static_cast<double>(num_not_equal) /
-                            (2 * num_true_true + num_not_equal));
+    return 0;
   }
+  return num_not_equal / static_cast<Out>(2 * num_true_true + num_not_equal);
 }
 
 template <typename Out, typename Idx = uint32_t>
@@ -74,7 +72,7 @@ Out bhamming(const BitVec &x, const Idx i, const BitVec &y, Idx j,
     sum += (x[di] ^ y[dj]).count();
   }
 
-  return static_cast<Out>(static_cast<double>(sum) / ndim);
+  return sum / static_cast<Out>(ndim);
 }
 
 template <typename Out, typename Idx = uint32_t>
@@ -93,11 +91,9 @@ Out bjaccard(const BitVec &x, Idx i, const BitVec &y, Idx j, std::size_t len,
   }
 
   if (union_count == 0) {
-    return Out{0};
-  } else {
-    return static_cast<Out>(static_cast<double>(union_count - intersection) /
-                            union_count);
+    return 0;
   }
+  return (union_count - intersection) / static_cast<Out>(union_count);
 }
 
 template <typename Out, typename Idx = uint32_t>
@@ -116,12 +112,10 @@ Out bkulsinski(const BitVec &x, Idx i, const BitVec &y, Idx j, std::size_t len,
   }
 
   if (num_not_equal == 0) {
-    return Out{0};
-  } else {
-    return static_cast<Out>(
-        static_cast<double>(num_not_equal - num_true_true + ndim) /
-        (num_not_equal + ndim));
+    return 0;
   }
+  return (num_not_equal - num_true_true + ndim) /
+         static_cast<Out>(num_not_equal + ndim);
 }
 
 template <typename Out, typename Idx = uint32_t>
@@ -137,7 +131,7 @@ Out bmatching(const BitVec &x, Idx i, const BitVec &y, Idx j, std::size_t len,
     num_not_equal += (xi ^ yj).count();
   }
 
-  return static_cast<Out>(static_cast<double>(num_not_equal) / ndim);
+  return num_not_equal / static_cast<Out>(ndim);
 }
 
 template <typename Out, typename Idx = uint32_t>
@@ -153,7 +147,7 @@ Out brogers_tanimoto(const BitVec &x, Idx i, const BitVec &y, Idx j,
     num_not_equal += (xi ^ yj).count();
   }
 
-  return static_cast<Out>((2.0 * num_not_equal) / (ndim + num_not_equal));
+  return (2 * num_not_equal) / static_cast<Out>(ndim + num_not_equal);
 }
 
 template <typename Out, typename Idx = uint32_t>
@@ -175,10 +169,9 @@ Out brussell_rao(const BitVec &x, Idx i, const BitVec &y, Idx j,
   }
 
   if (num_true_true == num_x_true && num_true_true == num_y_true) {
-    return Out{0};
-  } else {
-    return static_cast<Out>(ndim - num_true_true) / static_cast<Out>(ndim);
+    return 0;
   }
+  return (ndim - num_true_true) / static_cast<Out>(ndim);
 }
 
 template <typename Out, typename Idx = uint32_t>
@@ -195,8 +188,7 @@ Out bsokal_michener(const BitVec &x, Idx i, const BitVec &y, Idx j,
     num_not_equal += (xi ^ yj).count();
   }
 
-  return static_cast<Out>(static_cast<double>(num_not_equal + num_not_equal) /
-                          (ndim + num_not_equal));
+  return (2 * num_not_equal) / static_cast<Out>(ndim + num_not_equal);
 }
 
 template <typename Out, typename Idx = uint32_t>
@@ -216,11 +208,9 @@ Out bsokal_sneath(const BitVec &x, Idx i, const BitVec &y, Idx j,
   }
 
   if (num_not_equal == 0) {
-    return Out{0};
-  } else {
-    return static_cast<Out>(num_not_equal) /
-           static_cast<Out>(0.5 * num_true_true + num_not_equal);
+    return 0;
   }
+  return num_not_equal / static_cast<Out>(0.5 * num_true_true + num_not_equal);
 }
 
 template <typename Out, typename Idx = uint32_t>
@@ -245,12 +235,11 @@ Out byule(const BitVec &x, Idx i, const BitVec &y, Idx j, std::size_t len,
   num_false_false = ndim - num_true_true - num_true_false - num_false_true;
 
   if (num_true_false == 0 || num_false_true == 0) {
-    return Out{0};
-  } else {
-    return static_cast<Out>(2.0 * num_true_false * num_false_true) /
-           static_cast<Out>(num_true_true * num_false_false +
-                            num_true_false * num_false_true);
+    return 0;
   }
+  return (2 * num_true_false * num_false_true) /
+         static_cast<Out>(num_true_true * num_false_false +
+                          num_true_false * num_false_true);
 }
 
 template <typename Out, typename Idx>
