@@ -40,10 +40,9 @@ detail.
 
 ## Current Status
 
-*18 April 2024*: Version 0.1.5 has been released to CRAN. This is an internal
-API change to support a forthcoming release of
-[dqrng](https://cran.r-project.org/package=dqrng), so you should notice no
-changes on upgrading.
+*14 May 2024*: Version 0.1.6 has been released to CRAN. The previous release
+didn't quite get compatibility with `dqrng` right so here is another attempt.
+Also a couple of other bug fixes have been included.
 
 ## Installation
 
