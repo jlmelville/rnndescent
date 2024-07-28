@@ -5,74 +5,56 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<meta name="description" content="rnndescent">
 <title>Nearest Neighbor Descent • rnndescent</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
-<!-- bootstrap-toc --><script src="https://cdn.jsdelivr.net/gh/afeld/bootstrap-toc@v1.0.1/dist/bootstrap-toc.min.js" integrity="sha256-4veVQbu7//Lk5TSmc7YV48MxtMy98e26cf5MrgZYnwo=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.11/clipboard.min.js" integrity="sha512-7O5pXpc0oCRrxk8RUfDYFgn0nO1t+jLuIOQdOMRp4APB7uZ4vSjspzp5y6YDtDs4VzUSTbWzBFZ/LKJhnyFOKw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script><!-- search --><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Nearest Neighbor Descent">
-<meta property="og:description" content="rnndescent">
-<!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
-<script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
-<script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-<![endif]-->
+<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.4.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Nearest Neighbor Descent">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
-    
 
-    <nav class="navbar fixed-top navbar-light navbar-expand-lg bg-light" data-bs-theme="light"><div class="container">
-    
+
+    <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
+
     <a class="navbar-brand me-2" href="../index.html">rnndescent</a>
 
     <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.6.9000</small>
 
-    
+
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
-<li class="nav-item">
-  <a class="nav-link" href="../articles/rnndescent.html">Get started</a>
-</li>
-<li class="nav-item">
-  <a class="nav-link" href="../reference/index.html">Reference</a>
-</li>
+<li class="nav-item"><a class="nav-link" href="../articles/rnndescent.html">Get started</a></li>
+<li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="active nav-item dropdown">
-  <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
-  <div class="dropdown-menu" aria-labelledby="dropdown-articles">
-    <a class="dropdown-item" href="../articles/brute-force.html">Brute Force Search</a>
-    <a class="dropdown-item" href="../articles/nearest-neighbor-descent.html">Nearest Neighbor Descent</a>
-    <a class="dropdown-item" href="../articles/random-partition-forests.html">Random Partition Forests</a>
-    <a class="dropdown-item" href="../articles/querying-data.html">Querying Data</a>
-    <a class="dropdown-item" href="../articles/hubness.html">Hubness</a>
-    <a class="dropdown-item" href="../articles/metrics.html">Metrics</a>
-    <div class="dropdown-divider"></div>
-    <a class="dropdown-item" href="../articles/index.html">More articles...</a>
-  </div>
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
+<li><a class="dropdown-item" href="../articles/brute-force.html">Brute Force Search</a></li>
+    <li><a class="dropdown-item" href="../articles/nearest-neighbor-descent.html">Nearest Neighbor Descent</a></li>
+    <li><a class="dropdown-item" href="../articles/random-partition-forests.html">Random Partition Forests</a></li>
+    <li><a class="dropdown-item" href="../articles/querying-data.html">Querying Data</a></li>
+    <li><a class="dropdown-item" href="../articles/hubness.html">Hubness</a></li>
+    <li><a class="dropdown-item" href="../articles/metrics.html">Metrics</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
+  </ul>
 </li>
-<li class="nav-item">
-  <a class="nav-link" href="../news/index.html">Changelog</a>
-</li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
-<form class="form-inline my-2 my-lg-0" role="search">
-        <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="../search.json" id="search-input" placeholder="Search for" autocomplete="off">
-</form>
-
-      <ul class="navbar-nav">
-<li class="nav-item">
-  <a class="external-link nav-link" href="https://github.com/jlmelville/rnndescent/" aria-label="github">
-    <span class="fab fa fab fa-github fa-lg"></span>
-     
-  </a>
-</li>
+<ul class="navbar-nav">
+<li class="nav-item"><form class="form-inline" role="search">
+ <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
+</form></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/jlmelville/rnndescent/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul>
 </div>
 
-    
+
   </div>
 </nav><div class="container template-article">
 
@@ -81,10 +63,11 @@
 
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-      <img src="" class="logo" alt=""><h1>Nearest Neighbor Descent</h1>
+
+      <h1>Nearest Neighbor Descent</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/jlmelville/rnndescent/blob/HEAD/vignettes/nearest-neighbor-descent.Rmd" class="external-link"><code>vignettes/nearest-neighbor-descent.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/jlmelville/rnndescent/blob/master/vignettes/nearest-neighbor-descent.Rmd" class="external-link"><code>vignettes/nearest-neighbor-descent.Rmd</code></a></small>
       <div class="d-none name"><code>nearest-neighbor-descent.Rmd</code></div>
     </div>
 
@@ -115,10 +98,13 @@ with a loop like the following in each iteration:</p>
 <code>j</code>:</li>
 <li>If <code>k</code> is not already a neighbor of <code>i</code>:</li>
 <li>Calculate the distance between <code>i</code> and <code>k</code>,
-<span class="math inline">\(d_{ik}\)</span>.</li>
-<li>If <span class="math inline">\(d_{ik}\)</span> is smaller than the
-neighbor with the largest distance in the neighbor list of <span class="math inline">\(i\)</span>, update the neighbor list of
-<code>i</code> with <code>k</code>.</li>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>d</mi><mrow><mi>i</mi><mi>k</mi></mrow></msub><annotation encoding="application/x-tex">d_{ik}</annotation></semantics></math>.</li>
+<li>If
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>d</mi><mrow><mi>i</mi><mi>k</mi></mrow></msub><annotation encoding="application/x-tex">d_{ik}</annotation></semantics></math>
+is smaller than the neighbor with the largest distance in the neighbor
+list of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>,
+update the neighbor list of <code>i</code> with <code>k</code>.</li>
 </ol>
 <div class="section level2">
 <h2 id="local-join">Local Join<a class="anchor" aria-label="anchor" href="#local-join"></a>
@@ -158,13 +144,20 @@ neighbors are everything else. For the local join, all possible pairs of
 “new” neighbors are used for updating the graph, but “old” neighbors are
 only ever paired with “new” neighbors, not other “old” neighbors. This
 is referred to as “incremental search” in the NND paper.</p>
-<p>Also, a tolerance <span class="math inline">\(\delta\)</span> is used
-to determine as an early stopping criterion. The total number of items
-in the graph is <span class="math inline">\(kN\)</span> where <span class="math inline">\(k\)</span> is the number of neighbors and <span class="math inline">\(N\)</span> is the number of items. During each
-iteration, a counter is incremented every time the graph is successfully
-updated. If at the end of the iteration the number of updates is less
-than <span class="math inline">\(\delta kN\)</span> then the iteration
-stops.</p>
+<p>Also, a tolerance
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>δ</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math>
+is used to determine as an early stopping criterion. The total number of
+items in the graph is
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi><mi>N</mi></mrow><annotation encoding="application/x-tex">kN</annotation></semantics></math>
+where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>
+is the number of neighbors and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>N</mi><annotation encoding="application/x-tex">N</annotation></semantics></math>
+is the number of items. During each iteration, a counter is incremented
+every time the graph is successfully updated. If at the end of the
+iteration the number of updates is less than
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>δ</mi><mi>k</mi><mi>N</mi></mrow><annotation encoding="application/x-tex">\delta kN</annotation></semantics></math>
+then the iteration stops.</p>
 </div>
 <div class="section level2">
 <h2 id="pynndescent-modifications">PyNNDescent Modifications<a class="anchor" aria-label="anchor" href="#pynndescent-modifications"></a>
@@ -174,16 +167,22 @@ description in the NND paper, which <code>rnndescent</code> also uses,
 which is how sampling of candidates works. For the local join, we need
 to know not just the neighbors of <code>i</code>, but those items which
 consider <code>i</code> a neighbor, which we call the “reverse
-neighbors” of <code>i</code>. While there are always only <span class="math inline">\(k\)</span> “forward” neighbors of <code>i</code>
-in a graph, we don’t control who is a neighbor of what, so
-<code>i</code> could be the neighbor of many (or even all) the other
-items in a dataset. Thus, building the reverse list can be a bit
-challenging as we need to be prepared for any item to have up to <span class="math inline">\(N\)</span> neighbors. In the NND paper, this is
-avoided by defining a sample rate <span class="math inline">\(\rho\)</span>, which is used to sample from the
-k-nearest neighbors, and then the reverse neighbor list is only built
-from the sampled items. A subsequent down-sampling is then applied to
-the reverse neighbor list so that both the forward and reverse neighbor
-list only contain <span class="math inline">\(\rho k\)</span> items.</p>
+neighbors” of <code>i</code>. While there are always only
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>
+“forward” neighbors of <code>i</code> in a graph, we don’t control who
+is a neighbor of what, so <code>i</code> could be the neighbor of many
+(or even all) the other items in a dataset. Thus, building the reverse
+list can be a bit challenging as we need to be prepared for any item to
+have up to
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>N</mi><annotation encoding="application/x-tex">N</annotation></semantics></math>
+neighbors. In the NND paper, this is avoided by defining a sample rate
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ρ</mi><annotation encoding="application/x-tex">\rho</annotation></semantics></math>,
+which is used to sample from the k-nearest neighbors, and then the
+reverse neighbor list is only built from the sampled items. A subsequent
+down-sampling is then applied to the reverse neighbor list so that both
+the forward and reverse neighbor list only contain
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ρ</mi><mi>k</mi></mrow><annotation encoding="application/x-tex">\rho k</annotation></semantics></math>
+items.</p>
 <p>Instead of a sample rate, <code>rnndescent</code> defines a
 <code>max_candidates</code> parameter determines the size of both the
 forward and reverse neighbor lists per item. If there are more
@@ -202,9 +201,16 @@ in <code>rnndescent</code>.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">iris_knn</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/nnd_knn.html">nnd_knn</a></span><span class="op">(</span><span class="va">iris</span>, k <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span></code></pre></div>
 <p>The contents of <code>iris_knn</code> is a list with two elements,
-both <span class="math inline">\(N\)</span> by <span class="math inline">\(k\)</span> matrices where <span class="math inline">\(N\)</span> is the number of items in the dataset
-and <span class="math inline">\(k\)</span> is the number of neighbors:
-<code>idx</code> contains the indices of the neighbors:</p>
+both
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>N</mi><annotation encoding="application/x-tex">N</annotation></semantics></math>
+by
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>
+matrices where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>N</mi><annotation encoding="application/x-tex">N</annotation></semantics></math>
+is the number of items in the dataset and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>
+is the number of neighbors: <code>idx</code> contains the indices of the
+neighbors:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">iris_knn</span><span class="op">$</span><span class="va">idx</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">2</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">]</span></span>
 <span><span class="co">#&gt;      [,1] [,2] [,3] [,4] [,5]</span></span>
@@ -233,15 +239,20 @@ would to <code>rpf_build</code> via the <code>init_args</code>
 parameter. See the vignette on RP forest for more details. You can also
 pass in a neighbor graph directly. This should have the same format as
 the output of <code>nnd_knn</code>, i.e. a list of two matrices of size
-<span class="math inline">\(N\)</span> by <span class="math inline">\(k\)</span>. NND can be used to refine an existing
-graph generated by other methods, e.g. <a href="https://cran.r-project.org/package=RcppAnnoy" class="external-link">RcppAnnoy</a> or <a href="https://cran.r-project.org/package=RcppHNSW" class="external-link">RcppHNSW</a>.</li>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>N</mi><annotation encoding="application/x-tex">N</annotation></semantics></math>
+by
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>.
+NND can be used to refine an existing graph generated by other methods,
+e.g. <a href="https://cran.r-project.org/package=RcppAnnoy" class="external-link">RcppAnnoy</a> or <a href="https://cran.r-project.org/package=RcppHNSW" class="external-link">RcppHNSW</a>.</li>
 <li>
 <code>n_iters</code> is the number of iterations of NND to carry
-out. The default is to choose based on <span class="math inline">\(N\)</span>, the number of items in the dataset.
-The amount of work done per iteration decreases quite rapidly, so
-sticking with the default is usually sensible, especially if you don’t
-change the convergence criterion <code>delta</code> (see below), because
-this often causes the algorithm to stop early anyway.</li>
+out. The default is to choose based on
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>N</mi><annotation encoding="application/x-tex">N</annotation></semantics></math>,
+the number of items in the dataset. The amount of work done per
+iteration decreases quite rapidly, so sticking with the default is
+usually sensible, especially if you don’t change the convergence
+criterion <code>delta</code> (see below), because this often causes the
+algorithm to stop early anyway.</li>
 <li>
 <code>delta</code> controls early stopping and must be a value
 between <code>0</code> and <code>1</code>. If in a given iteration, the
@@ -330,8 +341,13 @@ problem.</p>
 <p>You can’t. NND can only produce the k-nearest neighbors graph for the
 provided data. It doesn’t produce an “index” of any kind that you can
 query. The value of NND and the local join really only makes sense if
-you can take advantage of the fact that calculating the distance <span class="math inline">\(d_{ij}\)</span> lets update the neighbor list of
-<span class="math inline">\(i\)</span> and <span class="math inline">\(j\)</span> at once.</p>
+you can take advantage of the fact that calculating the distance
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>d</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><annotation encoding="application/x-tex">d_{ij}</annotation></semantics></math>
+lets update the neighbor list of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>j</mi><annotation encoding="application/x-tex">j</annotation></semantics></math>
+at once.</p>
 <p>If you try to apply the concepts from NND to querying new data you
 quickly end up at a method that looks a lot like most greedy graph-based
 searches. For that, you should look at <code><a href="../reference/graph_knn_query.html">graph_knn_query()</a></code>,
@@ -353,7 +369,7 @@ Web</em>, 577–86.
 </div>
 </div>
 </div>
-  </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
 </div>
 
@@ -364,15 +380,15 @@ Web</em>, 577–86.
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.9.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.0.</p>
 </div>
 
     </footer>
 </div>
 
-  
 
-  
+
+
 
   </body>
 </html>

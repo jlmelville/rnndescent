@@ -5,74 +5,56 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<meta name="description" content="rnndescent">
 <title>Hubness • rnndescent</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
-<!-- bootstrap-toc --><script src="https://cdn.jsdelivr.net/gh/afeld/bootstrap-toc@v1.0.1/dist/bootstrap-toc.min.js" integrity="sha256-4veVQbu7//Lk5TSmc7YV48MxtMy98e26cf5MrgZYnwo=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.11/clipboard.min.js" integrity="sha512-7O5pXpc0oCRrxk8RUfDYFgn0nO1t+jLuIOQdOMRp4APB7uZ4vSjspzp5y6YDtDs4VzUSTbWzBFZ/LKJhnyFOKw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script><!-- search --><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Hubness">
-<meta property="og:description" content="rnndescent">
-<!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
-<script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
-<script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-<![endif]-->
+<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.4.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Hubness">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
-    
 
-    <nav class="navbar fixed-top navbar-light navbar-expand-lg bg-light" data-bs-theme="light"><div class="container">
-    
+
+    <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
+
     <a class="navbar-brand me-2" href="../index.html">rnndescent</a>
 
     <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.6.9000</small>
 
-    
+
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
-<li class="nav-item">
-  <a class="nav-link" href="../articles/rnndescent.html">Get started</a>
-</li>
-<li class="nav-item">
-  <a class="nav-link" href="../reference/index.html">Reference</a>
-</li>
+<li class="nav-item"><a class="nav-link" href="../articles/rnndescent.html">Get started</a></li>
+<li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="active nav-item dropdown">
-  <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
-  <div class="dropdown-menu" aria-labelledby="dropdown-articles">
-    <a class="dropdown-item" href="../articles/brute-force.html">Brute Force Search</a>
-    <a class="dropdown-item" href="../articles/nearest-neighbor-descent.html">Nearest Neighbor Descent</a>
-    <a class="dropdown-item" href="../articles/random-partition-forests.html">Random Partition Forests</a>
-    <a class="dropdown-item" href="../articles/querying-data.html">Querying Data</a>
-    <a class="dropdown-item" href="../articles/hubness.html">Hubness</a>
-    <a class="dropdown-item" href="../articles/metrics.html">Metrics</a>
-    <div class="dropdown-divider"></div>
-    <a class="dropdown-item" href="../articles/index.html">More articles...</a>
-  </div>
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
+<li><a class="dropdown-item" href="../articles/brute-force.html">Brute Force Search</a></li>
+    <li><a class="dropdown-item" href="../articles/nearest-neighbor-descent.html">Nearest Neighbor Descent</a></li>
+    <li><a class="dropdown-item" href="../articles/random-partition-forests.html">Random Partition Forests</a></li>
+    <li><a class="dropdown-item" href="../articles/querying-data.html">Querying Data</a></li>
+    <li><a class="dropdown-item" href="../articles/hubness.html">Hubness</a></li>
+    <li><a class="dropdown-item" href="../articles/metrics.html">Metrics</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
+  </ul>
 </li>
-<li class="nav-item">
-  <a class="nav-link" href="../news/index.html">Changelog</a>
-</li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
-<form class="form-inline my-2 my-lg-0" role="search">
-        <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="../search.json" id="search-input" placeholder="Search for" autocomplete="off">
-</form>
-
-      <ul class="navbar-nav">
-<li class="nav-item">
-  <a class="external-link nav-link" href="https://github.com/jlmelville/rnndescent/" aria-label="github">
-    <span class="fab fa fab fa-github fa-lg"></span>
-     
-  </a>
-</li>
+<ul class="navbar-nav">
+<li class="nav-item"><form class="form-inline" role="search">
+ <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
+</form></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/jlmelville/rnndescent/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul>
 </div>
 
-    
+
   </div>
 </nav><div class="container template-article">
 
@@ -81,10 +63,11 @@
 
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-      <img src="" class="logo" alt=""><h1>Hubness</h1>
+
+      <h1>Hubness</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/jlmelville/rnndescent/blob/HEAD/vignettes/hubness.Rmd" class="external-link"><code>vignettes/hubness.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/jlmelville/rnndescent/blob/master/vignettes/hubness.Rmd" class="external-link"><code>vignettes/hubness.Rmd</code></a></small>
       <div class="d-none name"><code>hubness.Rmd</code></div>
     </div>
 
@@ -254,21 +237,33 @@ k-nearest neighbor graph. You can also see it as reversing the direction
 of the edges in the k-nearest neighbor graph and then counting the
 in-degree of each item.</p>
 <p>If the distribution of neighbors was entirely uniform we would expect
-to see each item appear <span class="math inline">\(k\)</span> times. If
-there are hubs then the k-occurrence could get as large as the size of
-the dataset, <span class="math inline">\(N\)</span>. An item which
-appears in the neighbor graph fewer than <span class="math inline">\(k\)</span> times could be termed an “antihub”. Our
-definition of a neighbor of an item always includes the item itself, so
-we would expect the minimum <span class="math inline">\(k\)</span>-occurrence to be <span class="math inline">\(1\)</span>.</p>
-<p>Also, because there are always only <span class="math inline">\(Nk\)</span> edges in a <span class="math inline">\(k\)</span>-nearest neighbor graph, if an item
-appears more than the expected amount this implies that other items must
-be under-represented. Practically speaking, there are always going to be
-items with a larger <span class="math inline">\(k\)</span>-occurrence
-than expected and hence some with a lower <span class="math inline">\(k\)</span>-occurrence, so hubness or anti-hubness
-is more a case of deciding on a cut-off after which the presence of an
-item with a lot of neighbors starts causing you problems, which is going
-to be dependent on what you are planning to do with the neighbor graph
-(and probably the number of neighbors you want).</p>
+to see each item appear
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>
+times. If there are hubs then the k-occurrence could get as large as the
+size of the dataset,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>N</mi><annotation encoding="application/x-tex">N</annotation></semantics></math>.
+An item which appears in the neighbor graph fewer than
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>
+times could be termed an “antihub”. Our definition of a neighbor of an
+item always includes the item itself, so we would expect the minimum
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>-occurrence
+to be
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mn>1</mn><annotation encoding="application/x-tex">1</annotation></semantics></math>.</p>
+<p>Also, because there are always only
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mi>k</mi></mrow><annotation encoding="application/x-tex">Nk</annotation></semantics></math>
+edges in a
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>-nearest
+neighbor graph, if an item appears more than the expected amount this
+implies that other items must be under-represented. Practically
+speaking, there are always going to be items with a larger
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>-occurrence
+than expected and hence some with a lower
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>-occurrence,
+so hubness or anti-hubness is more a case of deciding on a cut-off after
+which the presence of an item with a lot of neighbors starts causing you
+problems, which is going to be dependent on what you are planning to do
+with the neighbor graph (and probably the number of neighbors you
+want).</p>
 <div class="section level3">
 <h3 id="k-occurrence-in-the-2d-case">k-occurrence in the 2D case<a class="anchor" aria-label="anchor" href="#k-occurrence-in-the-2d-case"></a>
 </h3>
@@ -279,14 +274,24 @@ neighbors:</p>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">g2d_bfko</span><span class="op">)</span></span>
 <span><span class="co">#&gt;    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. </span></span>
 <span><span class="co">#&gt;       1      13      15      15      17      24</span></span></code></pre></div>
-<p>The mean average of the <span class="math inline">\(k\)</span>-occurrence is never helpful: as noted
-above there are always <span class="math inline">\(Nk\)</span> edges in
-the neighbor graph, so the mean <span class="math inline">\(k\)</span>-occurrence is always <span class="math inline">\(k\)</span>. However the other descriptions of the
-distribution are informative. The median <span class="math inline">\(k\)</span>-occurrence is also <code>15</code>,
-which is a good sign, and the values at 25% and 75% aren’t too different
-other. The maximum <span class="math inline">\(k\)</span>-occurrence is
-less than <span class="math inline">\(2k\)</span>. The minimum value is
-<code>1</code> which means there are anti-hubs in the dataset, but:</p>
+<p>The mean average of the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>-occurrence
+is never helpful: as noted above there are always
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mi>k</mi></mrow><annotation encoding="application/x-tex">Nk</annotation></semantics></math>
+edges in the neighbor graph, so the mean
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>-occurrence
+is always
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>.
+However the other descriptions of the distribution are informative. The
+median
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>-occurrence
+is also <code>15</code>, which is a good sign, and the values at 25% and
+75% aren’t too different other. The maximum
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>-occurrence
+is less than
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>2</mn><mi>k</mi></mrow><annotation encoding="application/x-tex">2k</annotation></semantics></math>.
+The minimum value is <code>1</code> which means there are anti-hubs in
+the dataset, but:</p>
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">g2d_bfko</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 1</span></span></code></pre></div>
@@ -379,15 +384,19 @@ Next, the numerical summary:</p>
 <span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">g1000d_nndko</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 254</span></span></code></pre></div>
 <p>Quantitatively, this also tracks the exact results: the median
-k-occurrence is much smaller than <span class="math inline">\(k\)</span>, there is a hub with a very large
-number of neighbors (larger than in the exact case but to a similar
-degree) and a similar number of anti-hubs.</p>
+k-occurrence is much smaller than
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>,
+there is a hub with a very large number of neighbors (larger than in the
+exact case but to a similar degree) and a similar number of
+anti-hubs.</p>
 <p>So this suggests a way to diagnose if the nearest neighbor descent
 routine may have low accuracy: look at the distribution of the
 k-occurrences of the resulting approximate nearest neighbor graph (or
-even just the maximum value). A value that is <span class="math inline">\(\gg k\)</span> may mean a reduced accuracy. Of
-course, this isn’t foolproof, because even if NND did a perfect job then
-we would still get these sorts of values, but it’s a starting point.</p>
+even just the maximum value). A value that is
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>≫</mo><mi>k</mi></mrow><annotation encoding="application/x-tex">\gg k</annotation></semantics></math>
+may mean a reduced accuracy. Of course, this isn’t foolproof, because
+even if NND did a perfect job then we would still get these sorts of
+values, but it’s a starting point.</p>
 <p>Taking the distribution of k-occurrences as a whole, the approximate
 results seem to track the exact results fairly well, but as we have
 seen, the errors in the approximate results are not uniformly
@@ -528,9 +537,11 @@ a look at some numbers:</p>
 <span><span class="co">#&gt; [1] 163</span></span></code></pre></div>
 <p>Compared to the converged (or exact) distribution, the median
 k-occurrence is not as low, the object with the largest k-occurrence,
-while large (<span class="math inline">\(&gt; 10k\)</span>, which seems
-like a good threshold to be concerned about the presence of hubs) is not
-as large, and there are fewer objects which are anti-hubs.</p>
+while large
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>&gt;</mo><mn>10</mn><mi>k</mi></mrow><annotation encoding="application/x-tex">&gt; 10k</annotation></semantics></math>,
+which seems like a good threshold to be concerned about the presence of
+hubs) is not as large, and there are fewer objects which are
+anti-hubs.</p>
 <p>At least for this dataset, hubness can be qualitatively detected with
 even a very inaccurate neighbor graph. What about datasets that don’t
 contain hubs? Let’s just check that what we are seeing is not an
@@ -599,7 +610,8 @@ high-dimensional case, it’s worth trying though:</p>
 <span><span class="fu"><a href="../reference/neighbor_overlap.html">neighbor_overlap</a></span><span class="op">(</span><span class="va">g1000d_nnbf</span>, <span class="va">g1000d_nnd_w</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 0.8021333</span></span></code></pre></div>
 <p>Like a 2%ish improvement. It’s not nothing. And despite the extra
-computation and <span class="math inline">\(O\left(kN\right)\)</span>
+computation and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mi>N</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">O\left(kN\right)</annotation></semantics></math>
 storage required to calculate the k-occurrences in each iteration, with
 high-dimensional data the distance calculations tend to dominate the run
 time, so there’s no reason to <em>not</em> set
@@ -711,20 +723,26 @@ graph, and then query it with the original data.</p>
 <span>    pruning_degree_multiplier <span class="op">=</span> <span class="fl">1.5</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
 <p>This augments the neighbor graph with the reversed edges of the
-neighbor graph, so that if <span class="math inline">\(i\)</span> is one
-of the nearest neighbors of <span class="math inline">\(j\)</span>, we
-guarantee that <span class="math inline">\(j\)</span> is also considered
-a near neighbor <span class="math inline">\(i\)</span>. This ameliorates
-the issue of anti-hubs because all <span class="math inline">\(k\)</span> neighbors of an anti-hub now have it in
-their neighbor list.</p>
+neighbor graph, so that if
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>
+is one of the nearest neighbors of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>j</mi><annotation encoding="application/x-tex">j</annotation></semantics></math>,
+we guarantee that
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>j</mi><annotation encoding="application/x-tex">j</annotation></semantics></math>
+is also considered a near neighbor
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>.
+This ameliorates the issue of anti-hubs because all
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>
+neighbors of an anti-hub now have it in their neighbor list.</p>
 <p>The downside of including all reversed edges in the neighbor graph is
 that the neighbor list of a hub is now going to be very large as it
-consists of the <span class="math inline">\(k\)</span> nearest neighbors
-of the hub and then all the items that consider the hub a near neighbor,
-which by definition is a lot. This can make the search graph
-inefficient, as a disproportionate amount of time will be spent
-searching neighbors of the hub. The <code>diversify_prob</code> and
-<code>pruning_degree_multiplier</code> parameters are used to reduce
+consists of the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>
+nearest neighbors of the hub and then all the items that consider the
+hub a near neighbor, which by definition is a lot. This can make the
+search graph inefficient, as a disproportionate amount of time will be
+spent searching neighbors of the hub. The <code>diversify_prob</code>
+and <code>pruning_degree_multiplier</code> parameters are used to reduce
 back down the out-degree of each node (the number of out-going edges).
 This results in objects with a varying number of neighbors, in this case
 to a maximum of 22. This is about 50% larger than <code>k = 15</code> to
@@ -963,7 +981,7 @@ Schnitzer, Dominik, Arthur Flexer, Markus Schedl, and Gerhard Widmer.
 </div>
 </div>
 </div>
-  </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
 </div>
 
@@ -974,15 +992,15 @@ Schnitzer, Dominik, Arthur Flexer, Markus Schedl, and Gerhard Widmer.
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.9.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.0.</p>
 </div>
 
     </footer>
 </div>
 
-  
 
-  
+
+
 
   </body>
 </html>

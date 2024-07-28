@@ -1,19 +1,18 @@
 pandoc: 3.1.11
-pkgdown: 2.0.9
+pkgdown: 2.1.0
 pkgdown_sha: ~
 articles:
   brute-force: brute-force.html
-  fmnist-example: fmnist-example.html
+  articles/fmnist-example: fmnist-example.html
   hubness: hubness.html
   metrics: metrics.html
   nearest-neighbor-descent: nearest-neighbor-descent.html
   querying-data: querying-data.html
   random-partition-forests: random-partition-forests.html
   rnndescent: rnndescent.html
-  sparse-example: sparse-example.html
-  whatsnew: whatsnew.html
-last_built: 2024-05-15T03:22Z
+  articles/sparse-example: sparse-example.html
+  articles/whatsnew: whatsnew.html
+last_built: 2024-07-28T16:57Z
 urls:
   reference: https://jlmelville.github.io/rnndescent/reference
   article: https://jlmelville.github.io/rnndescent/articles
-
