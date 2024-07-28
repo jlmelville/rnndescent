@@ -6,8 +6,8 @@
 [![Coverage Status](https://img.shields.io/codecov/c/github/jlmelville/rnndescent/master.svg)](https://app.codecov.io/github/jlmelville/rnndescent?branch=master)
 [![CRAN Status Badge](http://www.r-pkg.org/badges/version/rnndescent)](https://cran.r-project.org/package=rnndescent)
 [![Dependencies](https://tinyverse.netlify.app/badge/rnndescent)](https://cran.r-project.org/package=rnndescent)
-[![CRAN Monthly Downloads](https://cranlogs.r-pkg.org/badges/rnndescent)](https://cran.r-project.org/package=rnndescent)
-![CRAN Downloads](http://cranlogs.r-pkg.org/badges/grand-total/rnndescent)
+[![Downloads (monthly)](https://cranlogs.r-pkg.org/badges/rnndescent?color=brightgreen)](https://www.r-pkg.org/pkg/rnndescent)
+[![Downloads (total)](https://cranlogs.r-pkg.org/badges/grand-total/rnndescent?color=brightgreen)](https://www.r-pkg.org/pkg/rnndescent)
 [![Last Commit](https://img.shields.io/github/last-commit/jlmelville/rnndescent)](https://github.com/jlmelville/rnndescent)
 <!-- badges: end -->
 
