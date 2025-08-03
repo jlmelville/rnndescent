@@ -1,4 +1,7 @@
-# rnndescent (development version)
+# rnndescent 0.1.7
+
+This is a patch release to fix some M1 Mac test failures as part of CRAN checks.
+No changes to non-test code.
 
 # rnndescent 0.1.6
 
