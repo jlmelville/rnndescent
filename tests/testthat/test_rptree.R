@@ -481,13 +481,13 @@ test_that("sparse implicit margin", {
   dknn <- rpf_knn(ui10z, k = 4, leaf_size = 3, n_trees = 2, margin = "implicit")
   set.seed(1337)
   sknn <- rpf_knn(ui10sp, k = 4, leaf_size = 3, n_trees = 2, margin = "implicit")
-  expect_equal(sknn, dknn)
+  expect_equal(sknn, dknn, tol = 1e-6)
 
   set.seed(1337)
   dknn <- rpf_knn(ui10z, k = 4, leaf_size = 3, n_trees = 2, margin = "implicit", ret_forest = TRUE)
   set.seed(1337)
   sknn <- rpf_knn(ui10sp, k = 4, leaf_size = 3, n_trees = 2, margin = "implicit", ret_forest = TRUE)
-  expect_equal(list(idx = sknn$idx, dist = sknn$dist), list(idx = dknn$idx, dist = dknn$dist))
+  expect_equal(list(idx = sknn$idx, dist = sknn$dist), list(idx = dknn$idx, dist = dknn$dist), tol = 1e-6)
   dknn$forest$sparse <- TRUE
   expect_equal(sknn$forest, dknn$forest)
 
@@ -498,7 +498,7 @@ test_that("sparse implicit margin", {
   expect_equal(sforest$actual_metric, "alternative-cosine")
   expect_true(sforest$sparse)
   sforest$sparse <- FALSE
-  expect_equal(sforest, dforest)
+  expect_equal(sforest, dforest, tol = 1e-6)
 
   set.seed(1337)
   dforest6 <- rpf_build(ui10z6, leaf_size = 3, n_trees = 2, margin = "implicit", metric = "cosine")

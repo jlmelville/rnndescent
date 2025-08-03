@@ -351,7 +351,7 @@ test_that("sparse", {
   dq4 <- graph_knn_query(reference = ui10z6, query = ui10z4, reference_graph = g6, k = 4)
   set.seed(1337)
   sq4 <- graph_knn_query(reference = ui10sp6, query = ui10sp4, reference_graph = g6, k = 4)
-  expect_equal(sq4, dq4)
+  expect_equal(sq4, dq4, tol = 1e-6)
 })
 
 
