@@ -1,5 +1,5 @@
 pandoc: 3.1.11
-pkgdown: 2.1.0
+pkgdown: 2.1.3
 pkgdown_sha: ~
 articles:
   brute-force: brute-force.html
@@ -12,7 +12,7 @@ articles:
   rnndescent: rnndescent.html
   articles/sparse-example: sparse-example.html
   articles/whatsnew: whatsnew.html
-last_built: 2024-07-28T17:01Z
+last_built: 2025-08-03T13:43Z
 urls:
   reference: https://jlmelville.github.io/rnndescent/reference
   article: https://jlmelville.github.io/rnndescent/articles
