@@ -1,36 +1,27 @@
 ## New Patch Release
 
-This is a new patch release to fix an error that resulted from the recent CRAN
-release of the 'dqrng' package, which is a dependency of this package.
-
-## Recent Resubmission
-
-The previous release of 'rnndescent' was submitted to CRAN in April. I am aware
-of the policy against frequent submission to CRAN. The previous submission was
-intended to support the changes to 'dqrng'. Unfortunately, some new problems
-were found only after the submission of 'dqrng' to CRAN. I regret any
-inconvenience caused to the CRAN maintainers.
+This is a new patch release to fix a CRAN M1 Mac check error.
 
 ## Test environments
 
 * ubuntu 22.04 (on rhub) devel clang-ASAN
-* Fedora 38 (on rhub) devel gcc13
+* Fedora 38 (on rhub) devel gcc15
 * Fedora 38 (on rhub) devel valgrind
-* local ubuntu 23.04 R 4.3.1
-* ubuntu 22.04 (on github actions), R 4.3.3, R 4.4.0, devel
-* Windows Server 2012 (on appveyor) R 4.4.0 Patched
-* Windows Server 2022 (on github actions), R 4.3.3, R 4.4.0
-* local Windows 11 build, R 4.4.0
+* local ubuntu 25.04 R 4.4.3
+* ubuntu 24.04 (on github actions), R 4.4.3, R 4.5.1 devel
+* Windows Server 2012 (on appveyor) R 4.5.1 Patched
+* Windows Server 2022 (on github actions), R 4.4.3, R 4.5.1
+* local Windows 11 build, R 4.5.1
 * win-builder (devel)
-* mac OS X Monterey (on github actions) R 4.4.0
-* local mac OS X Sonoma R 4.4.0
+* mac OS X Sonoma (on github actions) R 4.5.1
+* local mac OS X Sequoia R 4.5.1
+* mac-builder (devel)
 
 ## CRAN Checks
 
 There are no WARNINGs or ERRORs.
 
-There is 1 NOTE remaining from the previous release on r-release-macos-arm64, 
-r-release-macos-x86_64, r-oldrel-macos-arm64, r-oldrel-macos-x86_64
+There is 1 NOTE for r-oldrel-macos-arm64, r-oldrel-macos-x86_64:
 
 Check: installed package size
 Result: NOTE 
@@ -41,9 +32,12 @@ Result: NOTE
 This is due to the majority of the package being written in C++ and is not
 affected by this patch release.
 
+There is an "M1mac" problem flagged as part of "Additional Issues". This release is intended to
+fix this.
+
 ## Downstream dependencies
 
-I checked 1 reverse dependency from CRAN, comparing R CMD check results across
+I checked 3 reverse dependencies from CRAN, comparing R CMD check results across
 CRAN and dev versions of this package.
 
  * I saw 0 new problems
