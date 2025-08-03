@@ -16,3 +16,4 @@
 ^\.clang-tidy$
 ^vignettes/articles$
 ^CRAN-SUBMISSION$
+^revdep$
