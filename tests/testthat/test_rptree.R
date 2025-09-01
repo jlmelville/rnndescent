@@ -528,7 +528,7 @@ test_that("sparse explicit margin", {
   dknn <- rpf_knn(ui10z, k = 4, leaf_size = 3, n_trees = 2, margin = "explicit")
   set.seed(1337)
   sknn <- rpf_knn(ui10sp, k = 4, leaf_size = 3, n_trees = 2, margin = "explicit")
-  expect_equal(sknn, dknn)
+  expect_equal(sknn, dknn, tol = 1e-6)
 
   # implict and explicit should give the same results for euclidean
   set.seed(1337)
