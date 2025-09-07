@@ -8,6 +8,8 @@ get moved here. You should look at the
 [Changelog](https://jlmelville.github.io/rnndescent/news/index.html) for fuller 
 details.
 
+*05 September 2025*: Version 0.1.8 has been released to CRAN. This fixes some test tolerances that causes Mac M1 checks on CRAN to fail.
+
 *14 May 2024*: Version 0.1.6 has been released to CRAN. The previous release
 didn't quite get compatibility with `dqrng` right so here is another attempt.
 Also a couple of other bug fixes have been included.

@@ -40,9 +40,8 @@ detail.
 
 ## Current Status
 
-*14 May 2024*: Version 0.1.6 has been released to CRAN. The previous release
-didn't quite get compatibility with `dqrng` right so here is another attempt.
-Also a couple of other bug fixes have been included.
+*05 September 2025*: Version 0.1.8 has been released to CRAN. This fixes some
+test tolerances that caused Mac M1 checks on CRAN to fail.
 
 ## Installation
 
