@@ -144,10 +144,10 @@ and low dimensions (for easier comparison, I have normalized them with
 respect to the largest distance)</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/hist.html" class="external-link">hist</a></span><span class="op">(</span><span class="va">g2d_nnbf</span><span class="op">$</span><span class="va">dist</span><span class="op">[</span>, <span class="op">-</span><span class="fl">1</span><span class="op">]</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">g2d_nnbf</span><span class="op">$</span><span class="va">dist</span><span class="op">[</span>, <span class="op">-</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span>, xlab <span class="op">=</span> <span class="st">"distances"</span>, main <span class="op">=</span> <span class="st">"2D 15-NN"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="hubness_files/figure-html/NN%20distances%20distribution-1.png" width="700"></p>
+<p><img src="hubness_files/figure-html/NN%20distances%20distribution-1.png" class="r-plt" alt="" width="700"></p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/hist.html" class="external-link">hist</a></span><span class="op">(</span><span class="va">g1000d_nnbf</span><span class="op">$</span><span class="va">dist</span><span class="op">[</span>, <span class="op">-</span><span class="fl">1</span><span class="op">]</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">g1000d_nnbf</span><span class="op">$</span><span class="va">dist</span><span class="op">[</span>, <span class="op">-</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span>, xlab <span class="op">=</span> <span class="st">"distances"</span>, main <span class="op">=</span> <span class="st">"1000D 15-NN"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="hubness_files/figure-html/NN%20distances%20distribution-2.png" width="700"></p>
+<p><img src="hubness_files/figure-html/NN%20distances%20distribution-2.png" class="r-plt" alt="" width="700"></p>
 <p>Compared to low dimensional data, we can see that the high
 dimensional distances are distributed around a higher distance as well
 as more symmetric in their distribution.</p>
@@ -158,7 +158,7 @@ high-dimensional case for the neighbors found by NND:</p>
 <span>  xlab <span class="op">=</span> <span class="st">"distances"</span>,</span>
 <span>  main <span class="op">=</span> <span class="st">"1000D 15-NND"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="hubness_files/figure-html/NND%20distances%20distribution-1.png" width="700"></p>
+<p><img src="hubness_files/figure-html/NND%20distances%20distribution-1.png" class="r-plt" alt="" width="700"></p>
 <p>Pretty much indistinguishable from the exact results, so it seems
 like there isn’t an obvious diagnostic from the distances
 themselves.</p>
@@ -185,7 +185,7 @@ harshly than a more distant point.</p>
 <span>  main <span class="op">=</span> <span class="st">"1000D distance error"</span>,</span>
 <span>  xlab <span class="op">=</span> <span class="st">"Relative RMS error"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="hubness_files/figure-html/histogram%20of%20distance%20difference-1.png" width="700"></p>
+<p><img src="hubness_files/figure-html/histogram%20of%20distance%20difference-1.png" class="r-plt" alt="" width="700"></p>
 <p>None of the relative errors are actually that large, so if you only
 care about the value of kth nearest neighbor distances, then even in the
 1000D case, we still get decent results in this case. We can also see
@@ -205,7 +205,7 @@ vector (the overall mean average overlap is returned as the
 <span>  xlab <span class="op">=</span> <span class="st">"accuracy"</span>,</span>
 <span>  xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="hubness_files/figure-html/hist%201000D-1.png" width="700"></p>
+<p><img src="hubness_files/figure-html/hist%201000D-1.png" class="r-plt" alt="" width="700"></p>
 <p>This shows a similar pattern: some items have very high accuracy and
 some have noticeably worse accuracy than average. For completeness, here
 is the relationship between accuracy and RRMSE:</p>
@@ -217,7 +217,7 @@ is the relationship between accuracy and RRMSE:</p>
 <span>  xlab <span class="op">=</span> <span class="st">"accuracy"</span>,</span>
 <span>  ylab <span class="op">=</span> <span class="st">"RRMSE"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="hubness_files/figure-html/rrmse%20vs%20acc-1.png" width="700"></p>
+<p><img src="hubness_files/figure-html/rrmse%20vs%20acc-1.png" class="r-plt" alt="" width="700"></p>
 <p>Nothing very surprising here: there’s a fairly consistent spread of
 RRMSE for a given accuracy.</p>
 <p>So whether you use an error in the distance or accuracy to measure
@@ -299,7 +299,7 @@ the dataset, but:</p>
 k-occurrences:</p>
 <div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/hist.html" class="external-link">hist</a></span><span class="op">(</span><span class="va">g2d_bfko</span>, main <span class="op">=</span> <span class="st">"2D 15-NN"</span>, xlab <span class="op">=</span> <span class="st">"k-occurrences"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="hubness_files/figure-html/2D%20k-occurrence%20histogram-1.png" width="700"></p>
+<p><img src="hubness_files/figure-html/2D%20k-occurrence%20histogram-1.png" class="r-plt" alt="" width="700"></p>
 <p>This unremarkable-looking distribution is a visual indication of a
 dataset without a lot of hubness and anti-hubs lurking to cause problems
 for nearest neighbor descent.</p>
@@ -312,7 +312,7 @@ dimensional case:</p>
 <div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">g1000d_bfko</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/k_occur.html">k_occur</a></span><span class="op">(</span><span class="va">g1000d_nnbf</span><span class="op">$</span><span class="va">idx</span>, k <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/hist.html" class="external-link">hist</a></span><span class="op">(</span><span class="va">g1000d_bfko</span>, main <span class="op">=</span> <span class="st">"1000D 15-NN"</span>, xlab <span class="op">=</span> <span class="st">"k-occurrences"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="hubness_files/figure-html/1000D%20k-occurrences-1.png" width="700"></p>
+<p><img src="hubness_files/figure-html/1000D%20k-occurrences-1.png" class="r-plt" alt="" width="700"></p>
 <p>The differences are pretty stark. The first thing to notice is the
 x-axis. In the 2D case, the maximum k-occurrence was ~20. For the 1000D
 we are looking at ~300. It’s hard to see any details, so let’s zoom in
@@ -323,7 +323,7 @@ than the largest 2D k-occurrence:</p>
 <span>  main <span class="op">=</span> <span class="st">"1000D 15-NN zoomed"</span>,</span>
 <span>  xlab <span class="op">=</span> <span class="st">"k-occurrences"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="hubness_files/figure-html/zoomed%20k-occurrences-1.png" width="700"></p>
+<p><img src="hubness_files/figure-html/zoomed%20k-occurrences-1.png" class="r-plt" alt="" width="700"></p>
 <p>It’s a very different distribution to the 2D case: we have a large
 number of anti-hubs and a noticeable number of hubs. There’s certainly
 no peak at a k-occurrence of 15. Comparing the numerical summary with
@@ -366,7 +366,7 @@ accurate, does it still show similar characteristics of hubness?</p>
 <div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">g1000d_nndko</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/k_occur.html">k_occur</a></span><span class="op">(</span><span class="va">g1000d_nnd</span><span class="op">$</span><span class="va">idx</span>, k <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/hist.html" class="external-link">hist</a></span><span class="op">(</span><span class="va">g1000d_nndko</span>, main <span class="op">=</span> <span class="st">"1000D 15-NND"</span>, xlab <span class="op">=</span> <span class="st">"k-occurrences"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="hubness_files/figure-html/1000D%20NND%20k-occurences-1.png" width="700"></p>
+<p><img src="hubness_files/figure-html/1000D%20NND%20k-occurences-1.png" class="r-plt" alt="" width="700"></p>
 <p>That seems similar to the true results, and zooming in like we did
 with the exact results:</p>
 <div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
@@ -374,7 +374,7 @@ with the exact results:</p>
 <span>  main <span class="op">=</span> <span class="st">"1000D 15-NND zoomed"</span>,</span>
 <span>  xlab <span class="op">=</span> <span class="st">"k-occurrences"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="hubness_files/figure-html/zoomed%20NND%20k-occurrences-1.png" width="700"></p>
+<p><img src="hubness_files/figure-html/zoomed%20NND%20k-occurrences-1.png" class="r-plt" alt="" width="700"></p>
 <p>Visually this looks a lot like the distribution of the exact results.
 Next, the numerical summary:</p>
 <div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
@@ -410,7 +410,7 @@ distributed across the data. So let’s see how well the NND k-occurrences
 <span>  main <span class="op">=</span> <span class="st">"1000D k-occ"</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/abline.html" class="external-link">abline</a></span><span class="op">(</span>a <span class="op">=</span> <span class="fl">0</span>, b <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
-<p><img src="hubness_files/figure-html/approximate%20vs%20true%201000D%20k-occurrence-1.png" width="700"></p>
+<p><img src="hubness_files/figure-html/approximate%20vs%20true%201000D%20k-occurrence-1.png" class="r-plt" alt="" width="700"></p>
 <div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/cor.html" class="external-link">cor</a></span><span class="op">(</span><span class="va">g1000d_nndko</span>, <span class="va">g1000d_bfko</span>, method <span class="op">=</span> <span class="st">"pearson"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 0.9939508</span></span></code></pre></div>
@@ -428,7 +428,7 @@ most hub-like.</p>
 <span>  main <span class="op">=</span> <span class="st">"1000D low k-occ"</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/abline.html" class="external-link">abline</a></span><span class="op">(</span>a <span class="op">=</span> <span class="fl">0</span>, b <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
-<p><img src="hubness_files/figure-html/zoomed%20approximate%20vs%20true%201000D%20k-occurrence-1.png" width="700"></p>
+<p><img src="hubness_files/figure-html/zoomed%20approximate%20vs%20true%201000D%20k-occurrence-1.png" class="r-plt" alt="" width="700"></p>
 <p>here it seems that there is a tendency to over-estimate the
 k-occurrence. Anti-hubs are also not perfectly identified, but there are
 no true anti-hubs which appear more than a small number of times in the
@@ -452,7 +452,7 @@ neighbors:</p>
 <span>  xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">g1000d_nndko</span>, <span class="va">g1000d_bfko</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  main <span class="op">=</span> <span class="st">"1000D acc vs NND k-occ"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="hubness_files/figure-html/predicting%20accuracy%20with%20NND%20k-occurrence-1.png" width="700"></p>
+<p><img src="hubness_files/figure-html/predicting%20accuracy%20with%20NND%20k-occurrence-1.png" class="r-plt" alt="" width="700"></p>
 <p>So the answer to the question is “not really”, but there <em>is</em>
 a trend. The empty space in the lower right of the plot indicates that
 items with a large k-occurrence (hubs) are very well predicted. And
@@ -519,14 +519,14 @@ neighbor graph. But let’s take a look at the k-occurrence
 distribution:</p>
 <div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/hist.html" class="external-link">hist</a></span><span class="op">(</span><span class="va">g1000d_nndkoi1</span>, main <span class="op">=</span> <span class="st">"1000D 15-NND (1 iter)"</span>, xlab <span class="op">=</span> <span class="st">"k-occurrences"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="hubness_files/figure-html/unconverged%20ko%20distribution-1.png" width="700"></p>
+<p><img src="hubness_files/figure-html/unconverged%20ko%20distribution-1.png" class="r-plt" alt="" width="700"></p>
 <p>Looking familiar. Zooming in…</p>
 <div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/hist.html" class="external-link">hist</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">pmin</a></span><span class="op">(</span><span class="va">g1000d_nndkoi1</span>, <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">g2d_bfko</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  main <span class="op">=</span> <span class="st">"1000D 15-NND (1 iter, zoomed)"</span>,</span>
 <span>  xlab <span class="op">=</span> <span class="st">"k-occurrences"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="hubness_files/figure-html/unconverged%20ko%20distribution%20zoomed-1.png" width="700"></p>
+<p><img src="hubness_files/figure-html/unconverged%20ko%20distribution%20zoomed-1.png" class="r-plt" alt="" width="700"></p>
 <p>The distribution is at least similar to the converged version. Taking
 a look at some numbers:</p>
 <div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
@@ -551,7 +551,7 @@ same procedure with the 2D dataset:</p>
 <code class="sourceCode R"><span><span class="va">g2d_nnd_iter1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/nnd_knn.html">nnd_knn</a></span><span class="op">(</span><span class="va">g2d</span>, k <span class="op">=</span> <span class="fl">15</span>, metric <span class="op">=</span> <span class="st">"euclidean"</span>, n_iters <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="va">g2d_nndkoi1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/k_occur.html">k_occur</a></span><span class="op">(</span><span class="va">g2d_nnd_iter1</span><span class="op">$</span><span class="va">idx</span>, k <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/hist.html" class="external-link">hist</a></span><span class="op">(</span><span class="va">g2d_nndkoi1</span>, main <span class="op">=</span> <span class="st">"2D 15-NND (1 iter)"</span>, xlab <span class="op">=</span> <span class="st">"k-occurrences"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="hubness_files/figure-html/unconverged%202D%20NND-1.png" width="700"></p>
+<p><img src="hubness_files/figure-html/unconverged%202D%20NND-1.png" class="r-plt" alt="" width="700"></p>
 <div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">g2d_nndkoi1</span><span class="op">)</span></span>
 <span><span class="co">#&gt;    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. </span></span>
@@ -695,7 +695,7 @@ diversity in the results.</p>
 <span>  xlab <span class="op">=</span> <span class="st">"accuracy run 1"</span>,</span>
 <span>  ylab <span class="op">=</span> <span class="st">"accuracy run 2"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="hubness_files/figure-html/NND%20100D%20compare%20accuracy-1.png" width="700"></p>
+<p><img src="hubness_files/figure-html/NND%20100D%20compare%20accuracy-1.png" class="r-plt" alt="" width="700"></p>
 <div class="sourceCode" id="cb50"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/cor.html" class="external-link">cor</a></span><span class="op">(</span><span class="va">g1000d_nnd_acc</span>, <span class="va">g1000d_nnd_rep_acc</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 0.5069483</span></span></code></pre></div>
@@ -754,7 +754,7 @@ graph:</p>
 <div class="sourceCode" id="cb52"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">g1000d_sgko</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/k_occur.html">k_occur</a></span><span class="op">(</span><span class="va">g1000d_search_graph</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/hist.html" class="external-link">hist</a></span><span class="op">(</span><span class="va">g1000d_sgko</span>, main <span class="op">=</span> <span class="st">"search graph k-occurrences"</span>, xlab <span class="op">=</span> <span class="st">"k-occurrences"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="hubness_files/figure-html/histogram%20of%20k-occurrences%20of%20search%20graph-1.png" width="700"></p>
+<p><img src="hubness_files/figure-html/histogram%20of%20k-occurrences%20of%20search%20graph-1.png" class="r-plt" alt="" width="700"></p>
 <div class="sourceCode" id="cb53"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">g1000d_sgko</span><span class="op">)</span></span>
 <span><span class="co">#&gt;    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. </span></span>
@@ -992,7 +992,7 @@ Schnitzer, Dominik, Arthur Flexer, Markus Schedl, and Gerhard Widmer.
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer>

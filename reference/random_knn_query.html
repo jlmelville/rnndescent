@@ -111,6 +111,9 @@ and format as <code>reference</code>. Possible formats are <code><a href="https:
 <li><p><code>"dice"</code></p></li>
 <li><p><code>"euclidean"</code></p></li>
 <li><p><code>"hamming"</code></p></li>
+<li><p><code>"haversine"</code> (great-circle distance for 2D latitude/longitude in
+<em>radians</em>; an error will be raised if values that appear to be supplied in
+degrees are encountered)</p></li>
 <li><p><code>"hellinger"</code></p></li>
 <li><p><code>"jaccard"</code></p></li>
 <li><p><code>"jensenshannon"</code></p></li>
@@ -202,9 +205,9 @@ column-oriented will save some memory and (a small amount of) CPU usage.</p></dd
 <span class="r-in"><span>  reference <span class="op">=</span> <span class="va">iris_ref</span>,</span></span>
 <span class="r-in"><span>  k <span class="op">=</span> <span class="fl">4</span>, metric <span class="op">=</span> <span class="st">"euclidean"</span>, verbose <span class="op">=</span> <span class="cn">TRUE</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 16:34:20 Using alt metric 'sqeuclidean' for 'euclidean'</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 16:34:20 Generating random k-nearest neighbor graph from reference with k = 4</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 16:34:20 Finished</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 07:27:30 Using alt metric 'sqeuclidean' for 'euclidean'</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 07:27:30 Generating random k-nearest neighbor graph from reference with k = 4</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 07:27:30 Finished</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Manhattan (l1) distance</span></span></span>
 <span class="r-in"><span><span class="va">iris_query_random_nbrs</span> <span class="op">&lt;-</span> <span class="fu">random_knn_query</span><span class="op">(</span><span class="va">iris_query</span>,</span></span>
@@ -222,7 +225,7 @@ column-oriented will save some memory and (a small amount of) CPU usage.</p></dd
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer></div>

@@ -1,0 +1,174 @@
+# Metrics
+
+``` r
+library(rnndescent)
+```
+
+A lot of distance functions are implemented in `rnndescent`, which you
+can specify in every function which needs them with the `metric`
+parameter. Technically not all of these are metrics, but let’s just let
+that slide. Typical are `"euclidean"` or `"cosine"` the latter being
+more common for document-based data. For binary data, `"hamming"` or
+`"jaccard"` might be a good place to start.
+
+The metrics here are a subset of those offered by the
+[PyNNDescent](https://github.com/lmcinnes/pynndescent/tree/master)
+Python package which in turn reproduces those in the
+[scipy.spatial.distance](https://docs.scipy.org/doc/scipy/reference/spatial.distance.html#module-scipy.spatial.distance)
+module of [SciPy](https://scipy.org/). Many of the binary distances seem
+to have definitions shared with (Choi et al. 2010) so you may want to
+look in that reference for an exact definition.
+
+- `"braycurtis"`:
+  [Bray-Curtis](https://en.wikipedia.org/wiki/Bray%E2%80%93Curtis_dissimilarity).
+- `"canberra"`:
+  [Canberra](https://en.wikipedia.org/wiki/Canberra_distance).
+- `"chebyshev"`:
+  [Chebyshev](https://en.wikipedia.org/wiki/Chebyshev_distance), also
+  known as the L-infinity norm ($L_{\infty}$).
+- `"correlation"`: 1 minus the [Pearson
+  correlation](https://en.wikipedia.org/wiki/Pearson_correlation_coefficient).
+- `"cosine"`: 1 minus the [cosine
+  similarity](https://en.wikipedia.org/wiki/Cosine_similarity).
+- `"dice"`: the [Dice
+  coefficient](https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient),
+  also known as the Sørensen–Dice coefficient. Intended for binary data.
+- `"euclidean"`: the Euclidean distance, also known as the L2 norm.
+- `"hamming"`: the [Hamming
+  distance](https://en.wikipedia.org/wiki/Hamming_distance). Intended
+  for binary data.
+- `"haversine"`: the Haversine (great-circle) distance for 2D latitude
+  and longitude coordinates in *radians*. This is for compatibility with
+  the PyNNDescent implementation, but be aware that functions like
+  `distHaversine` in the
+  [geosphere](https://CRAN.R-project.org/package=geosphere) package
+  expect latitude and longitude in *degrees*. An error will be raised if
+  values that appear to be supplied in degrees are encountered.
+- `"hellinger"`: the [Hellinger
+  distance](https://en.wikipedia.org/wiki/Hellinger_distance). This is
+  intended to be used with a probability distribution, so ensure that
+  each row of your input data contains non-negative values which sum to
+  `1`.
+- `"jaccard"`: the [Jaccard
+  index](https://en.wikipedia.org/wiki/Jaccard_index), also known as the
+  Tanimoto coefficient. Intended for binary data.
+- `"jensenshannon"`: the [Jensen-Shannon
+  divergence](https://en.wikipedia.org/wiki/Jensen%E2%80%93Shannon_divergence).
+  Like `"hellinger"`, this is intended to be used with a probability
+  distribution.
+- `"kulsinski"`: the Kulsinski dissimilarity as defined in the Python
+  package `scipy.spatial.distance.kulsinski` (this function is
+  deprecated in scipy). Intended for binary data.
+- `"sqeuclidean"` (squared Euclidean)
+- `"manhattan"`: the Manhattan distance, also known as the L1 norm or
+  [Taxicab distance](https://en.wikipedia.org/wiki/Taxicab_geometry).
+- `"rogerstanimoto"`: the [Rogers-Tanimoto
+  coefficient](https://en.wikipedia.org/wiki/Qualitative_variation#Rogers%E2%80%93Tanimoto_coefficient).
+- `"russellrao"`: the [Russell-Rao
+  coefficient](https://en.wikipedia.org/wiki/Qualitative_variation#Russel%E2%80%93Rao_coefficient).
+- `"sokalmichener"`. Intended for binary data.
+- `"sokalsneath"`: the [Sokal-Sneath
+  coefficient](https://en.wikipedia.org/wiki/Qualitative_variation#Sokal%E2%80%93Sneath_coefficient).
+  Intended for binary data.
+- `"spearmanr"`: 1 minus the [Spearman rank
+  correlation](https://en.wikipedia.org/wiki/Spearman%27s_rank_correlation_coefficient)
+- `"symmetrickl"` symmetrized version of the [Kullback-Leibler
+  divergence](https://en.wikipedia.org/wiki/Kullback%E2%80%93Leibler_divergence).
+  The symmetrization is calculated as
+  $D_{KL}\left( P{||}Q \right) + D_{KL}\left( Q{||}P \right)$.
+- `"tsss"` the Triangle Area Similarity-Sector Area Similarity or TS-SS
+  metric as described in (Heidarian and Dinneen 2016). Compared to
+  results in PyNNDescent (as of version 0.5.11), distances are smaller
+  by a factor of 2 in this package. This does not affect the returned
+  nearest neighbors, only the distances. Multiply them by 2 if you need
+  to get closer to the PyNNDescent results.
+- `"yule"` the Yule dissimilarity. Intended for binary data.
+
+For non-sparse data, the following variants are available with
+preprocessing: this trades memory for a potential speed up during the
+distance calculation. Some minor numerical differences should be
+expected compared to the non-preprocessed versions:
+
+- `"cosine-preprocess"`: `cosine` with preprocessing.
+- `"correlation-preprocess"`: `correlation` with preprocessing.
+
+## Specialized Binary Metrics
+
+Some metrics are intended for use with binary data. This means that:
+
+- Your numeric data should consist of only two distinct values,
+  typically `0` and `1`. You will get unpredictable results otherwise.
+- If you provide the data as a `logical` matrix, a much faster
+  implementation is used.
+
+The metrics you can use with binary data are:
+
+- `"dice"`
+- `"hamming"`
+- `"jaccard"`
+- `"kulsinski"`
+- `"matching"`
+- `"rogerstanimoto"`
+- `"russellrao"`
+- `"sokalmichener"`
+- `"sokalsneath"`
+- `"yule"`
+
+Here’s an example of using binary data stored as 0s and 1s with the
+`"hamming"` metric:
+
+``` r
+set.seed(42)
+binary_data <- matrix(sample(c(0, 1), 100, replace = TRUE), ncol = 10)
+head(binary_data)
+#>      [,1] [,2] [,3] [,4] [,5] [,6] [,7] [,8] [,9] [,10]
+#> [1,]    0    0    0    1    0    1    0    1    1     0
+#> [2,]    0    1    0    1    0    0    1    0    0     1
+#> [3,]    0    0    0    1    1    1    1    1    1     0
+#> [4,]    0    1    0    1    1    1    1    1    0     1
+#> [5,]    1    0    0    0    1    1    1    1    0     1
+#> [6,]    1    0    1    1    1    1    1    1    1     1
+```
+
+``` r
+nn <- brute_force_knn(binary_data, k = 4, metric = "hamming")
+```
+
+Now let’s convert it to a logical matrix:
+
+``` r
+logical_data <- binary_data == 1
+head(logical_data)
+#>       [,1]  [,2]  [,3]  [,4]  [,5]  [,6]  [,7]  [,8]  [,9] [,10]
+#> [1,] FALSE FALSE FALSE  TRUE FALSE  TRUE FALSE  TRUE  TRUE FALSE
+#> [2,] FALSE  TRUE FALSE  TRUE FALSE FALSE  TRUE FALSE FALSE  TRUE
+#> [3,] FALSE FALSE FALSE  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE FALSE
+#> [4,] FALSE  TRUE FALSE  TRUE  TRUE  TRUE  TRUE  TRUE FALSE  TRUE
+#> [5,]  TRUE FALSE FALSE FALSE  TRUE  TRUE  TRUE  TRUE FALSE  TRUE
+#> [6,]  TRUE FALSE  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE
+```
+
+``` r
+logical_nn <- brute_force_knn(logical_data, k = 4, metric = "hamming")
+```
+
+The results will be the same:
+
+``` r
+all.equal(nn, logical_nn)
+#> [1] TRUE
+```
+
+but on a real-world dataset, the logical version will be much faster.
+
+## References
+
+Choi, Seung-Seok, Sung-Hyuk Cha, Charles C Tappert, et al. 2010. “A
+Survey of Binary Similarity and Distance Measures.” *Journal of
+Systemics, Cybernetics and Informatics* 8 (1): 43–48.
+
+Heidarian, Arash, and Michael J. Dinneen. 2016. “A Hybrid Geometric
+Approach for Measuring Similarity Level Among Documents and Document
+Clustering.” In *2016 IEEE Second International Conference on Big Data
+Computing Service and Applications (BigDataService)*, 142–51.
+<https://doi.org/10.1109/BigDataService.2016.14>.

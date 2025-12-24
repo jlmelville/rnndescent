@@ -1,0 +1,189 @@
+# rnndescent
+
+An R package for finding approximate nearest neighbors, translated from
+the Python package
+[PyNNDescent](https://github.com/lmcinnes/pynndescent) written by the
+great Leland McInnes. As the name suggests, it uses the Nearest Neighbor
+Descent method ([Dong et al.,
+2011](https://doi.org/10.1145/1963405.1963487)), but also makes use of
+Random Partition Trees ([Dasgupta and Freund,
+2008](https://doi.org/10.1145/1374376.1374452)) as well as ideas from
+[FANNG](https://doi.org/10.1109/CVPR.2016.616) and
+[NGT](https://github.com/yahoojapan/NGT).
+
+You can use rnndescent for:
+
+- optimizing an initial set of nearest neighbors, e.g. those generated
+  by [RcppAnnoy](https://cran.r-project.org/package=RcppAnnoy) or
+  [RcppHNSW](https://cran.r-project.org/package=RcppHNSW).
+- using this package for nearest neighbor search all on its own…
+- … including finding nearest neighbors on sparse data, which most other
+  packages in the R ecosystem cannot do.
+- and a much larger number of metrics than most other packages.
+
+## Documentation
+
+See the [Get
+Started](https://jlmelville.github.io/rnndescent/articles/rnndescent.html)
+article for the basics. The other
+[vignettes](https://jlmelville.github.io/rnndescent/articles/) go into
+more detail.
+
+## Current Status
+
+*05 September 2025*: Version 0.1.8 has been released to CRAN. This fixes
+some test tolerances that caused Mac M1 checks on CRAN to fail.
+
+## Installation
+
+### CRAN
+
+``` r
+install.packages("rnndescent")
+```
+
+### Development Version
+
+``` r
+# install.packages("pak")
+pak::pkg_install("jlmelville/rnndescent")
+```
+
+This packages makes use of C++ code which must be compiled. You may have
+to carry out a few extra steps before being able to build:
+
+**Windows**: install
+[Rtools](https://cran.r-project.org/bin/windows/Rtools/) and ensure
+`C:\Rtools\bin` is on your path.
+
+**Mac OS X**: using a custom `~/.R/Makevars` [may cause linking
+errors](https://github.com/jlmelville/uwot/issues/1). This sort of thing
+is a potential problem on all platforms but seems to bite Mac owners
+more. [The R for Mac OS X
+FAQ](https://cran.r-project.org/bin/macosx/RMacOSX-FAQ.html#Installation-of-source-packages)
+may be helpful here to work out what you can get away with. To be on the
+safe side, I would advise building without a custom `Makevars`.
+
+`rnndescent` uses C++17. This shouldn’t be too big a problem but not all
+R platforms support it (sorry if this affects you).
+
+## Example
+
+``` r
+library(rnndescent)
+
+# Find 15-knn
+iris_knn <- rnnd_knn(iris, k = 15)
+
+# Build an index
+iris_even <- iris[seq_len(nrow(iris)) %% 2 == 0, ]
+# Specify the number of neighbors you are likely to want to query for
+iris_index <- rnnd_build(iris_index, k = 15)
+
+# Query then index
+iris_odd <- iris[seq_len(nrow(iris)) %% 2 == 1, ]
+iris_query_nn <- rnnd_query(index = iris_index, query = iris_odd, k = 15)
+```
+
+For more details, please see the
+[documentation](https://jlmelville.github.io/rnndescent/articles/).
+
+## Supported Metrics
+
+Many. See the [metrics
+article](https://jlmelville.github.io/rnndescent/articles/metrics.html)
+for a list.
+
+## Missing Features
+
+Compared to PyNNDescent, `rnndescent` is currently lacking, in
+decreasing order of likelihood of implementation:
+
+- Only parallel batch queries are currently supported. This means that
+  if you are trying to stream queries, where you are only querying one
+  item at a time, you will get no parallelism.
+- The index is always passed between the C++ and R layers when building
+  an index and querying. This is useful for portability as its easy to
+  serialize the index (you can use `saveRDS` like any R data for
+  example), but it’s not very efficient. Keeping the index as an
+  R-wrapped C++ class has its own downsides but would fix that.
+- The index can also get *very* large for large (and high-dimensional)
+  datasets.
+- Some of the distance metrics. A large number are currently supported
+  though. See `Missing Metrics` below for those that are currently not
+  available.
+- Custom metrics. This just isn’t feasible with a C++ implementation.
+
+The issues around index serialization and parallel behavior make
+`rnndescent` currently unsuitable for streaming applications where you
+are querying one item at a time. If you are doing batch queries, where
+you are querying multiple items at once, then `rnndescent` should be
+fine: for example, generating nearest neighbors for UMAP (maybe for use
+with [uwot](https://github.com/jlmelville/uwot)). Dimensionality
+reduction is my personal use case for nearest neighbors calculation and
+I would like to get `rnndescent` onto CRAN in a useful-for-something
+state. As a result I am not targeting an initial release to support the
+streaming case. I would like to fix this for a subsequent release.
+
+Also there is no specialized distance code to take advantage of AVX
+etc., so `rnndescent` is going to run slower than other packages. This
+wouldn’t be allowed on CRAN anyway, but might be a nice-to-have for
+installing from github.
+
+## Citation
+
+Dong, W., Moses, C., & Li, K. (2011, March). Efficient k-nearest
+neighbor graph construction for generic similarity measures. In
+*Proceedings of the 20th international conference on World wide web*
+(pp. 577-586). ACM.
+[doi.org/10.1145/1963405.1963487](https://doi.org/10.1145/1963405.1963487).
+
+## License
+
+The R package as a whole is licensed under [GPLv3 or
+later](https://www.gnu.org/licenses/gpl-3.0.txt). The following files
+are licensed differently:
+
+- `inst/include/dqsample.h` is a modification of some sampling code from
+  [dqrng](https://github.com/daqana/dqrng) and is [AGPLv3 or
+  later](https://www.gnu.org/licenses/agpl-3.0.en.html).
+- `inst/include/RcppPerpendicular.h` is a modification of some code from
+  from [RcppParallel](https://github.com/RcppCore/RcppParallel) and is
+  [GPLv2 or
+  later](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
+- The underlying nearest neighbor descent C++ library, which can be
+  found under `inst/include/tdoann`, is licensed under the [BSD
+  2-Clause](https://opensource.org/license/bsd-2-clause/).
+
+As far as I know, these licenses are all compatible with re-licensing
+under GPLv3 or later.
+
+## Missing Metrics
+
+The following metrics are in PyNNDescent but are not supported in
+rnndescent:
+
+- Circular Kantorovich
+- Kantorovich
+- Mahalanobis
+- Minkowski
+- Sinkhorn
+- Standardised Euclidean
+- Wasserstein 1d
+- Weighted Minkowski
+
+These require passing extra information as part of the metric
+definition, which is not currently supported.
+
+## See Also
+
+- [PyNNDescent](https://github.com/lmcinnes/pynndescent), the Python
+  implementation.
+- [nndescent](https://github.com/TatsuyaShirakawa/nndescent), a C++
+  implementation.
+- [NearestNeighborDescent.jl](https://github.com/dillondaudert/NearestNeighborDescent.jl),
+  a Julia implementation.
+- [NNDescent.cpp](https://github.com/AnabelSMRuggiero/NNDescent.cpp),
+  another C++ implementation.
+- [nndescent](https://github.com/brj0/nndescent), another C++
+  implementation, with Python bindings.
