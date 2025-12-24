@@ -2,7 +2,6 @@
 
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/jlmelville/rnndescent/workflows/R-CMD-check/badge.svg)](https://github.com/jlmelville/rnndescent/actions)
-[![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/jlmelville/rnndescent?branch=master&svg=true)](https://ci.appveyor.com/project/jlmelville/rnndescent)
 [![Coverage Status](https://img.shields.io/codecov/c/github/jlmelville/rnndescent/master.svg)](https://app.codecov.io/github/jlmelville/rnndescent?branch=master)
 [![CRAN Status Badge](https://www.r-pkg.org/badges/version/rnndescent)](https://cran.r-project.org/package=rnndescent)
 [![Dependencies](https://tinyverse.netlify.app/badge/rnndescent)](https://cran.r-project.org/package=rnndescent)
