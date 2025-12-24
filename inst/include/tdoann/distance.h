@@ -223,6 +223,23 @@ Out hamming(const It xbegin, const It xend, const It ybegin) {
 }
 
 template <typename Out, typename It>
+Out haversine(const It xbegin, const It xend, const It ybegin) {
+  static_cast<void>(xend);
+
+  const Out lat1 = *xbegin;
+  const Out lon1 = *(xbegin + 1);
+  const Out lat2 = *ybegin;
+  const Out lon2 = *(ybegin + 1);
+
+  const Out sin_lat = std::sin(static_cast<Out>(0.5) * (lat1 - lat2));
+  const Out sin_lon = std::sin(static_cast<Out>(0.5) * (lon1 - lon2));
+  const Out a = sin_lat * sin_lat +
+                std::cos(lat1) * std::cos(lat2) * sin_lon * sin_lon;
+  const Out clamped = std::clamp(a, Out{0}, Out{1});
+  return static_cast<Out>(2) * std::asin(std::sqrt(clamped));
+}
+
+template <typename Out, typename It>
 Out hellinger(const It xbegin, const It xend, const It ybegin) {
   Out result = 0;
   Out l1_norm_x = 0;

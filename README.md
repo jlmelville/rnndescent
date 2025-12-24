@@ -166,7 +166,6 @@ GPLv3 or later.
 The following metrics are in PyNNDescent but are not supported in rnndescent:
 
 * Circular Kantorovich
-* Haversine
 * Kantorovich
 * Mahalanobis
 * Minkowski
@@ -187,4 +186,3 @@ a Julia implementation.
 * [NNDescent.cpp](https://github.com/AnabelSMRuggiero/NNDescent.cpp), another
 C++ implementation.
 * [nndescent](https://github.com/brj0/nndescent), another C++ implementation, with Python bindings.
-

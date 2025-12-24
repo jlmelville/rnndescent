@@ -36,6 +36,9 @@
 #'   - `"dice"`
 #'   - `"euclidean"`
 #'   - `"hamming"`
+#'   - `"haversine"` (great-circle distance for 2D latitude/longitude in
+#' *radians*; an error will be raised if values that appear to be supplied in
+#' degrees are encountered)
 #'   - `"hellinger"`
 #'   - `"jaccard"`
 #'   - `"jensenshannon"`
@@ -478,6 +481,9 @@ rnnd_query <-
 #'   - `"dice"`
 #'   - `"euclidean"`
 #'   - `"hamming"`
+#'   - `"haversine"` (great-circle distance for 2D latitude/longitude in
+#' *radians*; an error will be raised if values that appear to be supplied in
+#' degrees are encountered)
 #'   - `"hellinger"`
 #'   - `"jaccard"`
 #'   - `"jensenshannon"`
@@ -720,6 +726,9 @@ rnnd_knn <- function(data,
 #'   - `"dice"`
 #'   - `"euclidean"`
 #'   - `"hamming"`
+#'   - `"haversine"` (great-circle distance for 2D latitude/longitude in
+#' *radians*; an error will be raised if values that appear to be supplied in
+#' degrees are encountered)
 #'   - `"hellinger"`
 #'   - `"jaccard"`
 #'   - `"jensenshannon"`
@@ -884,6 +893,9 @@ brute_force_knn <- function(data,
 #'   - `"dice"`
 #'   - `"euclidean"`
 #'   - `"hamming"`
+#'   - `"haversine"` (great-circle distance for 2D latitude/longitude in
+#' *radians*; an error will be raised if values that appear to be supplied in
+#' degrees are encountered)
 #'   - `"hellinger"`
 #'   - `"jaccard"`
 #'   - `"jensenshannon"`
@@ -1032,6 +1044,9 @@ random_knn <-
 #'   - `"dice"`
 #'   - `"euclidean"`
 #'   - `"hamming"`
+#'   - `"haversine"` (great-circle distance for 2D latitude/longitude in
+#' *radians*; an error will be raised if values that appear to be supplied in
+#' degrees are encountered)
 #'   - `"hellinger"`
 #'   - `"jaccard"`
 #'   - `"jensenshannon"`
@@ -1436,6 +1451,9 @@ nnd_knn <- function(data,
 #'   - `"dice"`
 #'   - `"euclidean"`
 #'   - `"hamming"`
+#'   - `"haversine"` (great-circle distance for 2D latitude/longitude in
+#' *radians*; an error will be raised if values that appear to be supplied in
+#' degrees are encountered)
 #'   - `"hellinger"`
 #'   - `"jaccard"`
 #'   - `"jensenshannon"`
@@ -1618,6 +1636,9 @@ brute_force_knn_query <- function(query,
 #'   - `"dice"`
 #'   - `"euclidean"`
 #'   - `"hamming"`
+#'   - `"haversine"` (great-circle distance for 2D latitude/longitude in
+#' *radians*; an error will be raised if values that appear to be supplied in
+#' degrees are encountered)
 #'   - `"hellinger"`
 #'   - `"jaccard"`
 #'   - `"jensenshannon"`
@@ -1794,6 +1815,9 @@ random_knn_query <-
 #'   - `"dice"`
 #'   - `"euclidean"`
 #'   - `"hamming"`
+#'   - `"haversine"` (great-circle distance for 2D latitude/longitude in
+#' *radians*; an error will be raised if values that appear to be supplied in
+#' degrees are encountered)
 #'   - `"hellinger"`
 #'   - `"jaccard"`
 #'   - `"jensenshannon"`
@@ -2210,6 +2234,9 @@ graph_knn_query <- function(query,
 #'   - `"dice"`
 #'   - `"euclidean"`
 #'   - `"hamming"`
+#'   - `"haversine"` (great-circle distance for 2D latitude/longitude in
+#' *radians*; an error will be raised if values that appear to be supplied in
+#' degrees are encountered)
 #'   - `"hellinger"`
 #'   - `"jaccard"`
 #'   - `"jensenshannon"`

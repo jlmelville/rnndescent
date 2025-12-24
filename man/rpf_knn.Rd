@@ -44,6 +44,9 @@ specified.}
 \item \code{"dice"}
 \item \code{"euclidean"}
 \item \code{"hamming"}
+\item \code{"haversine"} (great-circle distance for 2D latitude/longitude in
+\emph{radians}; an error will be raised if values that appear to be supplied in
+degrees are encountered)
 \item \code{"hellinger"}
 \item \code{"jaccard"}
 \item \code{"jensenshannon"}

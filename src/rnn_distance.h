@@ -20,6 +20,7 @@
 #ifndef RNN_DISTANCE_H
 #define RNN_DISTANCE_H
 
+#include <cmath>
 #include <memory>
 #include <type_traits>
 #include <unordered_map>
@@ -51,6 +52,7 @@ get_metric_map() {
           {"dice", tdoann::dice<Out, InIt>},
           {"euclidean", tdoann::euclidean<Out, InIt>},
           {"hamming", tdoann::hamming<Out, InIt>},
+          {"haversine", tdoann::haversine<Out, InIt>},
           {"hellinger", tdoann::hellinger<Out, InIt>},
           {"alternative-hellinger", tdoann::alternative_hellinger<Out, InIt>},
           {"jaccard", tdoann::jaccard<Out, InIt>},
@@ -152,6 +154,37 @@ get_sparse_preprocess_map() {
   return map;
 }
 
+inline void validate_haversine_ndim(std::size_t ndim,
+                                    const std::string &metric) {
+  if (metric == "haversine" && ndim != 2) {
+    Rcpp::stop("haversine is only defined for 2 dimensional data");
+  }
+}
+
+template <typename In>
+inline void validate_haversine_radians(const std::vector<In> &data,
+                                       std::size_t ndim,
+                                       const std::string &metric) {
+  if (metric != "haversine") {
+    return;
+  }
+
+  const In pi = static_cast<In>(std::acos(-1.0));
+  const In max_lat = pi / static_cast<In>(2);
+  const In max_lon = static_cast<In>(2) * pi;
+  const In tol = static_cast<In>(1.0e-7);
+
+  for (std::size_t offset = 0; offset + 1 < data.size(); offset += ndim) {
+    const In lat = data[offset];
+    const In lon = data[offset + 1];
+    if (std::abs(lat) > max_lat + tol || std::abs(lon) > max_lon + tol) {
+      Rcpp::stop(
+          "haversine expects radians; latitude must be in [-pi/2, pi/2] "
+          "and longitude in [-2*pi, 2*pi]");
+    }
+  }
+}
+
 template <typename In, typename Out>
 std::pair<tdoann::DistanceFunc<In, Out>, tdoann::PreprocessFunc<In>>
 get_dense_distance_funcs(const std::string &metric) {
@@ -228,6 +261,10 @@ create_query_distance_impl(
   using Out = typename FactoryTraits<Args...>::output_type;
   using Idx = typename FactoryTraits<Args...>::index_type;
 
+  validate_haversine_ndim(ndim, metric);
+  validate_haversine_radians(ref_vec, ndim, metric);
+  validate_haversine_radians(query_vec, ndim, metric);
+
   auto [distance_func, preprocess_func] =
       get_dense_distance_funcs<In, Out>(metric);
 
@@ -244,6 +281,8 @@ create_query_distance_impl(const Rcpp::NumericMatrix &reference,
   using In = typename FactoryTraits<Args...>::input_type;
 
   const auto ndim = reference.nrow();
+  validate_haversine_ndim(ndim, metric);
+  validate_haversine_ndim(query.nrow(), metric);
   auto ref_vec = r_to_vec<In>(reference);
   auto query_vec = r_to_vec<In>(query);
 
@@ -319,6 +358,9 @@ create_self_distance_impl(
   using In = typename FactoryTraits<Args...>::input_type;
   using Out = typename FactoryTraits<Args...>::output_type;
   using Idx = typename FactoryTraits<Args...>::index_type;
+
+  validate_haversine_ndim(ndim, metric);
+  validate_haversine_radians(data_vec, ndim, metric);
 
   auto [distance_func, preprocess_func] =
       get_dense_distance_funcs<In, Out>(metric);

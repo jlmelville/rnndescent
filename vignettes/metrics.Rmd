@@ -45,6 +45,12 @@ also known as the Sørensen–Dice coefficient. Intended for binary data.
 * `"euclidean"`: the Euclidean distance, also known as the L2 norm.
 * `"hamming"`: the [Hamming distance](https://en.wikipedia.org/wiki/Hamming_distance). 
 Intended for binary data.
+* `"haversine"`: the Haversine (great-circle) distance for 2D latitude and
+longitude coordinates in *radians*. This is for compatibility with the
+PyNNDescent implementation, but be aware that functions like `distHaversine` in 
+the [geosphere](https://CRAN.R-project.org/package=geosphere) package expect
+latitude and longitude in *degrees*. An error will be raised if values that
+appear to be supplied in degrees are encountered.
 * `"hellinger"`: the [Hellinger distance](https://en.wikipedia.org/wiki/Hellinger_distance).
 This is intended to be used with a probability distribution, so ensure that each 
 row of your input data contains non-negative values which sum to `1`.

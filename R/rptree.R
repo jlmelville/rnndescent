@@ -24,6 +24,9 @@
 #'   - `"dice"`
 #'   - `"euclidean"`
 #'   - `"hamming"`
+#'   - `"haversine"` (great-circle distance for 2D latitude/longitude in
+#' *radians*; an error will be raised if values that appear to be supplied in
+#' degrees are encountered)
 #'   - `"hellinger"`
 #'   - `"jaccard"`
 #'   - `"jensenshannon"`
@@ -230,6 +233,9 @@ rpf_knn <- function(data,
 #'   - `"dice"`
 #'   - `"euclidean"`
 #'   - `"hamming"`
+#'   - `"haversine"` (great-circle distance for 2D latitude/longitude in
+#' *radians*; an error will be raised if values that appear to be supplied in
+#' degrees are encountered)
 #'   - `"hellinger"`
 #'   - `"jaccard"`
 #'   - `"jensenshannon"`

@@ -1,5 +1,13 @@
 # rnndescent (development version)
 
+## New features
+
+* Add `haversine` metric for 2D latitude/longitude data in radians. This is
+one of the metrics that was in PyNNDescent but I neglected to add to
+rnndescent for its initial release. Thank you to
+[Josiah Parry](https://github.com/JosiahParry) whose request nudged me to fill
+this gap (<https://github.com/jlmelville/rnndescent/issues/17>).
+
 # rnndescent 0.1.8
 
 This is a patch release to fix some M1 Mac test failures as part of CRAN checks.

@@ -109,6 +109,78 @@ test_that("Hamming", {
   expect_equal(bfdense, bfsparse)
 })
 
+test_that("Haversine", {
+    coords_rad <- matrix(c(
+        0.0,  0.0,
+        0.01047198,  0.00436332,
+       -0.01570796, -0.00523599,
+        0.03141593,  0.00698132,
+       -0.04363323, -0.0122173,
+        0.17453293,  3.12413936,
+        0.18151424, -3.13286601,
+        0.16929694,  3.11192206,
+        1.55334303,  0.0       ,
+        1.54636172,  1.57079633
+    ), byrow = TRUE, nrow = 10, ncol = 2)
+
+
+    # data validated against sklearn haversine distances
+    expected_idx <- matrix(c(
+        1,  2,  3,  4,  5, 9,
+        2,  1,  4,  3,  5, 9,
+        3,  1,  2,  5,  4, 9,
+        4,  2,  1,  3,  5, 9,
+        5,  3,  1,  2,  4, 9,
+        6,  8,  7, 10,  9, 4,
+        7,  6,  8, 10,  9, 4,
+        8,  6,  7, 10,  9, 4,
+        9, 10,  7,  6,  8, 4,
+        10,  9,  7,  6,  8, 4), byrow = TRUE, nrow = 10, ncol = 6)
+
+    expected_dist <- matrix(c(
+        0.0, 0.01134461, 0.01655758, 0.03218203, 0.04531034, 1.55334303,
+        0.0, 0.01134461, 0.02110686, 0.02788423, 0.05658752, 1.54287122,
+        0.0, 0.01655758, 0.02788423, 0.02878391, 0.04868148, 1.56905124,
+        0.0, 0.02110686, 0.03218203, 0.04868148, 0.07746468, 1.52192753,
+        0.0, 0.02878391, 0.04531034, 0.05658752, 0.07746468, 1.59697757,
+        0.0, 0.01312667, 0.02669514, 1.39588962, 1.41371404, 2.93421186,
+        0.0, 0.02669514, 0.03973271, 1.38955007, 1.40673471, 2.92865540,
+        0.0, 0.01312667, 0.03973271, 1.40082556, 1.41894502, 2.93758754,
+        0.0, 0.03002677, 1.40673471, 1.41371404, 1.41894502, 1.52192753,
+        0.0, 0.03002677, 1.38955007, 1.39588962, 1.40082556, 1.53921921),
+        byrow = TRUE, nrow = 10, ncol = 6)
+
+    bf <- brute_force_knn(coords_rad, k = 6, metric = "haversine")
+
+    expect_equal(bf$idx, expected_idx)
+    expect_equal(bf$dist, expected_dist, tol = 1e-6)
+
+    # probably a big risk of users passing data in degrees so check and error
+    coords_deg <- matrix(c(
+        0.0,     0.00,
+        0.6,     0.25,
+       -0.9,    -0.30,
+        1.8,     0.40,
+       -2.5,    -0.70,
+        10.0,  179.00,
+        10.4, -179.50,
+        9.7,   178.30,
+        89.0,    0.00,
+        88.6,   90.00
+    ), byrow = TRUE, nrow = 10, ncol = 2)
+
+    expect_error(
+      brute_force_knn(coords_deg, k = 6, metric = "haversine"),
+      "haversine expects radians"
+    )
+
+  bad <- matrix(runif(9), ncol = 3)
+  expect_error(
+    brute_force_knn(bad, k = 3, metric = "haversine"),
+    "haversine is only defined for 2 dimensional data"
+  )
+})
+
 test_that("Hellinger", {
   bfdense <- brute_force_knn(bitdata, k = 4, metric = "hellinger")
   araw <- brute_force_knn(bitdata, k = 4, metric = "alternative-hellinger")
