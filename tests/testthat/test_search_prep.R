@@ -313,7 +313,7 @@ test_that("sparse data prep same as dense", {
       use_alt_metric = FALSE
     )
 
-  expect_equal(sgsp_noalt, sgdz, tol = 1e-7)
+  expect_equal(sgsp_noalt, sgdz, tolerance = 1e-7)
 })
 
 test_that("prune twice with different prob", {

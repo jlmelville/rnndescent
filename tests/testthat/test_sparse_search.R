@@ -106,80 +106,80 @@ test_that("sparse no alt metric", {
   set.seed(2024)
   nndes_index <- rnnd_build(data = xsp, k = 3, metric = "cosine", use_alt_metric = FALSE)
   expect_equal(nndes_index$graph$idx, index_graph_idx)
-  expect_equal(nndes_index$graph$dist, index_graph_dist, tol = 1e-6)
-  expect_equal(nndes_index$search_graph, search_graph, tol = 1e-7)
+  expect_equal(nndes_index$graph$dist, index_graph_dist, tolerance = 1e-6)
+  expect_equal(nndes_index$search_graph, search_graph, tolerance = 1e-7)
 
   k1_query <- rnnd_query(nndes_index, query = ysp, k = 1)
   expect_equal(k1_query$idx, k3_idx[, 1, drop = FALSE])
-  expect_equal(k1_query$dist, k3_dist[, 1, drop = FALSE], tol = 1e-6)
+  expect_equal(k1_query$dist, k3_dist[, 1, drop = FALSE], tolerance = 1e-6)
 
   k2_query <- rnnd_query(nndes_index, query = ysp, k = 2)
   expect_equal(k2_query$idx, k3_idx[, 1:2])
-  expect_equal(k2_query$dist, k3_dist[, 1:2], tol = 1e-6)
+  expect_equal(k2_query$dist, k3_dist[, 1:2], tolerance = 1e-6)
 
   k3_query <- rnnd_query(nndes_index, query = ysp, k = 3)
   expect_equal(k3_query$idx, k3_idx)
-  expect_equal(k3_query$dist, k3_dist, tol = 1e-6)
+  expect_equal(k3_query$dist, k3_dist, tolerance = 1e-6)
 })
 
 test_that("dense no alt metric", {
   set.seed(2024)
   nndes_index <- rnnd_build(data = xd, k = 3, metric = "cosine", use_alt_metric = FALSE)
   expect_equal(nndes_index$graph$idx, index_graph_idx)
-  expect_equal(nndes_index$graph$dist, index_graph_dist, tol = 1e-6)
-  expect_equal(nndes_index$search_graph, search_graph, tol = 1e-7)
+  expect_equal(nndes_index$graph$dist, index_graph_dist, tolerance = 1e-6)
+  expect_equal(nndes_index$search_graph, search_graph, tolerance = 1e-7)
 
   k1_query <- rnnd_query(nndes_index, query = yd, k = 1)
   expect_equal(k1_query$idx, k3_idx[, 1, drop = FALSE])
-  expect_equal(k1_query$dist, k3_dist[, 1, drop = FALSE], tol = 1e-6)
+  expect_equal(k1_query$dist, k3_dist[, 1, drop = FALSE], tolerance = 1e-6)
 
   k2_query <- rnnd_query(nndes_index, query = yd, k = 2)
   expect_equal(k2_query$idx, k3_idx[, 1:2])
-  expect_equal(k2_query$dist, k3_dist[, 1:2], tol = 1e-6)
+  expect_equal(k2_query$dist, k3_dist[, 1:2], tolerance = 1e-6)
 
   k3_query <- rnnd_query(nndes_index, query = yd, k = 3)
   expect_equal(k3_query$idx, k3_idx)
-  expect_equal(k3_query$dist, k3_dist, tol = 1e-6)
+  expect_equal(k3_query$dist, k3_dist, tolerance = 1e-6)
 })
 
 test_that("sparse alt metric", {
   set.seed(2024)
   nndes_index <- rnnd_build(data = xsp, k = 3, metric = "cosine", use_alt_metric = TRUE)
   expect_equal(nndes_index$graph$idx, index_graph_idx)
-  expect_equal(nndes_index$graph$dist, index_graph_dist, tol = 1e-6)
-  expect_equal(nndes_index$search_graph, search_graph, tol = 1e-7)
+  expect_equal(nndes_index$graph$dist, index_graph_dist, tolerance = 1e-6)
+  expect_equal(nndes_index$search_graph, search_graph, tolerance = 1e-7)
 
   k1_query <- rnnd_query(nndes_index, query = ysp, k = 1)
   expect_equal(k1_query$idx, k3_idx[, 1, drop = FALSE])
-  expect_equal(k1_query$dist, k3_dist[, 1, drop = FALSE], tol = 1e-6)
+  expect_equal(k1_query$dist, k3_dist[, 1, drop = FALSE], tolerance = 1e-6)
 
   k2_query <- rnnd_query(nndes_index, query = ysp, k = 2)
   expect_equal(k2_query$idx, k3_idx[, 1:2])
-  expect_equal(k2_query$dist, k3_dist[, 1:2], tol = 1e-6)
+  expect_equal(k2_query$dist, k3_dist[, 1:2], tolerance = 1e-6)
 
   k3_query <- rnnd_query(nndes_index, query = ysp, k = 3)
   expect_equal(k3_query$idx, k3_idx)
-  expect_equal(k3_query$dist, k3_dist, tol = 1e-6)
+  expect_equal(k3_query$dist, k3_dist, tolerance = 1e-6)
 })
 
 test_that("dense alt metric", {
   set.seed(2024)
   nndes_index <- rnnd_build(data = xd, k = 3, metric = "cosine", use_alt_metric = TRUE)
   expect_equal(nndes_index$graph$idx, index_graph_idx)
-  expect_equal(nndes_index$graph$dist, index_graph_dist, tol = 1e-6)
-  expect_equal(nndes_index$search_graph, search_graph, tol = 1e-7)
+  expect_equal(nndes_index$graph$dist, index_graph_dist, tolerance = 1e-6)
+  expect_equal(nndes_index$search_graph, search_graph, tolerance = 1e-7)
 
   k1_query <- rnnd_query(nndes_index, query = yd, k = 1)
   expect_equal(k1_query$idx, k3_idx[, 1, drop = FALSE])
-  expect_equal(k1_query$dist, k3_dist[, 1, drop = FALSE], tol = 1e-6)
+  expect_equal(k1_query$dist, k3_dist[, 1, drop = FALSE], tolerance = 1e-6)
 
   k2_query <- rnnd_query(nndes_index, query = yd, k = 2)
   expect_equal(k2_query$idx, k3_idx[, 1:2])
-  expect_equal(k2_query$dist, k3_dist[, 1:2], tol = 1e-6)
+  expect_equal(k2_query$dist, k3_dist[, 1:2], tolerance = 1e-6)
 
   k3_query <- rnnd_query(nndes_index, query = yd, k = 3)
   expect_equal(k3_query$idx, k3_idx)
-  expect_equal(k3_query$dist, k3_dist, tol = 1e-6)
+  expect_equal(k3_query$dist, k3_dist, tolerance = 1e-6)
 })
 
 test_that("k=2 builds", {

@@ -39,28 +39,28 @@ expected_rpt_knn <- list(
 
 set.seed(1337)
 res <- rpf_knn(ui10, k = 4, leaf_size = 4, n_trees = 1)
-expect_equal(res, expected_rpt_knn, tol = 1e-7)
+expect_equal(res, expected_rpt_knn, tolerance = 1e-7)
 
 set.seed(1337)
 res <- rpf_knn(ui10, k = 4)
 expect_equal(res$idx, ui10_nn4$idx, check.attributes = FALSE)
-expect_equal(res$dist, ui10_nn4$dist, check.attributes = FALSE, tol = 1e-4)
+expect_equal(res$dist, ui10_nn4$dist, check.attributes = FALSE, tolerance = 1e-4)
 
 set.seed(1337)
 res <- rpf_knn(ui10, k = 4, include_self = FALSE)
 expect_equal(res$idx[, 1:3], ui10_nn4$idx[, 2:4], check.attributes = FALSE)
-expect_equal(res$dist[, 1:3], ui10_nn4$dist[, 2:4], check.attributes = FALSE, tol = 1e-4)
+expect_equal(res$dist[, 1:3], ui10_nn4$dist[, 2:4], check.attributes = FALSE, tolerance = 1e-4)
 
 # euclidean
 set.seed(1337)
 res <- rpf_knn(ui10, k = 4)
 expect_equal(res$idx, ui10_nn4$idx, check.attributes = FALSE)
-expect_equal(res$dist, ui10_nn4$dist, check.attributes = FALSE, tol = 1e-4)
+expect_equal(res$dist, ui10_nn4$dist, check.attributes = FALSE, tolerance = 1e-4)
 
 # cosine
 set.seed(1337)
 uiris_rnn <- rpf_knn(uirism, 15, metric = "cosine", n_trees = 40)
-expect_equal(sum(uiris_rnn$dist), 1.347357, tol = 1e-3)
+expect_equal(sum(uiris_rnn$dist), 1.347357, tolerance = 1e-3)
 
 
 # multi-threading
@@ -72,17 +72,17 @@ expect_in(c(0), res$idx)
 set.seed(1337)
 res <- rpf_knn(ui10, k = 4, n_threads = 2)
 expect_equal(res$idx, ui10_nn4$idx, check.attributes = FALSE)
-expect_equal(res$dist, ui10_nn4$dist, check.attributes = FALSE, tol = 1e-4)
+expect_equal(res$dist, ui10_nn4$dist, check.attributes = FALSE, tolerance = 1e-4)
 
 # euclidean converges
 set.seed(1337)
 uiris_rnn <- rpf_knn(uiris, 15, n_trees = 40, n_threads = 2)
-expect_equal(sum(uiris_rnn$dist), ui_edsum, tol = 1e-3)
+expect_equal(sum(uiris_rnn$dist), ui_edsum, tolerance = 1e-3)
 
 # cosine
 set.seed(1337)
 uiris_rnn <- rpf_knn(uirism, 15, metric = "cosine", n_trees = 40, n_threads = 2)
-expect_equal(sum(uiris_rnn$dist), 1.347357, tol = 1e-3)
+expect_equal(sum(uiris_rnn$dist), 1.347357, tolerance = 1e-3)
 
 # R index
 expected_rpf_index <- list(
@@ -118,7 +118,7 @@ expected_rpf_index <- list(
 
 set.seed(1337)
 rpf_index <- rpf_build(ui10, metric = "euclidean", n_trees = 1, leaf_size = 4)
-expect_equal(rpf_index, expected_rpf_index, tol = 1e-7)
+expect_equal(rpf_index, expected_rpf_index, tolerance = 1e-7)
 
 # query data against itself to reproduce knn (just more slowly)
 set.seed(1337)
@@ -131,7 +131,7 @@ rpf_query_res <-
     n_threads = 0,
     cache = TRUE
   )
-expect_equal(rpf_query_res, expected_rpt_knn, tol = 1e-7)
+expect_equal(rpf_query_res, expected_rpt_knn, tolerance = 1e-7)
 
 set.seed(1337)
 rpf_query_res <-
@@ -143,7 +143,7 @@ rpf_query_res <-
     n_threads = 0,
     cache = FALSE
   )
-expect_equal(rpf_query_res, expected_rpt_knn, tol = 1e-7)
+expect_equal(rpf_query_res, expected_rpt_knn, tolerance = 1e-7)
 
 # return forest with knn
 set.seed(1337)
@@ -156,12 +156,12 @@ rpf_knnf <-
     ret_forest = TRUE,
     leaf_size = 4
   )
-expect_equal(rpf_knnf$forest, expected_rpf_index, tol = 1e-7)
+expect_equal(rpf_knnf$forest, expected_rpf_index, tolerance = 1e-7)
 expect_equal(
   list(idx = rpf_knnf$idx, dist = rpf_knnf$dist),
   expected_rpt_knn,
   check.attributes = FALSE,
-  tol = 1e-7
+  tolerance = 1e-7
 )
 
 set.seed(1337)
@@ -173,7 +173,7 @@ nnd_with_tree <-
     init = "tree",
     init_args = list(n_trees = 1, leaf_size = 4)
   )
-expect_equal(nnd_with_tree$forest, expected_rpf_index, tol = 1e-7)
+expect_equal(nnd_with_tree$forest, expected_rpf_index, tolerance = 1e-7)
 
 # handle alt metric
 set.seed(1337)
@@ -189,7 +189,7 @@ nnd_with_tree <-
 rpf_index_no_alt <- expected_rpf_index
 rpf_index_no_alt$use_alt_metric <- FALSE
 rpf_index_no_alt$actual_metric <- "euclidean"
-expect_equal(nnd_with_tree$forest, rpf_index_no_alt, tol = 1e-7)
+expect_equal(nnd_with_tree$forest, rpf_index_no_alt, tolerance = 1e-7)
 
 
 # filtering
@@ -234,7 +234,7 @@ set.seed(1337)
 expect_equal(
   rpf_build(ui10, metric = "euclidean", leaf_size = 4, n_threads = 0),
   rpf_index_ls4e,
-  tol = 1e-7
+  tolerance = 1e-7
 )
 
 # implicit margin
@@ -281,7 +281,7 @@ rpf_knn2df <- rpf_knn(
   leaf_size = 4,
   margin = "implicit"
 )
-expect_equal(list(idx = rpf_knn2df$idx, dist = rpf_knn2df$dist), expected_rpt_knn, tol = 1e-7)
+expect_equal(list(idx = rpf_knn2df$idx, dist = rpf_knn2df$dist), expected_rpt_knn, tolerance = 1e-7)
 expect_equal(rpf_knn2df$forest, expected_rpfi_index)
 
 set.seed(1337)
@@ -294,7 +294,7 @@ rpfi_query_res <-
     n_threads = 0,
     cache = TRUE
   )
-expect_equal(rpfi_query_res, expected_rpt_knn, tol = 1e-7)
+expect_equal(rpfi_query_res, expected_rpt_knn, tolerance = 1e-7)
 
 
 set.seed(1337)
@@ -344,7 +344,7 @@ set.seed(1337)
 expect_equal(
   rpf_build(ui10, metric = "euclidean", leaf_size = 4, margin = "implicit", n_threads = 0),
   rpf_index_ls4i,
-  tol = 1e-7
+  tolerance = 1e-7
 )
 
 set.seed(1337)
@@ -355,7 +355,7 @@ rpf_index_ls4i_no_alt$actual_metric <- "euclidean"
 expect_equal(
   rpf_build(ui10, metric = "euclidean", use_alt_metric = FALSE, leaf_size = 4, margin = "implicit", n_threads = 0),
   rpf_index_ls4i_no_alt,
-  tol = 1e-7
+  tolerance = 1e-7
 )
 
 # cosine test
@@ -423,7 +423,7 @@ ui6f <- rpf_knn(
   ret_forest = TRUE
 )
 qnbrs4 <- graph_knn_query(reference = ui6, reference_graph = ui6f, query = ui4, init = ui6f$forest, k = 4)
-expect_equal(sum(qnbrs4$dist), ui4q_edsum, tol = 1e-6)
+expect_equal(sum(qnbrs4$dist), ui4q_edsum, tolerance = 1e-6)
 
 test_that("binary data", {
   # euclidean forces conversion to float data
@@ -481,13 +481,13 @@ test_that("sparse implicit margin", {
   dknn <- rpf_knn(ui10z, k = 4, leaf_size = 3, n_trees = 2, margin = "implicit")
   set.seed(1337)
   sknn <- rpf_knn(ui10sp, k = 4, leaf_size = 3, n_trees = 2, margin = "implicit")
-  expect_equal(sknn, dknn, tol = 1e-6)
+  expect_equal(sknn, dknn, tolerance = 1e-6)
 
   set.seed(1337)
   dknn <- rpf_knn(ui10z, k = 4, leaf_size = 3, n_trees = 2, margin = "implicit", ret_forest = TRUE)
   set.seed(1337)
   sknn <- rpf_knn(ui10sp, k = 4, leaf_size = 3, n_trees = 2, margin = "implicit", ret_forest = TRUE)
-  expect_equal(list(idx = sknn$idx, dist = sknn$dist), list(idx = dknn$idx, dist = dknn$dist), tol = 1e-6)
+  expect_equal(list(idx = sknn$idx, dist = sknn$dist), list(idx = dknn$idx, dist = dknn$dist), tolerance = 1e-6)
   dknn$forest$sparse <- TRUE
   expect_equal(sknn$forest, dknn$forest)
 
@@ -498,7 +498,7 @@ test_that("sparse implicit margin", {
   expect_equal(sforest$actual_metric, "alternative-cosine")
   expect_true(sforest$sparse)
   sforest$sparse <- FALSE
-  expect_equal(sforest, dforest, tol = 1e-6)
+  expect_equal(sforest, dforest, tolerance = 1e-6)
 
   set.seed(1337)
   dforest6 <- rpf_build(ui10z6, leaf_size = 3, n_trees = 2, margin = "implicit", metric = "cosine")
@@ -509,17 +509,17 @@ test_that("sparse implicit margin", {
   dforest6$sparse <- TRUE
   set.seed(1337)
   squery4 <- rpf_knn_query(query = ui10sp4, reference = ui10sp6, forest = dforest6, k = 4)
-  expect_equal(squery4, dquery4, tol = 1e-4)
+  expect_equal(squery4, dquery4, tolerance = 1e-4)
 
   set.seed(1337)
   sforest6 <- rpf_build(ui10sp6, leaf_size = 3, n_trees = 2, margin = "implicit", metric = "cosine")
   set.seed(1337)
   squery4b <- rpf_knn_query(query = ui10sp4, reference = ui10sp6, forest = sforest6, k = 4)
-  expect_equal(squery4b, squery4, tol = 1e-5)
+  expect_equal(squery4b, squery4, tolerance = 1e-5)
 
   set.seed(1337)
   squery4b <- rpf_knn_query(query = ui10sp4, reference = ui10sp6, forest = sforest6, k = 4, cache = FALSE)
-  expect_equal(squery4b, squery4, tol = 1e-5)
+  expect_equal(squery4b, squery4, tolerance = 1e-5)
 })
 
 
@@ -528,7 +528,7 @@ test_that("sparse explicit margin", {
   dknn <- rpf_knn(ui10z, k = 4, leaf_size = 3, n_trees = 2, margin = "explicit")
   set.seed(1337)
   sknn <- rpf_knn(ui10sp, k = 4, leaf_size = 3, n_trees = 2, margin = "explicit")
-  expect_equal(sknn, dknn, tol = 1e-6)
+  expect_equal(sknn, dknn, tolerance = 1e-6)
 
   # implict and explicit should give the same results for euclidean
   set.seed(1337)
@@ -576,5 +576,5 @@ test_that("sparse explicit margin", {
     k = 4, leaf_size = 3, n_trees = 2,
     margin = "explicit", metric = "cosine", use_alt_metric = FALSE
   )
-  expect_equal(sacknn, secknn, tol = 1e-4)
+  expect_equal(sacknn, secknn, tolerance = 1e-4)
 })

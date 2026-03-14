@@ -232,7 +232,7 @@ test_that("jaccard", {
   )
   expect_false(0 %in% d_res$idx)
   expect_false(0 %in% da_res$idx)
-  expect_equal(d_res$dist, da_res$dist, tol = 1e-7)
+  expect_equal(d_res$dist, da_res$dist, tolerance = 1e-7)
 
   # sparse
   s_res <- brute_force_knn(badjaccards,
@@ -247,7 +247,7 @@ test_that("jaccard", {
   )
   expect_false(0 %in% s_res$idx)
   expect_false(0 %in% sa_res$idx)
-  expect_equal(s_res$dist, sa_res$dist, tol = 1e-7)
+  expect_equal(s_res$dist, sa_res$dist, tolerance = 1e-7)
 })
 
 test_that("hellinger", {
@@ -265,7 +265,7 @@ test_that("hellinger", {
   )
   expect_false(0 %in% d_res$idx)
   expect_false(0 %in% da_res$idx)
-  expect_equal(d_res$dist, da_res$dist, tol = 1e-7)
+  expect_equal(d_res$dist, da_res$dist, tolerance = 1e-7)
 
   # sparse
   s_res <- brute_force_knn(badjaccards,
@@ -280,7 +280,7 @@ test_that("hellinger", {
   )
   expect_false(0 %in% s_res$idx)
   expect_false(0 %in% sa_res$idx)
-  expect_equal(s_res$dist, sa_res$dist, tol = 1e-7)
+  expect_equal(s_res$dist, sa_res$dist, tolerance = 1e-7)
 })
 
 test_that("cosine", {
@@ -298,7 +298,7 @@ test_that("cosine", {
   )
   expect_false(0 %in% d_res$idx)
   expect_false(0 %in% da_res$idx)
-  expect_equal(d_res$dist, da_res$dist, tol = 1e-7)
+  expect_equal(d_res$dist, da_res$dist, tolerance = 1e-7)
 
   # sparse
   s_res <- brute_force_knn(badjaccards,
@@ -313,7 +313,7 @@ test_that("cosine", {
   )
   expect_false(0 %in% s_res$idx)
   expect_false(0 %in% sa_res$idx)
-  expect_equal(s_res$dist, sa_res$dist, tol = 1e-7)
+  expect_equal(s_res$dist, sa_res$dist, tolerance = 1e-7)
 })
 
 # test non-alt distances dense vs sparse vs binary
@@ -350,12 +350,12 @@ for (metric in c(
     expect_false(0 %in% s_res$idx)
 
     # sparse should equal dense
-    tol = if (metric %in% c("correlation", "cosine", "jensenshannon")) 1e-5 else 1e-7
+    tolerance <- if (metric %in% c("correlation", "cosine", "jensenshannon")) 1e-5 else 1e-7
     if (metric == "symmetrickl") {
       # KL has quite large distances (> 10) so the tolerance needs to be larger
-      tol <- 1e-3
+      tolerance <- 1e-3
     }
-    expect_equal(d_res$dist, s_res$dist, tol = tol)
+    expect_equal(d_res$dist, s_res$dist, tolerance = tolerance)
 
     if (metric %in% c(
       "dice",
@@ -373,7 +373,7 @@ for (metric in c(
       expect_false(0 %in% b_res$idx)
 
       # binary should equal dense
-      expect_equal(d_res$dist, b_res$dist, tol = 1e-7)
+      expect_equal(d_res$dist, b_res$dist, tolerance = 1e-7)
     }
   })
 }
