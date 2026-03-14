@@ -36,6 +36,23 @@ expect_equal(sum(qnbrs6$dist), ui6q_edsum, tolerance = 1e-5)
 
 expect_error(brute_force_knn_query(reference = ui4, query = ui6, k = 7), "k must be")
 expect_error(brute_force_knn_query(reference = ui4, query = ui6, k = 4, metric = "not-a-real metric"), "metric")
+expect_error(
+  brute_force_knn_query(
+    reference = matrix(0, nrow = 2, ncol = 2),
+    query = matrix(0, nrow = 2, ncol = 3),
+    k = 1
+  ),
+  "same number of features"
+)
+expect_error(
+  brute_force_knn_query(
+    reference = matrix(0, nrow = 2, ncol = 2),
+    query = matrix(0, nrow = 3, ncol = 2),
+    k = 1,
+    obs = "C"
+  ),
+  "same number of features"
+)
 
 # threads
 

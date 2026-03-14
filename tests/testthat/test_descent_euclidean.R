@@ -318,6 +318,19 @@ expect_error(graph_knn_query(
   reference = ui6, reference_graph = ui6_nnd,
   query = ui4, init = rnbrs4, metric = "not-a-real metric"
 ), "metric")
+expect_error(graph_knn_query(
+  reference = matrix(0, nrow = 2, ncol = 2),
+  reference_graph = ui6_nnd,
+  query = matrix(0, nrow = 2, ncol = 3),
+  k = 1
+), "same number of features")
+expect_error(graph_knn_query(
+  reference = matrix(0, nrow = 2, ncol = 2),
+  reference_graph = ui6_nnd,
+  query = matrix(0, nrow = 3, ncol = 2),
+  k = 1,
+  obs = "C"
+), "same number of features")
 
 test_that("column oriented", {
   set.seed(1337)

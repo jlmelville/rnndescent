@@ -67,6 +67,25 @@ check_query_nbrs(nn = qnbrs6, query = ui6, ref_range = 7:10, query_range = 1:6, 
 # Errors
 expect_error(random_knn_query(reference = ui4, query = ui6, k = 7), "must be <=")
 expect_error(random_knn_query(reference = ui4, query = ui6, k = 4, metric = "not-a-real metric"), "metric")
+expect_error(
+  random_knn_query(
+    reference = matrix(FALSE, nrow = 2, ncol = 2),
+    query = matrix(FALSE, nrow = 2, ncol = 3),
+    k = 1,
+    metric = "hamming"
+  ),
+  "same number of features"
+)
+expect_error(
+  random_knn_query(
+    reference = matrix(FALSE, nrow = 2, ncol = 2),
+    query = matrix(FALSE, nrow = 3, ncol = 2),
+    k = 1,
+    metric = "hamming",
+    obs = "C"
+  ),
+  "same number of features"
+)
 
 # Other metrics
 

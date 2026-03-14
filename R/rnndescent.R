@@ -1546,6 +1546,7 @@ brute_force_knn_query <- function(query,
   check_sparse(reference, query)
   reference <- x2m(reference)
   query <- x2m(query)
+  check_matching_features(reference, query, obs)
   if (obs == "R") {
     reference <- Matrix::t(reference)
     query <- Matrix::t(query)
@@ -1740,6 +1741,7 @@ random_knn_query <-
 
     reference <- x2m(reference)
     query <- x2m(query)
+    check_matching_features(reference, query, obs)
     check_k(k, n_obs(reference))
 
     actual_metric <-
@@ -1972,6 +1974,7 @@ graph_knn_query <- function(query,
   check_sparse(reference, query)
   reference <- x2m(reference)
   query <- x2m(query)
+  check_matching_features(reference, query, obs)
   if (obs == "R") {
     reference <- Matrix::t(reference)
     query <- Matrix::t(query)

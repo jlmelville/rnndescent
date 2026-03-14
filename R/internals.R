@@ -10,6 +10,24 @@ check_k <- function(k, max_k) {
   }
 }
 
+check_matching_features <- function(reference, query, obs) {
+  n_features <- switch(obs,
+    R = ncol,
+    C = nrow,
+    stop("Unknown obs type")
+  )
+  query_n_features <- n_features(query)
+  reference_n_features <- n_features(reference)
+  if (query_n_features != reference_n_features) {
+    stop(
+      "query and reference must have the same number of features, but query has ",
+      query_n_features,
+      " and reference has ",
+      reference_n_features
+    )
+  }
+}
+
 check_graph <- function(idx, dist = NULL, k = NULL) {
   if (is.null(dist) && is.list(idx)) {
     dist <- idx$dist
