@@ -171,6 +171,7 @@ rpf_knn <- function(data,
                     verbose = FALSE,
                     obs = "R") {
   obs <- match.arg(toupper(obs), c("C", "R"))
+  n_threads <- check_n_threads(n_threads)
   n_obs <- switch(obs,
     R = nrow,
     C = ncol,
@@ -362,6 +363,7 @@ rpf_build <- function(data,
                       verbose = FALSE,
                       obs = "R") {
   obs <- match.arg(toupper(obs), c("C", "R"))
+  n_threads <- check_n_threads(n_threads)
   n_obs <- switch(obs,
     R = nrow,
     C = ncol,
@@ -547,6 +549,7 @@ rpf_knn_query <- function(query,
                           verbose = FALSE,
                           obs = "R") {
   obs <- match.arg(toupper(obs), c("C", "R"))
+  n_threads <- check_n_threads(n_threads)
   n_obs <- switch(obs,
     R = nrow,
     C = ncol,
@@ -689,6 +692,7 @@ rpf_filter <-
            n_trees = 1,
            n_threads = 0,
            verbose = FALSE) {
+    n_threads <- check_n_threads(n_threads)
     if (is.null(forest)) {
       if (is.null(nn$forest)) {
         stop("Must provide 'forest' parameter")

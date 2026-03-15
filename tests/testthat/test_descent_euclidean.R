@@ -218,6 +218,22 @@ expect_error(
   "initial neighbor graph indices must be between 1 and 3 or 0 for missing entries"
 )
 
+test_that("descent and graph query APIs reject invalid n_threads values", {
+  expect_error(nnd_knn(ui10, k = 4, n_threads = -1), "n_threads must be")
+
+  ref_graph <- nnd_knn(ui6, k = 4)
+  expect_error(
+    graph_knn_query(
+      reference = ui6,
+      reference_graph = ref_graph,
+      query = ui4,
+      k = 4,
+      n_threads = 1.5
+    ),
+    "n_threads must be"
+  )
+})
+
 # verbosity
 msgs <- capture_everything(nnd_knn(ui10, 4, verbose = TRUE))
 expect_match(msgs, "\\*\\*\\*")

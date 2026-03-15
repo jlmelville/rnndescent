@@ -30,6 +30,10 @@ check_optional_count <- function(x, name, min = 1L, max = NULL) {
   check_count(x, name, min = min, max = max)
 }
 
+check_n_threads <- function(n_threads) {
+  check_count(n_threads, "n_threads", min = 0L)
+}
+
 check_matching_features <- function(reference, query, obs) {
   n_features <- switch(obs,
     R = ncol,

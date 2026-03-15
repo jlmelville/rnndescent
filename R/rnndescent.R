@@ -263,6 +263,7 @@ rnnd_build <- function(data,
                        progress = "bar",
                        obs = "R") {
   obs <- match.arg(toupper(obs), c("C", "R"))
+  n_threads <- check_n_threads(n_threads)
   n_search_trees <- check_count(n_search_trees, "n_search_trees")
   data <- x2m(data)
   if (obs == "R") {
@@ -425,6 +426,7 @@ rnnd_query <-
            verbose = FALSE,
            obs = "R") {
     obs <- match.arg(toupper(obs), c("C", "R"))
+    n_threads <- check_n_threads(n_threads)
     if (is.null(init) && !is.null(index$search_forest)) {
       init <- index$search_forest
     }
@@ -667,6 +669,7 @@ rnnd_knn <- function(data,
                      progress = "bar",
                      obs = "R") {
   obs <- match.arg(toupper(obs), c("C", "R"))
+  n_threads <- check_n_threads(n_threads)
   data <- x2m(data)
   if (obs == "R") {
     data <- Matrix::t(data)
@@ -810,6 +813,7 @@ brute_force_knn <- function(data,
                             verbose = FALSE,
                             obs = "R") {
   obs <- match.arg(toupper(obs), c("C", "R"))
+  n_threads <- check_n_threads(n_threads)
   n_obs <- switch(obs,
     R = nrow,
     C = ncol,
@@ -988,6 +992,7 @@ random_knn <-
            verbose = FALSE,
            obs = "R") {
     obs <- match.arg(toupper(obs), c("C", "R"))
+    n_threads <- check_n_threads(n_threads)
     n_obs <- switch(obs,
       R = nrow,
       C = ncol,
@@ -1251,6 +1256,7 @@ nnd_knn <- function(data,
                     ret_forest = FALSE) {
   stopifnot(tolower(progress) %in% c("bar", "dist"))
   obs <- match.arg(toupper(obs), c("C", "R"))
+  n_threads <- check_n_threads(n_threads)
   check_delta(delta)
   n_iters <- check_optional_count(n_iters, "n_iters", min = 0L)
   max_candidates <- check_optional_count(max_candidates, "max_candidates")
@@ -1547,6 +1553,7 @@ brute_force_knn_query <- function(query,
                                   verbose = FALSE,
                                   obs = "R") {
   obs <- match.arg(toupper(obs), c("C", "R"))
+  n_threads <- check_n_threads(n_threads)
 
   actual_metric <- get_actual_metric(use_alt_metric, metric, reference, verbose)
 
@@ -1738,6 +1745,7 @@ random_knn_query <-
            verbose = FALSE,
            obs = "R") {
     obs <- match.arg(toupper(obs), c("C", "R"))
+    n_threads <- check_n_threads(n_threads)
     n_obs <- switch(obs,
       R = nrow,
       C = ncol,
@@ -1978,6 +1986,7 @@ graph_knn_query <- function(query,
                             verbose = FALSE,
                             obs = "R") {
   obs <- match.arg(toupper(obs), c("C", "R"))
+  n_threads <- check_n_threads(n_threads)
   check_query_search_controls(epsilon, max_search_fraction)
   check_sparse(reference, query)
   reference <- x2m(reference)
@@ -2359,6 +2368,7 @@ prepare_search_graph <- function(data,
                                  verbose = FALSE,
                                  obs = "R") {
   obs <- match.arg(toupper(obs), c("C", "R"))
+  n_threads <- check_n_threads(n_threads)
 
   if (!is.null(pruning_degree_multiplier)) {
     stopifnot(pruning_degree_multiplier > 0)
@@ -2660,6 +2670,7 @@ merge_knn <- function(graphs,
                       is_query = FALSE,
                       n_threads = 0,
                       verbose = FALSE) {
+  n_threads <- check_n_threads(n_threads)
   if (length(graphs) == 0) {
     return(list())
   }

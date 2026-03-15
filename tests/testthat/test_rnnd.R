@@ -267,6 +267,15 @@ test_that("rnnd search and descent controls are validated", {
   expect_error(rnnd_build(ui10, k = 4, n_search_trees = 1.5), "n_search_trees must be")
 })
 
+test_that("rnnd APIs reject invalid n_threads values", {
+  expect_error(rnnd_build(ui10, k = 4, n_threads = -1), "n_threads must be")
+  expect_error(rnnd_knn(ui10, k = 4, n_threads = 1.5), "n_threads must be")
+  expect_error(
+    rnnd_query(index = iris_index, query = ui10, k = 4, n_threads = 1.5),
+    "n_threads must be"
+  )
+})
+
 test_that("rnnd exported APIs reject invalid k values", {
   expect_error(rnnd_build(ui10, k = 0), "k must be")
   expect_error(rnnd_knn(ui10, k = 1.5), "k must be")

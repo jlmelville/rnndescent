@@ -163,6 +163,27 @@ test_that("rp tree count controls are validated", {
   expect_error(rpf_filter(forest, n_trees = 1.5), "n_trees must be")
 })
 
+test_that("rp tree APIs reject invalid n_threads values", {
+  expect_error(rpf_knn(ui10, k = 4, n_threads = -1), "n_threads must be")
+  expect_error(rpf_build(ui10, n_threads = 1.5), "n_threads must be")
+
+  forest <- rpf_build(ui10, metric = "euclidean", n_trees = 1, leaf_size = 4)
+  expect_error(
+    rpf_knn_query(
+      ui10,
+      ui10,
+      forest,
+      k = 4,
+      n_threads = -1,
+      cache = TRUE
+    ),
+    "n_threads must be"
+  )
+
+  forest_knn <- rpf_knn(ui10, k = 4, ret_forest = TRUE)
+  expect_error(rpf_filter(forest_knn, n_threads = 1.5), "n_threads must be")
+})
+
 set.seed(1337)
 rpf_query_res <-
   rpf_knn_query(

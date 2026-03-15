@@ -44,6 +44,13 @@ check_query_nbrs(nn = qnbrsmt, query = ui4, ref_range = 1:6, query_range = 7:10,
 # an empty list returns an empty list
 expect_equal(list(), merge_knn(list()))
 
+test_that("merge_knn rejects invalid n_threads values", {
+  expect_error(
+    merge_knn(list(ui10rnn1, ui10rnn2), n_threads = -1),
+    "n_threads must be"
+  )
+})
+
 # one list returns the original list (apart from some casting of distances)
 ui10rnno <- random_knn(ui10, k = 4, order_by_distance = TRUE)
 ui10mnnl1 <- merge_knn(list(ui10rnno))

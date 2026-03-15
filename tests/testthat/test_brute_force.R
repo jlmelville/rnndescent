@@ -57,6 +57,14 @@ expect_error(
   "same number of features"
 )
 
+test_that("brute force APIs reject invalid n_threads values", {
+  expect_error(brute_force_knn(ui10, k = 4, n_threads = -1), "n_threads must be")
+  expect_error(
+    brute_force_knn_query(reference = ui4, query = ui6, k = 4, n_threads = 1.5),
+    "n_threads must be"
+  )
+})
+
 # threads
 
 qnbrs4 <- brute_force_knn_query(reference = ui6, query = ui4, k = 4, n_threads = 1)
