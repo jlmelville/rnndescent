@@ -560,6 +560,7 @@ rpf_knn_query <- function(query,
 
   reference <- x2m(reference)
   query <- x2m(query)
+  check_matching_features(reference, query, obs)
   check_k(k, n_obs(reference))
 
   if (!is.list(forest)) {

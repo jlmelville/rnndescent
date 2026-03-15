@@ -184,6 +184,28 @@ test_that("rp tree APIs reject invalid n_threads values", {
   expect_error(rpf_filter(forest_knn, n_threads = 1.5), "n_threads must be")
 })
 
+test_that("rp tree query rejects mismatched feature counts", {
+  ref <- matrix(c(0, 0, 1, 1), nrow = 2, byrow = TRUE)
+  qry <- matrix(c(0, 0, 0, 1, 1, 1), nrow = 2, byrow = TRUE)
+  forest <- rpf_build(ref, metric = "euclidean", n_trees = 1, leaf_size = 2)
+
+  expect_error(
+    rpf_knn_query(qry, ref, forest, k = 1, n_threads = 0),
+    "same number of features"
+  )
+  expect_error(
+    rpf_knn_query(
+      t(qry),
+      t(ref),
+      forest,
+      k = 1,
+      n_threads = 0,
+      obs = "C"
+    ),
+    "same number of features"
+  )
+})
+
 set.seed(1337)
 rpf_query_res <-
   rpf_knn_query(
