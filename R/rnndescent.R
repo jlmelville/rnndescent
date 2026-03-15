@@ -2428,20 +2428,20 @@ prepare_search_graph <- function(data,
     )
   }
   rsp <- reverse_knn_sp(fdiv)
-  if (!is.null(diversify_prob) && diversify_prob > 0) {
-    if (prune_reverse && !is.null(pruning_degree_multiplier) &&
-        !is.infinite(pruning_degree_multiplier)) {
-      max_degree <- max(round(n_nbrs * pruning_degree_multiplier), 1)
-      tsmessage("Degree pruning reverse graph to max degree: ", max_degree)
-      rsp <-
-        degree_prune(
-          rsp,
-          max_degree = max_degree,
-          verbose = verbose,
-          n_threads = n_threads
-        )
-    }
+  if (prune_reverse && !is.null(pruning_degree_multiplier) &&
+      !is.infinite(pruning_degree_multiplier)) {
+    max_degree <- max(round(n_nbrs * pruning_degree_multiplier), 1)
+    tsmessage("Degree pruning reverse graph to max degree: ", max_degree)
+    rsp <-
+      degree_prune(
+        rsp,
+        max_degree = max_degree,
+        verbose = verbose,
+        n_threads = n_threads
+      )
+  }
 
+  if (!is.null(diversify_prob) && diversify_prob > 0) {
     tsmessage("Diversifying reverse graph")
     rdiv <- diversify(
       data,

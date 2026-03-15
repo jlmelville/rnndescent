@@ -345,6 +345,72 @@ test_that("prepare_search_graph rejects malformed graphs before sparse conversio
   )
 })
 
+test_that("prepare_search_graph prunes reverse edges without diversification", {
+  data <- matrix(seq_len(10), ncol = 2)
+  graph <- list(
+    idx = matrix(c(
+      4L, 5L,
+      2L, 4L,
+      1L, 3L,
+      1L, 4L,
+      4L, 1L
+    ), nrow = 5, byrow = TRUE),
+    dist = matrix(c(
+      0.099, 0.913,
+      0.316, 0.294,
+      0.519, 0.459,
+      0.662, 0.332,
+      0.407, 0.651
+    ), nrow = 5, byrow = TRUE)
+  )
+  expected <- Matrix::sparseMatrix(
+    i = c(1L, 2L, 3L, 4L, 5L),
+    j = c(4L, 4L, 1L, 1L, 4L),
+    x = c(0.099, 0.294, 0.519, 0.662, 0.407),
+    dims = c(5L, 5L)
+  )
+
+  sg_prune_null <- Matrix::t(prepare_search_graph(
+    data = data,
+    graph = graph,
+    use_alt_metric = FALSE,
+    diversify_prob = NULL,
+    pruning_degree_multiplier = 0.5,
+    prune_reverse = TRUE
+  ))
+  sg_prune_zero <- Matrix::t(prepare_search_graph(
+    data = data,
+    graph = graph,
+    use_alt_metric = FALSE,
+    diversify_prob = 0,
+    pruning_degree_multiplier = 0.5,
+    prune_reverse = TRUE
+  ))
+  sg_no_prune <- Matrix::t(prepare_search_graph(
+    data = data,
+    graph = graph,
+    use_alt_metric = FALSE,
+    diversify_prob = NULL,
+    pruning_degree_multiplier = 0.5,
+    prune_reverse = FALSE
+  ))
+
+  expect_equal(sg_prune_null, expected)
+  expect_equal(sg_prune_zero, expected)
+  expect_false(isTRUE(all.equal(sg_no_prune, expected, tolerance = 1e-8)))
+})
+
+test_that("prepare_search_graph rejects invalid n_threads values", {
+  expect_error(
+    prepare_search_graph(
+      data = ui10,
+      graph = ui10_bf,
+      n_threads = 1.5
+    ),
+    "n_threads must be"
+  )
+})
+
 test_that("column orientation", {
   sg_occ_trunc <-
     Matrix::t(prepare_search_graph(
