@@ -13,12 +13,11 @@ this gap (<https://github.com/jlmelville/rnndescent/issues/17>).
 * `brute_force_knn_query`, `random_knn_query`, and `graph_knn_query()` now
 reject query and reference inputs with mismatched feature counts instead of
 silently reshaping the query data inside the shared C++ query-distance path.
-* `prepare_search_graph()` and the underlying degree-pruning helper now keep
-the true `max_degree` nearest edges for unsorted sparse rows instead of
-sometimes over-pruning the search graph.
+* fix for `prepare_search_graph()` sometimes over-pruning beyond `max_degree`.
 * `graph_knn_query()` now rejects sparse search graphs whose dimensions do not
 match the reference data instead of silently searching the wrong subset of
 reference observations.
+* `prepare_search_graph()` now has better input validation.
 * `nnd_knn()`, `graph_knn_query()`, and `prepare_init_graph()` do a better job
 of rejecting malformed initial neighbor graphs.
 * `rnnd_build()`, `rnnd_query()`, and `rnnd_knn()` now normalize and validate

@@ -2367,8 +2367,16 @@ prepare_search_graph <- function(data,
     )
   }
 
+  data <- x2m(data)
+
   actual_metric <-
     get_actual_metric(use_alt_metric, metric, data, verbose)
+
+  if (obs == "R") {
+    data <- Matrix::t(data)
+  }
+
+  graph <- check_square_graph(graph, ncol(data))
 
   if (is_sparse(graph)) {
     sp <- Matrix::t(graph)
@@ -2386,10 +2394,6 @@ prepare_search_graph <- function(data,
 
   sp <- preserve_zeros(sp)
 
-  data <- x2m(data)
-  if (obs == "R") {
-    data <- Matrix::t(data)
-  }
   if (!is.null(diversify_prob) && diversify_prob > 0) {
     tsmessage("Diversifying forward graph")
     fdiv <- diversify(

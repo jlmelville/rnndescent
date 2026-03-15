@@ -53,26 +53,54 @@ check_delta <- function(delta) {
   check_unit_interval(delta, "delta")
 }
 
-check_reference_graph_size <- function(reference_graph, n_reference) {
-  if (is.list(reference_graph)) {
-    reference_graph <- check_graph(reference_graph)
-    graph_n_reference <- nrow(reference_graph$idx)
+check_square_graph <- function(graph,
+                               n_reference,
+                               graph_name = "graph",
+                               n_label = "observations") {
+  if (is.list(graph)) {
+    graph <- check_graph(graph)
+    graph_n_reference <- nrow(graph$idx)
     if (graph_n_reference != n_reference) {
       stop(
-        "reference_graph must describe ",
+        graph_name,
+        " must describe ",
         n_reference,
-        " reference observations, but has ",
+        " ",
+        n_label,
+        ", but has ",
         graph_n_reference
       )
     }
-    return(reference_graph)
+
+    if (anyNA(graph$idx)) {
+      stop(graph_name, " indices must not be NA; use 0 for missing entries")
+    }
+
+    missing_idx <- graph$idx == 0L
+    missing_dist <- is.na(graph$dist)
+    if (any(missing_idx != missing_dist)) {
+      stop(graph_name, " must use idx = 0 and dist = NA together for missing entries")
+    }
+
+    bad_idx <- !missing_idx & (graph$idx < 1L | graph$idx > n_reference)
+    if (any(bad_idx)) {
+      stop(
+        graph_name,
+        " indices must be between 1 and ",
+        n_reference,
+        " or 0 for missing entries"
+      )
+    }
+
+    return(graph)
   }
 
-  if (methods::is(reference_graph, "sparseMatrix")) {
-    graph_dim <- dim(reference_graph)
+  if (methods::is(graph, "sparseMatrix")) {
+    graph_dim <- dim(graph)
     if (graph_dim[1] != n_reference || graph_dim[2] != n_reference) {
       stop(
-        "reference_graph must have dimensions ",
+        graph_name,
+        " must have dimensions ",
         n_reference,
         " x ",
         n_reference,
@@ -82,11 +110,22 @@ check_reference_graph_size <- function(reference_graph, n_reference) {
         graph_dim[2]
       )
     }
-    return(reference_graph)
+    return(graph)
   }
 
   stop(
-    "'reference_graph' must be either a list with idx/dist matrices or a sparseMatrix"
+    "'",
+    graph_name,
+    "' must be either a list with idx/dist matrices or a sparseMatrix"
+  )
+}
+
+check_reference_graph_size <- function(reference_graph, n_reference) {
+  check_square_graph(
+    reference_graph,
+    n_reference,
+    graph_name = "reference_graph",
+    n_label = "reference observations"
   )
 }
 

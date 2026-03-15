@@ -287,6 +287,64 @@ test_that("degree pruning keeps the max_degree closest edges", {
   )
 })
 
+test_that("prepare_search_graph rejects malformed graphs before sparse conversion", {
+  ref <- matrix(c(0, 0, 1, 1, 2, 2), ncol = 2, byrow = TRUE)
+
+  expect_error(
+    prepare_search_graph(
+      data = ref,
+      graph = list(
+        idx = matrix(c(1L, 2L), nrow = 2),
+        dist = matrix(c(0, 1), nrow = 2)
+      ),
+      diversify_prob = NULL,
+      pruning_degree_multiplier = NULL
+    ),
+    "graph must describe 3 observations, but has 2"
+  )
+
+  expect_error(
+    prepare_search_graph(
+      data = ref,
+      graph = Matrix::sparseMatrix(
+        i = c(1L, 2L),
+        j = c(2L, 1L),
+        x = c(1, 1),
+        dims = c(2L, 2L)
+      ),
+      diversify_prob = NULL,
+      pruning_degree_multiplier = NULL
+    ),
+    "graph must have dimensions 3 x 3, but has 2 x 2"
+  )
+
+  expect_error(
+    prepare_search_graph(
+      data = ref,
+      graph = list(
+        idx = matrix(c(1L, 4L, 2L), nrow = 3),
+        dist = matrix(c(0, 1, 2), nrow = 3)
+      ),
+      diversify_prob = NULL,
+      pruning_degree_multiplier = NULL
+    ),
+    "graph indices must be between 1 and 3 or 0 for missing entries"
+  )
+
+  expect_error(
+    prepare_search_graph(
+      data = ref,
+      graph = list(
+        idx = matrix(c(1L, 2L, 0L), nrow = 3),
+        dist = matrix(c(0, 1, 0.5), nrow = 3)
+      ),
+      diversify_prob = NULL,
+      pruning_degree_multiplier = NULL
+    ),
+    "graph must use idx = 0 and dist = NA together for missing entries"
+  )
+})
+
 test_that("column orientation", {
   sg_occ_trunc <-
     Matrix::t(prepare_search_graph(
