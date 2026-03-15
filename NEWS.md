@@ -25,7 +25,7 @@ of rejecting malformed initial neighbor graphs.
 their `obs` argument consistently with the rest of the public API, so lowercase
 values no longer silently trigger column-oriented handling.
 * Better input validation for `epsilon`, `max_search_fraction` and `delta`.
-* Better validation for bad values of k, e.g. negative or non-integer.
+* Better validation for parameters that need to be integers.
 * Fixed an edge case when `max_search_fraction` would only result in one
 calculation, but this distance was never used.
 * Verbose query summaries now report the correct minimum and average number of

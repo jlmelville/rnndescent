@@ -10,6 +10,26 @@ check_k <- function(k, max_k) {
   }
 }
 
+check_count <- function(x, name, min = 1L, max = NULL) {
+  if (!is_single_finite_number(x) || x < min || x != floor(x) ||
+      (!is.null(max) && x > max)) {
+    if (is.null(max)) {
+      stop(name, " must be a single integer >= ", min)
+    }
+    stop(name, " must be a single integer between ", min, " and ", max)
+  }
+
+  as.integer(x)
+}
+
+check_optional_count <- function(x, name, min = 1L, max = NULL) {
+  if (is.null(x)) {
+    return(NULL)
+  }
+
+  check_count(x, name, min = min, max = max)
+}
+
 check_matching_features <- function(reference, query, obs) {
   n_features <- switch(obs,
     R = ncol,
@@ -433,6 +453,9 @@ rpf_knn_impl <-
     if (is.null(leaf_size)) {
       leaf_size <- max(10, k)
     }
+    n_trees <- check_count(n_trees, "n_trees")
+    leaf_size <- check_count(leaf_size, "leaf_size")
+    max_tree_depth <- check_count(max_tree_depth, "max_tree_depth", min = 0L)
 
     margin <- find_margin_method(margin, metric, data)
 

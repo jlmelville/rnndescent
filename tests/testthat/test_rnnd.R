@@ -263,6 +263,8 @@ test_that("rnnd search and descent controls are validated", {
   )
   expect_error(rnnd_build(ui10, k = 4, delta = 1.1), "delta must be")
   expect_error(rnnd_knn(ui10, k = 4, delta = -0.1), "delta must be")
+  expect_error(rnnd_knn(ui10, k = 4, n_iters = 1.5), "n_iters must be")
+  expect_error(rnnd_build(ui10, k = 4, n_search_trees = 1.5), "n_search_trees must be")
 })
 
 test_that("rnnd exported APIs reject invalid k values", {

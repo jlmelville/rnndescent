@@ -372,6 +372,9 @@ rpf_build <- function(data,
     n_trees <- 5 + as.integer(round(nrow(data)^0.25))
     n_trees <- min(32, n_trees)
   }
+  n_trees <- check_count(n_trees, "n_trees")
+  leaf_size <- check_count(leaf_size, "leaf_size")
+  max_tree_depth <- check_count(max_tree_depth, "max_tree_depth", min = 0L)
 
   data <- x2m(data)
 
@@ -698,9 +701,7 @@ rpf_filter <-
     if (n_unfiltered_trees < 1) {
       stop("Invalid forest: no trees")
     }
-    if (n_trees < 1 || n_trees > n_unfiltered_trees) {
-      stop("n_trees must be between 1 and ", n_unfiltered_trees)
-    }
+    n_trees <- check_count(n_trees, "n_trees", max = n_unfiltered_trees)
 
     n_orig_idx <- length(unfiltered_trees[[1]]$indices)
     if (n_orig_idx != nrow(nn$idx)) {

@@ -200,6 +200,10 @@ expect_error(nnd_knn(ui10, k = 11), "k must be")
 expect_error(nnd_knn(ui10, k = 0), "k must be")
 expect_error(nnd_knn(ui10, k = 4, delta = -0.1), "delta must be")
 expect_error(nnd_knn(ui10, k = 4, delta = 1.1), "delta must be")
+expect_error(nnd_knn(ui10, k = 4, n_iters = 1.5), "n_iters must be")
+expect_error(nnd_knn(ui10, k = 4, max_candidates = 0), "max_candidates must be")
+expect_error(nnd_knn(ui10, k = 4, max_candidates = 1.5), "max_candidates must be")
+expect_error(rnnd_knn(ui10, k = 4, leaf_size = 0), "leaf_size must be")
 expect_error(nnd_knn(uirism, k = 15, init = iris_nbrs, metric = "not-a-real metric"), "metric")
 expect_error(
   nnd_knn(uirism, init = list(dist = iris_nbrs$dist, idx = iris_nbrs$idx - 2)),

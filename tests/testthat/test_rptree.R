@@ -151,6 +151,18 @@ test_that("rp tree APIs reject invalid k values", {
   )
 })
 
+test_that("rp tree count controls are validated", {
+  expect_error(rpf_knn(ui10, k = 4, n_trees = 1.5), "n_trees must be")
+  expect_error(rpf_knn(ui10, k = 4, leaf_size = 0), "leaf_size must be")
+  expect_error(rpf_build(ui10, n_trees = 1.5), "n_trees must be")
+  expect_error(rpf_build(ui10, leaf_size = 0), "leaf_size must be")
+  expect_error(rpf_build(ui10, leaf_size = 1.5), "leaf_size must be")
+  expect_error(rpf_build(ui10, max_tree_depth = 1.5), "max_tree_depth must be")
+
+  forest <- rpf_knn(ui10, k = 4, ret_forest = TRUE)
+  expect_error(rpf_filter(forest, n_trees = 1.5), "n_trees must be")
+})
+
 set.seed(1337)
 rpf_query_res <-
   rpf_knn_query(

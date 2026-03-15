@@ -263,6 +263,7 @@ rnnd_build <- function(data,
                        progress = "bar",
                        obs = "R") {
   obs <- match.arg(toupper(obs), c("C", "R"))
+  n_search_trees <- check_count(n_search_trees, "n_search_trees")
   data <- x2m(data)
   if (obs == "R") {
     data <- Matrix::t(data)
@@ -1251,6 +1252,8 @@ nnd_knn <- function(data,
   stopifnot(tolower(progress) %in% c("bar", "dist"))
   obs <- match.arg(toupper(obs), c("C", "R"))
   check_delta(delta)
+  n_iters <- check_optional_count(n_iters, "n_iters", min = 0L)
+  max_candidates <- check_optional_count(max_candidates, "max_candidates")
 
   actual_metric <-
     get_actual_metric(use_alt_metric, metric, data, verbose)
