@@ -41,15 +41,30 @@ void zero_index(Rcpp::IntegerMatrix &, int max_idx = RNND_MAX_IDX,
                 bool missing_ok = false);
 
 // by default we do NOT unzero unlike heap_to_r
-template <typename Out>
-auto graph_to_r(const tdoann::NNGraph<Out> &graph, bool unzero = false)
+template <typename Out, typename Idx>
+auto graph_to_r(const tdoann::NNGraph<Out, Idx> &graph, bool unzero = false)
     -> Rcpp::List {
-  Rcpp::IntegerMatrix indices(graph.n_nbrs, graph.n_points, graph.idx.begin());
-  Rcpp::NumericMatrix dist(graph.n_nbrs, graph.n_points, graph.dist.begin());
+  Rcpp::IntegerMatrix indices(graph.n_points, graph.n_nbrs);
+  Rcpp::NumericMatrix dist(graph.n_points, graph.n_nbrs);
+  const int unz = unzero ? 1 : 0;
+  constexpr auto missing = tdoann::NNGraph<Out, Idx>::npos();
 
-  return Rcpp::List::create(Rcpp::_("idx") =
-                                Rcpp::transpose(unzero ? indices + 1 : indices),
-                            Rcpp::_("dist") = Rcpp::transpose(dist));
+  for (std::size_t i = 0; i < graph.n_points; ++i) {
+    const auto row_offset = i * graph.n_nbrs;
+    for (std::size_t j = 0; j < graph.n_nbrs; ++j) {
+      const auto idx_ij = row_offset + j;
+      if (graph.idx[idx_ij] == missing) {
+        indices(i, j) = unzero ? 0 : -1;
+        dist(i, j) = NA_REAL;
+        continue;
+      }
+      indices(i, j) = static_cast<int>(graph.idx[idx_ij]) + unz;
+      dist(i, j) = graph.dist[idx_ij];
+    }
+  }
+
+  return Rcpp::List::create(Rcpp::_("idx") = indices,
+                            Rcpp::_("dist") = dist);
 }
 
 template <typename T>

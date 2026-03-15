@@ -81,6 +81,27 @@ test_that("binary", {
   expect_equal(i2g$idx, lbb$idx)
 })
 
+test_that("recalculated init graphs preserve missing entries", {
+  ref <- matrix(c(0, 0, 1, 1, 2, 2), ncol = 2, byrow = TRUE)
+  init_idx <- matrix(c(1L, 0L, 2L, 0L, 3L, 0L), nrow = 3, byrow = TRUE)
+
+  i2g <- prepare_init_graph(data = t(ref), nn = init_idx, k = 2)
+  expect_equal(i2g$idx, init_idx)
+  expect_equal(i2g$dist[, 1], c(0, 0, 0))
+  expect_true(all(is.na(i2g$dist[, 2])))
+
+  qry <- matrix(c(1.5, 1.5), nrow = 1)
+  qi2g <- prepare_init_graph(
+    query = t(qry),
+    data = t(ref),
+    nn = matrix(c(3L, 0L), nrow = 1),
+    k = 2
+  )
+  expect_equal(qi2g$idx, matrix(c(3L, 0L), nrow = 1))
+  expect_equal(qi2g$dist[1, 1], sqrt(0.5), tolerance = 1e-7)
+  expect_true(is.na(qi2g$dist[1, 2]))
+})
+
 test_that("malformed init graphs are rejected before distance recalculation", {
   ref <- matrix(c(0, 0, 1, 1, 2, 2), ncol = 2, byrow = TRUE)
   qry <- matrix(c(2, 2), nrow = 1)

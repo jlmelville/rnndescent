@@ -151,6 +151,13 @@ iris_nbrs_missing$dist[1, ] <-
 iris_nnd <- nnd_knn(uirism, init = iris_nbrs_missing)
 expect_equal(sum(iris_nnd$dist), ui_edsum, tolerance = 1e-3)
 
+# initialize from existing knn indices with missing data
+set.seed(1337)
+iris_nbrs_missing_idx <- iris_nbrs$idx
+iris_nbrs_missing_idx[1, ] <- rep(0L, ncol(iris_nbrs_missing_idx))
+iris_nnd <- nnd_knn(uirism, init = list(idx = iris_nbrs_missing_idx))
+expect_equal(sum(iris_nnd$dist), ui_edsum, tolerance = 1e-3)
+
 # initialize from existing knn indices
 set.seed(1337)
 iris_nnd <- nnd_knn(uirism, init = list(idx = iris_nbrs$idx))
@@ -285,6 +292,19 @@ qnbrs4 <- graph_knn_query(reference = ui6, reference_graph = ui6_nnd, query = ui
 check_query_nbrs(nn = qnbrs4, query = ui4, ref_range = 1:6, query_range = 7:10, k = 4, expected_dist = ui10_eucd, tolerance = 1e-6)
 expect_equal(sum(qnbrs4$dist), ui4q_edsum, tolerance = 1e-6)
 expect_equal(rnbrs4$idx, rnbrs4_idx_copy)
+
+# initialize from existing knn indices with missing data
+set.seed(1337)
+rnbrs4_missing_idx <- rnbrs4$idx
+rnbrs4_missing_idx[1, ] <- rep(0L, ncol(rnbrs4_missing_idx))
+qnbrs4 <- graph_knn_query(
+  reference = ui6,
+  reference_graph = ui6_nnd,
+  query = ui4,
+  init = list(idx = rnbrs4_missing_idx)
+)
+check_query_nbrs(nn = qnbrs4, query = ui4, ref_range = 1:6, query_range = 7:10, k = 4, expected_dist = ui10_eucd, tolerance = 1e-6)
+expect_equal(sum(qnbrs4$dist), ui4q_edsum, tolerance = 1e-6)
 
 # multi-threading
 set.seed(1337)

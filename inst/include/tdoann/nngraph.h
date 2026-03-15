@@ -290,8 +290,15 @@ template <typename Out, typename Idx>
 void idx_to_graph(const BaseDistance<Out, Idx> &distance,
                   const std::vector<Idx> &idx, std::vector<Out> &dist,
                   std::size_t n_nbrs, std::size_t begin, std::size_t end) {
+  constexpr auto npos = static_cast<Idx>(-1);
   for (auto i = begin, innbrs = i * n_nbrs; i < end; i++, innbrs += n_nbrs) {
     for (std::size_t j = 0, idx_ij = innbrs; j < n_nbrs; j++, idx_ij++) {
+      if (idx[idx_ij] == npos) {
+        // Preserve missing init-graph entries for the R boundary instead of
+        // dereferencing the sentinel as a real data index.
+        dist[idx_ij] = (std::numeric_limits<Out>::quiet_NaN)();
+        continue;
+      }
       dist[idx_ij] = distance.calculate(idx[idx_ij], i);
     }
   }

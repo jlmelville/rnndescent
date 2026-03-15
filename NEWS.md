@@ -20,6 +20,7 @@ reference observations.
 * `prepare_search_graph()` now has better input validation.
 * `nnd_knn()`, `graph_knn_query()`, and `prepare_init_graph()` do a better job
 of rejecting malformed initial neighbor graphs.
+* `nnd_knn()` and `graph_knn_query()` no longer crash when missing data is provided.
 * `rnnd_build()`, `rnnd_query()`, and `rnnd_knn()` now normalize and validate
 their `obs` argument consistently with the rest of the public API, so lowercase
 values no longer silently trigger column-oriented handling.
