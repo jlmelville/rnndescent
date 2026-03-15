@@ -28,6 +28,31 @@ check_matching_features <- function(reference, query, obs) {
   }
 }
 
+is_single_finite_number <- function(x) {
+  is.numeric(x) && length(x) == 1L && !is.na(x) && is.finite(x)
+}
+
+check_nonnegative_number <- function(x, name) {
+  if (!is_single_finite_number(x) || x < 0) {
+    stop(name, " must be a single finite number >= 0")
+  }
+}
+
+check_unit_interval <- function(x, name) {
+  if (!is_single_finite_number(x) || x < 0 || x > 1) {
+    stop(name, " must be a single finite number between 0 and 1")
+  }
+}
+
+check_query_search_controls <- function(epsilon, max_search_fraction) {
+  check_nonnegative_number(epsilon, "epsilon")
+  check_unit_interval(max_search_fraction, "max_search_fraction")
+}
+
+check_delta <- function(delta) {
+  check_unit_interval(delta, "delta")
+}
+
 check_reference_graph_size <- function(reference_graph, n_reference) {
   if (is.list(reference_graph)) {
     reference_graph <- check_graph(reference_graph)

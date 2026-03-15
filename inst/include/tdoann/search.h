@@ -103,11 +103,11 @@ void non_search_query(NNHeap<Out, Idx> &current_graph,
             has_been_and_mark_visited(visited, candidate_idx)) {
           continue;
         }
-        auto dist = distance.calculate(candidate_idx, query_idx);
-        n_searches_for_query++;
         if (n_searches_for_query >= max_distance_calculations) {
           break;
         }
+        auto dist = distance.calculate(candidate_idx, query_idx);
+        n_searches_for_query++;
         if (static_cast<double>(dist) >= distance_bound) {
           continue;
         }

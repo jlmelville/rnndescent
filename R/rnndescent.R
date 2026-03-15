@@ -1250,6 +1250,7 @@ nnd_knn <- function(data,
                     ret_forest = FALSE) {
   stopifnot(tolower(progress) %in% c("bar", "dist"))
   obs <- match.arg(toupper(obs), c("C", "R"))
+  check_delta(delta)
 
   actual_metric <-
     get_actual_metric(use_alt_metric, metric, data, verbose)
@@ -1974,6 +1975,7 @@ graph_knn_query <- function(query,
                             verbose = FALSE,
                             obs = "R") {
   obs <- match.arg(toupper(obs), c("C", "R"))
+  check_query_search_controls(epsilon, max_search_fraction)
   check_sparse(reference, query)
   reference <- x2m(reference)
   query <- x2m(query)

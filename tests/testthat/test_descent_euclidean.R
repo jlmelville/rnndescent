@@ -190,6 +190,8 @@ expect_equal(sum(ui10_rnn$dist), ui10_edsum, tolerance = 1e-3)
 # errors
 expect_error(nnd_knn(ui10), "provide k")
 expect_error(nnd_knn(ui10, k = 11), "k must be")
+expect_error(nnd_knn(ui10, k = 4, delta = -0.1), "delta must be")
+expect_error(nnd_knn(ui10, k = 4, delta = 1.1), "delta must be")
 expect_error(nnd_knn(uirism, k = 15, init = iris_nbrs, metric = "not-a-real metric"), "metric")
 expect_error(
   nnd_knn(uirism, init = list(dist = iris_nbrs$dist, idx = iris_nbrs$idx - 2)),
@@ -316,6 +318,27 @@ expect_equal(sum(qnbrs4$dist), ui4q_edsum, tolerance = 1e-6)
 qnbrs4 <- graph_knn_query(reference = ui6, reference_graph = ui6_nnd, query = ui4, k = 4, max_search_fraction = 0.0, init = rnbrs4)
 expect_equal(qnbrs4, rnbrs4)
 
+budget_ref <- matrix(c(0, 0, 1, 0, 2, 0), ncol = 2, byrow = TRUE)
+budget_graph <- list(
+  idx = matrix(c(3L, 2L, 3L), ncol = 1),
+  dist = matrix(c(0.1, 0, 0), ncol = 1)
+)
+budget_query <- matrix(c(2.1, 0), nrow = 1)
+budget_init <- list(
+  idx = matrix(1L, nrow = 1),
+  dist = matrix(2.1, nrow = 1)
+)
+budgeted <- graph_knn_query(
+  reference = budget_ref,
+  reference_graph = budget_graph,
+  query = budget_query,
+  init = budget_init,
+  k = 1,
+  max_search_fraction = 1 / nrow(budget_ref)
+)
+expect_equal(budgeted$idx, matrix(3L, nrow = 1))
+expect_equal(budgeted$dist, matrix(0.1, nrow = 1), tolerance = 1e-6)
+
 # errors
 expect_error(graph_knn_query(
   reference = ui4, reference_graph = ui4_nnd,
@@ -329,6 +352,14 @@ expect_error(graph_knn_query(
   reference = ui6, reference_graph = ui6_nnd,
   query = ui4, init = rnbrs4, metric = "not-a-real metric"
 ), "metric")
+expect_error(graph_knn_query(
+  reference = ui6, reference_graph = ui6_nnd,
+  query = ui4, k = 4, epsilon = -0.1
+), "epsilon must be")
+expect_error(graph_knn_query(
+  reference = ui6, reference_graph = ui6_nnd,
+  query = ui4, k = 4, max_search_fraction = 1.1
+), "max_search_fraction must be")
 expect_error(graph_knn_query(
   reference = matrix(0, nrow = 2, ncol = 2),
   reference_graph = ui6_nnd,

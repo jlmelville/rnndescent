@@ -24,6 +24,9 @@ of rejecting malformed initial neighbor graphs.
 * `rnnd_build()`, `rnnd_query()`, and `rnnd_knn()` now normalize and validate
 their `obs` argument consistently with the rest of the public API, so lowercase
 values no longer silently trigger column-oriented handling.
+* Better input validation for `epsilon`, `max_search_fraction` and `delta`.
+* Fixed an edge case when `max_search_fraction` would only result in one
+calculation, but this distance was never used.
 * Verbose query summaries now report the correct minimum and average number of
 distance calculations.
 

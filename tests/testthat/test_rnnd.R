@@ -252,6 +252,19 @@ test_that("rnnd obs is normalized and validated", {
   expect_error(rnnd_query(index = expected_index, query = ui10, k = 4, obs = "rows"), "should be one of")
 })
 
+test_that("rnnd search and descent controls are validated", {
+  expect_error(
+    rnnd_query(index = iris_index, query = ui10, k = 4, epsilon = -0.1),
+    "epsilon must be"
+  )
+  expect_error(
+    rnnd_query(index = iris_index, query = ui10, k = 4, max_search_fraction = 1.1),
+    "max_search_fraction must be"
+  )
+  expect_error(rnnd_build(ui10, k = 4, delta = 1.1), "delta must be")
+  expect_error(rnnd_knn(ui10, k = 4, delta = -0.1), "delta must be")
+})
+
 test_that("graph query verbose search stats report true min and average counts", {
   ref <- matrix(c(0, 0, 1, 1, 2, 2), ncol = 2, byrow = TRUE)
   search_graph <- prepare_search_graph(ref, brute_force_knn(ref, k = 2))
