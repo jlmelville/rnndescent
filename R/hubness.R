@@ -65,7 +65,15 @@ k_occur <- function(idx,
                     k = NULL,
                     include_self = TRUE) {
   if (methods::is(idx, "sparseMatrix")) {
-    return(as.vector(table(Matrix::t(idx)@i)) - ifelse(include_self, 0, 1))
+    counts <- tabulate(Matrix::t(idx)@i + 1L, nbins = ncol(idx))
+    if (!include_self) {
+      diag_n <- min(dim(idx))
+      if (diag_n > 0) {
+        counts[seq_len(diag_n)] <- counts[seq_len(diag_n)] -
+          as.integer(Matrix::diag(idx) != 0)
+      }
+    }
+    return(counts)
   }
   if (is.list(idx)) {
     idx <- idx$idx

@@ -31,17 +31,16 @@ IntegerVector rnn_reverse_nbr_size(const IntegerMatrix &nn_idx,
                                    std::size_t nnbrs, std::size_t len,
                                    bool include_self = false) {
   const std::size_t nobs = nn_idx.nrow();
-  constexpr auto missing = static_cast<std::size_t>(-1);
   std::vector<std::size_t> n_reverse(len);
 
   for (std::size_t i = 0; i < nnbrs; i++) {
     for (std::size_t j = 0; j < nobs; j++) {
-      auto jnbr = static_cast<std::size_t>(nn_idx(j, i));
-      if (jnbr == missing) {
+      const auto raw_jnbr = nn_idx(j, i);
+      if (raw_jnbr <= 0) {
         continue;
       }
       // zero index
-      --jnbr;
+      const auto jnbr = static_cast<std::size_t>(raw_jnbr - 1);
       if (jnbr == j && !include_self) {
         continue;
       }

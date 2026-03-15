@@ -29,6 +29,8 @@ values no longer silently trigger column-oriented handling.
 calculation, but this distance was never used.
 * Verbose query summaries now report the correct minimum and average number of
 distance calculations.
+* Fixes for `k_occur()` when using graphs with missing data and sparse graphs
+with anti-hubs.
 
 # rnndescent 0.1.8
 
