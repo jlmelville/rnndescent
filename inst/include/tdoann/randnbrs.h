@@ -43,11 +43,12 @@ auto fill_random(NbrHeap &current_graph,
                  RandomIntGenerator<typename NbrHeap::Index> &rng,
                  typename NbrHeap::Index query,
                  typename NbrHeap::Index n_ref_points) {
-  for (std::size_t j = 0; j < n_ref_points; j++) {
+  auto sampled_refs = rng.sample(static_cast<int>(n_ref_points),
+                                 static_cast<int>(n_ref_points));
+  for (const auto ref : sampled_refs) {
     if (current_graph.is_full(query)) {
       return;
     }
-    typename NbrHeap::Index ref = rng.rand_int(n_ref_points);
     const auto dist_rq = distance.calculate(ref, query);
     current_graph.checked_push(query, dist_rq, ref);
   }

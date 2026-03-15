@@ -450,6 +450,68 @@ expect_error(graph_knn_query(
   k = 1
 ), "initial neighbor graph must have 1 rows")
 
+test_that("shared random fill completes feasible init graphs", {
+  ref <- matrix(c(0, 0, 1, 0, 2, 0), ncol = 2, byrow = TRUE)
+  dist_ref <- as.matrix(stats::dist(ref))
+  missing_self_init <- list(
+    idx = matrix(0L, nrow = 3, ncol = 3),
+    dist = matrix(NA_real_, nrow = 3, ncol = 3)
+  )
+
+  set.seed(1)
+  self_res <- nnd_knn(
+    ref,
+    k = 3,
+    init = missing_self_init,
+    n_iters = 0,
+    use_alt_metric = FALSE
+  )
+
+  expect_false(any(self_res$idx == 0L))
+  expect_false(anyNA(self_res$dist))
+  for (i in seq_len(nrow(self_res$idx))) {
+    expect_equal(sort(self_res$idx[i, ]), 1:3)
+    ordered <- order(self_res$idx[i, ])
+    expect_equal(
+      unname(self_res$dist[i, ordered]),
+      unname(dist_ref[i, self_res$idx[i, ordered]]),
+      tolerance = 1e-6
+    )
+  }
+
+  query <- matrix(c(0.1, 0), nrow = 1)
+  search_graph <- prepare_search_graph(
+    ref,
+    brute_force_knn(ref, k = 3),
+    use_alt_metric = FALSE,
+    diversify_prob = NULL,
+    pruning_degree_multiplier = NULL
+  )
+  missing_query_init <- list(
+    idx = matrix(0L, nrow = 1, ncol = 3),
+    dist = matrix(NA_real_, nrow = 1, ncol = 3)
+  )
+
+  set.seed(1)
+  query_res <- graph_knn_query(
+    reference = ref,
+    reference_graph = search_graph,
+    query = query,
+    init = missing_query_init,
+    k = 3,
+    epsilon = 0,
+    max_search_fraction = 0,
+    use_alt_metric = FALSE
+  )
+
+  expect_equal(query_res$idx, matrix(1:3, nrow = 1))
+  expect_equal(
+    query_res$dist,
+    matrix(c(0.1, 0.9, 1.9), nrow = 1),
+    tolerance = 1e-6
+  )
+})
+
 test_that("column oriented", {
   set.seed(1337)
   uiris_rnn <- nnd_knn(t(uirism), 15, obs = "C", n_threads = 2)

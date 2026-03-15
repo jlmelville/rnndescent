@@ -10,33 +10,18 @@ this gap (<https://github.com/jlmelville/rnndescent/issues/17>).
 
 ## Bug fixes and minor improvements
 
-* `brute_force_knn_query`, `random_knn_query`, and `graph_knn_query()` now
-reject query and reference inputs with mismatched feature counts instead of
-silently reshaping the query data inside the shared C++ query-distance path.
-* fix for `prepare_search_graph()` sometimes over-pruning beyond `max_degree`.
-* `graph_knn_query()` now rejects sparse search graphs whose dimensions do not
-match the reference data instead of silently searching the wrong subset of
-reference observations.
-* `prepare_search_graph()` now has better input validation.
-* `nnd_knn()`, `graph_knn_query()`, and `prepare_init_graph()` do a better job
-of rejecting malformed initial neighbor graphs.
-* `nnd_knn()` and `graph_knn_query()` no longer crash when missing data is provided.
-* `rnnd_build()`, `rnnd_query()`, and `rnnd_knn()` now normalize and validate
-their `obs` argument consistently with the rest of the public API, so lowercase
-values no longer silently trigger column-oriented handling.
-* Better input validation for `epsilon`, `max_search_fraction` and `delta`.
-* Better validation for parameters that need to be integers.
-* `merge_knn()` now rejects malformed input graphs with invalid neighbor
-indices or inconsistent missing-edge sentinels instead of silently returning
-out-of-range merged neighbors.
+* Much improved input validation.
+* Fix for `prepare_search_graph()` sometimes over-pruning beyond `max_degree`.
+* Fix `nnd_knn()` and `graph_knn_query()` sometimes failing to completely randomly fill
+the initial search graph when needed.
 * Fix for `prepare_search_graph(prune_reverse = TRUE)` not pruning reverse edges
 when `diversify_prob = 0`.
-* Fixed an edge case when `max_search_fraction` would only result in one
+* Fix for edge case when `max_search_fraction` would only result in one
 calculation, but this distance was never used.
-* Verbose query summaries now report the correct minimum and average number of
-distance calculations.
 * Fixes for `k_occur()` when using graphs with missing data and sparse graphs
 with anti-hubs.
+* Verbose query summaries now report the correct minimum and average number of
+distance calculations.
 
 # rnndescent 0.1.8
 
