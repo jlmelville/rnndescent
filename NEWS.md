@@ -8,6 +8,13 @@ rnndescent for its initial release. Thank you to
 [Josiah Parry](https://github.com/JosiahParry) whose request nudged me to fill
 this gap (<https://github.com/jlmelville/rnndescent/issues/17>).
 
+## Bug fixes and minor improvements
+
+* `brute_force_knn_query`, `random_knn_query`, and `graph_knn_query` now rejects
+query and reference inputs with mismatched feature counts instead of silently
+reshaping the query data.
+* `prepare_search_graph()` could over-prune the search graph.
+
 # rnndescent 0.1.8
 
 This is a patch release to fix some M1 Mac test failures as part of CRAN checks.

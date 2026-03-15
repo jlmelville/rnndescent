@@ -249,8 +249,42 @@ test_that("explicit zeros are preserved", {
     Matrix::t(prepare_search_graph(
       data = ui10,
       graph = ui10_bf0
-    ))
+  ))
   expect_true(sg_0[10, 3] > 0)
+})
+
+test_that("degree pruning keeps the max_degree closest edges", {
+  gl <- list(
+    row_ptr = c(0L, 4L, 4L, 4L, 4L),
+    col_idx = c(0L, 1L, 2L, 3L),
+    dist = c(3, 1, 2, 4)
+  )
+
+  expect_equal(
+    rnndescent:::rnn_degree_prune(gl, max_degree = 2L, n_threads = 0L)$dist,
+    c(0, 1, 2, 0)
+  )
+
+  graph <- Matrix::sparseMatrix(
+    p = gl$row_ptr,
+    j = gl$col_idx,
+    x = gl$dist,
+    dims = c(4, 4),
+    repr = "C",
+    index1 = FALSE
+  )
+
+  expect_equal(
+    as.matrix(rnndescent:::degree_prune(graph, max_degree = 2L)),
+    matrix(
+      c(0, 1, 2, 0,
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+        0, 0, 0, 0),
+      nrow = 4,
+      byrow = TRUE
+    )
+  )
 })
 
 test_that("column orientation", {
