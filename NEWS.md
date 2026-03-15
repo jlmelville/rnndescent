@@ -19,6 +19,8 @@ sometimes over-pruning the search graph.
 * `graph_knn_query()` now rejects sparse search graphs whose dimensions do not
 match the reference data instead of silently searching the wrong subset of
 reference observations.
+* `nnd_knn()`, `graph_knn_query()`, and `prepare_init_graph()` do a better job
+of rejecting malformed initial neighbor graphs.
 
 # rnndescent 0.1.8
 

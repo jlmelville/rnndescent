@@ -80,3 +80,28 @@ test_that("binary", {
   expect_equal(i2g$dist, lbb$dist, tolerance = 1e-6)
   expect_equal(i2g$idx, lbb$idx)
 })
+
+test_that("malformed init graphs are rejected before distance recalculation", {
+  ref <- matrix(c(0, 0, 1, 1, 2, 2), ncol = 2, byrow = TRUE)
+  qry <- matrix(c(2, 2), nrow = 1)
+
+  expect_error(
+    prepare_init_graph(
+      query = t(qry),
+      data = t(ref),
+      nn = matrix(4L, nrow = 1, ncol = 1),
+      k = 1
+    ),
+    "initial neighbor graph indices must be between 1 and 3 or 0 for missing entries"
+  )
+
+  expect_error(
+    prepare_init_graph(
+      query = t(qry),
+      data = t(ref),
+      nn = matrix(c(1L, 2L), nrow = 2, ncol = 1),
+      k = 1
+    ),
+    "initial neighbor graph must have 1 rows"
+  )
+})

@@ -191,7 +191,18 @@ expect_equal(sum(ui10_rnn$dist), ui10_edsum, tolerance = 1e-3)
 expect_error(nnd_knn(ui10), "provide k")
 expect_error(nnd_knn(ui10, k = 11), "k must be")
 expect_error(nnd_knn(uirism, k = 15, init = iris_nbrs, metric = "not-a-real metric"), "metric")
-expect_error(nnd_knn(uirism, init = list(dist = iris_nbrs$dist, idx = iris_nbrs$idx - 2)), "Bad indexes")
+expect_error(
+  nnd_knn(uirism, init = list(dist = iris_nbrs$dist, idx = iris_nbrs$idx - 2)),
+  "initial neighbor graph indices must be between"
+)
+expect_error(
+  nnd_knn(
+    matrix(c(0, 0, 1, 1, 2, 2), ncol = 2, byrow = TRUE),
+    k = 1,
+    init = list(idx = matrix(4L, nrow = 3, ncol = 1))
+  ),
+  "initial neighbor graph indices must be between 1 and 3 or 0 for missing entries"
+)
 
 # verbosity
 msgs <- capture_everything(nnd_knn(ui10, 4, verbose = TRUE))
@@ -346,6 +357,22 @@ expect_error(graph_knn_query(
     dist = matrix(sqrt(8), nrow = 1)
   )
 ), "reference_graph must have dimensions 3 x 3")
+mini_ref <- matrix(c(0, 0, 1, 1, 2, 2), ncol = 2, byrow = TRUE)
+mini_ref_graph <- nnd_knn(mini_ref, k = 1)
+expect_error(graph_knn_query(
+  reference = mini_ref,
+  reference_graph = mini_ref_graph,
+  query = matrix(c(2, 2), nrow = 1),
+  init = list(idx = matrix(4L, nrow = 1, ncol = 1)),
+  k = 1
+), "initial neighbor graph indices must be between 1 and 3 or 0 for missing entries")
+expect_error(graph_knn_query(
+  reference = mini_ref,
+  reference_graph = mini_ref_graph,
+  query = matrix(c(2, 2), nrow = 1),
+  init = list(idx = matrix(c(1L, 2L), nrow = 2, ncol = 1)),
+  k = 1
+), "initial neighbor graph must have 1 rows")
 
 test_that("column oriented", {
   set.seed(1337)

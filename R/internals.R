@@ -82,6 +82,41 @@ check_graph <- function(idx, dist = NULL, k = NULL) {
   list(idx = idx, dist = dist, k = k)
 }
 
+check_init_graph <- function(nn, n_points, n_reference) {
+  stopifnot(is.list(nn))
+  stopifnot(!is.null(nn$idx))
+  stopifnot(methods::is(nn$idx, "matrix"))
+
+  if (!is.null(nn$dist)) {
+    stopifnot(methods::is(nn$dist, "matrix"))
+    stopifnot(dim(nn$idx) == dim(nn$dist))
+  }
+
+  if (nrow(nn$idx) != n_points) {
+    stop(
+      "initial neighbor graph must have ",
+      n_points,
+      " rows, but has ",
+      nrow(nn$idx)
+    )
+  }
+
+  if (anyNA(nn$idx)) {
+    stop("initial neighbor graph indices must not be NA; use 0 for missing entries")
+  }
+
+  bad_idx <- nn$idx != 0 & (nn$idx < 1 | nn$idx > n_reference)
+  if (any(bad_idx)) {
+    stop(
+      "initial neighbor graph indices must be between 1 and ",
+      n_reference,
+      " or 0 for missing entries"
+    )
+  }
+
+  nn
+}
+
 # data and query must be column-oriented
 # recalculate_distances if TRUE even if a distance matrix is present,
 # recalculate distances from data/query and the indices
@@ -100,6 +135,9 @@ prepare_init_graph <-
     if (is.matrix(nn)) {
       nn <- list(idx = nn)
     }
+    n_reference <- ncol(data)
+    n_points <- if (is.null(query)) n_reference else ncol(query)
+    nn <- check_init_graph(nn, n_points, n_reference)
     ## nn is a list dist may be NULL
 
     # idx has too few or too many columns
