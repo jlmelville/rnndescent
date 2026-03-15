@@ -51,6 +51,26 @@ test_that("merge_knn rejects invalid n_threads values", {
   )
 })
 
+test_that("merge_knn rejects malformed graph indices", {
+  bad_knn <- list(
+    idx = matrix(c(11L, 2L, 3L, 4L), nrow = 4),
+    dist = matrix(c(1, 2, 3, 4), nrow = 4)
+  )
+  expect_error(
+    merge_knn(list(bad_knn)),
+    "NN graph indices must be between 1 and 4 or 0 for missing entries"
+  )
+
+  bad_query <- list(
+    idx = matrix(c(-1L, 2L, 3L, 4L), nrow = 2),
+    dist = matrix(c(1, 2, 3, 4), nrow = 2)
+  )
+  expect_error(
+    merge_knn(list(bad_query), is_query = TRUE),
+    "Query NN graph indices must be >= 1 or 0 for missing entries"
+  )
+})
+
 # one list returns the original list (apart from some casting of distances)
 ui10rnno <- random_knn(ui10, k = 4, order_by_distance = TRUE)
 ui10mnnl1 <- merge_knn(list(ui10rnno))
@@ -163,6 +183,13 @@ expect_equal(r3$dist, r3_dist_copy)
 
 # Errors ------------------------------------------------------------------
 
+make_valid_nn_graph <- function(nr, nc) {
+  list(
+    idx = matrix(rep(seq_len(nr), length.out = nr * nc), nrow = nr, ncol = nc),
+    dist = matrix(seq_len(nr * nc), nrow = nr, ncol = nc)
+  )
+}
+
 expect_error(
   validate_nn_graph(list(
     idx = matrix(nrow = 10, ncol = 2),
@@ -179,8 +206,8 @@ expect_error(
 )
 expect_error(
   validate_are_mergeable(
-    list(idx = matrix(nrow = 10, ncol = 2), dist = matrix(nrow = 10, ncol = 2)),
-    list(idx = matrix(nrow = 11, ncol = 5), dist = matrix(nrow = 11, ncol = 5))
+    make_valid_nn_graph(10, 2),
+    make_valid_nn_graph(11, 5)
   ),
   "must have same number of rows"
 )
@@ -201,21 +228,21 @@ expect_error(
 )
 expect_error(
   validate_are_mergeablel(list(
-    list(idx = matrix(nrow = 10, ncol = 2), dist = matrix(nrow = 10, ncol = 2)),
-    list(idx = matrix(nrow = 11, ncol = 5), dist = matrix(nrow = 11, ncol = 5))
+    make_valid_nn_graph(10, 2),
+    make_valid_nn_graph(11, 5)
   )),
   "must have same number of rows"
 )
 expect_error(
   validate_are_mergeablel(list(
-    list(idx = matrix(nrow = 10, ncol = 2), dist = matrix(nrow = 10, ncol = 2)),
+    make_valid_nn_graph(10, 2),
     list(badidx = matrix(nrow = 10, ncol = 5), dist = matrix(nrow = 10, ncol = 5))
   )),
   "must contain 'idx'"
 )
 expect_error(
   validate_are_mergeablel(list(
-    list(idx = matrix(nrow = 10, ncol = 2), dist = matrix(nrow = 10, ncol = 2)),
+    make_valid_nn_graph(10, 2),
     list(idx = matrix(nrow = 10, ncol = 5), baddist = matrix(nrow = 10, ncol = 5))
   )),
   "must contain 'dist'"

@@ -2674,7 +2674,7 @@ merge_knn <- function(graphs,
   if (length(graphs) == 0) {
     return(list())
   }
-  validate_are_mergeablel(graphs)
+  validate_are_mergeablel(graphs, is_query = is_query)
 
   rnn_merge_nn_all(graphs,
     is_query,

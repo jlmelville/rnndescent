@@ -386,23 +386,28 @@ is_sparse <- function(x) {
   methods::is(x, "sparseMatrix")
 }
 
-validate_are_mergeablel <- function(nn_graphs) {
+validate_are_mergeablel <- function(nn_graphs, is_query = FALSE) {
   nn_graph1 <- nn_graphs[[1]]
-  validate_nn_graph(nn_graph1)
+  validate_nn_graph(nn_graph1, is_query = is_query)
   n_graphs <- length(nn_graphs)
   if (n_graphs > 1) {
     for (i in 2:n_graphs) {
-      validate_are_mergeable(nn_graph1, nn_graphs[[i]], validate1 = FALSE)
+      validate_are_mergeable(
+        nn_graph1,
+        nn_graphs[[i]],
+        validate1 = FALSE,
+        is_query = is_query
+      )
     }
   }
 }
 
 validate_are_mergeable <-
-  function(nn_graph1, nn_graph2, validate1 = TRUE) {
+  function(nn_graph1, nn_graph2, validate1 = TRUE, is_query = FALSE) {
     if (validate1) {
-      validate_nn_graph(nn_graph1)
+      validate_nn_graph(nn_graph1, is_query = is_query)
     }
-    validate_nn_graph(nn_graph2)
+    validate_nn_graph(nn_graph2, is_query = is_query)
     nr1 <- nrow(nn_graph1$idx)
     nr2 <- nrow(nn_graph2$idx)
     if (nr1 != nr2) {
@@ -410,7 +415,7 @@ validate_are_mergeable <-
     }
   }
 
-validate_nn_graph <- function(nn_graph) {
+validate_nn_graph <- function(nn_graph, is_query = FALSE) {
   if (is.null(nn_graph$idx)) {
     stop("NN graph must contain 'idx' matrix")
   }
@@ -420,6 +425,28 @@ validate_nn_graph <- function(nn_graph) {
   nr <- nrow(nn_graph$idx)
   nc <- ncol(nn_graph$idx)
   validate_nn_graph_matrix(nn_graph$dist, nr, nc, msg = "nn matrix")
+
+  if (anyNA(nn_graph$idx)) {
+    stop("NN graph indices must not be NA; use 0 for missing entries")
+  }
+
+  missing_idx <- nn_graph$idx == 0L
+  missing_dist <- is.na(nn_graph$dist)
+  if (any(missing_idx != missing_dist)) {
+    stop("NN graph must use idx = 0 and dist = NA together for missing entries")
+  }
+
+  if (is_query) {
+    bad_idx <- !missing_idx & nn_graph$idx < 1L
+    if (any(bad_idx)) {
+      stop("Query NN graph indices must be >= 1 or 0 for missing entries")
+    }
+  } else {
+    bad_idx <- !missing_idx & (nn_graph$idx < 1L | nn_graph$idx > nr)
+    if (any(bad_idx)) {
+      stop("NN graph indices must be between 1 and ", nr, " or 0 for missing entries")
+    }
+  }
 }
 
 validate_nn_graph_matrix <- function(nn, nr, nc, msg = "matrix") {
