@@ -1995,6 +1995,8 @@ graph_knn_query <- function(query,
       get_actual_metric(use_alt_metric, metric, reference, verbose)
   }
 
+  reference_graph <- check_reference_graph_size(reference_graph, ncol(reference))
+
   # reference and query must be column-oriented at this point
   if (is.null(init)) {
     if (is.null(k)) {
@@ -2088,25 +2090,8 @@ graph_knn_query <- function(query,
     nrow(init$dist) == ncol(query)
   )
   if (is.list(reference_graph)) {
-    reference_dist <- reference_graph$dist
-    reference_idx <- reference_graph$idx
-    stopifnot(!is.null(reference), (
-      methods::is(reference, "matrix") ||
-        methods::is(reference, "sparseMatrix")
-    ))
-    stopifnot(
-      !is.null(reference_idx),
-      methods::is(reference_idx, "matrix"),
-      nrow(reference_idx) == ncol(reference)
-    )
-    stopifnot(
-      !is.null(reference_dist),
-      methods::is(reference_dist, "matrix"),
-      nrow(reference_dist) == ncol(reference)
-    )
     reference_graph_list <- graph_to_list(reference_graph)
   } else {
-    stopifnot(methods::is(reference_graph, "sparseMatrix"))
     reference_graph_list <- tcsparse_to_list(reference_graph)
   }
 

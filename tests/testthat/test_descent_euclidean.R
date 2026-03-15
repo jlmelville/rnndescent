@@ -331,6 +331,21 @@ expect_error(graph_knn_query(
   k = 1,
   obs = "C"
 ), "same number of features")
+expect_error(graph_knn_query(
+  reference = matrix(c(0, 0, 1, 1, 2, 2), ncol = 2, byrow = TRUE),
+  reference_graph = Matrix::sparseMatrix(
+    i = c(1L, 2L),
+    j = c(2L, 1L),
+    x = c(1, 1),
+    dims = c(2, 2)
+  ),
+  query = matrix(c(2, 2), nrow = 1),
+  k = 1,
+  init = list(
+    idx = matrix(1L, nrow = 1),
+    dist = matrix(sqrt(8), nrow = 1)
+  )
+), "reference_graph must have dimensions 3 x 3")
 
 test_that("column oriented", {
   set.seed(1337)

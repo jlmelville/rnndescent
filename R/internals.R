@@ -28,6 +28,43 @@ check_matching_features <- function(reference, query, obs) {
   }
 }
 
+check_reference_graph_size <- function(reference_graph, n_reference) {
+  if (is.list(reference_graph)) {
+    reference_graph <- check_graph(reference_graph)
+    graph_n_reference <- nrow(reference_graph$idx)
+    if (graph_n_reference != n_reference) {
+      stop(
+        "reference_graph must describe ",
+        n_reference,
+        " reference observations, but has ",
+        graph_n_reference
+      )
+    }
+    return(reference_graph)
+  }
+
+  if (methods::is(reference_graph, "sparseMatrix")) {
+    graph_dim <- dim(reference_graph)
+    if (graph_dim[1] != n_reference || graph_dim[2] != n_reference) {
+      stop(
+        "reference_graph must have dimensions ",
+        n_reference,
+        " x ",
+        n_reference,
+        ", but has ",
+        graph_dim[1],
+        " x ",
+        graph_dim[2]
+      )
+    }
+    return(reference_graph)
+  }
+
+  stop(
+    "'reference_graph' must be either a list with idx/dist matrices or a sparseMatrix"
+  )
+}
+
 check_graph <- function(idx, dist = NULL, k = NULL) {
   if (is.null(dist) && is.list(idx)) {
     dist <- idx$dist
