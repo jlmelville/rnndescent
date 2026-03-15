@@ -262,6 +262,7 @@ rnnd_build <- function(data,
                        verbose = FALSE,
                        progress = "bar",
                        obs = "R") {
+  obs <- match.arg(toupper(obs), c("C", "R"))
   data <- x2m(data)
   if (obs == "R") {
     data <- Matrix::t(data)
@@ -422,6 +423,7 @@ rnnd_query <-
            n_threads = 0,
            verbose = FALSE,
            obs = "R") {
+    obs <- match.arg(toupper(obs), c("C", "R"))
     if (is.null(init) && !is.null(index$search_forest)) {
       init <- index$search_forest
     }
@@ -663,6 +665,7 @@ rnnd_knn <- function(data,
                      verbose = FALSE,
                      progress = "bar",
                      obs = "R") {
+  obs <- match.arg(toupper(obs), c("C", "R"))
   data <- x2m(data)
   if (obs == "R") {
     data <- Matrix::t(data)

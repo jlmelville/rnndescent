@@ -81,6 +81,10 @@ List nn_query_impl(const tdoann::BaseDistance<Out, Idx> &distance,
     std::size_t max_count = 0UL;
     std::size_t sum_counts = 0UL;
     double n_points = static_cast<double>(search_graph.n_points);
+    if (!distance_counts.empty()) {
+      min_count = distance_counts.front();
+      max_count = distance_counts.front();
+    }
     for (auto count : distance_counts) {
       if (count > max_count) {
         max_count = count;
@@ -90,7 +94,10 @@ List nn_query_impl(const tdoann::BaseDistance<Out, Idx> &distance,
       }
       sum_counts += count;
     }
-    double avg_count = sum_counts / distance_counts.size();
+    double avg_count = distance_counts.empty()
+      ? 0.0
+      : static_cast<double>(sum_counts) /
+          static_cast<double>(distance_counts.size());
 
     tsmessage() << "min distance calculation = " << min_count << " ("
                 << fmt_double(100.0 * min_count / n_points)

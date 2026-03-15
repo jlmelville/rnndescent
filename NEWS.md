@@ -21,6 +21,11 @@ match the reference data instead of silently searching the wrong subset of
 reference observations.
 * `nnd_knn()`, `graph_knn_query()`, and `prepare_init_graph()` do a better job
 of rejecting malformed initial neighbor graphs.
+* `rnnd_build()`, `rnnd_query()`, and `rnnd_knn()` now normalize and validate
+their `obs` argument consistently with the rest of the public API, so lowercase
+values no longer silently trigger column-oriented handling.
+* Verbose query summaries now report the correct minimum and average number of
+distance calculations.
 
 # rnndescent 0.1.8
 

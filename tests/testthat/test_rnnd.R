@@ -229,3 +229,50 @@ test_that("hellinger rnnd build/query", {
   bitsp_query <- rnnd_query(index = bitsp_index, query = bitdatasp, k = 4)
   expect_equal(bitsp_query, bitsp_bf)
 })
+
+test_that("rnnd obs is normalized and validated", {
+  set.seed(1337)
+  expected_knn <- rnnd_knn(ui10, k = 4, obs = "R")
+  set.seed(1337)
+  expect_equal(rnnd_knn(ui10, k = 4, obs = "r"), expected_knn)
+
+  set.seed(1337)
+  expected_index <- rnnd_build(ui10, k = 4, obs = "R")
+  set.seed(1337)
+  lower_index <- rnnd_build(ui10, k = 4, obs = "r")
+  expect_equal(lower_index$graph, expected_index$graph)
+  expect_equal(lower_index$data, expected_index$data)
+  expect_equal(lower_index$search_graph, expected_index$search_graph)
+
+  expected_query <- rnnd_query(index = expected_index, query = ui10, k = 4, obs = "R")
+  expect_equal(rnnd_query(index = expected_index, query = ui10, k = 4, obs = "r"), expected_query)
+
+  expect_error(rnnd_knn(ui10, k = 4, obs = "rows"), "should be one of")
+  expect_error(rnnd_build(ui10, k = 4, obs = "rows"), "should be one of")
+  expect_error(rnnd_query(index = expected_index, query = ui10, k = 4, obs = "rows"), "should be one of")
+})
+
+test_that("graph query verbose search stats report true min and average counts", {
+  ref <- matrix(c(0, 0, 1, 1, 2, 2), ncol = 2, byrow = TRUE)
+  search_graph <- prepare_search_graph(ref, brute_force_knn(ref, k = 2))
+  query <- ref[c(2, 3), , drop = FALSE]
+  init <- list(
+    idx = matrix(c(1L, 1L), nrow = 2),
+    dist = matrix(c(2, 8), nrow = 2)
+  )
+
+  msg <- capture_everything(graph_knn_query(
+    query = query,
+    reference = ref,
+    reference_graph = search_graph,
+    init = init,
+    k = 1,
+    epsilon = 0.1,
+    max_search_fraction = 1,
+    verbose = TRUE
+  ))
+
+  expect_match(msg, "min distance calculation = 1 \\(33\\.33%\\) of reference data")
+  expect_match(msg, "max distance calculation = 2 \\(66\\.67%\\) of reference data")
+  expect_match(msg, "avg distance calculation = 2 \\(50\\.00%\\) of reference data")
+})
