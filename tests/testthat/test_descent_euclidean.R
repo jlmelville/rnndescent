@@ -190,6 +190,7 @@ expect_equal(sum(ui10_rnn$dist), ui10_edsum, tolerance = 1e-3)
 # errors
 expect_error(nnd_knn(ui10), "provide k")
 expect_error(nnd_knn(ui10, k = 11), "k must be")
+expect_error(nnd_knn(ui10, k = 0), "k must be")
 expect_error(nnd_knn(ui10, k = 4, delta = -0.1), "delta must be")
 expect_error(nnd_knn(ui10, k = 4, delta = 1.1), "delta must be")
 expect_error(nnd_knn(uirism, k = 15, init = iris_nbrs, metric = "not-a-real metric"), "metric")
@@ -343,7 +344,11 @@ expect_equal(budgeted$dist, matrix(0.1, nrow = 1), tolerance = 1e-6)
 expect_error(graph_knn_query(
   reference = ui4, reference_graph = ui4_nnd,
   query = ui6, k = 5
-), "must be <=")
+), "k must be")
+expect_error(graph_knn_query(
+  reference = ui4, reference_graph = ui4_nnd,
+  query = ui6, k = 0
+), "k must be")
 expect_error(graph_knn_query(
   reference = ui4, reference_graph = ui4_nnd,
   query = ui6, k = 4, metric = "not-a-real metric"

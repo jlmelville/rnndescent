@@ -13,6 +13,8 @@ check_nbrs(rnbrs, ui10_eucd, tolerance = 1e-6)
 
 # Error
 expect_error(brute_force_knn(ui10, k = 11), "k must be")
+expect_error(brute_force_knn(ui10, k = 0), "k must be")
+expect_error(brute_force_knn(ui10, k = 1.5), "k must be")
 expect_error(brute_force_knn(ui10, k = 4, metric = "not-a-real metric"), "metric")
 
 # Queries -----------------------------------------------------------------
@@ -35,6 +37,7 @@ expect_equal(sum(qnbrs6$dist), ui6q_edsum, tolerance = 1e-5)
 # Errors
 
 expect_error(brute_force_knn_query(reference = ui4, query = ui6, k = 7), "k must be")
+expect_error(brute_force_knn_query(reference = ui4, query = ui6, k = 0), "k must be")
 expect_error(brute_force_knn_query(reference = ui4, query = ui6, k = 4, metric = "not-a-real metric"), "metric")
 expect_error(
   brute_force_knn_query(

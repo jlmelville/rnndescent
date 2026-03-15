@@ -26,6 +26,8 @@ check_nbrs_order(res)
 
 # errors
 expect_error(random_knn(ui10, k = 11), "k must be")
+expect_error(random_knn(ui10, k = 0), "k must be")
+expect_error(random_knn(ui10, k = 1.5), "k must be")
 expect_error(random_knn(ui10, k = 4, metric = "not-a-real metric"), "metric")
 
 # Queries -----------------------------------------------------------------
@@ -65,7 +67,8 @@ qnbrs6 <- random_knn_query(reference = ui4, query = ui6, k = 4, n_threads = 1, o
 check_query_nbrs(nn = qnbrs6, query = ui6, ref_range = 7:10, query_range = 1:6, k = 4, expected_dist = ui10_eucd, tolerance = 1e-6, check_order = FALSE)
 
 # Errors
-expect_error(random_knn_query(reference = ui4, query = ui6, k = 7), "must be <=")
+expect_error(random_knn_query(reference = ui4, query = ui6, k = 7), "k must be")
+expect_error(random_knn_query(reference = ui4, query = ui6, k = 0), "k must be")
 expect_error(random_knn_query(reference = ui4, query = ui6, k = 4, metric = "not-a-real metric"), "metric")
 expect_error(
   random_knn_query(

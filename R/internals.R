@@ -5,8 +5,8 @@
 }
 
 check_k <- function(k, max_k) {
-  if (k > max_k) {
-    stop("k must be <= ", max_k)
+  if (!is_single_finite_number(k) || k < 1 || k > max_k || k != floor(k)) {
+    stop("k must be a single integer between 1 and ", max_k)
   }
 }
 

@@ -133,6 +133,24 @@ rpf_query_res <-
   )
 expect_equal(rpf_query_res, expected_rpt_knn, tolerance = 1e-7)
 
+test_that("rp tree APIs reject invalid k values", {
+  expect_error(rpf_knn(ui10, k = 0), "k must be")
+  expect_error(rpf_knn(ui10, k = 1.5), "k must be")
+
+  forest <- rpf_build(ui10, metric = "euclidean", n_trees = 1, leaf_size = 4)
+  expect_error(
+    rpf_knn_query(
+      ui10,
+      ui10,
+      forest,
+      k = 0,
+      n_threads = 0,
+      cache = TRUE
+    ),
+    "k must be"
+  )
+})
+
 set.seed(1337)
 rpf_query_res <-
   rpf_knn_query(
