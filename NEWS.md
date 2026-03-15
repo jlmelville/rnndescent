@@ -11,6 +11,8 @@ this gap (<https://github.com/jlmelville/rnndescent/issues/17>).
 ## Bug fixes and minor improvements
 
 * Much improved input validation.
+* Non-`dgCMatrix` `sparseMatrix` inputs, such as `dgRMatrix` and `dgTMatrix` are
+now normalized to `dgCMatrix` on input. Other matrices fail with a clearer error.
 * Fix for `prepare_search_graph()` sometimes over-pruning beyond `max_degree`.
 * Fix `nnd_knn()` and `graph_knn_query()` sometimes failing to completely randomly fill
 the initial search graph when needed.

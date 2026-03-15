@@ -595,6 +595,28 @@ test_that("sparse implicit margin", {
   expect_equal(squery4b, squery4, tolerance = 1e-5)
 })
 
+test_that("rp tree APIs normalize non-dgC sparse inputs", {
+  data_r <- methods::as(ui10sp, "RsparseMatrix")
+
+  set.seed(1337)
+  expected_knn <- rpf_knn(ui10sp, k = 4, n_trees = 1, leaf_size = 4)
+  set.seed(1337)
+  observed_knn <- rpf_knn(data_r, k = 4, n_trees = 1, leaf_size = 4)
+  expect_equal(observed_knn, expected_knn, tolerance = 1e-6)
+
+  set.seed(1337)
+  expected_forest <- rpf_build(ui10sp, metric = "euclidean", n_trees = 1, leaf_size = 4)
+  set.seed(1337)
+  observed_forest <- rpf_build(data_r, metric = "euclidean", n_trees = 1, leaf_size = 4)
+  expect_equal(observed_forest, expected_forest, tolerance = 1e-6)
+
+  set.seed(1337)
+  expected_query <- rpf_knn_query(ui10sp, ui10sp, expected_forest, k = 4, n_threads = 0, cache = TRUE)
+  set.seed(1337)
+  observed_query <- rpf_knn_query(data_r, data_r, expected_forest, k = 4, n_threads = 0, cache = TRUE)
+  expect_equal(observed_query, expected_query, tolerance = 1e-6)
+})
+
 
 test_that("sparse explicit margin", {
   set.seed(1337)

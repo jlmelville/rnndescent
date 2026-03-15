@@ -547,6 +547,25 @@ test_that("sparse", {
   expect_equal(sq4, dq4, tolerance = 1e-6)
 })
 
+test_that("descent and graph query normalize non-dgC sparse inputs", {
+  data_r <- methods::as(ui10sp, "RsparseMatrix")
+  ref_r <- methods::as(ui10sp6, "RsparseMatrix")
+  query_r <- methods::as(ui10sp4, "RsparseMatrix")
+
+  set.seed(1337)
+  expected_nnd <- nnd_knn(ui10sp, k = 4, n_threads = 0, metric = "euclidean")
+  set.seed(1337)
+  observed_nnd <- nnd_knn(data_r, k = 4, n_threads = 0, metric = "euclidean")
+  expect_equal(observed_nnd, expected_nnd, tolerance = 1e-6)
+
+  ref_graph <- brute_force_knn(ui10sp6, k = 4)
+  set.seed(1337)
+  expected_query <- graph_knn_query(reference = ui10sp6, query = ui10sp4, reference_graph = ref_graph, k = 4)
+  set.seed(1337)
+  observed_query <- graph_knn_query(reference = ref_r, query = query_r, reference_graph = ref_graph, k = 4)
+  expect_equal(observed_query, expected_query, tolerance = 1e-6)
+})
+
 
 test_that("full workflow", {
   iris_ref <- iris[iris$Species %in% c("setosa", "versicolor"), ]

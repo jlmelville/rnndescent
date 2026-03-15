@@ -190,3 +190,21 @@ test_that("sparse query", {
   dz4_6 <- random_knn_query(ui10z4, ui10z6, k = 4)
   expect_equal(sp4_6, dz4_6, tolerance = 1e-6)
 })
+
+test_that("random neighbor APIs normalize non-dgC sparse inputs", {
+  data_r <- methods::as(ui10sp, "RsparseMatrix")
+  ref_r <- methods::as(ui10sp4, "RsparseMatrix")
+  query_r <- methods::as(ui10sp6, "RsparseMatrix")
+
+  set.seed(1337)
+  expected_knn <- random_knn(ui10sp, k = 4, n_threads = 0)
+  set.seed(1337)
+  observed_knn <- random_knn(data_r, k = 4, n_threads = 0)
+  expect_equal(observed_knn, expected_knn, tolerance = 1e-6)
+
+  set.seed(1337)
+  expected_query <- random_knn_query(reference = ui10sp4, query = ui10sp6, k = 4)
+  set.seed(1337)
+  observed_query <- random_knn_query(reference = ref_r, query = query_r, k = 4)
+  expect_equal(observed_query, expected_query, tolerance = 1e-6)
+})

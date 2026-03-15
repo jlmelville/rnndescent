@@ -269,3 +269,42 @@ expect_equal(
 expect_equal(brute_force_knn_query(ui10sp, ui10sp, k = 4), brute_force_knn(ui10sp, k = 4))
 expect_equal(brute_force_knn_query(ui10sp6, ui10sp4, k = 4), brute_force_knn_query(ui10z6, ui10z4, k = 4), tolerance = 1e-6)
 expect_equal(brute_force_knn_query(ui10sp4, ui10sp6, k = 4), brute_force_knn_query(ui10z4, ui10z6, k = 4), tolerance = 1e-6)
+
+test_that("brute force APIs normalize non-dgC sparse inputs", {
+  ref_r <- methods::as(ui10sp, "RsparseMatrix")
+  query_r <- methods::as(ui10sp4, "RsparseMatrix")
+  query_ref_r <- methods::as(ui10sp6, "RsparseMatrix")
+
+  expect_equal(
+    brute_force_knn(ref_r, k = 4, n_threads = 0),
+    brute_force_knn(ui10sp, k = 4, n_threads = 0)
+  )
+  expect_equal(
+    brute_force_knn_query(query_r, query_ref_r, k = 4),
+    brute_force_knn_query(ui10sp4, ui10sp6, k = 4),
+    tolerance = 1e-6
+  )
+})
+
+test_that("brute force APIs reject unsupported sparse classes", {
+  sparse_structured <- Matrix::forceSymmetric(
+    Matrix::Matrix(c(1, 0, 0, 3), nrow = 2, sparse = TRUE),
+    uplo = "U"
+  )
+  sparse_pattern <- methods::as(
+    Matrix::Matrix(
+      matrix(c(TRUE, FALSE, TRUE, FALSE, TRUE, FALSE), nrow = 3),
+      sparse = TRUE
+    ),
+    "nsparseMatrix"
+  )
+
+  expect_error(
+    brute_force_knn(sparse_structured, k = 1),
+    "Sparse matrices must be general numeric sparse matrices"
+  )
+  expect_error(
+    brute_force_knn(sparse_pattern, k = 1),
+    "Sparse matrices must be general numeric sparse matrices"
+  )
+})

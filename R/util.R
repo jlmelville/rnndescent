@@ -23,10 +23,26 @@ tsmessage <-
     }
   }
 
+# Normalize sparse inputs to plain numeric compressed-column storage.
+normalize_sparse_input <- function(X) {
+  if (methods::is(X, "dgCMatrix")) {
+    return(X)
+  }
+  if (!any(vapply(c("dgRMatrix", "dgTMatrix"), function(class_name) {
+    methods::is(X, class_name)
+  }, logical(1)))) {
+    stop(
+      "Sparse matrices must be general numeric sparse matrices ",
+      "(dgCMatrix, dgRMatrix, or dgTMatrix)"
+    )
+  }
+  methods::as(X, "CsparseMatrix")
+}
+
 # convert data frame to matrix using numeric columns
 x2m <- function(X) {
   if (is_sparse(X)) {
-    return(X)
+    return(normalize_sparse_input(X))
   }
   if (!methods::is(X, "matrix")) {
     m <- as.matrix(X[, which(vapply(X, is.numeric, logical(1)))])
