@@ -50,7 +50,7 @@ constexpr const char *angular_metrics[] = {"cosine",
                                            "alternative-cosine",
                                            "correlation",
                                            "dot",
-                                           "dice"
+                                           "dice",
                                            "hamming",
                                            "hellinger",
                                            "alternative-hellinger",

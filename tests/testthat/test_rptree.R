@@ -206,6 +206,47 @@ test_that("rp tree query rejects mismatched feature counts", {
   )
 })
 
+test_that("explicit-margin RP-tree builds classify dice and hamming as angular", {
+  binary_data <- matrix(
+    c(
+      1, 0, 0, 1,
+      1, 1, 0, 0,
+      0, 1, 1, 0,
+      0, 0, 1, 1,
+      1, 0, 1, 0,
+      0, 1, 0, 1
+    ),
+    nrow = 6,
+    byrow = TRUE
+  )
+
+  for (metric in c("dice", "hamming", "jaccard")) {
+    set.seed(1337)
+    msg <- capture_everything(rpf_build(
+      binary_data,
+      metric = metric,
+      n_trees = 1,
+      leaf_size = 2,
+      margin = "explicit",
+      n_threads = 0,
+      verbose = TRUE
+    ))
+    expect_match(msg, "Using angular margin calculation")
+  }
+
+  set.seed(1337)
+  msg <- capture_everything(rpf_build(
+    binary_data,
+    metric = "euclidean",
+    n_trees = 1,
+    leaf_size = 2,
+    margin = "explicit",
+    n_threads = 0,
+    verbose = TRUE
+  ))
+  expect_match(msg, "Using euclidean margin calculation")
+})
+
 set.seed(1337)
 rpf_query_res <-
   rpf_knn_query(

@@ -14,6 +14,8 @@ this gap (<https://github.com/jlmelville/rnndescent/issues/17>).
 * Non-`dgCMatrix` `sparseMatrix` inputs, such as `dgRMatrix` and `dgTMatrix` are
 now normalized to `dgCMatrix` on input. Other matrices fail with a clearer error.
 * Fix for `prepare_search_graph()` sometimes over-pruning beyond `max_degree`.
+* Fix explicit-margin RP-tree builds for `metric = "dice"` and `"hamming"` to
+use angular split geometry.
 * Fix `nnd_knn()` and `graph_knn_query()` sometimes failing to completely randomly fill
 the initial search graph when needed.
 * Fix for `prepare_search_graph(prune_reverse = TRUE)` not pruning reverse edges
@@ -24,8 +26,8 @@ calculation, but this distance was never used.
 with anti-hubs.
 * Verbose query summaries now report the correct minimum and average number of
 distance calculations.
-* Minor parallel execution robustness improvements: errors propagate back to R and some worker
-launches are avoided in with small workloads.
+* Minor parallel execution robustness improvements: errors propagate back to R
+and some worker launches are avoided with small workloads.
 
 # rnndescent 0.1.8
 
