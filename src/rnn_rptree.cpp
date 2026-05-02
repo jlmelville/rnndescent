@@ -17,7 +17,9 @@
 //  You should have received a copy of the GNU General Public License
 //  along with rnndescent.  If not, see <http://www.gnu.org/licenses/>.
 
+#include <array>
 #include <cmath>
+#include <string_view>
 
 #include <Rcpp.h>
 
@@ -46,19 +48,36 @@ using Rcpp::Rcerr;
 // angular metrics currently are:
 // "cosine", "dot", "correlation", "dice", "jaccard", "hellinger", "hamming",
 // other metrics are considered to be euclidean.
-constexpr const char *angular_metrics[] = {"cosine",
-                                           "alternative-cosine",
-                                           "correlation",
-                                           "dot",
-                                           "dice",
-                                           "hamming",
-                                           "hellinger",
-                                           "alternative-hellinger",
-                                           "jaccard",
-                                           "alternative-jaccard"};
+constexpr std::size_t n_angular_metrics = 10;
+constexpr std::array<std::string_view, n_angular_metrics> angular_metrics{{
+    "cosine",
+    "alternative-cosine",
+    "correlation",
+    "dot",
+    "dice",
+    "hamming",
+    "hellinger",
+    "alternative-hellinger",
+    "jaccard",
+    "alternative-jaccard",
+}};
+
+constexpr bool angular_metric_names_are_complete() {
+  for (const auto metric : angular_metrics) {
+    if (metric.empty()) {
+      return false;
+    }
+  }
+  return true;
+}
+
+static_assert(angular_metric_names_are_complete(),
+              "angular_metrics entries must be non-empty");
+
 bool is_angular_metric(const std::string &metric) {
-  for (const char *angular_metric : angular_metrics) {
-    if (metric == angular_metric) {
+  const std::string_view metric_view(metric.data(), metric.size());
+  for (const auto angular_metric : angular_metrics) {
+    if (metric_view == angular_metric) {
       return true;
     }
   }
