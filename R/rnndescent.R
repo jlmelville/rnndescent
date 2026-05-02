@@ -1254,7 +1254,7 @@ nnd_knn <- function(data,
                     progress = "bar",
                     obs = "R",
                     ret_forest = FALSE) {
-  stopifnot(tolower(progress) %in% c("bar", "dist"))
+  progress <- match.arg(tolower(progress), c("bar", "dist"))
   obs <- match.arg(toupper(obs), c("C", "R"))
   n_threads <- check_n_threads(n_threads)
   check_delta(delta)
