@@ -24,6 +24,8 @@ calculation, but this distance was never used.
 with anti-hubs.
 * Verbose query summaries now report the correct minimum and average number of
 distance calculations.
+* Minor parallel execution robustness improvements: errors propagate back to R and some worker
+launches are avoided in with small workloads.
 
 # rnndescent 0.1.8
 

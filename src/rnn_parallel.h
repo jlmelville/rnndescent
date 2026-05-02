@@ -20,6 +20,7 @@
 #ifndef RNN_PARALLEL_H
 #define RNN_PARALLEL_H
 
+#include <cstddef>
 #include <functional>
 
 #include "pforr.h"
