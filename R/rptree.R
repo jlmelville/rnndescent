@@ -370,15 +370,15 @@ rpf_build <- function(data,
     stop("Unknown obs type")
   )
 
+  data <- x2m(data)
+
   if (is.null(n_trees)) {
-    n_trees <- 5 + as.integer(round(nrow(data)^0.25))
+    n_trees <- 5 + as.integer(round(n_obs(data)^0.25))
     n_trees <- min(32, n_trees)
   }
   n_trees <- check_count(n_trees, "n_trees")
   leaf_size <- check_count(leaf_size, "leaf_size")
   max_tree_depth <- check_count(max_tree_depth, "max_tree_depth", min = 0L)
-
-  data <- x2m(data)
 
   margin <- find_margin_method(margin, metric, data)
 

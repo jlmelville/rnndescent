@@ -184,6 +184,17 @@ test_that("rp tree APIs reject invalid n_threads values", {
   expect_error(rpf_filter(forest_knn, n_threads = 1.5), "n_threads must be")
 })
 
+test_that("rpf_build default tree count uses observations with column-oriented input", {
+  set.seed(42)
+  x <- matrix(rnorm(4 * 256), nrow = 4, ncol = 256)
+
+  column_forest <- rpf_build(x, leaf_size = 10, n_threads = 0, obs = "C")
+  row_forest <- rpf_build(t(x), leaf_size = 10, n_threads = 0, obs = "R")
+
+  expect_equal(length(column_forest$trees), length(row_forest$trees))
+  expect_equal(length(column_forest$trees), 9)
+})
+
 test_that("rp tree query rejects mismatched feature counts", {
   ref <- matrix(c(0, 0, 1, 1), nrow = 2, byrow = TRUE)
   qry <- matrix(c(0, 0, 0, 1, 1, 1), nrow = 2, byrow = TRUE)
