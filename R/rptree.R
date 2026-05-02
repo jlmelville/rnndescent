@@ -562,6 +562,11 @@ rpf_knn_query <- function(query,
   query <- x2m(query)
   check_matching_features(reference, query, obs)
   check_k(k, n_obs(reference))
+  n_features <- switch(obs,
+    R = ncol(reference),
+    C = nrow(reference),
+    stop("Unknown obs type")
+  )
 
   if (!is.list(forest)) {
     stop("Bad forest format: not a list")
@@ -575,6 +580,7 @@ rpf_knn_query <- function(query,
   if (!is_sparse(reference) && forest$sparse) {
     stop("Incompatible dense forest used with sparse input data")
   }
+  check_rpforest_matches_reference(forest, n_obs(reference), n_features)
 
   if (obs == "R") {
     reference <- Matrix::t(reference)

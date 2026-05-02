@@ -217,6 +217,56 @@ test_that("rp tree query rejects mismatched feature counts", {
   )
 })
 
+test_that("rp tree query rejects forests built for different reference data", {
+  ref3 <- matrix(c(0, 0, 1, 0, 2, 0), ncol = 2, byrow = TRUE)
+  ref2 <- ref3[1:2, , drop = FALSE]
+
+  set.seed(1)
+  forest3 <- rpf_build(ref3, n_trees = 1, leaf_size = 3, n_threads = 0)
+  expect_error(
+    rpf_knn_query(ref2, ref2, forest3, k = 2, n_threads = 0),
+    "forest must describe 2 reference observations"
+  )
+
+  ref3d <- matrix(c(0, 0, 0, 1, 0, 0, 2, 0, 0), ncol = 3, byrow = TRUE)
+  ref2d <- ref3d[, 1:2, drop = FALSE]
+
+  set.seed(1)
+  forest3d <- rpf_build(ref3d, n_trees = 1, leaf_size = 3, n_threads = 0)
+  expect_error(
+    rpf_knn_query(ref2d, ref2d, forest3d, k = 2, n_threads = 0),
+    "forest must describe 2 features"
+  )
+
+  ref3s <- Matrix::Matrix(
+    c(
+      1, 0, 1,
+      0, 1, 2,
+      1, 1, 3,
+      2, 0, 4,
+      0, 2, 5
+    ),
+    nrow = 5,
+    byrow = TRUE,
+    sparse = TRUE
+  )
+  ref2s <- ref3s[, 1:2]
+
+  set.seed(7)
+  forest3s <- rpf_build(
+    ref3s,
+    n_trees = 2,
+    leaf_size = 2,
+    margin = "explicit",
+    metric = "euclidean",
+    n_threads = 0
+  )
+  expect_error(
+    rpf_knn_query(ref2s, ref2s, forest3s, k = 2, n_threads = 0),
+    "forest must describe no more than 2 features"
+  )
+})
+
 test_that("explicit-margin RP-tree builds classify dice and hamming as angular", {
   binary_data <- matrix(
     c(

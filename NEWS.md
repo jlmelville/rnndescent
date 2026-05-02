@@ -17,7 +17,9 @@ now normalized to `dgCMatrix` on input. Other matrices fail with a clearer error
 * Fix explicit-margin RP-tree builds for `metric = "dice"` and `"hamming"` to
 use angular split geometry.
 * Fix for `rpf_build(obs = "C")` where default `n_trees` used the number of
-number of features not the number of observations.
+features not the number of observations.
+* `rpf_knn_query()` now rejects RP forests that do not match the supplied
+reference data.
 * Fix `nnd_knn()` and `graph_knn_query()` sometimes failing to completely randomly fill
 the initial search graph when needed.
 * Fix for `prepare_search_graph(prune_reverse = TRUE)` not pruning reverse edges

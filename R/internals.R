@@ -610,6 +610,95 @@ is_rpforest <- function(forest) {
   !is.null(forest$type) && forest$type == "rnndescent:rpforest"
 }
 
+check_rpforest_matches_reference <- function(forest,
+                                             n_reference,
+                                             n_features = NULL) {
+  if (is.null(forest$trees) || !is.list(forest$trees) ||
+      length(forest$trees) < 1) {
+    stop("Bad forest format: no trees")
+  }
+
+  tree_n_items <- vapply(forest$trees, function(tree) {
+    length(tree$indices)
+  }, integer(1))
+  bad_tree <- which(tree_n_items != n_reference)
+  if (length(bad_tree) > 0) {
+    stop(
+      "forest must describe ",
+      n_reference,
+      " reference observations, but tree ",
+      bad_tree[1],
+      " has ",
+      tree_n_items[bad_tree[1]]
+    )
+  }
+
+  if (!is.null(n_features) && identical(forest$margin, "explicit") &&
+      !isTRUE(forest$sparse)) {
+    tree_n_features <- vapply(forest$trees, function(tree) {
+      if (is.null(tree$hyperplanes)) {
+        return(NA_integer_)
+      }
+      ncol(tree$hyperplanes)
+    }, integer(1))
+
+    missing_hyperplanes <- which(is.na(tree_n_features))
+    if (length(missing_hyperplanes) > 0) {
+      stop(
+        "Bad forest format: explicit forest tree ",
+        missing_hyperplanes[1],
+        " has no hyperplanes"
+      )
+    }
+
+    bad_feature_tree <- which(tree_n_features != n_features)
+    if (length(bad_feature_tree) > 0) {
+      stop(
+        "forest must describe ",
+        n_features,
+        " features, but tree ",
+        bad_feature_tree[1],
+        " has ",
+        tree_n_features[bad_feature_tree[1]]
+      )
+    }
+  }
+
+  if (!is.null(n_features) && identical(forest$margin, "explicit") &&
+      isTRUE(forest$sparse)) {
+    tree_n_features <- vapply(forest$trees, function(tree) {
+      if (is.null(tree$hyperplanes_ind)) {
+        return(NA_integer_)
+      }
+      if (length(tree$hyperplanes_ind) == 0L) {
+        return(0L)
+      }
+      max(tree$hyperplanes_ind) + 1L
+    }, integer(1))
+
+    missing_hyperplanes <- which(is.na(tree_n_features))
+    if (length(missing_hyperplanes) > 0) {
+      stop(
+        "Bad forest format: explicit sparse forest tree ",
+        missing_hyperplanes[1],
+        " has no hyperplanes_ind"
+      )
+    }
+
+    bad_feature_tree <- which(tree_n_features > n_features)
+    if (length(bad_feature_tree) > 0) {
+      stop(
+        "forest must describe no more than ",
+        n_features,
+        " features, but tree ",
+        bad_feature_tree[1],
+        " uses feature ",
+        tree_n_features[bad_feature_tree[1]]
+      )
+    }
+  }
+}
+
 # reference and query are column-oriented
 random_knn_impl <-
   function(reference,
