@@ -405,6 +405,31 @@ test_that("can't pass mismatched forest and nn to filter", {
   )
 })
 
+test_that("rpf_filter validates neighbor graph contents", {
+  forest_knn <- rpf_knn(ui10, k = 4, ret_forest = TRUE, n_threads = 0)
+
+  bad_idx <- forest_knn
+  bad_idx$idx[1, 1] <- nrow(bad_idx$idx) + 1L
+  expect_error(
+    rpf_filter(bad_idx, n_trees = 1, n_threads = 0),
+    "NN graph indices must be between 1 and 10 or 0"
+  )
+
+  bad_missing <- forest_knn
+  bad_missing$idx[1, 1] <- 0L
+  expect_error(
+    rpf_filter(bad_missing, n_trees = 1, n_threads = 0),
+    "NN graph must use idx = 0 and dist = NA together"
+  )
+
+  bad_format <- forest_knn
+  bad_format$dist <- NULL
+  expect_error(
+    rpf_filter(bad_format, n_trees = 1, n_threads = 0),
+    "NN graph must contain 'dist' matrix"
+  )
+})
+
 set.seed(1337)
 expect_equal(
   rpf_build(ui10, metric = "euclidean", leaf_size = 4, n_threads = 0),

@@ -707,6 +707,8 @@ rpf_filter <-
       forest <- nn$forest
     }
 
+    validate_nn_graph(nn)
+
     unfiltered_trees <- forest$trees
     n_unfiltered_trees <- length(unfiltered_trees)
     if (n_unfiltered_trees < 1) {
