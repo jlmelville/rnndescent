@@ -50,21 +50,20 @@ struct RPProgress : public tdoann::ProgressBase {
         iter_increment(static_cast<double>(scale) / n_iters) {}
 
   RPProgress(RPProgress &&other) noexcept
-      : progress(std::move(other.progress)), verbose(std::move(other.verbose)),
-        iter(std::move(other.iter)), batch(std::move(other.batch)),
-        is_aborted(std::move(other.is_aborted)),
-        iter_increment(std::move(other.iter_increment)),
-        batch_increment(std::move(other.batch_increment)) {}
+      : progress(std::move(other.progress)), verbose(other.verbose),
+        iter(other.iter), batch(other.batch), is_aborted(other.is_aborted),
+        iter_increment(other.iter_increment),
+        batch_increment(other.batch_increment) {}
 
   RPProgress &operator=(RPProgress &&other) noexcept {
     if (this != &other) {
       progress = std::move(other.progress);
-      verbose = std::move(other.verbose);
-      iter = std::move(other.iter);
-      batch = std::move(other.batch);
-      is_aborted = std::move(other.is_aborted);
-      iter_increment = std::move(other.iter_increment);
-      batch_increment = std::move(other.batch_increment);
+      verbose = other.verbose;
+      iter = other.iter;
+      batch = other.batch;
+      is_aborted = other.is_aborted;
+      iter_increment = other.iter_increment;
+      batch_increment = other.batch_increment;
     }
     return *this;
   }
@@ -134,16 +133,15 @@ struct RInterruptableProgress : public tdoann::ProgressBase {
       : verbose(verbose) {}
 
   RInterruptableProgress(RInterruptableProgress &&other) noexcept
-      : is_aborted(std::move(other.is_aborted)),
-        verbose(std::move(other.verbose)) {
+      : is_aborted(other.is_aborted), verbose(other.verbose) {
     other.is_aborted = false;
     other.verbose = false;
   }
 
   RInterruptableProgress &operator=(RInterruptableProgress &&other) noexcept {
     if (this != &other) {
-      is_aborted = std::move(other.is_aborted);
-      verbose = std::move(other.verbose);
+      is_aborted = other.is_aborted;
+      verbose = other.verbose;
 
       other.is_aborted = false;
       other.verbose = false;
@@ -180,7 +178,7 @@ struct RIterProgress : public RInterruptableProgress {
       : RInterruptableProgress(n_iters, verbose), n_iters(n_iters) {}
   RIterProgress(RIterProgress &&other) noexcept
       : RInterruptableProgress(std::move(other)),
-        n_iters(std::move(other.n_iters)), iter(std::move(other.iter)) {
+        n_iters(other.n_iters), iter(other.iter) {
 
     other.n_iters = 0;
     other.iter = 0;
@@ -189,8 +187,8 @@ struct RIterProgress : public RInterruptableProgress {
     if (this != &other) {
       RInterruptableProgress::operator=(std::move(other));
 
-      n_iters = std::move(other.n_iters);
-      iter = std::move(other.iter);
+      n_iters = other.n_iters;
+      iter = other.iter;
 
       other.n_iters = 0;
       other.iter = 0;
