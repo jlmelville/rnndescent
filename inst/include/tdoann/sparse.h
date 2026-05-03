@@ -1295,7 +1295,7 @@ Out sparse_true_angular(
   }
   result /= std::sqrt(norm_x) * std::sqrt(norm_y);
   result = std::clamp(result, Out{-1}, Out{1});
-  result = std::acos(result) / M_PI;
+  result = std::acos(result) / pi_v<Out>;
   return 1 - result;
 }
 
@@ -1358,7 +1358,7 @@ Out sparse_tsss(typename std::vector<std::size_t>::const_iterator ind1_start,
   Out magnitude_difference = std::abs(norm_x - norm_y);
   d_cos /= norm_x * norm_y;
   d_cos = std::clamp(d_cos, Out{-1}, Out{1});
-  Out theta = std::acos(d_cos) + (M_PI / 18.0); // Add 10 degrees in radians
+  Out theta = std::acos(d_cos) + (pi_v<Out> / 18.0); // Add 10 degrees in radians
 
   Out sector =
       std::pow((std::sqrt(d_euc_squared) + magnitude_difference), 2) * theta;

@@ -42,6 +42,10 @@ namespace tdoann {
 
 // functions are organized alphabetically, requiring forward declaration
 
+template <typename Out>
+inline constexpr Out pi_v =
+    static_cast<Out>(3.141592653589793238462643383279502884L);
+
 template <typename Out, typename It>
 Out squared_euclidean(const It xbegin, const It xend, const It ybegin);
 template <typename Out, typename It>
@@ -546,7 +550,7 @@ Out true_angular(It xbegin, It xend, It ybegin) {
   }
   result /= std::sqrt(norm_x) * std::sqrt(norm_y);
   result = std::clamp(result, Out{-1}, Out{1});
-  result = std::acos(result) / M_PI;
+  result = std::acos(result) / pi_v<Out>;
   return 1 - result;
 }
 
@@ -571,7 +575,7 @@ template <typename Out, typename It> Out tsss(It xbegin, It xend, It ybegin) {
   // very real chance of d_cos being outside [-1, 1] range and causing acos
   // to give a NaN when comparing a point with itself
   d_cos = std::clamp(d_cos, Out{-1}, Out{1});
-  Out theta = std::acos(d_cos) + (M_PI / 18.0); // Add 10 degrees in radians
+  Out theta = std::acos(d_cos) + (pi_v<Out> / 18.0); // Add 10 degrees in radians
 
   Out sector =
       std::pow((std::sqrt(d_euc_squared) + magnitude_difference), 2) * theta;

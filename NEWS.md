@@ -30,6 +30,8 @@ with anti-hubs.
 distance calculations.
 * Minor parallel execution robustness improvements: errors propagate back to R
 and some worker launches are avoided with small workloads.
+* Minor C++ portability improvements for CRAN builds and high-dimensional
+logical metrics.
 
 # rnndescent 0.1.8
 
@@ -67,7 +69,7 @@ There is a minor increase in computation but also a minor increase in accuracy.
 
 ## Bug fixes and minor improvements
 
-* `rnnd_build` generated an error when preparing the search graph for some 
+* `rnnd_build` generated an error when preparing the search graph for some
 metrics (notably `cosine` and `jaccard`).
 * Fix a factor of 2 error in the TS-SS metric. This does not affect the returned
 neighbors, just the distances. Thank you to reporter

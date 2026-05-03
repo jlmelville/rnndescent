@@ -28,7 +28,6 @@
 #define TDOANN_BITVEC_H
 
 #include <bitset>
-#include <cmath>
 #include <vector>
 
 namespace tdoann {
@@ -39,8 +38,8 @@ using BitVec = std::vector<BitSet<BITVEC_BIT_WIDTH>>;
 // Calculate the number of bitsets of size BITVEC_BIT_WIDTH required to account
 // for a binary string of num_bits
 inline auto num_blocks_needed(std::size_t num_bits) -> std::size_t {
-  return std::ceil(static_cast<float>(num_bits) /
-                   static_cast<float>(BITVEC_BIT_WIDTH));
+  return num_bits / BITVEC_BIT_WIDTH +
+         static_cast<std::size_t>(num_bits % BITVEC_BIT_WIDTH != 0);
 }
 
 // Instead of storing each bit as an element, we will pack them
