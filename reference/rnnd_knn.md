@@ -338,6 +338,7 @@ neighbor graph construction for generic similarity measures. In
 ## Examples
 
 ``` r
+
 # Find 4 (approximate) nearest neighbors using Euclidean distance
 iris_knn <- rnnd_knn(iris, k = 4)
 ```

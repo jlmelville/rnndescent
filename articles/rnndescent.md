@@ -8,8 +8,7 @@ reimplementation written in C++. It uses the following techniques:
 
 1.  Initialization by creating a forest of random project trees
     (Dasgupta and Freund 2008).
-2.  Optimization by using nearest neighbor descent (Dong, Moses, and Li
-    2011).
+2.  Optimization by using nearest neighbor descent (Dong et al. 2011).
 3.  For building a search graph, graph diversification techniques from
     FANNG (Harwood and Drummond 2016).
 4.  For querying new data, the back-tracking search from NGT (Iwasaki
@@ -24,6 +23,7 @@ in this package describe their use and go into more detail about the how
 the methods work.
 
 ``` r
+
 library(rnndescent)
 ```
 
@@ -32,6 +32,7 @@ library(rnndescent)
 If you just want the k-nearest neighbors of some data, use `rnnd_knn`:
 
 ``` r
+
 iris_knn <- rnnd_knn(data = iris, k = 5)
 ```
 
@@ -45,6 +46,7 @@ package is a list of two matrices:
 - `dist` – the equivalent distances.
 
 ``` r
+
 lapply(iris_knn, function(x) {
   head(x, 3)
 })
@@ -69,11 +71,13 @@ lapply(iris_knn, function(x) {
 that which you used to build the index, so let’s split `iris` up:
 
 ``` r
+
 iris_even <- iris[seq_len(nrow(iris)) %% 2 == 0, ]
 iris_odd <- iris[seq_len(nrow(iris)) %% 2 == 1, ]
 ```
 
 ``` r
+
 iris_index <- rnnd_build(iris_even, k = 5)
 ```
 
@@ -83,6 +87,7 @@ which can be found under the `graph` component in the same format as the
 return value of `rnnd_knn`:
 
 ``` r
+
 lapply(iris_index$graph, function(x) {
   head(x, 3)
 })
@@ -108,6 +113,7 @@ large value.
 To query new data, use `rnnd_query`:
 
 ``` r
+
 iris_odd_nn <- rnnd_query(
   index = iris_index,
   query = iris_odd,
@@ -139,6 +145,7 @@ build `iris_index` and specifying via the `init` parameter the knn graph
 we already generated:
 
 ``` r
+
 iris_knn_improved <- rnnd_query(
   index = iris_index,
   query = iris_even,
@@ -153,6 +160,7 @@ an improvement. Exactly how much better is hard to say, but you can
 always compare the sum of the distances:
 
 ``` r
+
 c(
   sum(iris_index$graph$dist),
   sum(iris_knn_improved$dist)
@@ -166,6 +174,7 @@ be of use is the `neighbor_overlap` function to see how many neighbors
 are shared between the two graphs:
 
 ``` r
+
 neighbor_overlap(iris_index$graph, iris_knn_improved)
 #> [1] 1
 ```
@@ -182,6 +191,7 @@ article](https://jlmelville.github.io/rnndescent/articles/fmnist-example.html).
 `n_threads` to set the number of threads you want to use:
 
 ``` r
+
 iris_index <- rnnd_build(data = iris_even, k = 5, n_threads = 2)
 ```
 
@@ -219,16 +229,16 @@ vignettes for more details.
 ## References
 
 Dasgupta, Sanjoy, and Yoav Freund. 2008. “Random Projection Trees and
-Low Dimensional Manifolds.” In *Proceedings of the Fortieth Annual ACM
+Low Dimensional Manifolds.” *Proceedings of the Fortieth Annual ACM
 Symposium on Theory of Computing*, 537–46.
 
 Dong, Wei, Charikar Moses, and Kai Li. 2011. “Efficient k-Nearest
-Neighbor Graph Construction for Generic Similarity Measures.” In
+Neighbor Graph Construction for Generic Similarity Measures.”
 *Proceedings of the 20th International Conference on World Wide Web*,
 577–86.
 
 Harwood, Ben, and Tom Drummond. 2016. “Fanng: Fast Approximate Nearest
-Neighbour Graphs.” In *Proceedings of the IEEE Conference on Computer
+Neighbour Graphs.” *Proceedings of the IEEE Conference on Computer
 Vision and Pattern Recognition*, 5713–22.
 
 Iwasaki, Masajiro, and Daisuke Miyazaki. 2018. “Optimization of Indexing

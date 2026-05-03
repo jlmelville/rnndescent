@@ -39,12 +39,14 @@ some test tolerances that caused Mac M1 checks on CRAN to fail.
 ### CRAN
 
 ``` r
+
 install.packages("rnndescent")
 ```
 
 ### Development Version
 
 ``` r
+
 # install.packages("pak")
 pak::pkg_install("jlmelville/rnndescent")
 ```
@@ -70,6 +72,7 @@ R platforms support it (sorry if this affects you).
 ## Example
 
 ``` r
+
 library(rnndescent)
 
 # Find 15-knn

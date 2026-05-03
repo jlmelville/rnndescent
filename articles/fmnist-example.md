@@ -40,12 +40,14 @@ via another package, e.g. 
 [pak](https://cran.r-project.org/package=pak):
 
 ``` r
+
 install.packages("pak")
 pak::pkg_install("jlmelville/snedata")
 install.packages(c("RcppHNSW", "RcppAnnoy", "uwot"))
 ```
 
 ``` r
+
 library(rnndescent)
 library(RcppHNSW)
 library(RcppAnnoy)
@@ -66,6 +68,7 @@ vignette).
 Download the Fashion MNIST data.
 
 ``` r
+
 fmnist <- snedata::download_fashion_mnist()
 ```
 
@@ -78,6 +81,7 @@ The typical split is the first 60,000 images as the training set, and
 the rest as the test set.
 
 ``` r
+
 fmnist_train <- head(fmnist, 60000)
 fmnist_test <- tail(fmnist, 10000)
 ```
@@ -95,6 +99,7 @@ and at what cost in accuracy, we need to generate the exact nearest
 neighbors:
 
 ``` r
+
 fmnist_train_bf <- brute_force_knn(
   fmnist_train,
   k = 15,
@@ -116,12 +121,14 @@ separate query step. The query step will produce a more accurate result,
 but it’s always worth trying the initial knn graph.
 
 ``` r
+
 fmnist_train_rnnd <- rnnd_knn(fmnist_train, k = 15, n_threads = 6, verbose = TRUE)
 ```
 
 This took 11 seconds. How accurate are the results?
 
 ``` r
+
 neighbor_overlap(fmnist_train_rnnd, fmnist_train_bf)
 ```
 
@@ -141,6 +148,7 @@ internal uwot function converts for us. For building the HNSW parameters
 are `M = 16` and `ef_construction = 200`.
 
 ``` r
+
 hnsw_index <- hnsw_build(uwot:::x2m(fmnist_train), n_threads = 6)
 ```
 
@@ -148,12 +156,14 @@ Index building took 17 seconds. For searching, the default search
 parameter is `ef = 15`.
 
 ``` r
+
 fmnist_train_hnsw <- hnsw_search(uwot:::x2m(fmnist_train), hnsw_index, k = 15, n_threads = 6)
 ```
 
 A very impressive 3 seconds for index searching.
 
 ``` r
+
 neighbor_overlap(fmnist_train_hnsw, fmnist_train_bf)
 ```
 
@@ -172,6 +182,7 @@ I’m using the `uwot` settings for the index and search parameters. We
 use `n_trees = 50` to build:
 
 ``` r
+
 annoy_index <-
   uwot:::annoy_build(uwot:::x2m(fmnist_train),
     metric = "euclidean",
@@ -183,6 +194,7 @@ Annoy index build took 24 seconds. The search parameter `search_k` is
 set to `2 * k * n_trees`:
 
 ``` r
+
 fmnist_train_annoy <-
   uwot:::annoy_search(
     uwot:::x2m(fmnist_train),
@@ -197,6 +209,7 @@ fmnist_train_annoy <-
 The search took around 16 seconds.
 
 ``` r
+
 neighbor_overlap(fmnist_train_annoy, fmnist_train_bf)
 ```
 
@@ -212,6 +225,7 @@ skewed in favor of tree building. We could probably build fewer trees
 (which is slow) and spend (relatively) more time searching:
 
 ``` r
+
 annoy_index <-
   uwot:::annoy_build(uwot:::x2m(fmnist_train),
     metric = "euclidean",
@@ -222,6 +236,7 @@ annoy_index <-
 Build time is down to 15 seconds.
 
 ``` r
+
 fmnist_train_annoy <-
   uwot:::annoy_search(
     uwot:::x2m(fmnist_train),
@@ -237,6 +252,7 @@ Search time is not terribly affected: it still takes 16 seconds. What
 about accuracy?
 
 ``` r
+
 neighbor_overlap(fmnist_train_annoy, fmnist_train_bf)
 ```
 
@@ -257,6 +273,7 @@ created with the FMNIST test data.
 Again we need the ground truth of the exact neighbors:
 
 ``` r
+
 fmnist_test_bf <-
   brute_force_knn_query(
     query = fmnist_test,
@@ -276,6 +293,7 @@ We avoided having to build an index with `rnndescent` for the k-nearest
 neighbor tasks. Now we must.
 
 ``` r
+
 rnnd_index <-
   rnnd_build(
     fmnist_train,
@@ -290,6 +308,7 @@ seconds in the index building without affecting downstream accuracy but
 we don’t need to worry about that for now.
 
 ``` r
+
 fmnist_test_rnnd <-
   rnnd_query(
     index = rnnd_index,
@@ -302,6 +321,7 @@ fmnist_test_rnnd <-
 For 15 neighbors, the querying took about 2 seconds.
 
 ``` r
+
 neighbor_overlap(fmnist_test_rnnd, fmnist_test_bf)
 ```
 
@@ -315,6 +335,7 @@ We can make use of the pre-existing HNSW index we built for looking for
 the k-nearest neighbor graph, so we need only query the data.
 
 ``` r
+
 fmnist_test_hnsw <-
   hnsw_search(uwot:::x2m(fmnist_test),
     hnsw_index,
@@ -327,6 +348,7 @@ Index searching is fast. I will round it up to 1 second, but it was more
 like 0.65 seconds.
 
 ``` r
+
 neighbor_overlap(fmnist_test_hnsw, fmnist_test_bf)
 ```
 
@@ -341,6 +363,7 @@ Like HSNW, we will re-use the Annoy index from the k-nearest neighbors
 graph building. This is the one where we set `n_trees = 30`.
 
 ``` r
+
 fmnist_test_annoy <-
   uwot:::annoy_search(
     uwot:::x2m(fmnist_test),
@@ -355,6 +378,7 @@ fmnist_test_annoy <-
 The search took around 3 seconds.
 
 ``` r
+
 neighbor_overlap(fmnist_test_annoy, fmnist_test_bf)
 ```
 

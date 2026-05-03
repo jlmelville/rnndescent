@@ -50,6 +50,21 @@
 <h3 id="new-features-development-version">New features<a class="anchor" aria-label="anchor" href="#new-features-development-version"></a></h3>
 <ul><li>Add <code>haversine</code> metric for 2D latitude/longitude data in radians. This is one of the metrics that was in PyNNDescent but I neglected to add to rnndescent for its initial release. Thank you to <a href="https://github.com/JosiahParry" class="external-link">Josiah Parry</a> whose request nudged me to fill this gap (<a href="https://github.com/jlmelville/rnndescent/issues/17" class="external-link uri">https://github.com/jlmelville/rnndescent/issues/17</a>).</li>
 </ul></div>
+<div class="section level3">
+<h3 id="bug-fixes-and-minor-improvements-development-version">Bug fixes and minor improvements<a class="anchor" aria-label="anchor" href="#bug-fixes-and-minor-improvements-development-version"></a></h3>
+<ul><li>Much improved input validation.</li>
+<li>Non-<code>dgCMatrix</code> <code>sparseMatrix</code> inputs, such as <code>dgRMatrix</code> and <code>dgTMatrix</code> are now normalized to <code>dgCMatrix</code> on input. Other matrices fail with a clearer error.</li>
+<li>Fix for <code><a href="../reference/prepare_search_graph.html">prepare_search_graph()</a></code> sometimes over-pruning beyond <code>max_degree</code>.</li>
+<li>Fix explicit-margin RP-tree builds for <code>metric = "dice"</code> and <code>"hamming"</code> to use angular split geometry.</li>
+<li>Fix for <code>rpf_build(obs = "C")</code> where default <code>n_trees</code> used the number of features not the number of observations.</li>
+<li>Fix <code><a href="../reference/nnd_knn.html">nnd_knn()</a></code> and <code><a href="../reference/graph_knn_query.html">graph_knn_query()</a></code> sometimes failing to completely randomly fill the initial search graph when needed.</li>
+<li>Fix for <code>prepare_search_graph(prune_reverse = TRUE)</code> not pruning reverse edges when <code>diversify_prob = 0</code>.</li>
+<li>Fix for edge case when <code>max_search_fraction</code> would only result in one calculation, but this distance was never used.</li>
+<li>Fixes for <code><a href="../reference/k_occur.html">k_occur()</a></code> when using graphs with missing data and sparse graphs with anti-hubs.</li>
+<li>Verbose query summaries now report the correct minimum and average number of distance calculations.</li>
+<li>Minor parallel execution robustness improvements: errors propagate back to R and some worker launches are avoided with small workloads.</li>
+<li>Minor C++ portability improvements for CRAN builds and high-dimensional logical metrics.</li>
+</ul></div>
 </div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.1.8" id="rnndescent-018">rnndescent 0.1.8<a class="anchor" aria-label="anchor" href="#rnndescent-018"></a></h2><p class="text-muted">CRAN release: 2025-09-05</p>

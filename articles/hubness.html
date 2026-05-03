@@ -75,13 +75,14 @@
     
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://jlmelville.github.io/rnndescent/">rnndescent</a></span><span class="op">)</span></span></code></pre></div>
-<p>Nearest Neighbor Descent (NND) <span class="citation">(Dong, Moses,
-and Li 2011)</span> is affected by hubness <span class="citation">(Bratić et al. 2019)</span>: this is when some items in
-a dataset appear as a near neighbor of other points very frequently.
-This can result in reduced accuracy of the approximate nearest neighbor
-graph produced by NND and may be an intrinsic problem in high
-dimensional datasets (although see <span class="citation">(Low et al.
-2013)</span> for a dissenting view).</p>
+<p>Nearest Neighbor Descent (NND) <span class="citation">(Dong et al.
+2011)</span> is affected by hubness <span class="citation">(Bratić et
+al. 2019)</span>: this is when some items in a dataset appear as a near
+neighbor of other points very frequently. This can result in reduced
+accuracy of the approximate nearest neighbor graph produced by NND and
+may be an intrinsic problem in high dimensional datasets (although see
+<span class="citation">(Low et al. 2013)</span> for a dissenting
+view).</p>
 <p>In this vignette we will use synthetic data to explore the issue, and
 use the k-occurrences of a neighbor graph to identify when NND is at
 risk of producing less accurate results. We will also look at some ways
@@ -228,14 +229,14 @@ others.</p>
 <div class="section level2">
 <h2 id="detecting-hubness">Detecting Hubness<a class="anchor" aria-label="anchor" href="#detecting-hubness"></a>
 </h2>
-<p><span class="citation">(Radovanovic, Nanopoulos, and Ivanovic
-2010)</span> discusses a technique for detecting hubness: look for items
-that appear very frequently in the k-nearest neighbor graph. The
-<code>k_occur</code> function counts “k-occurrences” of each item in a
-dataset, i.e. a count of the number of times an item appears in the
-k-nearest neighbor graph. You can also see it as reversing the direction
-of the edges in the k-nearest neighbor graph and then counting the
-in-degree of each item.</p>
+<p><span class="citation">(Radovanovic et al. 2010)</span> discusses a
+technique for detecting hubness: look for items that appear very
+frequently in the k-nearest neighbor graph. The <code>k_occur</code>
+function counts “k-occurrences” of each item in a dataset, i.e. a count
+of the number of times an item appears in the k-nearest neighbor graph.
+You can also see it as reversing the direction of the edges in the
+k-nearest neighbor graph and then counting the in-degree of each
+item.</p>
 <p>If the distribution of neighbors was entirely uniform we would expect
 to see each item appear
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>
@@ -758,7 +759,7 @@ graph:</p>
 <div class="sourceCode" id="cb53"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">g1000d_sgko</span><span class="op">)</span></span>
 <span><span class="co">#&gt;    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. </span></span>
-<span><span class="co">#&gt;   1.000   4.000   5.000   7.186   9.000  22.000</span></span>
+<span><span class="co">#&gt;   1.000   4.000   5.000   7.258   9.000  22.000</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">g1000d_sgko</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 24</span></span></code></pre></div>
 <p>This is not <em>quite</em> as skewed as the neighbor graph, but there
@@ -779,7 +780,7 @@ using our original data as a query:</p>
 <p>Are the results improved?</p>
 <div class="sourceCode" id="cb55"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/neighbor_overlap.html">neighbor_overlap</a></span><span class="op">(</span><span class="va">g1000d_nnbf</span>, <span class="va">g1000d_search</span>, k <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 0.9978</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 0.9979333</span></span></code></pre></div>
 <p>Yes, the accuracy is now nearly perfect. The disadvantages of the
 search graph approach for building a neighbor graph is that it is less
 efficient than NND: <code>graph_knn_query</code> must assume that the
@@ -836,7 +837,7 @@ graph without back-tracking gives slightly better accuracies:</p>
 <span>    epsilon <span class="op">=</span> <span class="fl">0</span></span>
 <span>  <span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/neighbor_overlap.html">neighbor_overlap</a></span><span class="op">(</span><span class="va">g1000d_nnbf</span>, <span class="va">g1000d_search0</span>, k <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 0.8467333</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 0.8489333</span></span></code></pre></div>
 <p>but it seems like some sort of back-tracking is to be recommended
 with this approach. The downside is that you could be searching through
 a large proportion of the dataset, in which case you would save time by
@@ -861,7 +862,7 @@ controls the search termination. A similar parameter is used in <span class="cit
 <span>    max_search_fraction <span class="op">=</span> <span class="fl">0.1</span></span>
 <span>  <span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/neighbor_overlap.html">neighbor_overlap</a></span><span class="op">(</span><span class="va">g1000d_nnbf</span>, <span class="va">g1000d_nnd_search_max</span>, k <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 0.8228667</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 0.8233333</span></span></code></pre></div>
 <p>Accuracies are again reduced.</p>
 </div>
 </div>
@@ -920,14 +921,14 @@ search when the results are probably already quite good.</p>
 <p>For more on the effect of hubness and nearest neighbors, and more
 advanced attempts to fix the problem, see the work of Flexer and
 co-workers <span class="citation">(Schnitzer et al. 2012; Flexer 2016;
-Feldbauer and Flexer 2019; Feldbauer, Rattei, and Flexer 2019)</span>
-and Radovanović and co-workers <span class="citation">(Radovanovic,
-Nanopoulos, and Ivanovic 2010; Bratić et al. 2019)</span>.</p>
+Feldbauer and Flexer 2019; Feldbauer et al. 2019)</span> and Radovanović
+and co-workers <span class="citation">(Radovanovic et al. 2010; Bratić
+et al. 2019)</span>.</p>
 </div>
 <div class="section level2 unnumbered">
 <h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
-<div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0">
+<div id="refs" class="references csl-bib-body hanging-indent">
 <div id="ref-bratic2019influence" class="csl-entry">
 Bratić, Brankica, Michael E Houle, Vladimir Kurbalija, Vincent Oria, and
 Miloš Radovanović. 2019. <span>“The Influence of Hubness on
@@ -936,7 +937,7 @@ Tools</em> 28 (06): 1960002.
 </div>
 <div id="ref-dong2011efficient" class="csl-entry">
 Dong, Wei, Charikar Moses, and Kai Li. 2011. <span>“Efficient k-Nearest
-Neighbor Graph Construction for Generic Similarity Measures.”</span> In
+Neighbor Graph Construction for Generic Similarity Measures.”</span>
 <em>Proceedings of the 20th International Conference on World Wide
 Web</em>, 577–86.
 </div>
@@ -953,31 +954,31 @@ Search.”</span> <em>arXiv Preprint arXiv:1912.00706</em>.
 </div>
 <div id="ref-flexer2016empirical" class="csl-entry">
 Flexer, Arthur. 2016. <span>“An Empirical Analysis of Hubness in
-Unsupervised Distance-Based Outlier Detection.”</span> In <em>2016 IEEE
+Unsupervised Distance-Based Outlier Detection.”</span> <em>2016 IEEE
 16th International Conference on Data Mining Workshops (ICDMW)</em>,
-716–23. IEEE.
+716–23.
 </div>
 <div id="ref-harwood2016fanng" class="csl-entry">
 Harwood, Ben, and Tom Drummond. 2016. <span>“Fanng: Fast Approximate
-Nearest Neighbour Graphs.”</span> In <em>Proceedings of the IEEE
-Conference on Computer Vision and Pattern Recognition</em>, 5713–22.
+Nearest Neighbour Graphs.”</span> <em>Proceedings of the IEEE Conference
+on Computer Vision and Pattern Recognition</em>, 5713–22.
 </div>
 <div id="ref-low2013hubness" class="csl-entry">
 Low, Thomas, Christian Borgelt, Sebastian Stober, and Andreas
 Nürnberger. 2013. <span>“The Hubness Phenomenon: Fact or
 Artifact?”</span> In <em>Towards Advanced Data Analysis by Combining
-Soft Computing and Statistics</em>, 267–78. Springer.
+Soft Computing and Statistics</em>. Springer.
 </div>
 <div id="ref-radovanovic2010hubs" class="csl-entry">
 Radovanovic, Milos, Alexandros Nanopoulos, and Mirjana Ivanovic. 2010.
 <span>“Hubs in Space: Popular Nearest Neighbors in High-Dimensional
 Data.”</span> <em>Journal of Machine Learning Research</em> 11 (sept):
-2487–2531.
+2487–531.
 </div>
 <div id="ref-schnitzer2012local" class="csl-entry">
 Schnitzer, Dominik, Arthur Flexer, Markus Schedl, and Gerhard Widmer.
 2012. <span>“Local and Global Scaling Reduce Hubs in Space.”</span>
-<em>The Journal of Machine Learning Research</em> 13 (1): 2871–2902.
+<em>The Journal of Machine Learning Research</em> 13 (1): 2871–902.
 </div>
 </div>
 </div>

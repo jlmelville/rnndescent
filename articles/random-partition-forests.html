@@ -78,11 +78,10 @@
 <p>The Nearest Neighbor Descent method as usually described is
 technically a way to optimize an <em>existing</em> estimate of the
 nearest neighbor graph. You must think of a way to initialize the graph.
-The obvious approach and the one used in the description of NND in <span class="citation">(Dong, Moses, and Li 2011)</span> is to start with a
-random selection of neighbors. One of the clever things about the
-PyNNDescent implementation is that it uses a random partition forest
-<span class="citation">(Dasgupta and Freund 2008)</span> to come up with
-the initial guess. Random partition forests are part of a large group of
+The obvious approach and the one used in the description of NND in <span class="citation">(Dong et al. 2011)</span> is to start with a random
+selection of neighbors. One of the clever things about the PyNNDescent
+implementation is that it uses a random partition forest <span class="citation">(Dasgupta and Freund 2008)</span> to come up with the
+initial guess. Random partition forests are part of a large group of
 tree-based methods. These are often very fast and conceptually simple,
 but can be inaccurate. Much of the literature is devoted to proposals of
 tweaks to these methods to improve their performance, often at the
@@ -274,7 +273,7 @@ as the point on the plane. We then calculate the margin of a point
 (effectively the signed distance from the plane to
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>)
 as:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">margin</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝐱</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝐛</mi><mo>−</mo><mi>𝐚</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>⋅</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝐱</mi><mo>−</mo><mfrac><mrow><mi>𝐚</mi><mo>+</mo><mi>𝐛</mi></mrow><mn>2</mn></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">margin</mtext><mo stretchy="false" form="prefix">(</mo><mi>𝐱</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mo stretchy="false" form="prefix">(</mo><mo stretchy="false" form="prefix">(</mo><mi>𝐛</mi><mo>−</mo><mi>𝐚</mi><mo stretchy="false" form="postfix">)</mo><mo>⋅</mo><mo stretchy="false" form="prefix">(</mo><mi>𝐱</mi><mo>−</mo><mfrac><mrow><mi>𝐚</mi><mo>+</mo><mi>𝐛</mi></mrow><mn>2</mn></mfrac><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
 \text{margin}(\mathbf{x}) = ((\mathbf{b} - \mathbf{a}) \cdot (\mathbf{x} - \frac{\mathbf{a} + \mathbf{b}}{2}))
 </annotation></semantics></math></p>
 <p>Taking dot products of vectors and finding mid points is all totally
@@ -399,15 +398,15 @@ nearest neighbor descent with the forest result as input.</p>
 <div class="section level2 unnumbered">
 <h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
-<div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0">
+<div id="refs" class="references csl-bib-body hanging-indent">
 <div id="ref-dasgupta2008random" class="csl-entry">
 Dasgupta, Sanjoy, and Yoav Freund. 2008. <span>“Random Projection Trees
-and Low Dimensional Manifolds.”</span> In <em>Proceedings of the
-Fortieth Annual ACM Symposium on Theory of Computing</em>, 537–46.
+and Low Dimensional Manifolds.”</span> <em>Proceedings of the Fortieth
+Annual ACM Symposium on Theory of Computing</em>, 537–46.
 </div>
 <div id="ref-dong2011efficient" class="csl-entry">
 Dong, Wei, Charikar Moses, and Kai Li. 2011. <span>“Efficient k-Nearest
-Neighbor Graph Construction for Generic Similarity Measures.”</span> In
+Neighbor Graph Construction for Generic Similarity Measures.”</span>
 <em>Proceedings of the 20th International Conference on World Wide
 Web</em>, 577–86.
 </div>

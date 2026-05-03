@@ -31,6 +31,7 @@ install the packages and run all the code.
 Let’s install some packages:
 
 ``` r
+
 install.packages(c(
   "tm",
   "slam",
@@ -47,6 +48,7 @@ install.packages(c(
 And then load them:
 
 ``` r
+
 library(tm)
 library(slam)
 library(janeaustenr)
@@ -66,6 +68,7 @@ tibble with the text of all of Jane Austen’s six novels, with about 70
 characters worth of text per row.
 
 ``` r
+
 data <- austen_books()
 dim(data)
 ```
@@ -76,6 +79,7 @@ There is a `book` factor column that tells us what book each line of
 text is from and then the `text` contains the text itself.
 
 ``` r
+
 head(data, 10)
 ```
 
@@ -97,6 +101,7 @@ Ok, that’s not a lot of text in those rows and a lot of pre-amble. Let’s
 take a look at the end (spoiler alerts for the end of Persuasion):
 
 ``` r
+
 tail(data, 10)
 ```
 
@@ -121,6 +126,7 @@ collapse them. If you want to experiment with this, then you can change
 the `n_chunks` value below.
 
 ``` r
+
 n_chunks <- 10
 data_processed <- data |>
   group_by(`book`) |>
@@ -134,6 +140,7 @@ dim(data_processed)
     [1] 7344    3
 
 ``` r
+
 head(data_processed)
 ```
 
@@ -156,6 +163,7 @@ approaches and visualizing the results with UMAP should provide some
 feedback.
 
 ``` r
+
 corpus <-
   Corpus(VectorSource(data_processed$text)) |>
   tm_map(content_transformer(tolower)) |>
@@ -168,6 +176,7 @@ corpus <-
 Now we can create the TF-IDF matrix:
 
 ``` r
+
 tfidf <- weightTfIdf(DocumentTermMatrix(corpus))
 dim(tfidf)
 ```
@@ -200,6 +209,7 @@ Just before we go only further, `rnndescent` only works with `dgCMatrix`
 so we need to convert the tf-idf matrix:
 
 ``` r
+
 tfidf_sp <-
   sparseMatrix(
     i = tfidf$i,
@@ -214,6 +224,7 @@ sparse matrices, so we have to be a bit more creative. An L2
 normalization looks like:
 
 ``` r
+
 tfidf_spl2 <-
   Diagonal(x = 1 / sqrt(rowSums(tfidf_sp^2))) %*% tfidf_sp
 ```
@@ -225,6 +236,7 @@ privefl](https://gist.github.com/privefl/1895694804bf9c91a28dd85d3ebf953d)
 was my guide here:
 
 ``` r
+
 l1_normalize <- function(X) {
   res <- rep(0, nrow(X))
   dgt <- as(X, "TsparseMatrix")
@@ -246,6 +258,7 @@ With only 7000 rows, we can do a brute force search and get the exact
 nearest neighbors.
 
 ``` r
+
 tfidfl1_js_bf <-
   brute_force_knn(
     tfidf_spl1,
@@ -272,6 +285,7 @@ throughout the graph, and specifically looking at the hubness. First
 generate the k-occurrences:
 
 ``` r
+
 k_occurrences <- k_occur(tfidfl1_js_bf)
 summary(k_occurrences)
 ```
@@ -292,6 +306,7 @@ These could definitely be considered hubs.
 Here’s the k-occurrences of the top 6 most popular items:
 
 ``` r
+
 tail(sort(k_occurrences))
 ```
 
@@ -300,6 +315,7 @@ tail(sort(k_occurrences))
 And here is how many anti-hubs we have:
 
 ``` r
+
 sum(k_occurrences == 1)
 ```
 
@@ -328,6 +344,7 @@ at the popular text first.
 ### Popular Text
 
 ``` r
+
 popular_indices <- head(order(k_occurrences, decreasing = TRUE))
 data_processed[popular_indices, c("book", "text")]
 ```
@@ -345,6 +362,7 @@ data_processed[popular_indices, c("book", "text")]
 Here’s the full text from the most popular item:
 
 ``` r
+
 data_processed[popular_indices[1], ]$text
 ```
 
@@ -361,6 +379,7 @@ In terms of the anti-hubs, we have a large number of those, so let’s
 sample 6 at random:
 
 ``` r
+
 unpopular_indices <- which(k_occurrences == 1)
 data_processed[sample(unpopular_indices, 6), c("book", "text")]
 ```
@@ -395,6 +414,7 @@ at all, let’s just see what the most popular words in Pride & Prejudice
 are with this method:
 
 ``` r
+
 pap <- tfidf_sp[data_processed$book == "Pride & Prejudice", ]
 mean_pap <- colMeans(pap)
 names(mean_pap) <- colnames(tfidf)
@@ -412,6 +432,7 @@ it’s mainly character names (and, er, `'said'`).
 If we apply this to the dataset as a whole:
 
 ``` r
+
 mean_tfidf <- colMeans(tfidf_sp)
 names(mean_tfidf) <- colnames(tfidf)
 mean_tfidf[mean_tfidf > 0] |>
@@ -428,6 +449,7 @@ go, `said`.
 What do the popular words look like (and is `said` in there too?):
 
 ``` r
+
 mean_popular_tfidf <- colMeans(tfidf_sp[popular_indices, ])
 names(mean_popular_tfidf) <- colnames(tfidf)
 mean_popular_tfidf[mean_popular_tfidf > 0] %>%
@@ -444,6 +466,7 @@ overlap with the average words.
 Onto the unpopular text.
 
 ``` r
+
 mean_unpopular_tfidf <- colMeans(tfidf_sp[unpopular_indices, ])
 names(mean_unpopular_tfidf) <- colnames(tfidf)
 mean_unpopular_tfidf[mean_unpopular_tfidf > 0] |>
@@ -485,6 +508,7 @@ over-interpreting the layout of the clusters. I recommend running the
 algorithm a few times and seeing what changes.
 
 ``` r
+
 js_umap <-
   umap(
     X = NULL,
@@ -503,6 +527,7 @@ js_umap <-
 Let’s plot what we got:
 
 ``` r
+
 ggplot(
   data.frame(js_umap, Book = data_processed$book),
   aes(x = X1, y = X2, color = Book)
@@ -545,6 +570,7 @@ in the input space, so we use `metric = "euclidean"` rather than
 `"jensenshannon"`:
 
 ``` r
+
 umap_nbrs <-
   brute_force_knn(js_umap,
     k = 15,
@@ -556,6 +582,7 @@ umap_nbrs <-
 Now we can measure the overlap between the two neighbor graphs:
 
 ``` r
+
 neighbor_overlap(umap_nbrs, tfidfl1_js_bf)
 ```
 

@@ -1,6 +1,7 @@
 # Brute Force Search
 
 ``` r
+
 library(rnndescent)
 ```
 
@@ -17,6 +18,7 @@ neighbors and won’t be running a neighbor search multiple times.
 Let’s calculate the exact 15 nearest neighbors for the `iris` dataset:
 
 ``` r
+
 iris_nbrs <- brute_force_knn(iris, k = 15)
 lapply(iris_nbrs, function(x) {
   head(x[, 1:5], 3)
@@ -39,6 +41,7 @@ against the even items (i.e. the indices in `iris_nbrs` will refer to
 the odd items):
 
 ``` r
+
 iris_even <- iris[seq_len(nrow(iris)) %% 2 == 0, ]
 iris_odd <- iris[seq_len(nrow(iris)) %% 2 == 1, ]
 iris_query_nbrs <-

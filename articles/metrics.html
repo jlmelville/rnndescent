@@ -85,8 +85,8 @@ or <code>"jaccard"</code> might be a good place to start.</p>
 <p>The metrics here are a subset of those offered by the <a href="https://github.com/lmcinnes/pynndescent/tree/master" class="external-link">PyNNDescent</a>
 Python package which in turn reproduces those in the <a href="https://docs.scipy.org/doc/scipy/reference/spatial.distance.html#module-scipy.spatial.distance" class="external-link">scipy.spatial.distance</a>
 module of <a href="https://scipy.org/" class="external-link">SciPy</a>. Many of the binary
-distances seem to have definitions shared with <span class="citation">(Choi et al. 2010)</span> so you may want to look in
-that reference for an exact definition.</p>
+distances seem to have definitions shared with <span class="citation">(<span class="nocase">Choi et al.</span> 2010)</span>
+so you may want to look in that reference for an exact definition.</p>
 <ul>
 <li>
 <code>"braycurtis"</code>: <a href="https://en.wikipedia.org/wiki/Bray%E2%80%93Curtis_dissimilarity" class="external-link">Bray-Curtis</a>.</li>
@@ -160,7 +160,7 @@ rank correlation</a>
 <li>
 <code>"symmetrickl"</code> symmetrized version of the <a href="https://en.wikipedia.org/wiki/Kullback%E2%80%93Leibler_divergence" class="external-link">Kullback-Leibler
 divergence</a>. The symmetrization is calculated as
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>D</mi><mrow><mi>K</mi><mi>L</mi></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>P</mi><mrow><mo stretchy="true" form="prefix">|</mo><mo stretchy="true" form="postfix">|</mo></mrow><mi>Q</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><msub><mi>D</mi><mrow><mi>K</mi><mi>L</mi></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>Q</mi><mrow><mo stretchy="true" form="prefix">|</mo><mo stretchy="true" form="postfix">|</mo></mrow><mi>P</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">D_{KL}(P||Q) + D_{KL}(Q||P)</annotation></semantics></math>.</li>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>D</mi><mrow><mi>K</mi><mi>L</mi></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>P</mi><mo stretchy="false" form="prefix">|</mo><mo stretchy="false" form="prefix">|</mo><mi>Q</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><msub><mi>D</mi><mrow><mi>K</mi><mi>L</mi></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>Q</mi><mo stretchy="false" form="prefix">|</mo><mo stretchy="false" form="prefix">|</mo><mi>P</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">D_{KL}(P||Q) + D_{KL}(Q||P)</annotation></semantics></math>.</li>
 <li>
 <code>"tsss"</code> the Triangle Area Similarity-Sector Area
 Similarity or TS-SS metric as described in <span class="citation">(Heidarian and Dinneen 2016)</span>. Compared to
@@ -247,16 +247,17 @@ faster.</p>
 <div class="section level2 unnumbered">
 <h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
-<div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0">
+<div id="refs" class="references csl-bib-body hanging-indent">
 <div id="ref-choi2010survey" class="csl-entry">
-Choi, Seung-Seok, Sung-Hyuk Cha, Charles C Tappert, et al. 2010.
-<span>“A Survey of Binary Similarity and Distance Measures.”</span>
-<em>Journal of Systemics, Cybernetics and Informatics</em> 8 (1): 43–48.
+<span class="nocase">Choi, Seung-Seok, Sung-Hyuk Cha, Charles C Tappert,
+et al.</span> 2010. <span>“A Survey of Binary Similarity and Distance
+Measures.”</span> <em>Journal of Systemics, Cybernetics and
+Informatics</em> 8 (1): 43–48.
 </div>
 <div id="ref-7474366" class="csl-entry">
 Heidarian, Arash, and Michael J. Dinneen. 2016. <span>“A Hybrid
 Geometric Approach for Measuring Similarity Level Among Documents and
-Document Clustering.”</span> In <em>2016 IEEE Second International
+Document Clustering.”</span> <em>2016 IEEE Second International
 Conference on Big Data Computing Service and Applications
 (BigDataService)</em>, 142–51. <a href="https://doi.org/10.1109/BigDataService.2016.14" class="external-link">https://doi.org/10.1109/BigDataService.2016.14</a>.
 </div>

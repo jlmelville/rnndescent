@@ -1,6 +1,7 @@
 # Querying Data
 
 ``` r
+
 library(rnndescent)
 ```
 
@@ -28,6 +29,7 @@ For convenience, I will use all the even rows of the `iris` data to
 build an index, and search using the odd rows:
 
 ``` r
+
 iris_even <- iris[seq_len(nrow(iris)) %% 2 == 0, ]
 iris_odd <- iris[seq_len(nrow(iris)) %% 2 == 1, ]
 ```
@@ -39,6 +41,7 @@ the neighbors. No index to build, no worry about how approximate the
 results are:
 
 ``` r
+
 brute_nbrs <- brute_force_knn_query(
   query = iris_odd,
   reference = iris_even,
@@ -53,6 +56,7 @@ and the second matrix, `dist` contains the distances to those neighbors
 (here I’ll just show the first five results per row):
 
 ``` r
+
 lapply(brute_nbrs, function(m) {
   head(m[, 1:5])
 })
@@ -81,6 +85,7 @@ If you build a random projection forest with `rpf_build`, you can query
 it with `rpf_knn_query`:
 
 ``` r
+
 rpf_index <- rpf_build(iris_even)
 rpf_nbrs <- rpf_knn_query(
   query = iris_odd,
@@ -116,6 +121,7 @@ the `reference_graph` (so we can calculate distances), `k` the number of
 neighbors you want, and of course the `query` data:
 
 ``` r
+
 graph_nbrs <- graph_knn_query(
   query = iris_odd,
   reference = iris_even,
@@ -204,6 +210,7 @@ guess for the real data.
 This is a very contrived example with `iris`, but let’s do it anyway:
 
 ``` r
+
 numeric_iris <- iris[, sapply(iris, is.numeric)]
 logical_iris <- sweep(numeric_iris, 2, colMeans(numeric_iris), ">")
 logical_iris_even <- logical_iris[seq_len(nrow(logical_iris)) %% 2 == 0, ]
@@ -221,6 +228,7 @@ head(logical_iris_even)
 Do a brute force search on the binarized data:
 
 ``` r
+
 iris_logical_brute_nbrs <- brute_force_knn_query(
   query = logical_iris_odd,
   reference = logical_iris_even,
@@ -233,6 +241,7 @@ Then pass the indices of the brute force search to `graph_knn_query`,
 which will generate the Euclidean distances for you:
 
 ``` r
+
 graph_nbrs <- graph_knn_query(
   query = iris_odd,
   reference = iris_even,
@@ -253,6 +262,7 @@ If you have previously built an RP Forest with the data you may also use
 that to initialize the query. We can re-use `rpf_index` here.
 
 ``` r
+
 forest_init_nbrs <- graph_knn_query(
   query = iris_odd,
   reference = iris_even,
@@ -299,13 +309,13 @@ procedure is based on the process described in (Harwood and Drummond
 1.  Reversing all the edges in the graph.
 2.  “Diversifying” the graph by “occlusion pruning”. This considers
     triplets of points, and removes long edges which are probably
-    redundant. For an item $i$ with neighbors $p$ and $q$ if the
-    distances $d_{pq} < d_{ip}$ i.e. the neighbors are closer to each
-    other than they are to $i$, then it is said that $p$ occludes $q$
-    and we don’t need both edges $\left. i\rightarrow p \right.$ and
-    $\left. i\rightarrow q \right.$ – it’s likely that $q$ is in the
-    neighbor list of $p$ or vice versa, so it’s unlikely that we are
-    doing any harm by getting rid of $\left. i\rightarrow p \right.$.
+    redundant. For an item $`i`$ with neighbors $`p`$ and $`q`$ if the
+    distances $`d_{pq} \lt d_{ip}`$ i.e. the neighbors are closer to
+    each other than they are to $`i`$, then it is said that $`p`$
+    occludes $`q`$ and we don’t need both edges $`i \rightarrow p`$ and
+    $`i \rightarrow q`$ – it’s likely that $`q`$ is in the neighbor list
+    of $`p`$ or vice versa, so it’s unlikely that we are doing any harm
+    by getting rid of $`i \rightarrow p`$.
 3.  After occlusion pruning, if any item still has an excessive number
     of edges, the longest edges are removed until the number of edges is
     below the threshold.
@@ -344,6 +354,7 @@ for `k = 15`, each item in the search graph will have at most
 Let’s see how this works on the `iris` neighbors:
 
 ``` r
+
 set.seed(42)
 iris_search_graph <- prepare_search_graph(
   data = iris_even,
@@ -359,6 +370,7 @@ a sparse matrix, specifically a `dgCMatrix`. Here’s a histogram of how
 the edges are distributed:
 
 ``` r
+
 search_graph_edges <- diff(iris_search_graph@p)
 hist(search_graph_edges,
   main = "Distribution of search graph edges", xlab = "# edges"
@@ -368,6 +380,7 @@ hist(search_graph_edges,
 ![](querying-data_files/figure-html/iris%20search%20graph%20histogram-1.png)
 
 ``` r
+
 range(search_graph_edges)
 #> [1] 11 22
 ```
@@ -377,6 +390,7 @@ neighbor graph. But some have have the maximum number of edges and few
 have only 10 edges.
 
 ``` r
+
 search_nbrs <- graph_knn_query(
   query = iris_odd,
   reference = iris_even,
@@ -388,13 +402,12 @@ search_nbrs <- graph_knn_query(
 
 ## References
 
-Dobson, Magdalen, Zheqi Shen, Guy E Blelloch, Laxman Dhulipala, Yan Gu,
-Harsha Vardhan Simhadri, and Yihan Sun. 2023. “Scaling Graph-Based ANNS
-Algorithms to Billion-Size Datasets: A Comparative Analysis.” *arXiv
-Preprint arXiv:2305.04359*.
+Dobson, Magdalen, Zheqi Shen, Guy E Blelloch, et al. 2023. “Scaling
+Graph-Based ANNS Algorithms to Billion-Size Datasets: A Comparative
+Analysis.” *arXiv Preprint arXiv:2305.04359*.
 
 Harwood, Ben, and Tom Drummond. 2016. “Fanng: Fast Approximate Nearest
-Neighbour Graphs.” In *Proceedings of the IEEE Conference on Computer
+Neighbour Graphs.” *Proceedings of the IEEE Conference on Computer
 Vision and Pattern Recognition*, 5713–22.
 
 Iwasaki, Masajiro, and Daisuke Miyazaki. 2018. “Optimization of Indexing

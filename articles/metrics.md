@@ -1,6 +1,7 @@
 # Metrics
 
 ``` r
+
 library(rnndescent)
 ```
 
@@ -25,7 +26,7 @@ look in that reference for an exact definition.
   [Canberra](https://en.wikipedia.org/wiki/Canberra_distance).
 - `"chebyshev"`:
   [Chebyshev](https://en.wikipedia.org/wiki/Chebyshev_distance), also
-  known as the L-infinity norm ($L_{\infty}$).
+  known as the L-infinity norm ($`L_\infty`$).
 - `"correlation"`: 1 minus the [Pearson
   correlation](https://en.wikipedia.org/wiki/Pearson_correlation_coefficient).
 - `"cosine"`: 1 minus the [cosine
@@ -74,8 +75,7 @@ look in that reference for an exact definition.
   correlation](https://en.wikipedia.org/wiki/Spearman%27s_rank_correlation_coefficient)
 - `"symmetrickl"` symmetrized version of the [Kullback-Leibler
   divergence](https://en.wikipedia.org/wiki/Kullback%E2%80%93Leibler_divergence).
-  The symmetrization is calculated as
-  $D_{KL}\left( P{||}Q \right) + D_{KL}\left( Q{||}P \right)$.
+  The symmetrization is calculated as $`D_{KL}(P||Q) + D_{KL}(Q||P)`$.
 - `"tsss"` the Triangle Area Similarity-Sector Area Similarity or TS-SS
   metric as described in (Heidarian and Dinneen 2016). Compared to
   results in PyNNDescent (as of version 0.5.11), distances are smaller
@@ -118,6 +118,7 @@ Here’s an example of using binary data stored as 0s and 1s with the
 `"hamming"` metric:
 
 ``` r
+
 set.seed(42)
 binary_data <- matrix(sample(c(0, 1), 100, replace = TRUE), ncol = 10)
 head(binary_data)
@@ -131,12 +132,14 @@ head(binary_data)
 ```
 
 ``` r
+
 nn <- brute_force_knn(binary_data, k = 4, metric = "hamming")
 ```
 
 Now let’s convert it to a logical matrix:
 
 ``` r
+
 logical_data <- binary_data == 1
 head(logical_data)
 #>       [,1]  [,2]  [,3]  [,4]  [,5]  [,6]  [,7]  [,8]  [,9] [,10]
@@ -149,12 +152,14 @@ head(logical_data)
 ```
 
 ``` r
+
 logical_nn <- brute_force_knn(logical_data, k = 4, metric = "hamming")
 ```
 
 The results will be the same:
 
 ``` r
+
 all.equal(nn, logical_nn)
 #> [1] TRUE
 ```
@@ -169,6 +174,6 @@ Systemics, Cybernetics and Informatics* 8 (1): 43–48.
 
 Heidarian, Arash, and Michael J. Dinneen. 2016. “A Hybrid Geometric
 Approach for Measuring Similarity Level Among Documents and Document
-Clustering.” In *2016 IEEE Second International Conference on Big Data
+Clustering.” *2016 IEEE Second International Conference on Big Data
 Computing Service and Applications (BigDataService)*, 142–51.
 <https://doi.org/10.1109/BigDataService.2016.14>.

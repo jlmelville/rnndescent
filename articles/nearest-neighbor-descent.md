@@ -1,12 +1,13 @@
 # Nearest Neighbor Descent
 
 ``` r
+
 library(rnndescent)
 ```
 
-Nearest Neighbor Descent (Dong, Moses, and Li 2011) (NND) is the main
-way to construct a k-nearest neighbors graph in `rnndescent`. Here’s a
-brief description of the method.
+Nearest Neighbor Descent (Dong et al. 2011) (NND) is the main way to
+construct a k-nearest neighbors graph in `rnndescent`. Here’s a brief
+description of the method.
 
 The idea behind NND is to start with an initial guess of the graph
 (typically randomly chosen neighbors) and then iteratively improving
@@ -24,9 +25,9 @@ a loop like the following in each iteration:
 2.  For each item `j` in the neighbors of `i`:
 3.  For each item `k` in the neighbors of `j`:
 4.  If `k` is not already a neighbor of `i`:
-5.  Calculate the distance between `i` and `k`, $d_{ik}$.
-6.  If $d_{ik}$ is smaller than the neighbor with the largest distance
-    in the neighbor list of $i$, update the neighbor list of `i` with
+5.  Calculate the distance between `i` and `k`, $`d_{ik}`$.
+6.  If $`d_{ik}`$ is smaller than the neighbor with the largest distance
+    in the neighbor list of $`i`$, update the neighbor list of `i` with
     `k`.
 
 ## Local Join
@@ -67,12 +68,12 @@ neighbors are used for updating the graph, but “old” neighbors are only
 ever paired with “new” neighbors, not other “old” neighbors. This is
 referred to as “incremental search” in the NND paper.
 
-Also, a tolerance $\delta$ is used to determine as an early stopping
-criterion. The total number of items in the graph is $kN$ where $k$ is
-the number of neighbors and $N$ is the number of items. During each
+Also, a tolerance $`\delta`$ is used to determine as an early stopping
+criterion. The total number of items in the graph is $`kN`$ where $`k`$
+is the number of neighbors and $`N`$ is the number of items. During each
 iteration, a counter is incremented every time the graph is successfully
 updated. If at the end of the iteration the number of updates is less
-than $\delta kN$ then the iteration stops.
+than $`\delta kN`$ then the iteration stops.
 
 ## PyNNDescent Modifications
 
@@ -81,16 +82,16 @@ description in the NND paper, which `rnndescent` also uses, which is how
 sampling of candidates works. For the local join, we need to know not
 just the neighbors of `i`, but those items which consider `i` a
 neighbor, which we call the “reverse neighbors” of `i`. While there are
-always only $k$ “forward” neighbors of `i` in a graph, we don’t control
-who is a neighbor of what, so `i` could be the neighbor of many (or even
-all) the other items in a dataset. Thus, building the reverse list can
-be a bit challenging as we need to be prepared for any item to have up
-to $N$ neighbors. In the NND paper, this is avoided by defining a sample
-rate $\rho$, which is used to sample from the k-nearest neighbors, and
-then the reverse neighbor list is only built from the sampled items. A
-subsequent down-sampling is then applied to the reverse neighbor list so
-that both the forward and reverse neighbor list only contain $\rho k$
-items.
+always only $`k`$ “forward” neighbors of `i` in a graph, we don’t
+control who is a neighbor of what, so `i` could be the neighbor of many
+(or even all) the other items in a dataset. Thus, building the reverse
+list can be a bit challenging as we need to be prepared for any item to
+have up to $`N`$ neighbors. In the NND paper, this is avoided by
+defining a sample rate $`\rho`$, which is used to sample from the
+k-nearest neighbors, and then the reverse neighbor list is only built
+from the sampled items. A subsequent down-sampling is then applied to
+the reverse neighbor list so that both the forward and reverse neighbor
+list only contain $`\rho k`$ items.
 
 Instead of a sample rate, `rnndescent` defines a `max_candidates`
 parameter determines the size of both the forward and reverse neighbor
@@ -109,14 +110,17 @@ It’s easy enough to run NND on a dataset. Here’s an example using the
 `iris` dataset:
 
 ``` r
+
 iris_knn <- nnd_knn(iris, k = 15)
 ```
 
-The contents of `iris_knn` is a list with two elements, both $N$ by $k$
-matrices where $N$ is the number of items in the dataset and $k$ is the
-number of neighbors: `idx` contains the indices of the neighbors:
+The contents of `iris_knn` is a list with two elements, both $`N`$ by
+$`k`$ matrices where $`N`$ is the number of items in the dataset and
+$`k`$ is the number of neighbors: `idx` contains the indices of the
+neighbors:
 
 ``` r
+
 iris_knn$idx[1:2, 1:5]
 #>      [,1] [,2] [,3] [,4] [,5]
 #> [1,]    1   18   29    5   28
@@ -126,6 +130,7 @@ iris_knn$idx[1:2, 1:5]
 and `dist` contains the distances:
 
 ``` r
+
 iris_knn$dist[1:2, 1:5]
 #>      [,1]      [,2]      [,3]      [,4]      [,5]
 #> [1,]    0 0.1000000 0.1414212 0.1414212 0.1414213
@@ -145,12 +150,12 @@ Apart from `k`, there are some parameters you may want to modify:
   parameter. See the vignette on RP forest for more details. You can
   also pass in a neighbor graph directly. This should have the same
   format as the output of `nnd_knn`, i.e. a list of two matrices of size
-  $N$ by $k$. NND can be used to refine an existing graph generated by
-  other methods, e.g.
+  $`N`$ by $`k`$. NND can be used to refine an existing graph generated
+  by other methods, e.g.
   [RcppAnnoy](https://cran.r-project.org/package=RcppAnnoy) or
   [RcppHNSW](https://cran.r-project.org/package=RcppHNSW).
 - `n_iters` is the number of iterations of NND to carry out. The default
-  is to choose based on $N$, the number of items in the dataset. The
+  is to choose based on $`N`$, the number of items in the dataset. The
   amount of work done per iteration decreases quite rapidly, so sticking
   with the default is usually sensible, especially if you don’t change
   the convergence criterion `delta` (see below), because this often
@@ -234,7 +239,7 @@ You can’t. NND can only produce the k-nearest neighbors graph for the
 provided data. It doesn’t produce an “index” of any kind that you can
 query. The value of NND and the local join really only makes sense if
 you can take advantage of the fact that calculating the distance
-$d_{ij}$ lets update the neighbor list of $i$ and $j$ at once.
+$`d_{ij}`$ lets update the neighbor list of $`i`$ and $`j`$ at once.
 
 If you try to apply the concepts from NND to querying new data you
 quickly end up at a method that looks a lot like most greedy graph-based
@@ -249,6 +254,6 @@ amenable for searching using
 ## References
 
 Dong, Wei, Charikar Moses, and Kai Li. 2011. “Efficient k-Nearest
-Neighbor Graph Construction for Generic Similarity Measures.” In
+Neighbor Graph Construction for Generic Similarity Measures.”
 *Proceedings of the 20th International Conference on World Wide Web*,
 577–86.

@@ -1,17 +1,18 @@
 # Random Partition Forests
 
 ``` r
+
 library(rnndescent)
 ```
 
 The Nearest Neighbor Descent method as usually described is technically
 a way to optimize an *existing* estimate of the nearest neighbor graph.
 You must think of a way to initialize the graph. The obvious approach
-and the one used in the description of NND in (Dong, Moses, and Li 2011)
-is to start with a random selection of neighbors. One of the clever
-things about the PyNNDescent implementation is that it uses a random
-partition forest (Dasgupta and Freund 2008) to come up with the initial
-guess. Random partition forests are part of a large group of tree-based
+and the one used in the description of NND in (Dong et al. 2011) is to
+start with a random selection of neighbors. One of the clever things
+about the PyNNDescent implementation is that it uses a random partition
+forest (Dasgupta and Freund 2008) to come up with the initial guess.
+Random partition forests are part of a large group of tree-based
 methods. These are often very fast and conceptually simple, but can be
 inaccurate. Much of the literature is devoted to proposals of tweaks to
 these methods to improve their performance, often at the expense of
@@ -69,6 +70,7 @@ use the `iris` dataset as an example, with the goal of finding the
 15-nearest neighbors of each item in the dataset.
 
 ``` r
+
 iris_forest <- rpf_build(iris, leaf_size = 15)
 ```
 
@@ -132,6 +134,7 @@ looking at the k-nearest neighbors or `iris`, the `query` and the
 must also specify the number of neighbors we want.
 
 ``` r
+
 iris_query <-
   rpf_knn_query(
     query = iris,
@@ -157,6 +160,7 @@ the time when looking for neighbors, you do avoid having to make any
 tree traversals and the associated hyperplane distance calculations.
 
 ``` r
+
 iris_knn <- rpf_knn(iris, k = 15)
 ```
 
@@ -174,6 +178,7 @@ neighbors) for the first 50 `iris` items and then query the remaining
 100:
 
 ``` r
+
 iris_knn_with_forest <-
   rpf_knn(iris[1:50, ], k = 15, ret_forest = TRUE)
 iris_query_virginica <-
@@ -191,11 +196,14 @@ The `margin` parameter determines how to calculate the side of the
 hyperplane each item in a split belongs to. The usual method
 (`margin = "explicit"`) does the same thing as in PyNNDescent: the way
 the hyperplane is defined is to use the vector defined by the two points
-$a$ and $b$ as the normal vector to a plane, and then the point midway
-between them as the point on the plane. We then calculate the margin of
-a point $x$ (effectively the signed distance from the plane to $x$) as:
+$`a`$ and $`b`$ as the normal vector to a plane, and then the point
+midway between them as the point on the plane. We then calculate the
+margin of a point $`x`$ (effectively the signed distance from the plane
+to $`x`$) as:
 
-$$\text{margin}(\mathbf{x}) = \left( (\mathbf{b} - \mathbf{a}) \cdot \left( \mathbf{x} - \frac{\mathbf{a} + \mathbf{b}}{2} \right) \right)$$
+``` math
+\text{margin}(\mathbf{x}) = ((\mathbf{b} - \mathbf{a}) \cdot (\mathbf{x} - \frac{\mathbf{a} + \mathbf{b}}{2}))
+```
 
 Taking dot products of vectors and finding mid points is all totally
 unexceptional if you are using a Euclidean metric. And because there is
@@ -210,16 +218,16 @@ nor does it make sense to think about the geometric relationship implied
 by a dot product.
 
 As an alternative to calculating the margin via an explicit creation of
-a hyperplane, you could instead think about how the distance between $x$
-and $a$, $d_{xa}$ compares to the distance between $x$ and $b$, $d_{xb}$
-and what the significance for the margin is. Remember that the vector
-defined by $a$ and $b$ is the normal vector to the hyperplane, so you
-can think of a line connecting $a$ and $b$, with the hyperplane
-splitting that line in two equal halves. Now imagine $x$ is somewhere on
-that line. If $x$ is closer to $a$ than $b$ it must be on the same side
-of the hyperplane as $a$, and vice versa. Therefore we can calculate the
-margin by comparing $d_{xa}$ and $d_{xb}$ and seeing which value is
-smaller.
+a hyperplane, you could instead think about how the distance between
+$`x`$ and $`a`$, $`d_{xa}`$ compares to the distance between $`x`$ and
+$`b`$, $`d_{xb}`$ and what the significance for the margin is. Remember
+that the vector defined by $`a`$ and $`b`$ is the normal vector to the
+hyperplane, so you can think of a line connecting $`a`$ and $`b`$, with
+the hyperplane splitting that line in two equal halves. Now imagine
+$`x`$ is somewhere on that line. If $`x`$ is closer to $`a`$ than $`b`$
+it must be on the same side of the hyperplane as $`a`$, and vice versa.
+Therefore we can calculate the margin by comparing $`d_{xa}`$ and
+$`d_{xb}`$ and seeing which value is smaller.
 
 Because we don’t explicitly create the hyperplane, I call this the
 “implicit” margin method and you can choose to generate splits this way
@@ -227,6 +235,7 @@ by setting `margin = "implicit"`. We’ll use some random binary data for
 this example.
 
 ``` r
+
 binary_data <- matrix(as.logical(rbinom(1000, 1, 0.5)), ncol = 10)
 ```
 
@@ -237,6 +246,7 @@ function is called which should be much faster than the functions
 written only with generic floating point data in mind.
 
 ``` r
+
 bin_knn_imp <-
   rpf_knn(binary_data,
     k = 15,
@@ -249,6 +259,7 @@ The following will give the same results but for large datasets is
 likely to be noticeably slower:
 
 ``` r
+
 bin_knn_exp <-
   rpf_knn(binary_data,
     k = 15,
@@ -285,6 +296,7 @@ comparing an existing k-nearest neighbor graph with that produced by a
 single tree. The `rpf_filter` function does this for you:
 
 ``` r
+
 iris_filtered <-
   rpf_filter(
     nn = iris_query,
@@ -306,10 +318,10 @@ with the forest result as input.
 ## References
 
 Dasgupta, Sanjoy, and Yoav Freund. 2008. “Random Projection Trees and
-Low Dimensional Manifolds.” In *Proceedings of the Fortieth Annual ACM
+Low Dimensional Manifolds.” *Proceedings of the Fortieth Annual ACM
 Symposium on Theory of Computing*, 537–46.
 
 Dong, Wei, Charikar Moses, and Kai Li. 2011. “Efficient k-Nearest
-Neighbor Graph Construction for Generic Similarity Measures.” In
+Neighbor Graph Construction for Generic Similarity Measures.”
 *Proceedings of the 20th International Conference on World Wide Web*,
 577–86.

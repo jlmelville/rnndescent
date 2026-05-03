@@ -10,6 +10,39 @@
   Parry](https://github.com/JosiahParry) whose request nudged me to fill
   this gap (<https://github.com/jlmelville/rnndescent/issues/17>).
 
+### Bug fixes and minor improvements
+
+- Much improved input validation.
+- Non-`dgCMatrix` `sparseMatrix` inputs, such as `dgRMatrix` and
+  `dgTMatrix` are now normalized to `dgCMatrix` on input. Other matrices
+  fail with a clearer error.
+- Fix for
+  [`prepare_search_graph()`](https://jlmelville.github.io/rnndescent/reference/prepare_search_graph.md)
+  sometimes over-pruning beyond `max_degree`.
+- Fix explicit-margin RP-tree builds for `metric = "dice"` and
+  `"hamming"` to use angular split geometry.
+- Fix for `rpf_build(obs = "C")` where default `n_trees` used the number
+  of features not the number of observations.
+- Fix
+  [`nnd_knn()`](https://jlmelville.github.io/rnndescent/reference/nnd_knn.md)
+  and
+  [`graph_knn_query()`](https://jlmelville.github.io/rnndescent/reference/graph_knn_query.md)
+  sometimes failing to completely randomly fill the initial search graph
+  when needed.
+- Fix for `prepare_search_graph(prune_reverse = TRUE)` not pruning
+  reverse edges when `diversify_prob = 0`.
+- Fix for edge case when `max_search_fraction` would only result in one
+  calculation, but this distance was never used.
+- Fixes for
+  [`k_occur()`](https://jlmelville.github.io/rnndescent/reference/k_occur.md)
+  when using graphs with missing data and sparse graphs with anti-hubs.
+- Verbose query summaries now report the correct minimum and average
+  number of distance calculations.
+- Minor parallel execution robustness improvements: errors propagate
+  back to R and some worker launches are avoided with small workloads.
+- Minor C++ portability improvements for CRAN builds and
+  high-dimensional logical metrics.
+
 ## rnndescent 0.1.8
 
 CRAN release: 2025-09-05
@@ -184,6 +217,7 @@ Initial CRAN submission.
   something like:
 
   ``` r
+
   res <- brute_force_knn(X, metric = "hamming")
   res$dist <- res$dist * ncol(X)
   ```
