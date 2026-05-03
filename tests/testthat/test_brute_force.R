@@ -6,6 +6,7 @@ check_nbrs(rnbrs, ui10_eucd, tolerance = 1e-6)
 
 rnbrs <- brute_force_knn(ui10, k = 4, n_threads = 1)
 check_nbrs(rnbrs, ui10_eucd, tolerance = 1e-6)
+expect_equal(rnbrs, brute_force_knn(ui10, k = 4, n_threads = 0))
 
 # turn off alt metric
 rnbrs <- brute_force_knn(ui10, k = 4, n_threads = 1, use_alt_metric = FALSE)

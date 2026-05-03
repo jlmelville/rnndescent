@@ -117,7 +117,7 @@ template <typename Out, typename Idx>
 auto brute_force_build(const BaseDistance<Out, Idx> &distance, Idx n_nbrs,
                        std::size_t n_threads, ProgressBase &progress,
                        const Executor &executor) -> NNGraph<Out, Idx> {
-  if (n_threads > 0) {
+  if (n_threads > 1) {
     return nnbf_query(distance, n_nbrs, n_threads, progress, executor);
   }
   NNHeap<Out, Idx> neighbor_heap(distance.get_ny(), n_nbrs);
@@ -130,8 +130,10 @@ auto brute_force_build(const BaseDistance<Out, Idx> &distance, Idx n_nbrs,
   // (including the self-distance)
   const std::size_t n_pairs = (n_points * (n_points + 1)) / 2;
   ExecutionParams exec_params{2048};
-  dispatch_work(worker, n_pairs, n_threads, exec_params, progress, executor);
-  sort_heap(neighbor_heap, n_threads, progress, executor);
+  constexpr std::size_t serial_threads = 0;
+  dispatch_work(worker, n_pairs, serial_threads, exec_params, progress,
+                executor);
+  sort_heap(neighbor_heap, serial_threads, progress, executor);
   return heap_to_graph(neighbor_heap);
 }
 
