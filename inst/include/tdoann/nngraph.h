@@ -28,7 +28,9 @@
 #define TDOANN_NNGRAPH_H
 
 #include <array>
+#include <limits>
 #include <mutex>
+#include <utility>
 #include <vector>
 
 #include "distancebase.h"
@@ -93,6 +95,11 @@ template <typename Out = float, typename Idx = uint32_t> struct NNGraph {
       : idx(idx), dist(dist), n_points(n_points),
         n_nbrs(idx.size() / n_points) {}
 
+  NNGraph(std::vector<Idx> &&idx, std::vector<Out> &&dist,
+          std::size_t n_points)
+      : idx(std::move(idx)), dist(std::move(dist)), n_points(n_points),
+        n_nbrs(this->idx.size() / n_points) {}
+
   NNGraph(std::size_t n_points, std::size_t n_nbrs)
       : idx(std::vector<Idx>(n_points * n_nbrs, npos())),
         dist(std::vector<Out>(n_points * n_nbrs,
@@ -119,6 +126,13 @@ auto heap_to_graph(const NbrHeap &heap)
   heap_to_graph(heap, nn_graph);
 
   return nn_graph;
+}
+
+template <typename Out, typename Idx, Out (*max_dist_func)()>
+auto heap_to_graph(NNHeap<Out, Idx, max_dist_func> &&heap)
+    -> NNGraph<Out, Idx> {
+  return NNGraph<Out, Idx>(std::move(heap.idx), std::move(heap.dist),
+                           heap.n_points);
 }
 
 struct HeapAddSymmetric {

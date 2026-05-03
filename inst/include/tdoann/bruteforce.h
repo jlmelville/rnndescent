@@ -28,6 +28,7 @@
 #define TDOANN_BRUTE_FORCE_H
 
 #include <cmath>
+#include <utility>
 #include <vector>
 
 #include "distancebase.h"
@@ -66,7 +67,7 @@ auto nnbf_query(const BaseDistance<Out, Idx> &distance, Idx n_nbrs,
   dispatch_work(worker, neighbor_heap.n_points, n_threads, exec_params,
                 progress, executor);
   sort_heap(neighbor_heap, n_threads, progress, executor);
-  return heap_to_graph(neighbor_heap);
+  return heap_to_graph(std::move(neighbor_heap));
 }
 
 // convert from 1D index k of upper triangular matrix of size n to 2D index i,j
@@ -134,7 +135,7 @@ auto brute_force_build(const BaseDistance<Out, Idx> &distance, Idx n_nbrs,
   dispatch_work(worker, n_pairs, serial_threads, exec_params, progress,
                 executor);
   sort_heap(neighbor_heap, serial_threads, progress, executor);
-  return heap_to_graph(neighbor_heap);
+  return heap_to_graph(std::move(neighbor_heap));
 }
 
 template <typename Out, typename Idx>
