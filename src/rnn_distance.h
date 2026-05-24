@@ -244,6 +244,14 @@ struct FactoryTraits<tdoann::VectorDistance<In, Out, Idx>> {
 };
 
 template <typename In, typename Out, typename Idx>
+struct FactoryTraits<tdoann::SelfDistanceCalculator<In, Out, Idx>> {
+  using type = tdoann::SelfDistanceCalculator<In, Out, Idx>;
+  using input_type = In;
+  using output_type = Out;
+  using index_type = Idx;
+};
+
+template <typename In, typename Out, typename Idx>
 struct FactoryTraits<tdoann::SparseVectorDistance<In, Out, Idx>> {
   using type = tdoann::SparseVectorDistance<In, Out, Idx>;
   using input_type = In;
@@ -411,12 +419,12 @@ create_self_distance(const Rcpp::LogicalMatrix &data,
 }
 
 template <typename In = RNN_DEFAULT_IN, typename Idx = RNN_DEFAULT_IDX>
-std::unique_ptr<tdoann::VectorDistance<In, RNN_DEFAULT_DIST, Idx>>
+std::unique_ptr<tdoann::SelfDistanceCalculator<In, RNN_DEFAULT_DIST, Idx>>
 create_self_distance(std::vector<In> data_vec, std::size_t ndim,
                      const std::string &metric) {
   return create_self_distance_impl<
-      tdoann::VectorDistance<In, RNN_DEFAULT_DIST, Idx>>(std::move(data_vec),
-                                                         ndim, metric);
+      tdoann::SelfDistanceCalculator<In, RNN_DEFAULT_DIST, Idx>>(
+      std::move(data_vec), ndim, metric);
 }
 
 // Sparse distances
