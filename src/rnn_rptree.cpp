@@ -557,9 +557,10 @@ List rnn_rp_tree_knn_explicit(const NumericMatrix &data, uint32_t nnbrs,
   }
   RPProgress knn_progress(verbose);
 
-  auto distance_ptr = create_self_distance(std::move(data_vec), ndim, metric);
+  auto distance =
+      create_self_distance_calculator(std::move(data_vec), ndim, metric);
   auto neighbor_heap =
-      tdoann::init_rp_tree(*distance_ptr, leaf_array, max_leaf_size, nnbrs,
+      tdoann::init_rp_tree(distance, leaf_array, max_leaf_size, nnbrs,
                            include_self, n_threads, knn_progress, executor);
   auto nn_list =
       heap_to_r(neighbor_heap, n_threads, knn_progress, executor, unzero);

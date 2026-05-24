@@ -427,6 +427,21 @@ create_self_distance(std::vector<In> data_vec, std::size_t ndim,
       std::move(data_vec), ndim, metric);
 }
 
+template <typename In = RNN_DEFAULT_IN, typename Idx = RNN_DEFAULT_IDX>
+tdoann::SelfDistanceCalculator<In, RNN_DEFAULT_DIST, Idx>
+create_self_distance_calculator(std::vector<In> data_vec, std::size_t ndim,
+                                const std::string &metric) {
+  using Out = RNN_DEFAULT_DIST;
+
+  validate_haversine_ndim(ndim, metric);
+  validate_haversine_radians(data_vec, ndim, metric);
+
+  auto [distance_func, preprocess_func] =
+      get_dense_distance_funcs<In, Out>(metric);
+  return tdoann::SelfDistanceCalculator<In, Out, Idx>(
+      std::move(data_vec), ndim, distance_func, preprocess_func);
+}
+
 // Sparse distances
 
 template <typename... Args>
