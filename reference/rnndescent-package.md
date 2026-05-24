@@ -120,6 +120,10 @@ Useful links:
 **Maintainer**: James Melville <jlmelville@gmail.com> \[copyright
 holder\]
 
+Authors:
+
+- James Melville <jlmelville@gmail.com> \[copyright holder\]
+
 Other contributors:
 
 - Vitalie Spinu \[contributor\]
