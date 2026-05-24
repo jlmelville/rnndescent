@@ -8,3 +8,4 @@ TAGS
 docs
 .vscode/*
 .clang-tidy
+.positai

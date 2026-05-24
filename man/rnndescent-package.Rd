@@ -95,6 +95,11 @@ Useful links:
 \author{
 \strong{Maintainer}: James Melville \email{jlmelville@gmail.com} [copyright holder]
 
+Authors:
+\itemize{
+  \item James Melville \email{jlmelville@gmail.com} [copyright holder]
+}
+
 Other contributors:
 \itemize{
   \item Vitalie Spinu [contributor]
