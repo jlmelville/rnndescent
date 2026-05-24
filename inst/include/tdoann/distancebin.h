@@ -256,7 +256,7 @@ public:
         bdata(to_bitvec(std::forward<VecIn>(data), ndim)),
         distance_func(distance), ndim(ndim) {}
 
-  virtual ~BinarySelfDistanceCalculator() = default;
+  ~BinarySelfDistanceCalculator() override = default;
 
   std::size_t get_nx() const override { return nx; }
   std::size_t get_ny() const override { return nx; }
@@ -285,7 +285,7 @@ public:
         by(to_bitvec(std::forward<VecIn>(y), ndim)), distance_func(distance),
         ndim(ndim) {}
 
-  virtual ~BinaryQueryDistanceCalculator() = default;
+  ~BinaryQueryDistanceCalculator() override = default;
 
   std::size_t get_nx() const override { return nx; }
   std::size_t get_ny() const override { return ny; }

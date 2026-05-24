@@ -62,7 +62,7 @@ class VectorDistance : public BaseDistance<Out, Idx> {
 public:
   using Iterator = typename std::vector<In>::const_iterator;
 
-  virtual ~VectorDistance() = default;
+  ~VectorDistance() override = default;
 
   // return iterator pointing at the ith data point
   virtual auto get_x(Idx i) const -> Iterator = 0;
@@ -100,7 +100,7 @@ public:
   using Iterator = typename std::vector<In>::const_iterator;
   using DistanceFunc = Out (*)(Iterator, Iterator, Iterator);
 
-  virtual ~SelfDistanceCalculator() = default;
+  ~SelfDistanceCalculator() override = default;
 
   template <typename VecIn>
   SelfDistanceCalculator(VecIn &&data, std::size_t ndim,
@@ -140,7 +140,7 @@ public:
   using Iterator = typename std::vector<In>::const_iterator;
   using DistanceFunc = Out (*)(Iterator, Iterator, Iterator);
 
-  virtual ~QueryDistanceCalculator() = default;
+  ~QueryDistanceCalculator() override = default;
 
   template <typename VecIn>
   QueryDistanceCalculator(VecIn &&xdata, VecIn &&ydata, std::size_t ndim,

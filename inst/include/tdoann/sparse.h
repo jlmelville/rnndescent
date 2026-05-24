@@ -1450,7 +1450,7 @@ public:
   using DataIterator = typename std::vector<In>::const_iterator;
   using SparseObs = std::tuple<SizeTypeIterator, std::size_t, DataIterator>;
 
-  virtual ~SparseVectorDistance() = default;
+  ~SparseVectorDistance() override = default;
 
   // return data pointing at the ith data point
   virtual std::tuple<SizeTypeIterator, std::size_t, DataIterator>
@@ -1490,7 +1490,7 @@ public:
     }
   }
 
-  virtual ~SparseSelfDistanceCalculator() = default;
+  ~SparseSelfDistanceCalculator() override = default;
 
   std::tuple<SizeIt, std::size_t, DataIt<In>> get_x(Idx i) const override {
     auto ind_start = x_ind.cbegin() + x_ptr[i];
@@ -1545,7 +1545,7 @@ public:
     }
   }
 
-  virtual ~SparseQueryDistanceCalculator() = default;
+  ~SparseQueryDistanceCalculator() override = default;
 
   std::tuple<SizeIt, std::size_t, DataIt<In>> get_x(Idx i) const override {
     auto ind_start = x_ind.cbegin() + x_ptr[i];

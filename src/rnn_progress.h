@@ -41,7 +41,7 @@ struct RPProgress : public tdoann::ProgressBase {
   double iter_increment{scale};  // Amount progress increases per iteration
   double batch_increment{scale}; // Amount progress increases per batch
 
-  virtual ~RPProgress() = default;
+  ~RPProgress() override = default;
 
   RPProgress(bool verbose) : progress(scale, verbose), verbose(verbose) {}
 
@@ -126,7 +126,7 @@ struct RInterruptableProgress : public tdoann::ProgressBase {
   bool is_aborted{false};
   bool verbose;
 
-  virtual ~RInterruptableProgress() = default;
+  ~RInterruptableProgress() override = default;
 
   RInterruptableProgress() = default;
   RInterruptableProgress(uint32_t /* n_iters */, bool verbose)
@@ -172,7 +172,7 @@ struct RIterProgress : public RInterruptableProgress {
   uint32_t n_iters;
   uint32_t iter{0};
 
-  virtual ~RIterProgress() = default;
+  ~RIterProgress() override = default;
 
   RIterProgress(uint32_t n_iters, bool verbose)
       : RInterruptableProgress(n_iters, verbose), n_iters(n_iters) {}
