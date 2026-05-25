@@ -1,4 +1,4 @@
-# rnndescent (development version)
+# rnndescent 0.2.0
 
 ## New features
 
@@ -32,6 +32,8 @@ distance calculations.
 and some worker launches are avoided with small workloads.
 * Minor C++ portability improvements for CRAN builds and high-dimensional
 logical metrics.
+* Some C++ changes to avoid a (probably false positive) gcc16 compiler warning
+found by CRAN checks.
 
 # rnndescent 0.1.8
 
