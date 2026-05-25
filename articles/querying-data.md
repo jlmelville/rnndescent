@@ -152,7 +152,7 @@ multiple threads.
 `epsilon` controls how much exploration of the neighbors of a candidate
 to do, as suggested by (Iwasaki and Miyazaki 2018). The default value is
 `0.1`, which is also the default of the
-[NGT](https://github.com/yahoojapan/NGT/blob/main/python/README-ngtpy.md)
+[NGT](https://github.com/NGT-labs/NGT/blob/main/python/README-ngtpy.md)
 library. The larger the value, the more back-tracking is permitted. The
 exact meaning of the value is related to how large a distance is
 considered “close enough” the current neighbor list of the query to be
