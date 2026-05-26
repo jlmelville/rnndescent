@@ -1,6 +1,8 @@
 # Changelog
 
-## rnndescent (development version)
+## rnndescent 0.2.0
+
+CRAN release: 2026-05-26
 
 ### New features
 
@@ -42,6 +44,8 @@
   back to R and some worker launches are avoided with small workloads.
 - Minor C++ portability improvements for CRAN builds and
   high-dimensional logical metrics.
+- Some C++ changes to avoid a (probably false positive) gcc16 compiler
+  warning found by CRAN checks.
 
 ## rnndescent 0.1.8
 

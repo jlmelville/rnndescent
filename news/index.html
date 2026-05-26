@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">rnndescent</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.8.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -45,13 +45,13 @@
     </div>
 
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="development version" id="rnndescent-development-version">rnndescent (development version)<a class="anchor" aria-label="anchor" href="#rnndescent-development-version"></a></h2>
+<h2 class="pkg-version" data-toc-text="0.2.0" id="rnndescent-020">rnndescent 0.2.0<a class="anchor" aria-label="anchor" href="#rnndescent-020"></a></h2><p class="text-muted">CRAN release: 2026-05-26</p>
 <div class="section level3">
-<h3 id="new-features-development-version">New features<a class="anchor" aria-label="anchor" href="#new-features-development-version"></a></h3>
+<h3 id="new-features-0-2-0">New features<a class="anchor" aria-label="anchor" href="#new-features-0-2-0"></a></h3>
 <ul><li>Add <code>haversine</code> metric for 2D latitude/longitude data in radians. This is one of the metrics that was in PyNNDescent but I neglected to add to rnndescent for its initial release. Thank you to <a href="https://github.com/JosiahParry" class="external-link">Josiah Parry</a> whose request nudged me to fill this gap (<a href="https://github.com/jlmelville/rnndescent/issues/17" class="external-link uri">https://github.com/jlmelville/rnndescent/issues/17</a>).</li>
 </ul></div>
 <div class="section level3">
-<h3 id="bug-fixes-and-minor-improvements-development-version">Bug fixes and minor improvements<a class="anchor" aria-label="anchor" href="#bug-fixes-and-minor-improvements-development-version"></a></h3>
+<h3 id="bug-fixes-and-minor-improvements-0-2-0">Bug fixes and minor improvements<a class="anchor" aria-label="anchor" href="#bug-fixes-and-minor-improvements-0-2-0"></a></h3>
 <ul><li>Much improved input validation.</li>
 <li>Non-<code>dgCMatrix</code> <code>sparseMatrix</code> inputs, such as <code>dgRMatrix</code> and <code>dgTMatrix</code> are now normalized to <code>dgCMatrix</code> on input. Other matrices fail with a clearer error.</li>
 <li>Fix for <code><a href="../reference/prepare_search_graph.html">prepare_search_graph()</a></code> sometimes over-pruning beyond <code>max_degree</code>.</li>
@@ -64,6 +64,7 @@
 <li>Verbose query summaries now report the correct minimum and average number of distance calculations.</li>
 <li>Minor parallel execution robustness improvements: errors propagate back to R and some worker launches are avoided with small workloads.</li>
 <li>Minor C++ portability improvements for CRAN builds and high-dimensional logical metrics.</li>
+<li>Some C++ changes to avoid a (probably false positive) gcc16 compiler warning found by CRAN checks.</li>
 </ul></div>
 </div>
     <div class="section level2">

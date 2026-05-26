@@ -6,6 +6,10 @@ more, they will get moved here. You should look at the
 [Changelog](https://jlmelville.github.io/rnndescent/news/index.html) for
 fuller details.
 
+*26 May 2026*: Version 0.2.0 has been released to CRAN to fix a compiler
+warning on gcc-16. There is also now support for the Haversine metric
+and many small bug fixes and validation improvements.
+
 *05 September 2025*: Version 0.1.8 has been released to CRAN. This fixes
 some test tolerances that causes Mac M1 checks on CRAN to fail.
 
