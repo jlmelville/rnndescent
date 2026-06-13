@@ -80,7 +80,7 @@ jobs:
 
       - name: Deploy to GitHub pages
         # Pinned from JamesIves/github-pages-deploy-action@v4.4.1 on 2026-05-24.
-        uses: JamesIves/github-pages-deploy-action@ba1486788b0490a235422264426c45848eac35c6
+        uses: JamesIves/github-pages-deploy-action@d92aa235d04922e8f08b40ce78cc5442fcfbfa2f
         with:
           clean: false
           branch: gh-pages
