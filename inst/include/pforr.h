@@ -26,6 +26,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <exception>
+#include <functional>
 #include <mutex>
 #include <thread>
 #include <utility>
@@ -60,6 +61,21 @@ auto worker_thread(Worker &worker, const IndexRange &range,
                    std::mutex &worker_exception_mutex) -> void {
   try {
     worker(range.first, range.second);
+  } catch (...) {
+    std::lock_guard<std::mutex> guard(worker_exception_mutex);
+    if (worker_exception == nullptr) {
+      worker_exception = std::current_exception();
+    }
+  }
+}
+
+template <typename Worker>
+auto worker_thread_indexed(Worker &worker, const IndexRange &range,
+                           std::size_t chunk_id,
+                           std::exception_ptr &worker_exception,
+                           std::mutex &worker_exception_mutex) -> void {
+  try {
+    worker(range.first, range.second, chunk_id);
   } catch (...) {
     std::lock_guard<std::mutex> guard(worker_exception_mutex);
     if (worker_exception == nullptr) {
@@ -110,7 +126,7 @@ inline auto split_input_range(const IndexRange &range, std::size_t n_threads,
   return ranges;
 }
 
-// Execute the Worker over the IndexRange in parallel
+// Execute the Worker over the IndexRange in parallel.
 template <typename Worker>
 inline void parallel_for(std::size_t begin, std::size_t end, Worker &worker,
                          std::size_t n_threads, std::size_t grain_size = 1) {
@@ -152,6 +168,65 @@ inline void parallel_for(std::size_t begin, std::size_t end, Worker &worker,
   }
 
   return;
+}
+
+template <typename Worker>
+inline void parallel_for(std::size_t end, Worker &worker, std::size_t n_threads,
+                         std::size_t grain_size = 1) {
+  parallel_for(0, end, worker, n_threads, grain_size);
+}
+
+// Execute the Worker over the IndexRange in parallel, passing a zero-based
+// chunk index as the third worker argument.
+template <typename Worker>
+inline void parallel_for_indexed(std::size_t begin, std::size_t end,
+                                 Worker &worker, std::size_t n_threads,
+                                 std::size_t grain_size = 1) {
+  if (begin >= end) {
+    return;
+  }
+  if (n_threads <= 1) {
+    worker(begin, end, 0);
+    return;
+  }
+  IndexRange input_range(begin, end);
+  std::vector<IndexRange> ranges =
+    split_input_range(input_range, n_threads, grain_size);
+  if (ranges.size() <= 1) {
+    worker(begin, end, 0);
+    return;
+  }
+
+  std::exception_ptr worker_exception = nullptr;
+  std::mutex worker_exception_mutex;
+  std::vector<std::thread> threads;
+  threads.reserve(ranges.size());
+  ThreadJoiner thread_joiner(threads);
+  for (std::size_t chunk_id = 0; chunk_id < ranges.size(); ++chunk_id) {
+    threads.emplace_back(&worker_thread_indexed<Worker>, std::ref(worker),
+                         ranges[chunk_id], chunk_id,
+                         std::ref(worker_exception),
+                         std::ref(worker_exception_mutex));
+  }
+
+  for (auto &thread : threads) {
+    if (thread.joinable()) {
+      thread.join();
+    }
+  }
+
+  if (worker_exception != nullptr) {
+    std::rethrow_exception(worker_exception);
+  }
+
+  return;
+}
+
+template <typename Worker>
+inline void parallel_for_indexed(std::size_t end, Worker &worker,
+                                 std::size_t n_threads,
+                                 std::size_t grain_size = 1) {
+  parallel_for_indexed(0, end, worker, n_threads, grain_size);
 }
 
 } // namespace pforr
