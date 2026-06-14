@@ -41,7 +41,7 @@ jobs:
     steps:
     # NO NEED TO CHECKOUT HERE
     # Pinned to a full-length commit SHA for immutability; Dependabot updates this reference.
-    - uses: r-hub/actions/setup@41d32aff3f6bd4ded6b81dcc9b4da3d0bc2a6aec
+    - uses: r-hub/actions/setup@4b161272a59fcd8192e5bd5e6ce183c025cb80fa
       with:
         config: ${{ github.event.inputs.config }}
       id: rhub-setup
@@ -61,19 +61,19 @@ jobs:
 
     steps:
       # Pinned to a full-length commit SHA for immutability; Dependabot updates this reference.
-      - uses: r-hub/actions/checkout@41d32aff3f6bd4ded6b81dcc9b4da3d0bc2a6aec
+      - uses: r-hub/actions/checkout@4b161272a59fcd8192e5bd5e6ce183c025cb80fa
       # Pinned to a full-length commit SHA for immutability; Dependabot updates this reference.
-      - uses: r-hub/actions/platform-info@41d32aff3f6bd4ded6b81dcc9b4da3d0bc2a6aec
+      - uses: r-hub/actions/platform-info@4b161272a59fcd8192e5bd5e6ce183c025cb80fa
         with:
           token: ${{ secrets.RHUB_TOKEN }}
           job-config: ${{ matrix.config.job-config }}
       # Pinned to a full-length commit SHA for immutability; Dependabot updates this reference.
-      - uses: r-hub/actions/setup-deps@41d32aff3f6bd4ded6b81dcc9b4da3d0bc2a6aec
+      - uses: r-hub/actions/setup-deps@4b161272a59fcd8192e5bd5e6ce183c025cb80fa
         with:
           token: ${{ secrets.RHUB_TOKEN }}
           job-config: ${{ matrix.config.job-config }}
       # Pinned to a full-length commit SHA for immutability; Dependabot updates this reference.
-      - uses: r-hub/actions/run-check@41d32aff3f6bd4ded6b81dcc9b4da3d0bc2a6aec
+      - uses: r-hub/actions/run-check@4b161272a59fcd8192e5bd5e6ce183c025cb80fa
         with:
           token: ${{ secrets.RHUB_TOKEN }}
           job-config: ${{ matrix.config.job-config }}
@@ -91,24 +91,24 @@ jobs:
 
     steps:
       # Pinned to a full-length commit SHA for immutability; Dependabot updates this reference.
-      - uses: r-hub/actions/checkout@41d32aff3f6bd4ded6b81dcc9b4da3d0bc2a6aec
+      - uses: r-hub/actions/checkout@4b161272a59fcd8192e5bd5e6ce183c025cb80fa
       # Pinned to a full-length commit SHA for immutability; Dependabot updates this reference.
-      - uses: r-hub/actions/setup-r@41d32aff3f6bd4ded6b81dcc9b4da3d0bc2a6aec
+      - uses: r-hub/actions/setup-r@4b161272a59fcd8192e5bd5e6ce183c025cb80fa
         with:
           job-config: ${{ matrix.config.job-config }}
           token: ${{ secrets.RHUB_TOKEN }}
       # Pinned to a full-length commit SHA for immutability; Dependabot updates this reference.
-      - uses: r-hub/actions/platform-info@41d32aff3f6bd4ded6b81dcc9b4da3d0bc2a6aec
+      - uses: r-hub/actions/platform-info@4b161272a59fcd8192e5bd5e6ce183c025cb80fa
         with:
           token: ${{ secrets.RHUB_TOKEN }}
           job-config: ${{ matrix.config.job-config }}
       # Pinned to a full-length commit SHA for immutability; Dependabot updates this reference.
-      - uses: r-hub/actions/setup-deps@41d32aff3f6bd4ded6b81dcc9b4da3d0bc2a6aec
+      - uses: r-hub/actions/setup-deps@4b161272a59fcd8192e5bd5e6ce183c025cb80fa
         with:
           job-config: ${{ matrix.config.job-config }}
           token: ${{ secrets.RHUB_TOKEN }}
       # Pinned to a full-length commit SHA for immutability; Dependabot updates this reference.
-      - uses: r-hub/actions/run-check@41d32aff3f6bd4ded6b81dcc9b4da3d0bc2a6aec
+      - uses: r-hub/actions/run-check@4b161272a59fcd8192e5bd5e6ce183c025cb80fa
         with:
           job-config: ${{ matrix.config.job-config }}
           token: ${{ secrets.RHUB_TOKEN }}
