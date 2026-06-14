@@ -183,7 +183,7 @@ iris_nn <- brute_force_knn(iris, k = 4, metric = "manhattan", n_threads = 1)
 
 # Use verbose flag to see information about progress
 iris_nn <- brute_force_knn(iris, k = 4, metric = "euclidean", verbose = TRUE)
-#> 02:25:15 Using alt metric 'sqeuclidean' for 'euclidean'
-#> 02:25:15 Calculating brute force k-nearest neighbors with k = 4
-#> 02:25:15 Finished
+#> 02:51:57 Using alt metric 'sqeuclidean' for 'euclidean'
+#> 02:51:57 Calculating brute force k-nearest neighbors with k = 4
+#> 02:51:57 Finished
 ```
