@@ -2,6 +2,12 @@
 
 ## rnndescent (development version)
 
+### Bug fixes and minor improvements
+
+- Number of striped locks in the parallel nearest neighbor descent has
+  been increased. Provides a modest (typically single digit percent)
+  performance improvement with 4-8 threads.
+
 ## rnndescent 0.2.0
 
 CRAN release: 2026-05-26
