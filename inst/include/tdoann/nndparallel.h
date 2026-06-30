@@ -201,7 +201,8 @@ public:
 
 template <typename Out, typename Idx> class LockingHeapAdder {
 private:
-  static constexpr std::size_t n_mutexes = 10;
+  // 128 seems optimal for 4-8 threads
+  static constexpr std::size_t n_mutexes = 128;
   std::array<std::mutex, n_mutexes> mutexes;
 
 public:
