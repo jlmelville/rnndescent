@@ -45,8 +45,9 @@ check_nbrs_dist <- function(nn, expected_dist, tolerance = .Machine$double.eps) 
 }
 
 check_nbrs_order <- function(nn) {
+  nbr_cols <- seq_len(ncol(nn$idx))
   expect_true(all(apply(nn$dist, 1, order) ==
-    matrix(rep(1:ncol(nn$idx), times = nrow(nn$idx)),
+    matrix(rep(nbr_cols, times = nrow(nn$idx)),
       nrow = ncol(nn$idx)
     )))
 }
@@ -108,7 +109,11 @@ check_query_nbrs <- function(nn, query, ref_range, query_range, k, expected_dist
   check_query_nbrs_dist(nn, expected_dist, ref_range, query_range, tolerance)
   if (check_order) {
     # this checks that distances are in increasing order for each row
-    expect_true(all(apply(nn$dist, 1, order) == matrix(rep(1:ncol(nn$idx), times = nrow(nn$idx)), nrow = ncol(nn$idx))))
+    nbr_cols <- seq_len(ncol(nn$idx))
+    expect_true(all(
+      apply(nn$dist, 1, order) ==
+        matrix(rep(nbr_cols, times = nrow(nn$idx)), nrow = ncol(nn$idx))
+    ))
   }
 }
 
