@@ -1,5 +1,6 @@
 find_sparse_alt_metric <- function(metric) {
-  switch(metric,
+  switch(
+    metric,
     euclidean = "sqeuclidean",
     cosine = "alternative-cosine",
     dot = "alternative-dot",
@@ -11,7 +12,8 @@ find_sparse_alt_metric <- function(metric) {
 }
 
 find_dense_alt_metric <- function(metric) {
-  switch(metric,
+  switch(
+    metric,
     euclidean = "sqeuclidean",
     cosine = "alternative-cosine",
     dot = "alternative-dot",
@@ -44,7 +46,8 @@ apply_alt_metric_uncorrection <- function(metric, dist, is_sparse = FALSE) {
 
 apply_dense_alt_metric_uncorrection <- function(metric, dist) {
   if (is.matrix(dist)) {
-    switch(metric,
+    switch(
+      metric,
       cosine = apply(dist, c(1, 2), uncorrect_alternative_cosine),
       dot = apply(dist, c(1, 2), uncorrect_alternative_cosine),
       euclidean = dist * dist,
@@ -54,7 +57,8 @@ apply_dense_alt_metric_uncorrection <- function(metric, dist) {
       dist
     )
   } else {
-    switch(metric,
+    switch(
+      metric,
       cosine = sapply(dist, uncorrect_alternative_cosine),
       dot = sapply(dist, uncorrect_alternative_cosine),
       euclidean = dist * dist,
@@ -68,7 +72,8 @@ apply_dense_alt_metric_uncorrection <- function(metric, dist) {
 
 apply_sparse_alt_metric_uncorrection <- function(metric, dist) {
   if (is.matrix(dist)) {
-    switch(metric,
+    switch(
+      metric,
       cosine = apply(dist, c(1, 2), uncorrect_alternative_cosine),
       euclidean = dist * dist,
       dot = apply(dist, c(1, 2), uncorrect_alternative_cosine),
@@ -78,7 +83,8 @@ apply_sparse_alt_metric_uncorrection <- function(metric, dist) {
       dist
     )
   } else {
-    switch(metric,
+    switch(
+      metric,
       cosine = sapply(dist, uncorrect_alternative_cosine),
       euclidean = dist * dist,
       dot = sapply(dist, uncorrect_alternative_cosine),
@@ -92,7 +98,8 @@ apply_sparse_alt_metric_uncorrection <- function(metric, dist) {
 
 apply_dense_alt_metric_correction <- function(metric, dist) {
   if (is.matrix(dist)) {
-    switch(metric,
+    switch(
+      metric,
       cosine = apply(dist, c(1, 2), correct_alternative_cosine),
       dot = apply(dist, c(1, 2), correct_alternative_dot),
       euclidean = sqrt(dist),
@@ -102,7 +109,8 @@ apply_dense_alt_metric_correction <- function(metric, dist) {
       dist
     )
   } else {
-    switch(metric,
+    switch(
+      metric,
       cosine = sapply(dist, correct_alternative_cosine),
       dot = sapply(dist, correct_alternative_dot),
       euclidean = sqrt(dist),
@@ -116,7 +124,8 @@ apply_dense_alt_metric_correction <- function(metric, dist) {
 
 apply_sparse_alt_metric_correction <- function(metric, dist) {
   if (is.matrix(dist)) {
-    switch(metric,
+    switch(
+      metric,
       cosine = apply(dist, c(1, 2), correct_alternative_cosine),
       euclidean = sqrt(dist),
       dot = apply(dist, c(1, 2), correct_alternative_dot),
@@ -126,7 +135,8 @@ apply_sparse_alt_metric_correction <- function(metric, dist) {
       dist
     )
   } else {
-    switch(metric,
+    switch(
+      metric,
       cosine = sapply(dist, correct_alternative_cosine),
       euclidean = sqrt(dist),
       dot = sapply(dist, correct_alternative_dot),

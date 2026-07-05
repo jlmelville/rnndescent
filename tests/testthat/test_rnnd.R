@@ -10,7 +10,14 @@ iris_index <- rnnd_build(
 expect_equal(iris_index$graph, brute_force_knn(ui10, k = 4))
 
 iris_bf <- brute_force_knn_query(ui10, ui10, k = 4)
-msg <- capture_everything(iris_query <- rnnd_query(index = iris_index, query = ui10, k = 4, verbose = TRUE))
+msg <- capture_everything(
+  iris_query <- rnnd_query(
+    index = iris_index,
+    query = ui10,
+    k = 4,
+    verbose = TRUE
+  )
+)
 expect_equal(iris_query, iris_bf)
 expect_match(msg, "max distance")
 
@@ -71,7 +78,12 @@ test_that("cosine rnnd build/query", {
   bit_query <- rnnd_query(index = bit_index, query = bitdata, k = 4)
   expect_equal(bit_query, bit_bf)
 
-  bitsp_bf <- brute_force_knn_query(bitdatasp, bitdatasp, k = 4, metric = metric)
+  bitsp_bf <- brute_force_knn_query(
+    bitdatasp,
+    bitdatasp,
+    k = 4,
+    metric = metric
+  )
   set.seed(1337)
   bitsp_index <- rnnd_build(
     data = bitdatasp,
@@ -108,7 +120,12 @@ test_that("dot rnnd build/query", {
   bit_query <- rnnd_query(index = bit_index, query = bitdata, k = 4)
   expect_equal(bit_query, bit_bf)
 
-  bitsp_bf <- brute_force_knn_query(bitdatasp, bitdatasp, k = 4, metric = metric)
+  bitsp_bf <- brute_force_knn_query(
+    bitdatasp,
+    bitdatasp,
+    k = 4,
+    metric = metric
+  )
   set.seed(1337)
   bitsp_index <- rnnd_build(
     data = bitdatasp,
@@ -145,7 +162,12 @@ test_that("trueangular rnnd build/query", {
   bit_query <- rnnd_query(index = bit_index, query = bitdata, k = 4)
   expect_equal(bit_query, bit_bf)
 
-  bitsp_bf <- brute_force_knn_query(bitdatasp, bitdatasp, k = 4, metric = metric)
+  bitsp_bf <- brute_force_knn_query(
+    bitdatasp,
+    bitdatasp,
+    k = 4,
+    metric = metric
+  )
   set.seed(1337)
   bitsp_index <- rnnd_build(
     data = bitdatasp,
@@ -181,7 +203,12 @@ test_that("jaccard rnnd build/query", {
   lbit_query <- rnnd_query(index = lbit_index, query = lbitdata, k = 4)
   expect_equal(lbit_query, bit_bf)
 
-  bitsp_bf <- brute_force_knn_query(bitdatasp, bitdatasp, k = 4, metric = metric)
+  bitsp_bf <- brute_force_knn_query(
+    bitdatasp,
+    bitdatasp,
+    k = 4,
+    metric = metric
+  )
   set.seed(1337)
   bitsp_index <- rnnd_build(
     data = bitdatasp,
@@ -218,7 +245,12 @@ test_that("hellinger rnnd build/query", {
   bit_query <- rnnd_query(index = bit_index, query = bitdata, k = 4)
   expect_equal(bit_query, bit_bf)
 
-  bitsp_bf <- brute_force_knn_query(bitdatasp, bitdatasp, k = 4, metric = metric)
+  bitsp_bf <- brute_force_knn_query(
+    bitdatasp,
+    bitdatasp,
+    k = 4,
+    metric = metric
+  )
   set.seed(1337)
   bitsp_index <- rnnd_build(
     data = bitdatasp,
@@ -244,12 +276,23 @@ test_that("rnnd obs is normalized and validated", {
   expect_equal(lower_index$data, expected_index$data)
   expect_equal(lower_index$search_graph, expected_index$search_graph)
 
-  expected_query <- rnnd_query(index = expected_index, query = ui10, k = 4, obs = "R")
-  expect_equal(rnnd_query(index = expected_index, query = ui10, k = 4, obs = "r"), expected_query)
+  expected_query <- rnnd_query(
+    index = expected_index,
+    query = ui10,
+    k = 4,
+    obs = "R"
+  )
+  expect_equal(
+    rnnd_query(index = expected_index, query = ui10, k = 4, obs = "r"),
+    expected_query
+  )
 
   expect_error(rnnd_knn(ui10, k = 4, obs = "rows"), "should be one of")
   expect_error(rnnd_build(ui10, k = 4, obs = "rows"), "should be one of")
-  expect_error(rnnd_query(index = expected_index, query = ui10, k = 4, obs = "rows"), "should be one of")
+  expect_error(
+    rnnd_query(index = expected_index, query = ui10, k = 4, obs = "rows"),
+    "should be one of"
+  )
 })
 
 test_that("rnnd search and descent controls are validated", {
@@ -258,13 +301,21 @@ test_that("rnnd search and descent controls are validated", {
     "epsilon must be"
   )
   expect_error(
-    rnnd_query(index = iris_index, query = ui10, k = 4, max_search_fraction = 1.1),
+    rnnd_query(
+      index = iris_index,
+      query = ui10,
+      k = 4,
+      max_search_fraction = 1.1
+    ),
     "max_search_fraction must be"
   )
   expect_error(rnnd_build(ui10, k = 4, delta = 1.1), "delta must be")
   expect_error(rnnd_knn(ui10, k = 4, delta = -0.1), "delta must be")
   expect_error(rnnd_knn(ui10, k = 4, n_iters = 1.5), "n_iters must be")
-  expect_error(rnnd_build(ui10, k = 4, n_search_trees = 1.5), "n_search_trees must be")
+  expect_error(
+    rnnd_build(ui10, k = 4, n_search_trees = 1.5),
+    "n_search_trees must be"
+  )
 })
 
 test_that("rnnd APIs reject invalid n_threads values", {
@@ -302,7 +353,16 @@ test_that("graph query verbose search stats report true min and average counts",
     verbose = TRUE
   ))
 
-  expect_match(msg, "min distance calculation = 1 \\(33\\.33%\\) of reference data")
-  expect_match(msg, "max distance calculation = 2 \\(66\\.67%\\) of reference data")
-  expect_match(msg, "avg distance calculation = 2 \\(50\\.00%\\) of reference data")
+  expect_match(
+    msg,
+    "min distance calculation = 1 \\(33\\.33%\\) of reference data"
+  )
+  expect_match(
+    msg,
+    "max distance calculation = 2 \\(66\\.67%\\) of reference data"
+  )
+  expect_match(
+    msg,
+    "avg distance calculation = 2 \\(50\\.00%\\) of reference data"
+  )
 })

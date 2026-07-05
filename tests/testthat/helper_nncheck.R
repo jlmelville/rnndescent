@@ -32,13 +32,20 @@ check_nbrs_idx <- function(nnidx, check_order = TRUE) {
   }
 }
 
-check_nbrs_dist <- function(nn, expected_dist, tolerance = .Machine$double.eps) {
+check_nbrs_dist <- function(
+  nn,
+  expected_dist,
+  tolerance = .Machine$double.eps
+) {
   nr <- nrow(nn$idx)
   n_nbrs <- ncol(nn$idx)
   for (i in 1:nr) {
     for (j in 1:n_nbrs) {
-      testthat::expect_equal(nn$dist[i, j], expected_dist[i, nn$idx[i, j]],
-        tolerance = tolerance, label = paste0(i, ", ", j),
+      testthat::expect_equal(
+        nn$dist[i, j],
+        expected_dist[i, nn$idx[i, j]],
+        tolerance = tolerance,
+        label = paste0(i, ", ", j),
       )
     }
   }
@@ -46,18 +53,23 @@ check_nbrs_dist <- function(nn, expected_dist, tolerance = .Machine$double.eps) 
 
 check_nbrs_order <- function(nn) {
   nbr_cols <- seq_len(ncol(nn$idx))
-  expect_true(all(apply(nn$dist, 1, order) ==
-    matrix(rep(nbr_cols, times = nrow(nn$idx)),
-      nrow = ncol(nn$idx)
-    )))
+  expect_true(all(
+    apply(nn$dist, 1, order) ==
+      matrix(rep(nbr_cols, times = nrow(nn$idx)), nrow = ncol(nn$idx))
+  ))
 }
 
 # check_idx_order = FALSE if you don't care about the order of the indices
 # check_dist_order checks that distances are in increasing order for each row
 # only reason for check_idx_order = FALSE, check_dist_order = TRUE is when
 # there are ties in the returned distances (e.g. hamming)
-check_nbrs <- function(nn, expected_dist, tolerance = .Machine$double.eps,
-                       check_idx_order = TRUE, check_dist_order = check_idx_order) {
+check_nbrs <- function(
+  nn,
+  expected_dist,
+  tolerance = .Machine$double.eps,
+  check_idx_order = TRUE,
+  check_dist_order = check_idx_order
+) {
   check_nbrs_idx(nn$idx, check_order = check_idx_order)
   check_nbrs_dist(nn, expected_dist, tolerance = tolerance)
   if (check_dist_order) {
@@ -78,18 +90,29 @@ are_valid_query_neighbors <- function(nnidx, i, nref) {
 check_query_nbrs_idx <- function(nnidx, nref) {
   nr <- nrow(nnidx)
   for (i in 1:nr) {
-    testthat::expect_true(all(are_valid_query_neighbors(nnidx, i, nref), label = i))
+    testthat::expect_true(all(
+      are_valid_query_neighbors(nnidx, i, nref),
+      label = i
+    ))
   }
 }
 
-check_query_nbrs_dist <- function(nn, expected_dist, ref_range, query_range, tolerance = .Machine$double.eps) {
+check_query_nbrs_dist <- function(
+  nn,
+  expected_dist,
+  ref_range,
+  query_range,
+  tolerance = .Machine$double.eps
+) {
   n_queries <- nrow(nn$idx)
   n_nbrs <- ncol(nn$idx)
   for (i in 1:n_queries) {
     for (j in 1:n_nbrs) {
-      testthat::expect_equal(nn$dist[i, j],
+      testthat::expect_equal(
+        nn$dist[i, j],
         expected_dist[query_range[i], ref_range[nn$idx[i, j]]],
-        tolerance = tolerance, label = paste0(i, ", ", j),
+        tolerance = tolerance,
+        label = paste0(i, ", ", j),
       )
     }
   }
@@ -100,8 +123,16 @@ check_nn_matrix_dim <- function(m, query, k) {
   expect_equal(ncol(m), k)
 }
 
-check_query_nbrs <- function(nn, query, ref_range, query_range, k, expected_dist, tolerance = .Machine$double.eps,
-                             check_order = TRUE) {
+check_query_nbrs <- function(
+  nn,
+  query,
+  ref_range,
+  query_range,
+  k,
+  expected_dist,
+  tolerance = .Machine$double.eps,
+  check_order = TRUE
+) {
   check_nn_matrix_dim(nn$idx, query, k)
   check_nn_matrix_dim(nn$dist, query, k)
   nref <- length(ref_range)
@@ -118,7 +149,10 @@ check_query_nbrs <- function(nn, query, ref_range, query_range, k, expected_dist
 }
 
 capture_everything <- function(code) {
-  paste0(capture.output(type = "output", capture.output(type = "message", code)), collapse = "")
+  paste0(
+    capture.output(type = "output", capture.output(type = "message", code)),
+    collapse = ""
+  )
 }
 
 copy <- function(m) {

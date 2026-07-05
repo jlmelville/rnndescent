@@ -157,26 +157,24 @@
 #' \doi{10.1145/1374376.1374452}.
 #' @seealso [rpf_filter()], [nnd_knn()]
 #' @export
-rpf_knn <- function(data,
-                    k,
-                    metric = "euclidean",
-                    use_alt_metric = TRUE,
-                    n_trees = NULL,
-                    leaf_size = NULL,
-                    max_tree_depth = 200,
-                    include_self = TRUE,
-                    ret_forest = FALSE,
-                    margin = "auto",
-                    n_threads = 0,
-                    verbose = FALSE,
-                    obs = "R") {
+rpf_knn <- function(
+  data,
+  k,
+  metric = "euclidean",
+  use_alt_metric = TRUE,
+  n_trees = NULL,
+  leaf_size = NULL,
+  max_tree_depth = 200,
+  include_self = TRUE,
+  ret_forest = FALSE,
+  margin = "auto",
+  n_threads = 0,
+  verbose = FALSE,
+  obs = "R"
+) {
   obs <- match.arg(toupper(obs), c("C", "R"))
   n_threads <- check_n_threads(n_threads)
-  n_obs <- switch(obs,
-    R = nrow,
-    C = ncol,
-    stop("Unknown obs type")
-  )
+  n_obs <- switch(obs, R = nrow, C = ncol, stop("Unknown obs type"))
   data <- x2m(data)
   check_k(k, n_obs(data))
 
@@ -352,23 +350,21 @@ rpf_knn <- function(data,
 #'   forest = iris_odd_forest, k = 15
 #' )
 #' @export
-rpf_build <- function(data,
-                      metric = "euclidean",
-                      use_alt_metric = TRUE,
-                      n_trees = NULL,
-                      leaf_size = 10,
-                      max_tree_depth = 200,
-                      margin = "auto",
-                      n_threads = 0,
-                      verbose = FALSE,
-                      obs = "R") {
+rpf_build <- function(
+  data,
+  metric = "euclidean",
+  use_alt_metric = TRUE,
+  n_trees = NULL,
+  leaf_size = 10,
+  max_tree_depth = 200,
+  margin = "auto",
+  n_threads = 0,
+  verbose = FALSE,
+  obs = "R"
+) {
   obs <- match.arg(toupper(obs), c("C", "R"))
   n_threads <- check_n_threads(n_threads)
-  n_obs <- switch(obs,
-    R = nrow,
-    C = ncol,
-    stop("Unknown obs type")
-  )
+  n_obs <- switch(obs, R = nrow, C = ncol, stop("Unknown obs type"))
 
   data <- x2m(data)
 
@@ -390,7 +386,9 @@ rpf_build <- function(data,
       n_trees,
       " max leaf size = ",
       leaf_size,
-      " margin = '", margin, "'",
+      " margin = '",
+      margin,
+      "'",
       n_threads = n_threads
     )
   )
@@ -449,11 +447,9 @@ rpf_build <- function(data,
         n_threads = n_threads,
         verbose = verbose
       )
-    }
-    # no logical option here as explicit margin must do real-value maths
-    # on hyperplanes rather than calculating distances between points in the
-    # dataset
-    else {
+    } else {
+      # There is no logical explicit-margin builder because hyperplanes require
+      # real-valued math rather than point-distance calculations.
       forest <- rnn_rp_forest_build(
         data,
         actual_metric,
@@ -540,21 +536,19 @@ rpf_build <- function(data,
 #'   forest = iris_odd_forest, k = 15
 #' )
 #' @export
-rpf_knn_query <- function(query,
-                          reference,
-                          forest,
-                          k,
-                          cache = TRUE,
-                          n_threads = 0,
-                          verbose = FALSE,
-                          obs = "R") {
+rpf_knn_query <- function(
+  query,
+  reference,
+  forest,
+  k,
+  cache = TRUE,
+  n_threads = 0,
+  verbose = FALSE,
+  obs = "R"
+) {
   obs <- match.arg(toupper(obs), c("C", "R"))
   n_threads <- check_n_threads(n_threads)
-  n_obs <- switch(obs,
-    R = nrow,
-    C = ncol,
-    stop("Unknown obs type")
-  )
+  n_obs <- switch(obs, R = nrow, C = ncol, stop("Unknown obs type"))
 
   check_sparse(reference, query)
 
@@ -562,7 +556,8 @@ rpf_knn_query <- function(query,
   query <- x2m(query)
   check_matching_features(reference, query, obs)
   check_k(k, n_obs(reference))
-  n_features <- switch(obs,
+  n_features <- switch(
+    obs,
     R = ncol(reference),
     C = nrow(reference),
     stop("Unknown obs type")
@@ -587,8 +582,10 @@ rpf_knn_query <- function(query,
     query <- Matrix::t(query)
   }
 
-  tsmessage(thread_msg("Querying rp forest for k = ",
-    k, ifelse(cache, " with caching", ""),
+  tsmessage(thread_msg(
+    "Querying rp forest for k = ",
+    k,
+    ifelse(cache, " with caching", ""),
     n_threads = n_threads
   ))
 
@@ -638,7 +635,11 @@ rpf_knn_query <- function(query,
 
   if (forest$use_alt_metric) {
     res$dist <-
-      apply_alt_metric_correction(forest$original_metric, res$dist, is_sparse(reference))
+      apply_alt_metric_correction(
+        forest$original_metric,
+        res$dist,
+        is_sparse(reference)
+      )
   }
   tsmessage("Finished")
   res
@@ -694,11 +695,7 @@ rpf_knn_query <- function(query,
 #' )
 #' @export
 rpf_filter <-
-  function(nn,
-           forest = NULL,
-           n_trees = 1,
-           n_threads = 0,
-           verbose = FALSE) {
+  function(nn, forest = NULL, n_trees = 1, n_threads = 0, verbose = FALSE) {
     n_threads <- check_n_threads(n_threads)
     if (is.null(forest)) {
       if (is.null(nn$forest)) {
@@ -727,7 +724,10 @@ rpf_filter <-
       )
     }
 
-    tsmessage(thread_msg("Keeping ", n_trees, " best search trees",
+    tsmessage(thread_msg(
+      "Keeping ",
+      n_trees,
+      " best search trees",
       n_threads = n_threads
     ))
     filtered_forest <- rnn_score_forest(

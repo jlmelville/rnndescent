@@ -61,9 +61,7 @@
 #' *International Journal on Artificial Intelligence Tools*, *28*(06), 1960002.
 #' \doi{10.1142/S0218213019600029}
 #' @export
-k_occur <- function(idx,
-                    k = NULL,
-                    include_self = TRUE) {
+k_occur <- function(idx, k = NULL, include_self = TRUE) {
   if (methods::is(idx, "sparseMatrix")) {
     counts <- tabulate(Matrix::t(idx)@i + 1L, nbins = ncol(idx))
     if (!include_self) {

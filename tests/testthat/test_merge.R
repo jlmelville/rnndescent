@@ -28,7 +28,15 @@ qnbrs1 <- random_knn_query(reference = ui6, query = ui4, k = 4)
 qnbrs2 <- random_knn_query(reference = ui6, query = ui4, k = 4)
 qnbrs3 <- random_knn_query(reference = ui6, query = ui4, k = 4)
 qnbrsm <- merge_knn(list(qnbrs1, qnbrs2), is_query = TRUE)
-check_query_nbrs(nn = qnbrsm, query = ui4, ref_range = 1:6, query_range = 7:10, k = 4, expected_dist = ui10_eucd, tolerance = 1e-6)
+check_query_nbrs(
+  nn = qnbrsm,
+  query = ui4,
+  ref_range = 1:6,
+  query_range = 7:10,
+  k = 4,
+  expected_dist = ui10_eucd,
+  tolerance = 1e-6
+)
 
 # parallel
 ui10mnnt <- merge_knn(list(ui10rnn1, ui10rnn2), n_threads = 1)
@@ -37,7 +45,15 @@ expect_true(sum(ui10mnnt$dist) < sum(ui10rnn2$dist))
 check_nbrs(ui10mnnt, ui10_eucd, tolerance = 1e-6)
 
 qnbrsmt <- merge_knn(list(qnbrs1, qnbrs2), is_query = TRUE, n_threads = 1)
-check_query_nbrs(nn = qnbrsmt, query = ui4, ref_range = 1:6, query_range = 7:10, k = 4, expected_dist = ui10_eucd, tolerance = 1e-6)
+check_query_nbrs(
+  nn = qnbrsmt,
+  query = ui4,
+  ref_range = 1:6,
+  query_range = 7:10,
+  k = 4,
+  expected_dist = ui10_eucd,
+  tolerance = 1e-6
+)
 
 
 # merge list
@@ -93,7 +109,15 @@ check_nbrs(ui10mnnl3, ui10_eucd, tolerance = 1e-6)
 # all 3 matrices are processed
 qnbrsml3 <- merge_knn(list(qnbrs1, qnbrs2, qnbrs3), is_query = TRUE)
 expect_true(sum(qnbrsml3$dist) <= sum(qnbrsm$dist))
-check_query_nbrs(nn = qnbrsml3, query = ui4, ref_range = 1:6, query_range = 7:10, k = 4, expected_dist = ui10_eucd, tolerance = 1e-6)
+check_query_nbrs(
+  nn = qnbrsml3,
+  query = ui4,
+  ref_range = 1:6,
+  query_range = 7:10,
+  k = 4,
+  expected_dist = ui10_eucd,
+  tolerance = 1e-6
+)
 
 # parallel
 
@@ -105,9 +129,21 @@ check_nbrs(ui10mnnl3t, ui10_eucd, tolerance = 1e-6)
 # queries
 
 # all 3 matrices are processed
-qnbrsml3t <- merge_knn(list(qnbrs1, qnbrs2, qnbrs3), is_query = TRUE, n_threads = 1)
+qnbrsml3t <- merge_knn(
+  list(qnbrs1, qnbrs2, qnbrs3),
+  is_query = TRUE,
+  n_threads = 1
+)
 expect_true(sum(qnbrsml3t$dist) <= sum(qnbrsmt$dist))
-check_query_nbrs(nn = qnbrsml3, query = ui4, ref_range = 1:6, query_range = 7:10, k = 4, expected_dist = ui10_eucd, tolerance = 1e-6)
+check_query_nbrs(
+  nn = qnbrsml3,
+  query = ui4,
+  ref_range = 1:6,
+  query_range = 7:10,
+  k = 4,
+  expected_dist = ui10_eucd,
+  tolerance = 1e-6
+)
 
 # missing indices
 ui10rnn2$idx[1, 2] <- 0
@@ -180,7 +216,6 @@ expect_equal(r3$idx, r3_idx_copy)
 expect_equal(r3$dist, r3_dist_copy)
 
 
-
 # Errors ------------------------------------------------------------------
 
 make_valid_nn_graph <- function(nr, nc) {
@@ -236,14 +271,20 @@ expect_error(
 expect_error(
   validate_are_mergeablel(list(
     make_valid_nn_graph(10, 2),
-    list(badidx = matrix(nrow = 10, ncol = 5), dist = matrix(nrow = 10, ncol = 5))
+    list(
+      badidx = matrix(nrow = 10, ncol = 5),
+      dist = matrix(nrow = 10, ncol = 5)
+    )
   )),
   "must contain 'idx'"
 )
 expect_error(
   validate_are_mergeablel(list(
     make_valid_nn_graph(10, 2),
-    list(idx = matrix(nrow = 10, ncol = 5), baddist = matrix(nrow = 10, ncol = 5))
+    list(
+      idx = matrix(nrow = 10, ncol = 5),
+      baddist = matrix(nrow = 10, ncol = 5)
+    )
   )),
   "must contain 'dist'"
 )

@@ -13,6 +13,7 @@ test_that("single thread prepare", {
     )
 
   expect_s4_class(sg_full, "sparseMatrix")
+  # fmt: skip
   expect_equal(
     sg_full@x,
     c(
@@ -23,6 +24,7 @@ test_that("single thread prepare", {
     ),
     tolerance = 1e-4
   )
+  # fmt: skip
   expect_equal(
     sg_full@i,
     c(
@@ -39,6 +41,7 @@ test_that("single thread prepare", {
       diversify_prob = 1,
       pruning_degree_multiplier = NULL
     )
+  # fmt: skip
   expect_equal(
     sg_occ@x,
     c(
@@ -47,7 +50,10 @@ test_that("single thread prepare", {
     ),
     tolerance = 1e-4
   )
-  expect_equal(sg_occ@i, c(5, 6, 4, 5, 6, 7, 8, 2, 7, 0, 2, 9, 1, 2, 3, 4, 3, 5))
+  expect_equal(
+    sg_occ@i,
+    c(5, 6, 4, 5, 6, 7, 8, 2, 7, 0, 2, 9, 1, 2, 3, 4, 3, 5)
+  )
   expect_equal(sg_occ@p, c(0, 1, 2, 5, 7, 9, 12, 14, 16, 17, 18))
 
   set.seed(1337)
@@ -58,6 +64,7 @@ test_that("single thread prepare", {
       diversify_prob = 0.5,
       pruning_degree_multiplier = NULL
     ))
+  # fmt: skip
   expect_equal(
     sg_occp@x,
     c(
@@ -67,12 +74,12 @@ test_that("single thread prepare", {
     ),
     tolerance = 1e-4
   )
+  # fmt: skip
   expect_equal(sg_occp@i, c(
     2, 5, 9, 2, 3, 6, 0, 4, 5, 6, 9, 1, 7, 8, 2, 7, 0, 2, 9, 1, 2, 7, 3, 4, 6,
     3, 0, 5
   ))
   expect_equal(sg_occp@p, c(0, 3, 6, 11, 14, 16, 19, 22, 25, 26, 28))
-
 
   sg_trunc <-
     Matrix::t(prepare_search_graph(
@@ -81,6 +88,7 @@ test_that("single thread prepare", {
       diversify_prob = NULL,
       pruning_degree_multiplier = 1.5
     ))
+  # fmt: skip
   expect_equal(
     sg_trunc@x,
     c(
@@ -91,6 +99,7 @@ test_that("single thread prepare", {
     ),
     tolerance = 1e-4
   )
+  # fmt: skip
   expect_equal(
     sg_trunc@i,
     c(
@@ -107,6 +116,7 @@ test_that("single thread prepare", {
       diversify_prob = 1,
       pruning_degree_multiplier = 0.5
     ))
+  # fmt: skip
   expect_equal(
     sg_occ_trunc@x,
     c(
@@ -115,6 +125,7 @@ test_that("single thread prepare", {
     ),
     tolerance = 1e-4
   )
+  # fmt: skip
   expect_equal(
     sg_occ_trunc@i,
     c(
@@ -135,6 +146,7 @@ test_that("parallel prepare", {
     ))
 
   expect_s4_class(sg_full, "sparseMatrix")
+  # fmt: skip
   expect_equal(
     sg_full@x,
     c(
@@ -145,6 +157,7 @@ test_that("parallel prepare", {
     ),
     tolerance = 1e-4
   )
+  # fmt: skip
   expect_equal(
     sg_full@i,
     c(
@@ -162,6 +175,7 @@ test_that("parallel prepare", {
       pruning_degree_multiplier = NULL,
       n_threads = 1
     ))
+  # fmt: skip
   expect_equal(
     sg_occ@x,
     c(
@@ -170,7 +184,10 @@ test_that("parallel prepare", {
     ),
     tolerance = 1e-4
   )
-  expect_equal(sg_occ@i, c(5, 6, 4, 5, 6, 7, 8, 2, 7, 0, 2, 9, 1, 2, 3, 4, 3, 5))
+  expect_equal(
+    sg_occ@i,
+    c(5, 6, 4, 5, 6, 7, 8, 2, 7, 0, 2, 9, 1, 2, 3, 4, 3, 5)
+  )
   expect_equal(sg_occ@p, c(0, 1, 2, 5, 7, 9, 12, 14, 16, 17, 18))
 
   set.seed(1337)
@@ -189,7 +206,6 @@ test_that("parallel prepare", {
   expect_true(all(formatC(sg_occ@x) %in% formatC(sg_occp@x)))
   expect_true(all(formatC(sg_occp@x) %in% formatC(sg_full@x)))
 
-
   sg_trunc <-
     Matrix::t(prepare_search_graph(
       data = ui10,
@@ -198,6 +214,7 @@ test_that("parallel prepare", {
       pruning_degree_multiplier = 1.5,
       n_threads = 1
     ))
+  # fmt: skip
   expect_equal(
     sg_trunc@x,
     c(
@@ -208,6 +225,7 @@ test_that("parallel prepare", {
     ),
     tolerance = 1e-4
   )
+  # fmt: skip
   expect_equal(
     sg_trunc@i,
     c(
@@ -225,6 +243,7 @@ test_that("parallel prepare", {
       pruning_degree_multiplier = 0.5,
       n_threads = 1
     ))
+  # fmt: skip
   expect_equal(
     sg_occ_trunc@x,
     c(
@@ -233,6 +252,7 @@ test_that("parallel prepare", {
     ),
     tolerance = 1e-4
   )
+  # fmt: skip
   expect_equal(
     sg_occ_trunc@i,
     c(
@@ -249,7 +269,7 @@ test_that("explicit zeros are preserved", {
     Matrix::t(prepare_search_graph(
       data = ui10,
       graph = ui10_bf0
-  ))
+    ))
   expect_true(sg_0[10, 3] > 0)
 })
 
@@ -276,6 +296,7 @@ test_that("degree pruning keeps the max_degree closest edges", {
 
   expect_equal(
     as.matrix(rnndescent:::degree_prune(graph, max_degree = 2L)),
+    # fmt: skip
     matrix(
       c(0, 1, 2, 0,
         0, 0, 0, 0,
@@ -347,6 +368,7 @@ test_that("prepare_search_graph rejects malformed graphs before sparse conversio
 
 test_that("prepare_search_graph prunes reverse edges without diversification", {
   data <- matrix(seq_len(10), ncol = 2)
+  # fmt: skip
   graph <- list(
     idx = matrix(c(
       4L, 5L,
@@ -421,6 +443,7 @@ test_that("column orientation", {
       n_threads = 2,
       obs = "C"
     ))
+  # fmt: skip
   expect_equal(
     sg_occ_trunc@x,
     c(
@@ -429,6 +452,7 @@ test_that("column orientation", {
     ),
     tolerance = 1e-4
   )
+  # fmt: skip
   expect_equal(
     sg_occ_trunc@i,
     c(
@@ -478,14 +502,16 @@ test_that("prune twice with different prob", {
   iris_knn <- brute_force_knn(iris, k = 15)
   set.seed(42)
   sg1 <-
-    prepare_search_graph(iris,
+    prepare_search_graph(
+      iris,
       iris_knn,
       diversify_prob = 1.0,
       pruning_degree_multiplier = NULL
     )
   set.seed(42)
   sg1_0.5 <-
-    prepare_search_graph(iris,
+    prepare_search_graph(
+      iris,
       sg1,
       diversify_prob = 0.5,
       pruning_degree_multiplier = NULL
@@ -493,7 +519,8 @@ test_that("prune twice with different prob", {
 
   set.seed(42)
   sg0.5 <-
-    prepare_search_graph(iris,
+    prepare_search_graph(
+      iris,
       iris_knn,
       diversify_prob = 0.5,
       pruning_degree_multiplier = NULL

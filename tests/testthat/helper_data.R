@@ -1,3 +1,5 @@
+# fmt: skip file
+
 # ten iris entries where the 4 nearest neighbors are distinct
 uiris <- unique(iris)
 uirism <- as.matrix(uiris[, -5])

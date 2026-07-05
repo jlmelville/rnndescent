@@ -240,28 +240,30 @@
 #' In *Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition*
 #' (pp. 5713-5722).
 #' @export
-rnnd_build <- function(data,
-                       k = 30,
-                       metric = "euclidean",
-                       use_alt_metric = TRUE,
-                       init = "tree",
-                       n_trees = NULL,
-                       leaf_size = NULL,
-                       max_tree_depth = 200,
-                       margin = "auto",
-                       n_iters = NULL,
-                       delta = 0.001,
-                       max_candidates = NULL,
-                       low_memory = TRUE,
-                       weight_by_degree = FALSE,
-                       n_search_trees = 1,
-                       pruning_degree_multiplier = 1.5,
-                       diversify_prob = 1.0,
-                       prune_reverse = FALSE,
-                       n_threads = 0,
-                       verbose = FALSE,
-                       progress = "bar",
-                       obs = "R") {
+rnnd_build <- function(
+  data,
+  k = 30,
+  metric = "euclidean",
+  use_alt_metric = TRUE,
+  init = "tree",
+  n_trees = NULL,
+  leaf_size = NULL,
+  max_tree_depth = 200,
+  margin = "auto",
+  n_iters = NULL,
+  delta = 0.001,
+  max_candidates = NULL,
+  low_memory = TRUE,
+  weight_by_degree = FALSE,
+  n_search_trees = 1,
+  pruning_degree_multiplier = 1.5,
+  diversify_prob = 1.0,
+  prune_reverse = FALSE,
+  n_threads = 0,
+  verbose = FALSE,
+  progress = "bar",
+  obs = "R"
+) {
   obs <- match.arg(toupper(obs), c("C", "R"))
   n_threads <- check_n_threads(n_threads)
   n_search_trees <- check_count(n_search_trees, "n_search_trees")
@@ -416,15 +418,17 @@ rnnd_build <- function(data,
 #' <https://arxiv.org/abs/1810.07355>
 #' @export
 rnnd_query <-
-  function(index,
-           query,
-           k = 30,
-           epsilon = 0.1,
-           max_search_fraction = 1,
-           init = NULL,
-           n_threads = 0,
-           verbose = FALSE,
-           obs = "R") {
+  function(
+    index,
+    query,
+    k = 30,
+    epsilon = 0.1,
+    max_search_fraction = 1,
+    init = NULL,
+    n_threads = 0,
+    verbose = FALSE,
+    obs = "R"
+  ) {
     obs <- match.arg(toupper(obs), c("C", "R"))
     n_threads <- check_n_threads(n_threads)
     if (is.null(init) && !is.null(index$search_forest)) {
@@ -650,24 +654,26 @@ rnnd_query <-
 #' \doi{10.1145/1963405.1963487}.
 #'
 #' @export
-rnnd_knn <- function(data,
-                     k = 30,
-                     metric = "euclidean",
-                     use_alt_metric = TRUE,
-                     init = "tree",
-                     n_trees = NULL,
-                     leaf_size = NULL,
-                     max_tree_depth = 200,
-                     margin = "auto",
-                     n_iters = NULL,
-                     delta = 0.001,
-                     max_candidates = NULL,
-                     weight_by_degree = FALSE,
-                     low_memory = TRUE,
-                     n_threads = 0,
-                     verbose = FALSE,
-                     progress = "bar",
-                     obs = "R") {
+rnnd_knn <- function(
+  data,
+  k = 30,
+  metric = "euclidean",
+  use_alt_metric = TRUE,
+  init = "tree",
+  n_trees = NULL,
+  leaf_size = NULL,
+  max_tree_depth = 200,
+  margin = "auto",
+  n_iters = NULL,
+  delta = 0.001,
+  max_candidates = NULL,
+  weight_by_degree = FALSE,
+  low_memory = TRUE,
+  n_threads = 0,
+  verbose = FALSE,
+  progress = "bar",
+  obs = "R"
+) {
   obs <- match.arg(toupper(obs), c("C", "R"))
   n_threads <- check_n_threads(n_threads)
   data <- x2m(data)
@@ -805,20 +811,18 @@ rnnd_knn <- function(data,
 #' # Use verbose flag to see information about progress
 #' iris_nn <- brute_force_knn(iris, k = 4, metric = "euclidean", verbose = TRUE)
 #' @export
-brute_force_knn <- function(data,
-                            k,
-                            metric = "euclidean",
-                            use_alt_metric = TRUE,
-                            n_threads = 0,
-                            verbose = FALSE,
-                            obs = "R") {
+brute_force_knn <- function(
+  data,
+  k,
+  metric = "euclidean",
+  use_alt_metric = TRUE,
+  n_threads = 0,
+  verbose = FALSE,
+  obs = "R"
+) {
   obs <- match.arg(toupper(obs), c("C", "R"))
   n_threads <- check_n_threads(n_threads)
-  n_obs <- switch(obs,
-    R = nrow,
-    C = ncol,
-    stop("Unknown obs type")
-  )
+  n_obs <- switch(obs, R = nrow, C = ncol, stop("Unknown obs type"))
 
   data <- x2m(data)
   check_k(k, n_obs(data))
@@ -849,7 +853,8 @@ brute_force_knn <- function(data,
       )
   } else if (is.logical(data)) {
     res <-
-      rnn_logical_brute_force(data,
+      rnn_logical_brute_force(
+        data,
         k,
         actual_metric,
         n_threads = n_threads,
@@ -857,7 +862,8 @@ brute_force_knn <- function(data,
       )
   } else {
     res <-
-      rnn_brute_force(data,
+      rnn_brute_force(
+        data,
         k,
         actual_metric,
         n_threads = n_threads,
@@ -983,21 +989,19 @@ brute_force_knn <- function(data,
 #' iris_nn <- nnd_knn(iris, init = iris_nn, metric = "euclidean", verbose = TRUE)
 #' @export
 random_knn <-
-  function(data,
-           k,
-           metric = "euclidean",
-           use_alt_metric = TRUE,
-           order_by_distance = TRUE,
-           n_threads = 0,
-           verbose = FALSE,
-           obs = "R") {
+  function(
+    data,
+    k,
+    metric = "euclidean",
+    use_alt_metric = TRUE,
+    order_by_distance = TRUE,
+    n_threads = 0,
+    verbose = FALSE,
+    obs = "R"
+  ) {
     obs <- match.arg(toupper(obs), c("C", "R"))
     n_threads <- check_n_threads(n_threads)
-    n_obs <- switch(obs,
-      R = nrow,
-      C = ncol,
-      stop("Unknown obs type")
-    )
+    n_obs <- switch(obs, R = nrow, C = ncol, stop("Unknown obs type"))
     data <- x2m(data)
     check_k(k, n_obs(data))
 
@@ -1238,22 +1242,24 @@ random_knn <-
 #' ACM.
 #' \doi{10.1145/1963405.1963487}.
 #' @export
-nnd_knn <- function(data,
-                    k = NULL,
-                    metric = "euclidean",
-                    init = "rand",
-                    init_args = NULL,
-                    n_iters = NULL,
-                    max_candidates = NULL,
-                    delta = 0.001,
-                    low_memory = TRUE,
-                    weight_by_degree = FALSE,
-                    use_alt_metric = TRUE,
-                    n_threads = 0,
-                    verbose = FALSE,
-                    progress = "bar",
-                    obs = "R",
-                    ret_forest = FALSE) {
+nnd_knn <- function(
+  data,
+  k = NULL,
+  metric = "euclidean",
+  init = "rand",
+  init_args = NULL,
+  n_iters = NULL,
+  max_candidates = NULL,
+  delta = 0.001,
+  low_memory = TRUE,
+  weight_by_degree = FALSE,
+  use_alt_metric = TRUE,
+  n_threads = 0,
+  verbose = FALSE,
+  progress = "bar",
+  obs = "R",
+  ret_forest = FALSE
+) {
   progress <- match.arg(tolower(progress), c("bar", "dist"))
   obs <- match.arg(toupper(obs), c("C", "R"))
   n_threads <- check_n_threads(n_threads)
@@ -1288,7 +1294,8 @@ nnd_knn <- function(data,
       }
     }
     tsmessage("Initializing neighbors using '", init, "' method")
-    init <- switch(init,
+    init <- switch(
+      init,
       "rand" = random_knn_impl(
         reference = data,
         k = k,
@@ -1297,26 +1304,29 @@ nnd_knn <- function(data,
         n_threads = n_threads,
         verbose = verbose
       ),
-      "tree" = do.call(rpf_knn_impl, lmerge(
-        # defaults we have no reason to change should match rpf_knn or rpf_build
-        list(
-          data,
-          k = k,
-          metric = metric,
-          use_alt_metric = use_alt_metric,
-          actual_metric = actual_metric,
-          n_trees = NULL,
-          leaf_size = NULL,
-          max_tree_depth = 200,
-          include_self = FALSE, # this is changed from default on purpose
-          ret_forest = ret_forest,
-          margin = "auto",
-          unzero = FALSE,
-          n_threads = n_threads,
-          verbose = verbose
-        ),
-        init_args
-      )),
+      "tree" = do.call(
+        rpf_knn_impl,
+        lmerge(
+          # defaults we have no reason to change should match rpf_knn or rpf_build
+          list(
+            data,
+            k = k,
+            metric = metric,
+            use_alt_metric = use_alt_metric,
+            actual_metric = actual_metric,
+            n_trees = NULL,
+            leaf_size = NULL,
+            max_tree_depth = 200,
+            include_self = FALSE, # this is changed from default on purpose
+            ret_forest = ret_forest,
+            margin = "auto",
+            unzero = FALSE,
+            n_threads = n_threads,
+            verbose = verbose
+          ),
+          init_args
+        )
+      ),
       stop("Unknown initialization option '", init, "'")
     )
     # FIXME: can we just turn off unzero in tree and random return?
@@ -1331,11 +1341,18 @@ nnd_knn <- function(data,
   } else {
     tsmessage("Initializing from user-supplied graph")
     # user-supplied input may need to be transformed to the actual metric
-    if (use_alt_metric &&
-      !is.null(init) && is.list(init) && !is.null(init$dist)) {
+    if (
+      use_alt_metric &&
+        !is.null(init) &&
+        is.list(init) &&
+        !is.null(init$dist)
+    ) {
       tsmessage(
         "Applying metric correction to initial distances from '",
-        metric, "' to '", actual_metric, "'"
+        metric,
+        "' to '",
+        actual_metric,
+        "'"
       )
       init$dist <-
         apply_alt_metric_uncorrection(metric, init$dist, is_sparse(data))
@@ -1544,14 +1561,16 @@ nnd_knn <- function(data,
 #'   k = 4, metric = "manhattan"
 #' )
 #' @export
-brute_force_knn_query <- function(query,
-                                  reference,
-                                  k,
-                                  metric = "euclidean",
-                                  use_alt_metric = TRUE,
-                                  n_threads = 0,
-                                  verbose = FALSE,
-                                  obs = "R") {
+brute_force_knn_query <- function(
+  query,
+  reference,
+  k,
+  metric = "euclidean",
+  use_alt_metric = TRUE,
+  n_threads = 0,
+  verbose = FALSE,
+  obs = "R"
+) {
   obs <- match.arg(toupper(obs), c("C", "R"))
   n_threads <- check_n_threads(n_threads)
 
@@ -1590,7 +1609,8 @@ brute_force_knn_query <- function(query,
       verbose = verbose
     )
   } else if (is.logical(reference)) {
-    res <- rnn_logical_brute_force_query(reference,
+    res <- rnn_logical_brute_force_query(
+      reference,
       query,
       k,
       actual_metric,
@@ -1598,7 +1618,8 @@ brute_force_knn_query <- function(query,
       verbose = verbose
     )
   } else {
-    res <- rnn_brute_force_query(reference,
+    res <- rnn_brute_force_query(
+      reference,
       query,
       k,
       actual_metric,
@@ -1735,22 +1756,20 @@ brute_force_knn_query <- function(query,
 #' )
 #' @export
 random_knn_query <-
-  function(query,
-           reference,
-           k,
-           metric = "euclidean",
-           use_alt_metric = TRUE,
-           order_by_distance = TRUE,
-           n_threads = 0,
-           verbose = FALSE,
-           obs = "R") {
+  function(
+    query,
+    reference,
+    k,
+    metric = "euclidean",
+    use_alt_metric = TRUE,
+    order_by_distance = TRUE,
+    n_threads = 0,
+    verbose = FALSE,
+    obs = "R"
+  ) {
     obs <- match.arg(toupper(obs), c("C", "R"))
     n_threads <- check_n_threads(n_threads)
-    n_obs <- switch(obs,
-      R = nrow,
-      C = ncol,
-      stop("Unknown obs type")
-    )
+    n_obs <- switch(obs, R = nrow, C = ncol, stop("Unknown obs type"))
 
     check_sparse(reference, query)
 
@@ -1973,18 +1992,20 @@ random_knn_query <-
 #' search in high-dimensional data.
 #' *arXiv preprint arXiv:1810.07355*.
 #' @export
-graph_knn_query <- function(query,
-                            reference,
-                            reference_graph,
-                            k = NULL,
-                            metric = "euclidean",
-                            init = NULL,
-                            epsilon = 0.1,
-                            max_search_fraction = 1.0,
-                            use_alt_metric = TRUE,
-                            n_threads = 0,
-                            verbose = FALSE,
-                            obs = "R") {
+graph_knn_query <- function(
+  query,
+  reference,
+  reference_graph,
+  k = NULL,
+  metric = "euclidean",
+  init = NULL,
+  epsilon = 0.1,
+  max_search_fraction = 1.0,
+  use_alt_metric = TRUE,
+  n_threads = 0,
+  verbose = FALSE,
+  obs = "R"
+) {
   obs <- match.arg(toupper(obs), c("C", "R"))
   n_threads <- check_n_threads(n_threads)
   check_query_search_controls(epsilon, max_search_fraction)
@@ -2012,7 +2033,10 @@ graph_knn_query <- function(query,
       get_actual_metric(use_alt_metric, metric, reference, verbose)
   }
 
-  reference_graph <- check_reference_graph_size(reference_graph, ncol(reference))
+  reference_graph <- check_reference_graph_size(
+    reference_graph,
+    ncol(reference)
+  )
 
   # reference and query must be column-oriented at this point
   if (is.null(init)) {
@@ -2089,10 +2113,8 @@ graph_knn_query <- function(query,
 
   stopifnot(
     !is.null(query),
-    (
-      methods::is(query, "matrix") ||
-        methods::is(query, "sparseMatrix")
-    )
+    (methods::is(query, "matrix") ||
+      methods::is(query, "sparseMatrix"))
   )
   stopifnot(
     !is.null(init$idx),
@@ -2357,16 +2379,18 @@ graph_knn_query <- function(query,
 #' *Advances in Neural Information Processing Systems*, *32*.
 #' @seealso [graph_knn_query()]
 #' @export
-prepare_search_graph <- function(data,
-                                 graph,
-                                 metric = "euclidean",
-                                 use_alt_metric = TRUE,
-                                 diversify_prob = 1.0,
-                                 pruning_degree_multiplier = 1.5,
-                                 prune_reverse = FALSE,
-                                 n_threads = 0,
-                                 verbose = FALSE,
-                                 obs = "R") {
+prepare_search_graph <- function(
+  data,
+  graph,
+  metric = "euclidean",
+  use_alt_metric = TRUE,
+  diversify_prob = 1.0,
+  pruning_degree_multiplier = 1.5,
+  prune_reverse = FALSE,
+  n_threads = 0,
+  verbose = FALSE,
+  obs = "R"
+) {
   obs <- match.arg(toupper(obs), c("C", "R"))
   n_threads <- check_n_threads(n_threads)
 
@@ -2428,8 +2452,11 @@ prepare_search_graph <- function(data,
     )
   }
   rsp <- reverse_knn_sp(fdiv)
-  if (prune_reverse && !is.null(pruning_degree_multiplier) &&
-      !is.infinite(pruning_degree_multiplier)) {
+  if (
+    prune_reverse &&
+      !is.null(pruning_degree_multiplier) &&
+      !is.infinite(pruning_degree_multiplier)
+  ) {
     max_degree <- max(round(n_nbrs * pruning_degree_multiplier), 1)
     tsmessage("Degree pruning reverse graph to max degree: ", max_degree)
     rsp <-
@@ -2464,8 +2491,10 @@ prepare_search_graph <- function(data,
   tsmessage("Merging diversified forward and reverse graph")
   merged <- merge_graphs_sp(fdiv, rdiv)
 
-  if (!is.null(pruning_degree_multiplier) &&
-    !is.infinite(pruning_degree_multiplier)) {
+  if (
+    !is.null(pruning_degree_multiplier) &&
+      !is.infinite(pruning_degree_multiplier)
+  ) {
     max_degree <- max(round(n_nbrs * pruning_degree_multiplier), 1)
     tsmessage("Degree pruning merged graph to max degree: ", max_degree)
     res <-
@@ -2508,12 +2537,14 @@ prepare_search_graph <- function(data,
 # Advances in Neural Information Processing Systems, 32.
 # the pynndescent implementation at cmuparlay/pbbsbench uses alpha instead of
 # a prune_probability (see also https://arxiv.org/abs/2305.04359)
-diversify <- function(data,
-                      graph,
-                      metric = "euclidean",
-                      prune_probability = 1.0,
-                      n_threads = 0,
-                      verbose = FALSE) {
+diversify <- function(
+  data,
+  graph,
+  metric = "euclidean",
+  prune_probability = 1.0,
+  n_threads = 0,
+  verbose = FALSE
+) {
   nnz_before <- Matrix::nnzero(graph)
   sp_before <- nn_sparsity_sp(graph)
   stopifnot(methods::is(graph, "sparseMatrix"))
@@ -2528,20 +2559,38 @@ diversify <- function(data,
     verbose = verbose
   )
   if (is_sparse(data)) {
-    gl_div <- do.call(rnn_sparse_diversify, c(args, list(
-      ind = data@i,
-      ptr = data@p,
-      data = data@x,
-      ndim = nrow(data)
-    )))
+    gl_div <- do.call(
+      rnn_sparse_diversify,
+      c(
+        args,
+        list(
+          ind = data@i,
+          ptr = data@p,
+          data = data@x,
+          ndim = nrow(data)
+        )
+      )
+    )
   } else if (is.logical(data)) {
-    gl_div <- do.call(rnn_logical_diversify, c(args, list(
-      data = data
-    )))
+    gl_div <- do.call(
+      rnn_logical_diversify,
+      c(
+        args,
+        list(
+          data = data
+        )
+      )
+    )
   } else {
-    gl_div <- do.call(rnn_diversify, c(args, list(
-      data = data
-    )))
+    gl_div <- do.call(
+      rnn_diversify,
+      c(
+        args,
+        list(
+          data = data
+        )
+      )
+    )
   }
   res <- list_to_sparse(gl_div)
   nnz_after <- Matrix::nnzero(res)
@@ -2566,10 +2615,7 @@ diversify <- function(data,
 # In *Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition*
 # (pp. 5713-5722).
 degree_prune <-
-  function(graph,
-           max_degree = 20,
-           n_threads = 0,
-           verbose = FALSE) {
+  function(graph, max_degree = 20, n_threads = 0, verbose = FALSE) {
     stopifnot(methods::is(graph, "sparseMatrix"))
     nnz_before <- Matrix::nnzero(graph)
     sp_before <- nn_sparsity_sp(graph)
@@ -2666,21 +2712,19 @@ reverse_knn_sp <- function(graph) {
 #' sum(iris_mnn$dist) < sum(iris_rnn2$dist)
 #' sum(iris_mnn$dist) < sum(iris_rnn3$dist)
 #' @export
-merge_knn <- function(graphs,
-                      is_query = FALSE,
-                      n_threads = 0,
-                      verbose = FALSE) {
+merge_knn <- function(
+  graphs,
+  is_query = FALSE,
+  n_threads = 0,
+  verbose = FALSE
+) {
   n_threads <- check_n_threads(n_threads)
   if (length(graphs) == 0) {
     return(list())
   }
   validate_are_mergeablel(graphs, is_query = is_query)
 
-  rnn_merge_nn_all(graphs,
-    is_query,
-    n_threads = n_threads,
-    verbose = verbose
-  )
+  rnn_merge_nn_all(graphs, is_query, n_threads = n_threads, verbose = verbose)
 }
 
 # Overlap -----------------------------------------------------------------
@@ -2724,10 +2768,7 @@ merge_knn <- function(graphs,
 #' summary(overlap_res$overlaps)
 #' @export
 neighbor_overlap <-
-  function(idx1,
-           idx2,
-           k = NULL,
-           ret_vec = FALSE) {
+  function(idx1, idx2, k = NULL, ret_vec = FALSE) {
     vec <- neighbor_overlapv(idx1, idx2, k)
     mean_overlap <- mean(vec)
     if (ret_vec) {
@@ -2742,9 +2783,7 @@ neighbor_overlap <-
   }
 
 neighbor_overlapv <-
-  function(idx,
-           ref_idx,
-           k = NULL) {
+  function(idx, ref_idx, k = NULL) {
     if (is.list(idx)) {
       idx <- idx$idx
     }

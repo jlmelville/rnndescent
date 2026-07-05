@@ -6,11 +6,13 @@ stime <- function() {
 # appears only if called from an environment where a logical verbose = TRUE
 # OR force = TRUE
 tsmessage <-
-  function(...,
-           domain = NULL,
-           appendLF = TRUE,
-           force = FALSE,
-           time_stamp = TRUE) {
+  function(
+    ...,
+    domain = NULL,
+    appendLF = TRUE,
+    force = FALSE,
+    time_stamp = TRUE
+  ) {
     verbose <- get0("verbose", envir = sys.parent())
 
     if (force || (!is.null(verbose) && verbose)) {
@@ -28,9 +30,15 @@ normalize_sparse_input <- function(X) {
   if (methods::is(X, "dgCMatrix")) {
     return(X)
   }
-  if (!any(vapply(c("dgRMatrix", "dgTMatrix"), function(class_name) {
-    methods::is(X, class_name)
-  }, logical(1)))) {
+  if (
+    !any(vapply(
+      c("dgRMatrix", "dgTMatrix"),
+      function(class_name) {
+        methods::is(X, class_name)
+      },
+      logical(1)
+    ))
+  ) {
     stop(
       "Sparse matrices must be general numeric sparse matrices ",
       "(dgCMatrix, dgRMatrix, or dgTMatrix)"

@@ -36,40 +36,122 @@ context("Random neighbor queries")
 
 set.seed(1337)
 qnbrs4 <- random_knn_query(reference = ui6, query = ui4, k = 4)
-check_query_nbrs(nn = qnbrs4, query = ui4, ref_range = 1:6, query_range = 7:10, k = 4, expected_dist = ui10_eucd, tolerance = 1e-6)
+check_query_nbrs(
+  nn = qnbrs4,
+  query = ui4,
+  ref_range = 1:6,
+  query_range = 7:10,
+  k = 4,
+  expected_dist = ui10_eucd,
+  tolerance = 1e-6
+)
 
 set.seed(1337)
 qnbrs6 <- random_knn_query(reference = ui4, query = ui6, k = 4)
-check_query_nbrs(nn = qnbrs6, query = ui6, ref_range = 7:10, query_range = 1:6, k = 4, expected_dist = ui10_eucd, tolerance = 1e-6)
+check_query_nbrs(
+  nn = qnbrs6,
+  query = ui6,
+  ref_range = 7:10,
+  query_range = 1:6,
+  k = 4,
+  expected_dist = ui10_eucd,
+  tolerance = 1e-6
+)
 
 # turn off alt_metric
 set.seed(1337)
-qnbrs6 <- random_knn_query(reference = ui4, query = ui6, k = 4, use_alt_metric = FALSE)
-check_query_nbrs(nn = qnbrs6, query = ui6, ref_range = 7:10, query_range = 1:6, k = 4, expected_dist = ui10_eucd, tolerance = 1e-6)
+qnbrs6 <- random_knn_query(
+  reference = ui4,
+  query = ui6,
+  k = 4,
+  use_alt_metric = FALSE
+)
+check_query_nbrs(
+  nn = qnbrs6,
+  query = ui6,
+  ref_range = 7:10,
+  query_range = 1:6,
+  k = 4,
+  expected_dist = ui10_eucd,
+  tolerance = 1e-6
+)
 
 # no reordering
 set.seed(1337)
-qnbrs6 <- random_knn_query(reference = ui4, query = ui6, k = 4, order_by_distance = FALSE)
-check_query_nbrs(nn = qnbrs6, query = ui6, ref_range = 7:10, query_range = 1:6, k = 4, expected_dist = ui10_eucd, tolerance = 1e-6, check_order = FALSE)
+qnbrs6 <- random_knn_query(
+  reference = ui4,
+  query = ui6,
+  k = 4,
+  order_by_distance = FALSE
+)
+check_query_nbrs(
+  nn = qnbrs6,
+  query = ui6,
+  ref_range = 7:10,
+  query_range = 1:6,
+  k = 4,
+  expected_dist = ui10_eucd,
+  tolerance = 1e-6,
+  check_order = FALSE
+)
 
 # threads
 set.seed(1337)
 qnbrs4 <- random_knn_query(reference = ui6, query = ui4, k = 4, n_threads = 1)
-check_query_nbrs(nn = qnbrs4, query = ui4, ref_range = 1:6, query_range = 7:10, k = 4, expected_dist = ui10_eucd, tolerance = 1e-6)
+check_query_nbrs(
+  nn = qnbrs4,
+  query = ui4,
+  ref_range = 1:6,
+  query_range = 7:10,
+  k = 4,
+  expected_dist = ui10_eucd,
+  tolerance = 1e-6
+)
 
 set.seed(1337)
 qnbrs6 <- random_knn_query(reference = ui4, query = ui6, k = 4, n_threads = 1)
-check_query_nbrs(nn = qnbrs6, query = ui6, ref_range = 7:10, query_range = 1:6, k = 4, expected_dist = ui10_eucd, tolerance = 1e-6)
+check_query_nbrs(
+  nn = qnbrs6,
+  query = ui6,
+  ref_range = 7:10,
+  query_range = 1:6,
+  k = 4,
+  expected_dist = ui10_eucd,
+  tolerance = 1e-6
+)
 
 # no re-ordering
 set.seed(1337)
-qnbrs6 <- random_knn_query(reference = ui4, query = ui6, k = 4, n_threads = 1, order_by_distance = FALSE)
-check_query_nbrs(nn = qnbrs6, query = ui6, ref_range = 7:10, query_range = 1:6, k = 4, expected_dist = ui10_eucd, tolerance = 1e-6, check_order = FALSE)
+qnbrs6 <- random_knn_query(
+  reference = ui4,
+  query = ui6,
+  k = 4,
+  n_threads = 1,
+  order_by_distance = FALSE
+)
+check_query_nbrs(
+  nn = qnbrs6,
+  query = ui6,
+  ref_range = 7:10,
+  query_range = 1:6,
+  k = 4,
+  expected_dist = ui10_eucd,
+  tolerance = 1e-6,
+  check_order = FALSE
+)
 
 # Errors
 expect_error(random_knn_query(reference = ui4, query = ui6, k = 7), "k must be")
 expect_error(random_knn_query(reference = ui4, query = ui6, k = 0), "k must be")
-expect_error(random_knn_query(reference = ui4, query = ui6, k = 4, metric = "not-a-real metric"), "metric")
+expect_error(
+  random_knn_query(
+    reference = ui4,
+    query = ui6,
+    k = 4,
+    metric = "not-a-real metric"
+  ),
+  "metric"
+)
 expect_error(
   random_knn_query(
     reference = matrix(FALSE, nrow = 2, ncol = 2),
@@ -101,37 +183,141 @@ test_that("random neighbor APIs reject invalid n_threads values", {
 # Other metrics
 
 set.seed(1337)
-qnbrs4 <- random_knn_query(reference = ui6, query = ui4, k = 4, metric = "cosine")
-check_query_nbrs(nn = qnbrs4, query = ui4, ref_range = 1:6, query_range = 7:10, k = 4, expected_dist = ui10_cosd, tolerance = 1e-6)
+qnbrs4 <- random_knn_query(
+  reference = ui6,
+  query = ui4,
+  k = 4,
+  metric = "cosine"
+)
+check_query_nbrs(
+  nn = qnbrs4,
+  query = ui4,
+  ref_range = 1:6,
+  query_range = 7:10,
+  k = 4,
+  expected_dist = ui10_cosd,
+  tolerance = 1e-6
+)
 
 set.seed(1337)
-qnbrs6 <- random_knn_query(reference = ui4, query = ui6, k = 4, metric = "cosine")
-check_query_nbrs(nn = qnbrs6, query = ui6, ref_range = 7:10, query_range = 1:6, k = 4, expected_dist = ui10_cosd, tolerance = 1e-6)
+qnbrs6 <- random_knn_query(
+  reference = ui4,
+  query = ui6,
+  k = 4,
+  metric = "cosine"
+)
+check_query_nbrs(
+  nn = qnbrs6,
+  query = ui6,
+  ref_range = 7:10,
+  query_range = 1:6,
+  k = 4,
+  expected_dist = ui10_cosd,
+  tolerance = 1e-6
+)
 
 set.seed(1337)
-qnbrs4 <- random_knn_query(reference = ui6, query = ui4, k = 4, metric = "manhattan")
-check_query_nbrs(nn = qnbrs4, query = ui4, ref_range = 1:6, query_range = 7:10, k = 4, expected_dist = ui10_mand, tolerance = 1e-6)
+qnbrs4 <- random_knn_query(
+  reference = ui6,
+  query = ui4,
+  k = 4,
+  metric = "manhattan"
+)
+check_query_nbrs(
+  nn = qnbrs4,
+  query = ui4,
+  ref_range = 1:6,
+  query_range = 7:10,
+  k = 4,
+  expected_dist = ui10_mand,
+  tolerance = 1e-6
+)
 
 set.seed(1337)
-qnbrs6 <- random_knn_query(reference = ui4, query = ui6, k = 4, metric = "manhattan")
-check_query_nbrs(nn = qnbrs6, query = ui6, ref_range = 7:10, query_range = 1:6, k = 4, expected_dist = ui10_mand, tolerance = 1e-6)
+qnbrs6 <- random_knn_query(
+  reference = ui4,
+  query = ui6,
+  k = 4,
+  metric = "manhattan"
+)
+check_query_nbrs(
+  nn = qnbrs6,
+  query = ui6,
+  ref_range = 7:10,
+  query_range = 1:6,
+  k = 4,
+  expected_dist = ui10_mand,
+  tolerance = 1e-6
+)
 
 set.seed(1337)
-qnbrs4 <- random_knn_query(reference = bit6, query = bit4, k = 4, metric = "hamming")
-check_query_nbrs(nn = qnbrs4, query = bit4, ref_range = 1:6, query_range = 7:10, k = 4, expected_dist = bit10_hamd, tolerance = 1e-6)
+qnbrs4 <- random_knn_query(
+  reference = bit6,
+  query = bit4,
+  k = 4,
+  metric = "hamming"
+)
+check_query_nbrs(
+  nn = qnbrs4,
+  query = bit4,
+  ref_range = 1:6,
+  query_range = 7:10,
+  k = 4,
+  expected_dist = bit10_hamd,
+  tolerance = 1e-6
+)
 
 set.seed(1337)
-qnbrs6 <- random_knn_query(reference = bit4, query = bit6, k = 4, metric = "hamming")
-check_query_nbrs(nn = qnbrs6, query = bit6, ref_range = 7:10, query_range = 1:6, k = 4, expected_dist = bit10_hamd, tolerance = 1e-6)
+qnbrs6 <- random_knn_query(
+  reference = bit4,
+  query = bit6,
+  k = 4,
+  metric = "hamming"
+)
+check_query_nbrs(
+  nn = qnbrs6,
+  query = bit6,
+  ref_range = 7:10,
+  query_range = 1:6,
+  k = 4,
+  expected_dist = bit10_hamd,
+  tolerance = 1e-6
+)
 
 
 set.seed(1337)
-qnbrs4 <- random_knn_query(reference = lbit6, query = lbit4, k = 4, metric = "hamming")
-check_query_nbrs(nn = qnbrs4, query = bit4, ref_range = 1:6, query_range = 7:10, k = 4, expected_dist = bit10_hamd, tolerance = 1e-6)
+qnbrs4 <- random_knn_query(
+  reference = lbit6,
+  query = lbit4,
+  k = 4,
+  metric = "hamming"
+)
+check_query_nbrs(
+  nn = qnbrs4,
+  query = bit4,
+  ref_range = 1:6,
+  query_range = 7:10,
+  k = 4,
+  expected_dist = bit10_hamd,
+  tolerance = 1e-6
+)
 
 set.seed(1337)
-qnbrs6 <- random_knn_query(reference = lbit4, query = lbit6, k = 4, metric = "hamming")
-check_query_nbrs(nn = qnbrs6, query = bit6, ref_range = 7:10, query_range = 1:6, k = 4, expected_dist = bit10_hamd, tolerance = 1e-6)
+qnbrs6 <- random_knn_query(
+  reference = lbit4,
+  query = lbit6,
+  k = 4,
+  metric = "hamming"
+)
+check_query_nbrs(
+  nn = qnbrs6,
+  query = bit6,
+  ref_range = 7:10,
+  query_range = 1:6,
+  k = 4,
+  expected_dist = bit10_hamd,
+  tolerance = 1e-6
+)
 
 test_that("column orientation", {
   set.seed(1337)
@@ -139,8 +325,22 @@ test_that("column orientation", {
   check_nbrs(rnbrs, ui10_eucd, tolerance = 1e-6)
 
   set.seed(1337)
-  qnbrs6 <- random_knn_query(reference = t(lbit4), query = t(lbit6), k = 4, metric = "hamming", obs = "C")
-  check_query_nbrs(nn = qnbrs6, query = lbit6, ref_range = 7:10, query_range = 1:6, k = 4, expected_dist = bit10_hamd, tolerance = 1e-6)
+  qnbrs6 <- random_knn_query(
+    reference = t(lbit4),
+    query = t(lbit6),
+    k = 4,
+    metric = "hamming",
+    obs = "C"
+  )
+  check_query_nbrs(
+    nn = qnbrs6,
+    query = lbit6,
+    ref_range = 7:10,
+    query_range = 1:6,
+    k = 4,
+    expected_dist = bit10_hamd,
+    tolerance = 1e-6
+  )
 })
 
 test_that("one neighbor code path is ok", {
@@ -157,23 +357,59 @@ test_that("one neighbor code path is ok", {
 
 test_that("sparse euclidean", {
   set.seed(1337)
-  dzrnbrs <- random_knn(ui10z, k = 4, n_threads = 0, use_alt_metric = FALSE, metric = "euclidean")
+  dzrnbrs <- random_knn(
+    ui10z,
+    k = 4,
+    n_threads = 0,
+    use_alt_metric = FALSE,
+    metric = "euclidean"
+  )
   set.seed(1337)
-  sprnbrs <- random_knn(ui10sp, k = 4, n_threads = 0, use_alt_metric = FALSE, metric = "euclidean")
+  sprnbrs <- random_knn(
+    ui10sp,
+    k = 4,
+    n_threads = 0,
+    use_alt_metric = FALSE,
+    metric = "euclidean"
+  )
   expect_equal(dzrnbrs, sprnbrs)
   set.seed(1337)
-  sprnbrs <- random_knn(ui10sp, k = 4, n_threads = 0, use_alt_metric = TRUE, metric = "euclidean")
+  sprnbrs <- random_knn(
+    ui10sp,
+    k = 4,
+    n_threads = 0,
+    use_alt_metric = TRUE,
+    metric = "euclidean"
+  )
   expect_equal(dzrnbrs, sprnbrs, tolerance = 1e-7)
 })
 
 test_that("sparse cosine", {
   set.seed(1337)
-  dzrnbrs <- random_knn(ui10z, k = 4, n_threads = 0, use_alt_metric = FALSE, metric = "cosine")
+  dzrnbrs <- random_knn(
+    ui10z,
+    k = 4,
+    n_threads = 0,
+    use_alt_metric = FALSE,
+    metric = "cosine"
+  )
   set.seed(1337)
-  sprnbrs <- random_knn(ui10sp, k = 4, n_threads = 0, use_alt_metric = FALSE, metric = "cosine")
+  sprnbrs <- random_knn(
+    ui10sp,
+    k = 4,
+    n_threads = 0,
+    use_alt_metric = FALSE,
+    metric = "cosine"
+  )
   expect_equal(dzrnbrs, sprnbrs, tolerance = 1e-6)
   set.seed(1337)
-  sprnbrs <- random_knn(ui10sp, k = 4, n_threads = 0, use_alt_metric = TRUE, metric = "cosine")
+  sprnbrs <- random_knn(
+    ui10sp,
+    k = 4,
+    n_threads = 0,
+    use_alt_metric = TRUE,
+    metric = "cosine"
+  )
   expect_equal(dzrnbrs, sprnbrs, tolerance = 1e-6)
 })
 
@@ -203,7 +439,11 @@ test_that("random neighbor APIs normalize non-dgC sparse inputs", {
   expect_equal(observed_knn, expected_knn, tolerance = 1e-6)
 
   set.seed(1337)
-  expected_query <- random_knn_query(reference = ui10sp4, query = ui10sp6, k = 4)
+  expected_query <- random_knn_query(
+    reference = ui10sp4,
+    query = ui10sp6,
+    k = 4
+  )
   set.seed(1337)
   observed_query <- random_knn_query(reference = ref_r, query = query_r, k = 4)
   expect_equal(observed_query, expected_query, tolerance = 1e-6)

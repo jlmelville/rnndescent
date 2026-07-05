@@ -9,6 +9,7 @@ context("Binary data tests")
 # degenerate distances we just the distance matrices are equal but not the index
 # matrices (but we do want to avoid 0 indices occurring)
 
+# fmt: skip
 badjaccard <- matrix(
   c(
     0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0,
@@ -220,12 +221,14 @@ badjaccards <- Matrix::drop0(badjaccard)
 test_that("jaccard", {
   metric <- "jaccard"
   # dense
-  d_res <- brute_force_knn(badjaccard,
+  d_res <- brute_force_knn(
+    badjaccard,
     k = 5,
     metric = metric,
     use_alt_metric = FALSE
   )
-  da_res <- brute_force_knn(badjaccard,
+  da_res <- brute_force_knn(
+    badjaccard,
     k = 5,
     metric = metric,
     use_alt_metric = TRUE
@@ -235,12 +238,14 @@ test_that("jaccard", {
   expect_equal(d_res$dist, da_res$dist, tolerance = 1e-7)
 
   # sparse
-  s_res <- brute_force_knn(badjaccards,
+  s_res <- brute_force_knn(
+    badjaccards,
     k = 5,
     metric = metric,
     use_alt_metric = FALSE
   )
-  sa_res <- brute_force_knn(badjaccards,
+  sa_res <- brute_force_knn(
+    badjaccards,
     k = 5,
     metric = metric,
     use_alt_metric = TRUE
@@ -253,12 +258,14 @@ test_that("jaccard", {
 test_that("hellinger", {
   metric <- "hellinger"
   # dense
-  d_res <- brute_force_knn(badjaccard,
+  d_res <- brute_force_knn(
+    badjaccard,
     k = 5,
     metric = metric,
     use_alt_metric = FALSE
   )
-  da_res <- brute_force_knn(badjaccard,
+  da_res <- brute_force_knn(
+    badjaccard,
     k = 5,
     metric = metric,
     use_alt_metric = TRUE
@@ -268,12 +275,14 @@ test_that("hellinger", {
   expect_equal(d_res$dist, da_res$dist, tolerance = 1e-7)
 
   # sparse
-  s_res <- brute_force_knn(badjaccards,
+  s_res <- brute_force_knn(
+    badjaccards,
     k = 5,
     metric = metric,
     use_alt_metric = FALSE
   )
-  sa_res <- brute_force_knn(badjaccards,
+  sa_res <- brute_force_knn(
+    badjaccards,
     k = 5,
     metric = metric,
     use_alt_metric = TRUE
@@ -286,12 +295,14 @@ test_that("hellinger", {
 test_that("cosine", {
   metric <- "cosine"
   # dense
-  d_res <- brute_force_knn(badjaccard,
+  d_res <- brute_force_knn(
+    badjaccard,
     k = 5,
     metric = metric,
     use_alt_metric = FALSE
   )
-  da_res <- brute_force_knn(badjaccard,
+  da_res <- brute_force_knn(
+    badjaccard,
     k = 5,
     metric = metric,
     use_alt_metric = TRUE
@@ -301,12 +312,14 @@ test_that("cosine", {
   expect_equal(d_res$dist, da_res$dist, tolerance = 1e-7)
 
   # sparse
-  s_res <- brute_force_knn(badjaccards,
+  s_res <- brute_force_knn(
+    badjaccards,
     k = 5,
     metric = metric,
     use_alt_metric = FALSE
   )
-  sa_res <- brute_force_knn(badjaccards,
+  sa_res <- brute_force_knn(
+    badjaccards,
     k = 5,
     metric = metric,
     use_alt_metric = TRUE
@@ -350,24 +363,28 @@ for (metric in c(
     expect_false(0 %in% s_res$idx)
 
     # sparse should equal dense
-    tolerance <- if (metric %in% c("correlation", "cosine", "jensenshannon")) 1e-5 else 1e-7
+    tolerance <- if (metric %in% c("correlation", "cosine", "jensenshannon"))
+      1e-5 else 1e-7
     if (metric == "symmetrickl") {
       # KL has quite large distances (> 10) so the tolerance needs to be larger
       tolerance <- 1e-3
     }
     expect_equal(d_res$dist, s_res$dist, tolerance = tolerance)
 
-    if (metric %in% c(
-      "dice",
-      "hamming",
-      "jaccard",
-      "kulsinski",
-      "rogerstanimoto",
-      "russellrao",
-      "sokalmichener",
-      "sokalsneath",
-      "yule"
-    )) {
+    if (
+      metric %in%
+        c(
+          "dice",
+          "hamming",
+          "jaccard",
+          "kulsinski",
+          "rogerstanimoto",
+          "russellrao",
+          "sokalmichener",
+          "sokalsneath",
+          "yule"
+        )
+    ) {
       # binary
       b_res <- brute_force_knn(badjaccardb, k = 5, metric = metric)
       expect_false(0 %in% b_res$idx)

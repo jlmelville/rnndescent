@@ -20,7 +20,13 @@ expect_equal(sum(uiris_rnn$dist), 1.347357, tolerance = 1e-3)
 
 # with caching
 set.seed(1337)
-uiris_rnn <- nnd_knn(uirism, 15, metric = "cosine", low_memory = FALSE, n_threads = 1)
+uiris_rnn <- nnd_knn(
+  uirism,
+  15,
+  metric = "cosine",
+  low_memory = FALSE,
+  n_threads = 1
+)
 expect_equal(sum(uiris_rnn$dist), 1.347357, tolerance = 1e-3)
 
 # Query
@@ -29,13 +35,25 @@ context("Query Cosine")
 
 set.seed(1337)
 ui6_nnd <- nnd_knn(ui6, k = 4, metric = "cosine")
-qnbrs4 <- graph_knn_query(reference = ui6, reference_graph = ui6_nnd, query = ui4, k = 4, metric = "cosine")
+qnbrs4 <- graph_knn_query(
+  reference = ui6,
+  reference_graph = ui6_nnd,
+  query = ui4,
+  k = 4,
+  metric = "cosine"
+)
 check_query_nbrs_idx(qnbrs4$idx, nref = nrow(ui6))
 expect_equal(sum(qnbrs4$dist), ui4q_cdsum, tolerance = 1e-5)
 
 set.seed(1337)
 ui4_nnd <- nnd_knn(ui4, k = 4, metric = "cosine")
-qnbrs6 <- graph_knn_query(reference = ui4, reference_graph = ui4_nnd, query = ui6, k = 4, metric = "cosine")
+qnbrs6 <- graph_knn_query(
+  reference = ui4,
+  reference_graph = ui4_nnd,
+  query = ui6,
+  k = 4,
+  metric = "cosine"
+)
 check_query_nbrs_idx(qnbrs6$idx, nref = nrow(ui4))
 expect_equal(sum(qnbrs6$dist), ui6q_cdsum, tolerance = 1e-5)
 
@@ -52,7 +70,12 @@ expect_equal(sum(uiris_rnn$dist), 1.347357, tolerance = 1e-3)
 
 # Cosine distance
 set.seed(1337)
-uiris_rnn <- nnd_knn(uirism, 15, low_memory = FALSE, metric = "cosine-preprocess")
+uiris_rnn <- nnd_knn(
+  uirism,
+  15,
+  low_memory = FALSE,
+  metric = "cosine-preprocess"
+)
 # expected sum from RcppHNSW
 expect_equal(sum(uiris_rnn$dist), 1.347357, tolerance = 1e-3)
 
@@ -63,7 +86,13 @@ expect_equal(sum(uiris_rnn$dist), 1.347357, tolerance = 1e-3)
 
 # with caching
 set.seed(1337)
-uiris_rnn <- nnd_knn(uirism, 15, metric = "cosine-preprocess", low_memory = FALSE, n_threads = 1)
+uiris_rnn <- nnd_knn(
+  uirism,
+  15,
+  metric = "cosine-preprocess",
+  low_memory = FALSE,
+  n_threads = 1
+)
 expect_equal(sum(uiris_rnn$dist), 1.347357, tolerance = 1e-3)
 
 # Query
@@ -72,19 +101,32 @@ context("Cosine-Preprocess queries")
 
 set.seed(1337)
 ui6_nnd <- nnd_knn(ui6, k = 4, metric = "cosine-preprocess")
-qnbrs4 <- graph_knn_query(reference = ui6, reference_graph = ui6_nnd, query = ui4, k = 4, metric = "cosine-preprocess")
+qnbrs4 <- graph_knn_query(
+  reference = ui6,
+  reference_graph = ui6_nnd,
+  query = ui4,
+  k = 4,
+  metric = "cosine-preprocess"
+)
 check_query_nbrs_idx(qnbrs4$idx, nref = nrow(ui6))
 expect_equal(sum(qnbrs4$dist), ui4q_cdsum, tolerance = 1e-5)
 
 set.seed(1337)
 ui4_nnd <- nnd_knn(ui4, k = 4, metric = "cosine-preprocess")
-qnbrs6 <- graph_knn_query(reference = ui4, reference_graph = ui4_nnd, query = ui6, k = 4, metric = "cosine-preprocess")
+qnbrs6 <- graph_knn_query(
+  reference = ui4,
+  reference_graph = ui4_nnd,
+  query = ui6,
+  k = 4,
+  metric = "cosine-preprocess"
+)
 check_query_nbrs_idx(qnbrs6$idx, nref = nrow(ui4))
 expect_equal(sum(qnbrs6$dist), ui6q_cdsum, tolerance = 1e-5)
 
 # metric correction
 
 # random numbers including 0 and 1
+# fmt: skip
 alt_cos <- matrix(c(
   0.094763154, 0.00988037,
   0.028532648, 0.02815395,
@@ -94,6 +136,7 @@ alt_cos <- matrix(c(
 ), nrow = 5, byrow = TRUE)
 
 # results from pynndescent.sparse.sparse_correct_alternative_cosine
+# fmt: skip
 cor_cos <- matrix(
   c(
     0.06357403, 0.00682515,
@@ -113,10 +156,22 @@ test_that("sparse", {
   set.seed(1337)
   dznbrs <- nnd_knn(ui10z, k = 4, n_threads = 0, metric = "cosine")
   set.seed(1337)
-  spnbrs <- nnd_knn(ui10sp, k = 4, n_threads = 0, metric = "cosine", use_alt_metric = TRUE)
+  spnbrs <- nnd_knn(
+    ui10sp,
+    k = 4,
+    n_threads = 0,
+    metric = "cosine",
+    use_alt_metric = TRUE
+  )
   expect_equal(dznbrs, spnbrs, tolerance = 1e-5)
   set.seed(1337)
-  spnbrs <- nnd_knn(ui10sp, k = 4, n_threads = 0, metric = "cosine", use_alt_metric = FALSE)
+  spnbrs <- nnd_knn(
+    ui10sp,
+    k = 4,
+    n_threads = 0,
+    metric = "cosine",
+    use_alt_metric = FALSE
+  )
   expect_equal(dznbrs, spnbrs, tolerance = 1e-5)
 
   # make sure uncorrection is triggered: nnd with incorrect distances will not converge
@@ -124,9 +179,21 @@ test_that("sparse", {
   set.seed(1337)
   cosrz <- random_knn(ui10z, k = 4, metric = "cosine")
   set.seed(1337)
-  spannd <- nnd_knn(ui10sp, k = 4, metric = "cosine", init = cosrz, use_alt_metric = TRUE)
+  spannd <- nnd_knn(
+    ui10sp,
+    k = 4,
+    metric = "cosine",
+    init = cosrz,
+    use_alt_metric = TRUE
+  )
   set.seed(1337)
-  spcnnd <- nnd_knn(ui10sp, k = 4, metric = "cosine", init = cosrz, use_alt_metric = FALSE)
+  spcnnd <- nnd_knn(
+    ui10sp,
+    k = 4,
+    metric = "cosine",
+    init = cosrz,
+    use_alt_metric = FALSE
+  )
 
   expect_equal(spannd, bfz, tolerance = 1e-3)
   expect_equal(spcnnd, bfz, tolerance = 1e-4)
@@ -134,9 +201,21 @@ test_that("sparse", {
   # make sure init graph can be prepared from sparse
   cosrz$dist <- NULL
   set.seed(1337)
-  spannd <- nnd_knn(ui10sp, k = 4, metric = "cosine", init = cosrz, use_alt_metric = TRUE)
+  spannd <- nnd_knn(
+    ui10sp,
+    k = 4,
+    metric = "cosine",
+    init = cosrz,
+    use_alt_metric = TRUE
+  )
   set.seed(1337)
-  spcnnd <- nnd_knn(ui10sp, k = 4, metric = "cosine", init = cosrz, use_alt_metric = FALSE)
+  spcnnd <- nnd_knn(
+    ui10sp,
+    k = 4,
+    metric = "cosine",
+    init = cosrz,
+    use_alt_metric = FALSE
+  )
 
   expect_equal(spannd, bfz, tolerance = 1e-5)
   expect_equal(spcnnd, bfz, tolerance = 1e-5)

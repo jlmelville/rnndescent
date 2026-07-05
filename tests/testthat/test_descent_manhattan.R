@@ -24,8 +24,11 @@ expect_equal(sum(juiris_rnn$dist), expected_sum, tolerance = 1e-3)
 
 # high memory + multi-threading
 set.seed(1337)
-juiris_rnn <- nnd_knn(juirism, 15,
-  metric = "manhattan", n_threads = 1,
+juiris_rnn <- nnd_knn(
+  juirism,
+  15,
+  metric = "manhattan",
+  n_threads = 1,
   low_memory = FALSE
 )
 expect_equal(sum(juiris_rnn$dist), expected_sum, tolerance = 1e-3)
@@ -36,12 +39,24 @@ context("Manhattan queries")
 
 set.seed(1337)
 ui6_nnd <- nnd_knn(ui6, k = 4, metric = "manhattan")
-qnbrs4 <- graph_knn_query(reference = ui6, reference_graph = ui6_nnd, query = ui4, k = 4, metric = "manhattan")
+qnbrs4 <- graph_knn_query(
+  reference = ui6,
+  reference_graph = ui6_nnd,
+  query = ui4,
+  k = 4,
+  metric = "manhattan"
+)
 check_query_nbrs_idx(qnbrs4$idx, nref = nrow(ui6))
 expect_equal(sum(qnbrs4$dist), ui4q_mdsum, tolerance = 1e-6)
 
 set.seed(1337)
 ui4_nnd <- nnd_knn(ui4, k = 4, metric = "manhattan")
-qnbrs6 <- graph_knn_query(reference = ui4, reference_graph = ui4_nnd, query = ui6, k = 4, metric = "manhattan")
+qnbrs6 <- graph_knn_query(
+  reference = ui4,
+  reference_graph = ui4_nnd,
+  query = ui6,
+  k = 4,
+  metric = "manhattan"
+)
 check_query_nbrs_idx(qnbrs6$idx, nref = nrow(ui4))
 expect_equal(sum(qnbrs6$dist), ui6q_mdsum, tolerance = 1e-6)
