@@ -7,6 +7,9 @@
 - Number of striped locks in the parallel nearest neighbor descent has
   been increased. Provides a modest (typically single digit percent)
   performance improvement with 4-8 threads.
+- [`neighbor_overlap()`](https://jlmelville.github.io/rnndescent/reference/neighbor_overlap.md)
+  no longer counts the missing-neighbor sentinel `0` as a shared
+  neighbor.
 
 ## rnndescent 0.2.0
 

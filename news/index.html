@@ -49,6 +49,8 @@
 <div class="section level3">
 <h3 id="bug-fixes-and-minor-improvements-development-version">Bug fixes and minor improvements<a class="anchor" aria-label="anchor" href="#bug-fixes-and-minor-improvements-development-version"></a></h3>
 <ul><li>Number of striped locks in the parallel nearest neighbor descent has been increased. Provides a modest (typically single digit percent) performance improvement with 4-8 threads.</li>
+<li>
+<code><a href="../reference/neighbor_overlap.html">neighbor_overlap()</a></code> no longer counts the missing-neighbor sentinel <code>0</code> as a shared neighbor.</li>
 </ul></div>
 </div>
     <div class="section level2">
