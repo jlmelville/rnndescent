@@ -455,6 +455,57 @@ test_that("rpf_filter validates neighbor graph contents", {
   )
 })
 
+test_that("rp tree query validates malformed forest objects", {
+  forest <- rpf_build(ui6, n_trees = 1, leaf_size = 3, n_threads = 0)
+
+  expect_error(
+    rpf_knn_query(ui4, ui6, forest = TRUE, k = 4, n_threads = 0),
+    "Bad forest format: not a list"
+  )
+
+  missing_margin <- forest
+  missing_margin$margin <- NULL
+  expect_error(
+    rpf_knn_query(ui4, ui6, forest = missing_margin, k = 4, n_threads = 0),
+    "Bad forest format: no 'margin' specified"
+  )
+
+  sparse_flag <- forest
+  sparse_flag$sparse <- TRUE
+  expect_error(
+    rpf_knn_query(ui4, ui6, forest = sparse_flag, k = 4, n_threads = 0),
+    "Incompatible sparse forest used with dense input data"
+  )
+
+  dense_flag <- forest
+  dense_flag$sparse <- FALSE
+  expect_error(
+    rpf_knn_query(
+      ui10sp4,
+      ui10sp6,
+      forest = dense_flag,
+      k = 4,
+      n_threads = 0
+    ),
+    "Incompatible dense forest used with sparse input data"
+  )
+})
+
+test_that("rpf_filter validates missing and empty forests", {
+  nn <- brute_force_knn(ui10, k = 4, n_threads = 0)
+  expect_error(
+    rpf_filter(nn, n_threads = 0),
+    "Must provide 'forest' parameter"
+  )
+
+  forest_knn <- rpf_knn(ui10, k = 4, ret_forest = TRUE, n_threads = 0)
+  forest_knn$forest$trees <- list()
+  expect_error(
+    rpf_filter(forest_knn, n_threads = 0),
+    "Invalid forest: no trees"
+  )
+})
+
 set.seed(1337)
 expect_equal(
   rpf_build(ui10, metric = "euclidean", leaf_size = 4, n_threads = 0),
@@ -831,7 +882,7 @@ test_that("sparse implicit margin", {
       forest = dforest6,
       k = 4
     ),
-    "sparse forest"
+    "dense forest"
   )
   # hack the forest to force it to work with sparse
   dforest6$sparse <- TRUE
