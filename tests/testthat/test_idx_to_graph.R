@@ -192,6 +192,16 @@ test_that("malformed init graphs are rejected before distance recalculation", {
     prepare_init_graph(
       query = t(qry),
       data = t(ref),
+      nn = matrix(NA_integer_, nrow = 1, ncol = 1),
+      k = 1
+    ),
+    "initial neighbor graph indices must not be NA; use 0 for missing entries"
+  )
+
+  expect_error(
+    prepare_init_graph(
+      query = t(qry),
+      data = t(ref),
       nn = matrix(c(1L, 2L), nrow = 2, ncol = 1),
       k = 1
     ),

@@ -700,6 +700,40 @@ expect_error(
 )
 mini_ref <- matrix(c(0, 0, 1, 1, 2, 2), ncol = 2, byrow = TRUE)
 mini_ref_graph <- nnd_knn(mini_ref, k = 1)
+bad_ref_graph <- mini_ref_graph
+bad_ref_graph$idx[1, 1] <- NA_integer_
+expect_error(
+  graph_knn_query(
+    reference = mini_ref,
+    reference_graph = bad_ref_graph,
+    query = matrix(c(2, 2), nrow = 1),
+    k = 1
+  ),
+  "reference_graph indices must not be NA; use 0 for missing entries"
+)
+expect_error(
+  graph_knn_query(
+    reference = mini_ref,
+    reference_graph = Matrix::sparseMatrix(
+      i = c(1L, 2L, 3L),
+      j = c(2L, 3L, 1L),
+      x = c(1, 1, 1),
+      dims = c(3L, 3L)
+    ),
+    query = matrix(c(2, 2), nrow = 1)
+  ),
+  "Must provide k"
+)
+expect_error(
+  graph_knn_query(
+    reference = mini_ref,
+    reference_graph = mini_ref_graph,
+    query = matrix(c(2, 2), nrow = 1),
+    init = TRUE,
+    k = 1
+  ),
+  "Unsupported type of 'init'"
+)
 expect_error(
   graph_knn_query(
     reference = mini_ref,
@@ -859,6 +893,81 @@ test_that("sparse", {
     k = 4
   )
   expect_equal(sq4, dq4, tolerance = 1e-6)
+})
+
+test_that("query APIs reject mixed sparse/dense and logical/numeric inputs", {
+  dense_ref <- matrix(c(0, 0, 1, 1, 2, 2), ncol = 2, byrow = TRUE)
+  dense_query <- matrix(c(0.5, 0.5, 1.5, 1.5), ncol = 2, byrow = TRUE)
+  sparse_ref <- Matrix::drop0(dense_ref)
+  sparse_query <- Matrix::drop0(dense_query)
+
+  sparse_msg <- "Either both or none of query and reference can be sparse"
+  expect_error(
+    brute_force_knn_query(query = dense_query, reference = sparse_ref, k = 1),
+    sparse_msg
+  )
+  expect_error(
+    random_knn_query(query = sparse_query, reference = dense_ref, k = 1),
+    sparse_msg
+  )
+  expect_error(
+    graph_knn_query(
+      query = dense_query,
+      reference = sparse_ref,
+      reference_graph = NULL,
+      k = 1
+    ),
+    sparse_msg
+  )
+  expect_error(
+    rpf_knn_query(
+      query = sparse_query,
+      reference = dense_ref,
+      forest = NULL,
+      k = 1
+    ),
+    sparse_msg
+  )
+
+  logical_ref <- matrix(
+    c(TRUE, FALSE, FALSE, TRUE, TRUE, TRUE),
+    ncol = 2,
+    byrow = TRUE
+  )
+  logical_query <- matrix(c(TRUE, TRUE, FALSE, TRUE), ncol = 2, byrow = TRUE)
+  numeric_ref <- matrix(as.numeric(logical_ref), nrow = nrow(logical_ref))
+  numeric_query <- matrix(
+    as.numeric(logical_query),
+    nrow = nrow(logical_query)
+  )
+
+  logical_msg <- "Either both or none of query and reference can be logical"
+  expect_error(
+    brute_force_knn_query(query = numeric_query, reference = logical_ref, k = 1),
+    logical_msg
+  )
+  expect_error(
+    random_knn_query(query = logical_query, reference = numeric_ref, k = 1),
+    logical_msg
+  )
+  expect_error(
+    graph_knn_query(
+      query = numeric_query,
+      reference = logical_ref,
+      reference_graph = NULL,
+      k = 1
+    ),
+    logical_msg
+  )
+  expect_error(
+    rpf_knn_query(
+      query = logical_query,
+      reference = numeric_ref,
+      forest = NULL,
+      k = 1
+    ),
+    logical_msg
+  )
 })
 
 test_that("descent and graph query normalize non-dgC sparse inputs", {

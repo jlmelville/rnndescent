@@ -25,3 +25,30 @@ test_that("overlap range", {
   expect_gte(min(rov$overlaps), 0)
   expect_lte(min(rov$overlaps), 1)
 })
+
+test_that("missing neighbor sentinel does not count as overlap", {
+  # fmt: skip
+  idx <- matrix(
+    c(
+      1L, 0L,
+      1L, 0L,
+      1L, 0L
+    ),
+    nrow = 3,
+    byrow = TRUE
+  )
+  # fmt: skip
+  ref_idx <- matrix(
+    c(
+      2L, 0L,
+      1L, 0L,
+      0L, 0L
+    ),
+    nrow = 3,
+    byrow = TRUE
+  )
+
+  ov <- neighbor_overlap(idx, ref_idx, k = 2, ret_vec = TRUE)
+  expect_equal(ov$overlaps, c(0, 0.5, 0))
+  expect_equal(ov$mean, mean(c(0, 0.5, 0)))
+})

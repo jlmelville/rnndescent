@@ -77,6 +77,12 @@ test_that("merge_knn rejects malformed graph indices", {
     "NN graph indices must be between 1 and 4 or 0 for missing entries"
   )
 
+  bad_knn$idx[1, 1] <- NA_integer_
+  expect_error(
+    merge_knn(list(bad_knn)),
+    "NN graph indices must not be NA; use 0 for missing entries"
+  )
+
   bad_query <- list(
     idx = matrix(c(-1L, 2L, 3L, 4L), nrow = 2),
     dist = matrix(c(1, 2, 3, 4), nrow = 2)

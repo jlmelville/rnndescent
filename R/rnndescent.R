@@ -2815,8 +2815,10 @@ neighbor_overlapv <-
 
     total_intersect <- rep(0, times = n)
     for (i in 1:n) {
+      nbrs <- idx[i, nbr_range]
+      ref_nbrs <- ref_idx[i, ref_range]
       total_intersect[i] <-
-        length(intersect(idx[i, nbr_range], ref_idx[i, ref_range]))
+        length(intersect(nbrs[nbrs != 0L], ref_nbrs[ref_nbrs != 0L]))
     }
 
     total_intersect / k

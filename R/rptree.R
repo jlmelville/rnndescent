@@ -569,11 +569,12 @@ rpf_knn_query <- function(
   if (is.null(forest$margin)) {
     stop("Bad forest format: no 'margin' specified")
   }
-  if (is_sparse(reference) && !forest$sparse) {
-    stop("Incompatible sparse forest used with dense input data")
-  }
-  if (!is_sparse(reference) && forest$sparse) {
+  reference_is_sparse <- is_sparse(reference)
+  if (reference_is_sparse && !isTRUE(forest$sparse)) {
     stop("Incompatible dense forest used with sparse input data")
+  }
+  if (!reference_is_sparse && isTRUE(forest$sparse)) {
+    stop("Incompatible sparse forest used with dense input data")
   }
   check_rpforest_matches_reference(forest, n_obs(reference), n_features)
 
