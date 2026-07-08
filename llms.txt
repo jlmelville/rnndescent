@@ -49,7 +49,7 @@ install.packages("rnndescent")
 ``` r
 
 # install.packages("pak")
-pak::pkg_install("jlmelville/rnndescent")
+pak::pak("jlmelville/rnndescent")
 ```
 
 This packages makes use of C++ code which must be compiled. You may have
