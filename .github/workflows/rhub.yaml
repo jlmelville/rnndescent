@@ -73,7 +73,7 @@ jobs:
           token: ${{ secrets.RHUB_TOKEN }}
           job-config: ${{ matrix.config.job-config }}
       # Pinned to a full-length commit SHA for immutability; Dependabot updates this reference.
-      - uses: r-hub/actions/run-check@4b161272a59fcd8192e5bd5e6ce183c025cb80fa
+      - uses: r-hub/actions/run-check@31960d331f579d85cb0c868fce1dce2aaf132935
         with:
           token: ${{ secrets.RHUB_TOKEN }}
           job-config: ${{ matrix.config.job-config }}
@@ -108,7 +108,7 @@ jobs:
           job-config: ${{ matrix.config.job-config }}
           token: ${{ secrets.RHUB_TOKEN }}
       # Pinned to a full-length commit SHA for immutability; Dependabot updates this reference.
-      - uses: r-hub/actions/run-check@4b161272a59fcd8192e5bd5e6ce183c025cb80fa
+      - uses: r-hub/actions/run-check@31960d331f579d85cb0c868fce1dce2aaf132935
         with:
           job-config: ${{ matrix.config.job-config }}
           token: ${{ secrets.RHUB_TOKEN }}
