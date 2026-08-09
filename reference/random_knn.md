@@ -187,16 +187,16 @@ iris_nn <- random_knn(iris, k = 4, metric = "manhattan", n_threads = 1)
 
 # Use verbose flag to see information about progress
 iris_nn <- random_knn(iris, k = 4, metric = "euclidean", verbose = TRUE)
-#> 16:47:36 Using alt metric 'sqeuclidean' for 'euclidean'
-#> 16:47:36 Generating random k-nearest neighbor graph with k = 4
-#> 16:47:36 Finished
+#> 16:51:29 Using alt metric 'sqeuclidean' for 'euclidean'
+#> 16:51:29 Generating random k-nearest neighbor graph with k = 4
+#> 16:51:29 Finished
 
 # These results can be improved by nearest neighbors descent. You don't need
 # to specify k here because this is worked out from the initial input
 iris_nn <- nnd_knn(iris, init = iris_nn, metric = "euclidean", verbose = TRUE)
-#> 16:47:36 Using alt metric 'sqeuclidean' for 'euclidean'
-#> 16:47:36 Initializing from user-supplied graph
-#> 16:47:36 Applying metric correction to initial distances from 'euclidean' to 'sqeuclidean'
-#> 16:47:36 Running nearest neighbor descent for 7 iterations
-#> 16:47:36 Finished
+#> 16:51:29 Using alt metric 'sqeuclidean' for 'euclidean'
+#> 16:51:29 Initializing from user-supplied graph
+#> 16:51:29 Applying metric correction to initial distances from 'euclidean' to 'sqeuclidean'
+#> 16:51:29 Running nearest neighbor descent for 7 iterations
+#> 16:51:29 Finished
 ```
