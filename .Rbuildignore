@@ -8,6 +8,7 @@
 ^appveyor\.yml$
 ^codecov\.yml$
 ^\.lintr$
+^\.clang-format$
 ^air\.toml$
 ^.*\/*DONTCHECKMEIN.*$
 ^\.github$
