@@ -5,7 +5,6 @@
 ^README\.md$
 ^LICENSE\.md$
 ^\.travis\.yml$
-^appveyor\.yml$
 ^codecov\.yml$
 ^\.lintr$
 ^\.clang-format$
