@@ -8,7 +8,6 @@ This is a new minor release to fix a CRAN warning, plus some new features.
 * Fedora 42 (on rhub) devel valgrind
 * local ubuntu 26.04 R 4.5.2
 * ubuntu 24.04 (on github actions), R 4.5.3, R 4.6.0, devel
-* Windows Server 2012 (on appveyor) R 4.6.0 Patched
 * Windows Server 2022 (on github actions), R 4.5.3, R 4.6.0
 * local Windows 11 build, R 4.6.0
 * win-builder (devel)
