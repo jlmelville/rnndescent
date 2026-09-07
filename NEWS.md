@@ -6,6 +6,8 @@
   modest (typically single digit percent) performance improvement with 4-8 threads.
 * `neighbor_overlap()` no longer counts the missing-neighbor sentinel `0` as a
   shared neighbor.
+* The supported installed C++ headers and their compilation requirements are
+  now documented and checked with GCC and Clang.
 
 # rnndescent 0.2.0
 

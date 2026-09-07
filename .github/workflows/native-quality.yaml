@@ -1,0 +1,91 @@
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - .github/workflows/native-quality.yaml
+      - DESCRIPTION
+      - NEWS.md
+      - README.md
+      - inst/include/**
+      - tools/native-quality.sh
+      - tools/test-pforr-exception-transport.cpp
+      - tools/test-pforr-exception-transport.sh
+      - tools/tsan-pforr.sh
+  pull_request:
+    branches: [main, master]
+    paths:
+      - .github/workflows/native-quality.yaml
+      - DESCRIPTION
+      - NEWS.md
+      - README.md
+      - inst/include/**
+      - tools/native-quality.sh
+      - tools/test-pforr-exception-transport.cpp
+      - tools/test-pforr-exception-transport.sh
+      - tools/tsan-pforr.sh
+  workflow_dispatch:
+
+name: Native quality
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  native-quality:
+    name: Supported C++ headers
+    runs-on: ubuntu-24.04
+    steps:
+      # Pinned to a full-length commit SHA for immutability; Dependabot updates this reference.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+
+      # Pinned to a full-length commit SHA for immutability; Dependabot updates this reference.
+      - uses: r-lib/actions/setup-r@465b7d8e732ca3921382b1674c59bada9cbf3399
+        with:
+          use-public-rspm: true
+
+      # Pinned to a full-length commit SHA for immutability; Dependabot updates this reference.
+      - uses: r-lib/actions/setup-r-dependencies@465b7d8e732ca3921382b1674c59bada9cbf3399
+        with:
+          packages: deps::.
+          dependencies: '"hard"'
+
+      - name: Install native tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends \
+            clang \
+            libc++-dev \
+            libc++abi-dev \
+            shellcheck
+
+      - name: Check native scripts
+        run: |
+          bash -n \
+            tools/native-quality.sh \
+            tools/test-pforr-exception-transport.sh \
+            tools/tsan-pforr.sh
+          shellcheck \
+            tools/native-quality.sh \
+            tools/test-pforr-exception-transport.sh \
+            tools/tsan-pforr.sh
+
+      - name: Check supported C++ headers
+        run: tools/native-quality.sh
+
+  thread-sanitizer:
+    name: ThreadSanitizer
+    runs-on: ubuntu-24.04
+    steps:
+      # Pinned to a full-length commit SHA for immutability; Dependabot updates this reference.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+
+      - name: Check parallel exception transport
+        run: tools/tsan-pforr.sh

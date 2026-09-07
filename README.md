@@ -76,6 +76,22 @@ side, I would advise building without a custom `Makevars`.
 `rnndescent` uses C++17. This shouldn't be too big a problem but not all R 
 platforms support it (sorry if this affects you).
 
+## Supported C++ headers
+
+Downstream R packages can use these installed headers by adding `rnndescent` to
+their `LinkingTo` field:
+
+* `pforr.h` provides parallel loops, requires C++11 and threads, and otherwise
+  depends only on the C++ standard library.
+* `rnndescent/random.h` provides the package's random-number adapters, requires
+  C++17 and R, and also requires the `Rcpp`, `dqrng` and `BH` headers. Add those
+  packages to `LinkingTo` as well.
+* `tdoann/distance.h` provides distance functions, requires C++17, and depends
+  only on the C++ standard library.
+
+Other installed C++ headers are implementation details and are not supported
+as direct include entry points.
+
 ## Example
 
 ```R
