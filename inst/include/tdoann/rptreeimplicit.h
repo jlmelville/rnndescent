@@ -268,7 +268,7 @@ template <typename Idx> struct SearchTreeImplicit {
   SearchTreeImplicit() = default;
 
   SearchTreeImplicit(std::size_t n_nodes, std::size_t n_points,
-                     std::size_t ndim, Idx lsize)
+                     std::size_t /* ndim */, Idx lsize)
       : normal_indices(n_nodes, std::make_pair(static_cast<Idx>(-1),
                                                static_cast<Idx>(-1))),
         children(n_nodes, std::make_pair(static_cast<std::size_t>(-1),

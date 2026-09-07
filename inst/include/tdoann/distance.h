@@ -237,8 +237,8 @@ Out haversine(const It xbegin, const It xend, const It ybegin) {
 
   const Out sin_lat = std::sin(static_cast<Out>(0.5) * (lat1 - lat2));
   const Out sin_lon = std::sin(static_cast<Out>(0.5) * (lon1 - lon2));
-  const Out a = sin_lat * sin_lat +
-                std::cos(lat1) * std::cos(lat2) * sin_lon * sin_lon;
+  const Out a =
+      sin_lat * sin_lat + std::cos(lat1) * std::cos(lat2) * sin_lon * sin_lon;
   const Out clamped = std::clamp(a, Out{0}, Out{1});
   return static_cast<Out>(2) * std::asin(std::sqrt(clamped));
 }
@@ -575,7 +575,8 @@ template <typename Out, typename It> Out tsss(It xbegin, It xend, It ybegin) {
   // very real chance of d_cos being outside [-1, 1] range and causing acos
   // to give a NaN when comparing a point with itself
   d_cos = std::clamp(d_cos, Out{-1}, Out{1});
-  Out theta = std::acos(d_cos) + (pi_v<Out> / 18.0); // Add 10 degrees in radians
+  Out theta =
+      std::acos(d_cos) + (pi_v<Out> / 18.0); // Add 10 degrees in radians
 
   Out sector =
       std::pow((std::sqrt(d_euc_squared) + magnitude_difference), 2) * theta;

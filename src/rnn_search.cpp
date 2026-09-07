@@ -51,9 +51,8 @@ template <typename Out, typename Idx>
 List nn_query_impl(const tdoann::BaseDistance<Out, Idx> &distance,
                    const List &reference_graph_list,
                    const IntegerMatrix &nn_idx, const NumericMatrix &nn_dist,
-                   const std::string &metric, double epsilon,
-                   double max_search_fraction, std::size_t n_threads,
-                   bool verbose) {
+                   double epsilon, double max_search_fraction,
+                   std::size_t n_threads, bool verbose) {
   const auto search_graph = r_to_sparse_graph<Out, Idx>(reference_graph_list);
   auto nn_heap = r_to_query_heap<tdoann::NNHeap<Out, Idx>>(nn_idx, nn_dist);
 
@@ -95,9 +94,9 @@ List nn_query_impl(const tdoann::BaseDistance<Out, Idx> &distance,
       sum_counts += count;
     }
     double avg_count = distance_counts.empty()
-      ? 0.0
-      : static_cast<double>(sum_counts) /
-          static_cast<double>(distance_counts.size());
+                           ? 0.0
+                           : static_cast<double>(sum_counts) /
+                                 static_cast<double>(distance_counts.size());
 
     tsmessage() << "min distance calculation = " << min_count << " ("
                 << fmt_double(100.0 * min_count / n_points)
@@ -121,8 +120,7 @@ List rnn_query(const NumericMatrix &reference, const List &reference_graph_list,
                std::size_t n_threads, bool verbose) {
   auto distance_ptr = create_query_distance(reference, query, metric);
   return nn_query_impl(*distance_ptr, reference_graph_list, nn_idx, nn_dist,
-                       metric, epsilon, max_search_fraction, n_threads,
-                       verbose);
+                       epsilon, max_search_fraction, n_threads, verbose);
 }
 
 // [[Rcpp::export]]
@@ -134,8 +132,7 @@ List rnn_logical_query(const LogicalMatrix &reference,
                        std::size_t n_threads, bool verbose) {
   auto distance_ptr = create_query_distance(reference, query, metric);
   return nn_query_impl(*distance_ptr, reference_graph_list, nn_idx, nn_dist,
-                       metric, epsilon, max_search_fraction, n_threads,
-                       verbose);
+                       epsilon, max_search_fraction, n_threads, verbose);
 }
 
 // [[Rcpp::export]]
@@ -151,8 +148,7 @@ List rnn_sparse_query(
       create_sparse_query_distance(ref_ind, ref_ptr, ref_data, query_ind,
                                    query_ptr, query_data, ndim, metric);
   return nn_query_impl(*distance_ptr, reference_graph_list, nn_idx, nn_dist,
-                       metric, epsilon, max_search_fraction, n_threads,
-                       verbose);
+                       epsilon, max_search_fraction, n_threads, verbose);
 }
 
 // NOLINTEND(cppcoreguidelines-avoid-magic-numbers,modernize-use-trailing-return-type,readability-magic-numbers)

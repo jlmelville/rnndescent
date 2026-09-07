@@ -63,8 +63,7 @@ auto kth_smallest_distance(const SparseNNGraph<Out, Idx> &graph,
 
   // k_small is 1-based, but nth_element expects a 0-based iterator.
   const auto kth = k_small - 1;
-  std::nth_element(distances.begin(), distances.begin() + kth,
-                   distances.end());
+  std::nth_element(distances.begin(), distances.begin() + kth, distances.end());
   return distances[kth];
 }
 

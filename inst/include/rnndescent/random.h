@@ -112,7 +112,6 @@ private:
   std::shared_ptr<dqrng::random_64bit_generator> rng;
 
 public:
-
   // Not thread safe
   DQIntSampler() : rng(create_dqrng()) {
     auto seed1 = r_seed();
@@ -139,7 +138,6 @@ public:
   }
 };
 
-
 template <typename Int, template <typename> class RNG>
 class ParallelIntRNGAdapter : public tdoann::ParallelRandomIntProvider<Int> {
 private:
@@ -157,9 +155,9 @@ public:
   // random numbers in each window, but they are related to the random number
   // seed
   std::unique_ptr<tdoann::RandomIntGenerator<Int>>
-    get_parallel_instance(uint64_t seed2) override {
-      return std::make_unique<RNG<Int>>(seed, seed2);
-    }
+  get_parallel_instance(uint64_t seed2) override {
+    return std::make_unique<RNG<Int>>(seed, seed2);
+  }
 };
 
 } // namespace rnndescent

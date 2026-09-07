@@ -938,8 +938,7 @@ Out sparse_kulsinski(
 
 template <typename Out, typename DataIt>
 std::pair<std::vector<Out>, Out>
-sparse_rankdata(typename std::vector<std::size_t>::const_iterator ind_start,
-                std::size_t ind_size, DataIt data_start, std::size_t ndim) {
+sparse_rankdata(std::size_t ind_size, DataIt data_start, std::size_t ndim) {
   // Rank the non-zero data using dense rankdata function
   auto ranks = rankdata<Out>(data_start, data_start + ind_size);
 
@@ -981,10 +980,8 @@ Out sparse_spearmanr(
   // Calculate the mean of ranks
   Out mean = (ndim + 1) / Out{2};
 
-  auto [x_rank, x_rank0] =
-      sparse_rankdata<Out>(ind1_start, ind1_size, data1_start, ndim);
-  auto [y_rank, y_rank0] =
-      sparse_rankdata<Out>(ind2_start, ind2_size, data2_start, ndim);
+  auto [x_rank, x_rank0] = sparse_rankdata<Out>(ind1_size, data1_start, ndim);
+  auto [y_rank, y_rank0] = sparse_rankdata<Out>(ind2_size, data2_start, ndim);
 
   const auto xc0 = x_rank0 < 0 ? 0 : x_rank0 - mean;
   const auto yc0 = y_rank0 < 0 ? 0 : y_rank0 - mean;
@@ -1303,7 +1300,8 @@ template <typename Out, typename DataIt>
 Out sparse_tsss(typename std::vector<std::size_t>::const_iterator ind1_start,
                 std::size_t ind1_size, DataIt data1_start,
                 typename std::vector<std::size_t>::const_iterator ind2_start,
-                std::size_t ind2_size, DataIt data2_start, std::size_t ndim) {
+                std::size_t ind2_size, DataIt data2_start,
+                std::size_t /* ndim */) {
 
   Out d_euc_squared = 0;
   Out d_cos = 0;
@@ -1358,7 +1356,8 @@ Out sparse_tsss(typename std::vector<std::size_t>::const_iterator ind1_start,
   Out magnitude_difference = std::abs(norm_x - norm_y);
   d_cos /= norm_x * norm_y;
   d_cos = std::clamp(d_cos, Out{-1}, Out{1});
-  Out theta = std::acos(d_cos) + (pi_v<Out> / 18.0); // Add 10 degrees in radians
+  Out theta =
+      std::acos(d_cos) + (pi_v<Out> / 18.0); // Add 10 degrees in radians
 
   Out sector =
       std::pow((std::sqrt(d_euc_squared) + magnitude_difference), 2) * theta;
@@ -1424,9 +1423,9 @@ Out sparse_symmetric_kl_divergence(
 }
 
 template <typename In, typename Out>
-void sparse_normalize(const std::vector<std::size_t> &ind,
+void sparse_normalize(const std::vector<std::size_t> & /* ind */,
                       const std::vector<std::size_t> &ptr,
-                      std::vector<In> &data, std::size_t ndim) {
+                      std::vector<In> &data, std::size_t /* ndim */) {
 
   constexpr Out MIN_NORM = std::numeric_limits<Out>::min();
 

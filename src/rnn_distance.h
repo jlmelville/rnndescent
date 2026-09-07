@@ -178,9 +178,8 @@ inline void validate_haversine_radians(const std::vector<In> &data,
     const In lat = data[offset];
     const In lon = data[offset + 1];
     if (std::abs(lat) > max_lat + tol || std::abs(lon) > max_lon + tol) {
-      Rcpp::stop(
-          "haversine expects radians; latitude must be in [-pi/2, pi/2] "
-          "and longitude in [-2*pi, 2*pi]");
+      Rcpp::stop("haversine expects radians; latitude must be in [-pi/2, pi/2] "
+                 "and longitude in [-2*pi, 2*pi]");
     }
   }
 }

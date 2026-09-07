@@ -1,0 +1,2 @@
+clang-format==21.1.8 \
+    --hash=sha256:d12b864b596b80810cdd7f97556c485dc09cfe2952503958535f01359e025fbb

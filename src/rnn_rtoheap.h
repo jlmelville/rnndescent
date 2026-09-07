@@ -34,8 +34,8 @@
 template <typename NbrHeap>
 void r_add_to_knn_heap(NbrHeap &heap, const Rcpp::IntegerMatrix &nn_idx,
                        const Rcpp::NumericMatrix &nn_dist,
-                       std::size_t n_threads, bool missing_ok = true,
-                       int max_idx = RNND_MAX_IDX, bool transpose = true) {
+                       std::size_t n_threads, int max_idx = RNND_MAX_IDX,
+                       bool transpose = true) {
   auto nn_idxv = r_to_idx<typename NbrHeap::Index>(nn_idx, max_idx);
   auto nn_distv = Rcpp::as<std::vector<typename NbrHeap::DistanceOut>>(nn_dist);
   std::size_t n_points = nn_dist.nrow();
@@ -47,20 +47,10 @@ void r_add_to_knn_heap(NbrHeap &heap, const Rcpp::IntegerMatrix &nn_idx,
 }
 
 template <typename NbrHeap>
-void r_add_to_knn_heap(NbrHeap &heap, const Rcpp::IntegerMatrix &nn_idx,
-                       const Rcpp::NumericMatrix &nn_dist,
-                       bool missing_ok = true, int max_idx = RNND_MAX_IDX,
-                       bool transpose = true) {
-  constexpr std::size_t n_threads = 0;
-  return r_add_to_knn_heap(heap, nn_idx, nn_dist, n_threads, missing_ok,
-                           RNND_MAX_IDX, transpose);
-}
-
-template <typename NbrHeap>
 void r_add_to_query_heap(NbrHeap &heap, const Rcpp::IntegerMatrix &nn_idx,
                          const Rcpp::NumericMatrix &nn_dist,
-                         std::size_t n_threads, bool missing_ok = true,
-                         int max_idx = RNND_MAX_IDX, bool transpose = true) {
+                         std::size_t n_threads, int max_idx = RNND_MAX_IDX,
+                         bool transpose = true) {
   auto nn_idxv = r_to_idx<typename NbrHeap::Index>(nn_idx, max_idx);
   auto nn_distv = Rcpp::as<std::vector<typename NbrHeap::DistanceOut>>(nn_dist);
   std::size_t n_points = nn_dist.nrow();
@@ -71,25 +61,14 @@ void r_add_to_query_heap(NbrHeap &heap, const Rcpp::IntegerMatrix &nn_idx,
                             transpose, progress, executor);
 }
 
-template <typename NbrHeap>
-void r_add_to_query_heap(NbrHeap &heap, const Rcpp::IntegerMatrix &nn_idx,
-                         const Rcpp::NumericMatrix &nn_dist,
-                         bool missing_ok = true, int max_idx = RNND_MAX_IDX,
-                         bool transpose = true) {
-  constexpr std::size_t n_threads = 0;
-  return r_add_to_query_heap(heap, nn_idx, nn_dist, n_threads, missing_ok,
-                             RNND_MAX_IDX, transpose);
-}
-
 // Convert R graph to neighbor heap
 
 template <typename NbrHeap>
 auto r_to_knn_heap(const Rcpp::IntegerMatrix &nn_idx,
                    const Rcpp::NumericMatrix &nn_dist, std::size_t n_threads,
-                   bool missing_ok, int max_idx, bool transpose) -> NbrHeap {
+                   int max_idx, bool transpose) -> NbrHeap {
   NbrHeap nn_heap(nn_idx.nrow(), nn_idx.ncol());
-  r_add_to_knn_heap(nn_heap, nn_idx, nn_dist, n_threads, missing_ok, max_idx,
-                    transpose);
+  r_add_to_knn_heap(nn_heap, nn_idx, nn_dist, n_threads, max_idx, transpose);
   return nn_heap;
 }
 
@@ -97,11 +76,9 @@ template <typename NbrHeap>
 auto r_to_knn_heap(const Rcpp::IntegerMatrix &nn_idx,
                    const Rcpp::NumericMatrix &nn_dist, std::size_t n_threads)
     -> NbrHeap {
-  constexpr bool missing_ok = true;
   constexpr int max_idx = RNND_MAX_IDX;
   constexpr bool transpose = true;
-  return r_to_knn_heap<NbrHeap>(nn_idx, nn_dist, n_threads, missing_ok, max_idx,
-                                transpose);
+  return r_to_knn_heap<NbrHeap>(nn_idx, nn_dist, n_threads, max_idx, transpose);
 }
 
 template <typename NbrHeap>
@@ -112,9 +89,7 @@ auto r_to_query_heap(const Rcpp::IntegerMatrix &nn_idx,
   constexpr std::size_t n_threads = 0;
   constexpr int max_idx = RNND_MAX_IDX;
   constexpr bool transpose = true;
-  constexpr bool missing_ok = true;
-  r_add_to_query_heap(nn_heap, nn_idx, nn_dist, n_threads, missing_ok, max_idx,
-                      transpose);
+  r_add_to_query_heap(nn_heap, nn_idx, nn_dist, n_threads, max_idx, transpose);
   return nn_heap;
 }
 

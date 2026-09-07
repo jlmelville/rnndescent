@@ -24,7 +24,7 @@ script_dir=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
 repo_root=$(CDPATH='' cd -- "$script_dir/.." && pwd)
 cd "$repo_root"
 
-required_commands=(Rscript g++ clang++ mktemp)
+required_commands=(Rscript g++ clang++ clang-format find mktemp sort)
 for required_command in "${required_commands[@]}"; do
   if ! command -v "$required_command" >/dev/null 2>&1; then
     printf '%s: required command not found: %s\n' \
@@ -32,6 +32,21 @@ for required_command in "${required_commands[@]}"; do
     exit 1
   fi
 done
+
+required_formatter_version=21.1.8
+formatter_version_output=$(clang-format --version)
+if [[ $formatter_version_output =~ clang-format\ version\ ([0-9]+\.[0-9]+\.[0-9]+) ]]; then
+  formatter_version=${BASH_REMATCH[1]}
+else
+  printf '%s: unable to determine clang-format version from: %s\n' \
+    "${0##*/}" "$formatter_version_output" >&2
+  exit 1
+fi
+if [[ $formatter_version != "$required_formatter_version" ]]; then
+  printf '%s: clang-format %s is required, found %s\n' \
+    "${0##*/}" "$required_formatter_version" "$formatter_version" >&2
+  exit 1
+fi
 
 r_include=$(Rscript --vanilla -e 'cat(R.home("include"))')
 if [[ ! -d $r_include ]]; then
@@ -80,6 +95,10 @@ trap cleanup EXIT HUP INT TERM
 
 common_flags=(
   -pthread
+  -fPIC
+  -DSTRICT_R_HEADERS
+  -DRCPP_NO_MODULES
+  -Isrc
   -Iinst/include
   -isystem "$r_include"
   "${dependency_include_flags[@]}"
@@ -94,6 +113,18 @@ common_flags=(
 compilers=(g++ clang++)
 cxx11_headers=(pforr.h)
 cxx17_headers=(rnndescent/random.h tdoann/distance.h)
+maintained_sources=(
+  src/rnn_bruteforce.cpp
+  src/rnn_hub.cpp
+  src/rnn_indextograph.cpp
+  src/rnn_merge.cpp
+  src/rnn_nnd.cpp
+  src/rnn_prepare.cpp
+  src/rnn_randnbrs.cpp
+  src/rnn_rptree.cpp
+  src/rnn_search.cpp
+  src/rnn_util.cpp
+)
 
 probe_headers() {
   local language_standard=$1
@@ -123,6 +154,28 @@ EOF
 
 probe_headers c++11 "${cxx11_headers[@]}"
 probe_headers gnu++17 "${cxx17_headers[@]}"
+
+for compiler in "${compilers[@]}"; do
+  for source_file in "${maintained_sources[@]}"; do
+    if [[ $compiler == clang++ ]]; then
+      "$compiler" -stdlib=libc++ -std=gnu++17 "${common_flags[@]}" \
+        "$source_file"
+    else
+      "$compiler" -std=gnu++17 "${common_flags[@]}" "$source_file"
+    fi
+  done
+done
+
+format_sources=()
+while IFS= read -r source_file; do
+  format_sources+=("$source_file")
+done < <(
+  find src inst/include tools -type f \
+    \( -name '*.cpp' -o -name '*.h' \) \
+    ! -path 'src/RcppExports.cpp' -print | sort
+)
+clang-format --dry-run --Werror "${format_sources[@]}"
+
 tools/test-pforr-exception-transport.sh
 
-printf 'native-quality: PASS (supported headers with GCC and Clang/libc++)\n'
+printf 'native-quality: PASS (headers, TUs and format with GCC and Clang/libc++)\n'

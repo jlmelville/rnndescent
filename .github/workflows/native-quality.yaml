@@ -2,27 +2,37 @@ on:
   push:
     branches: [main, master]
     paths:
+      - .clang-format
       - .github/workflows/native-quality.yaml
       - DESCRIPTION
       - NEWS.md
       - README.md
       - inst/include/**
+      - src/**
       - tools/native-quality.sh
+      - tools/requirements-clang-format.txt
       - tools/test-pforr-exception-transport.cpp
       - tools/test-pforr-exception-transport.sh
       - tools/tsan-pforr.sh
+      - tools/tsan-build-candidates.cpp
+      - tools/tsan-build-candidates.sh
   pull_request:
     branches: [main, master]
     paths:
+      - .clang-format
       - .github/workflows/native-quality.yaml
       - DESCRIPTION
       - NEWS.md
       - README.md
       - inst/include/**
+      - src/**
       - tools/native-quality.sh
+      - tools/requirements-clang-format.txt
       - tools/test-pforr-exception-transport.cpp
       - tools/test-pforr-exception-transport.sh
       - tools/tsan-pforr.sh
+      - tools/tsan-build-candidates.cpp
+      - tools/tsan-build-candidates.sh
   workflow_dispatch:
 
 name: Native quality
@@ -36,7 +46,7 @@ concurrency:
 
 jobs:
   native-quality:
-    name: Supported C++ headers
+    name: Native quality
     runs-on: ubuntu-24.04
     steps:
       # Pinned to a full-length commit SHA for immutability; Dependabot updates this reference.
@@ -62,20 +72,34 @@ jobs:
             clang \
             libc++-dev \
             libc++abi-dev \
+            python3-venv \
             shellcheck
+
+      - name: Install clang-format 21.1.8
+        run: |
+          formatter_venv="$RUNNER_TEMP/clang-format-venv"
+          python3 -m venv "$formatter_venv"
+          "$formatter_venv/bin/python" -m pip install \
+            --require-hashes \
+            --only-binary=:all: \
+            --no-deps \
+            --requirement tools/requirements-clang-format.txt
+          printf '%s\n' "$formatter_venv/bin" >> "$GITHUB_PATH"
 
       - name: Check native scripts
         run: |
           bash -n \
             tools/native-quality.sh \
             tools/test-pforr-exception-transport.sh \
+            tools/tsan-build-candidates.sh \
             tools/tsan-pforr.sh
           shellcheck \
             tools/native-quality.sh \
             tools/test-pforr-exception-transport.sh \
+            tools/tsan-build-candidates.sh \
             tools/tsan-pforr.sh
 
-      - name: Check supported C++ headers
+      - name: Check native quality
         run: tools/native-quality.sh
 
   thread-sanitizer:
@@ -89,3 +113,6 @@ jobs:
 
       - name: Check parallel exception transport
         run: tools/tsan-pforr.sh
+
+      - name: Check parallel candidate construction
+        run: tools/tsan-build-candidates.sh

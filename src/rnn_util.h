@@ -63,8 +63,7 @@ auto graph_to_r(const tdoann::NNGraph<Out, Idx> &graph, bool unzero = false)
     }
   }
 
-  return Rcpp::List::create(Rcpp::_("idx") = indices,
-                            Rcpp::_("dist") = dist);
+  return Rcpp::List::create(Rcpp::_("idx") = indices, Rcpp::_("dist") = dist);
 }
 
 template <typename T>

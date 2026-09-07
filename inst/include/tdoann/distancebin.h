@@ -193,7 +193,7 @@ Out bsokal_michener(const BitVec &x, Idx i, const BitVec &y, Idx j,
 
 template <typename Out, typename Idx = uint32_t>
 Out bsokal_sneath(const BitVec &x, Idx i, const BitVec &y, Idx j,
-                  std::size_t len, std::size_t ndim) {
+                  std::size_t len, std::size_t /* ndim */) {
   std::size_t di = len * i;
   std::size_t dj = len * j;
 

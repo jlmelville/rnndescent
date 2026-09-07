@@ -177,8 +177,8 @@ struct RIterProgress : public RInterruptableProgress {
   RIterProgress(uint32_t n_iters, bool verbose)
       : RInterruptableProgress(n_iters, verbose), n_iters(n_iters) {}
   RIterProgress(RIterProgress &&other) noexcept
-      : RInterruptableProgress(std::move(other)),
-        n_iters(other.n_iters), iter(other.iter) {
+      : RInterruptableProgress(std::move(other)), n_iters(other.n_iters),
+        iter(other.iter) {
 
     other.n_iters = 0;
     other.iter = 0;

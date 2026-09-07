@@ -27,8 +27,8 @@ namespace dqsample {
 
 // sample size items in the range [0 + offset, end + offset)
 template <typename INT>
-inline auto replacement(std::shared_ptr<dqrng::random_64bit_generator> &rng, INT end, INT size, int offset)
-    -> std::vector<INT> {
+inline auto replacement(std::shared_ptr<dqrng::random_64bit_generator> &rng,
+                        INT end, INT size, int offset) -> std::vector<INT> {
   std::vector<INT> result(size);
   auto generator = [=, &rng]() -> INT {
     return static_cast<INT>(offset + (*rng)(end));
@@ -38,8 +38,9 @@ inline auto replacement(std::shared_ptr<dqrng::random_64bit_generator> &rng, INT
 }
 
 template <typename INT>
-auto no_replacement_shuffle(std::shared_ptr<dqrng::random_64bit_generator> &rng, INT end, INT size,
-                            int offset = 0) -> std::vector<INT> {
+auto no_replacement_shuffle(std::shared_ptr<dqrng::random_64bit_generator> &rng,
+                            INT end, INT size, int offset = 0)
+    -> std::vector<INT> {
   std::vector<INT> tmp(end);
   std::iota(tmp.begin(), tmp.end(), static_cast<INT>(offset));
   for (INT i = 0; i < size; ++i) {
@@ -52,8 +53,8 @@ auto no_replacement_shuffle(std::shared_ptr<dqrng::random_64bit_generator> &rng,
 }
 
 template <typename INT, typename SET>
-auto no_replacement_set(std::shared_ptr<dqrng::random_64bit_generator> &rng, INT end, INT size, int offset)
-    -> std::vector<INT> {
+auto no_replacement_set(std::shared_ptr<dqrng::random_64bit_generator> &rng,
+                        INT end, INT size, int offset) -> std::vector<INT> {
   std::vector<INT> result(size);
 
   SET elems(end, size);
@@ -70,7 +71,8 @@ auto no_replacement_set(std::shared_ptr<dqrng::random_64bit_generator> &rng, INT
 // Sample size points from the range [0 + offset, end + offset) with or without
 // replacement
 template <typename INT>
-inline auto sample(std::vector<INT> &result, std::shared_ptr<dqrng::random_64bit_generator> &rng, INT end,
+inline auto sample(std::vector<INT> &result,
+                   std::shared_ptr<dqrng::random_64bit_generator> &rng, INT end,
                    INT size, bool replace = false, int offset = 0) -> bool {
   if (replace || size <= 1) {
     result = replacement<INT>(rng, end, size, offset);
