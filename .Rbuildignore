@@ -20,6 +20,7 @@
 ^PLANS\.md$
 ^EXECPLAN.*\.md$
 ^bench$
+^tools$
 ^\.agents$
 ^\.codex$
 ^\.vscode$
