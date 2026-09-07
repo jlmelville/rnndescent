@@ -10,6 +10,8 @@
 - [`neighbor_overlap()`](https://jlmelville.github.io/rnndescent/reference/neighbor_overlap.md)
   no longer counts the missing-neighbor sentinel `0` as a shared
   neighbor.
+- The supported installed C++ headers and their compilation requirements
+  are now documented and checked with GCC and Clang.
 
 ## rnndescent 0.2.0
 

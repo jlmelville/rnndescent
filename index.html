@@ -105,6 +105,20 @@
 </div>
 </div>
 <div class="section level2">
+<h2 id="supported-c-headers">Supported C++ headers<a class="anchor" aria-label="anchor" href="#supported-c-headers"></a>
+</h2>
+<p>Downstream R packages can use these installed headers by adding <code>rnndescent</code> to their <code>LinkingTo</code> field:</p>
+<ul>
+<li>
+<code>pforr.h</code> provides parallel loops, requires C++11 and threads, and otherwise depends only on the C++ standard library.</li>
+<li>
+<code>rnndescent/random.h</code> provides the package’s random-number adapters, requires C++17 and R, and also requires the <code>Rcpp</code>, <code>dqrng</code> and <code>BH</code> headers. Add those packages to <code>LinkingTo</code> as well.</li>
+<li>
+<code>tdoann/distance.h</code> provides distance functions, requires C++17, and depends only on the C++ standard library.</li>
+</ul>
+<p>Other installed C++ headers are implementation details and are not supported as direct include entry points.</p>
+</div>
+<div class="section level2">
 <h2 id="example">Example<a class="anchor" aria-label="anchor" href="#example"></a>
 </h2>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
