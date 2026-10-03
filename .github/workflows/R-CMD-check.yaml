@@ -50,7 +50,7 @@ jobs:
       - uses: r-lib/actions/setup-pandoc@f9a764fea8d5c63df6ef9a5c7795bf7deb5d7e05
 
       # Pinned to a full-length commit SHA for immutability; Dependabot updates this reference.
-      - uses: r-lib/actions/setup-r@465b7d8e732ca3921382b1674c59bada9cbf3399
+      - uses: r-lib/actions/setup-r@f9a764fea8d5c63df6ef9a5c7795bf7deb5d7e05
         with:
           r-version: ${{ matrix.config.r }}
           http-user-agent: ${{ matrix.config.http-user-agent }}
