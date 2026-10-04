@@ -67,8 +67,10 @@ jobs:
       image: ${{ matrix.config.container }}
 
     steps:
-      # r-hub/actions v1.7.7.
-      - uses: r-hub/actions/checkout@cf6c8eff3145ef225104294e6b0c023de4bba9c6
+      # Use an explicit checkout so package code cannot reuse checkout credentials.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       # r-hub/actions v1.7.7.
       - uses: r-hub/actions/platform-info@cf6c8eff3145ef225104294e6b0c023de4bba9c6
         with:
@@ -97,8 +99,10 @@ jobs:
         config: ${{ fromJson(needs.setup.outputs.platforms) }}
 
     steps:
-      # r-hub/actions v1.7.7.
-      - uses: r-hub/actions/checkout@cf6c8eff3145ef225104294e6b0c023de4bba9c6
+      # Use an explicit checkout so package code cannot reuse checkout credentials.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       # r-hub/actions v1.7.5.
       - uses: r-hub/actions/setup-r@cf6c8eff3145ef225104294e6b0c023de4bba9c6
         with:
