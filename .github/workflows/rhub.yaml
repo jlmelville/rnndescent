@@ -71,7 +71,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      # r-hub/actions v1.7.7.
+      # r-hub/actions v1.8.1.
       - uses: r-hub/actions/platform-info@02be5ffbeae2b0d553da66acded089da11a1fb8f
         with:
           token: ${{ secrets.RHUB_TOKEN }}
@@ -108,7 +108,7 @@ jobs:
         with:
           job-config: ${{ matrix.config.job-config }}
           token: ${{ secrets.RHUB_TOKEN }}
-      # r-hub/actions v1.7.7.
+      # r-hub/actions v1.8.1.
       - uses: r-hub/actions/platform-info@02be5ffbeae2b0d553da66acded089da11a1fb8f
         with:
           token: ${{ secrets.RHUB_TOKEN }}
