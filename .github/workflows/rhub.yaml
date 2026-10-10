@@ -81,7 +81,7 @@ jobs:
         with:
           token: ${{ secrets.RHUB_TOKEN }}
           job-config: ${{ matrix.config.job-config }}
-      # r-hub/actions v1.7.7.
+      # r-hub/actions v1.8.1.
       - uses: r-hub/actions/run-check@02be5ffbeae2b0d553da66acded089da11a1fb8f
         with:
           token: ${{ secrets.RHUB_TOKEN }}
@@ -118,7 +118,7 @@ jobs:
         with:
           job-config: ${{ matrix.config.job-config }}
           token: ${{ secrets.RHUB_TOKEN }}
-      # r-hub/actions v1.7.7.
+      # r-hub/actions v1.8.1.
       - uses: r-hub/actions/run-check@02be5ffbeae2b0d553da66acded089da11a1fb8f
         with:
           job-config: ${{ matrix.config.job-config }}
