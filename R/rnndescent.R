@@ -2663,7 +2663,7 @@ nn_sparsity <- function(graph) {
 }
 
 nn_sparsity_sp <- function(graph) {
-  Matrix::nnzero(graph) / prod(graph@Dim)
+  1 - Matrix::nnzero(graph) / prod(graph@Dim)
 }
 
 reverse_knn_sp <- function(graph) {
