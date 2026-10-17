@@ -5,11 +5,7 @@ context("Corrections")
 
 float32_max <- 3.4028235e+38
 
-test_that("cosine", {
-  expect_equal(correct_alternative_cosine(0), 0)
-  expect_equal(correct_alternative_cosine(1), 0.5)
-  expect_equal(correct_alternative_cosine(float32_max), 1.0)
-
+test_that("dot inverse", {
   expect_equal(uncorrect_alternative_cosine(0), 0)
   expect_equal(uncorrect_alternative_cosine(0.5), 1.0)
   expect_equal(uncorrect_alternative_cosine(1), float32_max)

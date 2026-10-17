@@ -2022,6 +2022,9 @@ graph_knn_query <- function(
     tsmessage("Reading metric data from forest")
     actual_metric <- init$actual_metric
     metric <- init$original_metric
+    if (metric == "cosine") {
+      actual_metric <- "cosine"
+    }
     use_alt_metric <- init$use_alt_metric
     if (use_alt_metric && metric != actual_metric) {
       tsmessage("Using alt metric '", actual_metric, "' for '", metric, "'")

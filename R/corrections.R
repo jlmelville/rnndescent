@@ -1,8 +1,8 @@
+# Cosine uses its plain calculation to retain negative similarities.
 find_sparse_alt_metric <- function(metric) {
   switch(
     metric,
     euclidean = "sqeuclidean",
-    cosine = "alternative-cosine",
     dot = "alternative-dot",
     hellinger = "alternative-hellinger",
     jaccard = "alternative-jaccard",
@@ -15,7 +15,6 @@ find_dense_alt_metric <- function(metric) {
   switch(
     metric,
     euclidean = "sqeuclidean",
-    cosine = "alternative-cosine",
     dot = "alternative-dot",
     hellinger = "alternative-hellinger",
     jaccard = "alternative-jaccard",
@@ -48,7 +47,6 @@ apply_dense_alt_metric_uncorrection <- function(metric, dist) {
   if (is.matrix(dist)) {
     switch(
       metric,
-      cosine = apply(dist, c(1, 2), uncorrect_alternative_cosine),
       dot = apply(dist, c(1, 2), uncorrect_alternative_cosine),
       euclidean = dist * dist,
       hellinger = apply(dist, c(1, 2), uncorrect_alternative_hellinger),
@@ -59,7 +57,6 @@ apply_dense_alt_metric_uncorrection <- function(metric, dist) {
   } else {
     switch(
       metric,
-      cosine = sapply(dist, uncorrect_alternative_cosine),
       dot = sapply(dist, uncorrect_alternative_cosine),
       euclidean = dist * dist,
       hellinger = sapply(dist, uncorrect_alternative_hellinger),
@@ -74,7 +71,6 @@ apply_sparse_alt_metric_uncorrection <- function(metric, dist) {
   if (is.matrix(dist)) {
     switch(
       metric,
-      cosine = apply(dist, c(1, 2), uncorrect_alternative_cosine),
       euclidean = dist * dist,
       dot = apply(dist, c(1, 2), uncorrect_alternative_cosine),
       hellinger = apply(dist, c(1, 2), uncorrect_alternative_hellinger),
@@ -85,7 +81,6 @@ apply_sparse_alt_metric_uncorrection <- function(metric, dist) {
   } else {
     switch(
       metric,
-      cosine = sapply(dist, uncorrect_alternative_cosine),
       euclidean = dist * dist,
       dot = sapply(dist, uncorrect_alternative_cosine),
       hellinger = sapply(dist, uncorrect_alternative_hellinger),
@@ -100,7 +95,6 @@ apply_dense_alt_metric_correction <- function(metric, dist) {
   if (is.matrix(dist)) {
     switch(
       metric,
-      cosine = apply(dist, c(1, 2), correct_alternative_cosine),
       dot = apply(dist, c(1, 2), correct_alternative_dot),
       euclidean = sqrt(dist),
       hellinger = apply(dist, c(1, 2), correct_alternative_hellinger),
@@ -111,7 +105,6 @@ apply_dense_alt_metric_correction <- function(metric, dist) {
   } else {
     switch(
       metric,
-      cosine = sapply(dist, correct_alternative_cosine),
       dot = sapply(dist, correct_alternative_dot),
       euclidean = sqrt(dist),
       hellinger = sapply(dist, correct_alternative_hellinger),
@@ -126,7 +119,6 @@ apply_sparse_alt_metric_correction <- function(metric, dist) {
   if (is.matrix(dist)) {
     switch(
       metric,
-      cosine = apply(dist, c(1, 2), correct_alternative_cosine),
       euclidean = sqrt(dist),
       dot = apply(dist, c(1, 2), correct_alternative_dot),
       hellinger = apply(dist, c(1, 2), correct_alternative_hellinger),
@@ -137,7 +129,6 @@ apply_sparse_alt_metric_correction <- function(metric, dist) {
   } else {
     switch(
       metric,
-      cosine = sapply(dist, correct_alternative_cosine),
       euclidean = sqrt(dist),
       dot = sapply(dist, correct_alternative_dot),
       hellinger = sapply(dist, correct_alternative_hellinger),
@@ -171,11 +162,6 @@ get_actual_metric <- function(use_alt_metric, metric, data, verbose) {
 isclose <- function(a, b, rtol = 1.0e-5, atol = 1.0e-8) {
   diff <- abs(a - b)
   diff <= (atol + rtol * abs(b))
-}
-
-correct_alternative_cosine <- function(dist) {
-  # -ve distance is fine for dot, but not cosine
-  max(correct_alternative_dot(dist), 0.0)
 }
 
 correct_alternative_dot <- function(dist) {

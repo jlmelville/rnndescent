@@ -855,7 +855,7 @@ test_that("sparse implicit margin", {
     margin = "implicit",
     metric = "cosine"
   )
-  expect_equal(sforest$actual_metric, "alternative-cosine")
+  expect_equal(sforest$actual_metric, "cosine")
   expect_true(sforest$sparse)
   sforest$sparse <- FALSE
   expect_equal(sforest, dforest, tolerance = 1e-6)

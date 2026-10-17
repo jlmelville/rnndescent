@@ -2,6 +2,8 @@
 
 ## Bug fixes and minor improvements
 
+* Fix default cosine distances and neighbor ordering for negative similarities. Recompute affected
+  cosine graphs or indexes.
 * Fix distances affected by stored zeros in sparse feature input. Recompute affected graphs or
   indexes.
 * Enforce search graph degree limits when distances tie, preferring lower neighbor indices.

@@ -21,8 +21,7 @@ test_that("Chebyshev", {
 test_that("Cosine", {
   bfdense <- brute_force_knn(bitdata, k = 4, metric = "cosine")
   araw <- brute_force_knn(bitdata, k = 4, metric = "alternative-cosine")
-  unc <- apply_dense_alt_metric_uncorrection("cosine", bfdense$dist)
-  expect_equal(unc, araw$dist)
+  expect_equal(1 - 2^-araw$dist, bfdense$dist, tolerance = 1e-7)
   expect_equal(
     brute_force_knn(bitdata, k = 4, metric = "cosine", use_alt_metric = FALSE),
     bfdense,
@@ -36,7 +35,8 @@ test_that("Cosine", {
     metric = "cosine",
     use_alt_metric = FALSE
   )
-  expect_equal(bfdense, bfsparse, tolerance = 1e-7)
+  # The plain dense and sparse kernels can differ by a float rounding unit.
+  expect_equal(bfdense, bfsparse, tolerance = 1e-6)
 
   # check sparse uncorrection
   set.seed(1337)

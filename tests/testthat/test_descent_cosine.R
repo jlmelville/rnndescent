@@ -123,34 +123,6 @@ qnbrs6 <- graph_knn_query(
 check_query_nbrs_idx(qnbrs6$idx, nref = nrow(ui4))
 expect_equal(sum(qnbrs6$dist), ui6q_cdsum, tolerance = 1e-5)
 
-# metric correction
-
-# random numbers including 0 and 1
-# fmt: skip
-alt_cos <- matrix(c(
-  0.094763154, 0.00988037,
-  0.028532648, 0.02815395,
-  1.000000000, 0.46909320,
-  0.001943944, 0.09845309,
-  0.148561513, 0.00000000
-), nrow = 5, byrow = TRUE)
-
-# results from pynndescent.sparse.sparse_correct_alternative_cosine
-# fmt: skip
-cor_cos <- matrix(
-  c(
-    0.06357403, 0.00682515,
-    0.01958304, 0.01932565,
-    0.5, 0.27758147,
-    0.00134653, 0.06596604,
-    0.09785047, 0.0
-  ),
-  nrow = 5, byrow = TRUE
-)
-
-expect_equal(apply_sparse_alt_metric_correction("cosine", alt_cos), cor_cos)
-expect_equal(apply_sparse_alt_metric_uncorrection("cosine", cor_cos), alt_cos)
-
 # sparse
 test_that("sparse", {
   set.seed(1337)
