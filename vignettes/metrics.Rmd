@@ -85,6 +85,33 @@ non-preprocessed versions:
 * `"cosine-preprocess"`: `cosine` with preprocessing.
 * `"correlation-preprocess"`: `correlation` with preprocessing.
 
+## Numerical precision
+
+Numeric coordinates are converted to single precision (`float`) in the native code, which also
+stores distances in single precision. The returned `dist` matrices use R's double precision, but
+that does not recover information lost during conversion or calculation. Brute force compares every
+pair of points; "exact" describes the search, not double-precision numerical accuracy.
+
+For example, these two values differ by 1 in R, but become the same number in single precision:
+
+```{r numerical precision}
+query <- matrix(1e8)
+reference <- matrix(1e8 + 1)
+c(
+  R = abs(reference - query),
+  rnndescent = brute_force_knn_query(query, reference, k = 1)$dist
+)
+```
+
+For Euclidean data with a large common offset, subtracting that offset from both query and reference
+in R can help retain small differences. A common translation preserves Euclidean distances but
+generally changes cosine and probability distances, so the choice of preprocessing depends on the
+metric.
+
+Very large finite inputs can also overflow intermediate calculations and leave missing neighbors
+(`idx = 0`, `dist = NA`), including with brute force. This remains an unresolved numerical
+limitation.
+
 ## Specialized Binary Metrics
 
 Some metrics are intended for use with binary data. This means that:
