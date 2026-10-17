@@ -4,6 +4,8 @@
 
 ### Bug fixes and minor improvements
 
+- Correct sparsity percentages in verbose search graph preparation
+  messages.
 - Queries with no observations now return zero-row neighbor matrices
   instead of terminating R.
 - Fix default cosine distances and neighbor ordering for negative
