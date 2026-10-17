@@ -50,7 +50,8 @@ normalize_sparse_input <- function(X) {
 # convert data frame to matrix using numeric columns
 x2m <- function(X, obs = "R", name = "data") {
   if (is_sparse(X)) {
-    m <- normalize_sparse_input(X)
+    # Feature zeros are numerical; graph zeros are handled separately.
+    m <- Matrix::drop0(normalize_sparse_input(X))
   } else if (!methods::is(X, "matrix")) {
     m <- as.matrix(X[, which(vapply(X, is.numeric, logical(1)))])
   } else {
