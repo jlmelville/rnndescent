@@ -48,7 +48,10 @@
 <h2 class="pkg-version" data-toc-text="development version" id="rnndescent-development-version">rnndescent (development version)<a class="anchor" aria-label="anchor" href="#rnndescent-development-version"></a></h2>
 <div class="section level3">
 <h3 id="bug-fixes-and-minor-improvements-development-version">Bug fixes and minor improvements<a class="anchor" aria-label="anchor" href="#bug-fixes-and-minor-improvements-development-version"></a></h3>
-<ul><li>Give a clear error for input with no features after conversion.</li>
+<ul><li>Fix distances affected by stored zeros in sparse feature input. Recompute affected graphs or indexes.</li>
+<li>Enforce search graph degree limits when distances tie, preferring lower neighbor indices.</li>
+<li>Preserve sampled neighbors when sorting <code><a href="../reference/random_knn.html">random_knn()</a></code> results by distance.</li>
+<li>Give a clear error for input with no features after conversion.</li>
 <li>Fix incorrect Canberra distances for sparse input with negative values.</li>
 <li>Number of striped locks in the parallel nearest neighbor descent has been increased. Provides a modest (typically single digit percent) performance improvement with 4-8 threads.</li>
 <li>

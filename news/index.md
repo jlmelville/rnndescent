@@ -4,6 +4,13 @@
 
 ### Bug fixes and minor improvements
 
+- Fix distances affected by stored zeros in sparse feature input.
+  Recompute affected graphs or indexes.
+- Enforce search graph degree limits when distances tie, preferring
+  lower neighbor indices.
+- Preserve sampled neighbors when sorting
+  [`random_knn()`](https://jlmelville.github.io/rnndescent/reference/random_knn.md)
+  results by distance.
 - Give a clear error for input with no features after conversion.
 - Fix incorrect Canberra distances for sparse input with negative
   values.
