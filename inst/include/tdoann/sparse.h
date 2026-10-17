@@ -374,11 +374,11 @@ Out sparse_canberra(
     const auto j2 = *(ind2_start + i2);
 
     if (j1 == j2) {
-      auto abs_val1 = std::abs(*(data1_start + i1));
-      auto abs_val2 = std::abs(*(data2_start + i2));
-      Out denom = abs_val1 + abs_val2;
+      const auto val1 = *(data1_start + i1);
+      const auto val2 = *(data2_start + i2);
+      Out denom = std::abs(val1) + std::abs(val2);
       if (denom > 0) {
-        result += std::abs(abs_val1 - abs_val2) / denom;
+        result += std::abs(val1 - val2) / denom;
       }
       ++i1;
       ++i2;

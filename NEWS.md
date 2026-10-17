@@ -2,6 +2,7 @@
 
 ## Bug fixes and minor improvements
 
+* Fix incorrect Canberra distances for sparse input with negative values.
 * Number of striped locks in the parallel nearest neighbor descent has been increased. Provides a
   modest (typically single digit percent) performance improvement with 4-8 threads.
 * `neighbor_overlap()` no longer counts the missing-neighbor sentinel `0` as a
