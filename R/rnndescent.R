@@ -267,7 +267,7 @@ rnnd_build <- function(
   obs <- match.arg(toupper(obs), c("C", "R"))
   n_threads <- check_n_threads(n_threads)
   n_search_trees <- check_count(n_search_trees, "n_search_trees")
-  data <- x2m(data)
+  data <- x2m(data, obs)
   if (obs == "R") {
     data <- Matrix::t(data)
   }
@@ -435,7 +435,7 @@ rnnd_query <-
       init <- index$search_forest
     }
 
-    query <- x2m(query)
+    query <- x2m(query, obs, "query")
     if (obs == "R") {
       query <- Matrix::t(query)
     }
@@ -676,7 +676,7 @@ rnnd_knn <- function(
 ) {
   obs <- match.arg(toupper(obs), c("C", "R"))
   n_threads <- check_n_threads(n_threads)
-  data <- x2m(data)
+  data <- x2m(data, obs)
   if (obs == "R") {
     data <- Matrix::t(data)
   }
@@ -824,7 +824,7 @@ brute_force_knn <- function(
   n_threads <- check_n_threads(n_threads)
   n_obs <- switch(obs, R = nrow, C = ncol, stop("Unknown obs type"))
 
-  data <- x2m(data)
+  data <- x2m(data, obs)
   check_k(k, n_obs(data))
 
   actual_metric <- get_actual_metric(use_alt_metric, metric, data, verbose)
@@ -1002,7 +1002,7 @@ random_knn <-
     obs <- match.arg(toupper(obs), c("C", "R"))
     n_threads <- check_n_threads(n_threads)
     n_obs <- switch(obs, R = nrow, C = ncol, stop("Unknown obs type"))
-    data <- x2m(data)
+    data <- x2m(data, obs)
     check_k(k, n_obs(data))
 
     actual_metric <- get_actual_metric(use_alt_metric, metric, data, verbose)
@@ -1270,7 +1270,7 @@ nnd_knn <- function(
   actual_metric <-
     get_actual_metric(use_alt_metric, metric, data, verbose)
 
-  data <- x2m(data)
+  data <- x2m(data, obs)
   if (obs == "R") {
     data <- Matrix::t(data)
   }
@@ -1577,8 +1577,8 @@ brute_force_knn_query <- function(
   actual_metric <- get_actual_metric(use_alt_metric, metric, reference, verbose)
 
   check_sparse(reference, query)
-  reference <- x2m(reference)
-  query <- x2m(query)
+  reference <- x2m(reference, obs, "reference")
+  query <- x2m(query, obs, "query")
   check_matching_features(reference, query, obs)
   if (obs == "R") {
     reference <- Matrix::t(reference)
@@ -1773,8 +1773,8 @@ random_knn_query <-
 
     check_sparse(reference, query)
 
-    reference <- x2m(reference)
-    query <- x2m(query)
+    reference <- x2m(reference, obs, "reference")
+    query <- x2m(query, obs, "query")
     check_matching_features(reference, query, obs)
     check_k(k, n_obs(reference))
 
@@ -2010,8 +2010,8 @@ graph_knn_query <- function(
   n_threads <- check_n_threads(n_threads)
   check_query_search_controls(epsilon, max_search_fraction)
   check_sparse(reference, query)
-  reference <- x2m(reference)
-  query <- x2m(query)
+  reference <- x2m(reference, obs, "reference")
+  query <- x2m(query, obs, "query")
   check_matching_features(reference, query, obs)
   if (obs == "R") {
     reference <- Matrix::t(reference)
@@ -2404,7 +2404,7 @@ prepare_search_graph <- function(
     )
   }
 
-  data <- x2m(data)
+  data <- x2m(data, obs)
 
   actual_metric <-
     get_actual_metric(use_alt_metric, metric, data, verbose)

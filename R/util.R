@@ -48,14 +48,17 @@ normalize_sparse_input <- function(X) {
 }
 
 # convert data frame to matrix using numeric columns
-x2m <- function(X) {
+x2m <- function(X, obs = "R", name = "data") {
   if (is_sparse(X)) {
-    return(normalize_sparse_input(X))
-  }
-  if (!methods::is(X, "matrix")) {
+    m <- normalize_sparse_input(X)
+  } else if (!methods::is(X, "matrix")) {
     m <- as.matrix(X[, which(vapply(X, is.numeric, logical(1)))])
   } else {
     m <- X
+  }
+  n_features <- switch(obs, R = ncol(m), C = nrow(m), stop("Unknown obs type"))
+  if (n_features == 0L) {
+    stop(name, " must contain at least one feature after conversion")
   }
   m
 }

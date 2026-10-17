@@ -175,7 +175,7 @@ rpf_knn <- function(
   obs <- match.arg(toupper(obs), c("C", "R"))
   n_threads <- check_n_threads(n_threads)
   n_obs <- switch(obs, R = nrow, C = ncol, stop("Unknown obs type"))
-  data <- x2m(data)
+  data <- x2m(data, obs)
   check_k(k, n_obs(data))
 
   actual_metric <- get_actual_metric(use_alt_metric, metric, data, verbose)
@@ -366,7 +366,7 @@ rpf_build <- function(
   n_threads <- check_n_threads(n_threads)
   n_obs <- switch(obs, R = nrow, C = ncol, stop("Unknown obs type"))
 
-  data <- x2m(data)
+  data <- x2m(data, obs)
 
   if (is.null(n_trees)) {
     n_trees <- 5 + as.integer(round(n_obs(data)^0.25))
@@ -552,8 +552,8 @@ rpf_knn_query <- function(
 
   check_sparse(reference, query)
 
-  reference <- x2m(reference)
-  query <- x2m(query)
+  reference <- x2m(reference, obs, "reference")
+  query <- x2m(query, obs, "query")
   check_matching_features(reference, query, obs)
   check_k(k, n_obs(reference))
   n_features <- switch(
