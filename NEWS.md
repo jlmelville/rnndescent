@@ -2,6 +2,8 @@
 
 ## Bug fixes and minor improvements
 
+* Enforce search graph degree limits when distances tie, preferring lower neighbor indices.
+* Preserve sampled neighbors when sorting `random_knn()` results by distance.
 * Give a clear error for input with no features after conversion.
 * Fix incorrect Canberra distances for sparse input with negative values.
 * Number of striped locks in the parallel nearest neighbor descent has been increased. Provides a

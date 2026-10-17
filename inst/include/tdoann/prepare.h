@@ -54,20 +54,6 @@ auto order(It first, It last) -> std::vector<std::size_t> {
 }
 
 template <typename Out, typename Idx>
-auto kth_smallest_distance(const SparseNNGraph<Out, Idx> &graph,
-                           std::size_t item_i, std::size_t k_small) -> Out {
-  // This is coupled to the internals of SparseGraph
-  auto start_itr = graph.dist.begin() + graph.row_ptr[item_i];
-  auto end_itr = graph.dist.begin() + graph.row_ptr[item_i + 1];
-  std::vector<Out> distances(start_itr, end_itr);
-
-  // k_small is 1-based, but nth_element expects a 0-based iterator.
-  const auto kth = k_small - 1;
-  std::nth_element(distances.begin(), distances.begin() + kth, distances.end());
-  return distances[kth];
-}
-
-template <typename Out, typename Idx>
 void degree_prune_impl(const SparseNNGraph<Out, Idx> &graph,
                        SparseNNGraph<Out, Idx> &result, std::size_t max_degree,
                        std::size_t begin, std::size_t end) {
@@ -77,11 +63,18 @@ void degree_prune_impl(const SparseNNGraph<Out, Idx> &graph,
       continue;
     }
 
-    auto max_degree_dist = kth_smallest_distance(graph, i, max_degree);
-    for (std::size_t j = 0; j < unpruned_n_nbrs; j++) {
-      if (graph.distance(i, j) > max_degree_dist) {
-        result.mark_for_deletion(i, j);
-      }
+    std::vector<std::size_t> ordered(unpruned_n_nbrs);
+    std::iota(ordered.begin(), ordered.end(), static_cast<std::size_t>(0));
+    auto cmp = [&](std::size_t a, std::size_t b) {
+      const auto dist_a = graph.distance(i, a);
+      const auto dist_b = graph.distance(i, b);
+      return dist_a < dist_b ||
+             (dist_a == dist_b && graph.index(i, a) < graph.index(i, b));
+    };
+    std::nth_element(ordered.begin(), ordered.begin() + max_degree,
+                     ordered.end(), cmp);
+    for (std::size_t j = max_degree; j < unpruned_n_nbrs; j++) {
+      result.mark_for_deletion(i, ordered[j]);
     }
   }
 }
