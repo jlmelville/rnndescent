@@ -93,9 +93,9 @@ test_that("merge_knn rejects malformed graph indices", {
   )
 })
 
-# one list returns the original list (apart from some casting of distances)
+# A single graph is unchanged when reverse candidates are disabled.
 ui10rnno <- random_knn(ui10, k = 4, order_by_distance = TRUE)
-ui10mnnl1 <- merge_knn(list(ui10rnno))
+ui10mnnl1 <- merge_knn(list(ui10rnno), is_query = TRUE)
 expect_equal(ui10mnnl1$idx, ui10rnno$idx)
 expect_equal(ui10mnnl1$dist, ui10rnno$dist, tolerance = 1e-7)
 
