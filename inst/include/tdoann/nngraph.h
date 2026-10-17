@@ -130,6 +130,9 @@ auto heap_to_graph(const NbrHeap &heap)
 template <typename Out, typename Idx, Out (*max_dist_func)()>
 auto heap_to_graph(NNHeap<Out, Idx, max_dist_func> &&heap)
     -> NNGraph<Out, Idx> {
+  if (heap.n_points == 0) {
+    return NNGraph<Out, Idx>(0, heap.n_nbrs);
+  }
   return NNGraph<Out, Idx>(std::move(heap.idx), std::move(heap.dist),
                            heap.n_points);
 }

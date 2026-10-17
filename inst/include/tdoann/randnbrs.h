@@ -104,6 +104,9 @@ auto sample_neighbors(const BaseDistance<Out, Idx> &distance, Idx n_nbrs,
                       std::size_t n_threads, ProgressBase &progress,
                       const Executor &executor) -> NNGraph<Out, Idx> {
   const std::size_t n_points = distance.get_ny();
+  if (n_points == 0) {
+    return NNGraph<Out, Idx>(0, n_nbrs);
+  }
 
   std::vector<Idx> nn_idx(n_points * n_nbrs);
   std::vector<Out> nn_dist(n_points * n_nbrs);
@@ -128,6 +131,9 @@ auto sample_neighbors(const BaseDistance<Out, Idx> &distance, Idx n_nbrs,
                       RandomIntGenerator<Idx> &sampler, ProgressBase &progress)
     -> NNGraph<Out, Idx> {
   const std::size_t n_points = distance.get_ny();
+  if (n_points == 0) {
+    return NNGraph<Out, Idx>(0, n_nbrs);
+  }
 
   std::vector<Idx> nn_idx(n_points * n_nbrs);
   std::vector<Out> nn_dist(n_points * n_nbrs);

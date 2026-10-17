@@ -1627,7 +1627,9 @@ brute_force_knn_query <- function(
       verbose = verbose
     )
   }
-  res$idx <- res$idx + 1
+  if (ncol(query) > 0L) {
+    res$idx <- res$idx + 1
+  }
 
   if (use_alt_metric) {
     res$dist <-
@@ -1795,7 +1797,9 @@ random_knn_query <-
       n_threads = n_threads,
       verbose = verbose
     )
-    res$idx <- res$idx + 1
+    if (ncol(query) > 0L) {
+      res$idx <- res$idx + 1
+    }
 
     if (use_alt_metric) {
       res$dist <-
@@ -2095,6 +2099,7 @@ graph_knn_query <- function(
       k <- ncol(init$idx)
       tsmessage("Using k = ", k, " from initial graph")
     }
+    check_k(k, ncol(reference))
   } else {
     stop("Unsupported type of 'init'")
   }

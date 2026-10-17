@@ -2,6 +2,7 @@
 
 ## Bug fixes and minor improvements
 
+* Queries with no observations now return zero-row neighbor matrices instead of terminating R.
 * Fix default cosine distances and neighbor ordering for negative similarities. Recompute affected
   cosine graphs or indexes.
 * Fix distances affected by stored zeros in sparse feature input. Recompute affected graphs or

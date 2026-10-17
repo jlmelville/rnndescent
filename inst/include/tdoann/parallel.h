@@ -86,6 +86,10 @@ template <typename Worker>
 void dispatch_work(Worker &&worker, std::size_t n, std::size_t n_threads,
                    const ExecutionParams &execution_params,
                    ProgressBase &progress, const Executor &executor) {
+  if (n == 0) {
+    return;
+  }
+
   if (n_threads == 0) {
     dispatch_work(worker, n, execution_params, progress);
     return;
@@ -140,6 +144,10 @@ void dispatch_work(Worker &&worker, AfterWorker &after_worker, std::size_t n,
                    std::size_t n_threads,
                    const ExecutionParams &execution_params,
                    ProgressBase &progress, const Executor &executor) {
+  if (n == 0) {
+    return;
+  }
+
   if (n_threads == 0) {
     dispatch_work(worker, after_worker, n, execution_params, progress);
     return;
@@ -172,6 +180,10 @@ template <typename Worker>
 void dispatch_work(Worker &worker, std::size_t n,
                    const ExecutionParams &execution_params,
                    ProgressBase &progress) {
+  if (n == 0) {
+    return;
+  }
+
   const auto &batch_size = execution_params.get_batch_size(n);
   auto n_batches = (n + batch_size - 1) / batch_size;
   progress.set_n_batches(n_batches);
@@ -190,6 +202,10 @@ template <typename Worker, typename AfterWorker>
 void dispatch_work(Worker &worker, AfterWorker &after_worker, std::size_t n,
                    const ExecutionParams &execution_params,
                    ProgressBase &progress) {
+  if (n == 0) {
+    return;
+  }
+
   const auto &batch_size = execution_params.get_batch_size(n);
   auto n_batches = (n + batch_size - 1) / batch_size;
   progress.set_n_batches(n_batches);

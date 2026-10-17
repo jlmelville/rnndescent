@@ -40,6 +40,9 @@ template <typename Out, typename Idx>
 auto idx_to_graph_impl(const tdoann::BaseDistance<Out, Idx> &distance,
                        const IntegerMatrix &idx, std::size_t n_threads = 0,
                        bool verbose = false) -> List {
+  if (idx.nrow() == 0) {
+    return graph_to_r(tdoann::NNGraph<Out, Idx>(0, idx.ncol()));
+  }
   auto idx_vec = r_to_idxt<Idx>(idx);
   RPProgress progress(verbose);
   RParallelExecutor executor;
