@@ -20,6 +20,79 @@ check_nbrs(rnbrs, ui10_eucd, tolerance = 1e-6, check_idx_order = FALSE)
 rnbrs <- random_knn(ui10, k = 4, order_by_distance = FALSE, n_threads = 1)
 check_nbrs(rnbrs, ui10_eucd, tolerance = 1e-6, check_idx_order = FALSE)
 
+test_that("ordering random neighbors preserves sampled pairs", {
+  coordinates <- matrix(c(0, 1, 4, 10, 20, 35, 56, 84), ncol = 1)
+  logical_data <- outer(0:7, c(1L, 2L, 4L), function(x, y) {
+    bitwAnd(x, y) > 0
+  })
+  euclidean_dist <- as.matrix(stats::dist(coordinates))
+  hamming_dist <- as.matrix(stats::dist(logical_data, method = "manhattan")) /
+    ncol(logical_data)
+  cases <- list(
+    dense_serial = list(data = coordinates, n_threads = 0),
+    dense_parallel = list(data = coordinates, n_threads = 2),
+    dense_columns = list(
+      data = t(coordinates),
+      n_threads = 0,
+      obs = "C",
+      use_alt_metric = FALSE
+    ),
+    sparse_columns = list(
+      data = Matrix::Matrix(t(coordinates), sparse = TRUE),
+      n_threads = 2,
+      obs = "C"
+    ),
+    logical_parallel = list(
+      data = logical_data,
+      n_threads = 2,
+      metric = "hamming"
+    )
+  )
+
+  for (case_name in names(cases)) {
+    args <- c(cases[[case_name]], list(k = 3))
+    set.seed(1337)
+    unordered <- do.call(random_knn, c(args, list(order_by_distance = FALSE)))
+    set.seed(1337)
+    ordered <- do.call(random_knn, c(args, list(order_by_distance = TRUE)))
+
+    expected_dist <- if (case_name == "logical_parallel") {
+      hamming_dist
+    } else {
+      euclidean_dist
+    }
+    for (neighbors in list(unordered, ordered)) {
+      expect_equal(dim(neighbors$idx), c(8L, 3L), info = case_name)
+      expect_equal(dim(neighbors$dist), c(8L, 3L), info = case_name)
+      expect_true(all(neighbors$idx %in% 1:8), info = case_name)
+      expect_equal(
+        as.vector(neighbors$dist),
+        expected_dist[cbind(
+          as.vector(row(neighbors$idx)),
+          as.vector(neighbors$idx)
+        )],
+        tolerance = 1e-6,
+        info = case_name
+      )
+    }
+    unordered_pairs <- ordered_pairs <- vector("list", 8)
+    for (i in seq_len(8)) {
+      unordered_order <- order(unordered$idx[i, ], unordered$dist[i, ])
+      ordered_order <- order(ordered$idx[i, ], ordered$dist[i, ])
+      unordered_pairs[[i]] <- cbind(
+        unordered$idx[i, unordered_order],
+        unordered$dist[i, unordered_order]
+      )
+      ordered_pairs[[i]] <- cbind(
+        ordered$idx[i, ordered_order],
+        ordered$dist[i, ordered_order]
+      )
+    }
+    expect_equal(ordered_pairs, unordered_pairs, info = case_name)
+    expect_false(any(apply(ordered$dist, 1, is.unsorted)), info = case_name)
+  }
+})
+
 # large sample code path
 res <- random_knn(matrix(rnorm(6000), nrow = 3000), k = 3)
 check_nbrs_order(res)

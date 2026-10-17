@@ -151,7 +151,7 @@ auto random_build(const BaseDistance<Out, Idx> &distance, Idx n_nbrs,
   auto nn_graph = sample_neighbors(distance, n_nbrs, sampler, n_threads,
                                    progress, executor);
   if (sort) {
-    sort_knn_graph(nn_graph, n_threads, progress, executor);
+    sort_query_graph(nn_graph, n_threads, progress, executor);
   }
   return nn_graph;
 }
@@ -163,7 +163,7 @@ auto random_build(const BaseDistance<Out, Idx> &distance, Idx n_nbrs,
 
   auto nn_graph = sample_neighbors(distance, n_nbrs, sampler, progress);
   if (sort) {
-    sort_knn_graph(nn_graph, progress);
+    sort_query_graph(nn_graph, progress);
   }
   return nn_graph;
 }
