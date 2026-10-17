@@ -84,6 +84,10 @@ course very slow. That said as it can be easily parallelized, you can
 get a surprisingly long way with it, especially if you only need the
 k-nearest neighbors and won’t be running a neighbor search multiple
 times.</p>
+<p>Here, “exact” refers to exhaustive search. Distance calculations
+still have the <a href="metrics.html#numerical-precision">numerical
+precision and range limitations</a> described in the metrics
+vignette.</p>
 <p>Let’s calculate the exact 15 nearest neighbors for the
 <code>iris</code> dataset:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">

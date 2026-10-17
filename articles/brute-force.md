@@ -15,6 +15,11 @@ very slow. That said as it can be easily parallelized, you can get a
 surprisingly long way with it, especially if you only need the k-nearest
 neighbors and won’t be running a neighbor search multiple times.
 
+Here, “exact” refers to exhaustive search. Distance calculations still
+have the [numerical precision and range
+limitations](https://jlmelville.github.io/rnndescent/articles/metrics.html#numerical-precision)
+described in the metrics vignette.
+
 Let’s calculate the exact 15 nearest neighbors for the `iris` dataset:
 
 ``` r
