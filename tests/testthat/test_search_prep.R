@@ -308,6 +308,66 @@ test_that("degree pruning keeps the max_degree closest edges", {
   )
 })
 
+test_that("degree pruning resolves cutoff ties by neighbor index", {
+  gl <- list(
+    row_ptr = c(0L, 4L, 8L, 9L, 11L, 11L),
+    col_idx = c(0L, 2L, 1L, 3L, 0L, 2L, 3L, 4L, 0L, 1L, 2L),
+    dist = c(1, 2, 2, 3, 2, 2, 1, 3, 4, 6, 5)
+  )
+  expected <- gl
+  expected$dist <- c(1, 0, 2, 0, 2, 0, 1, 0, 4, 6, 5)
+
+  for (n_threads in c(0L, 2L)) {
+    pruned <- rnndescent:::rnn_degree_prune(
+      gl,
+      max_degree = 2L,
+      n_threads = n_threads
+    )
+    # Check deletion markers and untouched rows before sparse conversion.
+    expect_equal(pruned, expected)
+    row <- rep(seq_len(5), diff(pruned$row_ptr))
+    expect_equal(
+      tabulate(row[pruned$dist != 0], nbins = 5L),
+      c(2L, 2L, 1L, 2L, 0L)
+    )
+  }
+})
+
+test_that("prepare_search_graph caps equal-distance outgoing neighbors", {
+  neighbors <- lapply(seq_len(5), function(i) setdiff(seq_len(5), i))
+  graph <- Matrix::sparseMatrix(
+    i = rep(seq_len(5), each = 4),
+    j = unlist(neighbors),
+    x = sqrt(2),
+    dims = c(5, 5)
+  )
+  expected_neighbors <- list(
+    c(2L, 3L),
+    c(1L, 3L),
+    c(1L, 2L),
+    c(1L, 2L),
+    c(1L, 2L)
+  )
+
+  for (n_threads in c(0L, 2L)) {
+    prepared <- prepare_search_graph(
+      data = diag(5),
+      graph = graph,
+      use_alt_metric = FALSE,
+      diversify_prob = 0,
+      pruning_degree_multiplier = 0.5,
+      n_threads = n_threads
+    )
+    # The result is transposed: each column holds one outgoing neighbor list.
+    expect_equal(as.integer(Matrix::colSums(prepared != 0)), rep(2L, 5))
+    expect_equal(
+      lapply(seq_len(5), function(i) which(prepared[, i] != 0)),
+      expected_neighbors
+    )
+    expect_equal(prepared@x, rep(sqrt(2), 10), tolerance = 1e-7)
+  }
+})
+
 test_that("prepare_search_graph rejects malformed graphs before sparse conversion", {
   ref <- matrix(c(0, 0, 1, 1, 2, 2), ncol = 2, byrow = TRUE)
 
