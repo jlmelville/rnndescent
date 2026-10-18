@@ -128,6 +128,12 @@ force. This remains an unresolved numerical limitation.
 
 ## Specialized Binary Metrics
 
+Logical feature matrices must contain only `TRUE` and `FALSE`. Missing
+logical values (`NA`) raise an error when the features are used, with
+both ordinary and specialized binary metrics. If treating missing values
+as `FALSE` is appropriate for your data, replace them explicitly before
+calling, for example with `x[is.na(x)] <- FALSE`.
+
 Some metrics are intended for use with binary data. This means that:
 
 - Your numeric data should consist of only two distinct values,

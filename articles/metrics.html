@@ -217,6 +217,12 @@ unresolved numerical limitation.</p>
 <div class="section level2">
 <h2 id="specialized-binary-metrics">Specialized Binary Metrics<a class="anchor" aria-label="anchor" href="#specialized-binary-metrics"></a>
 </h2>
+<p>Logical feature matrices must contain only <code>TRUE</code> and
+<code>FALSE</code>. Missing logical values (<code>NA</code>) raise an
+error when the features are used, with both ordinary and specialized
+binary metrics. If treating missing values as <code>FALSE</code> is
+appropriate for your data, replace them explicitly before calling, for
+example with <code>x[is.na(x)] &lt;- FALSE</code>.</p>
 <p>Some metrics are intended for use with binary data. This means
 that:</p>
 <ul>

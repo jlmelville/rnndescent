@@ -98,7 +98,7 @@ iris_knn <- rnnd_knn(iris, k = 15)
 # Build an index
 iris_even <- iris[seq_len(nrow(iris)) %% 2 == 0, ]
 # Specify the number of neighbors you are likely to want to query for
-iris_index <- rnnd_build(iris_index, k = 15)
+iris_index <- rnnd_build(iris_even, k = 15)
 
 # Query then index
 iris_odd <- iris[seq_len(nrow(iris)) %% 2 == 1, ]

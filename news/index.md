@@ -4,6 +4,9 @@
 
 ### Bug fixes and minor improvements
 
+- Logical feature inputs containing `NA` now raise an error instead of
+  silently treating missing values as `FALSE`. Replace missing values
+  explicitly before calling if that imputation is intended.
 - Correct sparsity percentages in verbose search graph preparation
   messages.
 - Queries with no observations now return zero-row neighbor matrices
