@@ -4,6 +4,8 @@
 
 ### Bug fixes and minor improvements
 
+- Fix `metric = "trueangular"` distances and neighbor ordering. Rebuild
+  existing trueangular indices.
 - Sparse `metric = "correlation"` now returns 0 instead of 1 between two
   all-zero vectors, matching the dense convention. Recompute affected
   sparse correlation graphs or indexes.

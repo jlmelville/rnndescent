@@ -164,6 +164,12 @@ rank correlation</a>
 divergence</a>. The symmetrization is calculated as
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>D</mi><mrow><mi>K</mi><mi>L</mi></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>P</mi><mo stretchy="false" form="prefix">|</mo><mo stretchy="false" form="prefix">|</mo><mi>Q</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><msub><mi>D</mi><mrow><mi>K</mi><mi>L</mi></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>Q</mi><mo stretchy="false" form="prefix">|</mo><mo stretchy="false" form="prefix">|</mo><mi>P</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">D_{KL}(P||Q) + D_{KL}(Q||P)</annotation></semantics></math>.</li>
 <li>
+<code>"trueangular"</code>: the angle between vectors divided by
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>π</mi><annotation encoding="application/x-tex">\pi</annotation></semantics></math>,
+from 0 for the same direction to 1 for opposite directions. By package
+convention, the distance is 0 between two zero vectors and 1/2 when
+exactly one vector is zero.</li>
+<li>
 <code>"tsss"</code> the Triangle Area Similarity-Sector Area
 Similarity or TS-SS metric as described in <span class="citation">(Heidarian and Dinneen 2016)</span>. Compared to
 results in PyNNDescent (as of version 0.5.11), distances are smaller by

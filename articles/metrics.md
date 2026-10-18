@@ -79,6 +79,10 @@ look in that reference for an exact definition.
 - `"symmetrickl"` symmetrized version of the [Kullback-Leibler
   divergence](https://en.wikipedia.org/wiki/Kullback%E2%80%93Leibler_divergence).
   The symmetrization is calculated as $`D_{KL}(P||Q) + D_{KL}(Q||P)`$.
+- `"trueangular"`: the angle between vectors divided by $`\pi`$, from 0
+  for the same direction to 1 for opposite directions. By package
+  convention, the distance is 0 between two zero vectors and 1/2 when
+  exactly one vector is zero.
 - `"tsss"` the Triangle Area Similarity-Sector Area Similarity or TS-SS
   metric as described in (Heidarian and Dinneen 2016). Compared to
   results in PyNNDescent (as of version 0.5.11), distances are smaller
