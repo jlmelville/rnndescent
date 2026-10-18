@@ -98,7 +98,9 @@ also known as the L-infinity norm
 (<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>L</mi><mi>∞</mi></msub><annotation encoding="application/x-tex">L_\infty</annotation></semantics></math>).</li>
 <li>
 <code>"correlation"</code>: 1 minus the <a href="https://en.wikipedia.org/wiki/Pearson_correlation_coefficient" class="external-link">Pearson
-correlation</a>.</li>
+correlation</a>. The distance between two all-zero vectors is 0 for
+dense and sparse input. This is a package convention: Pearson
+correlation is undefined for zero-variance vectors.</li>
 <li>
 <code>"cosine"</code>: 1 minus the <a href="https://en.wikipedia.org/wiki/Cosine_similarity" class="external-link">cosine
 similarity</a>.</li>

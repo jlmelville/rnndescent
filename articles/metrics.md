@@ -29,6 +29,9 @@ look in that reference for an exact definition.
   known as the L-infinity norm ($`L_\infty`$).
 - `"correlation"`: 1 minus the [Pearson
   correlation](https://en.wikipedia.org/wiki/Pearson_correlation_coefficient).
+  The distance between two all-zero vectors is 0 for dense and sparse
+  input. This is a package convention: Pearson correlation is undefined
+  for zero-variance vectors.
 - `"cosine"`: 1 minus the [cosine
   similarity](https://en.wikipedia.org/wiki/Cosine_similarity).
 - `"dice"`: the [Dice
