@@ -124,7 +124,7 @@ struct RPProgress : public tdoann::ProgressBase {
 
 struct RInterruptableProgress : public tdoann::ProgressBase {
   bool is_aborted{false};
-  bool verbose;
+  bool verbose{false};
 
   ~RInterruptableProgress() override = default;
 
