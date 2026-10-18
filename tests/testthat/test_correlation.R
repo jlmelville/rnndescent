@@ -95,6 +95,67 @@ expect_equal(res$idx, cor_index, check.attributes = FALSE)
 expect_equal(res$dist, cor_dist, check.attributes = FALSE, tolerance = 1e-6)
 
 
+test_that("correlation vector conventions agree across dense and sparse data", {
+  query <- rbind(
+    zero = c(0, 0, 0),
+    constants = c(1, 1, 1),
+    zero_constant = c(0, 0, 0),
+    zero_variable = c(0, 0, 0),
+    constant_variable = c(1, 1, 1),
+    identical = c(-1, 0, 1),
+    opposite = c(-1, 0, 1),
+    orthogonal = c(-1, 0, 1)
+  )
+  reference <- rbind(
+    c(0, 0, 0),
+    c(2, 2, 2),
+    c(2, 2, 2),
+    c(-1, 0, 1),
+    c(-1, 0, 1),
+    c(-1, 0, 1),
+    c(1, 0, -1),
+    c(1, -2, 1)
+  )
+  expected <- c(0, 0, 0, 1, 1, 0, 2, 1)
+  for (sparse in c(FALSE, TRUE)) {
+    for (i in seq_len(nrow(query))) {
+      q <- query[i, , drop = FALSE]
+      r <- reference[i, , drop = FALSE]
+      if (sparse) {
+        q <- Matrix::drop0(q)
+        r <- Matrix::drop0(r)
+      }
+      result <- brute_force_knn_query(
+        q,
+        r,
+        k = 1,
+        metric = "correlation",
+        n_threads = 0
+      )
+      info <- paste(rownames(query)[i], "sparse =", sparse)
+      expect_equal(result$idx, matrix(1L), info = info)
+      expect_equal(
+        as.vector(result$dist),
+        expected[i],
+        tolerance = 1e-6,
+        info = info
+      )
+    }
+  }
+
+  stored_zero <- Matrix::sparseMatrix(i = 1, j = 1, x = 0, dims = c(1, 3))
+  result <- brute_force_knn_query(
+    stored_zero,
+    stored_zero,
+    k = 1,
+    metric = "correlation",
+    n_threads = 0
+  )
+  expect_equal(result$idx, matrix(1L))
+  expect_equal(result$dist, matrix(0))
+})
+
+
 # correlation-preprocess -------------------------------------------------------
 
 context("Correlation-Preprocess distance")

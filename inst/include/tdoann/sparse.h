@@ -466,7 +466,7 @@ Out sparse_correlation(
   Out dot_product = 0;
 
   if (ind1_size == 0 && ind2_size == 0) {
-    return (ndim == 0) ? 0 : 1;
+    return 0;
   }
 
   for (std::size_t i = 0; i < ind1_size; ++i) {
