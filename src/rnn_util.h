@@ -88,7 +88,11 @@ auto r_to_vec(const Rcpp::LogicalMatrix &data) -> std::vector<T> {
 
   for (int j = 0; j < data.ncol(); ++j) {
     for (int i = 0; i < data.nrow(); ++i) {
-      vec.push_back(data(i, j) == NA_LOGICAL ? 0 : static_cast<T>(data(i, j)));
+      const auto value = data(i, j);
+      if (value == NA_LOGICAL) {
+        Rcpp::stop("Logical feature values must not be NA");
+      }
+      vec.push_back(static_cast<T>(value));
     }
   }
 
@@ -182,17 +186,7 @@ auto sparse_graph_to_r(const SparseNNGraph &sparse_graph) -> Rcpp::List {
 }
 
 inline std::vector<uint8_t> r_to_binvec(const Rcpp::LogicalMatrix &data) {
-  std::vector<uint8_t> vec;
-  vec.reserve(data.size());
-
-  for (int j = 0; j < data.ncol(); ++j) {
-    for (int i = 0; i < data.nrow(); ++i) {
-      vec.push_back(
-          data(i, j) == NA_LOGICAL ? 0 : static_cast<uint8_t>(data(i, j)));
-    }
-  }
-
-  return vec;
+  return r_to_vec<uint8_t>(data);
 }
 
 #endif // RNN_UTIL_H

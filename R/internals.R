@@ -589,6 +589,9 @@ rpf_knn_impl <-
         # no logical code path here: explicit margin doesn't lend itself
         # easily to the logical-specialized metrics so if you want to do that
         # you should use implicit margin
+        if (is.logical(data) && anyNA(data)) {
+          stop("Logical feature values must not be NA")
+        }
         res <- rnn_rp_tree_knn_explicit(
           data,
           k,

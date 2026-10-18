@@ -450,6 +450,9 @@ rpf_build <- function(
     } else {
       # There is no logical explicit-margin builder because hyperplanes require
       # real-valued math rather than point-distance calculations.
+      if (is.logical(data) && anyNA(data)) {
+        stop("Logical feature values must not be NA")
+      }
       forest <- rnn_rp_forest_build(
         data,
         actual_metric,
