@@ -2,6 +2,8 @@
 
 ## Bug fixes and minor improvements
 
+* Fix `metric = "trueangular"` distances and neighbor ordering. Rebuild existing trueangular
+  indices.
 * Sparse `metric = "correlation"` now returns 0 instead of 1 between two all-zero vectors,
   matching the dense convention. Recompute affected sparse correlation graphs or indexes.
 * Logical feature inputs containing `NA` now raise an error instead of silently treating missing

@@ -137,46 +137,54 @@ test_that("dot rnnd build/query", {
   expect_equal(bitsp_query, bitsp_bf)
 })
 
-test_that("trueangular rnnd build/query", {
-  metric <- "trueangular"
-  iris_bf <- brute_force_knn_query(ui10, ui10, k = 4, metric = metric)
-
-  set.seed(1337)
-  iris_index <- rnnd_build(
-    data = ui10,
-    k = 4,
-    diversify_prob = 1.0,
-    metric = metric
+test_that("trueangular index and forest queries retain angular distances", {
+  reference <- rbind(
+    c(1, 0),
+    c(1, sqrt(3)),
+    c(0, 1),
+    c(-1, sqrt(3)),
+    c(-1, 0),
+    c(0, 0)
   )
-  iris_query <- rnnd_query(index = iris_index, query = ui10, k = 4)
-  expect_equal(iris_query, iris_bf)
-
-  bit_bf <- brute_force_knn_query(bitdata, bitdata, k = 4, metric = metric)
-  set.seed(1337)
-  bit_index <- rnnd_build(
-    data = bitdata,
-    k = 4,
-    diversify_prob = 1.0,
-    metric = metric
+  query <- rbind(c(1, 0), c(0, 0))
+  expected <- rbind(
+    c(0, 1 / 3, 1 / 2, 2 / 3, 1, 1 / 2),
+    c(1 / 2, 1 / 2, 1 / 2, 1 / 2, 1 / 2, 0)
   )
-  bit_query <- rnnd_query(index = bit_index, query = bitdata, k = 4)
-  expect_equal(bit_query, bit_bf)
-
-  bitsp_bf <- brute_force_knn_query(
-    bitdatasp,
-    bitdatasp,
-    k = 4,
-    metric = metric
-  )
-  set.seed(1337)
-  bitsp_index <- rnnd_build(
-    data = bitdatasp,
-    k = 4,
-    diversify_prob = 1.0,
-    metric = metric
-  )
-  bitsp_query <- rnnd_query(index = bitsp_index, query = bitdatasp, k = 4)
-  expect_equal(bitsp_query, bitsp_bf)
+  as_sparse <- function(x) methods::as(Matrix::drop0(x), "generalMatrix")
+  for (convert in list(identity, as_sparse)) {
+    data <- convert(reference)
+    set.seed(1337)
+    index <- rnnd_build(
+      data,
+      k = 6,
+      metric = "trueangular",
+      progress = "dist",
+      n_trees = 1,
+      leaf_size = 6,
+      diversify_prob = 0,
+      prune_reverse = FALSE
+    )
+    index <- unserialize(serialize(index, NULL))
+    expect_equal(index$original_metric, "trueangular")
+    expect_equal(index$search_forest$actual_metric, "trueangular")
+    expect_equal(index$search_forest$original_metric, "trueangular")
+    # A single leaf contains every reference, making this tiny search exact.
+    results <- list(
+      rnnd_query(index, convert(query), k = 6),
+      rpf_knn_query(convert(query), data, index$search_forest, k = 6)
+    )
+    for (result in results) {
+      for (i in seq_len(nrow(query))) {
+        expect_equal(sort(result$idx[i, ]), 1:6)
+        expect_equal(
+          result$dist[i, order(result$idx[i, ])],
+          expected[i, ],
+          tolerance = 1e-6
+        )
+      }
+    }
+  }
 })
 
 test_that("jaccard rnnd build/query", {

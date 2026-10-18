@@ -545,13 +545,12 @@ Out true_angular(It xbegin, It xend, It ybegin) {
   if (norm_x == 0 && norm_y == 0) {
     return 0;
   }
-  if (norm_x == 0 || norm_y == 0 || result <= 0) {
-    return std::numeric_limits<Out>::max();
+  if (norm_x == 0 || norm_y == 0) {
+    return Out{0.5};
   }
   result /= std::sqrt(norm_x) * std::sqrt(norm_y);
   result = std::clamp(result, Out{-1}, Out{1});
-  result = std::acos(result) / pi_v<Out>;
-  return 1 - result;
+  return std::acos(result) / pi_v<Out>;
 }
 
 template <typename Out, typename It> Out tsss(It xbegin, It xend, It ybegin) {

@@ -1,4 +1,4 @@
-# Cosine uses its plain calculation to retain negative similarities.
+# Cosine and trueangular retain negative similarities with plain calculations.
 find_sparse_alt_metric <- function(metric) {
   switch(
     metric,
@@ -6,7 +6,6 @@ find_sparse_alt_metric <- function(metric) {
     dot = "alternative-dot",
     hellinger = "alternative-hellinger",
     jaccard = "alternative-jaccard",
-    trueangular = "alternative-cosine",
     metric
   )
 }
@@ -18,7 +17,6 @@ find_dense_alt_metric <- function(metric) {
     dot = "alternative-dot",
     hellinger = "alternative-hellinger",
     jaccard = "alternative-jaccard",
-    trueangular = "alternative-cosine",
     metric
   )
 }
@@ -51,7 +49,6 @@ apply_dense_alt_metric_uncorrection <- function(metric, dist) {
       euclidean = dist * dist,
       hellinger = apply(dist, c(1, 2), uncorrect_alternative_hellinger),
       jaccard = apply(dist, c(1, 2), uncorrect_alternative_jaccard),
-      trueangular = apply(dist, c(1, 2), uncorrect_true_angular),
       dist
     )
   } else {
@@ -61,7 +58,6 @@ apply_dense_alt_metric_uncorrection <- function(metric, dist) {
       euclidean = dist * dist,
       hellinger = sapply(dist, uncorrect_alternative_hellinger),
       jaccard = sapply(dist, uncorrect_alternative_jaccard),
-      trueangular = sapply(dist, uncorrect_true_angular),
       dist
     )
   }
@@ -75,7 +71,6 @@ apply_sparse_alt_metric_uncorrection <- function(metric, dist) {
       dot = apply(dist, c(1, 2), uncorrect_alternative_cosine),
       hellinger = apply(dist, c(1, 2), uncorrect_alternative_hellinger),
       jaccard = apply(dist, c(1, 2), uncorrect_alternative_jaccard),
-      trueangular = apply(dist, c(1, 2), uncorrect_true_angular),
       dist
     )
   } else {
@@ -85,7 +80,6 @@ apply_sparse_alt_metric_uncorrection <- function(metric, dist) {
       dot = sapply(dist, uncorrect_alternative_cosine),
       hellinger = sapply(dist, uncorrect_alternative_hellinger),
       jaccard = sapply(dist, uncorrect_alternative_jaccard),
-      trueangular = sapply(dist, uncorrect_true_angular),
       dist
     )
   }
@@ -99,7 +93,6 @@ apply_dense_alt_metric_correction <- function(metric, dist) {
       euclidean = sqrt(dist),
       hellinger = apply(dist, c(1, 2), correct_alternative_hellinger),
       jaccard = apply(dist, c(1, 2), correct_alternative_jaccard),
-      trueangular = apply(dist, c(1, 2), true_angular_from_alt_cosine),
       dist
     )
   } else {
@@ -109,7 +102,6 @@ apply_dense_alt_metric_correction <- function(metric, dist) {
       euclidean = sqrt(dist),
       hellinger = sapply(dist, correct_alternative_hellinger),
       jaccard = sapply(dist, correct_alternative_jaccard),
-      trueangular = sapply(dist, true_angular_from_alt_cosine),
       dist
     )
   }
@@ -123,7 +115,6 @@ apply_sparse_alt_metric_correction <- function(metric, dist) {
       dot = apply(dist, c(1, 2), correct_alternative_dot),
       hellinger = apply(dist, c(1, 2), correct_alternative_hellinger),
       jaccard = apply(dist, c(1, 2), correct_alternative_jaccard),
-      trueangular = apply(dist, c(1, 2), true_angular_from_alt_cosine),
       dist
     )
   } else {
@@ -133,7 +124,6 @@ apply_sparse_alt_metric_correction <- function(metric, dist) {
       dot = sapply(dist, correct_alternative_dot),
       hellinger = sapply(dist, correct_alternative_hellinger),
       jaccard = sapply(dist, correct_alternative_jaccard),
-      trueangular = sapply(dist, true_angular_from_alt_cosine),
       dist
     )
   }
@@ -185,23 +175,6 @@ correct_alternative_jaccard <- function(dist) {
 
 correct_alternative_hellinger <- function(dist) {
   sqrt(correct_alternative_jaccard(dist))
-}
-
-true_angular_from_alt_cosine <- function(dist) {
-  if (is.na(dist)) {
-    return(NA)
-  }
-  res <- 2^-dist
-  res <- max(min(res, 1.0), -1.0)
-  1.0 - (acos(res) / pi)
-}
-
-uncorrect_true_angular <- function(dist) {
-  if (is.na(dist)) {
-    return(NA)
-  }
-  res <- max(min(1 - dist, 0.5), -0.5)
-  -log2(cos(pi * res))
 }
 
 float32_max <- 3.4028235e+38

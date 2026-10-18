@@ -460,39 +460,110 @@ test_that("Symmetric KL", {
   expect_equal(bfdense, bfsparse)
 })
 
-test_that("true angular", {
-  # true angular is weird in that it's a similarity not a distance
-  # it behaves very strangely, so this is just to characterize its strange
-  # behavior rather than to assert it's behaving in a semantically "correct"
-  # manner
-
-  # alt metric uses cosine so ordering is based on that, but the conversion
-  # turns it back into a similarity so the distances are in descending order
-  bfdense <- brute_force_knn(bitdata, k = 10, metric = "trueangular")
-  bfsparse <- brute_force_knn(bitdatasp, k = 10, metric = "trueangular")
-  expect_equal(bfdense, bfsparse, tolerance = 1e-4)
-
-  # turn off alt metric so we get the true angular ordering
-  # now self "distance" is the furthest distance but the distances are increasing
-  # do all 10 neighbors so we can ensure self-distance is 1 and not subject
-  # to acos rounding error causing NaN
-  bfdensena <- brute_force_knn(
-    bitdata,
-    k = 10,
-    metric = "trueangular",
-    use_alt_metric = FALSE
+test_that("trueangular returns normalized signed angles and zero conventions", {
+  # Reference directions are 0, 60, 90, 120 and 180 degrees, then zero.
+  reference <- rbind(
+    c(1, 0),
+    c(1, sqrt(3)),
+    c(0, 1),
+    c(-1, sqrt(3)),
+    c(-1, 0),
+    c(0, 0)
   )
-  bfsparsena <- brute_force_knn(
-    bitdatasp,
-    k = 10,
-    metric = "trueangular",
-    use_alt_metric = FALSE
+  query <- rbind(c(1, 0), c(0, 0))
+  expected <- rbind(
+    c(0, 1 / 3, 1 / 2, 2 / 3, 1, 1 / 2),
+    c(1 / 2, 1 / 2, 1 / 2, 1 / 2, 1 / 2, 0)
   )
-  expect_equal(bfdensena, bfsparsena, tolerance = 1e-5)
-  expect_equal(bfdensena$idx[, 10], 1:10)
-  expect_equal(bfdensena$dist[, 10], rep(1.0, 10), tolerance = 1e-3)
+  stored_zeros <- function(x) {
+    Matrix::sparseMatrix(
+      i = rep(seq_len(nrow(x)), ncol(x)),
+      j = rep(seq_len(ncol(x)), each = nrow(x)),
+      x = as.vector(x),
+      dims = dim(x)
+    )
+  }
+  as_sparse <- function(x) methods::as(Matrix::drop0(x), "generalMatrix")
+  for (convert in list(identity, as_sparse, stored_zeros)) {
+    for (use_alt in c(TRUE, FALSE)) {
+      result <- brute_force_knn_query(
+        convert(query),
+        convert(reference),
+        k = 6,
+        metric = "trueangular",
+        use_alt_metric = use_alt
+      )
+      for (i in seq_len(nrow(query))) {
+        expect_equal(sort(result$idx[i, ]), 1:6)
+        expect_equal(
+          result$dist[i, order(result$idx[i, ])],
+          expected[i, ],
+          tolerance = 1e-6
+        )
+        expect_true(all(diff(result$dist[i, ]) >= 0))
+      }
+    }
+  }
+})
 
-  # more uncorrections
+test_that("trueangular selects nearer acute and nonpositive directions", {
+  query <- matrix(c(1, 0), nrow = 1)
+  for (reference in list(
+    rbind(c(1, sqrt(3)), c(1, 0)),
+    rbind(c(-1, 0), c(-1, sqrt(3)), c(0, 1))
+  )) {
+    expected <- if (nrow(reference) == 2) 0 else 1 / 2
+    for (use_alt in c(TRUE, FALSE)) {
+      result <- brute_force_knn_query(
+        query,
+        reference,
+        k = 1,
+        metric = "trueangular",
+        use_alt_metric = use_alt
+      )
+      expect_equal(result$idx, matrix(nrow(reference)))
+      expect_equal(result$dist, matrix(expected), tolerance = 1e-6)
+    }
+  }
+})
+
+test_that("trueangular preserves supplied initial angular distances", {
+  data <- rbind(c(1, 0), c(1, sqrt(3)), c(-1, 0), c(0, 0))
+  # fmt: skip
+  distances <- matrix(c(
+    0,     1 / 3, 1,     1 / 2,
+    1 / 3, 0,     2 / 3, 1 / 2,
+    1,     2 / 3, 0,     1 / 2,
+    1 / 2, 1 / 2, 1 / 2, 0
+  ), nrow = 4, byrow = TRUE)
+  init <- list(
+    idx = matrix(rep(1:4, 4), nrow = 4, byrow = TRUE),
+    dist = distances
+  )
+  for (input in list(data, Matrix::drop0(data))) {
+    for (use_alt in c(TRUE, FALSE)) {
+      result <- nnd_knn(
+        input,
+        k = 4,
+        init = init,
+        n_iters = 0,
+        progress = "dist",
+        metric = "trueangular",
+        use_alt_metric = use_alt
+      )
+      for (i in 1:4) {
+        expect_equal(sort(result$idx[i, ]), 1:4)
+        expect_equal(
+          result$dist[i, order(result$idx[i, ])],
+          distances[i, ],
+          tolerance = 1e-6
+        )
+      }
+    }
+  }
+})
+
+test_that("trueangular refines initial graphs with missing entries", {
   set.seed(42)
   true_nnd <-
     nnd_knn(
@@ -500,6 +571,7 @@ test_that("true angular", {
       k = 4,
       init = random_knn(bitdata, k = 4, metric = "trueangular"),
       metric = "trueangular",
+      progress = "dist",
       max_candidates = 8
     )
   true_bf <- brute_force_knn(bitdata, k = 4, metric = "trueangular")
@@ -514,6 +586,7 @@ test_that("true angular", {
       k = 4,
       init = spinit,
       metric = "trueangular",
+      progress = "dist",
       max_candidates = 8
     )
   expect_equal(true_nnd, true_bf, tolerance = 1e-4)
