@@ -51,7 +51,7 @@ iris_index_w <- rnnd_build(
   weight_by_degree = TRUE
 )
 iris_query_w <- rnnd_query(index = iris_index_w, query = ui10, k = 4)
-expect_equal(iris_query_pr, iris_bf)
+expect_equal(iris_query_w, iris_bf)
 
 test_that("cosine rnnd build/query", {
   metric <- "cosine"
