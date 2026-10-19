@@ -88,7 +88,10 @@ look in that reference for an exact definition.
   results in PyNNDescent (as of version 0.5.11), distances are smaller
   by a factor of 2 in this package. This does not affect the returned
   nearest neighbors, only the distances. Multiply them by 2 if you need
-  to get closer to the PyNNDescent results.
+  to get closer to the PyNNDescent results. By package convention, the
+  distance is 0 whenever either vector is all zero, for dense and sparse
+  input. A zero vector therefore ties at distance 0 with every vector;
+  no ordering among tied neighbors is guaranteed.
 - `"yule"` the Yule dissimilarity. Intended for binary data.
 
 For non-sparse data, the following variants are available with
