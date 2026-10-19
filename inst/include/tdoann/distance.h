@@ -120,7 +120,7 @@ Out correlation(const It xbegin, const It xend, const It ybegin) {
   if (normx == 0 || normy == 0) {
     return 1;
   }
-  return 1 - (res / std::sqrt(normx * normy));
+  return 1 - (res / (std::sqrt(normx) * std::sqrt(normy)));
 }
 
 template <typename Out, typename It>
@@ -143,7 +143,7 @@ Out cosine(const It xbegin, const It xend, const It ybegin) {
   if (norm_x == 0 || norm_y == 0) {
     return 1;
   }
-  return 1 - (result / std::sqrt(norm_x * norm_y));
+  return 1 - (result / (std::sqrt(norm_x) * std::sqrt(norm_y)));
 }
 
 template <typename Out, typename It>

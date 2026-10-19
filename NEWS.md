@@ -2,6 +2,8 @@
 
 ## Bug fixes and minor improvements
 
+* Avoid intermediate overflow and underflow in dense `"cosine"` and `"correlation"` distances.
+  Rebuild affected cosine/correlation indices.
 * Fix `metric = "trueangular"` distances and neighbor ordering. Rebuild existing trueangular
   indices.
 * Sparse `metric = "correlation"` now returns 0 instead of 1 between two all-zero vectors,

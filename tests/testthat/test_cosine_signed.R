@@ -85,6 +85,55 @@ test_that("cosine values preserve the full domain and existing zero conventions"
   }
 })
 
+test_that("cosine distances and neighbors survive positive rescaling", {
+  reference <- rbind(c(0, 1), c(1, 0), c(-1, 0))
+  query <- matrix(c(1, 0), nrow = 1)
+  for (scale in c(1, 1e10, 1e-15)) {
+    for (sparse in c(FALSE, TRUE)) {
+      ref <- reference * scale
+      qry <- query * scale
+      if (sparse) {
+        ref <- Matrix::sparseMatrix(
+          i = row(ref),
+          j = col(ref),
+          x = c(ref),
+          dims = dim(ref)
+        )
+        qry <- Matrix::sparseMatrix(
+          i = row(qry),
+          j = col(qry),
+          x = c(qry),
+          dims = dim(qry)
+        )
+      }
+      info <- paste("scale =", scale, "sparse =", sparse)
+      result <- brute_force_knn_query(
+        qry,
+        ref,
+        k = 3,
+        metric = "cosine",
+        n_threads = 0
+      )
+      expect_equal(result$idx, matrix(c(2L, 1L, 3L), nrow = 1), info = info)
+      expect_equal(
+        result$dist,
+        matrix(c(0, 1, 2), nrow = 1),
+        tolerance = 1e-6,
+        info = info
+      )
+      nearest <- brute_force_knn_query(
+        qry,
+        ref,
+        k = 1,
+        metric = "cosine",
+        n_threads = 0
+      )
+      expect_equal(nearest$idx, matrix(2L), info = info)
+      expect_equal(nearest$dist, matrix(0), tolerance = 1e-6, info = info)
+    }
+  }
+})
+
 test_that("cosine initial graphs and search preparation use public distances", {
   data <- rbind(c(1, 0), c(-1, 0), c(-0.5, sqrt(3) / 2), c(0.5, sqrt(3) / 2))
   expected <- cosine_oracle(data)

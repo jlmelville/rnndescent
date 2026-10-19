@@ -156,6 +156,55 @@ test_that("correlation vector conventions agree across dense and sparse data", {
 })
 
 
+test_that("correlation distances and neighbors survive positive rescaling", {
+  reference <- rbind(c(1, -2, 1), c(-1, 0, 1), c(1, 0, -1))
+  query <- matrix(c(-1, 0, 1), nrow = 1)
+  for (scale in c(1, 1e10, 1e-15)) {
+    for (sparse in c(FALSE, TRUE)) {
+      ref <- reference * scale
+      qry <- query * scale
+      if (sparse) {
+        ref <- Matrix::sparseMatrix(
+          i = row(ref),
+          j = col(ref),
+          x = c(ref),
+          dims = dim(ref)
+        )
+        qry <- Matrix::sparseMatrix(
+          i = row(qry),
+          j = col(qry),
+          x = c(qry),
+          dims = dim(qry)
+        )
+      }
+      info <- paste("scale =", scale, "sparse =", sparse)
+      result <- brute_force_knn_query(
+        qry,
+        ref,
+        k = 3,
+        metric = "correlation",
+        n_threads = 0
+      )
+      expect_equal(result$idx, matrix(c(2L, 1L, 3L), nrow = 1), info = info)
+      expect_equal(
+        result$dist,
+        matrix(c(0, 1, 2), nrow = 1),
+        tolerance = 1e-6,
+        info = info
+      )
+      nearest <- brute_force_knn_query(
+        qry,
+        ref,
+        k = 1,
+        metric = "correlation",
+        n_threads = 0
+      )
+      expect_equal(nearest$idx, matrix(2L), info = info)
+      expect_equal(nearest$dist, matrix(0), tolerance = 1e-6, info = info)
+    }
+  }
+})
+
 # correlation-preprocess -------------------------------------------------------
 
 context("Correlation-Preprocess distance")
