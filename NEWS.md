@@ -2,6 +2,7 @@
 
 ## Bug fixes and minor improvements
 
+* Reduce R overhead when converting alternative dot, Hellinger and Jaccard distances.
 * Fix missing TS-SS neighbors for zero vectors by returning distance 0. Rebuild affected TS-SS
   indices.
 * Avoid intermediate overflow and underflow in dense `"cosine"` and `"correlation"` distances.

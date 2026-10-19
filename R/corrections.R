@@ -42,91 +42,40 @@ apply_alt_metric_uncorrection <- function(metric, dist, is_sparse = FALSE) {
 }
 
 apply_dense_alt_metric_uncorrection <- function(metric, dist) {
-  if (is.matrix(dist)) {
-    switch(
-      metric,
-      dot = apply(dist, c(1, 2), uncorrect_alternative_cosine),
-      euclidean = dist * dist,
-      hellinger = apply(dist, c(1, 2), uncorrect_alternative_hellinger),
-      jaccard = apply(dist, c(1, 2), uncorrect_alternative_jaccard),
-      dist
-    )
-  } else {
-    switch(
-      metric,
-      dot = sapply(dist, uncorrect_alternative_cosine),
-      euclidean = dist * dist,
-      hellinger = sapply(dist, uncorrect_alternative_hellinger),
-      jaccard = sapply(dist, uncorrect_alternative_jaccard),
-      dist
-    )
+  if (length(dist) == 0L && metric %in% c("dot", "hellinger", "jaccard")) {
+    # Keep apply()/sapply() simplification for empty matrices and vectors.
+    return(if (is.matrix(dist)) dist + 0.0 else as.list(dist))
   }
+  switch(
+    metric,
+    dot = uncorrect_alternative_cosine(dist),
+    euclidean = dist * dist,
+    hellinger = uncorrect_alternative_hellinger(dist),
+    jaccard = uncorrect_alternative_jaccard(dist),
+    dist
+  )
 }
 
 apply_sparse_alt_metric_uncorrection <- function(metric, dist) {
-  if (is.matrix(dist)) {
-    switch(
-      metric,
-      euclidean = dist * dist,
-      dot = apply(dist, c(1, 2), uncorrect_alternative_cosine),
-      hellinger = apply(dist, c(1, 2), uncorrect_alternative_hellinger),
-      jaccard = apply(dist, c(1, 2), uncorrect_alternative_jaccard),
-      dist
-    )
-  } else {
-    switch(
-      metric,
-      euclidean = dist * dist,
-      dot = sapply(dist, uncorrect_alternative_cosine),
-      hellinger = sapply(dist, uncorrect_alternative_hellinger),
-      jaccard = sapply(dist, uncorrect_alternative_jaccard),
-      dist
-    )
-  }
+  apply_dense_alt_metric_uncorrection(metric, dist)
 }
 
 apply_dense_alt_metric_correction <- function(metric, dist) {
-  if (is.matrix(dist)) {
-    switch(
-      metric,
-      dot = apply(dist, c(1, 2), correct_alternative_dot),
-      euclidean = sqrt(dist),
-      hellinger = apply(dist, c(1, 2), correct_alternative_hellinger),
-      jaccard = apply(dist, c(1, 2), correct_alternative_jaccard),
-      dist
-    )
-  } else {
-    switch(
-      metric,
-      dot = sapply(dist, correct_alternative_dot),
-      euclidean = sqrt(dist),
-      hellinger = sapply(dist, correct_alternative_hellinger),
-      jaccard = sapply(dist, correct_alternative_jaccard),
-      dist
-    )
+  if (length(dist) == 0L && metric %in% c("dot", "hellinger", "jaccard")) {
+    return(if (is.matrix(dist)) dist + 0.0 else as.list(dist))
   }
+  switch(
+    metric,
+    dot = correct_alternative_dot(dist),
+    euclidean = sqrt(dist),
+    hellinger = correct_alternative_hellinger(dist),
+    jaccard = correct_alternative_jaccard(dist),
+    dist
+  )
 }
 
 apply_sparse_alt_metric_correction <- function(metric, dist) {
-  if (is.matrix(dist)) {
-    switch(
-      metric,
-      euclidean = sqrt(dist),
-      dot = apply(dist, c(1, 2), correct_alternative_dot),
-      hellinger = apply(dist, c(1, 2), correct_alternative_hellinger),
-      jaccard = apply(dist, c(1, 2), correct_alternative_jaccard),
-      dist
-    )
-  } else {
-    switch(
-      metric,
-      euclidean = sqrt(dist),
-      dot = sapply(dist, correct_alternative_dot),
-      hellinger = sapply(dist, correct_alternative_hellinger),
-      jaccard = sapply(dist, correct_alternative_jaccard),
-      dist
-    )
-  }
+  apply_dense_alt_metric_correction(metric, dist)
 }
 
 apply_alt_metric_correction <- function(metric, dist, is_sparse = FALSE) {
@@ -155,22 +104,25 @@ isclose <- function(a, b, rtol = 1.0e-5, atol = 1.0e-8) {
 }
 
 correct_alternative_dot <- function(dist) {
-  if (is.na(dist)) {
-    return(NA)
+  missing <- is.na(dist)
+  if (all(missing)) {
+    # Scalar missing values simplified to logical NA in apply()/sapply().
+    missing[] <- NA
+    return(missing)
   }
   # -ve distance is ok for dot
-  1.0 - (2.0^-dist)
+  result <- 1.0 - (2.0^-dist)
+  result[missing] <- NA
+  result
 }
 
 correct_alternative_jaccard <- function(dist) {
-  if (is.na(dist)) {
-    return(NA)
+  result <- correct_alternative_dot(dist)
+  clamped <- !is.na(dist) & (isclose(0.0, abs(dist), atol = 1e-7) | dist < 0.0)
+  if (any(clamped)) {
+    result[clamped] <- 0.0
   }
-  if (isclose(0.0, abs(dist), atol = 1e-7) || dist < 0.0) {
-    0.0
-  } else {
-    1.0 - (2.0^-dist)
-  }
+  result
 }
 
 correct_alternative_hellinger <- function(dist) {
@@ -180,13 +132,26 @@ correct_alternative_hellinger <- function(dist) {
 float32_max <- 3.4028235e+38
 
 uncorrect_alternative_jaccard <- function(dist) {
-  ifelse(dist >= (1.0 - 1.e-10), float32_max, -log2(1.0 - dist))
+  saturated <- dist >= (1.0 - 1.e-10)
+  result <- ifelse(saturated, float32_max, NA_real_)
+  unsaturated <- which(!saturated)
+  if (length(unsaturated)) {
+    result[unsaturated] <- -log2(1.0 - dist[unsaturated])
+  }
+  result
 }
 
 uncorrect_alternative_hellinger <- function(dist) {
-  ifelse(dist >= (1.0 - 1.e-10), float32_max, -log2(1.0 - (dist * dist)))
+  saturated <- dist >= (1.0 - 1.e-10)
+  result <- ifelse(saturated, float32_max, NA_real_)
+  unsaturated <- which(!saturated)
+  if (length(unsaturated)) {
+    values <- dist[unsaturated]
+    result[unsaturated] <- -log2(1.0 - (values * values))
+  }
+  result
 }
 
 uncorrect_alternative_cosine <- function(dist) {
-  ifelse(dist >= (1.0 - 1.e-10), float32_max, -log2(1.0 - dist))
+  uncorrect_alternative_jaccard(dist)
 }
