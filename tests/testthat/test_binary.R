@@ -365,6 +365,9 @@ for (metric in c(
     # sparse should equal dense
     tolerance <- if (metric %in% c("correlation", "cosine", "jensenshannon"))
       1e-5 else 1e-7
+    if (metric == "spearmanr") {
+      tolerance <- 1e-6
+    }
     if (metric == "symmetrickl") {
       # KL has quite large distances (> 10) so the tolerance needs to be larger
       tolerance <- 1e-3

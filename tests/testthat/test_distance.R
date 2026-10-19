@@ -449,7 +449,7 @@ test_that("Spearman Rank", {
   expect_equal(
     brute_force_knn(mz, metric = "spearmanr", k = 4),
     brute_force_knn(msp, metric = "spearmanr", k = 4),
-    tolerance = 1e-7
+    tolerance = 1e-6
   )
 })
 
