@@ -567,6 +567,10 @@ template <typename Out, typename It> Out tsss(It xbegin, It xend, It ybegin) {
     norm_y += *yit * *yit;
   }
 
+  if (norm_x == 0 || norm_y == 0) {
+    return 0;
+  }
+
   norm_x = std::sqrt(norm_x);
   norm_y = std::sqrt(norm_y);
   Out magnitude_difference = std::abs(norm_x - norm_y);
