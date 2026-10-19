@@ -474,7 +474,11 @@ test_that("sparse cosine", {
     use_alt_metric = FALSE,
     metric = "cosine"
   )
-  expect_equal(dzrnbrs, sprnbrs, tolerance = 1e-6)
+  # Float cosine roundoff near zero needs an absolute distance bound.
+  expect_identical(dzrnbrs$idx, sprnbrs$idx)
+  expect_identical(dim(dzrnbrs$dist), dim(sprnbrs$dist))
+  expect_true(all(is.finite(c(dzrnbrs$dist, sprnbrs$dist))))
+  expect_true(all(abs(dzrnbrs$dist - sprnbrs$dist) <= 1e-6))
   set.seed(1337)
   sprnbrs <- random_knn(
     ui10sp,
@@ -483,7 +487,10 @@ test_that("sparse cosine", {
     use_alt_metric = TRUE,
     metric = "cosine"
   )
-  expect_equal(dzrnbrs, sprnbrs, tolerance = 1e-6)
+  expect_identical(dzrnbrs$idx, sprnbrs$idx)
+  expect_identical(dim(dzrnbrs$dist), dim(sprnbrs$dist))
+  expect_true(all(is.finite(c(dzrnbrs$dist, sprnbrs$dist))))
+  expect_true(all(abs(dzrnbrs$dist - sprnbrs$dist) <= 1e-6))
 })
 
 test_that("sparse query", {
