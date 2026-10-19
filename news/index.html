@@ -48,7 +48,8 @@
 <h2 class="pkg-version" data-toc-text="development version" id="rnndescent-development-version">rnndescent (development version)<a class="anchor" aria-label="anchor" href="#rnndescent-development-version"></a></h2>
 <div class="section level3">
 <h3 id="bug-fixes-and-minor-improvements-development-version">Bug fixes and minor improvements<a class="anchor" aria-label="anchor" href="#bug-fixes-and-minor-improvements-development-version"></a></h3>
-<ul><li>Fix missing TS-SS neighbors for zero vectors by returning distance 0. Rebuild affected TS-SS indices.</li>
+<ul><li>Reduce R overhead when converting alternative dot, Hellinger and Jaccard distances.</li>
+<li>Fix missing TS-SS neighbors for zero vectors by returning distance 0. Rebuild affected TS-SS indices.</li>
 <li>Avoid intermediate overflow and underflow in dense <code>"cosine"</code> and <code>"correlation"</code> distances. Rebuild affected cosine/correlation indices.</li>
 <li>Fix <code>metric = "trueangular"</code> distances and neighbor ordering. Rebuild existing trueangular indices.</li>
 <li>Sparse <code>metric = "correlation"</code> now returns 0 instead of 1 between two all-zero vectors, matching the dense convention. Recompute affected sparse correlation graphs or indexes.</li>
