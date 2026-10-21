@@ -205,6 +205,36 @@ test_that("correlation distances and neighbors survive positive rescaling", {
   }
 })
 
+test_that("sparse correlation preserves zero-centered-product membership", {
+  x <- c(1, 2, 2, 0, 0, 1, 1, 1)
+  y <- c(2, 1, 2, 1, 0, 0, 1, 1)
+  # Shared columns with zero centered products are absent from product indices.
+  # Preserve the established sparse result, including when the inputs swap.
+  for (pair in list(list(x, y), list(y, x), list(x, x))) {
+    expected <- if (identical(pair[[1]], pair[[2]])) 0 else 1
+    for (obs in c("R", "C")) {
+      q <- Matrix::drop0(matrix(pair[[1]], nrow = 1))
+      r <- Matrix::drop0(matrix(pair[[2]], nrow = 1))
+      if (obs == "C") {
+        q <- Matrix::t(q)
+        r <- Matrix::t(r)
+      }
+      for (n_threads in c(0L, 2L)) {
+        result <- brute_force_knn_query(
+          q,
+          r,
+          k = 1,
+          metric = "correlation",
+          obs = obs,
+          n_threads = n_threads
+        )
+        expect_identical(result$dist, matrix(expected))
+        expect_equal(result$idx, matrix(1L))
+      }
+    }
+  }
+})
+
 # correlation-preprocess -------------------------------------------------------
 
 context("Correlation-Preprocess distance")

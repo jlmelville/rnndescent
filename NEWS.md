@@ -2,6 +2,8 @@
 
 ## Bug fixes and minor improvements
 
+* Reduce sparse correlation distance overhead by reusing sorted product indices for membership
+  checks.
 * Reduce R overhead when converting alternative dot, Hellinger and Jaccard distances.
 * Fix missing TS-SS neighbors for zero vectors by returning distance 0. Rebuild affected TS-SS
   indices.

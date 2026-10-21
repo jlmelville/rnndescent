@@ -503,20 +503,28 @@ Out sparse_correlation(
   auto &dot_prod_inds = dot_prod.first;
   auto &dot_prod_data = dot_prod.second;
 
-  std::unordered_set<std::size_t> common_indices(dot_prod_inds.begin(),
-                                                 dot_prod_inds.end());
-
   for (auto val : dot_prod_data) {
     dot_product += val;
   }
 
+  // sparse_mul omits zero products; match its indices, not input overlap.
+  std::size_t dot_pos = 0;
   for (std::size_t i = 0; i < ind1_size; ++i) {
-    if (common_indices.find(*(ind1_start + i)) == common_indices.end()) {
+    const auto index = *(ind1_start + i);
+    while (dot_pos < dot_prod_inds.size() && dot_prod_inds[dot_pos] < index) {
+      ++dot_pos;
+    }
+    if (dot_pos == dot_prod_inds.size() || dot_prod_inds[dot_pos] != index) {
       dot_product -= shifted_data1[i] * mu_y;
     }
   }
+  dot_pos = 0;
   for (std::size_t i = 0; i < ind2_size; ++i) {
-    if (common_indices.find(*(ind2_start + i)) == common_indices.end()) {
+    const auto index = *(ind2_start + i);
+    while (dot_pos < dot_prod_inds.size() && dot_prod_inds[dot_pos] < index) {
+      ++dot_pos;
+    }
+    if (dot_pos == dot_prod_inds.size() || dot_prod_inds[dot_pos] != index) {
       dot_product -= shifted_data2[i] * mu_x;
     }
   }
