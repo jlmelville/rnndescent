@@ -569,14 +569,14 @@ Out sparse_cosine(typename std::vector<std::size_t>::const_iterator ind1_start,
       norm2 += val2 * val2;
       ++i1;
       ++i2;
-    } else if (j1 < j2) {
-      const auto val1 = static_cast<Out>(*(data1_start + i1));
-      norm1 += val1 * val1;
-      ++i1;
     } else {
-      const auto val2 = static_cast<Out>(*(data2_start + i2));
-      norm2 += val2 * val2;
-      ++i2;
+      const auto side = static_cast<std::size_t>(j1 > j2);
+      const DataIt values[2] = {data1_start + i1, data2_start + i2};
+      Out *const norms[2] = {&norm1, &norm2};
+      const auto val = static_cast<Out>(*values[side]);
+      *norms[side] += val * val;
+      i1 += 1 - side;
+      i2 += side;
     }
   }
 

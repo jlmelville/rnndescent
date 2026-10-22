@@ -2,6 +2,7 @@
 
 ## Bug fixes and minor improvements
 
+* Reduce sparse cosine distance overhead when matching feature indices.
 * Reduce sparse correlation distance overhead by reusing sorted product indices for membership
   checks.
 * Reduce R overhead when converting alternative dot, Hellinger and Jaccard distances.

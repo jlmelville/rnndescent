@@ -85,6 +85,35 @@ test_that("cosine values preserve the full domain and existing zero conventions"
   }
 })
 
+test_that("sparse cosine keeps exact distances across alternating supports", {
+  reference <- rbind(
+    c(1, 1, 0, 1, 0, 0, 0, 1, 0),
+    c(1, 0, 0, 1, 1, 0, 0, 1, 0),
+    c(1, 0, 0, -1, 1, 0, 0, 1, 0),
+    rep(0, 9)
+  )
+  query <- rbind(
+    c(0, 1, 1, 1, 0, 0, 1, 0, 0),
+    c(0, 1, 0, 1, 0, 1, 0, 0, 1)
+  )
+  expected <- matrix(c(0.5, 0.75, 1.25, 1), nrow = 2, ncol = 4, byrow = TRUE)
+  for (threads in c(0L, 4L)) {
+    result <- brute_force_knn_query(
+      reference = cosine_sparse(reference),
+      query = cosine_sparse(query),
+      k = nrow(reference),
+      metric = "cosine",
+      use_alt_metric = FALSE,
+      n_threads = threads
+    )
+    pairs <- cbind(
+      rep(seq_len(nrow(result$idx)), ncol(result$idx)),
+      c(result$idx)
+    )
+    expect_identical(result$dist, matrix(expected[pairs], nrow(query)))
+  }
+})
+
 test_that("cosine distances and neighbors survive positive rescaling", {
   reference <- rbind(c(0, 1), c(1, 0), c(-1, 0))
   query <- matrix(c(1, 0), nrow = 1)
