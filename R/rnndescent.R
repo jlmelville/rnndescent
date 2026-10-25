@@ -27,55 +27,7 @@
 #'   number of neighbors you will want to retrieve. Optional if `init` is
 #'   specified, in which case `k` can be inferred from the `init` data. If you
 #'   do both, then the specified version of `k` will take precedence.
-#' @param metric Type of distance calculation to use. One of:
-#'   - `"braycurtis"`
-#'   - `"canberra"`
-#'   - `"chebyshev"`
-#'   - `"correlation"` (1 minus the Pearson correlation)
-#'   - `"cosine"`
-#'   - `"dice"`
-#'   - `"euclidean"`
-#'   - `"hamming"`
-#'   - `"haversine"` (great-circle distance for 2D latitude/longitude in
-#' *radians*; an error will be raised if values that appear to be supplied in
-#' degrees are encountered)
-#'   - `"hellinger"`
-#'   - `"jaccard"`
-#'   - `"jensenshannon"`
-#'   - `"kulsinski"`
-#'   - `"sqeuclidean"` (squared Euclidean)
-#'   - `"manhattan"`
-#'   - `"rogerstanimoto"`
-#'   - `"russellrao"`
-#'   - `"sokalmichener"`
-#'   - `"sokalsneath"`
-#'   - `"spearmanr"` (1 minus the Spearman rank correlation)
-#'   - `"symmetrickl"` (symmetric Kullback-Leibler divergence)
-#'   - `"tsss"` (Triangle Area Similarity-Sector Area Similarity or TS-SS
-#'   metric)
-#'   - `"yule"`
-#'
-#'   For non-sparse data, the following variants are available with
-#'   preprocessing: this trades memory for a potential speed up during the
-#'   distance calculation. Some minor numerical differences should be expected
-#'   compared to the non-preprocessed versions:
-#'   - `"cosine-preprocess"`: `cosine` with preprocessing.
-#'   - `"correlation-preprocess"`: `correlation` with preprocessing.
-#'
-#'   For non-sparse binary data passed as a `logical` matrix, the following
-#'   metrics have specialized variants which should be substantially faster than
-#'   the non-binary variants (in other cases the logical data will be treated as
-#'   a dense numeric vector of 0s and 1s):
-#'   - `"dice"`
-#'   - `"hamming"`
-#'   - `"jaccard"`
-#'   - `"kulsinski"`
-#'   - `"matching"`
-#'   - `"rogerstanimoto"`
-#'   - `"russellrao"`
-#'   - `"sokalmichener"`
-#'   - `"sokalsneath"`
-#'   - `"yule"`
+#' @template metric
 #' @param use_alt_metric If `TRUE`, use faster metrics that maintain the
 #'   ordering of distances internally (e.g. squared Euclidean distances if using
 #'   `metric = "euclidean"`), then apply a correction at the end. Probably
@@ -481,55 +433,7 @@ rnnd_query <-
 #'   matrix first (otherwise you will get the slower dense numerical version).
 #' @param k Number of nearest neighbors to return. Optional if `init` is
 #'   specified.
-#' @param metric Type of distance calculation to use. One of:
-#'   - `"braycurtis"`
-#'   - `"canberra"`
-#'   - `"chebyshev"`
-#'   - `"correlation"` (1 minus the Pearson correlation)
-#'   - `"cosine"`
-#'   - `"dice"`
-#'   - `"euclidean"`
-#'   - `"hamming"`
-#'   - `"haversine"` (great-circle distance for 2D latitude/longitude in
-#' *radians*; an error will be raised if values that appear to be supplied in
-#' degrees are encountered)
-#'   - `"hellinger"`
-#'   - `"jaccard"`
-#'   - `"jensenshannon"`
-#'   - `"kulsinski"`
-#'   - `"sqeuclidean"` (squared Euclidean)
-#'   - `"manhattan"`
-#'   - `"rogerstanimoto"`
-#'   - `"russellrao"`
-#'   - `"sokalmichener"`
-#'   - `"sokalsneath"`
-#'   - `"spearmanr"` (1 minus the Spearman rank correlation)
-#'   - `"symmetrickl"` (symmetric Kullback-Leibler divergence)
-#'   - `"tsss"` (Triangle Area Similarity-Sector Area Similarity or TS-SS
-#'   metric)
-#'   - `"yule"`
-#'
-#'   For non-sparse data, the following variants are available with
-#'   preprocessing: this trades memory for a potential speed up during the
-#'   distance calculation. Some minor numerical differences should be expected
-#'   compared to the non-preprocessed versions:
-#'   - `"cosine-preprocess"`: `cosine` with preprocessing.
-#'   - `"correlation-preprocess"`: `correlation` with preprocessing.
-#'
-#'   For non-sparse binary data passed as a `logical` matrix, the following
-#'   metrics have specialized variants which should be substantially faster than
-#'   the non-binary variants (in other cases the logical data will be treated as
-#'   a dense numeric vector of 0s and 1s):
-#'   - `"dice"`
-#'   - `"hamming"`
-#'   - `"jaccard"`
-#'   - `"kulsinski"`
-#'   - `"matching"`
-#'   - `"rogerstanimoto"`
-#'   - `"russellrao"`
-#'   - `"sokalmichener"`
-#'   - `"sokalsneath"`
-#'   - `"yule"`
+#' @template metric
 #' @param use_alt_metric If `TRUE`, use faster metrics that maintain the
 #'   ordering of distances internally (e.g. squared Euclidean distances if using
 #'   `metric = "euclidean"`), then apply a correction at the end. Probably
@@ -730,55 +634,7 @@ rnnd_knn <- function(
 #'   with the specialized binary `metric`s, you should convert it to a logical
 #'   matrix first (otherwise you will get the slower dense numerical version).
 #' @param k Number of nearest neighbors to return.
-#' @param metric Type of distance calculation to use. One of:
-#'   - `"braycurtis"`
-#'   - `"canberra"`
-#'   - `"chebyshev"`
-#'   - `"correlation"` (1 minus the Pearson correlation)
-#'   - `"cosine"`
-#'   - `"dice"`
-#'   - `"euclidean"`
-#'   - `"hamming"`
-#'   - `"haversine"` (great-circle distance for 2D latitude/longitude in
-#' *radians*; an error will be raised if values that appear to be supplied in
-#' degrees are encountered)
-#'   - `"hellinger"`
-#'   - `"jaccard"`
-#'   - `"jensenshannon"`
-#'   - `"kulsinski"`
-#'   - `"sqeuclidean"` (squared Euclidean)
-#'   - `"manhattan"`
-#'   - `"rogerstanimoto"`
-#'   - `"russellrao"`
-#'   - `"sokalmichener"`
-#'   - `"sokalsneath"`
-#'   - `"spearmanr"` (1 minus the Spearman rank correlation)
-#'   - `"symmetrickl"` (symmetric Kullback-Leibler divergence)
-#'   - `"tsss"` (Triangle Area Similarity-Sector Area Similarity or TS-SS
-#'   metric)
-#'   - `"yule"`
-#'
-#'   For non-sparse data, the following variants are available with
-#'   preprocessing: this trades memory for a potential speed up during the
-#'   distance calculation. Some minor numerical differences should be expected
-#'   compared to the non-preprocessed versions:
-#'   - `"cosine-preprocess"`: `cosine` with preprocessing.
-#'   - `"correlation-preprocess"`: `correlation` with preprocessing.
-#'
-#'   For non-sparse binary data passed as a `logical` matrix, the following
-#'   metrics have specialized variants which should be substantially faster than
-#'   the non-binary variants (in other cases the logical data will be treated as
-#'   a dense numeric vector of 0s and 1s):
-#'   - `"dice"`
-#'   - `"hamming"`
-#'   - `"jaccard"`
-#'   - `"kulsinski"`
-#'   - `"matching"`
-#'   - `"rogerstanimoto"`
-#'   - `"russellrao"`
-#'   - `"sokalmichener"`
-#'   - `"sokalsneath"`
-#'   - `"yule"`
+#' @template metric
 #' @param use_alt_metric If `TRUE`, use faster metrics that maintain the
 #'   ordering of distances internally (e.g. squared Euclidean distances if using
 #'   `metric = "euclidean"`), then apply a correction at the end. Probably
@@ -898,55 +754,7 @@ brute_force_knn <- function(
 #'   logical matrix first (otherwise you will get the slower dense numerical
 #'   version).
 #' @param k Number of nearest neighbors to return.
-#' @param metric Type of distance calculation to use. One of:
-#'   - `"braycurtis"`
-#'   - `"canberra"`
-#'   - `"chebyshev"`
-#'   - `"correlation"` (1 minus the Pearson correlation)
-#'   - `"cosine"`
-#'   - `"dice"`
-#'   - `"euclidean"`
-#'   - `"hamming"`
-#'   - `"haversine"` (great-circle distance for 2D latitude/longitude in
-#' *radians*; an error will be raised if values that appear to be supplied in
-#' degrees are encountered)
-#'   - `"hellinger"`
-#'   - `"jaccard"`
-#'   - `"jensenshannon"`
-#'   - `"kulsinski"`
-#'   - `"sqeuclidean"` (squared Euclidean)
-#'   - `"manhattan"`
-#'   - `"rogerstanimoto"`
-#'   - `"russellrao"`
-#'   - `"sokalmichener"`
-#'   - `"sokalsneath"`
-#'   - `"spearmanr"` (1 minus the Spearman rank correlation)
-#'   - `"symmetrickl"` (symmetric Kullback-Leibler divergence)
-#'   - `"tsss"` (Triangle Area Similarity-Sector Area Similarity or TS-SS
-#'   metric)
-#'   - `"yule"`
-#'
-#'   For non-sparse data, the following variants are available with
-#'   preprocessing: this trades memory for a potential speed up during the
-#'   distance calculation. Some minor numerical differences should be expected
-#'   compared to the non-preprocessed versions:
-#'   - `"cosine-preprocess"`: `cosine` with preprocessing.
-#'   - `"correlation-preprocess"`: `correlation` with preprocessing.
-#'
-#'   For non-sparse binary data passed as a `logical` matrix, the following
-#'   metrics have specialized variants which should be substantially faster than
-#'   the non-binary variants (in other cases the logical data will be treated as
-#'   a dense numeric vector of 0s and 1s):
-#'   - `"dice"`
-#'   - `"hamming"`
-#'   - `"jaccard"`
-#'   - `"kulsinski"`
-#'   - `"matching"`
-#'   - `"rogerstanimoto"`
-#'   - `"russellrao"`
-#'   - `"sokalmichener"`
-#'   - `"sokalsneath"`
-#'   - `"yule"`
+#' @template metric
 #' @param use_alt_metric If `TRUE`, use faster metrics that maintain the
 #'   ordering of distances internally (e.g. squared Euclidean distances if using
 #'   `metric = "euclidean"`), then apply a correction at the end. Probably
@@ -1048,55 +856,7 @@ random_knn <-
 #'   matrix first (otherwise you will get the slower dense numerical version).
 #' @param k Number of nearest neighbors to return. Optional if `init` is
 #'   specified.
-#' @param metric Type of distance calculation to use. One of:
-#'   - `"braycurtis"`
-#'   - `"canberra"`
-#'   - `"chebyshev"`
-#'   - `"correlation"` (1 minus the Pearson correlation)
-#'   - `"cosine"`
-#'   - `"dice"`
-#'   - `"euclidean"`
-#'   - `"hamming"`
-#'   - `"haversine"` (great-circle distance for 2D latitude/longitude in
-#' *radians*; an error will be raised if values that appear to be supplied in
-#' degrees are encountered)
-#'   - `"hellinger"`
-#'   - `"jaccard"`
-#'   - `"jensenshannon"`
-#'   - `"kulsinski"`
-#'   - `"sqeuclidean"` (squared Euclidean)
-#'   - `"manhattan"`
-#'   - `"rogerstanimoto"`
-#'   - `"russellrao"`
-#'   - `"sokalmichener"`
-#'   - `"sokalsneath"`
-#'   - `"spearmanr"` (1 minus the Spearman rank correlation)
-#'   - `"symmetrickl"` (symmetric Kullback-Leibler divergence)
-#'   - `"tsss"` (Triangle Area Similarity-Sector Area Similarity or TS-SS
-#'   metric)
-#'   - `"yule"`
-#'
-#'   For non-sparse data, the following variants are available with
-#'   preprocessing: this trades memory for a potential speed up during the
-#'   distance calculation. Some minor numerical differences should be expected
-#'   compared to the non-preprocessed versions:
-#'   - `"cosine-preprocess"`: `cosine` with preprocessing.
-#'   - `"correlation-preprocess"`: `correlation` with preprocessing.
-#'
-#'   For non-sparse binary data passed as a `logical` matrix, the following
-#'   metrics have specialized variants which should be substantially faster than
-#'   the non-binary variants (in other cases the logical data will be treated as
-#'   a dense numeric vector of 0s and 1s):
-#'   - `"dice"`
-#'   - `"hamming"`
-#'   - `"jaccard"`
-#'   - `"kulsinski"`
-#'   - `"matching"`
-#'   - `"rogerstanimoto"`
-#'   - `"russellrao"`
-#'   - `"sokalmichener"`
-#'   - `"sokalsneath"`
-#'   - `"yule"`
+#' @template metric
 #' @param init Name of the initialization strategy or initial `data` neighbor
 #'   graph to optimize. One of:
 #'   - `"rand"` random initialization (the default).
@@ -1472,55 +1232,7 @@ nnd_knn <- function(
 #'   [base::matrix()] or [Matrix::sparseMatrix()]. Sparse matrices should be in
 #'   `dgCMatrix` format.
 #' @param k Number of nearest neighbors to return.
-#' @param metric Type of distance calculation to use. One of:
-#'   - `"braycurtis"`
-#'   - `"canberra"`
-#'   - `"chebyshev"`
-#'   - `"correlation"` (1 minus the Pearson correlation)
-#'   - `"cosine"`
-#'   - `"dice"`
-#'   - `"euclidean"`
-#'   - `"hamming"`
-#'   - `"haversine"` (great-circle distance for 2D latitude/longitude in
-#' *radians*; an error will be raised if values that appear to be supplied in
-#' degrees are encountered)
-#'   - `"hellinger"`
-#'   - `"jaccard"`
-#'   - `"jensenshannon"`
-#'   - `"kulsinski"`
-#'   - `"sqeuclidean"` (squared Euclidean)
-#'   - `"manhattan"`
-#'   - `"rogerstanimoto"`
-#'   - `"russellrao"`
-#'   - `"sokalmichener"`
-#'   - `"sokalsneath"`
-#'   - `"spearmanr"` (1 minus the Spearman rank correlation)
-#'   - `"symmetrickl"` (symmetric Kullback-Leibler divergence)
-#'   - `"tsss"` (Triangle Area Similarity-Sector Area Similarity or TS-SS
-#'   metric)
-#'   - `"yule"`
-#'
-#'   For non-sparse data, the following variants are available with
-#'   preprocessing: this trades memory for a potential speed up during the
-#'   distance calculation. Some minor numerical differences should be expected
-#'   compared to the non-preprocessed versions:
-#'   - `"cosine-preprocess"`: `cosine` with preprocessing.
-#'   - `"correlation-preprocess"`: `correlation` with preprocessing.
-#'
-#'   For non-sparse binary data passed as a `logical` matrix, the following
-#'   metrics have specialized variants which should be substantially faster than
-#'   the non-binary variants (in other cases the logical data will be treated as
-#'   a dense numeric vector of 0s and 1s):
-#'   - `"dice"`
-#'   - `"hamming"`
-#'   - `"jaccard"`
-#'   - `"kulsinski"`
-#'   - `"matching"`
-#'   - `"rogerstanimoto"`
-#'   - `"russellrao"`
-#'   - `"sokalmichener"`
-#'   - `"sokalsneath"`
-#'   - `"yule"`
+#' @template metric
 #' @param use_alt_metric If `TRUE`, use faster metrics that maintain the
 #'   ordering of distances internally (e.g. squared Euclidean distances if using
 #'   `metric = "euclidean"`), then apply a correction at the end. Probably
@@ -1665,55 +1377,7 @@ brute_force_knn_query <- function(
 #'   [base::matrix()] or [Matrix::sparseMatrix()]. Sparse matrices should be in
 #'   `dgCMatrix` format.
 #' @param k Number of nearest neighbors to return.
-#' @param metric Type of distance calculation to use. One of:
-#'   - `"braycurtis"`
-#'   - `"canberra"`
-#'   - `"chebyshev"`
-#'   - `"correlation"` (1 minus the Pearson correlation)
-#'   - `"cosine"`
-#'   - `"dice"`
-#'   - `"euclidean"`
-#'   - `"hamming"`
-#'   - `"haversine"` (great-circle distance for 2D latitude/longitude in
-#' *radians*; an error will be raised if values that appear to be supplied in
-#' degrees are encountered)
-#'   - `"hellinger"`
-#'   - `"jaccard"`
-#'   - `"jensenshannon"`
-#'   - `"kulsinski"`
-#'   - `"sqeuclidean"` (squared Euclidean)
-#'   - `"manhattan"`
-#'   - `"rogerstanimoto"`
-#'   - `"russellrao"`
-#'   - `"sokalmichener"`
-#'   - `"sokalsneath"`
-#'   - `"spearmanr"` (1 minus the Spearman rank correlation)
-#'   - `"symmetrickl"` (symmetric Kullback-Leibler divergence)
-#'   - `"tsss"` (Triangle Area Similarity-Sector Area Similarity or TS-SS
-#'   metric)
-#'   - `"yule"`
-#'
-#'   For non-sparse data, the following variants are available with
-#'   preprocessing: this trades memory for a potential speed up during the
-#'   distance calculation. Some minor numerical differences should be expected
-#'   compared to the non-preprocessed versions:
-#'   - `"cosine-preprocess"`: `cosine` with preprocessing.
-#'   - `"correlation-preprocess"`: `correlation` with preprocessing.
-#'
-#'   For non-sparse binary data passed as a `logical` matrix, the following
-#'   metrics have specialized variants which should be substantially faster than
-#'   the non-binary variants (in other cases the logical data will be treated as
-#'   a dense numeric vector of 0s and 1s):
-#'   - `"dice"`
-#'   - `"hamming"`
-#'   - `"jaccard"`
-#'   - `"kulsinski"`
-#'   - `"matching"`
-#'   - `"rogerstanimoto"`
-#'   - `"russellrao"`
-#'   - `"sokalmichener"`
-#'   - `"sokalsneath"`
-#'   - `"yule"`
+#' @template metric
 #' @param use_alt_metric If `TRUE`, use faster metrics that maintain the
 #'   ordering of distances internally (e.g. squared Euclidean distances if using
 #'   `metric = "euclidean"`), then apply a correction at the end. Probably
@@ -1846,55 +1510,7 @@ random_knn_query <-
 #'   that output by [prepare_search_graph()].
 #' @param k Number of nearest neighbors to return. Optional if `init` is
 #'   specified.
-#' @param metric Type of distance calculation to use. One of:
-#'   - `"braycurtis"`
-#'   - `"canberra"`
-#'   - `"chebyshev"`
-#'   - `"correlation"` (1 minus the Pearson correlation)
-#'   - `"cosine"`
-#'   - `"dice"`
-#'   - `"euclidean"`
-#'   - `"hamming"`
-#'   - `"haversine"` (great-circle distance for 2D latitude/longitude in
-#' *radians*; an error will be raised if values that appear to be supplied in
-#' degrees are encountered)
-#'   - `"hellinger"`
-#'   - `"jaccard"`
-#'   - `"jensenshannon"`
-#'   - `"kulsinski"`
-#'   - `"sqeuclidean"` (squared Euclidean)
-#'   - `"manhattan"`
-#'   - `"rogerstanimoto"`
-#'   - `"russellrao"`
-#'   - `"sokalmichener"`
-#'   - `"sokalsneath"`
-#'   - `"spearmanr"` (1 minus the Spearman rank correlation)
-#'   - `"symmetrickl"` (symmetric Kullback-Leibler divergence)
-#'   - `"tsss"` (Triangle Area Similarity-Sector Area Similarity or TS-SS
-#'   metric)
-#'   - `"yule"`
-#'
-#'   For non-sparse data, the following variants are available with
-#'   preprocessing: this trades memory for a potential speed up during the
-#'   distance calculation. Some minor numerical differences should be expected
-#'   compared to the non-preprocessed versions:
-#'   - `"cosine-preprocess"`: `cosine` with preprocessing.
-#'   - `"correlation-preprocess"`: `correlation` with preprocessing.
-#'
-#'   For non-sparse binary data passed as a `logical` matrix, the following
-#'   metrics have specialized variants which should be substantially faster than
-#'   the non-binary variants (in other cases the logical data will be treated as
-#'   a dense numeric vector of 0s and 1s):
-#'   - `"dice"`
-#'   - `"hamming"`
-#'   - `"jaccard"`
-#'   - `"kulsinski"`
-#'   - `"matching"`
-#'   - `"rogerstanimoto"`
-#'   - `"russellrao"`
-#'   - `"sokalmichener"`
-#'   - `"sokalsneath"`
-#'   - `"yule"`
+#' @template metric
 #' @param use_alt_metric If `TRUE`, use faster metrics that maintain the
 #'   ordering of distances internally (e.g. squared Euclidean distances if using
 #'   `metric = "euclidean"`), then apply a correction at the end. Probably the
@@ -2267,55 +1883,7 @@ graph_knn_query <- function(
 #'   * `idx` an `n` by `k` matrix containing the nearest neighbor indices of
 #'   the data in `data`.
 #'   * `dist` an `n` by `k` matrix containing the nearest neighbor distances.
-#' @param metric Type of distance calculation to use. One of:
-#'   - `"braycurtis"`
-#'   - `"canberra"`
-#'   - `"chebyshev"`
-#'   - `"correlation"` (1 minus the Pearson correlation)
-#'   - `"cosine"`
-#'   - `"dice"`
-#'   - `"euclidean"`
-#'   - `"hamming"`
-#'   - `"haversine"` (great-circle distance for 2D latitude/longitude in
-#' *radians*; an error will be raised if values that appear to be supplied in
-#' degrees are encountered)
-#'   - `"hellinger"`
-#'   - `"jaccard"`
-#'   - `"jensenshannon"`
-#'   - `"kulsinski"`
-#'   - `"sqeuclidean"` (squared Euclidean)
-#'   - `"manhattan"`
-#'   - `"rogerstanimoto"`
-#'   - `"russellrao"`
-#'   - `"sokalmichener"`
-#'   - `"sokalsneath"`
-#'   - `"spearmanr"` (1 minus the Spearman rank correlation)
-#'   - `"symmetrickl"` (symmetric Kullback-Leibler divergence)
-#'   - `"tsss"` (Triangle Area Similarity-Sector Area Similarity or TS-SS
-#'   metric)
-#'   - `"yule"`
-#'
-#'   For non-sparse data, the following variants are available with
-#'   preprocessing: this trades memory for a potential speed up during the
-#'   distance calculation. Some minor numerical differences should be expected
-#'   compared to the non-preprocessed versions:
-#'   - `"cosine-preprocess"`: `cosine` with preprocessing.
-#'   - `"correlation-preprocess"`: `correlation` with preprocessing.
-#'
-#'   For non-sparse binary data passed as a `logical` matrix, the following
-#'   metrics have specialized variants which should be substantially faster than
-#'   the non-binary variants (in other cases the logical data will be treated as
-#'   a dense numeric vector of 0s and 1s):
-#'   - `"dice"`
-#'   - `"hamming"`
-#'   - `"jaccard"`
-#'   - `"kulsinski"`
-#'   - `"matching"`
-#'   - `"rogerstanimoto"`
-#'   - `"russellrao"`
-#'   - `"sokalmichener"`
-#'   - `"sokalsneath"`
-#'   - `"yule"`
+#' @template metric
 #' @param use_alt_metric If `TRUE`, use faster metrics that maintain the
 #'   ordering of distances internally (e.g. squared Euclidean distances if using
 #'   `metric = "euclidean"`), then apply a correction at the end. Probably
