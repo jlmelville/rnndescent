@@ -6,19 +6,19 @@ check_nbri <- function(nnidx, i) {
   nr <- nrow(nnidx)
   nc <- ncol(nnidx)
   true_nbrs <- nnidx[i, 2:nc]
-  expect_true(all(i != true_nbrs), label = i)
-  expect_true(all(true_nbrs > 0), label = i)
-  expect_true(all(true_nbrs <= nr), label = i)
-  expect_true(length(unique(true_nbrs)) == nc - 1)
+  testthat::expect_true(all(i != true_nbrs), label = i)
+  testthat::expect_true(all(true_nbrs > 0), label = i)
+  testthat::expect_true(all(true_nbrs <= nr), label = i)
+  testthat::expect_true(length(unique(true_nbrs)) == nc - 1)
 }
 
 check_nbri_unordered <- function(nnidx, i) {
   nr <- nrow(nnidx)
   nc <- ncol(nnidx)
   nbrs <- nnidx[i, , drop = FALSE]
-  expect_true(all(nbrs > 0), label = i)
-  expect_true(all(nbrs <= nr), label = i)
-  expect_true(length(unique(nbrs)) == nc)
+  testthat::expect_true(all(nbrs > 0), label = i)
+  testthat::expect_true(all(nbrs <= nr), label = i)
+  testthat::expect_true(length(unique(nbrs)) == nc)
 }
 
 check_nbrs_idx <- function(nnidx, check_order = TRUE) {
@@ -53,7 +53,7 @@ check_nbrs_dist <- function(
 
 check_nbrs_order <- function(nn) {
   nbr_cols <- seq_len(ncol(nn$idx))
-  expect_true(all(
+  testthat::expect_true(all(
     apply(nn$dist, 1, order) ==
       matrix(rep(nbr_cols, times = nrow(nn$idx)), nrow = ncol(nn$idx))
   ))
@@ -119,8 +119,8 @@ check_query_nbrs_dist <- function(
 }
 
 check_nn_matrix_dim <- function(m, query, k) {
-  expect_equal(nrow(m), nrow(query))
-  expect_equal(ncol(m), k)
+  testthat::expect_equal(nrow(m), nrow(query))
+  testthat::expect_equal(ncol(m), k)
 }
 
 check_query_nbrs <- function(
@@ -141,7 +141,7 @@ check_query_nbrs <- function(
   if (check_order) {
     # this checks that distances are in increasing order for each row
     nbr_cols <- seq_len(ncol(nn$idx))
-    expect_true(all(
+    testthat::expect_true(all(
       apply(nn$dist, 1, order) ==
         matrix(rep(nbr_cols, times = nrow(nn$idx)), nrow = ncol(nn$idx))
     ))

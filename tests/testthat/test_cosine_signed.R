@@ -12,12 +12,12 @@ cosine_oracle <- function(reference, query = reference) {
 }
 
 expect_cosine_pairs <- function(result, expected) {
-  expect_true(all(result$idx > 0L))
+  testthat::expect_true(all(result$idx > 0L))
   pairs <- cbind(
     rep(seq_len(nrow(result$idx)), ncol(result$idx)),
     c(result$idx)
   )
-  expect_equal(
+  testthat::expect_equal(
     result$dist,
     matrix(expected[pairs], nrow(result$idx)),
     tolerance = 1e-6

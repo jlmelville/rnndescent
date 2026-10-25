@@ -8,7 +8,6 @@ linters: linters_with_defaults(
   line_length_linter = NULL,
   object_length_linter = NULL,
   object_name_linter = NULL,
-  object_usage_linter = NULL,
   paren_body_linter = NULL,
   pipe_consistency_linter = NULL,
   pipe_continuation_linter = NULL,
