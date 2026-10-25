@@ -49,16 +49,17 @@ And then load them:
 
 ``` r
 
-library(tm)
-library(slam)
-library(janeaustenr)
-library(dplyr)
+# These optional article packages are not installed by package CI.
+library(tm) # nolint: object_usage_linter.
+library(slam) # nolint: object_usage_linter.
+library(janeaustenr) # nolint: object_usage_linter.
+library(dplyr) # nolint: object_usage_linter.
 library(rnndescent)
-library(uwot)
+library(uwot) # nolint: object_usage_linter.
 library(Matrix)
-library(RSpectra)
-library(RColorBrewer)
-library(ggplot2)
+library(RSpectra) # nolint: object_usage_linter.
+library(RColorBrewer) # nolint: object_usage_linter.
+library(ggplot2) # nolint: object_usage_linter.
 ```
 
 ## Preprocessing the Text Data
