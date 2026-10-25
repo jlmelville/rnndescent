@@ -374,3 +374,60 @@ test_that("graph query verbose search stats report true min and average counts",
     "avg distance calculation = 2 \\(50\\.00%\\) of reference data"
   )
 })
+
+
+test_that("integer queries preserve numeric results, RNG and caller data", {
+  reference <- matrix(
+    c(
+      0L,
+      1L,
+      2L,
+      2L,
+      0L,
+      -1L,
+      3L,
+      2L,
+      1L,
+      1L,
+      -2L,
+      0L,
+      -1L,
+      0L,
+      3L,
+      4L,
+      1L,
+      -2L,
+      0L,
+      0L,
+      0L,
+      2L,
+      2L,
+      2L
+    ),
+    ncol = 3,
+    byrow = TRUE
+  )
+  dimnames(reference) <- list(letters[1:8], LETTERS[1:3])
+  query <- reference[c(2, 5, 7), , drop = FALSE]
+  set.seed(707)
+  index <- rnnd_build(reference, k = 4, n_trees = 1, leaf_size = 8)
+  expect_type(index$data, "integer")
+
+  numeric_index <- index
+  storage.mode(numeric_index$data) <- "double"
+  numeric_query <- query
+  storage.mode(numeric_query) <- "double"
+  before <- serialize(list(index = index, query = query), NULL)
+  run_query <- function(index, query) {
+    set.seed(8107)
+    value <- rnnd_query(index, query, k = 4, n_threads = 0)
+    list(value = value, rng = .Random.seed)
+  }
+  expected <- run_query(numeric_index, numeric_query)
+  for (input_index in list(index, numeric_index)) {
+    for (input_query in list(query, numeric_query)) {
+      expect_identical(run_query(input_index, input_query), expected)
+    }
+  }
+  expect_identical(serialize(list(index = index, query = query), NULL), before)
+})

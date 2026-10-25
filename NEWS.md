@@ -2,6 +2,7 @@
 
 ## Bug fixes and minor improvements
 
+* Reduce repeated integer-matrix conversion during forest-initialized graph queries.
 * Reduce sparse cosine distance overhead when matching feature indices.
 * Reduce sparse correlation distance overhead by reusing sorted product indices for membership
   checks.

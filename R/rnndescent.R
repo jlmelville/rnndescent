@@ -2069,6 +2069,13 @@ graph_knn_query <- function(
     # FIXME: can we just do the unzeroing inside the init?
     init$idx <- init$idx + 1
   } else if (is.list(init) && is_rpforest(init)) {
+    # Call the setter directly to avoid copying the local integer matrix.
+    if (is.integer(reference)) {
+      reference <- `storage.mode<-`(reference, "double")
+    }
+    if (is.integer(query)) {
+      query <- `storage.mode<-`(query, "double")
+    }
     init <- rpf_knn_query(
       query = query,
       reference = reference,
