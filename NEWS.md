@@ -2,6 +2,7 @@
 
 ## Bug fixes and minor improvements
 
+* Explain malformed initial neighbor graphs with clearer component and dimension errors.
 * Reduce repeated integer-matrix conversion during forest-initialized graph queries.
 * Reduce sparse cosine distance overhead when matching feature indices.
 * Reduce sparse correlation distance overhead by reusing sorted product indices for membership

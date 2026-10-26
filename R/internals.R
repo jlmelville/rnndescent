@@ -176,13 +176,25 @@ check_graph <- function(idx, dist = NULL, k = NULL) {
 }
 
 check_init_graph <- function(nn, n_points, n_reference) {
-  stopifnot(is.list(nn))
-  stopifnot(!is.null(nn$idx))
-  stopifnot(methods::is(nn$idx, "matrix"))
+  if (!is.list(nn)) {
+    stop("initial neighbor graph must be a list")
+  }
+  if (is.null(nn$idx)) {
+    stop("initial neighbor graph must contain an 'idx' component")
+  }
+  if (!methods::is(nn$idx, "matrix")) {
+    stop("initial neighbor graph 'idx' must be a matrix")
+  }
 
   if (!is.null(nn$dist)) {
-    stopifnot(methods::is(nn$dist, "matrix"))
-    stopifnot(dim(nn$idx) == dim(nn$dist))
+    if (!methods::is(nn$dist, "matrix")) {
+      stop("initial neighbor graph 'dist' must be a matrix")
+    }
+    if (!isTRUE(all(dim(nn$idx) == dim(nn$dist)))) {
+      stop(
+        "initial neighbor graph 'idx' and 'dist' must have the same dimensions"
+      )
+    }
   }
 
   if (nrow(nn$idx) != n_points) {
