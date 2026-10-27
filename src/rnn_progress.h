@@ -47,7 +47,8 @@ struct RPProgress : public tdoann::ProgressBase {
 
   RPProgress(uint32_t n_iters, bool verbose)
       : progress(scale, verbose), verbose(verbose),
-        iter_increment(static_cast<double>(scale) / n_iters) {}
+        iter_increment(n_iters == 0 ? 0.0
+                                    : static_cast<double>(scale) / n_iters) {}
 
   RPProgress(RPProgress &&other) noexcept
       : progress(std::move(other.progress)), verbose(other.verbose),
@@ -69,7 +70,7 @@ struct RPProgress : public tdoann::ProgressBase {
   }
 
   void set_n_iters(uint32_t n_iters) override {
-    iter_increment = static_cast<double>(scale) / n_iters;
+    iter_increment = n_iters == 0 ? 0.0 : static_cast<double>(scale) / n_iters;
   }
 
   void set_n_batches(uint32_t n_batches) override {

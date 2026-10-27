@@ -177,5 +177,6 @@ done < <(
 clang-format --dry-run --Werror "${format_sources[@]}"
 
 tools/test-pforr-exception-transport.sh
+Rscript --vanilla tools/test-rnn-progress.R
 
 printf 'native-quality: PASS (headers, TUs and format with GCC and Clang/libc++)\n'

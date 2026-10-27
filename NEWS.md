@@ -2,6 +2,7 @@
 
 ## Bug fixes and minor improvements
 
+* Keep progress increments finite when nearest neighbor descent runs for zero iterations.
 * Identify empty data or reference inputs when they cannot provide neighbors.
 * Explain malformed initial neighbor graphs with clearer component and dimension errors.
 * Reduce repeated integer-matrix conversion during forest-initialized graph queries.
