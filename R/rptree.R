@@ -456,7 +456,7 @@ rpf_knn_query <- function(
   reference <- x2m(reference, obs, "reference")
   query <- x2m(query, obs, "query")
   check_matching_features(reference, query, obs)
-  check_k(k, n_obs(reference))
+  check_k(k, n_obs(reference), "reference")
   n_features <- switch(
     obs,
     R = ncol(reference),

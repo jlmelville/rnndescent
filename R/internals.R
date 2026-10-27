@@ -4,8 +4,11 @@
   library.dynam.unload("rnndescent", libpath)
 }
 
-check_k <- function(k, max_k) {
+check_k <- function(k, max_k, name = "data") {
   if (!is_single_finite_number(k) || k < 1 || k > max_k || k != floor(k)) {
+    if (isTRUE(max_k == 0)) {
+      stop(name, " must contain at least one observation")
+    }
     stop("k must be a single integer between 1 and ", max_k)
   }
 }

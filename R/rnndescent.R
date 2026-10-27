@@ -1296,7 +1296,7 @@ brute_force_knn_query <- function(
     reference <- Matrix::t(reference)
     query <- Matrix::t(query)
   }
-  check_k(k, ncol(reference))
+  check_k(k, ncol(reference), "reference")
 
   tsmessage(
     thread_msg(
@@ -1442,7 +1442,7 @@ random_knn_query <-
     reference <- x2m(reference, obs, "reference")
     query <- x2m(query, obs, "query")
     check_matching_features(reference, query, obs)
-    check_k(k, n_obs(reference))
+    check_k(k, n_obs(reference), "reference")
 
     actual_metric <-
       get_actual_metric(use_alt_metric, metric, reference, verbose)
@@ -1671,7 +1671,7 @@ graph_knn_query <- function(
         stop("Must provide k")
       }
     }
-    check_k(k, ncol(reference))
+    check_k(k, ncol(reference), "reference")
     tsmessage("Initializing from random neighbors")
     init <- random_knn_impl(
       query = query,
@@ -1722,7 +1722,7 @@ graph_knn_query <- function(
       k <- ncol(init$idx)
       tsmessage("Using k = ", k, " from initial graph")
     }
-    check_k(k, ncol(reference))
+    check_k(k, ncol(reference), "reference")
   } else {
     stop("Unsupported type of 'init'")
   }
