@@ -189,7 +189,7 @@ std::pair<tdoann::DistanceFunc<In, Out>, tdoann::PreprocessFunc<In>>
 get_dense_distance_funcs(const std::string &metric) {
   const auto &metric_map = get_metric_map<In, Out>();
   if (metric_map.count(metric) == 0) {
-    Rcpp::stop("Bad metric");
+    Rcpp::stop("Unknown metric '" + metric + "' for dense data");
   }
   auto distance_func = metric_map.at(metric);
 
@@ -207,7 +207,7 @@ std::pair<tdoann::SparseDistanceFunc<In, Out>, tdoann::SparsePreprocessFunc<In>>
 get_sparse_distance_funcs(const std::string &metric) {
   const auto &metric_map = get_sparse_metric_map<In, Out>();
   if (metric_map.count(metric) == 0) {
-    Rcpp::stop("Bad metric");
+    Rcpp::stop("Unknown metric '" + metric + "' for sparse data");
   }
   auto distance_func = metric_map.at(metric);
 
