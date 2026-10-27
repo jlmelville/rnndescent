@@ -48,7 +48,8 @@
 <h2 class="pkg-version" data-toc-text="development version" id="rnndescent-development-version">rnndescent (development version)<a class="anchor" aria-label="anchor" href="#rnndescent-development-version"></a></h2>
 <div class="section level3">
 <h3 id="bug-fixes-and-minor-improvements-development-version">Bug fixes and minor improvements<a class="anchor" aria-label="anchor" href="#bug-fixes-and-minor-improvements-development-version"></a></h3>
-<ul><li>Identify empty data or reference inputs when they cannot provide neighbors.</li>
+<ul><li>Keep progress increments finite when nearest neighbor descent runs for zero iterations.</li>
+<li>Identify empty data or reference inputs when they cannot provide neighbors.</li>
 <li>Explain malformed initial neighbor graphs with clearer component and dimension errors.</li>
 <li>Reduce repeated integer-matrix conversion during forest-initialized graph queries.</li>
 <li>Reduce sparse cosine distance overhead when matching feature indices.</li>
