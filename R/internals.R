@@ -168,13 +168,23 @@ check_graph <- function(idx, dist = NULL, k = NULL) {
   if (is.list(idx)) {
     idx <- idx$idx
   }
-  stopifnot(methods::is(idx, "matrix"))
-  stopifnot(methods::is(dist, "matrix"))
-  stopifnot(dim(idx) == dim(dist))
+  if (!methods::is(idx, "matrix")) {
+    stop("Expected a matrix of neighbor indices in 'idx'")
+  }
+  if (!methods::is(dist, "matrix")) {
+    stop("Expected a matrix of neighbor distances in 'dist'")
+  }
+  same_dims <- dim(idx) == dim(dist)
+  if (!(is.logical(same_dims) && !anyNA(same_dims) && all(same_dims))) {
+    stop("'idx' and 'dist' must have the same dimensions")
+  }
   if (is.null(k)) {
     k <- ncol(idx)
   }
-  stopifnot(k > 0)
+  valid_k <- k > 0
+  if (!(is.logical(valid_k) && !anyNA(valid_k) && all(valid_k))) {
+    stop("'k' must be greater than 0")
+  }
   list(idx = idx, dist = dist, k = k)
 }
 

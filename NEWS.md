@@ -2,6 +2,7 @@
 
 ## Bug fixes and minor improvements
 
+* Explain malformed supplied neighbor graphs with clearer component, dimension and count errors.
 * Explain invalid neighbor-index input and out-of-range `k` values in `k_occur()`.
 * Identify unsupported distance metrics by name and dense or sparse data context.
 * Keep progress increments finite when nearest neighbor descent runs for zero iterations.
