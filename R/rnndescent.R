@@ -1978,13 +1978,22 @@ prepare_search_graph <- function(
   n_threads <- check_n_threads(n_threads)
 
   if (!is.null(pruning_degree_multiplier)) {
-    stopifnot(pruning_degree_multiplier > 0)
+    valid_degree <- pruning_degree_multiplier > 0
+    if (
+      !(is.logical(valid_degree) && !anyNA(valid_degree) && all(valid_degree))
+    ) {
+      stop("'pruning_degree_multiplier' must be greater than 0")
+    }
   }
   if (!is.null(diversify_prob)) {
-    stopifnot(
-      diversify_prob <= 1,
-      diversify_prob >= 0
-    )
+    valid_prob <- diversify_prob <= 1
+    if (!(is.logical(valid_prob) && !anyNA(valid_prob) && all(valid_prob))) {
+      stop("'diversify_prob' must be between 0 and 1")
+    }
+    valid_prob <- diversify_prob >= 0
+    if (!(is.logical(valid_prob) && !anyNA(valid_prob) && all(valid_prob))) {
+      stop("'diversify_prob' must be between 0 and 1")
+    }
   }
 
   data <- x2m(data, obs)
