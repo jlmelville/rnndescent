@@ -4,6 +4,8 @@
 
 ### Bug fixes and minor improvements
 
+- Explain invalid neighbor-index input and out-of-range `k` values in
+  [`k_occur()`](https://jlmelville.github.io/rnndescent/reference/k_occur.md).
 - Identify unsupported distance metrics by name and dense or sparse data
   context.
 - Keep progress increments finite when nearest neighbor descent runs for
