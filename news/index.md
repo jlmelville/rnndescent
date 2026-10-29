@@ -4,6 +4,8 @@
 
 ### Bug fixes and minor improvements
 
+- Explain when graph queries require `k` and which initializer forms
+  they accept.
 - Explain column shortages and unequal row counts using public names in
   [`neighbor_overlap()`](https://jlmelville.github.io/rnndescent/reference/neighbor_overlap.md).
 - Explain invalid search-graph pruning controls in
