@@ -174,12 +174,12 @@ set `progress = "dist"` to show the current value of the convergence criterion
 and the sum of the distances at each iteration. This can help a bit to determine
 if more iterations or a different convergence criterion will help.
 
-Note that NND uses random number generation to determine the order of processing
-candidates, so for reproducible results you should set the random number seed
-explicitly. Also, the way that parallelism is implemented means that
-reproducibility is not possible for different settings of `n_threads` even with
-a consistent seed, e.g. going from `n_threads = 0` to `n_threads = 4` will give
-you different results, even if you `set.seed` with a fixed seed beforehand.
+Note that NND uses random number generation to determine the order of processing candidates, so for
+reproducible results you should set the random number seed explicitly. Even with the same seed and
+`n_threads`, parallel NND can give you different graphs on repeated runs. Also, the way that
+parallelism is implemented means that reproducibility is not possible for different settings of
+`n_threads` even with a consistent seed, e.g. going from `n_threads = 0` to `n_threads = 4` will
+give you different results, even if you `set.seed` with a fixed seed beforehand.
 
 ## Troubleshooting
 
