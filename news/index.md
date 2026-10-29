@@ -4,6 +4,8 @@
 
 ### Bug fixes and minor improvements
 
+- Explain column shortages and unequal row counts using public names in
+  [`neighbor_overlap()`](https://jlmelville.github.io/rnndescent/reference/neighbor_overlap.md).
 - Explain invalid search-graph pruning controls in
   [`prepare_search_graph()`](https://jlmelville.github.io/rnndescent/reference/prepare_search_graph.md).
 - Explain malformed supplied neighbor graphs with clearer component,
