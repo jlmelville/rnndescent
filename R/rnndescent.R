@@ -2388,12 +2388,12 @@ neighbor_overlapv <-
     }
 
     if (ncol(ref_idx) < k) {
-      stop("Not enough columns in ref_idx for k = ", k)
+      stop("Not enough columns in 'idx2' for k = ", k)
     }
 
     n <- nrow(idx)
     if (nrow(ref_idx) != n) {
-      stop("Not enough rows in ref_idx")
+      stop("'idx1' and 'idx2' must have the same number of rows")
     }
 
     nbr_start <- 1
