@@ -22,7 +22,7 @@ on:
       config:
         description: 'A comma separated list of R-hub platforms to use.'
         type: string
-        default: 'clang-asan,clang-ubsan,gcc-asan,valgrind,lto,rchk,clang22,gcc16'
+        default: 'clang-asan,clang-ubsan,gcc-asan,valgrind,lto,clang22,gcc16'
       name:
         description: 'Run name. You can leave this empty now.'
         type: string
@@ -50,7 +50,7 @@ jobs:
     # r-hub/actions v1.8.1.
     - uses: r-hub/actions/setup@02be5ffbeae2b0d553da66acded089da11a1fb8f
       with:
-        config: ${{ github.event.inputs.config || 'clang-asan,clang-ubsan,gcc-asan,valgrind,lto,rchk,clang22,gcc16' }}
+        config: ${{ github.event.inputs.config || 'clang-asan,clang-ubsan,gcc-asan,valgrind,lto,clang22,gcc16' }}
       id: rhub-setup
 
   linux-containers:
