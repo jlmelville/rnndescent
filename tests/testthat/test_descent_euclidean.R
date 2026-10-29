@@ -722,7 +722,8 @@ expect_error(
     ),
     query = matrix(c(2, 2), nrow = 1)
   ),
-  "Must provide k"
+  "'k' is required for a sparse 'reference_graph' when 'init' is NULL",
+  fixed = TRUE
 )
 expect_error(
   graph_knn_query(
@@ -732,7 +733,8 @@ expect_error(
     init = TRUE,
     k = 1
   ),
-  "Unsupported type of 'init'"
+  "'init' must be NULL, a random projection forest, a neighbor-index matrix, or a graph list containing 'idx'",
+  fixed = TRUE
 )
 expect_error(
   graph_knn_query(

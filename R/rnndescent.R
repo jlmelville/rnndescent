@@ -1668,7 +1668,9 @@ graph_knn_query <- function(
         k <- get_reference_graph_k(reference_graph)
         tsmessage("Using k = ", k, " from graph")
       } else {
-        stop("Must provide k")
+        stop(
+          "'k' is required for a sparse 'reference_graph' when 'init' is NULL"
+        )
       }
     }
     check_k(k, ncol(reference), "reference")
@@ -1724,7 +1726,9 @@ graph_knn_query <- function(
     }
     check_k(k, ncol(reference), "reference")
   } else {
-    stop("Unsupported type of 'init'")
+    stop(
+      "'init' must be NULL, a random projection forest, a neighbor-index matrix, or a graph list containing 'idx'"
+    )
   }
 
   init <-
