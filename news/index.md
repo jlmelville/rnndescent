@@ -4,6 +4,8 @@
 
 ### Bug fixes and minor improvements
 
+- Explain invalid search-graph pruning controls in
+  [`prepare_search_graph()`](https://jlmelville.github.io/rnndescent/reference/prepare_search_graph.md).
 - Explain malformed supplied neighbor graphs with clearer component,
   dimension and count errors.
 - Explain invalid neighbor-index input and out-of-range `k` values in
