@@ -100,6 +100,9 @@ rnnd_knn(
 
   - `"symmetrickl"` (symmetric Kullback-Leibler divergence)
 
+  - `"trueangular"` (angle between vectors divided by pi; 0 for two zero
+    vectors and 1/2 when exactly one vector is zero)
+
   - `"tsss"` (Triangle Area Similarity-Sector Area Similarity or TS-SS
     metric)
 

@@ -96,6 +96,9 @@ nnd_knn(
 
   - `"symmetrickl"` (symmetric Kullback-Leibler divergence)
 
+  - `"trueangular"` (angle between vectors divided by pi; 0 for two zero
+    vectors and 1/2 when exactly one vector is zero)
+
   - `"tsss"` (Triangle Area Similarity-Sector Area Similarity or TS-SS
     metric)
 
@@ -308,11 +311,11 @@ iris_nn <- nnd_knn(iris, k = 4, metric = "manhattan", n_threads = 1)
 
 # Use verbose flag to see information about progress
 iris_nn <- nnd_knn(iris, k = 4, metric = "euclidean", verbose = TRUE)
-#> 17:50:27 Using alt metric 'sqeuclidean' for 'euclidean'
-#> 17:50:27 Initializing neighbors using 'rand' method
-#> 17:50:27 Generating random k-nearest neighbor graph with k = 4
-#> 17:50:27 Running nearest neighbor descent for 7 iterations
-#> 17:50:27 Finished
+#> 19:20:22 Using alt metric 'sqeuclidean' for 'euclidean'
+#> 19:20:22 Initializing neighbors using 'rand' method
+#> 19:20:22 Generating random k-nearest neighbor graph with k = 4
+#> 19:20:22 Running nearest neighbor descent for 7 iterations
+#> 19:20:22 Finished
 
 # Nearest neighbor descent uses random initialization, but you can pass any
 # approximation using the init argument (as long as the metrics used to
@@ -320,11 +323,11 @@ iris_nn <- nnd_knn(iris, k = 4, metric = "euclidean", verbose = TRUE)
 # by nnd_knn).
 iris_nn <- random_knn(iris, k = 4, metric = "euclidean")
 iris_nn <- nnd_knn(iris, init = iris_nn, metric = "euclidean", verbose = TRUE)
-#> 17:50:27 Using alt metric 'sqeuclidean' for 'euclidean'
-#> 17:50:27 Initializing from user-supplied graph
-#> 17:50:27 Applying metric correction to initial distances from 'euclidean' to 'sqeuclidean'
-#> 17:50:27 Running nearest neighbor descent for 7 iterations
-#> 17:50:27 Finished
+#> 19:20:22 Using alt metric 'sqeuclidean' for 'euclidean'
+#> 19:20:22 Initializing from user-supplied graph
+#> 19:20:22 Applying metric correction to initial distances from 'euclidean' to 'sqeuclidean'
+#> 19:20:22 Running nearest neighbor descent for 7 iterations
+#> 19:20:22 Finished
 
 # Number of iterations controls how much optimization is attempted. A smaller
 # value will run faster but give poorer results

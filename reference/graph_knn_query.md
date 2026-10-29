@@ -115,6 +115,9 @@ graph_knn_query(
 
   - `"symmetrickl"` (symmetric Kullback-Leibler divergence)
 
+  - `"trueangular"` (angle between vectors divided by pi; 0 for two zero
+    vectors and 1/2 when exactly one vector is zero)
+
   - `"tsss"` (Triangle Area Similarity-Sector Area Similarity or TS-SS
     metric)
 
@@ -294,11 +297,11 @@ iris_ref_graph <- nnd_knn(iris_ref, k = 4)
 iris_query_nn <- graph_knn_query(iris_query, iris_ref, iris_ref_graph,
   k = 4, metric = "euclidean", verbose = TRUE
 )
-#> 17:50:26 Using alt metric 'sqeuclidean' for 'euclidean'
-#> 17:50:26 Initializing from random neighbors
-#> 17:50:26 Generating random k-nearest neighbor graph from reference with k = 4
-#> 17:50:26 Searching nearest neighbor graph with epsilon = 0.1 and max_search_fraction = 1
-#> 17:50:26 Finished
+#> 19:20:21 Using alt metric 'sqeuclidean' for 'euclidean'
+#> 19:20:21 Initializing from random neighbors
+#> 19:20:21 Generating random k-nearest neighbor graph from reference with k = 4
+#> 19:20:21 Searching nearest neighbor graph with epsilon = 0.1 and max_search_fraction = 1
+#> 19:20:21 Finished
 
 # A more complete example, converting the initial knn into a search graph
 # and using a filtered random projection forest to initialize the search

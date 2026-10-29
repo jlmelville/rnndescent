@@ -102,6 +102,9 @@ brute_force_knn_query(
 
   - `"symmetrickl"` (symmetric Kullback-Leibler divergence)
 
+  - `"trueangular"` (angle between vectors divided by pi; 0 for two zero
+    vectors and 1/2 when exactly one vector is zero)
+
   - `"tsss"` (Triangle Area Similarity-Sector Area Similarity or TS-SS
     metric)
 
@@ -201,9 +204,9 @@ iris_query_nn <- brute_force_knn_query(iris_query,
   reference = iris_ref,
   k = 4, metric = "euclidean", verbose = TRUE
 )
-#> 17:50:26 Using alt metric 'sqeuclidean' for 'euclidean'
-#> 17:50:26 Calculating brute force k-nearest neighbors from reference with k = 4
-#> 17:50:26 Finished
+#> 19:20:21 Using alt metric 'sqeuclidean' for 'euclidean'
+#> 19:20:21 Calculating brute force k-nearest neighbors from reference with k = 4
+#> 19:20:21 Finished
 
 # Manhattan (l1) distance
 iris_query_nn <- brute_force_knn_query(iris_query,

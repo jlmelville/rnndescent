@@ -87,6 +87,9 @@ brute_force_knn(
 
   - `"symmetrickl"` (symmetric Kullback-Leibler divergence)
 
+  - `"trueangular"` (angle between vectors divided by pi; 0 for two zero
+    vectors and 1/2 when exactly one vector is zero)
+
   - `"tsss"` (Triangle Area Similarity-Sector Area Similarity or TS-SS
     metric)
 
@@ -183,7 +186,7 @@ iris_nn <- brute_force_knn(iris, k = 4, metric = "manhattan", n_threads = 1)
 
 # Use verbose flag to see information about progress
 iris_nn <- brute_force_knn(iris, k = 4, metric = "euclidean", verbose = TRUE)
-#> 17:50:24 Using alt metric 'sqeuclidean' for 'euclidean'
-#> 17:50:24 Calculating brute force k-nearest neighbors with k = 4
-#> 17:50:24 Finished
+#> 19:20:20 Using alt metric 'sqeuclidean' for 'euclidean'
+#> 19:20:20 Calculating brute force k-nearest neighbors with k = 4
+#> 19:20:20 Finished
 ```
