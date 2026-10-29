@@ -289,12 +289,14 @@ convergence criterion will help.</li>
 </ul>
 <p>Note that NND uses random number generation to determine the order of
 processing candidates, so for reproducible results you should set the
-random number seed explicitly. Also, the way that parallelism is
-implemented means that reproducibility is not possible for different
-settings of <code>n_threads</code> even with a consistent seed,
-e.g. going from <code>n_threads = 0</code> to <code>n_threads = 4</code>
-will give you different results, even if you <code>set.seed</code> with
-a fixed seed beforehand.</p>
+random number seed explicitly. Even with the same seed and
+<code>n_threads</code>, parallel NND can give you different graphs on
+repeated runs. Also, the way that parallelism is implemented means that
+reproducibility is not possible for different settings of
+<code>n_threads</code> even with a consistent seed, e.g. going from
+<code>n_threads = 0</code> to <code>n_threads = 4</code> will give you
+different results, even if you <code>set.seed</code> with a fixed seed
+beforehand.</p>
 </div>
 <div class="section level2">
 <h2 id="troubleshooting">Troubleshooting<a class="anchor" aria-label="anchor" href="#troubleshooting"></a>

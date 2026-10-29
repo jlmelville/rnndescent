@@ -186,11 +186,12 @@ Apart from `k`, there are some parameters you may want to modify:
 
 Note that NND uses random number generation to determine the order of
 processing candidates, so for reproducible results you should set the
-random number seed explicitly. Also, the way that parallelism is
-implemented means that reproducibility is not possible for different
-settings of `n_threads` even with a consistent seed, e.g. going from
-`n_threads = 0` to `n_threads = 4` will give you different results, even
-if you `set.seed` with a fixed seed beforehand.
+random number seed explicitly. Even with the same seed and `n_threads`,
+parallel NND can give you different graphs on repeated runs. Also, the
+way that parallelism is implemented means that reproducibility is not
+possible for different settings of `n_threads` even with a consistent
+seed, e.g. going from `n_threads = 0` to `n_threads = 4` will give you
+different results, even if you `set.seed` with a fixed seed beforehand.
 
 ## Troubleshooting
 
