@@ -1,24 +1,26 @@
 library(rnndescent)
 context("Random neighbors")
 
-set.seed(1337)
-rnbrs <- random_knn(ui10, k = 4, n_threads = 0)
-check_nbrs(rnbrs, ui10_eucd, tolerance = 1e-6)
+test_that("random neighbors respect threading and ordering options", {
+  set.seed(1337)
+  rnbrs <- random_knn(ui10, k = 4, n_threads = 0)
+  check_nbrs(rnbrs, ui10_eucd, tolerance = 1e-6)
 
-set.seed(1337)
-rnbrs <- random_knn(ui10, k = 4, n_threads = 1)
-check_nbrs(rnbrs, ui10_eucd, tolerance = 1e-6)
+  set.seed(1337)
+  rnbrs <- random_knn(ui10, k = 4, n_threads = 1)
+  check_nbrs(rnbrs, ui10_eucd, tolerance = 1e-6)
 
-# turn off alt metric
-set.seed(1337)
-rnbrs <- random_knn(ui10, k = 4, n_threads = 1, use_alt_metric = FALSE)
-check_nbrs(rnbrs, ui10_eucd, tolerance = 1e-6)
+  # turn off alt metric
+  set.seed(1337)
+  rnbrs <- random_knn(ui10, k = 4, n_threads = 1, use_alt_metric = FALSE)
+  check_nbrs(rnbrs, ui10_eucd, tolerance = 1e-6)
 
-# turn off ordering
-rnbrs <- random_knn(ui10, k = 4, order_by_distance = FALSE)
-check_nbrs(rnbrs, ui10_eucd, tolerance = 1e-6, check_idx_order = FALSE)
-rnbrs <- random_knn(ui10, k = 4, order_by_distance = FALSE, n_threads = 1)
-check_nbrs(rnbrs, ui10_eucd, tolerance = 1e-6, check_idx_order = FALSE)
+  # turn off ordering
+  rnbrs <- random_knn(ui10, k = 4, order_by_distance = FALSE)
+  check_nbrs(rnbrs, ui10_eucd, tolerance = 1e-6, check_idx_order = FALSE)
+  rnbrs <- random_knn(ui10, k = 4, order_by_distance = FALSE, n_threads = 1)
+  check_nbrs(rnbrs, ui10_eucd, tolerance = 1e-6, check_idx_order = FALSE)
+})
 
 test_that("ordering random neighbors preserves sampled pairs", {
   coordinates <- matrix(c(0, 1, 4, 10, 20, 35, 56, 84), ncol = 1)
@@ -93,157 +95,171 @@ test_that("ordering random neighbors preserves sampled pairs", {
   }
 })
 
-# large sample code path
-res <- random_knn(matrix(rnorm(6000), nrow = 3000), k = 3)
-check_nbrs_order(res)
+test_that("large random samples return neighbors in distance order", {
+  # large sample code path
+  res <- random_knn(matrix(rnorm(6000), nrow = 3000), k = 3)
+  check_nbrs_order(res)
+})
 
-# errors
-expect_error(random_knn(ui10, k = 11), "k must be")
-expect_error(random_knn(ui10, k = 0), "k must be")
-expect_error(random_knn(ui10, k = 1.5), "k must be")
-expect_error(random_knn(ui10, k = 4, metric = "not-a-real metric"), "metric")
+test_that("random neighbors reject invalid counts and metrics", {
+  # errors
+  expect_error(random_knn(ui10, k = 11), "k must be")
+  expect_error(random_knn(ui10, k = 0), "k must be")
+  expect_error(random_knn(ui10, k = 1.5), "k must be")
+  expect_error(random_knn(ui10, k = 4, metric = "not-a-real metric"), "metric")
+})
 
 # Queries -----------------------------------------------------------------
 
 context("Random neighbor queries")
 
-set.seed(1337)
-qnbrs4 <- random_knn_query(reference = ui6, query = ui4, k = 4)
-check_query_nbrs(
-  nn = qnbrs4,
-  query = ui4,
-  ref_range = 1:6,
-  query_range = 7:10,
-  k = 4,
-  expected_dist = ui10_eucd,
-  tolerance = 1e-6
-)
+test_that("random queries respect threading and ordering options", {
+  set.seed(1337)
+  qnbrs4 <- random_knn_query(reference = ui6, query = ui4, k = 4)
+  check_query_nbrs(
+    nn = qnbrs4,
+    query = ui4,
+    ref_range = 1:6,
+    query_range = 7:10,
+    k = 4,
+    expected_dist = ui10_eucd,
+    tolerance = 1e-6
+  )
 
-set.seed(1337)
-qnbrs6 <- random_knn_query(reference = ui4, query = ui6, k = 4)
-check_query_nbrs(
-  nn = qnbrs6,
-  query = ui6,
-  ref_range = 7:10,
-  query_range = 1:6,
-  k = 4,
-  expected_dist = ui10_eucd,
-  tolerance = 1e-6
-)
+  set.seed(1337)
+  qnbrs6 <- random_knn_query(reference = ui4, query = ui6, k = 4)
+  check_query_nbrs(
+    nn = qnbrs6,
+    query = ui6,
+    ref_range = 7:10,
+    query_range = 1:6,
+    k = 4,
+    expected_dist = ui10_eucd,
+    tolerance = 1e-6
+  )
 
-# turn off alt_metric
-set.seed(1337)
-qnbrs6 <- random_knn_query(
-  reference = ui4,
-  query = ui6,
-  k = 4,
-  use_alt_metric = FALSE
-)
-check_query_nbrs(
-  nn = qnbrs6,
-  query = ui6,
-  ref_range = 7:10,
-  query_range = 1:6,
-  k = 4,
-  expected_dist = ui10_eucd,
-  tolerance = 1e-6
-)
-
-# no reordering
-set.seed(1337)
-qnbrs6 <- random_knn_query(
-  reference = ui4,
-  query = ui6,
-  k = 4,
-  order_by_distance = FALSE
-)
-check_query_nbrs(
-  nn = qnbrs6,
-  query = ui6,
-  ref_range = 7:10,
-  query_range = 1:6,
-  k = 4,
-  expected_dist = ui10_eucd,
-  tolerance = 1e-6,
-  check_order = FALSE
-)
-
-# threads
-set.seed(1337)
-qnbrs4 <- random_knn_query(reference = ui6, query = ui4, k = 4, n_threads = 1)
-check_query_nbrs(
-  nn = qnbrs4,
-  query = ui4,
-  ref_range = 1:6,
-  query_range = 7:10,
-  k = 4,
-  expected_dist = ui10_eucd,
-  tolerance = 1e-6
-)
-
-set.seed(1337)
-qnbrs6 <- random_knn_query(reference = ui4, query = ui6, k = 4, n_threads = 1)
-check_query_nbrs(
-  nn = qnbrs6,
-  query = ui6,
-  ref_range = 7:10,
-  query_range = 1:6,
-  k = 4,
-  expected_dist = ui10_eucd,
-  tolerance = 1e-6
-)
-
-# no re-ordering
-set.seed(1337)
-qnbrs6 <- random_knn_query(
-  reference = ui4,
-  query = ui6,
-  k = 4,
-  n_threads = 1,
-  order_by_distance = FALSE
-)
-check_query_nbrs(
-  nn = qnbrs6,
-  query = ui6,
-  ref_range = 7:10,
-  query_range = 1:6,
-  k = 4,
-  expected_dist = ui10_eucd,
-  tolerance = 1e-6,
-  check_order = FALSE
-)
-
-# Errors
-expect_error(random_knn_query(reference = ui4, query = ui6, k = 7), "k must be")
-expect_error(random_knn_query(reference = ui4, query = ui6, k = 0), "k must be")
-expect_error(
-  random_knn_query(
+  # turn off alt_metric
+  set.seed(1337)
+  qnbrs6 <- random_knn_query(
     reference = ui4,
     query = ui6,
     k = 4,
-    metric = "not-a-real metric"
-  ),
-  "metric"
-)
-expect_error(
-  random_knn_query(
-    reference = matrix(FALSE, nrow = 2, ncol = 2),
-    query = matrix(FALSE, nrow = 2, ncol = 3),
-    k = 1,
-    metric = "hamming"
-  ),
-  "same number of features"
-)
-expect_error(
-  random_knn_query(
-    reference = matrix(FALSE, nrow = 2, ncol = 2),
-    query = matrix(FALSE, nrow = 3, ncol = 2),
-    k = 1,
-    metric = "hamming",
-    obs = "C"
-  ),
-  "same number of features"
-)
+    use_alt_metric = FALSE
+  )
+  check_query_nbrs(
+    nn = qnbrs6,
+    query = ui6,
+    ref_range = 7:10,
+    query_range = 1:6,
+    k = 4,
+    expected_dist = ui10_eucd,
+    tolerance = 1e-6
+  )
+
+  # no reordering
+  set.seed(1337)
+  qnbrs6 <- random_knn_query(
+    reference = ui4,
+    query = ui6,
+    k = 4,
+    order_by_distance = FALSE
+  )
+  check_query_nbrs(
+    nn = qnbrs6,
+    query = ui6,
+    ref_range = 7:10,
+    query_range = 1:6,
+    k = 4,
+    expected_dist = ui10_eucd,
+    tolerance = 1e-6,
+    check_order = FALSE
+  )
+
+  # threads
+  set.seed(1337)
+  qnbrs4 <- random_knn_query(reference = ui6, query = ui4, k = 4, n_threads = 1)
+  check_query_nbrs(
+    nn = qnbrs4,
+    query = ui4,
+    ref_range = 1:6,
+    query_range = 7:10,
+    k = 4,
+    expected_dist = ui10_eucd,
+    tolerance = 1e-6
+  )
+
+  set.seed(1337)
+  qnbrs6 <- random_knn_query(reference = ui4, query = ui6, k = 4, n_threads = 1)
+  check_query_nbrs(
+    nn = qnbrs6,
+    query = ui6,
+    ref_range = 7:10,
+    query_range = 1:6,
+    k = 4,
+    expected_dist = ui10_eucd,
+    tolerance = 1e-6
+  )
+
+  # no re-ordering
+  set.seed(1337)
+  qnbrs6 <- random_knn_query(
+    reference = ui4,
+    query = ui6,
+    k = 4,
+    n_threads = 1,
+    order_by_distance = FALSE
+  )
+  check_query_nbrs(
+    nn = qnbrs6,
+    query = ui6,
+    ref_range = 7:10,
+    query_range = 1:6,
+    k = 4,
+    expected_dist = ui10_eucd,
+    tolerance = 1e-6,
+    check_order = FALSE
+  )
+})
+
+test_that("random queries reject invalid counts and metrics", {
+  # Errors
+  expect_error(
+    random_knn_query(reference = ui4, query = ui6, k = 7),
+    "k must be"
+  )
+  expect_error(
+    random_knn_query(reference = ui4, query = ui6, k = 0),
+    "k must be"
+  )
+  expect_error(
+    random_knn_query(
+      reference = ui4,
+      query = ui6,
+      k = 4,
+      metric = "not-a-real metric"
+    ),
+    "metric"
+  )
+  expect_error(
+    random_knn_query(
+      reference = matrix(FALSE, nrow = 2, ncol = 2),
+      query = matrix(FALSE, nrow = 2, ncol = 3),
+      k = 1,
+      metric = "hamming"
+    ),
+    "same number of features"
+  )
+  expect_error(
+    random_knn_query(
+      reference = matrix(FALSE, nrow = 2, ncol = 2),
+      query = matrix(FALSE, nrow = 3, ncol = 2),
+      k = 1,
+      metric = "hamming",
+      obs = "C"
+    ),
+    "same number of features"
+  )
+})
 
 test_that("random neighbor APIs reject invalid n_threads values", {
   expect_error(random_knn(ui10, k = 4, n_threads = -1), "n_threads must be")
@@ -255,142 +271,150 @@ test_that("random neighbor APIs reject invalid n_threads values", {
 
 # Other metrics
 
-set.seed(1337)
-qnbrs4 <- random_knn_query(
-  reference = ui6,
-  query = ui4,
-  k = 4,
-  metric = "cosine"
-)
-check_query_nbrs(
-  nn = qnbrs4,
-  query = ui4,
-  ref_range = 1:6,
-  query_range = 7:10,
-  k = 4,
-  expected_dist = ui10_cosd,
-  tolerance = 1e-6
-)
+test_that("random cosine queries contain valid neighbors and distances", {
+  set.seed(1337)
+  qnbrs4 <- random_knn_query(
+    reference = ui6,
+    query = ui4,
+    k = 4,
+    metric = "cosine"
+  )
+  check_query_nbrs(
+    nn = qnbrs4,
+    query = ui4,
+    ref_range = 1:6,
+    query_range = 7:10,
+    k = 4,
+    expected_dist = ui10_cosd,
+    tolerance = 1e-6
+  )
 
-set.seed(1337)
-qnbrs6 <- random_knn_query(
-  reference = ui4,
-  query = ui6,
-  k = 4,
-  metric = "cosine"
-)
-check_query_nbrs(
-  nn = qnbrs6,
-  query = ui6,
-  ref_range = 7:10,
-  query_range = 1:6,
-  k = 4,
-  expected_dist = ui10_cosd,
-  tolerance = 1e-6
-)
+  set.seed(1337)
+  qnbrs6 <- random_knn_query(
+    reference = ui4,
+    query = ui6,
+    k = 4,
+    metric = "cosine"
+  )
+  check_query_nbrs(
+    nn = qnbrs6,
+    query = ui6,
+    ref_range = 7:10,
+    query_range = 1:6,
+    k = 4,
+    expected_dist = ui10_cosd,
+    tolerance = 1e-6
+  )
+})
 
-set.seed(1337)
-qnbrs4 <- random_knn_query(
-  reference = ui6,
-  query = ui4,
-  k = 4,
-  metric = "manhattan"
-)
-check_query_nbrs(
-  nn = qnbrs4,
-  query = ui4,
-  ref_range = 1:6,
-  query_range = 7:10,
-  k = 4,
-  expected_dist = ui10_mand,
-  tolerance = 1e-6
-)
+test_that("random Manhattan queries contain valid neighbors and distances", {
+  set.seed(1337)
+  qnbrs4 <- random_knn_query(
+    reference = ui6,
+    query = ui4,
+    k = 4,
+    metric = "manhattan"
+  )
+  check_query_nbrs(
+    nn = qnbrs4,
+    query = ui4,
+    ref_range = 1:6,
+    query_range = 7:10,
+    k = 4,
+    expected_dist = ui10_mand,
+    tolerance = 1e-6
+  )
 
-set.seed(1337)
-qnbrs6 <- random_knn_query(
-  reference = ui4,
-  query = ui6,
-  k = 4,
-  metric = "manhattan"
-)
-check_query_nbrs(
-  nn = qnbrs6,
-  query = ui6,
-  ref_range = 7:10,
-  query_range = 1:6,
-  k = 4,
-  expected_dist = ui10_mand,
-  tolerance = 1e-6
-)
+  set.seed(1337)
+  qnbrs6 <- random_knn_query(
+    reference = ui4,
+    query = ui6,
+    k = 4,
+    metric = "manhattan"
+  )
+  check_query_nbrs(
+    nn = qnbrs6,
+    query = ui6,
+    ref_range = 7:10,
+    query_range = 1:6,
+    k = 4,
+    expected_dist = ui10_mand,
+    tolerance = 1e-6
+  )
+})
 
-set.seed(1337)
-qnbrs4 <- random_knn_query(
-  reference = bit6,
-  query = bit4,
-  k = 4,
-  metric = "hamming"
-)
-check_query_nbrs(
-  nn = qnbrs4,
-  query = bit4,
-  ref_range = 1:6,
-  query_range = 7:10,
-  k = 4,
-  expected_dist = bit10_hamd,
-  tolerance = 1e-6
-)
+test_that("random Hamming queries contain valid neighbors and distances", {
+  set.seed(1337)
+  qnbrs4 <- random_knn_query(
+    reference = bit6,
+    query = bit4,
+    k = 4,
+    metric = "hamming"
+  )
+  check_query_nbrs(
+    nn = qnbrs4,
+    query = bit4,
+    ref_range = 1:6,
+    query_range = 7:10,
+    k = 4,
+    expected_dist = bit10_hamd,
+    tolerance = 1e-6
+  )
 
-set.seed(1337)
-qnbrs6 <- random_knn_query(
-  reference = bit4,
-  query = bit6,
-  k = 4,
-  metric = "hamming"
-)
-check_query_nbrs(
-  nn = qnbrs6,
-  query = bit6,
-  ref_range = 7:10,
-  query_range = 1:6,
-  k = 4,
-  expected_dist = bit10_hamd,
-  tolerance = 1e-6
-)
+  set.seed(1337)
+  qnbrs6 <- random_knn_query(
+    reference = bit4,
+    query = bit6,
+    k = 4,
+    metric = "hamming"
+  )
+  check_query_nbrs(
+    nn = qnbrs6,
+    query = bit6,
+    ref_range = 7:10,
+    query_range = 1:6,
+    k = 4,
+    expected_dist = bit10_hamd,
+    tolerance = 1e-6
+  )
+})
 
 
-set.seed(1337)
-qnbrs4 <- random_knn_query(
-  reference = lbit6,
-  query = lbit4,
-  k = 4,
-  metric = "hamming"
-)
-check_query_nbrs(
-  nn = qnbrs4,
-  query = bit4,
-  ref_range = 1:6,
-  query_range = 7:10,
-  k = 4,
-  expected_dist = bit10_hamd,
-  tolerance = 1e-6
-)
+test_that("random logical Hamming queries have valid neighbors and distances", {
+  set.seed(1337)
+  qnbrs4 <- random_knn_query(
+    reference = lbit6,
+    query = lbit4,
+    k = 4,
+    metric = "hamming"
+  )
+  check_query_nbrs(
+    nn = qnbrs4,
+    query = bit4,
+    ref_range = 1:6,
+    query_range = 7:10,
+    k = 4,
+    expected_dist = bit10_hamd,
+    tolerance = 1e-6
+  )
 
-set.seed(1337)
-qnbrs6 <- random_knn_query(
-  reference = lbit4,
-  query = lbit6,
-  k = 4,
-  metric = "hamming"
-)
-check_query_nbrs(
-  nn = qnbrs6,
-  query = bit6,
-  ref_range = 7:10,
-  query_range = 1:6,
-  k = 4,
-  expected_dist = bit10_hamd,
-  tolerance = 1e-6
-)
+  set.seed(1337)
+  qnbrs6 <- random_knn_query(
+    reference = lbit4,
+    query = lbit6,
+    k = 4,
+    metric = "hamming"
+  )
+  check_query_nbrs(
+    nn = qnbrs6,
+    query = bit6,
+    ref_range = 7:10,
+    query_range = 1:6,
+    k = 4,
+    expected_dist = bit10_hamd,
+    tolerance = 1e-6
+  )
+})
 
 test_that("column orientation", {
   set.seed(1337)
