@@ -236,14 +236,14 @@ expect_error(
     idx = matrix(nrow = 10, ncol = 2),
     dist = matrix(nrow = 11, ncol = 2)
   )),
-  "nn matrix has 11 rows"
+  "'dist' has 11 rows; 'idx' has 10"
 )
 expect_error(
   validate_nn_graph(list(
     idx = matrix(nrow = 10, ncol = 2),
     dist = matrix(nrow = 10, ncol = 3)
   )),
-  "nn matrix has 3 cols"
+  "'dist' has 3 columns; 'idx' has 2"
 )
 expect_error(
   validate_are_mergeable(
@@ -258,14 +258,14 @@ expect_error(
     idx = matrix(nrow = 10, ncol = 2),
     dist = matrix(nrow = 11, ncol = 2)
   ))),
-  "nn matrix has 11 rows"
+  "'dist' has 11 rows; 'idx' has 10"
 )
 expect_error(
   validate_are_mergeablel(list(list(
     idx = matrix(nrow = 10, ncol = 2),
     dist = matrix(nrow = 10, ncol = 3)
   ))),
-  "nn matrix has 3 cols"
+  "'dist' has 3 columns; 'idx' has 2"
 )
 expect_error(
   validate_are_mergeablel(list(

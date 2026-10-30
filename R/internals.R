@@ -458,7 +458,7 @@ validate_nn_graph <- function(nn_graph, is_query = FALSE) {
   }
   nr <- nrow(nn_graph$idx)
   nc <- ncol(nn_graph$idx)
-  validate_nn_graph_matrix(nn_graph$dist, nr, nc, msg = "nn matrix")
+  validate_nn_graph_matrix(nn_graph$dist, nr, nc, msg = "'dist'")
 
   if (anyNA(nn_graph$idx)) {
     stop("NN graph indices must not be NA; use 0 for missing entries")
@@ -491,10 +491,10 @@ validate_nn_graph_matrix <- function(nn, nr, nc, msg = "matrix") {
   nnr <- nrow(nn)
   nnc <- ncol(nn)
   if (nr != nnr) {
-    stop(msg, " has ", nnr, " rows, should have ", nr)
+    stop(msg, " has ", nnr, " rows; 'idx' has ", nr)
   }
   if (nc != nnc) {
-    stop(msg, " has ", nnc, " cols, should have ", nc)
+    stop(msg, " has ", nnc, " columns; 'idx' has ", nc)
   }
 }
 
