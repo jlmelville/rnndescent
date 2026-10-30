@@ -6,11 +6,13 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Random Partition Forests • rnndescent</title>
-<script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<!-- katex math --><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" integrity="sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" integrity="sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/Yr2r3Dy4lfFg" crossorigin="anonymous"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script><script src="../katex-auto.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Random Partition Forests">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><link href="../extra.css" rel="stylesheet">
+<meta property="og:title" content="Random Partition Forests">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -263,19 +265,14 @@ we build the forest (and get the 15-nearest neighbors) for the first 50
 side of the hyperplane each item in a split belongs to. The usual method
 (<code>margin = "explicit"</code>) does the same thing as in
 PyNNDescent: the way the hyperplane is defined is to use the vector
-defined by the two points
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>a</mi><annotation encoding="application/x-tex">a</annotation></semantics></math>
-and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>b</mi><annotation encoding="application/x-tex">b</annotation></semantics></math>
-as the normal vector to a plane, and then the point midway between them
-as the point on the plane. We then calculate the margin of a point
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
-(effectively the signed distance from the plane to
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>)
-as:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">margin</mtext><mo stretchy="false" form="prefix">(</mo><mi>𝐱</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mo stretchy="false" form="prefix">(</mo><mo stretchy="false" form="prefix">(</mo><mi>𝐛</mi><mo>−</mo><mi>𝐚</mi><mo stretchy="false" form="postfix">)</mo><mo>⋅</mo><mo stretchy="false" form="prefix">(</mo><mi>𝐱</mi><mo>−</mo><mfrac><mrow><mi>𝐚</mi><mo>+</mo><mi>𝐛</mi></mrow><mn>2</mn></mfrac><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
-\text{margin}(\mathbf{x}) = ((\mathbf{b} - \mathbf{a}) \cdot (\mathbf{x} - \frac{\mathbf{a} + \mathbf{b}}{2}))
-</annotation></semantics></math></p>
+defined by the two points <span class="math inline">a</span> and <span class="math inline">b</span> as the normal vector to a plane, and then
+the point midway between them as the point on the plane. We then
+calculate the margin of a point <span class="math inline">x</span>
+(effectively the signed distance from the plane to <span class="math inline">x</span>) as:</p>
+<p><span class="math display">
+\text{margin}(\mathbf{x}) = ((\mathbf{b} - \mathbf{a}) \cdot (\mathbf{x}
+- \frac{\mathbf{a} + \mathbf{b}}{2}))
+</span></p>
 <p>Taking dot products of vectors and finding mid points is all totally
 unexceptional if you are using a Euclidean metric. And because there is
 a monotonic relationship between the cosine distances and the Euclidean
@@ -288,40 +285,17 @@ vector, and nor does it make sense to think about the geometric
 relationship implied by a dot product.</p>
 <p>As an alternative to calculating the margin via an explicit creation
 of a hyperplane, you could instead think about how the distance between
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
-and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>a</mi><annotation encoding="application/x-tex">a</annotation></semantics></math>,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>d</mi><mrow><mi>x</mi><mi>a</mi></mrow></msub><annotation encoding="application/x-tex">d_{xa}</annotation></semantics></math>
-compares to the distance between
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
-and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>b</mi><annotation encoding="application/x-tex">b</annotation></semantics></math>,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>d</mi><mrow><mi>x</mi><mi>b</mi></mrow></msub><annotation encoding="application/x-tex">d_{xb}</annotation></semantics></math>
-and what the significance for the margin is. Remember that the vector
-defined by
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>a</mi><annotation encoding="application/x-tex">a</annotation></semantics></math>
-and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>b</mi><annotation encoding="application/x-tex">b</annotation></semantics></math>
-is the normal vector to the hyperplane, so you can think of a line
-connecting
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>a</mi><annotation encoding="application/x-tex">a</annotation></semantics></math>
-and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>b</mi><annotation encoding="application/x-tex">b</annotation></semantics></math>,
-with the hyperplane splitting that line in two equal halves. Now imagine
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
-is somewhere on that line. If
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
-is closer to
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>a</mi><annotation encoding="application/x-tex">a</annotation></semantics></math>
-than
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>b</mi><annotation encoding="application/x-tex">b</annotation></semantics></math>
-it must be on the same side of the hyperplane as
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>a</mi><annotation encoding="application/x-tex">a</annotation></semantics></math>,
-and vice versa. Therefore we can calculate the margin by comparing
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>d</mi><mrow><mi>x</mi><mi>a</mi></mrow></msub><annotation encoding="application/x-tex">d_{xa}</annotation></semantics></math>
-and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>d</mi><mrow><mi>x</mi><mi>b</mi></mrow></msub><annotation encoding="application/x-tex">d_{xb}</annotation></semantics></math>
-and seeing which value is smaller.</p>
+<span class="math inline">x</span> and <span class="math inline">a</span>, <span class="math inline">d_{xa}</span>
+compares to the distance between <span class="math inline">x</span> and
+<span class="math inline">b</span>, <span class="math inline">d_{xb}</span> and what the significance for the
+margin is. Remember that the vector defined by <span class="math inline">a</span> and <span class="math inline">b</span> is
+the normal vector to the hyperplane, so you can think of a line
+connecting <span class="math inline">a</span> and <span class="math inline">b</span>, with the hyperplane splitting that line in
+two equal halves. Now imagine <span class="math inline">x</span> is
+somewhere on that line. If <span class="math inline">x</span> is closer
+to <span class="math inline">a</span> than <span class="math inline">b</span> it must be on the same side of the
+hyperplane as <span class="math inline">a</span>, and vice versa.
+Therefore we can calculate the margin by comparing <span class="math inline">d_{xa}</span> and <span class="math inline">d_{xb}</span> and seeing which value is smaller.</p>
 <p>Because we don’t explicitly create the hyperplane, I call this the
 “implicit” margin method and you can choose to generate splits this way
 by setting <code>margin = "implicit"</code>. We’ll use some random

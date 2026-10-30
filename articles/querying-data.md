@@ -309,13 +309,12 @@ procedure is based on the process described in (Harwood and Drummond
 1.  Reversing all the edges in the graph.
 2.  “Diversifying” the graph by “occlusion pruning”. This considers
     triplets of points, and removes long edges which are probably
-    redundant. For an item $`i`$ with neighbors $`p`$ and $`q`$ if the
-    distances $`d_{pq} \lt d_{ip}`$ i.e. the neighbors are closer to
-    each other than they are to $`i`$, then it is said that $`p`$
-    occludes $`q`$ and we don’t need both edges $`i \rightarrow p`$ and
-    $`i \rightarrow q`$ – it’s likely that $`q`$ is in the neighbor list
-    of $`p`$ or vice versa, so it’s unlikely that we are doing any harm
-    by getting rid of $`i \rightarrow p`$.
+    redundant. For an item i with neighbors p and q if the distances
+    d\_{pq} \lt d\_{ip} i.e. the neighbors are closer to each other than
+    they are to i, then it is said that p occludes q and we don’t need
+    both edges i \rightarrow p and i \rightarrow q – it’s likely that q
+    is in the neighbor list of p or vice versa, so it’s unlikely that we
+    are doing any harm by getting rid of i \rightarrow p.
 3.  After occlusion pruning, if any item still has an excessive number
     of edges, the longest edges are removed until the number of edges is
     below the threshold.

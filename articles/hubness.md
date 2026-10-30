@@ -238,23 +238,21 @@ of the edges in the k-nearest neighbor graph and then counting the
 in-degree of each item.
 
 If the distribution of neighbors was entirely uniform we would expect to
-see each item appear $`k`$ times. If there are hubs then the
-k-occurrence could get as large as the size of the dataset, $`N`$. An
-item which appears in the neighbor graph fewer than $`k`$ times could be
-termed an “antihub”. Our definition of a neighbor of an item always
-includes the item itself, so we would expect the minimum
-$`k`$-occurrence to be $`1`$.
+see each item appear k times. If there are hubs then the k-occurrence
+could get as large as the size of the dataset, N. An item which appears
+in the neighbor graph fewer than k times could be termed an “antihub”.
+Our definition of a neighbor of an item always includes the item itself,
+so we would expect the minimum k-occurrence to be 1.
 
-Also, because there are always only $`Nk`$ edges in a $`k`$-nearest
-neighbor graph, if an item appears more than the expected amount this
-implies that other items must be under-represented. Practically
-speaking, there are always going to be items with a larger
-$`k`$-occurrence than expected and hence some with a lower
-$`k`$-occurrence, so hubness or anti-hubness is more a case of deciding
-on a cut-off after which the presence of an item with a lot of neighbors
-starts causing you problems, which is going to be dependent on what you
-are planning to do with the neighbor graph (and probably the number of
-neighbors you want).
+Also, because there are always only Nk edges in a k-nearest neighbor
+graph, if an item appears more than the expected amount this implies
+that other items must be under-represented. Practically speaking, there
+are always going to be items with a larger k-occurrence than expected
+and hence some with a lower k-occurrence, so hubness or anti-hubness is
+more a case of deciding on a cut-off after which the presence of an item
+with a lot of neighbors starts causing you problems, which is going to
+be dependent on what you are planning to do with the neighbor graph (and
+probably the number of neighbors you want).
 
 ### k-occurrence in the 2D case
 
@@ -268,13 +266,13 @@ summary(g2d_bfko)
 #>       1      13      15      15      17      24
 ```
 
-The mean average of the $`k`$-occurrence is never helpful: as noted
-above there are always $`Nk`$ edges in the neighbor graph, so the mean
-$`k`$-occurrence is always $`k`$. However the other descriptions of the
-distribution are informative. The median $`k`$-occurrence is also `15`,
+The mean average of the k-occurrence is never helpful: as noted above
+there are always Nk edges in the neighbor graph, so the mean
+k-occurrence is always k. However the other descriptions of the
+distribution are informative. The median k-occurrence is also `15`,
 which is a good sign, and the values at 25% and 75% aren’t too different
-other. The maximum $`k`$-occurrence is less than $`2k`$. The minimum
-value is `1` which means there are anti-hubs in the dataset, but:
+other. The maximum k-occurrence is less than 2k. The minimum value is
+`1` which means there are anti-hubs in the dataset, but:
 
 ``` r
 
@@ -408,17 +406,17 @@ sum(g1000d_nndko == 1)
 ```
 
 Quantitatively, this also tracks the exact results: the median
-k-occurrence is much smaller than $`k`$, there is a hub with a very
-large number of neighbors (larger than in the exact case but to a
-similar degree) and a similar number of anti-hubs.
+k-occurrence is much smaller than k, there is a hub with a very large
+number of neighbors (larger than in the exact case but to a similar
+degree) and a similar number of anti-hubs.
 
 So this suggests a way to diagnose if the nearest neighbor descent
 routine may have low accuracy: look at the distribution of the
 k-occurrences of the resulting approximate nearest neighbor graph (or
-even just the maximum value). A value that is $`\gg k`$ may mean a
-reduced accuracy. Of course, this isn’t foolproof, because even if NND
-did a perfect job then we would still get these sorts of values, but
-it’s a starting point.
+even just the maximum value). A value that is \gg k may mean a reduced
+accuracy. Of course, this isn’t foolproof, because even if NND did a
+perfect job then we would still get these sorts of values, but it’s a
+starting point.
 
 Taking the distribution of k-occurrences as a whole, the approximate
 results seem to track the exact results fairly well, but as we have
@@ -618,9 +616,9 @@ sum(g1000d_nndkoi1 == 1)
 
 Compared to the converged (or exact) distribution, the median
 k-occurrence is not as low, the object with the largest k-occurrence,
-while large ($`> 10k`$, which seems like a good threshold to be
-concerned about the presence of hubs) is not as large, and there are
-fewer objects which are anti-hubs.
+while large (\> 10k, which seems like a good threshold to be concerned
+about the presence of hubs) is not as large, and there are fewer objects
+which are anti-hubs.
 
 At least for this dataset, hubness can be qualitatively detected with
 even a very inaccurate neighbor graph. What about datasets that don’t
@@ -703,7 +701,7 @@ neighbor_overlap(g1000d_nnbf, g1000d_nnd_w)
 ```
 
 Like a 2%ish improvement. It’s not nothing. And despite the extra
-computation and $`O\left(kN\right)`$ storage required to calculate the
+computation and O\left(kN\right) storage required to calculate the
 k-occurrences in each iteration, with high-dimensional data the distance
 calculations tend to dominate the run time, so there’s no reason to
 *not* set `weight_by_degree = TRUE` in this case. However, for the rest
@@ -839,17 +837,17 @@ g1000d_search_graph <-
 ```
 
 This augments the neighbor graph with the reversed edges of the neighbor
-graph, so that if $`i`$ is one of the nearest neighbors of $`j`$, we
-guarantee that $`j`$ is also considered a near neighbor $`i`$. This
-ameliorates the issue of anti-hubs because all $`k`$ neighbors of an
-anti-hub now have it in their neighbor list.
+graph, so that if i is one of the nearest neighbors of j, we guarantee
+that j is also considered a near neighbor i. This ameliorates the issue
+of anti-hubs because all k neighbors of an anti-hub now have it in their
+neighbor list.
 
 The downside of including all reversed edges in the neighbor graph is
 that the neighbor list of a hub is now going to be very large as it
-consists of the $`k`$ nearest neighbors of the hub and then all the
-items that consider the hub a near neighbor, which by definition is a
-lot. This can make the search graph inefficient, as a disproportionate
-amount of time will be spent searching neighbors of the hub. The
+consists of the k nearest neighbors of the hub and then all the items
+that consider the hub a near neighbor, which by definition is a lot.
+This can make the search graph inefficient, as a disproportionate amount
+of time will be spent searching neighbors of the hub. The
 `diversify_prob` and `pruning_degree_multiplier` parameters are used to
 reduce back down the out-degree of each node (the number of out-going
 edges). This results in objects with a varying number of neighbors, in

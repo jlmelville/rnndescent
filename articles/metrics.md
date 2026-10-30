@@ -26,7 +26,7 @@ look in that reference for an exact definition.
   [Canberra](https://en.wikipedia.org/wiki/Canberra_distance).
 - `"chebyshev"`:
   [Chebyshev](https://en.wikipedia.org/wiki/Chebyshev_distance), also
-  known as the L-infinity norm ($`L_\infty`$).
+  known as the L-infinity norm (L\_\infty).
 - `"correlation"`: 1 minus the [Pearson
   correlation](https://en.wikipedia.org/wiki/Pearson_correlation_coefficient).
   The distance between two all-zero vectors is 0 for dense and sparse
@@ -78,9 +78,9 @@ look in that reference for an exact definition.
   correlation](https://en.wikipedia.org/wiki/Spearman%27s_rank_correlation_coefficient)
 - `"symmetrickl"` symmetrized version of the [Kullback-Leibler
   divergence](https://en.wikipedia.org/wiki/Kullback%E2%80%93Leibler_divergence).
-  The symmetrization is calculated as $`D_{KL}(P||Q) + D_{KL}(Q||P)`$.
-- `"trueangular"`: the angle between vectors divided by $`\pi`$, from 0
-  for the same direction to 1 for opposite directions. By package
+  The symmetrization is calculated as D\_{KL}(P\|\|Q) + D\_{KL}(Q\|\|P).
+- `"trueangular"`: the angle between vectors divided by \pi, from 0 for
+  the same direction to 1 for opposite directions. By package
   convention, the distance is 0 between two zero vectors and 1/2 when
   exactly one vector is zero.
 - `"tsss"` the Triangle Area Similarity-Sector Area Similarity or TS-SS

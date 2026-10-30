@@ -196,14 +196,12 @@ The `margin` parameter determines how to calculate the side of the
 hyperplane each item in a split belongs to. The usual method
 (`margin = "explicit"`) does the same thing as in PyNNDescent: the way
 the hyperplane is defined is to use the vector defined by the two points
-$`a`$ and $`b`$ as the normal vector to a plane, and then the point
-midway between them as the point on the plane. We then calculate the
-margin of a point $`x`$ (effectively the signed distance from the plane
-to $`x`$) as:
+a and b as the normal vector to a plane, and then the point midway
+between them as the point on the plane. We then calculate the margin of
+a point x (effectively the signed distance from the plane to x) as:
 
-``` math
-\text{margin}(\mathbf{x}) = ((\mathbf{b} - \mathbf{a}) \cdot (\mathbf{x} - \frac{\mathbf{a} + \mathbf{b}}{2}))
-```
+\text{margin}(\mathbf{x}) = ((\mathbf{b} - \mathbf{a}) \cdot
+(\mathbf{x} - \frac{\mathbf{a} + \mathbf{b}}{2}))
 
 Taking dot products of vectors and finding mid points is all totally
 unexceptional if you are using a Euclidean metric. And because there is
@@ -218,16 +216,15 @@ nor does it make sense to think about the geometric relationship implied
 by a dot product.
 
 As an alternative to calculating the margin via an explicit creation of
-a hyperplane, you could instead think about how the distance between
-$`x`$ and $`a`$, $`d_{xa}`$ compares to the distance between $`x`$ and
-$`b`$, $`d_{xb}`$ and what the significance for the margin is. Remember
-that the vector defined by $`a`$ and $`b`$ is the normal vector to the
-hyperplane, so you can think of a line connecting $`a`$ and $`b`$, with
-the hyperplane splitting that line in two equal halves. Now imagine
-$`x`$ is somewhere on that line. If $`x`$ is closer to $`a`$ than $`b`$
-it must be on the same side of the hyperplane as $`a`$, and vice versa.
-Therefore we can calculate the margin by comparing $`d_{xa}`$ and
-$`d_{xb}`$ and seeing which value is smaller.
+a hyperplane, you could instead think about how the distance between x
+and a, d\_{xa} compares to the distance between x and b, d\_{xb} and
+what the significance for the margin is. Remember that the vector
+defined by a and b is the normal vector to the hyperplane, so you can
+think of a line connecting a and b, with the hyperplane splitting that
+line in two equal halves. Now imagine x is somewhere on that line. If x
+is closer to a than b it must be on the same side of the hyperplane as
+a, and vice versa. Therefore we can calculate the margin by comparing
+d\_{xa} and d\_{xb} and seeing which value is smaller.
 
 Because we don’t explicitly create the hyperplane, I call this the
 “implicit” margin method and you can choose to generate splits this way
