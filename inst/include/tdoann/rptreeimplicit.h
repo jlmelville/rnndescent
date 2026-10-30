@@ -50,7 +50,7 @@ template <typename Idx> struct RPTreeImplicit {
   std::vector<std::pair<std::size_t, std::size_t>> children = {};
   std::vector<std::vector<Idx>> indices = {};
   std::size_t leaf_size = 0;
-  std::size_t ndim;
+  std::size_t ndim = 0;
 
   RPTreeImplicit() = default;
 
