@@ -4,6 +4,8 @@
 
 ### Bug fixes and minor improvements
 
+- Clarify when query and reference inputs must agree on sparse or
+  logical representation.
 - Explain when graph queries require `k` and which initializer forms
   they accept.
 - Explain column shortages and unequal row counts using public names in
