@@ -205,9 +205,9 @@ iris_query_random_nbrs <- random_knn_query(iris_query,
   reference = iris_ref,
   k = 4, metric = "euclidean", verbose = TRUE
 )
-#> 06:13:26 Using alt metric 'sqeuclidean' for 'euclidean'
-#> 06:13:26 Generating random k-nearest neighbor graph from reference with k = 4
-#> 06:13:26 Finished
+#> 15:44:33 Using alt metric 'sqeuclidean' for 'euclidean'
+#> 15:44:33 Generating random k-nearest neighbor graph from reference with k = 4
+#> 15:44:33 Finished
 
 # Manhattan (l1) distance
 iris_query_random_nbrs <- random_knn_query(iris_query,
