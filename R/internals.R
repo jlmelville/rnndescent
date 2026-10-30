@@ -400,7 +400,7 @@ check_sparse <- function(reference, query) {
     n_sparse_input <- n_sparse_input + 1
   }
   if (n_sparse_input == 1) {
-    stop("Either both or none of query and reference can be sparse")
+    stop("'query' and 'reference' must both be sparse or both be non-sparse")
   }
 
   # let's also check logical in here too
@@ -412,7 +412,7 @@ check_sparse <- function(reference, query) {
     n_logical <- n_logical + 1
   }
   if (n_logical == 1) {
-    stop("Either both or none of query and reference can be logical")
+    stop("'query' and 'reference' must both be logical or both be non-logical")
   }
 }
 

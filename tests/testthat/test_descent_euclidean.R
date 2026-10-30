@@ -903,7 +903,7 @@ test_that("query APIs reject mixed sparse/dense and logical/numeric inputs", {
   sparse_ref <- Matrix::drop0(dense_ref)
   sparse_query <- Matrix::drop0(dense_query)
 
-  sparse_msg <- "Either both or none of query and reference can be sparse"
+  sparse_msg <- "'query' and 'reference' must both be sparse or both be non-sparse"
   expect_error(
     brute_force_knn_query(query = dense_query, reference = sparse_ref, k = 1),
     sparse_msg
@@ -943,7 +943,7 @@ test_that("query APIs reject mixed sparse/dense and logical/numeric inputs", {
     nrow = nrow(logical_query)
   )
 
-  logical_msg <- "Either both or none of query and reference can be logical"
+  logical_msg <- "'query' and 'reference' must both be logical or both be non-logical"
   expect_error(
     brute_force_knn_query(query = numeric_query, reference = logical_ref, k = 1),
     logical_msg
