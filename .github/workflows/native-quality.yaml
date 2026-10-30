@@ -54,6 +54,14 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Prefer Ubuntu archive mirror
+        run: |
+          sudo sed -i \
+            -e '/^http:\/\/azure\.archive\.ubuntu\.com\//s/priority:1/priority:2/' \
+            -e '/^https:\/\/archive\.ubuntu\.com\//s/priority:2/priority:1/' \
+            /etc/apt/apt-mirrors.txt
+          cat /etc/apt/apt-mirrors.txt
+
       # Pinned to a full-length commit SHA for immutability; Dependabot updates this reference.
       - uses: r-lib/actions/setup-r@f9a764fea8d5c63df6ef9a5c7795bf7deb5d7e05
         with:
