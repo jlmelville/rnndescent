@@ -1,6 +1,7 @@
 url: https://jlmelville.github.io/rnndescent/
 template:
   bootstrap: 5
+  math-rendering: katex
 
 articles:
 - title: All vignettes
