@@ -4,6 +4,8 @@
 
 ### Bug fixes and minor improvements
 
+- Identify mismatched `dist` and `idx` dimensions when merging or
+  filtering neighbor graphs.
 - Clarify when query and reference inputs must agree on sparse or
   logical representation.
 - Explain when graph queries require `k` and which initializer forms
