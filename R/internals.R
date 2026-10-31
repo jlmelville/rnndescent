@@ -663,7 +663,7 @@ check_rpforest_matches_reference <- function(
   if (
     is.null(forest$trees) || !is.list(forest$trees) || length(forest$trees) < 1
   ) {
-    stop("Bad forest format: no trees")
+    stop("'forest$trees' must be a non-empty list")
   }
 
   tree_n_items <- vapply(
@@ -704,9 +704,9 @@ check_rpforest_matches_reference <- function(
     missing_hyperplanes <- which(is.na(tree_n_features))
     if (length(missing_hyperplanes) > 0) {
       stop(
-        "Bad forest format: explicit forest tree ",
+        "Explicit dense forest tree ",
         missing_hyperplanes[1],
-        " has no hyperplanes"
+        " must contain 'hyperplanes'"
       )
     }
 
@@ -745,9 +745,9 @@ check_rpforest_matches_reference <- function(
     missing_hyperplanes <- which(is.na(tree_n_features))
     if (length(missing_hyperplanes) > 0) {
       stop(
-        "Bad forest format: explicit sparse forest tree ",
+        "Explicit sparse forest tree ",
         missing_hyperplanes[1],
-        " has no hyperplanes_ind"
+        " must contain 'hyperplanes_ind'"
       )
     }
 

@@ -465,17 +465,17 @@ rpf_knn_query <- function(
   )
 
   if (!is.list(forest)) {
-    stop("Bad forest format: not a list")
+    stop("'forest' must be a list")
   }
   if (is.null(forest$margin)) {
-    stop("Bad forest format: no 'margin' specified")
+    stop("'forest' must contain a 'margin' component")
   }
   reference_is_sparse <- is_sparse(reference)
   if (reference_is_sparse && !isTRUE(forest$sparse)) {
-    stop("Incompatible dense forest used with sparse input data")
+    stop("A dense forest cannot be used with a sparse 'reference'")
   }
   if (!reference_is_sparse && isTRUE(forest$sparse)) {
-    stop("Incompatible sparse forest used with dense input data")
+    stop("A sparse forest cannot be used with a dense 'reference'")
   }
   check_rpforest_matches_reference(forest, n_obs(reference), n_features)
 
@@ -606,7 +606,7 @@ rpf_filter <-
     n_threads <- check_n_threads(n_threads)
     if (is.null(forest)) {
       if (is.null(nn$forest)) {
-        stop("Must provide 'forest' parameter")
+        stop("Provide 'forest' directly or in 'nn$forest'")
       }
       forest <- nn$forest
     }
@@ -616,7 +616,7 @@ rpf_filter <-
     unfiltered_trees <- forest$trees
     n_unfiltered_trees <- length(unfiltered_trees)
     if (n_unfiltered_trees < 1) {
-      stop("Invalid forest: no trees")
+      stop("'forest$trees' must contain at least one tree")
     }
     n_trees <- check_count(n_trees, "n_trees", max = n_unfiltered_trees)
 

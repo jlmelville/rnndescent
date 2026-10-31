@@ -478,21 +478,24 @@ test_that("rp tree query validates malformed forest objects", {
 
   expect_error(
     rpf_knn_query(ui4, ui6, forest = TRUE, k = 4, n_threads = 0),
-    "Bad forest format: not a list"
+    "'forest' must be a list",
+    fixed = TRUE
   )
 
   missing_margin <- forest
   missing_margin$margin <- NULL
   expect_error(
     rpf_knn_query(ui4, ui6, forest = missing_margin, k = 4, n_threads = 0),
-    "Bad forest format: no 'margin' specified"
+    "'forest' must contain a 'margin' component",
+    fixed = TRUE
   )
 
   sparse_flag <- forest
   sparse_flag$sparse <- TRUE
   expect_error(
     rpf_knn_query(ui4, ui6, forest = sparse_flag, k = 4, n_threads = 0),
-    "Incompatible sparse forest used with dense input data"
+    "A sparse forest cannot be used with a dense 'reference'",
+    fixed = TRUE
   )
 
   dense_flag <- forest
@@ -505,7 +508,25 @@ test_that("rp tree query validates malformed forest objects", {
       k = 4,
       n_threads = 0
     ),
-    "Incompatible dense forest used with sparse input data"
+    "A dense forest cannot be used with a sparse 'reference'",
+    fixed = TRUE
+  )
+
+  missing_trees <- forest
+  missing_trees$trees <- list()
+  expect_error(
+    rpf_knn_query(ui4, ui6, forest = missing_trees, k = 4, n_threads = 0),
+    "'forest$trees' must be a non-empty list",
+    fixed = TRUE
+  )
+
+  missing_hyperplanes <- forest
+  missing_hyperplanes$trees[[2]] <- missing_hyperplanes$trees[[1]]
+  missing_hyperplanes$trees[[2]]$hyperplanes <- NULL
+  expect_error(
+    rpf_knn_query(ui4, ui6, forest = missing_hyperplanes, k = 4, n_threads = 0),
+    "Explicit dense forest tree 2 must contain 'hyperplanes'",
+    fixed = TRUE
   )
 })
 
@@ -513,14 +534,16 @@ test_that("rpf_filter validates missing and empty forests", {
   nn <- brute_force_knn(ui10, k = 4, n_threads = 0)
   expect_error(
     rpf_filter(nn, n_threads = 0),
-    "Must provide 'forest' parameter"
+    "Provide 'forest' directly or in 'nn$forest'",
+    fixed = TRUE
   )
 
   forest_knn <- rpf_knn(ui10, k = 4, ret_forest = TRUE, n_threads = 0)
   forest_knn$forest$trees <- list()
   expect_error(
     rpf_filter(forest_knn, n_threads = 0),
-    "Invalid forest: no trees"
+    "'forest$trees' must contain at least one tree",
+    fixed = TRUE
   )
 })
 
@@ -1046,6 +1069,20 @@ test_that("sparse explicit margin", {
   set.seed(1337)
   res_knnforest <- rpf_knn_query(ui10sp4, ui10sp6, forest = sknn6$forest, k = 4)
   expect_equal(res_forest, res_knnforest)
+
+  missing_hyperplanes <- sforest6
+  missing_hyperplanes$trees[[2]]$hyperplanes_ind <- NULL
+  expect_error(
+    rpf_knn_query(
+      ui10sp4,
+      ui10sp6,
+      forest = missing_hyperplanes,
+      k = 4,
+      n_threads = 0
+    ),
+    "Explicit sparse forest tree 2 must contain 'hyperplanes_ind'",
+    fixed = TRUE
+  )
 
   set.seed(1337)
   dknn6 <- rpf_knn(
