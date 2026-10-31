@@ -110,6 +110,16 @@ similarity</a>.</li>
 coefficient</a>, also known as the Sørensen–Dice coefficient. Intended
 for binary data.</li>
 <li>
+<code>"dot"</code>: 1 minus the dot product after normalizing each
+vector to unit length, capped at 1. Both dense and sparse vectors are
+normalized, so their magnitudes don’t affect the distance. For nonzero
+vectors, this agrees with <code>"cosine"</code> when the cosine
+similarity is positive. Otherwise <code>"dot"</code> returns 1: for
+example, opposite vectors have a <code>"cosine"</code> distance of 2 but
+a <code>"dot"</code> distance of 1. If either or both vectors are zero,
+the distance is also 1. Logical matrices use the same calculation on 0s
+and 1s.</li>
+<li>
 <code>"euclidean"</code>: the Euclidean distance, also known as the
 L2 norm.</li>
 <li>
@@ -145,6 +155,13 @@ function is deprecated in scipy). Intended for binary data.</li>
 <code>"manhattan"</code>: the Manhattan distance, also known as the
 L1 norm or <a href="https://en.wikipedia.org/wiki/Taxicab_geometry" class="external-link">Taxicab
 distance</a>.</li>
+<li>
+<code>"matching"</code>: the fraction of features for which one
+value is zero and the other is nonzero. It accepts dense and sparse
+numeric input as well as logical matrices. Two nonzero values match,
+even if they differ: for example, 2 and 7 match here but not with
+<code>"hamming"</code>. For logical or 0/1 data, the two distances
+agree.</li>
 <li>
 <code>"rogerstanimoto"</code>: the <a href="https://en.wikipedia.org/wiki/Qualitative_variation#Rogers%E2%80%93Tanimoto_coefficient" class="external-link">Rogers-Tanimoto
 coefficient</a>.</li>
@@ -194,6 +211,13 @@ preprocessing.</li>
 <code>"correlation-preprocess"</code>: <code>correlation</code> with
 preprocessing.</li>
 </ul>
+<p>The internal names <code>"alternative-cosine"</code>,
+<code>"alternative-dot"</code>, <code>"alternative-hellinger"</code> and
+<code>"alternative-jaccard"</code> are also currently accepted, but
+return transformed distances when selected directly. Use the ordinary
+names above. Where available, <code>use_alt_metric</code> lets the
+implementation use a faster internal calculation and convert the results
+back to the ordinary distance scale.</p>
 <div class="section level2">
 <h2 id="numerical-precision">Numerical precision<a class="anchor" aria-label="anchor" href="#numerical-precision"></a>
 </h2>

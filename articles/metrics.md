@@ -37,6 +37,14 @@ look in that reference for an exact definition.
 - `"dice"`: the [Dice
   coefficient](https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient),
   also known as the Sørensen–Dice coefficient. Intended for binary data.
+- `"dot"`: 1 minus the dot product after normalizing each vector to unit
+  length, capped at 1. Both dense and sparse vectors are normalized, so
+  their magnitudes don’t affect the distance. For nonzero vectors, this
+  agrees with `"cosine"` when the cosine similarity is positive.
+  Otherwise `"dot"` returns 1: for example, opposite vectors have a
+  `"cosine"` distance of 2 but a `"dot"` distance of 1. If either or
+  both vectors are zero, the distance is also 1. Logical matrices use
+  the same calculation on 0s and 1s.
 - `"euclidean"`: the Euclidean distance, also known as the L2 norm.
 - `"hamming"`: the [Hamming
   distance](https://en.wikipedia.org/wiki/Hamming_distance). Intended
@@ -66,6 +74,11 @@ look in that reference for an exact definition.
 - `"sqeuclidean"` (squared Euclidean)
 - `"manhattan"`: the Manhattan distance, also known as the L1 norm or
   [Taxicab distance](https://en.wikipedia.org/wiki/Taxicab_geometry).
+- `"matching"`: the fraction of features for which one value is zero and
+  the other is nonzero. It accepts dense and sparse numeric input as
+  well as logical matrices. Two nonzero values match, even if they
+  differ: for example, 2 and 7 match here but not with `"hamming"`. For
+  logical or 0/1 data, the two distances agree.
 - `"rogerstanimoto"`: the [Rogers-Tanimoto
   coefficient](https://en.wikipedia.org/wiki/Qualitative_variation#Rogers%E2%80%93Tanimoto_coefficient).
 - `"russellrao"`: the [Russell-Rao
@@ -101,6 +114,13 @@ expected compared to the non-preprocessed versions:
 
 - `"cosine-preprocess"`: `cosine` with preprocessing.
 - `"correlation-preprocess"`: `correlation` with preprocessing.
+
+The internal names `"alternative-cosine"`, `"alternative-dot"`,
+`"alternative-hellinger"` and `"alternative-jaccard"` are also currently
+accepted, but return transformed distances when selected directly. Use
+the ordinary names above. Where available, `use_alt_metric` lets the
+implementation use a faster internal calculation and convert the results
+back to the ordinary distance scale.
 
 ## Numerical precision
 

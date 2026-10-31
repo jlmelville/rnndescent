@@ -54,6 +54,9 @@ rpf_build(
 
   - `"dice"`
 
+  - `"dot"` (1 minus the normalized dot product, capped at 1; 1 if
+    either vector is zero)
+
   - `"euclidean"`
 
   - `"hamming"`
@@ -73,6 +76,9 @@ rpf_build(
   - `"sqeuclidean"` (squared Euclidean)
 
   - `"manhattan"`
+
+  - `"matching"` (fraction of features whose zero/nonzero indicators
+    differ)
 
   - `"rogerstanimoto"`
 

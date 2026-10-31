@@ -55,6 +55,9 @@ brute_force_knn(
 
   - `"dice"`
 
+  - `"dot"` (1 minus the normalized dot product, capped at 1; 1 if
+    either vector is zero)
+
   - `"euclidean"`
 
   - `"hamming"`
@@ -74,6 +77,9 @@ brute_force_knn(
   - `"sqeuclidean"` (squared Euclidean)
 
   - `"manhattan"`
+
+  - `"matching"` (fraction of features whose zero/nonzero indicators
+    differ)
 
   - `"rogerstanimoto"`
 
@@ -186,7 +192,7 @@ iris_nn <- brute_force_knn(iris, k = 4, metric = "manhattan", n_threads = 1)
 
 # Use verbose flag to see information about progress
 iris_nn <- brute_force_knn(iris, k = 4, metric = "euclidean", verbose = TRUE)
-#> 01:54:50 Using alt metric 'sqeuclidean' for 'euclidean'
-#> 01:54:50 Calculating brute force k-nearest neighbors with k = 4
-#> 01:54:50 Finished
+#> 05:30:17 Using alt metric 'sqeuclidean' for 'euclidean'
+#> 05:30:17 Calculating brute force k-nearest neighbors with k = 4
+#> 05:30:17 Finished
 ```

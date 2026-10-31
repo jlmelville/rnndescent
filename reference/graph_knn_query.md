@@ -83,6 +83,9 @@ graph_knn_query(
 
   - `"dice"`
 
+  - `"dot"` (1 minus the normalized dot product, capped at 1; 1 if
+    either vector is zero)
+
   - `"euclidean"`
 
   - `"hamming"`
@@ -102,6 +105,9 @@ graph_knn_query(
   - `"sqeuclidean"` (squared Euclidean)
 
   - `"manhattan"`
+
+  - `"matching"` (fraction of features whose zero/nonzero indicators
+    differ)
 
   - `"rogerstanimoto"`
 
@@ -297,11 +303,11 @@ iris_ref_graph <- nnd_knn(iris_ref, k = 4)
 iris_query_nn <- graph_knn_query(iris_query, iris_ref, iris_ref_graph,
   k = 4, metric = "euclidean", verbose = TRUE
 )
-#> 01:54:51 Using alt metric 'sqeuclidean' for 'euclidean'
-#> 01:54:51 Initializing from random neighbors
-#> 01:54:51 Generating random k-nearest neighbor graph from reference with k = 4
-#> 01:54:51 Searching nearest neighbor graph with epsilon = 0.1 and max_search_fraction = 1
-#> 01:54:51 Finished
+#> 05:30:18 Using alt metric 'sqeuclidean' for 'euclidean'
+#> 05:30:18 Initializing from random neighbors
+#> 05:30:18 Generating random k-nearest neighbor graph from reference with k = 4
+#> 05:30:18 Searching nearest neighbor graph with epsilon = 0.1 and max_search_fraction = 1
+#> 05:30:18 Finished
 
 # A more complete example, converting the initial knn into a search graph
 # and using a filtered random projection forest to initialize the search

@@ -66,6 +66,9 @@ prepare_search_graph(
 
   - `"dice"`
 
+  - `"dot"` (1 minus the normalized dot product, capped at 1; 1 if
+    either vector is zero)
+
   - `"euclidean"`
 
   - `"hamming"`
@@ -85,6 +88,9 @@ prepare_search_graph(
   - `"sqeuclidean"` (squared Euclidean)
 
   - `"manhattan"`
+
+  - `"matching"` (fraction of features whose zero/nonzero indicators
+    differ)
 
   - `"rogerstanimoto"`
 
@@ -295,9 +301,9 @@ iris_query_nn <- graph_knn_query(
   reference_graph = ref_search_graph, k = 4, metric = "euclidean",
   verbose = TRUE
 )
-#> 01:54:52 Using alt metric 'sqeuclidean' for 'euclidean'
-#> 01:54:52 Initializing from random neighbors
-#> 01:54:52 Generating random k-nearest neighbor graph from reference with k = 4
-#> 01:54:52 Searching nearest neighbor graph with epsilon = 0.1 and max_search_fraction = 1
-#> 01:54:52 Finished
+#> 05:30:20 Using alt metric 'sqeuclidean' for 'euclidean'
+#> 05:30:20 Initializing from random neighbors
+#> 05:30:20 Generating random k-nearest neighbor graph from reference with k = 4
+#> 05:30:20 Searching nearest neighbor graph with epsilon = 0.1 and max_search_fraction = 1
+#> 05:30:20 Finished
 ```

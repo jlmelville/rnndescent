@@ -71,6 +71,9 @@ random_knn_query(
 
   - `"dice"`
 
+  - `"dot"` (1 minus the normalized dot product, capped at 1; 1 if
+    either vector is zero)
+
   - `"euclidean"`
 
   - `"hamming"`
@@ -90,6 +93,9 @@ random_knn_query(
   - `"sqeuclidean"` (squared Euclidean)
 
   - `"manhattan"`
+
+  - `"matching"` (fraction of features whose zero/nonzero indicators
+    differ)
 
   - `"rogerstanimoto"`
 
@@ -205,9 +211,9 @@ iris_query_random_nbrs <- random_knn_query(iris_query,
   reference = iris_ref,
   k = 4, metric = "euclidean", verbose = TRUE
 )
-#> 01:54:53 Using alt metric 'sqeuclidean' for 'euclidean'
-#> 01:54:53 Generating random k-nearest neighbor graph from reference with k = 4
-#> 01:54:53 Finished
+#> 05:30:20 Using alt metric 'sqeuclidean' for 'euclidean'
+#> 05:30:20 Generating random k-nearest neighbor graph from reference with k = 4
+#> 05:30:20 Finished
 
 # Manhattan (l1) distance
 iris_query_random_nbrs <- random_knn_query(iris_query,
