@@ -58,16 +58,17 @@ look in that reference for an exact definition.
   values that appear to be supplied in degrees are encountered.
 - `"hellinger"`: the [Hellinger
   distance](https://en.wikipedia.org/wiki/Hellinger_distance). This is
-  intended to be used with a probability distribution, so ensure that
-  each row of your input data contains non-negative values which sum to
-  `1`.
+  intended for probability distributions: use non-negative values, such
+  as probabilities or counts. The calculation accounts for each row’s
+  total, so the values need not sum to `1`.
 - `"jaccard"`: the [Jaccard
   index](https://en.wikipedia.org/wiki/Jaccard_index), also known as the
   Tanimoto coefficient. Intended for binary data.
 - `"jensenshannon"`: the [Jensen-Shannon
   divergence](https://en.wikipedia.org/wiki/Jensen%E2%80%93Shannon_divergence).
-  Like `"hellinger"`, this is intended to be used with a probability
-  distribution.
+  Like `"hellinger"`, this is intended for non-negative probability
+  weights or counts. The calculation adds a small value to the
+  components and normalizes them before computing the divergence.
 - `"kulsinski"`: the Kulsinski dissimilarity as defined in the Python
   package `scipy.spatial.distance.kulsinski` (this function is
   deprecated in scipy). Intended for binary data.
@@ -92,6 +93,9 @@ look in that reference for an exact definition.
 - `"symmetrickl"` symmetrized version of the [Kullback-Leibler
   divergence](https://en.wikipedia.org/wiki/Kullback%E2%80%93Leibler_divergence).
   The symmetrization is calculated as D\_{KL}(P\|\|Q) + D\_{KL}(Q\|\|P).
+  Like `"jensenshannon"`, this uses non-negative probability weights or
+  counts, adds a small value to the components, and normalizes them
+  before computing the divergence.
 - `"trueangular"`: the angle between vectors divided by \pi, from 0 for
   the same direction to 1 for opposite directions. By package
   convention, the distance is 0 between two zero vectors and 1/2 when

@@ -135,16 +135,19 @@ be raised if values that appear to be supplied in degrees are
 encountered.</li>
 <li>
 <code>"hellinger"</code>: the <a href="https://en.wikipedia.org/wiki/Hellinger_distance" class="external-link">Hellinger
-distance</a>. This is intended to be used with a probability
-distribution, so ensure that each row of your input data contains
-non-negative values which sum to <code>1</code>.</li>
+distance</a>. This is intended for probability distributions: use
+non-negative values, such as probabilities or counts. The calculation
+accounts for each row’s total, so the values need not sum to
+<code>1</code>.</li>
 <li>
 <code>"jaccard"</code>: the <a href="https://en.wikipedia.org/wiki/Jaccard_index" class="external-link">Jaccard index</a>,
 also known as the Tanimoto coefficient. Intended for binary data.</li>
 <li>
 <code>"jensenshannon"</code>: the <a href="https://en.wikipedia.org/wiki/Jensen%E2%80%93Shannon_divergence" class="external-link">Jensen-Shannon
-divergence</a>. Like <code>"hellinger"</code>, this is intended to be
-used with a probability distribution.</li>
+divergence</a>. Like <code>"hellinger"</code>, this is intended for
+non-negative probability weights or counts. The calculation adds a small
+value to the components and normalizes them before computing the
+divergence.</li>
 <li>
 <code>"kulsinski"</code>: the Kulsinski dissimilarity as defined in
 the Python package <code>scipy.spatial.distance.kulsinski</code> (this
@@ -179,7 +182,10 @@ rank correlation</a>
 </li>
 <li>
 <code>"symmetrickl"</code> symmetrized version of the <a href="https://en.wikipedia.org/wiki/Kullback%E2%80%93Leibler_divergence" class="external-link">Kullback-Leibler
-divergence</a>. The symmetrization is calculated as <span class="math inline">D_{KL}(P||Q) + D_{KL}(Q||P)</span>.</li>
+divergence</a>. The symmetrization is calculated as <span class="math inline">D_{KL}(P||Q) + D_{KL}(Q||P)</span>. Like
+<code>"jensenshannon"</code>, this uses non-negative probability weights
+or counts, adds a small value to the components, and normalizes them
+before computing the divergence.</li>
 <li>
 <code>"trueangular"</code>: the angle between vectors divided by
 <span class="math inline">\pi</span>, from 0 for the same direction to 1
