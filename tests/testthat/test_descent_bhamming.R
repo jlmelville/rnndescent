@@ -7,11 +7,11 @@ test_that("logical Hamming descent agrees across memory and thread settings", {
   # but if issues return, possibly max_candidates needs to be increased.
   set.seed(1337)
   bit_rnn <- nnd_knn(lbitdata, 4, metric = "hamming", max_candidates = 10)
-  expect_equal(bit_rnn$idx, expected_hamm_idx, check.attributes = FALSE)
+  expect_equal(bit_rnn$idx, expected_hamm_idx, ignore_attr = "dimnames")
   expect_equal(
     bit_rnn$dist,
     expected_hamm_dist,
-    check.attributes = FALSE,
+    ignore_attr = "dimnames",
     tolerance = 1e-7
   )
 
@@ -24,22 +24,22 @@ test_that("logical Hamming descent agrees across memory and thread settings", {
     metric = "hamming",
     max_candidates = 10
   )
-  expect_equal(bit_rnn$idx, expected_hamm_idx, check.attributes = FALSE)
+  expect_equal(bit_rnn$idx, expected_hamm_idx, ignore_attr = "dimnames")
   expect_equal(
     bit_rnn$dist,
     expected_hamm_dist,
-    check.attributes = FALSE,
+    ignore_attr = "dimnames",
     tolerance = 1e-7
   )
 
   # multi-threading
   set.seed(1337)
   bit_rnn <- nnd_knn(lbitdata, 4, metric = "hamming", n_threads = 1)
-  expect_equal(bit_rnn$idx, expected_hamm_idx, check.attributes = FALSE)
+  expect_equal(bit_rnn$idx, expected_hamm_idx, ignore_attr = "dimnames")
   expect_equal(
     bit_rnn$dist,
     expected_hamm_dist,
-    check.attributes = FALSE,
+    ignore_attr = "dimnames",
     tolerance = 1e-7
   )
 
@@ -52,11 +52,11 @@ test_that("logical Hamming descent agrees across memory and thread settings", {
     n_threads = 1,
     low_memory = FALSE
   )
-  expect_equal(bit_rnn$idx, expected_hamm_idx, check.attributes = FALSE)
+  expect_equal(bit_rnn$idx, expected_hamm_idx, ignore_attr = "dimnames")
   expect_equal(
     bit_rnn$dist,
     expected_hamm_dist,
-    check.attributes = FALSE,
+    ignore_attr = "dimnames",
     tolerance = 1e-7
   )
 })

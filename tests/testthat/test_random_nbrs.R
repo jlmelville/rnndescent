@@ -283,7 +283,8 @@ test_that("random cosine queries contain valid neighbors and distances", {
     query_range = 7:10,
     k = 4,
     expected_dist = ui10_cosd,
-    tolerance = 1e-6
+    tolerance = 1e-6,
+    absolute = TRUE
   )
 
   set.seed(1337)
@@ -300,7 +301,8 @@ test_that("random cosine queries contain valid neighbors and distances", {
     query_range = 1:6,
     k = 4,
     expected_dist = ui10_cosd,
-    tolerance = 1e-6
+    tolerance = 1e-6,
+    absolute = TRUE
   )
 })
 

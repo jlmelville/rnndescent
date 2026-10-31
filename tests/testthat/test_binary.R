@@ -374,7 +374,12 @@ for (metric in c(
       # KL has quite large distances (> 10) so the tolerance needs to be larger
       tolerance <- 1e-3
     }
-    expect_equal(d_res$dist, s_res$dist, tolerance = tolerance)
+    if (metric == "spearmanr") {
+      # Dense/sparse float roundoff near zero needs an absolute error budget.
+      expect_equal_abs(d_res$dist, s_res$dist, tolerance = tolerance)
+    } else {
+      expect_equal(d_res$dist, s_res$dist, tolerance = tolerance)
+    }
 
     if (
       metric %in%

@@ -163,7 +163,7 @@ test_that("brute force preserves metrics, orientation and sparse results", {
     metric = "cosine"
   )
   check_query_nbrs_idx(qnbrs4$idx, nref = nrow(ui6))
-  expect_equal(sum(qnbrs4$dist), ui4q_cdsum, tolerance = 1e-5)
+  expect_equal_abs(sum(qnbrs4$dist), ui4q_cdsum, tolerance = 1e-5)
 
   ui4_nnd <- brute_force_knn(ui4, k = 4, metric = "cosine")
   qnbrs6 <- brute_force_knn_query(
@@ -173,7 +173,7 @@ test_that("brute force preserves metrics, orientation and sparse results", {
     metric = "cosine"
   )
   check_query_nbrs_idx(qnbrs6$idx, nref = nrow(ui4))
-  expect_equal(sum(qnbrs6$dist), ui6q_cdsum, tolerance = 1e-5)
+  expect_equal_abs(sum(qnbrs6$dist), ui6q_cdsum, tolerance = 1e-5)
 
   ui6_nnd <- brute_force_knn(ui6, k = 4, metric = "manhattan")
   qnbrs4 <- brute_force_knn_query(

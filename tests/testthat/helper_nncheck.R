@@ -1,3 +1,38 @@
+# Rounded references and near-zero float distances use absolute error budgets.
+# This helper compares finite numeric scalars/arrays, allowing matching NA entries.
+expect_equal_abs <- function(
+  actual,
+  expected,
+  tolerance,
+  label = deparse(substitute(actual))
+) {
+  if (!identical(attributes(actual), attributes(expected))) {
+    testthat::expect_identical(
+      attributes(actual),
+      attributes(expected),
+      info = label
+    )
+    return(invisible(actual))
+  }
+  if (!identical(is.na(actual), is.na(expected))) {
+    testthat::expect_identical(is.na(actual), is.na(expected), info = label)
+    return(invisible(actual))
+  }
+  present <- !is.na(expected)
+  difference <- abs(actual[present] - expected[present])
+  testthat::expect_true(
+    all(is.finite(difference) & difference < tolerance),
+    label = label,
+    info = paste(
+      "Maximum absolute difference",
+      max(difference, 0),
+      "must be strictly below",
+      tolerance
+    )
+  )
+  invisible(actual)
+}
+
 # Graph Construction Helpers ----------------------------------------------
 
 # i should not appear in the "true" neighbors (i.e. it should be the first
@@ -45,7 +80,7 @@ check_nbrs_dist <- function(
         nn$dist[i, j],
         expected_dist[i, nn$idx[i, j]],
         tolerance = tolerance,
-        label = paste0(i, ", ", j),
+        label = paste0(i, ", ", j)
       )
     }
   }
@@ -102,17 +137,19 @@ check_query_nbrs_dist <- function(
   expected_dist,
   ref_range,
   query_range,
-  tolerance = .Machine$double.eps
+  tolerance = .Machine$double.eps,
+  absolute = FALSE
 ) {
+  expect_distance <- if (absolute) expect_equal_abs else testthat::expect_equal
   n_queries <- nrow(nn$idx)
   n_nbrs <- ncol(nn$idx)
   for (i in 1:n_queries) {
     for (j in 1:n_nbrs) {
-      testthat::expect_equal(
+      expect_distance(
         nn$dist[i, j],
         expected_dist[query_range[i], ref_range[nn$idx[i, j]]],
         tolerance = tolerance,
-        label = paste0(i, ", ", j),
+        label = paste0(i, ", ", j)
       )
     }
   }
@@ -130,13 +167,21 @@ check_query_nbrs <- function(
   k,
   expected_dist,
   tolerance = .Machine$double.eps,
-  check_order = TRUE
+  check_order = TRUE,
+  absolute = FALSE
 ) {
   check_nn_matrix_dim(nn$idx, query, k)
   check_nn_matrix_dim(nn$dist, query, k)
   nref <- length(ref_range)
   check_query_nbrs_idx(nn$idx, nref)
-  check_query_nbrs_dist(nn, expected_dist, ref_range, query_range, tolerance)
+  check_query_nbrs_dist(
+    nn,
+    expected_dist,
+    ref_range,
+    query_range,
+    tolerance,
+    absolute = absolute
+  )
   if (check_order) {
     # this checks that distances are in increasing order for each row
     nbr_cols <- seq_len(ncol(nn$idx))

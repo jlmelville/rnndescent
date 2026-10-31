@@ -44,32 +44,32 @@ test_that("RP forests recover neighbors with Euclidean and cosine distances", {
 
   set.seed(1337)
   res <- rpf_knn(ui10, k = 4)
-  expect_equal(res$idx, ui10_nn4$idx, check.attributes = FALSE)
+  expect_equal(res$idx, ui10_nn4$idx, ignore_attr = "dimnames")
   expect_equal(
     res$dist,
     ui10_nn4$dist,
-    check.attributes = FALSE,
+    ignore_attr = "dimnames",
     tolerance = 1e-4
   )
 
   set.seed(1337)
   res <- rpf_knn(ui10, k = 4, include_self = FALSE)
-  expect_equal(res$idx[, 1:3], ui10_nn4$idx[, 2:4], check.attributes = FALSE)
+  expect_equal(res$idx[, 1:3], ui10_nn4$idx[, 2:4], ignore_attr = "dimnames")
   expect_equal(
     res$dist[, 1:3],
     ui10_nn4$dist[, 2:4],
-    check.attributes = FALSE,
+    ignore_attr = "dimnames",
     tolerance = 1e-4
   )
 
   # euclidean
   set.seed(1337)
   res <- rpf_knn(ui10, k = 4)
-  expect_equal(res$idx, ui10_nn4$idx, check.attributes = FALSE)
+  expect_equal(res$idx, ui10_nn4$idx, ignore_attr = "dimnames")
   expect_equal(
     res$dist,
     ui10_nn4$dist,
-    check.attributes = FALSE,
+    ignore_attr = "dimnames",
     tolerance = 1e-4
   )
 
@@ -89,11 +89,11 @@ test_that("threaded RP forests preserve neighbor quality and missing entries", {
 
   set.seed(1337)
   res <- rpf_knn(ui10, k = 4, n_threads = 2)
-  expect_equal(res$idx, ui10_nn4$idx, check.attributes = FALSE)
+  expect_equal(res$idx, ui10_nn4$idx, ignore_attr = "dimnames")
   expect_equal(
     res$dist,
     ui10_nn4$dist,
-    check.attributes = FALSE,
+    ignore_attr = "dimnames",
     tolerance = 1e-4
   )
 
@@ -373,7 +373,7 @@ test_that("returned RP forests match builds and descent initialization", {
   expect_equal(
     list(idx = rpf_knnf$idx, dist = rpf_knnf$dist),
     expected_rpt_knn,
-    check.attributes = FALSE,
+    ignore_attr = "dimnames",
     tolerance = 1e-7
   )
 

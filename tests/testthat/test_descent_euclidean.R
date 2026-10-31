@@ -74,12 +74,12 @@ test_that("zero descent iterations sort the initialized neighbor heaps", {
   expect_equal(
     heap_sorted$idx,
     expected_heap_sort_idx,
-    check.attributes = FALSE
+    ignore_attr = "dimnames"
   )
   expect_equal(
     heap_sorted$dist,
     expected_heap_sort_dist,
-    check.attributes = FALSE,
+    ignore_attr = "dimnames",
     tolerance = 1e-6
   )
 })
@@ -124,11 +124,11 @@ test_that("Euclidean descent accepts matrices and data frames", {
   output <- capture_everything({
     rnn <- nnd_knn(ui10, 4, verbose = FALSE)
   })
-  expect_equal(rnn$idx, expected_idx, check.attributes = FALSE)
+  expect_equal(rnn$idx, expected_idx, ignore_attr = "dimnames")
   expect_equal(
     rnn$dist,
     expected_dist,
-    check.attributes = FALSE,
+    ignore_attr = "dimnames",
     tolerance = 1e-6
   )
   expect_equal(output, "character(0)")

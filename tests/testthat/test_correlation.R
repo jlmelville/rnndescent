@@ -55,16 +55,16 @@ cor_dist <- matrix(
 
 test_that("correlation neighbors match the expected indices and distances", {
   res <- brute_force_knn(uirism[1:10, ], k = 10, metric = "correlation")
-  expect_equal(res$idx, cor_index, check.attributes = FALSE)
-  expect_equal(res$dist, cor_dist, check.attributes = FALSE, tolerance = 1e-6)
+  expect_equal(res$idx, cor_index, ignore_attr = "dimnames")
+  expect_equal_abs(unname(res$dist), cor_dist, tolerance = 1e-6)
 
   res <- random_knn(uirism[1:10, ], k = 10, metric = "correlation")
-  expect_equal(res$idx, cor_index, check.attributes = FALSE)
-  expect_equal(res$dist, cor_dist, check.attributes = FALSE, tolerance = 1e-6)
+  expect_equal(res$idx, cor_index, ignore_attr = "dimnames")
+  expect_equal_abs(unname(res$dist), cor_dist, tolerance = 1e-6)
 
   res <- nnd_knn(uirism[1:10, ], k = 10, metric = "correlation")
-  expect_equal(res$idx, cor_index, check.attributes = FALSE)
-  expect_equal(res$dist, cor_dist, check.attributes = FALSE, tolerance = 1e-6)
+  expect_equal(res$idx, cor_index, ignore_attr = "dimnames")
+  expect_equal_abs(unname(res$dist), cor_dist, tolerance = 1e-6)
 
   res <- graph_knn_query(
     reference = uirism[1:10, ],
@@ -73,8 +73,8 @@ test_that("correlation neighbors match the expected indices and distances", {
     k = 10,
     metric = "correlation"
   )
-  expect_equal(res$idx, cor_index, check.attributes = FALSE)
-  expect_equal(res$dist, cor_dist, check.attributes = FALSE, tolerance = 1e-6)
+  expect_equal(res$idx, cor_index, ignore_attr = "dimnames")
+  expect_equal_abs(unname(res$dist), cor_dist, tolerance = 1e-6)
 
   res <- brute_force_knn_query(
     reference = uirism[1:10, ],
@@ -82,8 +82,8 @@ test_that("correlation neighbors match the expected indices and distances", {
     k = 10,
     metric = "correlation"
   )
-  expect_equal(res$idx, cor_index, check.attributes = FALSE)
-  expect_equal(res$dist, cor_dist, check.attributes = FALSE, tolerance = 1e-6)
+  expect_equal(res$idx, cor_index, ignore_attr = "dimnames")
+  expect_equal_abs(unname(res$dist), cor_dist, tolerance = 1e-6)
 
   res <- random_knn_query(
     reference = uirism[1:10, ],
@@ -91,8 +91,8 @@ test_that("correlation neighbors match the expected indices and distances", {
     k = 10,
     metric = "correlation"
   )
-  expect_equal(res$idx, cor_index, check.attributes = FALSE)
-  expect_equal(res$dist, cor_dist, check.attributes = FALSE, tolerance = 1e-6)
+  expect_equal(res$idx, cor_index, ignore_attr = "dimnames")
+  expect_equal_abs(unname(res$dist), cor_dist, tolerance = 1e-6)
 })
 
 
@@ -244,16 +244,16 @@ test_that("preprocessed correlation preserves neighbors and distances", {
     k = 10,
     metric = "correlation-preprocess"
   )
-  expect_equal(res$idx, cor_index, check.attributes = FALSE)
-  expect_equal(res$dist, cor_dist, check.attributes = FALSE, tolerance = 1e-6)
+  expect_equal(res$idx, cor_index, ignore_attr = "dimnames")
+  expect_equal_abs(unname(res$dist), cor_dist, tolerance = 1e-6)
 
   res <- random_knn(uirism[1:10, ], k = 10, metric = "correlation-preprocess")
-  expect_equal(res$idx, cor_index, check.attributes = FALSE)
-  expect_equal(res$dist, cor_dist, check.attributes = FALSE, tolerance = 1e-6)
+  expect_equal(res$idx, cor_index, ignore_attr = "dimnames")
+  expect_equal_abs(unname(res$dist), cor_dist, tolerance = 1e-6)
 
   res <- nnd_knn(uirism[1:10, ], k = 10, metric = "correlation-preprocess")
-  expect_equal(res$idx, cor_index, check.attributes = FALSE)
-  expect_equal(res$dist, cor_dist, check.attributes = FALSE, tolerance = 1e-6)
+  expect_equal(res$idx, cor_index, ignore_attr = "dimnames")
+  expect_equal_abs(unname(res$dist), cor_dist, tolerance = 1e-6)
 
   res <- graph_knn_query(
     reference = uirism[1:10, ],
@@ -262,8 +262,8 @@ test_that("preprocessed correlation preserves neighbors and distances", {
     k = 10,
     metric = "correlation-preprocess"
   )
-  expect_equal(res$idx, cor_index, check.attributes = FALSE)
-  expect_equal(res$dist, cor_dist, check.attributes = FALSE, tolerance = 1e-6)
+  expect_equal(res$idx, cor_index, ignore_attr = "dimnames")
+  expect_equal_abs(unname(res$dist), cor_dist, tolerance = 1e-6)
 
   res <- brute_force_knn_query(
     reference = uirism[1:10, ],
@@ -271,8 +271,8 @@ test_that("preprocessed correlation preserves neighbors and distances", {
     k = 10,
     metric = "correlation-preprocess"
   )
-  expect_equal(res$idx, cor_index, check.attributes = FALSE)
-  expect_equal(res$dist, cor_dist, check.attributes = FALSE, tolerance = 1e-6)
+  expect_equal(res$idx, cor_index, ignore_attr = "dimnames")
+  expect_equal_abs(unname(res$dist), cor_dist, tolerance = 1e-6)
 
   res <- random_knn_query(
     reference = uirism[1:10, ],
@@ -280,8 +280,8 @@ test_that("preprocessed correlation preserves neighbors and distances", {
     k = 10,
     metric = "correlation-preprocess"
   )
-  expect_equal(res$idx, cor_index, check.attributes = FALSE)
-  expect_equal(res$dist, cor_dist, check.attributes = FALSE, tolerance = 1e-6)
-  expect_equal(res$idx, cor_index, check.attributes = FALSE)
-  expect_equal(res$dist, cor_dist, check.attributes = FALSE, tolerance = 1e-6)
+  expect_equal(res$idx, cor_index, ignore_attr = "dimnames")
+  expect_equal_abs(unname(res$dist), cor_dist, tolerance = 1e-6)
+  expect_equal(res$idx, cor_index, ignore_attr = "dimnames")
+  expect_equal_abs(unname(res$dist), cor_dist, tolerance = 1e-6)
 })

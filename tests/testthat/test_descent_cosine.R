@@ -43,7 +43,7 @@ test_that("cosine queries return valid neighbors and distances", {
     metric = "cosine"
   )
   check_query_nbrs_idx(qnbrs4$idx, nref = nrow(ui6))
-  expect_equal(sum(qnbrs4$dist), ui4q_cdsum, tolerance = 1e-5)
+  expect_equal_abs(sum(qnbrs4$dist), ui4q_cdsum, tolerance = 1e-5)
 
   set.seed(1337)
   ui4_nnd <- nnd_knn(ui4, k = 4, metric = "cosine")
@@ -55,7 +55,7 @@ test_that("cosine queries return valid neighbors and distances", {
     metric = "cosine"
   )
   check_query_nbrs_idx(qnbrs6$idx, nref = nrow(ui4))
-  expect_equal(sum(qnbrs6$dist), ui6q_cdsum, tolerance = 1e-5)
+  expect_equal_abs(sum(qnbrs6$dist), ui6q_cdsum, tolerance = 1e-5)
 })
 
 
@@ -109,7 +109,7 @@ test_that("preprocessed cosine queries return valid neighbors and distances", {
     metric = "cosine-preprocess"
   )
   check_query_nbrs_idx(qnbrs4$idx, nref = nrow(ui6))
-  expect_equal(sum(qnbrs4$dist), ui4q_cdsum, tolerance = 1e-5)
+  expect_equal_abs(sum(qnbrs4$dist), ui4q_cdsum, tolerance = 1e-5)
 
   set.seed(1337)
   ui4_nnd <- nnd_knn(ui4, k = 4, metric = "cosine-preprocess")
@@ -121,7 +121,7 @@ test_that("preprocessed cosine queries return valid neighbors and distances", {
     metric = "cosine-preprocess"
   )
   check_query_nbrs_idx(qnbrs6$idx, nref = nrow(ui4))
-  expect_equal(sum(qnbrs6$dist), ui6q_cdsum, tolerance = 1e-5)
+  expect_equal_abs(sum(qnbrs6$dist), ui6q_cdsum, tolerance = 1e-5)
 })
 
 # sparse

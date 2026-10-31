@@ -8,11 +8,11 @@ test_that("Hamming descent agrees across memory and thread settings", {
   # Update 10/27/23: yeah this seems to be a RNG issue
   set.seed(1337)
   bit_rnn <- nnd_knn(bitdata, 4, metric = "hamming", max_candidates = 10)
-  expect_equal(bit_rnn$idx, expected_hamm_idx, check.attributes = FALSE)
+  expect_equal(bit_rnn$idx, expected_hamm_idx, ignore_attr = "dimnames")
   expect_equal(
     bit_rnn$dist,
     expected_hamm_dist,
-    check.attributes = FALSE,
+    ignore_attr = "dimnames",
     tolerance = 1e-7
   )
 
@@ -25,11 +25,11 @@ test_that("Hamming descent agrees across memory and thread settings", {
     metric = "hamming",
     max_candidates = 10
   )
-  expect_equal(bit_rnn$idx, expected_hamm_idx, check.attributes = FALSE)
+  expect_equal(bit_rnn$idx, expected_hamm_idx, ignore_attr = "dimnames")
   expect_equal(
     bit_rnn$dist,
     expected_hamm_dist,
-    check.attributes = FALSE,
+    ignore_attr = "dimnames",
     tolerance = 1e-7
   )
 
@@ -42,11 +42,11 @@ test_that("Hamming descent agrees across memory and thread settings", {
     n_threads = 1,
     max_candidates = 10
   )
-  expect_equal(bit_rnn$idx, expected_hamm_idx, check.attributes = FALSE)
+  expect_equal(bit_rnn$idx, expected_hamm_idx, ignore_attr = "dimnames")
   expect_equal(
     bit_rnn$dist,
     expected_hamm_dist,
-    check.attributes = FALSE,
+    ignore_attr = "dimnames",
     tolerance = 1e-7
   )
 
@@ -60,11 +60,11 @@ test_that("Hamming descent agrees across memory and thread settings", {
     max_candidates = 10,
     low_memory = FALSE
   )
-  expect_equal(bit_rnn$idx, expected_hamm_idx, check.attributes = FALSE)
+  expect_equal(bit_rnn$idx, expected_hamm_idx, ignore_attr = "dimnames")
   expect_equal(
     bit_rnn$dist,
     expected_hamm_dist,
-    check.attributes = FALSE,
+    ignore_attr = "dimnames",
     tolerance = 1e-7
   )
 })
@@ -78,11 +78,11 @@ test_that("logical Hamming descent recalculates and resizes initialization", {
     init = random_knn(bitdata, k = 1, metric = "hamming")$idx,
     max_candidates = 10
   )
-  expect_equal(lbit_rnn$idx, expected_hamm_idx, check.attributes = FALSE)
+  expect_equal(lbit_rnn$idx, expected_hamm_idx, ignore_attr = "dimnames")
   expect_equal(
     lbit_rnn$dist,
     expected_hamm_dist,
-    check.attributes = FALSE,
+    ignore_attr = "dimnames",
     tolerance = 1e-7
   )
 
@@ -96,11 +96,11 @@ test_that("logical Hamming descent recalculates and resizes initialization", {
     max_candidates = 10,
     low_memory = FALSE
   )
-  expect_equal(lbit_rnn$idx, expected_hamm_idx, check.attributes = FALSE)
+  expect_equal(lbit_rnn$idx, expected_hamm_idx, ignore_attr = "dimnames")
   expect_equal(
     lbit_rnn$dist,
     expected_hamm_dist,
-    check.attributes = FALSE,
+    ignore_attr = "dimnames",
     tolerance = 1e-7
   )
 })

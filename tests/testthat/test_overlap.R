@@ -19,7 +19,7 @@ test_that("overlap range", {
   set.seed(1337)
   rnnbrs <- random_knn(ui10, k = 4)
   rov <- neighbor_overlap(ui10_bf, rnnbrs$idx, ret_vec = TRUE)
-  expect_equal(rov$mean, neighbor_overlap(rnnbrs$idx, ui10_bf), 1)
+  expect_equal(rov$mean, neighbor_overlap(rnnbrs$idx, ui10_bf))
   expect_equal(rov$mean, mean(rov$overlaps))
   expect_gte(min(rov$overlaps), 0)
   expect_lte(min(rov$overlaps), 1)
