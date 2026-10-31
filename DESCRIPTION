@@ -24,7 +24,7 @@ Suggests:
     covr,
     knitr,
     rmarkdown,
-    testthat
+    testthat (>= 3.3.0)
 LinkingTo: 
     BH,
     dqrng,

@@ -6,19 +6,19 @@ check_nbri <- function(nnidx, i) {
   nr <- nrow(nnidx)
   nc <- ncol(nnidx)
   true_nbrs <- nnidx[i, 2:nc]
-  testthat::expect_true(all(i != true_nbrs), label = i)
-  testthat::expect_true(all(true_nbrs > 0), label = i)
-  testthat::expect_true(all(true_nbrs <= nr), label = i)
-  testthat::expect_true(length(unique(true_nbrs)) == nc - 1)
+  testthat::expect_all_true(nnidx[!!i, 2:nc] != i)
+  testthat::expect_gt(min(true_nbrs), 0, label = paste("row", i))
+  testthat::expect_lte(max(true_nbrs), nr, label = paste("row", i))
+  testthat::expect_length(unique(nnidx[!!i, 2:nc]), nc - 1)
 }
 
 check_nbri_unordered <- function(nnidx, i) {
   nr <- nrow(nnidx)
   nc <- ncol(nnidx)
-  nbrs <- nnidx[i, , drop = FALSE]
-  testthat::expect_true(all(nbrs > 0), label = i)
-  testthat::expect_true(all(nbrs <= nr), label = i)
-  testthat::expect_true(length(unique(nbrs)) == nc)
+  nbrs <- nnidx[i, ]
+  testthat::expect_gt(min(nbrs), 0, label = paste("row", i))
+  testthat::expect_lte(max(nbrs), nr, label = paste("row", i))
+  testthat::expect_length(unique(nnidx[!!i, ]), nc)
 }
 
 check_nbrs_idx <- function(nnidx, check_order = TRUE) {
@@ -90,10 +90,10 @@ are_valid_query_neighbors <- function(nnidx, i, nref) {
 check_query_nbrs_idx <- function(nnidx, nref) {
   nr <- nrow(nnidx)
   for (i in 1:nr) {
-    testthat::expect_true(all(
+    testthat::expect_true(
       are_valid_query_neighbors(nnidx, i, nref),
-      label = i
-    ))
+      label = paste("query row", i)
+    )
   }
 }
 
@@ -119,8 +119,7 @@ check_query_nbrs_dist <- function(
 }
 
 check_nn_matrix_dim <- function(m, query, k) {
-  testthat::expect_equal(nrow(m), nrow(query))
-  testthat::expect_equal(ncol(m), k)
+  testthat::expect_shape(m, dim = c(nrow(query), k))
 }
 
 check_query_nbrs <- function(
