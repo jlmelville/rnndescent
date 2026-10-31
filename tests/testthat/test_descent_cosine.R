@@ -1,5 +1,4 @@
 library(rnndescent)
-context("NN descent Cosine")
 
 test_that("cosine descent agrees across memory and thread settings", {
   # Cosine distance
@@ -33,8 +32,6 @@ test_that("cosine descent agrees across memory and thread settings", {
 
 # Query
 
-context("Query Cosine")
-
 test_that("cosine queries return valid neighbors and distances", {
   set.seed(1337)
   ui6_nnd <- nnd_knn(ui6, k = 4, metric = "cosine")
@@ -63,8 +60,6 @@ test_that("cosine queries return valid neighbors and distances", {
 
 
 # cosine-preprocess -------------------------------------------------------------
-
-context("NN descent Cosine-Preprocess")
 
 test_that("preprocessed cosine descent agrees across execution settings", {
   # Cosine distance
@@ -102,8 +97,6 @@ test_that("preprocessed cosine descent agrees across execution settings", {
 })
 
 # Query
-
-context("Cosine-Preprocess queries")
 
 test_that("preprocessed cosine queries return valid neighbors and distances", {
   set.seed(1337)

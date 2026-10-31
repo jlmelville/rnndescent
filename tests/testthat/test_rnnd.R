@@ -1,5 +1,4 @@
 library(rnndescent)
-context("rnnd")
 
 set.seed(1337)
 iris_index <- rnnd_build(

@@ -28,6 +28,7 @@
 #define TDOANN_BRUTE_FORCE_H
 
 #include <cmath>
+#include <cstddef>
 #include <utility>
 #include <vector>
 

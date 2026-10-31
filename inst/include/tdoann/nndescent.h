@@ -27,7 +27,12 @@
 #ifndef TDOANN_NNDESCENT_H
 #define TDOANN_NNDESCENT_H
 
+#include <algorithm>
+#include <cstddef>
+#include <cstdint>
 #include <sstream>
+#include <tuple>
+#include <vector>
 
 #include "distancebase.h"
 #include "heap.h"

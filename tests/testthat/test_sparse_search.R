@@ -1,5 +1,4 @@
 library(rnndescent)
-context("Sparse search/build")
 
 #14: Alt metric gave the wrong results (because of a bad uncorrection)
 

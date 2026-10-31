@@ -1,5 +1,4 @@
 library(rnndescent)
-context("Correlation distance")
 
 # fmt: skip
 cor_index <- matrix(
@@ -238,8 +237,6 @@ test_that("sparse correlation preserves zero-centered-product membership", {
 })
 
 # correlation-preprocess -------------------------------------------------------
-
-context("Correlation-Preprocess distance")
 
 test_that("preprocessed correlation preserves neighbors and distances", {
   res <- brute_force_knn(

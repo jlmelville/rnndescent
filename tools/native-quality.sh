@@ -112,7 +112,10 @@ common_flags=(
 )
 compilers=(g++ clang++)
 cxx11_headers=(pforr.h)
-cxx17_headers=(rnndescent/random.h tdoann/distance.h)
+cxx17_headers=(rnndescent/random.h)
+for header_file in inst/include/tdoann/*.h; do
+  cxx17_headers+=("${header_file#inst/include/}")
+done
 maintained_sources=(
   src/rnn_bruteforce.cpp
   src/rnn_hub.cpp

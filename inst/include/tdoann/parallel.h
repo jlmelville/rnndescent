@@ -27,6 +27,8 @@
 #ifndef TDOANN_PARALLEL_H
 #define TDOANN_PARALLEL_H
 
+#include <algorithm>
+#include <cstddef>
 #include <functional>
 #include <utility>
 

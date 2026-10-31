@@ -1,5 +1,4 @@
 library(rnndescent)
-context("NN descent Euclidean")
 
 
 test_that("zero descent iterations sort the initialized neighbor heaps", {
@@ -315,8 +314,6 @@ test_that("threaded Euclidean descent preserves neighbor quality", {
 })
 
 # Queries -----------------------------------------------------------------
-
-context("Euclidean queries")
 
 set.seed(1337)
 ui6_nnd <- nnd_knn(ui6, k = 4)

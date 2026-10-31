@@ -1,5 +1,4 @@
 library(rnndescent)
-context("Binary data tests")
 
 # Regression test for a bug in the Jaccard distance calculation where the empty
 # data would not be replaced with maximally distance points

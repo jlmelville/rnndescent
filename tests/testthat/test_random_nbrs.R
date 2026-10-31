@@ -1,5 +1,4 @@
 library(rnndescent)
-context("Random neighbors")
 
 test_that("random neighbors respect threading and ordering options", {
   set.seed(1337)
@@ -110,8 +109,6 @@ test_that("random neighbors reject invalid counts and metrics", {
 })
 
 # Queries -----------------------------------------------------------------
-
-context("Random neighbor queries")
 
 test_that("random queries respect threading and ordering options", {
   set.seed(1337)

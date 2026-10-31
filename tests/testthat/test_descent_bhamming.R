@@ -1,6 +1,5 @@
 library(rnndescent)
 
-context("NN descent bhamming")
 
 test_that("logical Hamming descent agrees across memory and thread settings", {
   # For some reason, get a different set of random numbers when run via testthat
@@ -63,8 +62,6 @@ test_that("logical Hamming descent agrees across memory and thread settings", {
 })
 
 # queries
-
-context("Bhamming queries")
 
 test_that("logical Hamming queries return valid neighbors and distances", {
   set.seed(1337)

@@ -1,5 +1,4 @@
 library(rnndescent)
-context("RP Tree")
 
 # just one tree
 # fmt: skip

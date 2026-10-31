@@ -27,7 +27,9 @@
 #ifndef TDOANN_PROGRESSBAR_H
 #define TDOANN_PROGRESSBAR_H
 
+#include <algorithm>
 #include <ostream>
+#include <utility>
 
 #ifndef TDOANN_PROGRESSBAR_OUTPUT_STREAM
 #include <iostream>

@@ -28,6 +28,8 @@
 #define TDOANN_BVSET_H
 
 #include "bitvec.h"
+#include <cstddef>
+#include <cstdlib>
 
 namespace tdoann {
 

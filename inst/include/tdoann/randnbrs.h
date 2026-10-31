@@ -27,6 +27,7 @@
 #ifndef TDOANN_RANDNBRS_H
 #define TDOANN_RANDNBRS_H
 
+#include <cstddef>
 #include <vector>
 
 #include "distancebase.h"

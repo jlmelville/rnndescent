@@ -28,6 +28,9 @@
 #define TDOANN_BITVEC_H
 
 #include <bitset>
+#include <cstddef>
+#include <cstdint>
+#include <utility>
 #include <vector>
 
 namespace tdoann {

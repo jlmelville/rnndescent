@@ -28,6 +28,8 @@
 #define TDOANN_NNGRAPH_H
 
 #include <array>
+#include <cstddef>
+#include <cstdint>
 #include <limits>
 #include <mutex>
 #include <utility>

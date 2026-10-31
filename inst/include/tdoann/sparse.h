@@ -29,8 +29,15 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstddef>
+#include <cstdint>
 #include <iterator>
+#include <limits>
+#include <memory>
+#include <numeric>
+#include <tuple>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 
 #include "distance.h"

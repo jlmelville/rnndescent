@@ -27,10 +27,14 @@
 #ifndef TDOANN_NNDPROGRESS_H
 #define TDOANN_NNDPROGRESS_H
 
+#include <cstddef>
+#include <cstdint>
 #include <memory>
 #include <sstream>
 #include <string>
 #include <unordered_set>
+#include <utility>
+#include <vector>
 
 #include "heap.h"
 #include "progressbase.h"

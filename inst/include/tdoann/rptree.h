@@ -27,11 +27,15 @@
 #ifndef TDOANN_RPTREE_H
 #define TDOANN_RPTREE_H
 
+#include <algorithm>
 #include <cmath>
+#include <cstddef>
 #include <cstdint>
 #include <limits>
 #include <numeric>
 #include <tuple>
+#include <unordered_set>
+#include <utility>
 #include <vector>
 
 #include "distancebase.h"

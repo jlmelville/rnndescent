@@ -28,8 +28,10 @@
 #define TDOANN_DISTANCEBIN_H
 
 #include <algorithm>
+#include <cstddef>
 #include <cstdint>
 #include <numeric>
+#include <utility>
 #include <vector>
 
 #include "bitvec.h"

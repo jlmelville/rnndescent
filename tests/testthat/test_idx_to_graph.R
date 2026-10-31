@@ -1,5 +1,4 @@
 library(rnndescent)
-context("Index to graph")
 
 testthat::test_that("convert reference graph", {
   set.seed(1337)

@@ -1,5 +1,4 @@
 library(rnndescent)
-context("NN descent Manhattan")
 
 test_that("Manhattan descent agrees across memory and thread settings", {
   expected_sum <- 1674.102
@@ -36,8 +35,6 @@ test_that("Manhattan descent agrees across memory and thread settings", {
 })
 
 # queries
-
-context("Manhattan queries")
 
 test_that("Manhattan queries return valid neighbors and distances", {
   set.seed(1337)

@@ -1,5 +1,4 @@
 library(rnndescent)
-context("Brute force construction")
 
 test_that("brute force construction preserves distances and validates inputs", {
   rnbrs <- brute_force_knn(ui10, k = 4, n_threads = 0)
@@ -24,8 +23,6 @@ test_that("brute force construction preserves distances and validates inputs", {
 })
 
 # Queries -----------------------------------------------------------------
-
-context("Brute force queries")
 
 test_that("brute force queries match distances and validate inputs", {
   qnbrs4 <- brute_force_knn_query(reference = ui6, query = ui4, k = 4)

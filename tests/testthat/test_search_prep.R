@@ -1,5 +1,4 @@
 library(rnndescent)
-context("Search graph preparation")
 
 ui10_bf <- brute_force_knn(ui10, k = 4)
 

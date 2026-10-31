@@ -27,11 +27,13 @@
 #ifndef TDOANN_DISTANCETEMPLATE_H
 #define TDOANN_DISTANCETEMPLATE_H
 
+#include <cstddef>
 #include <cstdint>
 #include <vector>
 
 #include "bitvec.h"
 #include "distance.h"
+#include "distancebin.h"
 
 namespace tdoann {
 
@@ -101,11 +103,12 @@ struct BHammingSelf {
   Idx ny;
 
   BHammingSelf(const std::vector<In> &data, std::size_t ndim)
-      : bitvec(to_bitvec(data, ndim)), vec_len(bitvec_size(ndim)), ndim(ndim),
-        nx(data.size() / ndim), ny(nx) {}
+      : bitvec(to_bitvec(data, ndim)), vec_len(num_blocks_needed(ndim)),
+        ndim(ndim), nx(data.size() / ndim), ny(nx) {}
 
   auto operator()(Idx i, Idx j) const -> Out {
-    return bhamming_impl<Out>(bitvec, i, bitvec, j, vec_len);
+    // Unit normalization preserves the legacy mismatch count.
+    return bhamming<Out>(bitvec, i, bitvec, j, vec_len, 1);
   }
 
   using Input = In;
@@ -125,11 +128,12 @@ struct BHammingQuery {
   BHammingQuery(const std::vector<In> &x, const std::vector<In> &y,
                 std::size_t ndim)
       : bx(to_bitvec(x, ndim)), by(to_bitvec(y, ndim)),
-        vec_len(bitvec_size(ndim)), ndim(ndim), nx(x.size() / ndim),
+        vec_len(num_blocks_needed(ndim)), ndim(ndim), nx(x.size() / ndim),
         ny(y.size() / ndim) {}
 
   auto operator()(Idx i, Idx j) const -> Out {
-    return bhamming_impl<Out>(bx, i, by, j, vec_len);
+    // Unit normalization preserves the legacy mismatch count.
+    return bhamming<Out>(bx, i, by, j, vec_len, 1);
   }
 
   using Input = In;

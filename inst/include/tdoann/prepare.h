@@ -28,6 +28,8 @@
 #define TDOANN_PREPARE_H
 
 #include <algorithm>
+#include <cstddef>
+#include <cstdint>
 #include <numeric>
 #include <vector>
 

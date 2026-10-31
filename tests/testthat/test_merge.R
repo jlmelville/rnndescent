@@ -1,5 +1,4 @@
 library(rnndescent)
-context("Merging")
 
 set.seed(1337)
 ui10rnn1 <- random_knn(ui10, k = 4, order_by_distance = FALSE)

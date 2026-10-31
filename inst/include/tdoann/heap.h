@@ -28,7 +28,11 @@
 #define TDOANN_HEAP_H
 
 #include <algorithm>
+#include <cstddef>
+#include <cstdint>
 #include <limits>
+#include <numeric>
+#include <utility>
 #include <vector>
 
 #include "parallel.h"

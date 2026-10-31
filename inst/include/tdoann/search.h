@@ -33,6 +33,8 @@
 #include "nngraph.h"
 #include "parallel.h"
 #include "progressbase.h"
+#include <cstddef>
+#include <vector>
 
 namespace tdoann {
 

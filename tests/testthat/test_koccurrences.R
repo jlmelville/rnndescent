@@ -1,5 +1,4 @@
 library(rnndescent)
-context("Reverse neighbors")
 
 rnbrs <- brute_force_knn(ui10, k = 4, n_threads = 0)
 hub10 <- k_occur(rnbrs$idx)

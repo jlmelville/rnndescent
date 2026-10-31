@@ -27,8 +27,10 @@
 #ifndef TDOANN_DISTANCEBASE_H
 #define TDOANN_DISTANCEBASE_H
 
+#include <cstddef>
 #include <cstdint>
 #include <memory>
+#include <utility>
 #include <vector>
 
 #include "distance.h"
@@ -106,7 +108,7 @@ public:
   SelfDistanceCalculator(VecIn &&data, std::size_t ndim,
                          DistanceFunc distance_func,
                          PreprocessFunc<In> preprocess_func = nullptr)
-      : x(std::move(data)), nx(x.size() / ndim), ndim(ndim),
+      : x(std::forward<VecIn>(data)), nx(x.size() / ndim), ndim(ndim),
         distance_func(distance_func) {
     if (preprocess_func) {
       preprocess_func(x, ndim);

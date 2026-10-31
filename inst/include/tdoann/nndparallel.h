@@ -27,8 +27,13 @@
 #ifndef TDOANN_NNDPARALLEL_H
 #define TDOANN_NNDPARALLEL_H
 
+#include <algorithm>
 #include <array>
+#include <cstddef>
+#include <cstdint>
 #include <mutex>
+#include <tuple>
+#include <vector>
 
 #include "distancebase.h"
 #include "heap.h"

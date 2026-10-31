@@ -27,6 +27,8 @@
 #ifndef TDOANN_PROGRESS_BASE_H
 #define TDOANN_PROGRESS_BASE_H
 
+#include <cstddef>
+#include <cstdint>
 #include <string>
 
 namespace tdoann {

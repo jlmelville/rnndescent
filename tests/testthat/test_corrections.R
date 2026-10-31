@@ -1,5 +1,4 @@
 library(rnndescent)
-context("Corrections")
 
 # 14: bad uncorrection broke cosine, jaccard, hellinger default search
 
