@@ -4,6 +4,8 @@
 
 ### Bug fixes and minor improvements
 
+- Clarify missing, malformed and incompatible forests in RP-tree queries
+  and filtering.
 - Defensively initialize the dimension field of default-constructed
   implicit RP trees.
 - Identify mismatched `dist` and `idx` dimensions when merging or
