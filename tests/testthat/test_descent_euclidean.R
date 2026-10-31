@@ -982,7 +982,11 @@ test_that("query APIs reject mixed sparse/dense and logical/numeric inputs", {
 
   logical_msg <- "'query' and 'reference' must both be logical or both be non-logical"
   expect_error(
-    brute_force_knn_query(query = numeric_query, reference = logical_ref, k = 1),
+    brute_force_knn_query(
+      query = numeric_query,
+      reference = logical_ref,
+      k = 1
+    ),
     logical_msg
   )
   expect_error(

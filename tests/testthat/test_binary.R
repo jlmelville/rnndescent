@@ -363,8 +363,11 @@ for (metric in c(
     expect_false(0 %in% s_res$idx)
 
     # sparse should equal dense
-    tolerance <- if (metric %in% c("correlation", "cosine", "jensenshannon"))
-      1e-5 else 1e-7
+    tolerance <- if (metric %in% c("correlation", "cosine", "jensenshannon")) {
+      1e-5
+    } else {
+      1e-7
+    }
     if (metric == "spearmanr") {
       tolerance <- 1e-6
     }
