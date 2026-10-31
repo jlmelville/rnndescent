@@ -4,6 +4,8 @@
 
 ### Bug fixes and minor improvements
 
+- Defensively initialize the dimension field of default-constructed
+  implicit RP trees.
 - Identify mismatched `dist` and `idx` dimensions when merging or
   filtering neighbor graphs.
 - Clarify when query and reference inputs must agree on sparse or
