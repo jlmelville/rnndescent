@@ -44,6 +44,11 @@ convention: Pearson correlation is undefined for zero-variance vectors.
 * `"cosine"`: 1 minus the [cosine similarity](https://en.wikipedia.org/wiki/Cosine_similarity).
 * `"dice"`: the [Dice coefficient](https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient),
 also known as the Sørensen–Dice coefficient. Intended for binary data.
+* `"dot"`: 1 minus the dot product after normalizing each vector to unit length, capped at 1.
+This normalization is applied to both dense and sparse input, so vector magnitudes do not contribute
+to the distance. For nonzero vectors, this agrees with `"cosine"` when the cosine similarity is
+positive, but returns 1 when it is zero or negative. If either vector is zero (including when both
+are zero), the distance is 1. Logical matrices use the same calculation on 0s and 1s.
 * `"euclidean"`: the Euclidean distance, also known as the L2 norm.
 * `"hamming"`: the [Hamming distance](https://en.wikipedia.org/wiki/Hamming_distance). 
 Intended for binary data.
@@ -64,6 +69,10 @@ Like `"hellinger"`, this is intended to be used with a probability distribution.
 Intended for binary data.
 * `"sqeuclidean"` (squared Euclidean)
 * `"manhattan"`: the Manhattan distance, also known as the L1 norm or [Taxicab distance](https://en.wikipedia.org/wiki/Taxicab_geometry).
+* `"matching"`: the fraction of features for which one value is zero and the other is nonzero.
+It accepts dense and sparse numeric input as well as logical matrices. For example, 2 and 7 match
+because both are nonzero; `"hamming"` counts these numeric values as different. With logical or
+0/1 data, `"matching"` and `"hamming"` agree.
 * `"rogerstanimoto"`: the [Rogers-Tanimoto coefficient](https://en.wikipedia.org/wiki/Qualitative_variation#Rogers%E2%80%93Tanimoto_coefficient).
 * `"russellrao"`: the [Russell-Rao coefficient](https://en.wikipedia.org/wiki/Qualitative_variation#Russel%E2%80%93Rao_coefficient).
 * `"sokalmichener"`. Intended for binary data.
@@ -91,6 +100,12 @@ non-preprocessed versions:
 
 * `"cosine-preprocess"`: `cosine` with preprocessing.
 * `"correlation-preprocess"`: `correlation` with preprocessing.
+
+The internal names `"alternative-cosine"`, `"alternative-dot"`, `"alternative-hellinger"` and
+`"alternative-jaccard"` are also currently accepted, but selecting them directly returns transformed
+distances, not the ordinary metric's distances. Use the ordinary names above; where available,
+`use_alt_metric` lets the implementation choose a faster internal calculation and convert the
+results back to the ordinary distance scale.
 
 ## Numerical precision
 
