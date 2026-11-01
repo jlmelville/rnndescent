@@ -924,13 +924,13 @@ Out sparse_jensen_shannon_divergence(
     typename std::vector<std::size_t>::const_iterator ind1_start,
     std::size_t ind1_size, DataIt data1_start,
     typename std::vector<std::size_t>::const_iterator ind2_start,
-    std::size_t ind2_size, DataIt data2_start, std::size_t /* ndim */) {
+    std::size_t ind2_size, DataIt data2_start, std::size_t ndim) {
 
   auto [dense_data1, dense_data2] = dense_union<Out, DataIt>(
       ind1_start, ind1_size, data1_start, ind2_start, ind2_size, data2_start);
 
-  return jensen_shannon_divergence<Out>(dense_data1.begin(), dense_data1.end(),
-                                        dense_data2.begin());
+  return jensen_shannon_divergence_impl<Out>(
+      dense_data1.begin(), dense_data1.end(), dense_data2.begin(), ndim);
 }
 
 template <typename Out, typename DataIt>
@@ -1432,13 +1432,13 @@ Out sparse_symmetric_kl_divergence(
     typename std::vector<std::size_t>::const_iterator ind1_start,
     std::size_t ind1_size, DataIt data1_start,
     typename std::vector<std::size_t>::const_iterator ind2_start,
-    std::size_t ind2_size, DataIt data2_start, std::size_t /* ndim */) {
+    std::size_t ind2_size, DataIt data2_start, std::size_t ndim) {
 
   auto [dense_data1, dense_data2] = dense_union<Out, DataIt>(
       ind1_start, ind1_size, data1_start, ind2_start, ind2_size, data2_start);
 
-  return symmetric_kl_divergence<Out>(dense_data1.begin(), dense_data1.end(),
-                                      dense_data2.begin());
+  return symmetric_kl_divergence_impl<Out>(
+      dense_data1.begin(), dense_data1.end(), dense_data2.begin(), ndim);
 }
 
 template <typename In, typename Out>

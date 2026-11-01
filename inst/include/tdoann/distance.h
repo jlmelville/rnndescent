@@ -339,12 +339,13 @@ Out alternative_jaccard(It xbegin, It xend, It ybegin) {
 }
 
 template <typename Out, typename It>
-Out jensen_shannon_divergence(It xbegin, It xend, It ybegin) {
-  const std::size_t ndim = std::distance(xbegin, xend);
+Out jensen_shannon_divergence_impl(It xbegin, It xend, It ybegin,
+                                   std::size_t ndim) {
+  const std::size_t support_size = std::distance(xbegin, xend);
   Out l1_norm_x = 0;
   Out l1_norm_y = 0;
 
-  for (std::size_t i = 0; i < ndim; ++i) {
+  for (std::size_t i = 0; i < support_size; ++i) {
     l1_norm_x += std::abs(*(xbegin + i));
     l1_norm_y += std::abs(*(ybegin + i));
   }
@@ -354,7 +355,7 @@ Out jensen_shannon_divergence(It xbegin, It xend, It ybegin) {
   l1_norm_y += EPS * ndim;
 
   Out result = 0.0;
-  for (std::size_t i = 0; i < ndim; ++i) {
+  for (std::size_t i = 0; i < support_size; ++i) {
     const Out xi = *(xbegin + i) + EPS;
     const Out yi = *(ybegin + i) + EPS;
     const Out xil1 = xi / l1_norm_x;
@@ -371,6 +372,12 @@ Out jensen_shannon_divergence(It xbegin, It xend, It ybegin) {
   }
 
   return result;
+}
+
+template <typename Out, typename It>
+Out jensen_shannon_divergence(It xbegin, It xend, It ybegin) {
+  return jensen_shannon_divergence_impl<Out>(xbegin, xend, ybegin,
+                                             std::distance(xbegin, xend));
 }
 
 template <typename Out, typename It>
@@ -501,13 +508,14 @@ Out squared_euclidean(const It xbegin, const It xend, const It ybegin) {
 }
 
 template <typename Out, typename It>
-Out symmetric_kl_divergence(It xbegin, It xend, It ybegin) {
-  const std::size_t ndim = std::distance(xbegin, xend);
+Out symmetric_kl_divergence_impl(It xbegin, It xend, It ybegin,
+                                 std::size_t ndim) {
+  const std::size_t support_size = std::distance(xbegin, xend);
   Out l1_norm_x = 0;
   Out l1_norm_y = 0;
 
   // First pass to calculate L1 norms
-  for (std::size_t i = 0; i < ndim; ++i) {
+  for (std::size_t i = 0; i < support_size; ++i) {
     l1_norm_x += std::abs(*(xbegin + i));
     l1_norm_y += std::abs(*(ybegin + i));
   }
@@ -517,7 +525,7 @@ Out symmetric_kl_divergence(It xbegin, It xend, It ybegin) {
   l1_norm_y += EPS * ndim;
 
   Out result = 0;
-  for (std::size_t i = 0; i < ndim; ++i) {
+  for (std::size_t i = 0; i < support_size; ++i) {
     const auto xi = *(xbegin + i) + EPS;
     const auto yi = *(ybegin + i) + EPS;
     const auto pdf_xi = xi / l1_norm_x;
@@ -531,7 +539,27 @@ Out symmetric_kl_divergence(It xbegin, It xend, It ybegin) {
     }
   }
 
+  // Sparse union data omits coordinates where both inputs are zero.
+  if (ndim > support_size) {
+    const auto pdf_x0 = EPS / l1_norm_x;
+    const auto pdf_y0 = EPS / l1_norm_y;
+    Out zero_contribution = 0;
+    if (pdf_x0 > EPS) {
+      zero_contribution += pdf_x0 * std::log(pdf_x0 / pdf_y0);
+    }
+    if (pdf_y0 > EPS) {
+      zero_contribution += pdf_y0 * std::log(pdf_y0 / pdf_x0);
+    }
+    result += (ndim - support_size) * zero_contribution;
+  }
+
   return result;
+}
+
+template <typename Out, typename It>
+Out symmetric_kl_divergence(It xbegin, It xend, It ybegin) {
+  return symmetric_kl_divergence_impl<Out>(xbegin, xend, ybegin,
+                                           std::distance(xbegin, xend));
 }
 
 template <typename Out, typename It>
