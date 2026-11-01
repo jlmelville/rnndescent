@@ -21,6 +21,8 @@
 #'   internally, so if your data columns are `logical` and intended to be used
 #'   with the specialized binary `metric`s, you should convert it to a logical
 #'   matrix first (otherwise you will get the slower dense numerical version).
+#'   Numeric feature values must be finite: `NA`, `NaN`, `Inf` and `-Inf`
+#'   are not allowed.
 #' @param k Number of nearest neighbors to build the index for. You can specify
 #'   a different number when running `rnnd_query`, but the index is calibrated
 #'   using this value so it's recommended to set `k` according to the likely
@@ -317,6 +319,8 @@ rnnd_build <- function(
 #'   matrix first (otherwise you will get the slower dense numerical version).
 #'   Sparse and non-sparse data cannot be mixed, so if the data used to build
 #'   index was sparse, the `query` data must also be sparse. and vice versa.
+#'   Numeric feature values must be finite: `NA`, `NaN`, `Inf` and `-Inf`
+#'   are not allowed.
 #' @param k Number of nearest neighbors to return.
 #' @param epsilon Controls trade-off between accuracy and search cost, as
 #'   described by Iwasaki and Miyazaki (2018). Setting `epsilon` to a positive
@@ -431,6 +435,8 @@ rnnd_query <-
 #'   internally, so if your data columns are `logical` and intended to be used
 #'   with the specialized binary `metric`s, you should convert it to a logical
 #'   matrix first (otherwise you will get the slower dense numerical version).
+#'   Numeric feature values must be finite: `NA`, `NaN`, `Inf` and `-Inf`
+#'   are not allowed.
 #' @param k Number of nearest neighbors to return. Optional if `init` is
 #'   specified.
 #' @template metric
@@ -633,6 +639,8 @@ rnnd_knn <- function(
 #'   internally, so if your data columns are `logical` and intended to be used
 #'   with the specialized binary `metric`s, you should convert it to a logical
 #'   matrix first (otherwise you will get the slower dense numerical version).
+#'   Numeric feature values must be finite: `NA`, `NaN`, `Inf` and `-Inf`
+#'   are not allowed.
 #' @param k Number of nearest neighbors to return.
 #' @template metric
 #' @param use_alt_metric If `TRUE`, use faster metrics that maintain the
@@ -753,6 +761,8 @@ brute_force_knn <- function(
 #'   used with the specialized binary `metric`s, you should convert it to a
 #'   logical matrix first (otherwise you will get the slower dense numerical
 #'   version).
+#'   Numeric feature values must be finite: `NA`, `NaN`, `Inf` and `-Inf`
+#'   are not allowed.
 #' @param k Number of nearest neighbors to return.
 #' @template metric
 #' @param use_alt_metric If `TRUE`, use faster metrics that maintain the
@@ -854,6 +864,8 @@ random_knn <-
 #'   internally, so if your data columns are `logical` and intended to be used
 #'   with the specialized binary `metric`s, you should convert it to a logical
 #'   matrix first (otherwise you will get the slower dense numerical version).
+#'   Numeric feature values must be finite: `NA`, `NaN`, `Inf` and `-Inf`
+#'   are not allowed.
 #' @param k Number of nearest neighbors to return. Optional if `init` is
 #'   specified.
 #' @template metric
@@ -1223,6 +1235,8 @@ nnd_knn <- function(
 #'   internally, so if your data columns are `logical` and intended to be used
 #'   with the specialized binary `metric`s, you should convert it to a logical
 #'   matrix first (otherwise you will get the slower dense numerical version).
+#'   Numeric feature values must be finite: `NA`, `NaN`, `Inf` and `-Inf`
+#'   are not allowed.
 #' @param reference Matrix of `m` reference items, with observations in the rows
 #'   and features in the columns. The nearest neighbors to the queries are
 #'   calculated from this data. Optionally, the data may be passed with the
@@ -1231,6 +1245,8 @@ nnd_knn <- function(
 #'   orientation as `reference`. Possible formats are [base::data.frame()],
 #'   [base::matrix()] or [Matrix::sparseMatrix()]. Sparse matrices should be in
 #'   `dgCMatrix` format.
+#'   Numeric feature values must be finite: `NA`, `NaN`, `Inf` and `-Inf`
+#'   are not allowed.
 #' @param k Number of nearest neighbors to return.
 #' @template metric
 #' @param use_alt_metric If `TRUE`, use faster metrics that maintain the
@@ -1368,6 +1384,8 @@ brute_force_knn_query <- function(
 #'   internally, so if your data columns are `logical` and intended to be used
 #'   with the specialized binary `metric`s, you should convert it to a logical
 #'   matrix first (otherwise you will get the slower dense numerical version).
+#'   Numeric feature values must be finite: `NA`, `NaN`, `Inf` and `-Inf`
+#'   are not allowed.
 #' @param reference Matrix of `m` reference items, with observations in the rows
 #'   and features in the columns. The nearest neighbors to the queries are
 #'   randomly selected from this data. Optionally, the data may be passed with
@@ -1376,6 +1394,8 @@ brute_force_knn_query <- function(
 #'   and format as `reference`. Possible formats are [base::data.frame()],
 #'   [base::matrix()] or [Matrix::sparseMatrix()]. Sparse matrices should be in
 #'   `dgCMatrix` format.
+#'   Numeric feature values must be finite: `NA`, `NaN`, `Inf` and `-Inf`
+#'   are not allowed.
 #' @param k Number of nearest neighbors to return.
 #' @template metric
 #' @param use_alt_metric If `TRUE`, use faster metrics that maintain the
@@ -1496,6 +1516,8 @@ random_knn_query <-
 #'   internally, so if your data columns are `logical` and intended to be used
 #'   with the specialized binary `metric`s, you should convert it to a logical
 #'   matrix first (otherwise you will get the slower dense numerical version).
+#'   Numeric feature values must be finite: `NA`, `NaN`, `Inf` and `-Inf`
+#'   are not allowed.
 #' @param reference Matrix of `m` reference items, with observations in the rows
 #'   and features in the columns. The nearest neighbors to the queries are
 #'   calculated from this data. Optionally, the data may be passed with the
@@ -1504,6 +1526,8 @@ random_knn_query <-
 #'   orientation as `reference`. Possible formats are [base::data.frame()],
 #'   [base::matrix()] or [Matrix::sparseMatrix()]. Sparse matrices should be in
 #'   `dgCMatrix` format.
+#'   Numeric feature values must be finite: `NA`, `NaN`, `Inf` and `-Inf`
+#'   are not allowed.
 #' @param reference_graph Search graph of the `reference` data. A neighbor
 #'   graph, such as that output from [nnd_knn()] can be used, but
 #'   preferably a suitably prepared sparse search graph should be used, such as
@@ -1883,6 +1907,8 @@ graph_knn_query <- function(
 #'   your data columns are `logical` and intended to be used with the
 #'   specialized binary `metric`s, you should convert it to a logical matrix
 #'   first (otherwise you will get the slower dense numerical version).
+#'   Numeric feature values must be finite: `NA`, `NaN`, `Inf` and `-Inf`
+#'   are not allowed.
 #' @param graph neighbor graph for `data`, a list containing:
 #'   * `idx` an `n` by `k` matrix containing the nearest neighbor indices of
 #'   the data in `data`.

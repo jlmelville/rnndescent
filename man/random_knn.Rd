@@ -25,7 +25,9 @@ should be more efficient. Possible formats are \code{\link[base:data.frame]{base
 format internally, so if your data columns are \code{logical} and intended to be
 used with the specialized binary \code{metric}s, you should convert it to a
 logical matrix first (otherwise you will get the slower dense numerical
-version).}
+version).
+Numeric feature values must be finite: \code{NA}, \code{NaN}, \code{Inf} and \code{-Inf}
+are not allowed.}
 
 \item{k}{Number of nearest neighbors to return.}
 

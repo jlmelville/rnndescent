@@ -2,6 +2,8 @@
 
 ## Bug fixes and minor improvements
 
+* Reject numeric feature inputs containing `NA`, `NaN`, `Inf` or `-Inf`, including sparse
+  stored values. This prevents silent missing neighbors and inconsistent dense/sparse results.
 * Clarify missing, malformed and incompatible forests in RP-tree queries and filtering.
 * Defensively initialize the dimension field of default-constructed implicit RP trees.
 * Identify mismatched `dist` and `idx` dimensions when merging or filtering neighbor graphs.

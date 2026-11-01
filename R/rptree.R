@@ -13,6 +13,8 @@
 #'   internally, so if your data columns are `logical` and intended to be used
 #'   with the specialized binary `metric`s, you should convert it to a logical
 #'   matrix first (otherwise you will get the slower dense numerical version).
+#'   Numeric feature values must be finite: `NA`, `NaN`, `Inf` and `-Inf`
+#'   are not allowed.
 #' @param k Number of nearest neighbors to return. Optional if `init` is
 #'   specified.
 #' @template metric
@@ -172,6 +174,8 @@ rpf_knn <- function(
 #'   internally, so if your data columns are `logical` and intended to be used
 #'   with the specialized binary `metric`s, you should convert it to a logical
 #'   matrix first (otherwise you will get the slower dense numerical version).
+#'   Numeric feature values must be finite: `NA`, `NaN`, `Inf` and `-Inf`
+#'   are not allowed.
 #' @template metric
 #' @templateVar explicit_margin TRUE
 #' @param use_alt_metric If `TRUE`, use faster metrics that maintain the
@@ -385,6 +389,8 @@ rpf_build <- function(
 #'   internally, so if your data columns are `logical` and intended to be used
 #'   with the specialized binary `metric`s, you should convert it to a logical
 #'   matrix first (otherwise you will get the slower dense numerical version).
+#'   Numeric feature values must be finite: `NA`, `NaN`, `Inf` and `-Inf`
+#'   are not allowed.
 #' @param reference Matrix of `m` reference items, with observations in the rows
 #'   and features in the columns. The nearest neighbors to the queries are
 #'   calculated from this data and should be the same data used to build the
@@ -393,6 +399,8 @@ rpf_build <- function(
 #'   `query` data must be passed in the same format and orientation as
 #'   `reference`. Possible formats are [base::data.frame()], [base::matrix()] or
 #'   [Matrix::sparseMatrix()]. Sparse matrices should be in `dgCMatrix` format.
+#'   Numeric feature values must be finite: `NA`, `NaN`, `Inf` and `-Inf`
+#'   are not allowed.
 #' @param forest A random partition forest, created by [rpf_build()],
 #'   representing partitions of the data in `reference`.
 #' @param k Number of nearest neighbors to return. You are unlikely to get good

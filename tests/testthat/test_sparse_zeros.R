@@ -188,9 +188,9 @@ test_that("feature cleanup keeps sparse storage and caller values", {
   expect_equal(dim(empty_values), c(2L, 4L))
   expect_length(empty_values@x, 0L)
   undefined <- matrix(c(NA_real_, NaN, Inf, -Inf, 1, 0), 2)
-  expect_identical(
-    as.matrix(rnndescent:::x2m(sparse_zero_fixture(undefined))),
-    undefined
+  expect_error(
+    rnndescent:::x2m(sparse_zero_fixture(undefined)),
+    "^data must contain only finite numeric feature values$"
   )
 })
 

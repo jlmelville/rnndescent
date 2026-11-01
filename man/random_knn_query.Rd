@@ -26,7 +26,9 @@ or \code{\link[Matrix:sparseMatrix]{Matrix::sparseMatrix()}}. Sparse matrices sh
 format. Dataframes will be converted to \code{numerical} matrix format
 internally, so if your data columns are \code{logical} and intended to be used
 with the specialized binary \code{metric}s, you should convert it to a logical
-matrix first (otherwise you will get the slower dense numerical version).}
+matrix first (otherwise you will get the slower dense numerical version).
+Numeric feature values must be finite: \code{NA}, \code{NaN}, \code{Inf} and \code{-Inf}
+are not allowed.}
 
 \item{reference}{Matrix of \code{m} reference items, with observations in the rows
 and features in the columns. The nearest neighbors to the queries are
@@ -35,7 +37,9 @@ the observations in the columns, by setting \code{obs = "C"}, which should be
 more efficient. The \code{query} data must be passed in the same orientation
 and format as \code{reference}. Possible formats are \code{\link[base:data.frame]{base::data.frame()}},
 \code{\link[base:matrix]{base::matrix()}} or \code{\link[Matrix:sparseMatrix]{Matrix::sparseMatrix()}}. Sparse matrices should be in
-\code{dgCMatrix} format.}
+\code{dgCMatrix} format.
+Numeric feature values must be finite: \code{NA}, \code{NaN}, \code{Inf} and \code{-Inf}
+are not allowed.}
 
 \item{k}{Number of nearest neighbors to return.}
 

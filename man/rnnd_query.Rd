@@ -29,7 +29,9 @@ internally, so if your data columns are \code{logical} and intended to be used
 with the specialized binary \code{metric}s, you should convert it to a logical
 matrix first (otherwise you will get the slower dense numerical version).
 Sparse and non-sparse data cannot be mixed, so if the data used to build
-index was sparse, the \code{query} data must also be sparse. and vice versa.}
+index was sparse, the \code{query} data must also be sparse. and vice versa.
+Numeric feature values must be finite: \code{NA}, \code{NaN}, \code{Inf} and \code{-Inf}
+are not allowed.}
 
 \item{k}{Number of nearest neighbors to return.}
 
