@@ -2,6 +2,8 @@
 
 ## Bug fixes and minor improvements
 
+* Avoid losing near-identical neighbors with `metric = "hellinger"` and `use_alt_metric = FALSE`.
+  Clamp negative roundoff before square roots in both dense and sparse calculations.
 * Reject numeric feature inputs containing `NA`, `NaN`, `Inf` or `-Inf`, including sparse
   stored values. This prevents silent missing neighbors and inconsistent dense/sparse results.
 * Clarify missing, malformed and incompatible forests in RP-tree queries and filtering.

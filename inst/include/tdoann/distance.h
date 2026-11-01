@@ -264,7 +264,8 @@ Out hellinger(const It xbegin, const It xend, const It ybegin) {
   if (l1_norm_x == 0 || l1_norm_y == 0) {
     return 1;
   }
-  return std::sqrt(1 - result / std::sqrt(l1_norm_x * l1_norm_y));
+  return std::sqrt(
+      std::max(1 - result / std::sqrt(l1_norm_x * l1_norm_y), Out{0}));
 }
 
 template <typename Out, typename It>
