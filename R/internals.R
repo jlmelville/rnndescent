@@ -124,6 +124,7 @@ check_square_graph <- function(
       )
     }
 
+    check_graph_indices(graph$idx, graph_name)
     return(graph)
   }
 
@@ -188,6 +189,20 @@ check_graph <- function(idx, dist = NULL, k = NULL) {
   list(idx = idx, dist = dist, k = k)
 }
 
+# Existing callers check NA, missing entries and reference bounds first.
+check_graph_indices <- function(idx, graph_name) {
+  if (
+    !is.integer(idx) &&
+      !all(is.finite(idx) & idx == floor(idx) & idx <= .Machine$integer.max)
+  ) {
+    stop(
+      graph_name,
+      " indices must be finite whole numbers no greater than ",
+      .Machine$integer.max
+    )
+  }
+}
+
 check_init_graph <- function(nn, n_points, n_reference) {
   if (!is.list(nn)) {
     stop("initial neighbor graph must be a list")
@@ -234,6 +249,7 @@ check_init_graph <- function(nn, n_points, n_reference) {
     )
   }
 
+  check_graph_indices(nn$idx, "initial neighbor graph")
   nn
 }
 
@@ -485,6 +501,7 @@ validate_nn_graph <- function(nn_graph, is_query = FALSE) {
       )
     }
   }
+  check_graph_indices(nn_graph$idx, "NN graph")
 }
 
 validate_nn_graph_matrix <- function(nn, nr, nc, msg = "matrix") {

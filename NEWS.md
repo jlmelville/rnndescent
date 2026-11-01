@@ -2,6 +2,9 @@
 
 ## Bug fixes and minor improvements
 
+* Reject fractional and non-finite supplied neighbor IDs before native integer conversion, and
+  reject IDs beyond the native integer range. Whole-valued doubles and missing entries remain valid.
+
 * Handle empty zero-point native neighbor graphs without division by zero, and
   remove an unused sorting setting without changing effective batching.
 * Use an equivalent one-log symmetric KL sum to reduce logarithm evaluations.
