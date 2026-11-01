@@ -48,7 +48,8 @@
 <h2 class="pkg-version" data-toc-text="development version" id="rnndescent-development-version">rnndescent (development version)<a class="anchor" aria-label="anchor" href="#rnndescent-development-version"></a></h2>
 <div class="section level3">
 <h3 id="bug-fixes-and-minor-improvements-development-version">Bug fixes and minor improvements<a class="anchor" aria-label="anchor" href="#bug-fixes-and-minor-improvements-development-version"></a></h3>
-<ul><li>Use an equivalent one-log symmetric KL sum to reduce logarithm evaluations. Floating-point rounding and tied neighbor ordering may change.</li>
+<ul><li>Handle empty zero-point native neighbor graphs without division by zero, and remove an unused sorting setting without changing effective batching.</li>
+<li>Use an equivalent one-log symmetric KL sum to reduce logarithm evaluations. Floating-point rounding and tied neighbor ordering may change.</li>
 <li>Include all smoothed Jensen-Shannon and symmetric KL terms. This fixes negative Jensen-Shannon distances and symmetric KL distances that collapsed distinct distributions to zero, and may change affected nearest neighbors.</li>
 <li>Align sparse Jensen-Shannon and symmetric KL distances with dense input when features are zero in both vectors, including their smoothing and applicable zero-term contributions.</li>
 <li>Avoid losing near-identical neighbors with <code>metric = "hellinger"</code> and <code>use_alt_metric = FALSE</code>. Clamp negative roundoff before square roots in both dense and sparse calculations.</li>
