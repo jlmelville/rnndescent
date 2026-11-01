@@ -48,46 +48,46 @@
 <h2 class="pkg-version" data-toc-text="development version" id="rnndescent-development-version">rnndescent (development version)<a class="anchor" aria-label="anchor" href="#rnndescent-development-version"></a></h2>
 <div class="section level3">
 <h3 id="bug-fixes-and-minor-improvements-development-version">Bug fixes and minor improvements<a class="anchor" aria-label="anchor" href="#bug-fixes-and-minor-improvements-development-version"></a></h3>
-<ul><li>Handle empty zero-point native neighbor graphs without division by zero, and remove an unused sorting setting without changing effective batching.</li>
-<li>Use an equivalent one-log symmetric KL sum to reduce logarithm evaluations. Floating-point rounding and tied neighbor ordering may change.</li>
-<li>Include all smoothed Jensen-Shannon and symmetric KL terms. This fixes negative Jensen-Shannon distances and symmetric KL distances that collapsed distinct distributions to zero, and may change affected nearest neighbors.</li>
-<li>Align sparse Jensen-Shannon and symmetric KL distances with dense input when features are zero in both vectors, including their smoothing and applicable zero-term contributions.</li>
-<li>Avoid losing near-identical neighbors with <code>metric = "hellinger"</code> and <code>use_alt_metric = FALSE</code>. Clamp negative roundoff before square roots in both dense and sparse calculations.</li>
-<li>Reject numeric feature inputs containing <code>NA</code>, <code>NaN</code>, <code>Inf</code> or <code>-Inf</code>, including sparse stored values. This prevents silent missing neighbors and inconsistent dense/sparse results.</li>
-<li>Clarify missing, malformed and incompatible forests in RP-tree queries and filtering.</li>
-<li>Defensively initialize the dimension field of default-constructed implicit RP trees.</li>
-<li>Identify mismatched <code>dist</code> and <code>idx</code> dimensions when merging or filtering neighbor graphs.</li>
-<li>Clarify when query and reference inputs must agree on sparse or logical representation.</li>
-<li>Explain when graph queries require <code>k</code> and which initializer forms they accept.</li>
-<li>Explain column shortages and unequal row counts using public names in <code><a href="../reference/neighbor_overlap.html">neighbor_overlap()</a></code>.</li>
-<li>Explain invalid search-graph pruning controls in <code><a href="../reference/prepare_search_graph.html">prepare_search_graph()</a></code>.</li>
-<li>Explain malformed supplied neighbor graphs with clearer component, dimension and count errors.</li>
-<li>Explain invalid neighbor-index input and out-of-range <code>k</code> values in <code><a href="../reference/k_occur.html">k_occur()</a></code>.</li>
-<li>Identify unsupported distance metrics by name and dense or sparse data context.</li>
-<li>Keep progress increments finite when nearest neighbor descent runs for zero iterations.</li>
-<li>Identify empty data or reference inputs when they cannot provide neighbors.</li>
-<li>Explain malformed initial neighbor graphs with clearer component and dimension errors.</li>
-<li>Reduce repeated integer-matrix conversion during forest-initialized graph queries.</li>
-<li>Reduce sparse cosine distance overhead when matching feature indices.</li>
-<li>Reduce sparse correlation distance overhead by reusing sorted product indices for membership checks.</li>
-<li>Reduce R overhead when converting alternative dot, Hellinger and Jaccard distances.</li>
-<li>Fix missing TS-SS neighbors for zero vectors by returning distance 0. Rebuild affected TS-SS indices.</li>
-<li>Avoid intermediate overflow and underflow in dense <code>"cosine"</code> and <code>"correlation"</code> distances. Rebuild affected cosine/correlation indices.</li>
-<li>Fix <code>metric = "trueangular"</code> distances and neighbor ordering. Rebuild existing trueangular indices.</li>
-<li>Sparse <code>metric = "correlation"</code> now returns 0 instead of 1 between two all-zero vectors, matching the dense convention. Recompute affected sparse correlation graphs or indexes.</li>
-<li>Logical feature inputs containing <code>NA</code> now raise an error instead of silently treating missing values as <code>FALSE</code>. Replace missing values explicitly before calling if that imputation is intended.</li>
-<li>Correct sparsity percentages in verbose search graph preparation messages.</li>
-<li>Queries with no observations now return zero-row neighbor matrices instead of terminating R.</li>
-<li>Fix default cosine distances and neighbor ordering for negative similarities. Recompute affected cosine graphs or indexes.</li>
-<li>Fix distances affected by stored zeros in sparse feature input. Recompute affected graphs or indexes.</li>
-<li>Enforce search graph degree limits when distances tie, preferring lower neighbor indices.</li>
-<li>Preserve sampled neighbors when sorting <code><a href="../reference/random_knn.html">random_knn()</a></code> results by distance.</li>
-<li>Give a clear error for input with no features after conversion.</li>
-<li>Fix incorrect Canberra distances for sparse input with negative values.</li>
-<li>Number of striped locks in the parallel nearest neighbor descent has been increased. Provides a modest (typically single digit percent) performance improvement with 4-8 threads.</li>
-<li>
-<code><a href="../reference/neighbor_overlap.html">neighbor_overlap()</a></code> no longer counts the missing-neighbor sentinel <code>0</code> as a shared neighbor.</li>
-<li>The supported installed C++ headers and their compilation requirements are now documented and checked with GCC and Clang.</li>
+<ul><li><p>Reject fractional and non-finite supplied neighbor IDs before native integer conversion, and reject IDs beyond the native integer range. Whole-valued doubles and missing entries remain valid.</p></li>
+<li><p>Handle empty zero-point native neighbor graphs without division by zero, and remove an unused sorting setting without changing effective batching.</p></li>
+<li><p>Use an equivalent one-log symmetric KL sum to reduce logarithm evaluations. Floating-point rounding and tied neighbor ordering may change.</p></li>
+<li><p>Include all smoothed Jensen-Shannon and symmetric KL terms. This fixes negative Jensen-Shannon distances and symmetric KL distances that collapsed distinct distributions to zero, and may change affected nearest neighbors.</p></li>
+<li><p>Align sparse Jensen-Shannon and symmetric KL distances with dense input when features are zero in both vectors, including their smoothing and applicable zero-term contributions.</p></li>
+<li><p>Avoid losing near-identical neighbors with <code>metric = "hellinger"</code> and <code>use_alt_metric = FALSE</code>. Clamp negative roundoff before square roots in both dense and sparse calculations.</p></li>
+<li><p>Reject numeric feature inputs containing <code>NA</code>, <code>NaN</code>, <code>Inf</code> or <code>-Inf</code>, including sparse stored values. This prevents silent missing neighbors and inconsistent dense/sparse results.</p></li>
+<li><p>Clarify missing, malformed and incompatible forests in RP-tree queries and filtering.</p></li>
+<li><p>Defensively initialize the dimension field of default-constructed implicit RP trees.</p></li>
+<li><p>Identify mismatched <code>dist</code> and <code>idx</code> dimensions when merging or filtering neighbor graphs.</p></li>
+<li><p>Clarify when query and reference inputs must agree on sparse or logical representation.</p></li>
+<li><p>Explain when graph queries require <code>k</code> and which initializer forms they accept.</p></li>
+<li><p>Explain column shortages and unequal row counts using public names in <code><a href="../reference/neighbor_overlap.html">neighbor_overlap()</a></code>.</p></li>
+<li><p>Explain invalid search-graph pruning controls in <code><a href="../reference/prepare_search_graph.html">prepare_search_graph()</a></code>.</p></li>
+<li><p>Explain malformed supplied neighbor graphs with clearer component, dimension and count errors.</p></li>
+<li><p>Explain invalid neighbor-index input and out-of-range <code>k</code> values in <code><a href="../reference/k_occur.html">k_occur()</a></code>.</p></li>
+<li><p>Identify unsupported distance metrics by name and dense or sparse data context.</p></li>
+<li><p>Keep progress increments finite when nearest neighbor descent runs for zero iterations.</p></li>
+<li><p>Identify empty data or reference inputs when they cannot provide neighbors.</p></li>
+<li><p>Explain malformed initial neighbor graphs with clearer component and dimension errors.</p></li>
+<li><p>Reduce repeated integer-matrix conversion during forest-initialized graph queries.</p></li>
+<li><p>Reduce sparse cosine distance overhead when matching feature indices.</p></li>
+<li><p>Reduce sparse correlation distance overhead by reusing sorted product indices for membership checks.</p></li>
+<li><p>Reduce R overhead when converting alternative dot, Hellinger and Jaccard distances.</p></li>
+<li><p>Fix missing TS-SS neighbors for zero vectors by returning distance 0. Rebuild affected TS-SS indices.</p></li>
+<li><p>Avoid intermediate overflow and underflow in dense <code>"cosine"</code> and <code>"correlation"</code> distances. Rebuild affected cosine/correlation indices.</p></li>
+<li><p>Fix <code>metric = "trueangular"</code> distances and neighbor ordering. Rebuild existing trueangular indices.</p></li>
+<li><p>Sparse <code>metric = "correlation"</code> now returns 0 instead of 1 between two all-zero vectors, matching the dense convention. Recompute affected sparse correlation graphs or indexes.</p></li>
+<li><p>Logical feature inputs containing <code>NA</code> now raise an error instead of silently treating missing values as <code>FALSE</code>. Replace missing values explicitly before calling if that imputation is intended.</p></li>
+<li><p>Correct sparsity percentages in verbose search graph preparation messages.</p></li>
+<li><p>Queries with no observations now return zero-row neighbor matrices instead of terminating R.</p></li>
+<li><p>Fix default cosine distances and neighbor ordering for negative similarities. Recompute affected cosine graphs or indexes.</p></li>
+<li><p>Fix distances affected by stored zeros in sparse feature input. Recompute affected graphs or indexes.</p></li>
+<li><p>Enforce search graph degree limits when distances tie, preferring lower neighbor indices.</p></li>
+<li><p>Preserve sampled neighbors when sorting <code><a href="../reference/random_knn.html">random_knn()</a></code> results by distance.</p></li>
+<li><p>Give a clear error for input with no features after conversion.</p></li>
+<li><p>Fix incorrect Canberra distances for sparse input with negative values.</p></li>
+<li><p>Number of striped locks in the parallel nearest neighbor descent has been increased. Provides a modest (typically single digit percent) performance improvement with 4-8 threads.</p></li>
+<li><p><code><a href="../reference/neighbor_overlap.html">neighbor_overlap()</a></code> no longer counts the missing-neighbor sentinel <code>0</code> as a shared neighbor.</p></li>
+<li><p>The supported installed C++ headers and their compilation requirements are now documented and checked with GCC and Clang.</p></li>
 </ul></div>
 </div>
     <div class="section level2">
