@@ -548,17 +548,15 @@ Out symmetric_kl_divergence_impl(It xbegin, It xend, It ybegin,
     const auto pdf_xi = xi / l1_norm_x;
     const auto pdf_yi = yi / l1_norm_y;
 
-    result += pdf_xi * std::log(pdf_xi / pdf_yi);
-    result += pdf_yi * std::log(pdf_yi / pdf_xi);
+    result += (pdf_xi - pdf_yi) * std::log(pdf_xi / pdf_yi);
   }
 
   // Count common zeros in both representations to keep their rounding aligned.
   if (common_zeros > 0) {
     const auto pdf_x0 = EPS / l1_norm_x;
     const auto pdf_y0 = EPS / l1_norm_y;
-    Out zero_contribution = 0;
-    zero_contribution += pdf_x0 * std::log(pdf_x0 / pdf_y0);
-    zero_contribution += pdf_y0 * std::log(pdf_y0 / pdf_x0);
+    const auto zero_contribution =
+        (pdf_x0 - pdf_y0) * std::log(pdf_x0 / pdf_y0);
     result += common_zeros * zero_contribution;
   }
 

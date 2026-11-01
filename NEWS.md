@@ -2,6 +2,8 @@
 
 ## Bug fixes and minor improvements
 
+* Use an equivalent one-log symmetric KL sum to reduce logarithm evaluations.
+  Floating-point rounding and tied neighbor ordering may change.
 * Include all smoothed Jensen-Shannon and symmetric KL terms. This fixes negative
   Jensen-Shannon distances and symmetric KL distances that collapsed distinct
   distributions to zero, and may change affected nearest neighbors.
