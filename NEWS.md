@@ -2,6 +2,9 @@
 
 ## Bug fixes and minor improvements
 
+* Include all smoothed Jensen-Shannon and symmetric KL terms. This fixes negative
+  Jensen-Shannon distances and symmetric KL distances that collapsed distinct
+  distributions to zero, and may change affected nearest neighbors.
 * Align sparse Jensen-Shannon and symmetric KL distances with dense input when features are zero
   in both vectors, including their smoothing and applicable zero-term contributions.
 * Avoid losing near-identical neighbors with `metric = "hellinger"` and `use_alt_metric = FALSE`.

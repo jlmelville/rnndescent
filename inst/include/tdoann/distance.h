@@ -355,7 +355,12 @@ Out jensen_shannon_divergence_impl(It xbegin, It xend, It ybegin,
   l1_norm_y += EPS * ndim;
 
   Out result = 0.0;
+  std::size_t common_zeros = ndim - support_size;
   for (std::size_t i = 0; i < support_size; ++i) {
+    if (*(xbegin + i) == 0 && *(ybegin + i) == 0) {
+      ++common_zeros;
+      continue;
+    }
     const Out xi = *(xbegin + i) + EPS;
     const Out yi = *(ybegin + i) + EPS;
     const Out xil1 = xi / l1_norm_x;
@@ -363,12 +368,19 @@ Out jensen_shannon_divergence_impl(It xbegin, It xend, It ybegin,
 
     const Out m = 0.5 * (xil1 + yil1);
 
-    if (xi > EPS) {
-      result += 0.5 * xil1 * std::log(xil1 / m);
-    }
-    if (yi > EPS) {
-      result += 0.5 * yil1 * std::log(yil1 / m);
-    }
+    result += 0.5 * xil1 * std::log(xil1 / m);
+    result += 0.5 * yil1 * std::log(yil1 / m);
+  }
+
+  // Count common zeros in both representations to keep their rounding aligned.
+  if (common_zeros > 0) {
+    const Out pdf_x0 = EPS / l1_norm_x;
+    const Out pdf_y0 = EPS / l1_norm_y;
+    const Out m0 = 0.5 * (pdf_x0 + pdf_y0);
+    Out zero_contribution = 0;
+    zero_contribution += 0.5 * pdf_x0 * std::log(pdf_x0 / m0);
+    zero_contribution += 0.5 * pdf_y0 * std::log(pdf_y0 / m0);
+    result += common_zeros * zero_contribution;
   }
 
   return result;
@@ -525,32 +537,29 @@ Out symmetric_kl_divergence_impl(It xbegin, It xend, It ybegin,
   l1_norm_y += EPS * ndim;
 
   Out result = 0;
+  std::size_t common_zeros = ndim - support_size;
   for (std::size_t i = 0; i < support_size; ++i) {
+    if (*(xbegin + i) == 0 && *(ybegin + i) == 0) {
+      ++common_zeros;
+      continue;
+    }
     const auto xi = *(xbegin + i) + EPS;
     const auto yi = *(ybegin + i) + EPS;
     const auto pdf_xi = xi / l1_norm_x;
     const auto pdf_yi = yi / l1_norm_y;
 
-    if (pdf_xi > EPS) {
-      result += pdf_xi * std::log(pdf_xi / pdf_yi);
-    }
-    if (pdf_yi > EPS) {
-      result += pdf_yi * std::log(pdf_yi / pdf_xi);
-    }
+    result += pdf_xi * std::log(pdf_xi / pdf_yi);
+    result += pdf_yi * std::log(pdf_yi / pdf_xi);
   }
 
-  // Sparse union data omits coordinates where both inputs are zero.
-  if (ndim > support_size) {
+  // Count common zeros in both representations to keep their rounding aligned.
+  if (common_zeros > 0) {
     const auto pdf_x0 = EPS / l1_norm_x;
     const auto pdf_y0 = EPS / l1_norm_y;
     Out zero_contribution = 0;
-    if (pdf_x0 > EPS) {
-      zero_contribution += pdf_x0 * std::log(pdf_x0 / pdf_y0);
-    }
-    if (pdf_y0 > EPS) {
-      zero_contribution += pdf_y0 * std::log(pdf_y0 / pdf_x0);
-    }
-    result += (ndim - support_size) * zero_contribution;
+    zero_contribution += pdf_x0 * std::log(pdf_x0 / pdf_y0);
+    zero_contribution += pdf_y0 * std::log(pdf_y0 / pdf_x0);
+    result += common_zeros * zero_contribution;
   }
 
   return result;
