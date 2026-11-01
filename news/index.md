@@ -4,6 +4,9 @@
 
 ### Bug fixes and minor improvements
 
+- Align sparse Jensen-Shannon and symmetric KL distances with dense
+  input when features are zero in both vectors, including their
+  smoothing and applicable zero-term contributions.
 - Avoid losing near-identical neighbors with `metric = "hellinger"` and
   `use_alt_metric = FALSE`. Clamp negative roundoff before square roots
   in both dense and sparse calculations.
