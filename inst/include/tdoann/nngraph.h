@@ -95,11 +95,11 @@ template <typename Out = float, typename Idx = uint32_t> struct NNGraph {
   NNGraph(const std::vector<Idx> &idx, const std::vector<Out> &dist,
           std::size_t n_points)
       : idx(idx), dist(dist), n_points(n_points),
-        n_nbrs(idx.size() / n_points) {}
+        n_nbrs(n_points == 0 ? 0 : idx.size() / n_points) {}
 
   NNGraph(std::vector<Idx> &&idx, std::vector<Out> &&dist, std::size_t n_points)
       : idx(std::move(idx)), dist(std::move(dist)), n_points(n_points),
-        n_nbrs(this->idx.size() / n_points) {}
+        n_nbrs(n_points == 0 ? 0 : this->idx.size() / n_points) {}
 
   NNGraph(std::size_t n_points, std::size_t n_nbrs)
       : idx(std::vector<Idx>(n_points * n_nbrs, npos())),

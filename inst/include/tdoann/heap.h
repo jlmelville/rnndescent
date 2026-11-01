@@ -139,7 +139,6 @@ void sort_heap(NbrHeap &heap, std::size_t n_threads, ProgressBase &progress,
       heap.deheap_sort(i);
     }
   };
-  ExecutionParams exec_params{64};
   dispatch_work(worker, heap.n_points, n_threads, progress, executor);
 }
 

@@ -2,6 +2,8 @@
 
 ## Bug fixes and minor improvements
 
+* Handle empty zero-point native neighbor graphs without division by zero, and
+  remove an unused sorting setting without changing effective batching.
 * Use an equivalent one-log symmetric KL sum to reduce logarithm evaluations.
   Floating-point rounding and tied neighbor ordering may change.
 * Include all smoothed Jensen-Shannon and symmetric KL terms. This fixes negative

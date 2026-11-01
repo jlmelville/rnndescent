@@ -179,6 +179,17 @@ done < <(
 )
 clang-format --dry-run --Werror "${format_sources[@]}"
 
+graph_flags=(-std=gnu++17 -pthread -Iinst/include -Wall -Wextra -Wpedantic -Werror)
+for compiler in "${compilers[@]}"; do
+  graph_compiler_flags=("${graph_flags[@]}")
+  if [[ $compiler == clang++ ]]; then
+    graph_compiler_flags+=(-stdlib=libc++)
+  fi
+  graph_executable="$scratch_dir/test-nngraph-$compiler"
+  "$compiler" "${graph_compiler_flags[@]}" tools/test-nngraph.cpp -o "$graph_executable"
+  "$graph_executable"
+done
+
 tools/test-pforr-exception-transport.sh
 Rscript --vanilla tools/test-rnn-progress.R
 
