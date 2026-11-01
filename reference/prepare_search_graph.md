@@ -38,7 +38,9 @@ prepare_search_graph(
   converted to `numerical` matrix format internally, so if your data
   columns are `logical` and intended to be used with the specialized
   binary `metric`s, you should convert it to a logical matrix first
-  (otherwise you will get the slower dense numerical version).
+  (otherwise you will get the slower dense numerical version). Numeric
+  feature values must be finite: `NA`, `NaN`, `Inf` and `-Inf` are not
+  allowed.
 
 - graph:
 
@@ -301,9 +303,9 @@ iris_query_nn <- graph_knn_query(
   reference_graph = ref_search_graph, k = 4, metric = "euclidean",
   verbose = TRUE
 )
-#> 22:44:54 Using alt metric 'sqeuclidean' for 'euclidean'
-#> 22:44:54 Initializing from random neighbors
-#> 22:44:54 Generating random k-nearest neighbor graph from reference with k = 4
-#> 22:44:54 Searching nearest neighbor graph with epsilon = 0.1 and max_search_fraction = 1
-#> 22:44:54 Finished
+#> 01:55:16 Using alt metric 'sqeuclidean' for 'euclidean'
+#> 01:55:16 Initializing from random neighbors
+#> 01:55:16 Generating random k-nearest neighbor graph from reference with k = 4
+#> 01:55:16 Searching nearest neighbor graph with epsilon = 0.1 and max_search_fraction = 1
+#> 01:55:16 Finished
 ```

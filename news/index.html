@@ -48,7 +48,8 @@
 <h2 class="pkg-version" data-toc-text="development version" id="rnndescent-development-version">rnndescent (development version)<a class="anchor" aria-label="anchor" href="#rnndescent-development-version"></a></h2>
 <div class="section level3">
 <h3 id="bug-fixes-and-minor-improvements-development-version">Bug fixes and minor improvements<a class="anchor" aria-label="anchor" href="#bug-fixes-and-minor-improvements-development-version"></a></h3>
-<ul><li>Clarify missing, malformed and incompatible forests in RP-tree queries and filtering.</li>
+<ul><li>Reject numeric feature inputs containing <code>NA</code>, <code>NaN</code>, <code>Inf</code> or <code>-Inf</code>, including sparse stored values. This prevents silent missing neighbors and inconsistent dense/sparse results.</li>
+<li>Clarify missing, malformed and incompatible forests in RP-tree queries and filtering.</li>
 <li>Defensively initialize the dimension field of default-constructed implicit RP trees.</li>
 <li>Identify mismatched <code>dist</code> and <code>idx</code> dimensions when merging or filtering neighbor graphs.</li>
 <li>Clarify when query and reference inputs must agree on sparse or logical representation.</li>

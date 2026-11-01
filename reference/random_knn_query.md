@@ -36,7 +36,9 @@ random_knn_query(
   converted to `numerical` matrix format internally, so if your data
   columns are `logical` and intended to be used with the specialized
   binary `metric`s, you should convert it to a logical matrix first
-  (otherwise you will get the slower dense numerical version).
+  (otherwise you will get the slower dense numerical version). Numeric
+  feature values must be finite: `NA`, `NaN`, `Inf` and `-Inf` are not
+  allowed.
 
 - reference:
 
@@ -49,7 +51,8 @@ random_knn_query(
   [`base::data.frame()`](https://rdrr.io/r/base/data.frame.html),
   [`base::matrix()`](https://rdrr.io/r/base/matrix.html) or
   [`Matrix::sparseMatrix()`](https://rdrr.io/pkg/Matrix/man/sparseMatrix.html).
-  Sparse matrices should be in `dgCMatrix` format.
+  Sparse matrices should be in `dgCMatrix` format. Numeric feature
+  values must be finite: `NA`, `NaN`, `Inf` and `-Inf` are not allowed.
 
 - k:
 
@@ -211,9 +214,9 @@ iris_query_random_nbrs <- random_knn_query(iris_query,
   reference = iris_ref,
   k = 4, metric = "euclidean", verbose = TRUE
 )
-#> 22:44:55 Using alt metric 'sqeuclidean' for 'euclidean'
-#> 22:44:55 Generating random k-nearest neighbor graph from reference with k = 4
-#> 22:44:55 Finished
+#> 01:55:16 Using alt metric 'sqeuclidean' for 'euclidean'
+#> 01:55:16 Generating random k-nearest neighbor graph from reference with k = 4
+#> 01:55:16 Finished
 
 # Manhattan (l1) distance
 iris_query_random_nbrs <- random_knn_query(iris_query,

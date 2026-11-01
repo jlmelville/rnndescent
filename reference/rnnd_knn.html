@@ -95,7 +95,9 @@ or <code><a href="https://rdrr.io/pkg/Matrix/man/sparseMatrix.html" class="exter
 format. Dataframes will be converted to <code>numerical</code> matrix format
 internally, so if your data columns are <code>logical</code> and intended to be used
 with the specialized binary <code>metric</code>s, you should convert it to a logical
-matrix first (otherwise you will get the slower dense numerical version).</p></dd>
+matrix first (otherwise you will get the slower dense numerical version).
+Numeric feature values must be finite: <code>NA</code>, <code>NaN</code>, <code>Inf</code> and <code>-Inf</code>
+are not allowed.</p></dd>
 
 
 <dt id="arg-k">k<a class="anchor" aria-label="anchor" href="#arg-k"></a></dt>

@@ -98,7 +98,9 @@ internally, so if your data columns are <code>logical</code> and intended to be 
 with the specialized binary <code>metric</code>s, you should convert it to a logical
 matrix first (otherwise you will get the slower dense numerical version).
 Sparse and non-sparse data cannot be mixed, so if the data used to build
-index was sparse, the <code>query</code> data must also be sparse. and vice versa.</p></dd>
+index was sparse, the <code>query</code> data must also be sparse. and vice versa.
+Numeric feature values must be finite: <code>NA</code>, <code>NaN</code>, <code>Inf</code> and <code>-Inf</code>
+are not allowed.</p></dd>
 
 
 <dt id="arg-k">k<a class="anchor" aria-label="anchor" href="#arg-k"></a></dt>

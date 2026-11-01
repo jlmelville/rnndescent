@@ -33,7 +33,9 @@ brute_force_knn(
   converted to `numerical` matrix format internally, so if your data
   columns are `logical` and intended to be used with the specialized
   binary `metric`s, you should convert it to a logical matrix first
-  (otherwise you will get the slower dense numerical version).
+  (otherwise you will get the slower dense numerical version). Numeric
+  feature values must be finite: `NA`, `NaN`, `Inf` and `-Inf` are not
+  allowed.
 
 - k:
 
@@ -192,7 +194,7 @@ iris_nn <- brute_force_knn(iris, k = 4, metric = "manhattan", n_threads = 1)
 
 # Use verbose flag to see information about progress
 iris_nn <- brute_force_knn(iris, k = 4, metric = "euclidean", verbose = TRUE)
-#> 22:44:52 Using alt metric 'sqeuclidean' for 'euclidean'
-#> 22:44:52 Calculating brute force k-nearest neighbors with k = 4
-#> 22:44:52 Finished
+#> 01:55:14 Using alt metric 'sqeuclidean' for 'euclidean'
+#> 01:55:14 Calculating brute force k-nearest neighbors with k = 4
+#> 01:55:14 Finished
 ```

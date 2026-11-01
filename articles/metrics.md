@@ -156,6 +156,10 @@ common translation preserves Euclidean distances but generally changes
 cosine and probability distances, so the choice of preprocessing depends
 on the metric.
 
+Numeric feature inputs must contain only finite values. `NA`, `NaN`,
+`Inf` and `-Inf` raise an error for both dense and sparse data,
+including query and reference inputs.
+
 Very large finite inputs can also overflow intermediate calculations and
 leave missing neighbors (`idx = 0`, `dist = NA`), including with brute
 force. This remains an unresolved numerical limitation.

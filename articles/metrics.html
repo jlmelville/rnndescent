@@ -249,6 +249,10 @@ offset from both query and reference in R can help retain small
 differences. A common translation preserves Euclidean distances but
 generally changes cosine and probability distances, so the choice of
 preprocessing depends on the metric.</p>
+<p>Numeric feature inputs must contain only finite values.
+<code>NA</code>, <code>NaN</code>, <code>Inf</code> and
+<code>-Inf</code> raise an error for both dense and sparse data,
+including query and reference inputs.</p>
 <p>Very large finite inputs can also overflow intermediate calculations
 and leave missing neighbors (<code>idx = 0</code>,
 <code>dist = NA</code>), including with brute force. This remains an

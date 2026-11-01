@@ -41,7 +41,9 @@ nnd_knn(
   converted to `numerical` matrix format internally, so if your data
   columns are `logical` and intended to be used with the specialized
   binary `metric`s, you should convert it to a logical matrix first
-  (otherwise you will get the slower dense numerical version).
+  (otherwise you will get the slower dense numerical version). Numeric
+  feature values must be finite: `NA`, `NaN`, `Inf` and `-Inf` are not
+  allowed.
 
 - k:
 
@@ -317,11 +319,11 @@ iris_nn <- nnd_knn(iris, k = 4, metric = "manhattan", n_threads = 1)
 
 # Use verbose flag to see information about progress
 iris_nn <- nnd_knn(iris, k = 4, metric = "euclidean", verbose = TRUE)
-#> 22:44:54 Using alt metric 'sqeuclidean' for 'euclidean'
-#> 22:44:54 Initializing neighbors using 'rand' method
-#> 22:44:54 Generating random k-nearest neighbor graph with k = 4
-#> 22:44:54 Running nearest neighbor descent for 7 iterations
-#> 22:44:54 Finished
+#> 01:55:16 Using alt metric 'sqeuclidean' for 'euclidean'
+#> 01:55:16 Initializing neighbors using 'rand' method
+#> 01:55:16 Generating random k-nearest neighbor graph with k = 4
+#> 01:55:16 Running nearest neighbor descent for 7 iterations
+#> 01:55:16 Finished
 
 # Nearest neighbor descent uses random initialization, but you can pass any
 # approximation using the init argument (as long as the metrics used to
@@ -329,11 +331,11 @@ iris_nn <- nnd_knn(iris, k = 4, metric = "euclidean", verbose = TRUE)
 # by nnd_knn).
 iris_nn <- random_knn(iris, k = 4, metric = "euclidean")
 iris_nn <- nnd_knn(iris, init = iris_nn, metric = "euclidean", verbose = TRUE)
-#> 22:44:54 Using alt metric 'sqeuclidean' for 'euclidean'
-#> 22:44:54 Initializing from user-supplied graph
-#> 22:44:54 Applying metric correction to initial distances from 'euclidean' to 'sqeuclidean'
-#> 22:44:54 Running nearest neighbor descent for 7 iterations
-#> 22:44:54 Finished
+#> 01:55:16 Using alt metric 'sqeuclidean' for 'euclidean'
+#> 01:55:16 Initializing from user-supplied graph
+#> 01:55:16 Applying metric correction to initial distances from 'euclidean' to 'sqeuclidean'
+#> 01:55:16 Running nearest neighbor descent for 7 iterations
+#> 01:55:16 Finished
 
 # Number of iterations controls how much optimization is attempted. A smaller
 # value will run faster but give poorer results
