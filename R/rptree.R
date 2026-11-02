@@ -472,26 +472,39 @@ rpf_knn_query <- function(
     stop("Unknown obs type")
   )
 
-  if (!is.list(forest)) {
-    stop("'forest' must be a list")
-  }
-  if (is.null(forest$margin)) {
-    stop("'forest' must contain a 'margin' component")
-  }
-  reference_is_sparse <- is_sparse(reference)
-  if (reference_is_sparse && !isTRUE(forest$sparse)) {
-    stop("A dense forest cannot be used with a sparse 'reference'")
-  }
-  if (!reference_is_sparse && isTRUE(forest$sparse)) {
-    stop("A sparse forest cannot be used with a dense 'reference'")
-  }
-  check_rpforest_matches_reference(forest, n_obs(reference), n_features)
+  check_rpforest_matches_reference(
+    forest,
+    n_obs(reference),
+    n_features,
+    is_sparse(reference)
+  )
 
   if (obs == "R") {
     reference <- Matrix::t(reference)
     query <- Matrix::t(query)
   }
 
+  rpf_knn_query_impl(
+    query = query,
+    reference = reference,
+    forest = forest,
+    k = k,
+    cache = cache,
+    n_threads = n_threads,
+    verbose = verbose
+  )
+}
+
+# Inputs are prepared column-oriented matrices; k and forest are compatible.
+rpf_knn_query_impl <- function(
+  query,
+  reference,
+  forest,
+  k,
+  cache,
+  n_threads,
+  verbose
+) {
   tsmessage(thread_msg(
     "Querying rp forest for k = ",
     k,

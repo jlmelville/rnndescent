@@ -226,7 +226,7 @@ rnnd_build <- function(
     data <- Matrix::t(data)
   }
 
-  index <- nnd_knn(
+  index <- nnd_knn_prepared(
     data,
     k = k,
     metric = metric,
@@ -246,8 +246,7 @@ rnnd_build <- function(
     weight_by_degree = weight_by_degree,
     n_threads = n_threads,
     verbose = verbose,
-    progress = progress,
-    obs = "C"
+    progress = progress
   )
 
   index <- list(
@@ -278,7 +277,11 @@ rnnd_build <- function(
       )
   }
 
-  search_graph <- prepare_search_graph(
+  check_search_graph_controls(
+    index$prep$diversify_prob,
+    index$prep$pruning_degree_multiplier
+  )
+  search_graph <- prepare_search_graph_impl(
     data = index$data,
     graph = index$graph,
     metric = index$original_metric,
@@ -287,8 +290,7 @@ rnnd_build <- function(
     pruning_degree_multiplier = index$prep$pruning_degree_multiplier,
     prune_reverse = index$prep$prune_reverse,
     n_threads = n_threads,
-    verbose = verbose,
-    obs = "C"
+    verbose = verbose
   )
   index$prep$is_prepared <- TRUE
   index$search_graph <- search_graph
@@ -395,9 +397,13 @@ rnnd_query <-
     if (obs == "R") {
       query <- Matrix::t(query)
     }
-    res <- graph_knn_query(
+    check_query_search_controls(epsilon, max_search_fraction)
+    check_sparse(index$data, query)
+    reference <- x2m(index$data, "C", "reference")
+    check_matching_features(reference, query, "C")
+    res <- graph_knn_query_impl(
       query = query,
-      reference = index$data,
+      reference = reference,
       reference_graph = index$search_graph,
       k = k,
       metric = index$original_metric,
@@ -406,8 +412,7 @@ rnnd_query <-
       max_search_fraction = max_search_fraction,
       use_alt_metric = index$use_alt_metric,
       n_threads = n_threads,
-      verbose = verbose,
-      obs = "C"
+      verbose = verbose
     )
     res
   }
@@ -591,7 +596,7 @@ rnnd_knn <- function(
     data <- Matrix::t(data)
   }
 
-  nnd_knn(
+  nnd_knn_prepared(
     data,
     k = k,
     metric = metric,
@@ -611,8 +616,7 @@ rnnd_knn <- function(
     weight_by_degree = weight_by_degree,
     n_threads = n_threads,
     verbose = verbose,
-    progress = progress,
-    obs = "C"
+    progress = progress
   )
 }
 
@@ -1047,6 +1051,90 @@ nnd_knn <- function(
     data <- Matrix::t(data)
   }
 
+  nnd_knn_impl(
+    data = data,
+    k = k,
+    metric = metric,
+    actual_metric = actual_metric,
+    init = init,
+    init_args = init_args,
+    n_iters = n_iters,
+    max_candidates = max_candidates,
+    delta = delta,
+    low_memory = low_memory,
+    weight_by_degree = weight_by_degree,
+    use_alt_metric = use_alt_metric,
+    n_threads = n_threads,
+    verbose = verbose,
+    progress = progress,
+    ret_forest = ret_forest
+  )
+}
+
+# The build adapters prepare data before forcing NND controls.
+# Keep their small scalar header separate from direct nnd_knn.
+nnd_knn_prepared <- function(
+  data,
+  k,
+  metric,
+  init,
+  init_args,
+  n_iters,
+  max_candidates,
+  delta,
+  low_memory,
+  weight_by_degree,
+  use_alt_metric,
+  n_threads,
+  verbose,
+  progress,
+  ret_forest
+) {
+  progress <- match.arg(tolower(progress), c("bar", "dist"))
+  check_delta(delta)
+  n_iters <- check_optional_count(n_iters, "n_iters", min = 0L)
+  max_candidates <- check_optional_count(max_candidates, "max_candidates")
+  actual_metric <- get_actual_metric(use_alt_metric, metric, data, verbose)
+
+  nnd_knn_impl(
+    data = data,
+    k = k,
+    metric = metric,
+    actual_metric = actual_metric,
+    init = init,
+    init_args = init_args,
+    n_iters = n_iters,
+    max_candidates = max_candidates,
+    delta = delta,
+    low_memory = low_memory,
+    weight_by_degree = weight_by_degree,
+    use_alt_metric = use_alt_metric,
+    n_threads = n_threads,
+    verbose = verbose,
+    progress = progress,
+    ret_forest = ret_forest
+  )
+}
+
+# Inputs are prepared column-oriented data and accepted NND controls.
+nnd_knn_impl <- function(
+  data,
+  k,
+  metric,
+  actual_metric,
+  init,
+  init_args,
+  n_iters,
+  max_candidates,
+  delta,
+  low_memory,
+  weight_by_degree,
+  use_alt_metric,
+  n_threads,
+  verbose,
+  progress,
+  ret_forest
+) {
   # data must be column-oriented at this point
   if (is.character(init)) {
     if (is.null(k)) {
@@ -1662,6 +1750,36 @@ graph_knn_query <- function(
     query <- Matrix::t(query)
   }
 
+  graph_knn_query_impl(
+    query = query,
+    reference = reference,
+    reference_graph = reference_graph,
+    k = k,
+    metric = metric,
+    init = init,
+    epsilon = epsilon,
+    max_search_fraction = max_search_fraction,
+    use_alt_metric = use_alt_metric,
+    n_threads = n_threads,
+    verbose = verbose
+  )
+}
+
+# Both inputs are prepared column-oriented matrices with matching features.
+# Public adapters own representation and search-control validation.
+graph_knn_query_impl <- function(
+  query,
+  reference,
+  reference_graph,
+  k,
+  metric,
+  init,
+  epsilon,
+  max_search_fraction,
+  use_alt_metric,
+  n_threads,
+  verbose
+) {
   if (is.list(init) && is_rpforest(init)) {
     tsmessage("Reading metric data from forest")
     actual_metric <- init$actual_metric
@@ -1718,15 +1836,21 @@ graph_knn_query <- function(
     if (is.integer(query)) {
       query <- `storage.mode<-`(query, "double")
     }
-    init <- rpf_knn_query(
+    check_k(k, ncol(reference), "reference")
+    check_rpforest_matches_reference(
+      init,
+      ncol(reference),
+      nrow(reference),
+      is_sparse(reference)
+    )
+    init <- rpf_knn_query_impl(
       query = query,
       reference = reference,
       forest = init,
       k = k,
       cache = TRUE,
       n_threads = n_threads,
-      verbose = verbose,
-      obs = "C"
+      verbose = verbose
     )
     if (use_alt_metric) {
       init$dist <-
@@ -2007,6 +2131,30 @@ prepare_search_graph <- function(
   obs <- match.arg(toupper(obs), c("C", "R"))
   n_threads <- check_n_threads(n_threads)
 
+  check_search_graph_controls(diversify_prob, pruning_degree_multiplier)
+
+  data <- x2m(data, obs)
+  if (obs == "R") {
+    data <- Matrix::t(data)
+  }
+
+  prepare_search_graph_impl(
+    data = data,
+    graph = graph,
+    metric = metric,
+    use_alt_metric = use_alt_metric,
+    diversify_prob = diversify_prob,
+    pruning_degree_multiplier = pruning_degree_multiplier,
+    prune_reverse = prune_reverse,
+    n_threads = n_threads,
+    verbose = verbose
+  )
+}
+
+check_search_graph_controls <- function(
+  diversify_prob,
+  pruning_degree_multiplier
+) {
   if (!is.null(pruning_degree_multiplier)) {
     valid_degree <- pruning_degree_multiplier > 0
     if (
@@ -2025,15 +2173,23 @@ prepare_search_graph <- function(
       stop("'diversify_prob' must be between 0 and 1")
     }
   }
+  invisible(NULL)
+}
 
-  data <- x2m(data, obs)
-
+# Data are prepared and column-oriented; pruning controls are accepted.
+prepare_search_graph_impl <- function(
+  data,
+  graph,
+  metric,
+  use_alt_metric,
+  diversify_prob,
+  pruning_degree_multiplier,
+  prune_reverse,
+  n_threads,
+  verbose
+) {
   actual_metric <-
     get_actual_metric(use_alt_metric, metric, data, verbose)
-
-  if (obs == "R") {
-    data <- Matrix::t(data)
-  }
 
   graph <- check_square_graph(graph, ncol(data))
 

@@ -675,8 +675,22 @@ is_rpforest <- function(forest) {
 check_rpforest_matches_reference <- function(
   forest,
   n_reference,
-  n_features = NULL
+  n_features = NULL,
+  reference_is_sparse
 ) {
+  if (!is.list(forest)) {
+    stop("'forest' must be a list")
+  }
+  if (is.null(forest$margin)) {
+    stop("'forest' must contain a 'margin' component")
+  }
+  if (reference_is_sparse && !isTRUE(forest$sparse)) {
+    stop("A dense forest cannot be used with a sparse 'reference'")
+  }
+  if (!reference_is_sparse && isTRUE(forest$sparse)) {
+    stop("A sparse forest cannot be used with a dense 'reference'")
+  }
+
   if (
     is.null(forest$trees) || !is.list(forest$trees) || length(forest$trees) < 1
   ) {
