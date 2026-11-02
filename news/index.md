@@ -4,6 +4,10 @@
 
 ### Bug fixes and minor improvements
 
+- Prepare feature inputs once per call across nested build, index and
+  forest-query routes, preserving existing results and random-number
+  behavior.
+
 - Reject fractional and non-finite supplied neighbor IDs before native
   integer conversion, and reject IDs beyond the native integer range.
   Whole-valued doubles and missing entries remain valid.
