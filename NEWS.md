@@ -2,6 +2,9 @@
 
 ## Bug fixes and minor improvements
 
+* Propagate detected user interrupts as R interrupts instead of returning partial results.
+  Existing interrupt checks, worker batching and successful-call behavior are unchanged.
+
 * Prepare feature inputs once per call across nested build, index and forest-query routes,
   preserving existing results and random-number behavior.
 

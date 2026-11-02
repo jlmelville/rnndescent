@@ -107,7 +107,7 @@ struct RPProgress : public tdoann::ProgressBase {
     } catch (Rcpp::internal::InterruptedException &) {
       is_aborted = true;
       stopping_early();
-      return true;
+      throw;
     }
     return false;
   }
@@ -161,7 +161,7 @@ struct RInterruptableProgress : public tdoann::ProgressBase {
     } catch (Rcpp::internal::InterruptedException &) {
       is_aborted = true;
       stopping_early();
-      return true;
+      throw;
     }
     return false;
   }
