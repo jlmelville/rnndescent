@@ -48,8 +48,7 @@ rnnd_query(
   (otherwise you will get the slower dense numerical version). Sparse
   and non-sparse data cannot be mixed, so if the data used to build
   index was sparse, the `query` data must also be sparse. and vice
-  versa. Numeric feature values must be finite: `NA`, `NaN`, `Inf` and
-  `-Inf` are not allowed.
+  versa.
 
 - k:
 

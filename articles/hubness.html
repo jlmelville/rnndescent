@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Hubness • rnndescent</title>
 <!-- katex math --><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" integrity="sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+" crossorigin="anonymous">
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" integrity="sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/Yr2r3Dy4lfFg" crossorigin="anonymous"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script><script src="../katex-auto.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" integrity="sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/Yr2r3Dy4lfFg" crossorigin="anonymous"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script><script src="../katex-auto.js"></script><script src="../lightswitch.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
@@ -18,11 +18,11 @@
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
-    <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
+    <nav class="navbar navbar-expand-lg fixed-top " aria-label="Site navigation"><div class="container">
 
     <a class="navbar-brand me-2" href="../index.html">rnndescent</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -49,10 +49,25 @@
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-documentation-version" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Documentation version</button>
+  <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-documentation-version">
+<li><a class="dropdown-item" href="https://jlmelville.github.io/rnndescent/">CRAN release</a></li>
+    <li><a class="dropdown-item" href="https://jlmelville.github.io/rnndescent/dev/">Development</a></li>
+  </ul>
+</li>
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
 </form></li>
 <li class="nav-item"><a class="external-link nav-link" href="https://github.com/jlmelville/rnndescent/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-lightswitch" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true" aria-label="Light switch"><span class="fa fa-sun"></span></button>
+  <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-lightswitch">
+<li><button class="dropdown-item" data-bs-theme-value="light"><span class="fa fa-sun"></span> Light</button></li>
+    <li><button class="dropdown-item" data-bs-theme-value="dark"><span class="fa fa-moon"></span> Dark</button></li>
+    <li><button class="dropdown-item" data-bs-theme-value="auto"><span class="fa fa-adjust"></span> Auto</button></li>
+  </ul>
+</li>
       </ul>
 </div>
 
@@ -69,7 +84,7 @@
       <h1>Hubness</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/jlmelville/rnndescent/blob/master/vignettes/hubness.Rmd" class="external-link"><code>vignettes/hubness.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/jlmelville/rnndescent/blob/v0.2.0/vignettes/hubness.Rmd" class="external-link"><code>vignettes/hubness.Rmd</code></a></small>
       <div class="d-none name"><code>hubness.Rmd</code></div>
     </div>
 
@@ -147,10 +162,10 @@ and low dimensions (for easier comparison, I have normalized them with
 respect to the largest distance)</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/hist.html" class="external-link">hist</a></span><span class="op">(</span><span class="va">g2d_nnbf</span><span class="op">$</span><span class="va">dist</span><span class="op">[</span>, <span class="op">-</span><span class="fl">1</span><span class="op">]</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">g2d_nnbf</span><span class="op">$</span><span class="va">dist</span><span class="op">[</span>, <span class="op">-</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span>, xlab <span class="op">=</span> <span class="st">"distances"</span>, main <span class="op">=</span> <span class="st">"2D 15-NN"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="hubness_files/figure-html/NN%20distances%20distribution-1.png" class="r-plt" alt="" width="700"></p>
+<p><img src="hubness_files/figure-html/NN-distances-distribution-1.png" class="r-plt" alt="" width="700"></p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/hist.html" class="external-link">hist</a></span><span class="op">(</span><span class="va">g1000d_nnbf</span><span class="op">$</span><span class="va">dist</span><span class="op">[</span>, <span class="op">-</span><span class="fl">1</span><span class="op">]</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">g1000d_nnbf</span><span class="op">$</span><span class="va">dist</span><span class="op">[</span>, <span class="op">-</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span>, xlab <span class="op">=</span> <span class="st">"distances"</span>, main <span class="op">=</span> <span class="st">"1000D 15-NN"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="hubness_files/figure-html/NN%20distances%20distribution-2.png" class="r-plt" alt="" width="700"></p>
+<p><img src="hubness_files/figure-html/NN-distances-distribution-2.png" class="r-plt" alt="" width="700"></p>
 <p>Compared to low dimensional data, we can see that the high
 dimensional distances are distributed around a higher distance as well
 as more symmetric in their distribution.</p>
@@ -161,18 +176,18 @@ high-dimensional case for the neighbors found by NND:</p>
 <span>  xlab <span class="op">=</span> <span class="st">"distances"</span>,</span>
 <span>  main <span class="op">=</span> <span class="st">"1000D 15-NND"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="hubness_files/figure-html/NND%20distances%20distribution-1.png" class="r-plt" alt="" width="700"></p>
+<p><img src="hubness_files/figure-html/NND-distances-distribution-1.png" class="r-plt" alt="" width="700"></p>
 <p>Pretty much indistinguishable from the exact results, so it seems
 like there isn’t an obvious diagnostic from the distances
 themselves.</p>
 <p>Is the distribution of the errors in the NND results uniform or are
 some items neighborhoods noticeably better predicted than others? This
 function will calculate a vector of the relative RMS error between two
-sets of neighbors in terms of distances. It divides the RMS error by the
-RMS of the reference distances:</p>
+sets of neighbors in terms of distances:</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">nn_rrmsev</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">nn</span>, <span class="va">ref</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="op">(</span><span class="va">nn</span><span class="op">$</span><span class="va">dist</span><span class="op">[</span>, <span class="op">-</span><span class="fl">1</span><span class="op">]</span> <span class="op">-</span> <span class="va">ref</span><span class="op">$</span><span class="va">dist</span><span class="op">[</span>, <span class="op">-</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span><span class="op">^</span><span class="fl">2</span>, <span class="fl">1</span>, <span class="va">sum</span><span class="op">)</span> <span class="op">/</span></span>
+<span>  <span class="va">n</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">ref</span><span class="op">$</span><span class="va">dist</span><span class="op">)</span> <span class="op">-</span> <span class="fl">1</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="op">(</span><span class="va">nn</span><span class="op">$</span><span class="va">dist</span><span class="op">[</span>, <span class="op">-</span><span class="fl">1</span><span class="op">]</span> <span class="op">-</span> <span class="va">ref</span><span class="op">$</span><span class="va">dist</span><span class="op">[</span>, <span class="op">-</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span><span class="op">^</span><span class="fl">2</span> <span class="op">/</span> <span class="va">n</span>, <span class="fl">1</span>, <span class="va">sum</span><span class="op">)</span> <span class="op">/</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="va">ref</span><span class="op">$</span><span class="va">dist</span><span class="op">[</span>, <span class="op">-</span><span class="fl">1</span><span class="op">]</span><span class="op">^</span><span class="fl">2</span>, <span class="fl">1</span>, <span class="va">sum</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 <p>We don’t include the first nearest neighbor distances, as these are
@@ -188,7 +203,7 @@ harshly than a more distant point.</p>
 <span>  main <span class="op">=</span> <span class="st">"1000D distance error"</span>,</span>
 <span>  xlab <span class="op">=</span> <span class="st">"Relative RMS error"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="hubness_files/figure-html/histogram%20of%20distance%20difference-1.png" class="r-plt" alt="" width="700"></p>
+<p><img src="hubness_files/figure-html/histogram-of-distance-difference-1.png" class="r-plt" alt="" width="700"></p>
 <p>None of the relative errors are actually that large, so if you only
 care about the value of kth nearest neighbor distances, then even in the
 1000D case, we still get decent results in this case. We can also see
@@ -208,7 +223,7 @@ vector (the overall mean average overlap is returned as the
 <span>  xlab <span class="op">=</span> <span class="st">"accuracy"</span>,</span>
 <span>  xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="hubness_files/figure-html/hist%201000D-1.png" class="r-plt" alt="" width="700"></p>
+<p><img src="hubness_files/figure-html/hist-1000D-1.png" class="r-plt" alt="" width="700"></p>
 <p>This shows a similar pattern: some items have very high accuracy and
 some have noticeably worse accuracy than average. For completeness, here
 is the relationship between accuracy and RRMSE:</p>
@@ -220,7 +235,7 @@ is the relationship between accuracy and RRMSE:</p>
 <span>  xlab <span class="op">=</span> <span class="st">"accuracy"</span>,</span>
 <span>  ylab <span class="op">=</span> <span class="st">"RRMSE"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="hubness_files/figure-html/rrmse%20vs%20acc-1.png" class="r-plt" alt="" width="700"></p>
+<p><img src="hubness_files/figure-html/rrmse-vs-acc-1.png" class="r-plt" alt="" width="700"></p>
 <p>Nothing very surprising here: there’s a fairly consistent spread of
 RRMSE for a given accuracy.</p>
 <p>So whether you use an error in the distance or accuracy to measure
@@ -236,24 +251,26 @@ technique for detecting hubness: look for items that appear very
 frequently in the k-nearest neighbor graph. The <code>k_occur</code>
 function counts “k-occurrences” of each item in a dataset, i.e. a count
 of the number of times an item appears in the k-nearest neighbor graph.
-You can also see it as the in-degree of each item, or as reversing the
-direction of the edges and then counting the out-degree.</p>
+You can also see it as reversing the direction of the edges in the
+k-nearest neighbor graph and then counting the in-degree of each
+item.</p>
 <p>If the distribution of neighbors was entirely uniform we would expect
 to see each item appear <span class="math inline">k</span> times. If
 there are hubs then the k-occurrence could get as large as the size of
-the dataset, <span class="math inline">N</span>. Here an “antihub” is an
-item that is not a neighbor of any other item. Each item includes itself
-in these graphs, so an anti-hub has k-occurrence <span class="math inline">1</span>. An item appearing fewer than <span class="math inline">k</span> times is below average, but need not be an
-anti-hub.</p>
+the dataset, <span class="math inline">N</span>. An item which appears
+in the neighbor graph fewer than <span class="math inline">k</span>
+times could be termed an “antihub”. Our definition of a neighbor of an
+item always includes the item itself, so we would expect the minimum
+<span class="math inline">k</span>-occurrence to be <span class="math inline">1</span>.</p>
 <p>Also, because there are always only <span class="math inline">Nk</span> edges in a <span class="math inline">k</span>-nearest neighbor graph, if an item appears
 more than the expected amount this implies that other items must be
 under-represented. Practically speaking, there are always going to be
 items with a larger <span class="math inline">k</span>-occurrence than
-expected and hence some with a lower <span class="math inline">k</span>-occurrence. Hubness is more a case of
-deciding on a cut-off after which the presence of an item with a lot of
-neighbors starts causing you problems, which is going to be dependent on
-what you are planning to do with the neighbor graph (and probably the
-number of neighbors you want).</p>
+expected and hence some with a lower <span class="math inline">k</span>-occurrence, so hubness or anti-hubness is
+more a case of deciding on a cut-off after which the presence of an item
+with a lot of neighbors starts causing you problems, which is going to
+be dependent on what you are planning to do with the neighbor graph (and
+probably the number of neighbors you want).</p>
 <div class="section level3">
 <h3 id="k-occurrence-in-the-2d-case">k-occurrence in the 2D case<a class="anchor" aria-label="anchor" href="#k-occurrence-in-the-2d-case"></a>
 </h3>
@@ -279,7 +296,7 @@ than <span class="math inline">2k</span>. The minimum value is
 k-occurrences:</p>
 <div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/hist.html" class="external-link">hist</a></span><span class="op">(</span><span class="va">g2d_bfko</span>, main <span class="op">=</span> <span class="st">"2D 15-NN"</span>, xlab <span class="op">=</span> <span class="st">"k-occurrences"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="hubness_files/figure-html/2D%20k-occurrence%20histogram-1.png" class="r-plt" alt="" width="700"></p>
+<p><img src="hubness_files/figure-html/2D-k-occurrence-histogram-1.png" class="r-plt" alt="" width="700"></p>
 <p>This unremarkable-looking distribution is a visual indication of a
 dataset without a lot of hubness and anti-hubs lurking to cause problems
 for nearest neighbor descent.</p>
@@ -292,7 +309,7 @@ dimensional case:</p>
 <div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">g1000d_bfko</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/k_occur.html">k_occur</a></span><span class="op">(</span><span class="va">g1000d_nnbf</span><span class="op">$</span><span class="va">idx</span>, k <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/hist.html" class="external-link">hist</a></span><span class="op">(</span><span class="va">g1000d_bfko</span>, main <span class="op">=</span> <span class="st">"1000D 15-NN"</span>, xlab <span class="op">=</span> <span class="st">"k-occurrences"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="hubness_files/figure-html/1000D%20k-occurrences-1.png" class="r-plt" alt="" width="700"></p>
+<p><img src="hubness_files/figure-html/1000D-k-occurrences-1.png" class="r-plt" alt="" width="700"></p>
 <p>The differences are pretty stark. The first thing to notice is the
 x-axis. In the 2D case, the maximum k-occurrence was ~20. For the 1000D
 we are looking at ~300. It’s hard to see any details, so let’s zoom in
@@ -303,7 +320,7 @@ than the largest 2D k-occurrence:</p>
 <span>  main <span class="op">=</span> <span class="st">"1000D 15-NN zoomed"</span>,</span>
 <span>  xlab <span class="op">=</span> <span class="st">"k-occurrences"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="hubness_files/figure-html/zoomed%20k-occurrences-1.png" class="r-plt" alt="" width="700"></p>
+<p><img src="hubness_files/figure-html/zoomed-k-occurrences-1.png" class="r-plt" alt="" width="700"></p>
 <p>It’s a very different distribution to the 2D case: we have a large
 number of anti-hubs and a noticeable number of hubs. There’s certainly
 no peak at a k-occurrence of 15. Comparing the numerical summary with
@@ -321,10 +338,10 @@ third of the dataset.</p>
 <div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">g1000d_bfko</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 221</span></span></code></pre></div>
-<p>221 of the 1000 points do not appear as a neighbor of any other
+<p>A quarter of the dataset does not appear as a neighbor of any other
 point. This has serious implications for using a neighbor graph for
-certain purposes: you cannot reach those points by starting at another
-point in the graph and following neighbors.</p>
+certain purposes: you cannot reach a quarter of the dataset by starting
+at an arbitrary point in the graph and following neighbors.</p>
 <p>This also might point to why nearest neighbor descent has trouble
 with this high dimensional case: if we rely on points turning up as a
 neighbors of other points in order to introduce them to potential
@@ -346,7 +363,7 @@ accurate, does it still show similar characteristics of hubness?</p>
 <div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">g1000d_nndko</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/k_occur.html">k_occur</a></span><span class="op">(</span><span class="va">g1000d_nnd</span><span class="op">$</span><span class="va">idx</span>, k <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/hist.html" class="external-link">hist</a></span><span class="op">(</span><span class="va">g1000d_nndko</span>, main <span class="op">=</span> <span class="st">"1000D 15-NND"</span>, xlab <span class="op">=</span> <span class="st">"k-occurrences"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="hubness_files/figure-html/1000D%20NND%20k-occurences-1.png" class="r-plt" alt="" width="700"></p>
+<p><img src="hubness_files/figure-html/1000D-NND-k-occurences-1.png" class="r-plt" alt="" width="700"></p>
 <p>That seems similar to the true results, and zooming in like we did
 with the exact results:</p>
 <div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
@@ -354,7 +371,7 @@ with the exact results:</p>
 <span>  main <span class="op">=</span> <span class="st">"1000D 15-NND zoomed"</span>,</span>
 <span>  xlab <span class="op">=</span> <span class="st">"k-occurrences"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="hubness_files/figure-html/zoomed%20NND%20k-occurrences-1.png" class="r-plt" alt="" width="700"></p>
+<p><img src="hubness_files/figure-html/zoomed-NND-k-occurrences-1.png" class="r-plt" alt="" width="700"></p>
 <p>Visually this looks a lot like the distribution of the exact results.
 Next, the numerical summary:</p>
 <div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
@@ -387,7 +404,7 @@ distributed across the data. So let’s see how well the NND k-occurrences
 <span>  main <span class="op">=</span> <span class="st">"1000D k-occ"</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/abline.html" class="external-link">abline</a></span><span class="op">(</span>a <span class="op">=</span> <span class="fl">0</span>, b <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
-<p><img src="hubness_files/figure-html/approximate%20vs%20true%201000D%20k-occurrence-1.png" class="r-plt" alt="" width="700"></p>
+<p><img src="hubness_files/figure-html/approximate-vs-true-1000D-k-occurrence-1.png" class="r-plt" alt="" width="700"></p>
 <div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/cor.html" class="external-link">cor</a></span><span class="op">(</span><span class="va">g1000d_nndko</span>, <span class="va">g1000d_bfko</span>, method <span class="op">=</span> <span class="st">"pearson"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 0.9939508</span></span></code></pre></div>
@@ -405,7 +422,7 @@ most hub-like.</p>
 <span>  main <span class="op">=</span> <span class="st">"1000D low k-occ"</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/abline.html" class="external-link">abline</a></span><span class="op">(</span>a <span class="op">=</span> <span class="fl">0</span>, b <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
-<p><img src="hubness_files/figure-html/zoomed%20approximate%20vs%20true%201000D%20k-occurrence-1.png" class="r-plt" alt="" width="700"></p>
+<p><img src="hubness_files/figure-html/zoomed-approximate-vs-true-1000D-k-occurrence-1.png" class="r-plt" alt="" width="700"></p>
 <p>here it seems that there is a tendency to over-estimate the
 k-occurrence. Anti-hubs are also not perfectly identified, but there are
 no true anti-hubs which appear more than a small number of times in the
@@ -429,12 +446,12 @@ neighbors:</p>
 <span>  xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">g1000d_nndko</span>, <span class="va">g1000d_bfko</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  main <span class="op">=</span> <span class="st">"1000D acc vs NND k-occ"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="hubness_files/figure-html/predicting%20accuracy%20with%20NND%20k-occurrence-1.png" class="r-plt" alt="" width="700"></p>
+<p><img src="hubness_files/figure-html/predicting-accuracy-with-NND-k-occurrence-1.png" class="r-plt" alt="" width="700"></p>
 <p>So the answer to the question is “not really”, but there <em>is</em>
 a trend. The empty space in the lower right of the plot indicates that
-items with a large k-occurrence (hubs) are very well predicted. In this
-dataset, every item above a k-occurrence of 150 has its neighborhood
-perfectly predicted. However, at the other end of the k-occurrence
+items with a large k-occurrence (hubs) are very well predicted. And
+above a k-occurrence of 150, we are guaranteed to perfectly predict the
+neighborhood of an item. However, at the other end of the k-occurrence
 spectrum, we can see that while the lower bound on the predicted
 accuracy does plummet as the k-occurrence is reduced, some anti-hubs
 actually do have their neighborhoods very accurately predicted too.</p>
@@ -457,7 +474,7 @@ them are well-predicted:</p>
 <div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">g1000d_nndko</span> <span class="op">&lt;=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">g1000d_nndko</span><span class="op">[</span><span class="va">g1000d_nnd_acc</span> <span class="op">&lt;</span> <span class="fl">0.9</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 929</span></span></code></pre></div>
-<p>That’s most of the dataset. If we dropped the threshold to 80%
+<p>That’s most of the dataset. If we dropped the threshold to 80
 accuracy, does it help?</p>
 <div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">g1000d_nndko</span> <span class="op">&lt;=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">g1000d_nndko</span><span class="op">[</span><span class="va">g1000d_nnd_acc</span> <span class="op">&lt;</span> <span class="fl">0.8</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
@@ -479,7 +496,7 @@ see that the converged NND results, despite not being 100% accurate do a
 good job at expressing the hubness of the underlying data. How converged
 do the results need to be? What if we think of NND as a tool for
 identifying hubness in datasets as a whole rather than for accurate
-approximate nearest neighbor graphs? Could a much less converged NND
+approximate nearest neighbor graphs? Could a much less unconverged NND
 graph, while obviously being even less accurate, still correctly
 identify a dataset as having hubs?</p>
 <p>To test this, let’s run the NND method for only one iteration and get
@@ -496,14 +513,14 @@ neighbor graph. But let’s take a look at the k-occurrence
 distribution:</p>
 <div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/hist.html" class="external-link">hist</a></span><span class="op">(</span><span class="va">g1000d_nndkoi1</span>, main <span class="op">=</span> <span class="st">"1000D 15-NND (1 iter)"</span>, xlab <span class="op">=</span> <span class="st">"k-occurrences"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="hubness_files/figure-html/unconverged%20ko%20distribution-1.png" class="r-plt" alt="" width="700"></p>
+<p><img src="hubness_files/figure-html/unconverged-ko-distribution-1.png" class="r-plt" alt="" width="700"></p>
 <p>Looking familiar. Zooming in…</p>
 <div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/hist.html" class="external-link">hist</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">pmin</a></span><span class="op">(</span><span class="va">g1000d_nndkoi1</span>, <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">g2d_bfko</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  main <span class="op">=</span> <span class="st">"1000D 15-NND (1 iter, zoomed)"</span>,</span>
 <span>  xlab <span class="op">=</span> <span class="st">"k-occurrences"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="hubness_files/figure-html/unconverged%20ko%20distribution%20zoomed-1.png" class="r-plt" alt="" width="700"></p>
+<p><img src="hubness_files/figure-html/unconverged-ko-distribution-zoomed-1.png" class="r-plt" alt="" width="700"></p>
 <p>The distribution is at least similar to the converged version. Taking
 a look at some numbers:</p>
 <div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
@@ -526,7 +543,7 @@ same procedure with the 2D dataset:</p>
 <code class="sourceCode R"><span><span class="va">g2d_nnd_iter1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/nnd_knn.html">nnd_knn</a></span><span class="op">(</span><span class="va">g2d</span>, k <span class="op">=</span> <span class="fl">15</span>, metric <span class="op">=</span> <span class="st">"euclidean"</span>, n_iters <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="va">g2d_nndkoi1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/k_occur.html">k_occur</a></span><span class="op">(</span><span class="va">g2d_nnd_iter1</span><span class="op">$</span><span class="va">idx</span>, k <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/hist.html" class="external-link">hist</a></span><span class="op">(</span><span class="va">g2d_nndkoi1</span>, main <span class="op">=</span> <span class="st">"2D 15-NND (1 iter)"</span>, xlab <span class="op">=</span> <span class="st">"k-occurrences"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="hubness_files/figure-html/unconverged%202D%20NND-1.png" class="r-plt" alt="" width="700"></p>
+<p><img src="hubness_files/figure-html/unconverged-2D-NND-1.png" class="r-plt" alt="" width="700"></p>
 <div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">g2d_nndkoi1</span><span class="op">)</span></span>
 <span><span class="co">#&gt;    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. </span></span>
@@ -585,9 +602,8 @@ high-dimensional case, it’s worth trying though:</p>
 <span><span class="fu"><a href="../reference/neighbor_overlap.html">neighbor_overlap</a></span><span class="op">(</span><span class="va">g1000d_nnbf</span>, <span class="va">g1000d_nnd_w</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 0.8021333</span></span></code></pre></div>
 <p>Like a 2%ish improvement. It’s not nothing. And despite the extra
-computation and <span class="math inline">O\left(N\right)</span> storage
-and <span class="math inline">O\left(kN\right)</span> counting work
-required to calculate the k-occurrences in each iteration, with
+computation and <span class="math inline">O\left(kN\right)</span>
+storage required to calculate the k-occurrences in each iteration, with
 high-dimensional data the distance calculations tend to dominate the run
 time, so there’s no reason to <em>not</em> set
 <code>weight_by_degree = TRUE</code> in this case. However, for the rest
@@ -627,8 +643,8 @@ first choice for improving accuracy.</p>
 <h3 id="decrease-the-convergence-tolerance">Decrease the convergence tolerance<a class="anchor" aria-label="anchor" href="#decrease-the-convergence-tolerance"></a>
 </h3>
 <p>You could set <code>delta</code> to lower than the default of
-<code>0.001</code> or even to <code>0</code> to continue until
-convergence, subject to the <code>n_iters</code> limit:</p>
+<code>0.001</code> or even to <code>0</code> to force the algorithm to
+run until convergence:</p>
 <div class="sourceCode" id="cb46"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">g1000d_nnd_tol0</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/nnd_knn.html">nnd_knn</a></span><span class="op">(</span><span class="va">g1000d</span>, k <span class="op">=</span> <span class="fl">15</span>, metric <span class="op">=</span> <span class="st">"euclidean"</span>, delta <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/neighbor_overlap.html">neighbor_overlap</a></span><span class="op">(</span><span class="va">g1000d_nnbf</span>, <span class="va">g1000d_nnd_tol0</span><span class="op">)</span></span>
@@ -670,7 +686,7 @@ diversity in the results.</p>
 <span>  xlab <span class="op">=</span> <span class="st">"accuracy run 1"</span>,</span>
 <span>  ylab <span class="op">=</span> <span class="st">"accuracy run 2"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="hubness_files/figure-html/NND%20100D%20compare%20accuracy-1.png" class="r-plt" alt="" width="700"></p>
+<p><img src="hubness_files/figure-html/NND-100D-compare-accuracy-1.png" class="r-plt" alt="" width="700"></p>
 <div class="sourceCode" id="cb50"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/cor.html" class="external-link">cor</a></span><span class="op">(</span><span class="va">g1000d_nnd_acc</span>, <span class="va">g1000d_nnd_rep_acc</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 0.5069483</span></span></code></pre></div>
@@ -697,11 +713,13 @@ graph, and then query it with the original data.</p>
 <span>    diversify_prob <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>    pruning_degree_multiplier <span class="op">=</span> <span class="fl">1.5</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
-<p>The preparation procedure diversifies the forward edges, adds
-reversed edges, and prunes the result. Reversing an edge can give an
-anti-hub an incoming edge, although pruning may remove it again.
-Reversing edges also cannot connect components that were already
-disconnected.</p>
+<p>This augments the neighbor graph with the reversed edges of the
+neighbor graph, so that if <span class="math inline">i</span> is one of
+the nearest neighbors of <span class="math inline">j</span>, we
+guarantee that <span class="math inline">j</span> is also considered a
+near neighbor <span class="math inline">i</span>. This ameliorates the
+issue of anti-hubs because all <span class="math inline">k</span>
+neighbors of an anti-hub now have it in their neighbor list.</p>
 <p>The downside of including all reversed edges in the neighbor graph is
 that the neighbor list of a hub is now going to be very large as it
 consists of the <span class="math inline">k</span> nearest neighbors of
@@ -717,18 +735,17 @@ account for the introduction of the reverse edges. Anti-hubs can be
 reintroduced due to the edge reduction, but hopefully the distribution
 of edges is a bit more equitable.</p>
 <p>Here is a summary and histogram of the k-occurrences of the search
-graph. Unlike the neighbor graph, this search graph has no self edges,
-so an anti-hub has k-occurrence zero:</p>
+graph:</p>
 <div class="sourceCode" id="cb52"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">g1000d_sgko</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/k_occur.html">k_occur</a></span><span class="op">(</span><span class="va">g1000d_search_graph</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/hist.html" class="external-link">hist</a></span><span class="op">(</span><span class="va">g1000d_sgko</span>, main <span class="op">=</span> <span class="st">"search graph k-occurrences"</span>, xlab <span class="op">=</span> <span class="st">"k-occurrences"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="hubness_files/figure-html/histogram%20of%20k-occurrences%20of%20search%20graph-1.png" class="r-plt" alt="" width="700"></p>
+<p><img src="hubness_files/figure-html/histogram-of-k-occurrences-of-search-graph-1.png" class="r-plt" alt="" width="700"></p>
 <div class="sourceCode" id="cb53"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">g1000d_sgko</span><span class="op">)</span></span>
 <span><span class="co">#&gt;    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. </span></span>
 <span><span class="co">#&gt;   1.000   4.000   5.000   7.258   9.000  22.000</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">g1000d_sgko</span> <span class="op">==</span> <span class="fl">0</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 0</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">g1000d_sgko</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 24</span></span></code></pre></div>
 <p>This is not <em>quite</em> as skewed as the neighbor graph, but there
 is still a lot of room for improvement.</p>
 <p>At any rate, with the search graph in hand, we can now search it
@@ -808,16 +825,14 @@ graph without back-tracking gives slightly better accuracies:</p>
 <p>but it seems like some sort of back-tracking is to be recommended
 with this approach. The downside is that you could be searching through
 a large proportion of the dataset, in which case you would save time by
-using the <code>brute_force_knn_query</code>.</p>
+using the <code>brute_force_query</code>.</p>
 <p>In conjunction with <code>epsilon</code>, you can also use
-<code>max_search_fraction</code> which will limit the additional graph
-search to a fraction of the dataset. The points examined during
-initialization do not count toward this limit. Set it to a value between
-0 and 1, e.g. <code>max_search_fraction = 0.1</code> to limit the
-additional graph search to 10% of the reference data beyond the initial
-neighbors. The default is <code>1</code>, so that <code>epsilon</code>
-entirely controls the search termination. A similar parameter is used in
-<span class="citation">(Harwood and Drummond 2016)</span>.</p>
+<code>max_search_fraction</code> which will terminate the search if the
+fraction of the dataset searched exceeds the specified value. Set it to
+a value between 0 and 1, e.g. <code>max_search_fraction = 0.1</code> if
+you don’t want more than 10% of the reference data being searched. The
+default is <code>1</code>, so that <code>epsilon</code> entirely
+controls the search termination. A similar parameter is used in <span class="citation">(Harwood and Drummond 2016)</span>.</p>
 <div class="sourceCode" id="cb59"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">g1000d_nnd_search_max</span> <span class="op">&lt;-</span></span>
 <span>  <span class="fu"><a href="../reference/graph_knn_query.html">graph_knn_query</a></span><span class="op">(</span></span>
@@ -839,28 +854,28 @@ entirely controls the search termination. A similar parameter is used in
 <h2 id="conclusions">Conclusions<a class="anchor" aria-label="anchor" href="#conclusions"></a>
 </h2>
 <ul>
-<li>High-dimensional data can produce hubs, as in the Gaussian example
-here.</li>
+<li>High dimensional data leads to hubs.</li>
 <li>The “hubness” of an item in a dataset can be measured by the
 k-occurrence in the corresponding nearest neighbor graph. The higher the
 k-occurrence, the more of a hub it is.</li>
-<li>Hubs imply that some items have below-average k-occurrence, although
-those items need not be anti-hubs. In this example there are many
-anti-hubs too.</li>
-<li>In this example, the low k-occurrence items are more likely to have
-poorly predicted neighborhoods, although k-occurrence alone is a rough
-diagnostic.</li>
+<li>The existence of a hubs implies the existence of “anti-hubs”,
+i.e. items with a low k-occurrence. A small number of hubs can create a
+disproportionately larger number of anti-hubs, with a larger value of
+the k-occurrence creating more anti-hubs.</li>
+<li>The accuracy of nearest neighbor descent is reduced by the presence
+of hubs: specifically, the lower the k-occurrence of an item, the
+greater the probability of a low accuracy of its nearest neighbors.</li>
 <li>Accuracy of nearest neighbor descent can be improved by searching
 for a larger number of neighbors and then truncating the result to the
 desired size, at the cost of a longer run-time and memory usage.</li>
-<li>Alternatively, you can run the nearest neighbor descent multiple
+<li>Alternatively, you can run the the nearest neighbor descent multiple
 times from different random starting points and merge the results.</li>
 <li>Setting <code>weight_by_degree = TRUE</code> is probably worth
 doing, albeit it gives a very modest improvement.</li>
-<li>In this example, more accurate results are obtained by converting
-the nearest neighbor descent results into a search graph and then
-querying the graph with the original data, using the nearest neighbor
-results for initialization and a back-tracking search.</li>
+<li>More accurate and efficient results are obtained by converting the
+nearest neighbor descent results into a search graph and then querying
+the graph with the original data, using the nearest neighbor results for
+initialization and a back-tracking search.</li>
 </ul>
 <p>If you are concerned with potential hubs interfering with the
 accuracy of the neighbor graph, I suggest the following steps:</p>
@@ -871,7 +886,7 @@ parameters, or even for just 1 iteration.</li>
 <li>If the maximum k-occurrence exceeds a threshold (maybe
 <code>10 * k</code> is a good starting point), then you could try the
 following:</li>
-<li>Restart <code>nnd_knn</code> (you may as well use the output from
+<li>Restart <code>nnd_knn</code> (you as may as well use the output from
 the first step as the initialization) with <code>max_candidates</code>
 set to a larger value. You probably don’t want to set it larger than
 <code>60</code>.</li>
@@ -880,10 +895,9 @@ set to a larger value. You probably don’t want to set it larger than
 <code>merge_knn</code>.</li>
 <li>Use the merged graph for <code>prepare_search_graph</code>, and then
 run <code>graph_knn_query</code> with back-tracking search (set
-<code>epsilon &gt; 0</code>) to refine the results further.</li>
-<li>If in step 3, the maximum k-occurrence is <em>less</em> than the
-threshold, then you are probably ok to run <code>nnd_knn</code> with
-defaults.</li>
+<code>epsilon &gt; 0</code>) to refine the results further. 8 If in step
+3, the maximum k-occurrence is <em>less</em> than the threshold, then
+you are probably ok to run <code>nnd_knn</code> with defaults.</li>
 </ol>
 <p>This should provide a robust approach to producing accurate
 approximate nearest neighbors without spending time on unnecessary graph
@@ -906,7 +920,7 @@ NN-Descent.”</span> <em>International Journal on Artificial Intelligence
 Tools</em> 28 (06): 1960002.
 </div>
 <div id="ref-dong2011efficient" class="csl-entry">
-Dong, Wei, Moses Charikar, and Kai Li. 2011. <span>“Efficient k-Nearest
+Dong, Wei, Charikar Moses, and Kai Li. 2011. <span>“Efficient k-Nearest
 Neighbor Graph Construction for Generic Similarity Measures.”</span>
 <em>Proceedings of the 20th International Conference on World Wide
 Web</em>, 577–86.

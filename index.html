@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Nearest Neighbor Descent Method for Approximate Nearest Neighbors • rnndescent</title>
 <!-- katex math --><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" integrity="sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+" crossorigin="anonymous">
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" integrity="sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/Yr2r3Dy4lfFg" crossorigin="anonymous"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script><script src="katex-auto.js"></script><script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" integrity="sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/Yr2r3Dy4lfFg" crossorigin="anonymous"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script><script src="katex-auto.js"></script><script src="lightswitch.js"></script><script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
@@ -20,11 +20,11 @@
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
-    <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
+    <nav class="navbar navbar-expand-lg fixed-top " aria-label="Site navigation"><div class="container">
 
     <a class="navbar-brand me-2" href="index.html">rnndescent</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -51,10 +51,25 @@
 <li class="nav-item"><a class="nav-link" href="news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-documentation-version" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Documentation version</button>
+  <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-documentation-version">
+<li><a class="dropdown-item" href="https://jlmelville.github.io/rnndescent/">CRAN release</a></li>
+    <li><a class="dropdown-item" href="https://jlmelville.github.io/rnndescent/dev/">Development</a></li>
+  </ul>
+</li>
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="search.json">
 </form></li>
 <li class="nav-item"><a class="external-link nav-link" href="https://github.com/jlmelville/rnndescent/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-lightswitch" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true" aria-label="Light switch"><span class="fa fa-sun"></span></button>
+  <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-lightswitch">
+<li><button class="dropdown-item" data-bs-theme-value="light"><span class="fa fa-sun"></span> Light</button></li>
+    <li><button class="dropdown-item" data-bs-theme-value="dark"><span class="fa fa-moon"></span> Dark</button></li>
+    <li><button class="dropdown-item" data-bs-theme-value="auto"><span class="fa fa-adjust"></span> Auto</button></li>
+  </ul>
+</li>
       </ul>
 </div>
 
@@ -99,26 +114,12 @@
 </h3>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># install.packages("pak")</span></span>
-<span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"jlmelville/rnndescent"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pkg_install.html" class="external-link">pkg_install</a></span><span class="op">(</span><span class="st">"jlmelville/rnndescent"</span><span class="op">)</span></span></code></pre></div>
 <p>This packages makes use of C++ code which must be compiled. You may have to carry out a few extra steps before being able to build:</p>
 <p><strong>Windows</strong>: install <a href="https://cran.r-project.org/bin/windows/Rtools/" class="external-link">Rtools</a> and ensure <code>C:\Rtools\bin</code> is on your path.</p>
 <p><strong>Mac OS X</strong>: using a custom <code>~/.R/Makevars</code> <a href="https://github.com/jlmelville/uwot/issues/1" class="external-link">may cause linking errors</a>. This sort of thing is a potential problem on all platforms but seems to bite Mac owners more. <a href="https://cran.r-project.org/bin/macosx/RMacOSX-FAQ.html#Installation-of-source-packages" class="external-link">The R for Mac OS X FAQ</a> may be helpful here to work out what you can get away with. To be on the safe side, I would advise building without a custom <code>Makevars</code>.</p>
 <p><code>rnndescent</code> uses C++17. This shouldn’t be too big a problem but not all R platforms support it (sorry if this affects you).</p>
 </div>
-</div>
-<div class="section level2">
-<h2 id="supported-c-headers">Supported C++ headers<a class="anchor" aria-label="anchor" href="#supported-c-headers"></a>
-</h2>
-<p>Downstream R packages can use these installed headers by adding <code>rnndescent</code> to their <code>LinkingTo</code> field:</p>
-<ul>
-<li>
-<code>pforr.h</code> provides parallel loops, requires C++11 and threads, and otherwise depends only on the C++ standard library.</li>
-<li>
-<code>rnndescent/random.h</code> provides the package’s random-number adapters, requires C++17 and R, and also requires the <code>Rcpp</code>, <code>dqrng</code> and <code>BH</code> headers. Add those packages to <code>LinkingTo</code> as well.</li>
-<li>
-<code>tdoann/distance.h</code> provides distance functions, requires C++17, and depends only on the C++ standard library.</li>
-</ul>
-<p>Other installed C++ headers are implementation details and are not supported as direct include entry points.</p>
 </div>
 <div class="section level2">
 <h2 id="example">Example<a class="anchor" aria-label="anchor" href="#example"></a>
@@ -132,7 +133,7 @@
 <span><span class="co"># Build an index</span></span>
 <span><span class="va">iris_even</span> <span class="op">&lt;-</span> <span class="va">iris</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">iris</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/r/base/Arithmetic.html" class="external-link">%%</a></span> <span class="fl">2</span> <span class="op">==</span> <span class="fl">0</span>, <span class="op">]</span></span>
 <span><span class="co"># Specify the number of neighbors you are likely to want to query for</span></span>
-<span><span class="va">iris_index</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/rnnd_build.html">rnnd_build</a></span><span class="op">(</span><span class="va">iris_even</span>, k <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span>
+<span><span class="va">iris_index</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/rnnd_build.html">rnnd_build</a></span><span class="op">(</span><span class="va">iris_index</span>, k <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Query then index</span></span>
 <span><span class="va">iris_odd</span> <span class="op">&lt;-</span> <span class="va">iris</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">iris</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/r/base/Arithmetic.html" class="external-link">%%</a></span> <span class="fl">2</span> <span class="op">==</span> <span class="fl">1</span>, <span class="op">]</span></span>
@@ -171,7 +172,7 @@
 <li>
 <code>inst/include/dqsample.h</code> is a modification of some sampling code from <a href="https://github.com/daqana/dqrng" class="external-link">dqrng</a> and is <a href="https://www.gnu.org/licenses/agpl-3.0.en.html" class="external-link">AGPLv3 or later</a>.</li>
 <li>
-<code>inst/include/pforr.h</code> is a modification of some code from from <a href="https://github.com/RcppCore/RcppParallel" class="external-link">RcppParallel</a> and is <a href="https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html" class="external-link">GPLv2 or later</a>
+<code>inst/include/RcppPerpendicular.h</code> is a modification of some code from from <a href="https://github.com/RcppCore/RcppParallel" class="external-link">RcppParallel</a> and is <a href="https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html" class="external-link">GPLv2 or later</a>
 </li>
 <li>The underlying nearest neighbor descent C++ library, which can be found under <code>inst/include/tdoann</code>, is licensed under the <a href="https://opensource.org/license/bsd-2-clause/" class="external-link">BSD 2-Clause</a>.</li>
 </ul>
@@ -243,18 +244,7 @@
 </ul>
 </div>
 
-<div class="dev-status">
-<h2 data-toc-skip>Dev status</h2>
-<ul class="list-unstyled">
-<li><a href="https://github.com/jlmelville/rnndescent/actions" class="external-link"><img src="https://github.com/jlmelville/rnndescent/workflows/R-CMD-check/badge.svg" alt="R-CMD-check"></a></li>
-<li><a href="https://app.codecov.io/github/jlmelville/rnndescent?branch=master" class="external-link"><img src="https://img.shields.io/codecov/c/github/jlmelville/rnndescent/master.svg" alt="Coverage Status"></a></li>
-<li><a href="https://cran.r-project.org/package=rnndescent" class="external-link"><img src="https://www.r-pkg.org/badges/version/rnndescent" alt="CRAN Status Badge"></a></li>
-<li><a href="https://cran.r-project.org/package=rnndescent" class="external-link"><img src="https://tinyverse.netlify.app/badge/rnndescent" alt="Dependencies"></a></li>
-<li><a href="https://www.r-pkg.org/pkg/rnndescent" class="external-link"><img src="https://cranlogs.r-pkg.org/badges/rnndescent?color=brightgreen" alt="Downloads (monthly)"></a></li>
-<li><a href="https://www.r-pkg.org/pkg/rnndescent" class="external-link"><img src="https://cranlogs.r-pkg.org/badges/grand-total/rnndescent?color=brightgreen" alt="Downloads (total)"></a></li>
-<li><a href="https://github.com/jlmelville/rnndescent" class="external-link"><img src="https://img.shields.io/github/last-commit/jlmelville/rnndescent" alt="Last Commit"></a></li>
-</ul>
-</div>
+
 
   </aside>
 </div>

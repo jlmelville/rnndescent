@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Random Partition Forests • rnndescent</title>
 <!-- katex math --><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" integrity="sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+" crossorigin="anonymous">
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" integrity="sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/Yr2r3Dy4lfFg" crossorigin="anonymous"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script><script src="../katex-auto.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" integrity="sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/Yr2r3Dy4lfFg" crossorigin="anonymous"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script><script src="../katex-auto.js"></script><script src="../lightswitch.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
@@ -18,11 +18,11 @@
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
-    <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
+    <nav class="navbar navbar-expand-lg fixed-top " aria-label="Site navigation"><div class="container">
 
     <a class="navbar-brand me-2" href="../index.html">rnndescent</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -49,10 +49,25 @@
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-documentation-version" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Documentation version</button>
+  <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-documentation-version">
+<li><a class="dropdown-item" href="https://jlmelville.github.io/rnndescent/">CRAN release</a></li>
+    <li><a class="dropdown-item" href="https://jlmelville.github.io/rnndescent/dev/">Development</a></li>
+  </ul>
+</li>
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
 </form></li>
 <li class="nav-item"><a class="external-link nav-link" href="https://github.com/jlmelville/rnndescent/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-lightswitch" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true" aria-label="Light switch"><span class="fa fa-sun"></span></button>
+  <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-lightswitch">
+<li><button class="dropdown-item" data-bs-theme-value="light"><span class="fa fa-sun"></span> Light</button></li>
+    <li><button class="dropdown-item" data-bs-theme-value="dark"><span class="fa fa-moon"></span> Dark</button></li>
+    <li><button class="dropdown-item" data-bs-theme-value="auto"><span class="fa fa-adjust"></span> Auto</button></li>
+  </ul>
+</li>
       </ul>
 </div>
 
@@ -69,7 +84,7 @@
       <h1>Random Partition Forests</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/jlmelville/rnndescent/blob/master/vignettes/random-partition-forests.Rmd" class="external-link"><code>vignettes/random-partition-forests.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/jlmelville/rnndescent/blob/v0.2.0/vignettes/random-partition-forests.Rmd" class="external-link"><code>vignettes/random-partition-forests.Rmd</code></a></small>
       <div class="d-none name"><code>random-partition-forests.Rmd</code></div>
     </div>
 
@@ -107,7 +122,7 @@ tree:</p>
 <li>Select a split point along that dimension.</li>
 <li>Split the data into two child nodes based on the split point.</li>
 <li>Repeat steps 1-3 on each of the two groups.</li>
-<li>When the number of items in a group is at most some threshold, the
+<li>When the number of items in a group is less than some threshold, the
 node is now a leaf, and stop splitting.</li>
 </ol>
 <p>Variations of steps 1 and 2 determines the vast majority of the
@@ -121,11 +136,9 @@ differences between the various tree-based methods.</p>
 <li>Select two points at random.</li>
 <li>Calculate the mid-point between those two points.</li>
 </ol>
-<p>Use the line between the two points as the normal to a hyperplane
-through the midpoint: the hyperplane is their perpendicular bisector.
-This defines a split in the data. This is not <em>exactly</em> the
-algorithm as described in <span class="citation">(Dasgupta and Freund
-2008)</span>, but it is how it’s done in the very similar method <a href="https://github.com/spotify/annoy" class="external-link">Annoy</a>.</p>
+<p>This is enough to define a hyperplane in the data. This is not
+<em>exactly</em> the algorithm as described in <span class="citation">(Dasgupta and Freund 2008)</span>, but it is how it’s
+done in the very similar method <a href="https://github.com/spotify/annoy" class="external-link">Annoy</a>.</p>
 <p>Step 3 then involves calculating which side of the hyperplane each
 point is on and assigning data to the child nodes on that basis.</p>
 </div>
@@ -151,8 +164,8 @@ item in the dataset.</p>
 <li>
 <code>metric</code>: the type of distance calculation to use. The
 default is <code>euclidean</code>, but there are a lot to choose from.
-See the help text for the <code>metric</code> parameter in
-<code><a href="../reference/rpf_build.html">rpf_build()</a></code> for details.</li>
+See the help text for the <code>metric</code> parameter in rpf_build()`
+for details.</li>
 <li>
 <code>n_trees</code>: the number of trees to build. The default is
 to choose based on the size of the data provided, with a maximum of 32:
@@ -160,14 +173,14 @@ eventually you will get diminishing returns from the number of trees in
 a forest.</li>
 <li>
 <code>leaf_size</code>: the number of items in a leaf. The splitting
-procedure stops when there are at most this number of items in a node.
-The default is <code>10</code> but you will want the leaf size to scale
-with the number of neighbors you will look for, so I have increased it
-to <code>15</code> for this example. The bigger this value the more
-accurate the search will be, but at the cost of a lot more distance
-calculations to carry out. Conversely, if you make it too small compared
-to the number of neighbors, then you may end up with not all items
-finding <code>k</code> neighbors.</li>
+procedure stops when there are fewer than this number of items in a
+node. The default is <code>10</code> but you will want the leaf size to
+scale with the number of neighbors you will look for, so I have
+increased it to <code>15</code> for this example. The bigger this value
+the more accurate the search will be, but at the cost of a lot more
+distance calculations to carry out. Conversely, if you make it too small
+compared to the number of neighbors, then you may end up with not all
+items finding <code>k</code> neighbors.</li>
 <li>
 <code>max_tree_depth</code>: the maximum depth of the tree. If a
 tree reaches this depth then even if the current node size exceeds the
@@ -204,12 +217,12 @@ the one we will talk about next.</p>
 the tree from the root to a leaf, calculating the side of each
 hyperplane it encounters. All the items in the leaf in which it ends up
 are then candidates for nearest neighbors.</p>
-<p>To query the forest we just built, we use the
+<p>To query the forest we just build, we use the
 <code>rpf_knn_query</code> function. Apart from the forest itself, we
 also need the data we want to query (<code>query</code>) and the data
 used to build the forest (<code>reference</code>), because the forest
-doesn’t store that information. In this case, because we are looking at
-the k-nearest neighbors of <code>iris</code>, the <code>query</code> and
+doesn’t store that information. In thus case, because we are looking at
+the k-nearest neighbors or <code>iris</code>, the <code>query</code> and
 the <code>reference</code> are the same, but they don’t have to be. At
 this point, we must also specify the number of neighbors we want.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
@@ -231,11 +244,10 @@ k-nearest neighbors, and <code>dist</code> contains the distances.</p>
 k-nearest neighbors of the data that was used in building the tree.
 However, the data has already been partitioned so if you want k-nearest
 neighbor data, there’s a more efficient way to do that: for each leaf,
-the other members of that leaf are candidates for the k-nearest
-neighbors of each point in it. While usually the distance calculations
-take up most of the time when looking for neighbors, you do avoid having
-to make any tree traversals and the associated hyperplane distance
-calculations.</p>
+the k-nearest neighbors of each point in the leaf are the other members
+of that leaf. While usually the distance calculations take up most of
+the time when looking for neighbors, you do avoid having to make any
+tree traversals and the associated hyperplane distance calculations.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">iris_knn</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rpf_knn.html">rpf_knn</a></span><span class="op">(</span><span class="va">iris</span>, k <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span></code></pre></div>
 <p>This should give the same result as running <code>rpf_build</code>
@@ -318,9 +330,8 @@ generic floating point data in mind.</p>
 <span>    metric <span class="op">=</span> <span class="st">"hamming"</span>,</span>
 <span>    margin <span class="op">=</span> <span class="st">"implicit"</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
-<p>The following uses explicit rather than implicit splits. It may
-produce a different forest and different neighbors, and for large binary
-datasets is likely to be noticeably slower:</p>
+<p>The following will give the same results but for large datasets is
+likely to be noticeably slower:</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">bin_knn_exp</span> <span class="op">&lt;-</span></span>
 <span>  <span class="fu"><a href="../reference/rpf_knn.html">rpf_knn</a></span><span class="op">(</span><span class="va">binary_data</span>,</span>
@@ -383,7 +394,7 @@ and Low Dimensional Manifolds.”</span> <em>Proceedings of the Fortieth
 Annual ACM Symposium on Theory of Computing</em>, 537–46.
 </div>
 <div id="ref-dong2011efficient" class="csl-entry">
-Dong, Wei, Moses Charikar, and Kai Li. 2011. <span>“Efficient k-Nearest
+Dong, Wei, Charikar Moses, and Kai Li. 2011. <span>“Efficient k-Nearest
 Neighbor Graph Construction for Generic Similarity Measures.”</span>
 <em>Proceedings of the 20th International Conference on World Wide
 Web</em>, 577–86.

@@ -38,9 +38,7 @@ prepare_search_graph(
   converted to `numerical` matrix format internally, so if your data
   columns are `logical` and intended to be used with the specialized
   binary `metric`s, you should convert it to a logical matrix first
-  (otherwise you will get the slower dense numerical version). Numeric
-  feature values must be finite: `NA`, `NaN`, `Inf` and `-Inf` are not
-  allowed.
+  (otherwise you will get the slower dense numerical version).
 
 - graph:
 
@@ -68,9 +66,6 @@ prepare_search_graph(
 
   - `"dice"`
 
-  - `"dot"` (1 minus the normalized dot product, capped at 1; 1 if
-    either vector is zero)
-
   - `"euclidean"`
 
   - `"hamming"`
@@ -91,9 +86,6 @@ prepare_search_graph(
 
   - `"manhattan"`
 
-  - `"matching"` (fraction of features whose zero/nonzero indicators
-    differ)
-
   - `"rogerstanimoto"`
 
   - `"russellrao"`
@@ -105,9 +97,6 @@ prepare_search_graph(
   - `"spearmanr"` (1 minus the Spearman rank correlation)
 
   - `"symmetrickl"` (symmetric Kullback-Leibler divergence)
-
-  - `"trueangular"` (angle between vectors divided by pi; 0 for two zero
-    vectors and 1/2 when exactly one vector is zero)
 
   - `"tsss"` (Triangle Area Similarity-Sector Area Similarity or TS-SS
     metric)
@@ -303,9 +292,9 @@ iris_query_nn <- graph_knn_query(
   reference_graph = ref_search_graph, k = 4, metric = "euclidean",
   verbose = TRUE
 )
-#> 19:21:38 Using alt metric 'sqeuclidean' for 'euclidean'
-#> 19:21:38 Initializing from random neighbors
-#> 19:21:38 Generating random k-nearest neighbor graph from reference with k = 4
-#> 19:21:38 Searching nearest neighbor graph with epsilon = 0.1 and max_search_fraction = 1
-#> 19:21:38 Finished
+#> 20:07:19 Using alt metric 'sqeuclidean' for 'euclidean'
+#> 20:07:19 Initializing from random neighbors
+#> 20:07:19 Generating random k-nearest neighbor graph from reference with k = 4
+#> 20:07:19 Searching nearest neighbor graph with epsilon = 0.1 and max_search_fraction = 1
+#> 20:07:19 Finished
 ```

@@ -41,9 +41,7 @@ nnd_knn(
   converted to `numerical` matrix format internally, so if your data
   columns are `logical` and intended to be used with the specialized
   binary `metric`s, you should convert it to a logical matrix first
-  (otherwise you will get the slower dense numerical version). Numeric
-  feature values must be finite: `NA`, `NaN`, `Inf` and `-Inf` are not
-  allowed.
+  (otherwise you will get the slower dense numerical version).
 
 - k:
 
@@ -66,9 +64,6 @@ nnd_knn(
 
   - `"dice"`
 
-  - `"dot"` (1 minus the normalized dot product, capped at 1; 1 if
-    either vector is zero)
-
   - `"euclidean"`
 
   - `"hamming"`
@@ -89,9 +84,6 @@ nnd_knn(
 
   - `"manhattan"`
 
-  - `"matching"` (fraction of features whose zero/nonzero indicators
-    differ)
-
   - `"rogerstanimoto"`
 
   - `"russellrao"`
@@ -103,9 +95,6 @@ nnd_knn(
   - `"spearmanr"` (1 minus the Spearman rank correlation)
 
   - `"symmetrickl"` (symmetric Kullback-Leibler divergence)
-
-  - `"trueangular"` (angle between vectors divided by pi; 0 for two zero
-    vectors and 1/2 when exactly one vector is zero)
 
   - `"tsss"` (Triangle Area Similarity-Sector Area Similarity or TS-SS
     metric)
@@ -319,11 +308,11 @@ iris_nn <- nnd_knn(iris, k = 4, metric = "manhattan", n_threads = 1)
 
 # Use verbose flag to see information about progress
 iris_nn <- nnd_knn(iris, k = 4, metric = "euclidean", verbose = TRUE)
-#> 19:21:37 Using alt metric 'sqeuclidean' for 'euclidean'
-#> 19:21:37 Initializing neighbors using 'rand' method
-#> 19:21:37 Generating random k-nearest neighbor graph with k = 4
-#> 19:21:37 Running nearest neighbor descent for 7 iterations
-#> 19:21:37 Finished
+#> 20:07:18 Using alt metric 'sqeuclidean' for 'euclidean'
+#> 20:07:18 Initializing neighbors using 'rand' method
+#> 20:07:18 Generating random k-nearest neighbor graph with k = 4
+#> 20:07:18 Running nearest neighbor descent for 7 iterations
+#> 20:07:18 Finished
 
 # Nearest neighbor descent uses random initialization, but you can pass any
 # approximation using the init argument (as long as the metrics used to
@@ -331,11 +320,11 @@ iris_nn <- nnd_knn(iris, k = 4, metric = "euclidean", verbose = TRUE)
 # by nnd_knn).
 iris_nn <- random_knn(iris, k = 4, metric = "euclidean")
 iris_nn <- nnd_knn(iris, init = iris_nn, metric = "euclidean", verbose = TRUE)
-#> 19:21:37 Using alt metric 'sqeuclidean' for 'euclidean'
-#> 19:21:37 Initializing from user-supplied graph
-#> 19:21:37 Applying metric correction to initial distances from 'euclidean' to 'sqeuclidean'
-#> 19:21:37 Running nearest neighbor descent for 7 iterations
-#> 19:21:37 Finished
+#> 20:07:18 Using alt metric 'sqeuclidean' for 'euclidean'
+#> 20:07:18 Initializing from user-supplied graph
+#> 20:07:18 Applying metric correction to initial distances from 'euclidean' to 'sqeuclidean'
+#> 20:07:18 Running nearest neighbor descent for 7 iterations
+#> 20:07:18 Finished
 
 # Number of iterations controls how much optimization is attempted. A smaller
 # value will run faster but give poorer results

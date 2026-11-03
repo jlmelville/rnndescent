@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Sparse TF-IDF Example • rnndescent</title>
 <!-- katex math --><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" integrity="sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+" crossorigin="anonymous">
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" integrity="sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/Yr2r3Dy4lfFg" crossorigin="anonymous"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script><script src="../katex-auto.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" integrity="sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/Yr2r3Dy4lfFg" crossorigin="anonymous"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script><script src="../katex-auto.js"></script><script src="../lightswitch.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
@@ -18,11 +18,11 @@
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
-    <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
+    <nav class="navbar navbar-expand-lg fixed-top " aria-label="Site navigation"><div class="container">
 
     <a class="navbar-brand me-2" href="../index.html">rnndescent</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -49,10 +49,25 @@
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-documentation-version" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Documentation version</button>
+  <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-documentation-version">
+<li><a class="dropdown-item" href="https://jlmelville.github.io/rnndescent/">CRAN release</a></li>
+    <li><a class="dropdown-item" href="https://jlmelville.github.io/rnndescent/dev/">Development</a></li>
+  </ul>
+</li>
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
 </form></li>
 <li class="nav-item"><a class="external-link nav-link" href="https://github.com/jlmelville/rnndescent/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-lightswitch" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true" aria-label="Light switch"><span class="fa fa-sun"></span></button>
+  <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-lightswitch">
+<li><button class="dropdown-item" data-bs-theme-value="light"><span class="fa fa-sun"></span> Light</button></li>
+    <li><button class="dropdown-item" data-bs-theme-value="dark"><span class="fa fa-moon"></span> Dark</button></li>
+    <li><button class="dropdown-item" data-bs-theme-value="auto"><span class="fa fa-adjust"></span> Auto</button></li>
+  </ul>
+</li>
       </ul>
 </div>
 
@@ -71,13 +86,13 @@
 Austen</h3>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/jlmelville/rnndescent/blob/master/vignettes/articles/sparse-example.Rmd" class="external-link"><code>vignettes/articles/sparse-example.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/jlmelville/rnndescent/blob/v0.2.0/vignettes/articles/sparse-example.Rmd" class="external-link"><code>vignettes/articles/sparse-example.Rmd</code></a></small>
       <div class="d-none name"><code>sparse-example.Rmd</code></div>
     </div>
 
     
     
-<p>It is a truth universally acknowledged that an article author in
+<p>It is a truth universally acknowledged than an article author in
 possession of a Jane Austen dataset must be in want of a k-nearest
 neighbor graph.</p>
 <p>In searching for a good example of working with sparse data, text
@@ -116,17 +131,16 @@ install the packages and run all the code.</p>
 <span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>And then load them:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># These optional article packages are not installed by package CI.</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tm.r-forge.r-project.org/" class="external-link">tm</a></span><span class="op">)</span> <span class="co"># nolint: object_usage_linter.</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">slam</span><span class="op">)</span> <span class="co"># nolint: object_usage_linter.</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/juliasilge/janeaustenr" class="external-link">janeaustenr</a></span><span class="op">)</span> <span class="co"># nolint: object_usage_linter.</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span> <span class="co"># nolint: object_usage_linter.</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tm.r-forge.r-project.org/" class="external-link">tm</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">slam</span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/juliasilge/janeaustenr" class="external-link">janeaustenr</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://jlmelville.github.io/rnndescent/">rnndescent</a></span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/jlmelville/uwot" class="external-link">uwot</a></span><span class="op">)</span> <span class="co"># nolint: object_usage_linter.</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/jlmelville/uwot" class="external-link">uwot</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://codeberg.org/jaganmn/Matrix" class="external-link">Matrix</a></span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/yixuan/RSpectra" class="external-link">RSpectra</a></span><span class="op">)</span> <span class="co"># nolint: object_usage_linter.</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">RColorBrewer</span><span class="op">)</span> <span class="co"># nolint: object_usage_linter.</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span> <span class="co"># nolint: object_usage_linter.</span></span></code></pre></div>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/yixuan/RSpectra" class="external-link">RSpectra</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">RColorBrewer</span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="preprocessing-the-text-data">Preprocessing the Text Data<a class="anchor" aria-label="anchor" href="#preprocessing-the-text-data"></a>
@@ -144,8 +158,8 @@ text itself.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">data</span>, <span class="fl">10</span><span class="op">)</span></span></code></pre></div>
 <pre><code># A tibble: 10 × 2
-   text                    book
-   &lt;chr&gt;                   &lt;fct&gt;
+   text                    book               
+   &lt;chr&gt;                   &lt;fct&gt;              
  1 "SENSE AND SENSIBILITY" Sense &amp; Sensibility
  2 ""                      Sense &amp; Sensibility
  3 "by Jane Austen"        Sense &amp; Sensibility
@@ -162,8 +176,8 @@ Persuasion):</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">tail</a></span><span class="op">(</span><span class="va">data</span>, <span class="fl">10</span><span class="op">)</span></span></code></pre></div>
 <pre><code># A tibble: 10 × 2
-   text                                                                      book
-   &lt;chr&gt;                                                                     &lt;fct&gt;
+   text                                                                      book      
+   &lt;chr&gt;                                                                     &lt;fct&gt;     
  1 "affection.  His profession was all that could ever make her friends"     Persuasion
  2 "wish that tenderness less, the dread of a future war all that could dim" Persuasion
  3 "her sunshine.  She gloried in being a sailor's wife, but she must pay"   Persuasion
@@ -192,9 +206,9 @@ can change the <code>n_chunks</code> value below.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">data_processed</span><span class="op">)</span></span></code></pre></div>
 <pre><code># A tibble: 6 × 3
-  book                row_group text
-  &lt;fct&gt;                   &lt;dbl&gt; &lt;chr&gt;
-1 Sense &amp; Sensibility         1 "SENSE AND SENSIBILITY  by Jane Austen  (1811)     CHAPTER 1"
+  book                row_group text                                                                                                                              
+  &lt;fct&gt;                   &lt;dbl&gt; &lt;chr&gt;                                                                                                                             
+1 Sense &amp; Sensibility         1 "SENSE AND SENSIBILITY  by Jane Austen  (1811)     CHAPTER 1"                                                                     
 2 Sense &amp; Sensibility         2 "  The family of Dashwood had long been settled in Sussex.  Their estate was large, and their residence was at Norland Park, in t…
 3 Sense &amp; Sensibility         3 "alteration in his home; for to supply her loss, he invited and received into his house the family of his nephew Mr. Henry Dashwo…
 4 Sense &amp; Sensibility         4 " By a former marriage, Mr. Henry Dashwood had one son: by his present lady, three daughters.  The son, a steady respectable youn…
@@ -246,11 +260,8 @@ graph from the sparse representation directly.</p>
 <div class="section level2">
 <h2 id="some-more-preprocessing">Some More Preprocessing<a class="anchor" aria-label="anchor" href="#some-more-preprocessing"></a>
 </h2>
-<p>Just before we go any further, we need to convert the <code>tm</code>
-TF-IDF matrix to a sparse matrix format supported by
-<code>rnndescent</code>. The package accepts <code>dgCMatrix</code>,
-<code>dgRMatrix</code>, and <code>dgTMatrix</code> sparse matrices as
-well as dense input. Here we will create a <code>dgCMatrix</code>:</p>
+<p>Just before we go only further, <code>rnndescent</code> only works
+with <code>dgCMatrix</code> so we need to convert the tf-idf matrix:</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">tfidf_sp</span> <span class="op">&lt;-</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/sparseMatrix.html" class="external-link">sparseMatrix</a></span><span class="op">(</span></span>
@@ -314,8 +325,8 @@ generate the k-occurrences:</p>
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">k_occurrences</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/k_occur.html">k_occur</a></span><span class="op">(</span><span class="va">tfidfl1_js_bf</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">k_occurrences</span><span class="op">)</span></span></code></pre></div>
-<pre><code>   Min. 1st Qu.  Median    Mean 3rd Qu.    Max.
-      1       6      11      15      19     167</code></pre>
+<pre><code>   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+      1       6      11      15      19     167 </code></pre>
 <p>This is telling us about the popularity of items in the dataset,
 i.e. while every item has 15 neighbors, which items tend to show up in
 the neighbor list of items more than average? If an item has a
@@ -359,8 +370,8 @@ at the popular text first.</p>
 <code class="sourceCode R"><span><span class="va">popular_indices</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="va">k_occurrences</span>, decreasing <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">data_processed</span><span class="op">[</span><span class="va">popular_indices</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"book"</span>, <span class="st">"text"</span><span class="op">)</span><span class="op">]</span></span></code></pre></div>
 <pre><code># A tibble: 6 × 2
-  book              text
-  &lt;fct&gt;             &lt;chr&gt;
+  book              text                                                                                          
+  &lt;fct&gt;             &lt;chr&gt;                                                                                         
 1 Mansfield Park    "You will be what you ought to be to her. I hope it does not distress you very much, Fanny?\"…
 2 Emma              "know any body was coming. 'It is only Mrs. Cole,' said I, 'depend upon it. Nobody else would…
 3 Pride &amp; Prejudice "Jane? Shall you like to have such a brother?\"  \"Very, very much. Nothing could give either…
@@ -385,8 +396,8 @@ sample 6 at random:</p>
 <code class="sourceCode R"><span><span class="va">unpopular_indices</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="va">k_occurrences</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="va">data_processed</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="va">unpopular_indices</span>, <span class="fl">6</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"book"</span>, <span class="st">"text"</span><span class="op">)</span><span class="op">]</span></span></code></pre></div>
 <pre><code># A tibble: 6 × 2
-  book                text
-  &lt;fct&gt;               &lt;chr&gt;
+  book                text                                                                                                                                  
+  &lt;fct&gt;               &lt;chr&gt;                                                                                                                                 
 1 Emma                "a letter, among the thousands that are constantly passing about the kingdom, is even carried wrong--and not one in a million, I supp…
 2 Northanger Abbey    "Catherine heard neither the particulars nor the result. Her companion's discourse now sunk from its hitherto animated pitch to nothi…
 3 Mansfield Park      "whose distress she thought of most. Julia's elopement could affect her comparatively but little; she was amazed and shocked; but it …
@@ -416,9 +427,9 @@ Prejudice are with this method:</p>
 <span><span class="va">mean_pap</span><span class="op">[</span><span class="va">mean_pap</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">]</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/sort.html" class="external-link">sort</a></span><span class="op">(</span>decreasing <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fl">10</span><span class="op">)</span></span></code></pre></div>
-<pre><code>elizabeth      darcy     bennet    bingley       jane       will       said    wickham    collins      lydia
-0.04253865 0.03290232 0.02795931 0.02545364 0.01991761 0.01847970 0.01713893 0.01687501 0.01687119 0.01438015</code></pre>
-<p>That actually corresponds ok with results from the
+<pre><code>elizabeth      darcy     bennet    bingley       jane       will       said    wickham    collins      lydia 
+0.04253865 0.03290232 0.02795931 0.02545364 0.01991761 0.01847970 0.01713893 0.01687501 0.01687119 0.01438015 </code></pre>
+<p>That actually correponds ok with results from the
 <code>tidytext</code> vignette: it’s mainly character names (and, er,
 <code>'said'</code>).</p>
 <p>If we apply this to the dataset as a whole:</p>
@@ -428,7 +439,7 @@ Prejudice are with this method:</p>
 <span><span class="va">mean_tfidf</span><span class="op">[</span><span class="va">mean_tfidf</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">]</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/sort.html" class="external-link">sort</a></span><span class="op">(</span>decreasing <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fl">10</span><span class="op">)</span></span></code></pre></div>
-<pre><code>      will        mrs       said       must       miss       much        one      think       know      never
+<pre><code>      will        mrs       said       must       miss       much        one      think       know      never 
 0.01630534 0.01513324 0.01446493 0.01388111 0.01355313 0.01307697 0.01266730 0.01200490 0.01169455 0.01152472</code></pre>
 <p>Now we have more generic words, although <code>said</code> is still
 there. Way to go, <code>said</code>.</p>
@@ -440,8 +451,8 @@ there too?):</p>
 <span><span class="va">mean_popular_tfidf</span><span class="op">[</span><span class="va">mean_popular_tfidf</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">]</span> <span class="op">%&gt;%</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/sort.html" class="external-link">sort</a></span><span class="op">(</span>decreasing <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fl">10</span><span class="op">)</span></span></code></pre></div>
-<pre><code>      love      quite       well       feel      think       like      shall       sure    nothing        yes
-0.08188918 0.07007464 0.06825873 0.06808318 0.06540969 0.06223084 0.06055058 0.05710714 0.05624428 0.05375587</code></pre>
+<pre><code>      love      quite       well       feel      think       like      shall       sure    nothing        yes 
+0.08188918 0.07007464 0.06825873 0.06808318 0.06540969 0.06223084 0.06055058 0.05710714 0.05624428 0.05375587 </code></pre>
 <p>There’s <code>love</code> right at the top. No <code>said</code> to
 be seen, and not a lot of overlap with the average words.</p>
 <p>Onto the unpopular text.</p>
@@ -451,8 +462,8 @@ be seen, and not a lot of overlap with the average words.</p>
 <span><span class="va">mean_unpopular_tfidf</span><span class="op">[</span><span class="va">mean_unpopular_tfidf</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">]</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/sort.html" class="external-link">sort</a></span><span class="op">(</span>decreasing <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fl">10</span><span class="op">)</span></span></code></pre></div>
-<pre><code>      every        much        mind       might        must     harriet     without         one        long       first
-0.014918830 0.011596126 0.011479893 0.011270905 0.011188771 0.010718795 0.010047623 0.009764715 0.009650010 0.009499682</code></pre>
+<pre><code>      every        much        mind       might        must     harriet     without         one        long       first 
+0.014918830 0.011596126 0.011479893 0.011270905 0.011188771 0.010718795 0.010047623 0.009764715 0.009650010 0.009499682 </code></pre>
 <p>There is a bit more overlap with the average words here, but what was
 it Tolstoy said about unhappy families? I wouldn’t necessarily expect a
 theme to emerge from chunks of text which have nothing in common with
@@ -468,9 +479,9 @@ Jane Austen, write about “love”. “think” and “feel”. If you
 </h2>
 <p>We can also visualize the neighbor graph by carrying out
 dimensionality reduction using UMAP via the <code>uwot</code> package.
-This will attempt to place nearest neighbors close together in a 2D
-scatter plot.</p>
-<p><code>uwot</code> doesn’t need any more input information than the
+This will attempt place nearest neighbors close together in a 2D scatter
+plot.</p>
+<p><code>uwot</code>doesn’t need any more input information than the
 k-nearest neighbor graph, which you pass to the <code>nn_method</code>
 parameter. This also requires explicitly setting the usual data input
 parameter <code>X</code> to <code>NULL</code>. I am also setting the
@@ -550,11 +561,9 @@ similarities in the input space, so we use
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/neighbor_overlap.html">neighbor_overlap</a></span><span class="op">(</span><span class="va">umap_nbrs</span>, <span class="va">tfidfl1_js_bf</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="fl">0.1604303</span></span></code></pre>
 <p>So on average 16% of the neighbor list was retained after embedding
-into 2D. This includes each point itself in both lists. If self is
-present in both lists for every point, the overlap among the other 14
-neighbors is about 10%: <code>(15 * 0.1604303 - 1) / 14</code>. This is
-one result for this example, and the stochastic embedding means your
-result will vary.</p>
+into 2D. Although this doesn’t sound like much, this actually pretty
+standard for UMAP (and maybe a bit better than normal). Your numbers are
+going to vary a bit from this, but hopefully not by much.</p>
 </div>
 </div>
 <div class="section level2">

@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Fashion MNIST Example • rnndescent</title>
 <!-- katex math --><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" integrity="sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+" crossorigin="anonymous">
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" integrity="sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/Yr2r3Dy4lfFg" crossorigin="anonymous"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script><script src="../katex-auto.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" integrity="sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/Yr2r3Dy4lfFg" crossorigin="anonymous"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script><script src="../katex-auto.js"></script><script src="../lightswitch.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
@@ -18,11 +18,11 @@
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
-    <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
+    <nav class="navbar navbar-expand-lg fixed-top " aria-label="Site navigation"><div class="container">
 
     <a class="navbar-brand me-2" href="../index.html">rnndescent</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -49,10 +49,25 @@
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-documentation-version" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Documentation version</button>
+  <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-documentation-version">
+<li><a class="dropdown-item" href="https://jlmelville.github.io/rnndescent/">CRAN release</a></li>
+    <li><a class="dropdown-item" href="https://jlmelville.github.io/rnndescent/dev/">Development</a></li>
+  </ul>
+</li>
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
 </form></li>
 <li class="nav-item"><a class="external-link nav-link" href="https://github.com/jlmelville/rnndescent/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-lightswitch" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true" aria-label="Light switch"><span class="fa fa-sun"></span></button>
+  <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-lightswitch">
+<li><button class="dropdown-item" data-bs-theme-value="light"><span class="fa fa-sun"></span> Light</button></li>
+    <li><button class="dropdown-item" data-bs-theme-value="dark"><span class="fa fa-moon"></span> Dark</button></li>
+    <li><button class="dropdown-item" data-bs-theme-value="auto"><span class="fa fa-adjust"></span> Auto</button></li>
+  </ul>
+</li>
       </ul>
 </div>
 
@@ -69,7 +84,7 @@
       <h1>Fashion MNIST Example</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/jlmelville/rnndescent/blob/master/vignettes/articles/fmnist-example.Rmd" class="external-link"><code>vignettes/articles/fmnist-example.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/jlmelville/rnndescent/blob/v0.2.0/vignettes/articles/fmnist-example.Rmd" class="external-link"><code>vignettes/articles/fmnist-example.Rmd</code></a></small>
       <div class="d-none name"><code>fmnist-example.Rmd</code></div>
     </div>
 
@@ -84,10 +99,10 @@ bindings for <a href="https://cran.r-project.org/package=RcppAnnoy" class="exter
 <div class="section level2">
 <h2 id="this-is-not-a-vignette">This is not a Vignette<a class="anchor" aria-label="anchor" href="#this-is-not-a-vignette"></a>
 </h2>
-<p>This article doesn’t contain any “live” documentation; I show
-selected numeric results below. Having to install packages from GitHub
-and also doing brute force search is not very user-friendly, so only run
-this code if you know what you are letting yourself in for.</p>
+<p>This article doesn’t contain any “live” documentation nor do I paste
+the output. Having to install packages of github and also doing brute
+force search is not very user-friendly, so only run this code if you
+know what you are letting yourself in for.</p>
 <div class="section level3">
 <h3 id="how-slow-is-this-going-to-be">How Slow Is This Going to Be?<a class="anchor" aria-label="anchor" href="#how-slow-is-this-going-to-be"></a>
 </h3>
@@ -95,14 +110,11 @@ this code if you know what you are letting yourself in for.</p>
 brute force search which takes about 10 minutes. If you have a
 reasonably modern machine it shouldn’t be tying up your computer for
 hours on end.</p>
-<p>These are historical measurements: the run date and package versions
-are not recorded here, so they should not be taken as a promise of
-current performance. I made no particular efforts to be super accurate
-with timings. I ran all of the approximate nearest neighbor methods
-several times and reporting to the nearest second seems fine. I also did
-not shut down any other programs on my computer while these were
-running, but I also didn’t actively carry out other activities on the
-machine either.</p>
+<p>I made no particular efforts to be super accurate with timings. I ran
+all of the approximate nearest neighbor methods several times and
+reporting to the nearest second seems fine. I also did not shut down any
+other programs on my computer while these were running, but I also
+didn’t actively carry out other activities on the machine either.</p>
 </div>
 </div>
 <div class="section level2">
@@ -138,7 +150,7 @@ another reason why this isn’t a vignette).</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fmnist</span> <span class="op">&lt;-</span> <span class="fu">snedata</span><span class="fu">::</span><span class="fu">download_fashion_mnist</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p>This is in the same format as the famous <a href="https://en.wikipedia.org/wiki/MNIST_database" class="external-link">MNIST</a> data, but
-instead of being images of handwritten digits, it’s images of different
+instead of being images of handwritten images, it’s images of different
 types of clothing.</p>
 <p>The typical split is the first 60,000 images as the training set, and
 the rest as the test set.</p>
@@ -174,9 +186,10 @@ nearest neighbor indices with the exact results.</p>
 </h3>
 <p>While all the methods here can find k-nearest neighbors by building
 an index and then querying that index with the original data,
-<code>rnnd_knn</code> constructs the neighbor graph without a separate
-query or retaining a full reusable search index. Querying can improve
-the result, but it’s always worth trying the initial knn graph.</p>
+<code>rnndescent</code> can extract the k-nearest neighbors directly
+from the index without a separate query step. The query step will
+produce a more accurate result, but it’s always worth trying the initial
+knn graph.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fmnist_train_rnnd</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rnnd_knn.html">rnnd_knn</a></span><span class="op">(</span><span class="va">fmnist_train</span>, k <span class="op">=</span> <span class="fl">15</span>, n_threads <span class="op">=</span> <span class="fl">6</span>, verbose <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <p>This took 11 seconds. How accurate are the results?</p>
@@ -301,8 +314,8 @@ methods to be a lot faster than that.</p>
 <div class="section level3">
 <h3 id="rnndescent-1">rnndescent<a class="anchor" aria-label="anchor" href="#rnndescent-1"></a>
 </h3>
-<p>For the k-nearest neighbor task, <code>rnnd_knn</code> did not retain
-a reusable search index. Now we need to build one.</p>
+<p>We avoided having to build an index with <code>rnndescent</code> for
+the k-nearest neighbor tasks. Now we must.</p>
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rnnd_index</span> <span class="op">&lt;-</span></span>
 <span>  <span class="fu"><a href="../reference/rnnd_build.html">rnnd_build</a></span><span class="op">(</span></span>
@@ -351,7 +364,7 @@ more like 0.65 seconds.</p>
 <div class="section level3">
 <h3 id="annoy-1">Annoy<a class="anchor" aria-label="anchor" href="#annoy-1"></a>
 </h3>
-<p>Like HNSW, we will re-use the Annoy index from the k-nearest
+<p>Like HSNW, we will re-use the Annoy index from the k-nearest
 neighbors graph building. This is the one where we set
 <code>n_trees = 30</code>.</p>
 <div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">

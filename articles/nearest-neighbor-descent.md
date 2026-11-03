@@ -22,52 +22,57 @@ Conceptually it would seem that you would implement this algorithm with
 a loop like the following in each iteration:
 
 1.  For each item `i` in the graph:
-    1.  For each neighbor `j` of `i`:
-        1.  For each neighbor `k` of `j` that is not already a neighbor
-            of `i`:
-            1.  Calculate the distance between `i` and `k`, d\_{ik}.
-            2.  If d\_{ik} is smaller than the largest distance in the
-                neighbor list of `i`, update that list with `k`.
+2.  For each item `j` in the neighbors of `i`:
+3.  For each item `k` in the neighbors of `j`:
+4.  If `k` is not already a neighbor of `i`:
+5.  Calculate the distance between `i` and `k`, d\_{ik}.
+6.  If d\_{ik} is smaller than the neighbor with the largest distance in
+    the neighbor list of i, update the neighbor list of `i` with `k`.
 
 ## Local Join
 
 The process described above involves a lot of looping and repeated
-fetching of neighbor vectors, so NND uses the concept of a “local join”.
-For each item `i`, we gather both its current neighbors (forward
-neighbors) and the items that consider `i` a neighbor (reverse
-neighbors). We then compare pairs drawn from that combined set: they are
-candidates for each other’s neighbor lists because they have a
-connection through `i`.
+fetching of neighbor vectors, so NND actually uses the concept of a
+“local join”. One way to think of it is to consider an item `i` fielding
+requests for its nearest neighbors. It will be repeatedly asked for it
+by any other item which considers it a neighbor. So if we did some work
+at the start of each iteration to know all the items which consider `i`
+a neighbor, we can generate all the candidates neighbor pairs that `i`
+is involved with at once. Then we only need to iterate over the items in
+the graph. We do need to do the work of finding out who considers `i` a
+neighbor but that also only requires a loop over the graph also.
 
-This organizes the comparisons around each item and its candidate set,
-rather than repeatedly fetching neighbors along individual paths through
-the graph. We do need to find the reverse neighbors at the start of each
-iteration, but that requires a loop over the graph.
+To be clear, the same amount of work needs to be done, but by doing it
+in a different order, everything is a bit more efficient in terms of
+what needs to be fetched from memory.
 
-For each candidate pair, one distance calculation can potentially update
-both endpoint neighbor lists. This has some challenges for a parallel
-implementation and also makes caching distances a bit harder, but it
-avoids the more naive approach of explicitly looping over all
+The up-shot of using the local join approach is that rather than
+iterating over the graph one item at a time, we end up a list of pairs
+of items `(i, j)` to update the graph as a whole with. And because we
+are dealing with a kNN graph if we have a pair `(i, j)` we also have
+`(j, i)` as a potential update, at the cost of only one distance
+calculation. This has some challenges in terms of parallel
+implementation and it also makes caching distances a bit harder but it’s
+still better than the more naive approach of explicitly looping over all
 neighbors-of-neighbors.
 
 ## Other Heuristics
 
 Additionally, there are two other heuristics used to reduce the amount
 of work done. The first is that candidate neighbors are split into “new”
-and “old” candidates. A “new” candidate neighbor is a recent addition
-that has not yet been processed as new. A candidate that was not sampled
-can remain new for a later iteration. “Old” neighbors have already been
-processed. For the local join, all possible pairs of “new” neighbors are
-used for updating the graph, but “old” neighbors are only ever paired
-with “new” neighbors, not other “old” neighbors. This is referred to as
-“incremental search” in the NND paper.
+and “old” candidates. A “new” candidate neighbor is any neighbor which
+entered the graph in the previous iteration. “Old” neighbors are
+everything else. For the local join, all possible pairs of “new”
+neighbors are used for updating the graph, but “old” neighbors are only
+ever paired with “new” neighbors, not other “old” neighbors. This is
+referred to as “incremental search” in the NND paper.
 
 Also, a tolerance \delta is used to determine as an early stopping
 criterion. The total number of items in the graph is kN where k is the
 number of neighbors and N is the number of items. During each iteration,
 a counter is incremented every time the graph is successfully updated.
-If at the end of the iteration the number of updates is less than or
-equal to \delta kN then the iteration stops.
+If at the end of the iteration the number of updates is less than \delta
+kN then the iteration stops.
 
 ## PyNNDescent Modifications
 
@@ -80,18 +85,18 @@ always only k “forward” neighbors of `i` in a graph, we don’t control
 who is a neighbor of what, so `i` could be the neighbor of many (or even
 all) the other items in a dataset. Thus, building the reverse list can
 be a bit challenging as we need to be prepared for any item to have up
-to N reverse neighbors. In the NND paper, this is avoided by defining a
-sample rate \rho, which is used to sample from the k-nearest neighbors,
-and then the reverse neighbor list is only built from the sampled items.
-A subsequent down-sampling is then applied to the reverse neighbor list
-so that both the forward and reverse neighbor list only contain \rho k
+to N neighbors. In the NND paper, this is avoided by defining a sample
+rate \rho, which is used to sample from the k-nearest neighbors, and
+then the reverse neighbor list is only built from the sampled items. A
+subsequent down-sampling is then applied to the reverse neighbor list so
+that both the forward and reverse neighbor list only contain \rho k
 items.
 
 Instead of a sample rate, `rnndescent` defines a `max_candidates`
-parameter that caps each of the new and old candidate pools per item.
-Each pool combines forward and reverse candidates. If there are more
-candidates than the cap, the retained candidates are chosen randomly so
-this works like random sampling.
+parameter determines the size of both the forward and reverse neighbor
+lists per item. If there are more candidates than the `max_candidates`
+value, the retained candidates are chosen randomly so this works like
+random sampling.
 
 Finally, instead of a random initialization, PyNNDescent uses a
 k-nearest neighbors graph from a random projection forest. There is an
@@ -155,13 +160,11 @@ Apart from `k`, there are some parameters you may want to modify:
   causes the algorithm to stop early anyway.
 - `delta` controls early stopping and must be a value between `0` and
   `1`. If in a given iteration, the number of changes to the neighbor
-  graph is less than or equal to `delta * k * N` then the algorithm
-  stops. The default is `0.001` so you can interpret that roughly as the
-  neighbor graph needs to have changed by more than 0.1% to avoid early
-  stopping.
-- `max_candidates` caps each of the new and old candidate pools, which
-  combine forward and reverse neighbors. The default is to set this to
-  whatever is smaller, `k` or `60`.
+  graph is less than `delta * k * N` then the algorithm stops. The
+  default is `0.001` so you can interpret that roughly as the neighbor
+  graph needs to have changed by 0.1% to avoid early stopping.
+- `max_candidates` controls the size of the forward and reverse neighbor
+  lists. The default is to set this to whatever is smaller, `k` or `60`.
 - `n_threads` controls the number of threads to use. The default is to
   run as a single thread. The slow part of any approximate nearest
   neighbor algorithm is the distance calculation so using multiple
@@ -181,12 +184,11 @@ Apart from `k`, there are some parameters you may want to modify:
 
 Note that NND uses random number generation to determine the order of
 processing candidates, so for reproducible results you should set the
-random number seed explicitly. Even with the same seed and `n_threads`,
-parallel NND can give you different graphs on repeated runs. Also, the
-way that parallelism is implemented means that reproducibility is not
-possible for different settings of `n_threads` even with a consistent
-seed, e.g. going from `n_threads = 0` to `n_threads = 4` will give you
-different results, even if you `set.seed` with a fixed seed beforehand.
+random number seed explicitly. Also, the way that parallelism is
+implemented means that reproducibility is not possible for different
+settings of `n_threads` even with a consistent seed, e.g. going from
+`n_threads = 0` to `n_threads = 4` will give you different results, even
+if you `set.seed` with a fixed seed beforehand.
 
 ## Troubleshooting
 
@@ -214,16 +216,15 @@ This tells you that for a dataset of the size of `iris`, at most 7
 iterations will run. The `1 / 7`, `2 / 7` and so on is logged at the end
 of each iteration. Following that is the sum of the distances of the
 neighbors in the heap, the number of updates to the neighbor graph and
-the convergence criterion. For the default Euclidean metric, the heap
-sum uses squared distances internally, so it is not the sum of the
-distances returned in `dist`. If `num_updates` is at most `tol` then the
+the convergence criterion. If `num_updates` falls below `tol` then the
 algorithm stops. In this case, on the third iteration there were no
 updates at all, so the algorithm stopped early.
 
-Increasing `n_iters` or reducing `delta` is unlikely to help from this
-state. That does not guarantee that the graph is exact: the search may
-have missed candidates. This really only leaves `max_candidates` as an
-option.
+In this case, almost certainly NND has found the exact nearest
+neighbors, so you wouldn’t be worried about modifying the parameters.
+But if you were so inclined, the output shows you that there would be
+little point in increasing `n_iters` or reducing `delta`. This really
+only leaves `max_candidates` as an option.
 
 The vignette on dealing with
 [hubness](https://jlmelville.github.io/rnndescent/articles/hubness.md)
@@ -250,7 +251,7 @@ amenable for searching using
 
 ## References
 
-Dong, Wei, Moses Charikar, and Kai Li. 2011. “Efficient k-Nearest
+Dong, Wei, Charikar Moses, and Kai Li. 2011. “Efficient k-Nearest
 Neighbor Graph Construction for Generic Similarity Measures.”
 *Proceedings of the 20th International Conference on World Wide Web*,
 577–86.

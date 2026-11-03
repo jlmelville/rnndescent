@@ -2,3 +2,7 @@
 .katex-display {
   overflow: auto hidden;
 }
+
+[data-bs-theme="dark"] .navbar .text-danger {
+  color: #ffb4b4 !important;
+}

@@ -11,10 +11,10 @@ rough timings. It compares the rnndescent with the R bindings for
 
 ## This is not a Vignette
 
-This article doesn’t contain any “live” documentation; I show selected
-numeric results below. Having to install packages from GitHub and also
-doing brute force search is not very user-friendly, so only run this
-code if you know what you are letting yourself in for.
+This article doesn’t contain any “live” documentation nor do I paste the
+output. Having to install packages of github and also doing brute force
+search is not very user-friendly, so only run this code if you know what
+you are letting yourself in for.
 
 ### How Slow Is This Going to Be?
 
@@ -23,14 +23,11 @@ brute force search which takes about 10 minutes. If you have a
 reasonably modern machine it shouldn’t be tying up your computer for
 hours on end.
 
-These are historical measurements: the run date and package versions are
-not recorded here, so they should not be taken as a promise of current
-performance. I made no particular efforts to be super accurate with
-timings. I ran all of the approximate nearest neighbor methods several
-times and reporting to the nearest second seems fine. I also did not
-shut down any other programs on my computer while these were running,
-but I also didn’t actively carry out other activities on the machine
-either.
+I made no particular efforts to be super accurate with timings. I ran
+all of the approximate nearest neighbor methods several times and
+reporting to the nearest second seems fine. I also did not shut down any
+other programs on my computer while these were running, but I also
+didn’t actively carry out other activities on the machine either.
 
 ## Setup
 
@@ -75,7 +72,7 @@ fmnist <- snedata::download_fashion_mnist()
 
 This is in the same format as the famous
 [MNIST](https://en.wikipedia.org/wiki/MNIST_database) data, but instead
-of being images of handwritten digits, it’s images of different types of
+of being images of handwritten images, it’s images of different types of
 clothing.
 
 The typical split is the first 60,000 images as the training set, and
@@ -116,10 +113,10 @@ neighbor indices with the exact results.
 ### rnndescent
 
 While all the methods here can find k-nearest neighbors by building an
-index and then querying that index with the original data, `rnnd_knn`
-constructs the neighbor graph without a separate query or retaining a
-full reusable search index. Querying can improve the result, but it’s
-always worth trying the initial knn graph.
+index and then querying that index with the original data, `rnndescent`
+can extract the k-nearest neighbors directly from the index without a
+separate query step. The query step will produce a more accurate result,
+but it’s always worth trying the initial knn graph.
 
 ``` r
 
@@ -290,8 +287,8 @@ methods to be a lot faster than that.
 
 ### rnndescent
 
-For the k-nearest neighbor task, `rnnd_knn` did not retain a reusable
-search index. Now we need to build one.
+We avoided having to build an index with `rnndescent` for the k-nearest
+neighbor tasks. Now we must.
 
 ``` r
 
@@ -360,7 +357,7 @@ seconds or so.
 
 ### Annoy
 
-Like HNSW, we will re-use the Annoy index from the k-nearest neighbors
+Like HSNW, we will re-use the Annoy index from the k-nearest neighbors
 graph building. This is the one where we set `n_trees = 30`.
 
 ``` r

@@ -1,0 +1,273 @@
+# Metrics
+
+``` r
+
+library(rnndescent)
+```
+
+A lot of distance functions are implemented in `rnndescent`, which you
+can specify in every function which needs them with the `metric`
+parameter. Technically not all of these are metrics, but let’s just let
+that slide. Typical are `"euclidean"` or `"cosine"` the latter being
+more common for document-based data. For binary data, `"hamming"` or
+`"jaccard"` might be a good place to start.
+
+The metrics here are a subset of those offered by the
+[PyNNDescent](https://github.com/lmcinnes/pynndescent/tree/master)
+Python package which in turn reproduces those in the
+[scipy.spatial.distance](https://docs.scipy.org/doc/scipy/reference/spatial.distance.html#module-scipy.spatial.distance)
+module of [SciPy](https://scipy.org/). Many of the binary distances seem
+to have definitions shared with (Choi et al. 2010) so you may want to
+look in that reference for an exact definition.
+
+- `"braycurtis"`:
+  [Bray-Curtis](https://en.wikipedia.org/wiki/Bray%E2%80%93Curtis_dissimilarity).
+- `"canberra"`:
+  [Canberra](https://en.wikipedia.org/wiki/Canberra_distance).
+- `"chebyshev"`:
+  [Chebyshev](https://en.wikipedia.org/wiki/Chebyshev_distance), also
+  known as the L-infinity norm (L\_\infty).
+- `"correlation"`: 1 minus the [Pearson
+  correlation](https://en.wikipedia.org/wiki/Pearson_correlation_coefficient).
+  The distance between two all-zero vectors is 0 for dense and sparse
+  input. This is a package convention: Pearson correlation is undefined
+  for zero-variance vectors.
+- `"cosine"`: 1 minus the [cosine
+  similarity](https://en.wikipedia.org/wiki/Cosine_similarity).
+- `"dice"`: 1 minus the [Dice
+  coefficient](https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient),
+  also known as the Sørensen–Dice coefficient. Intended for binary data.
+- `"dot"`: 1 minus the dot product after normalizing each vector to unit
+  length, capped at 1. Both dense and sparse vectors are normalized, so
+  their magnitudes don’t affect the distance. For nonzero vectors, this
+  agrees with `"cosine"` when the cosine similarity is positive.
+  Otherwise `"dot"` returns 1: for example, opposite vectors have a
+  `"cosine"` distance of 2 but a `"dot"` distance of 1. If either or
+  both vectors are zero, the distance is also 1. Logical matrices use
+  the same calculation on 0s and 1s.
+- `"euclidean"`: the Euclidean distance, also known as the L2 norm.
+- `"hamming"`: the [Hamming
+  distance](https://en.wikipedia.org/wiki/Hamming_distance), the
+  fraction of features with unequal values. Numeric values need not be
+  binary.
+- `"haversine"`: the Haversine (great-circle) distance for 2D latitude
+  and longitude coordinates in *radians*. The returned distance is an
+  angle in radians on the unit sphere. This is for compatibility with
+  the PyNNDescent implementation, but be aware that functions like
+  `distHaversine` in the
+  [geosphere](https://CRAN.R-project.org/package=geosphere) package
+  expect latitude and longitude in *degrees*. An error will be raised if
+  values that appear to be supplied in degrees are encountered.
+- `"hellinger"`: the [Hellinger
+  distance](https://en.wikipedia.org/wiki/Hellinger_distance). This is
+  intended for probability distributions: use non-negative values, such
+  as probabilities or counts. The calculation accounts for each row’s
+  total, so the values need not sum to `1`.
+- `"jaccard"`: 1 minus the [Jaccard
+  index](https://en.wikipedia.org/wiki/Jaccard_index), also known as the
+  Tanimoto coefficient. Intended for binary data.
+- `"jensenshannon"`: the [Jensen-Shannon
+  divergence](https://en.wikipedia.org/wiki/Jensen%E2%80%93Shannon_divergence).
+  Like `"hellinger"`, this is intended for non-negative probability
+  weights or counts. The calculation adds a small value to the
+  components and normalizes them before computing the divergence.
+- `"kulsinski"`: the Kulsinski dissimilarity as defined in the Python
+  package `scipy.spatial.distance.kulsinski` (this function is
+  deprecated in scipy). Intended for binary data.
+- `"sqeuclidean"` (squared Euclidean)
+- `"manhattan"`: the Manhattan distance, also known as the L1 norm or
+  [Taxicab distance](https://en.wikipedia.org/wiki/Taxicab_geometry).
+- `"matching"`: the fraction of features for which one value is zero and
+  the other is nonzero. It accepts dense and sparse numeric input as
+  well as logical matrices. Two nonzero values match, even if they
+  differ: for example, 2 and 7 match here but not with `"hamming"`. For
+  logical or 0/1 data, the two distances agree.
+- `"rogerstanimoto"`: the [Rogers-Tanimoto
+  coefficient](https://en.wikipedia.org/wiki/Qualitative_variation#Rogers%E2%80%93Tanimoto_coefficient).
+- `"russellrao"`: the [Russell-Rao
+  coefficient](https://en.wikipedia.org/wiki/Qualitative_variation#Russel%E2%80%93Rao_coefficient).
+- `"sokalmichener"`. Intended for binary data.
+- `"sokalsneath"`: the [Sokal-Sneath
+  coefficient](https://en.wikipedia.org/wiki/Qualitative_variation#Sokal%E2%80%93Sneath_coefficient).
+  Intended for binary data.
+- `"spearmanr"`: 1 minus the [Spearman rank
+  correlation](https://en.wikipedia.org/wiki/Spearman%27s_rank_correlation_coefficient)
+- `"symmetrickl"` symmetrized version of the [Kullback-Leibler
+  divergence](https://en.wikipedia.org/wiki/Kullback%E2%80%93Leibler_divergence).
+  The symmetrization is calculated as D\_{KL}(P\|\|Q) + D\_{KL}(Q\|\|P).
+  Like `"jensenshannon"`, this uses non-negative probability weights or
+  counts, adds a small value to the components, and normalizes them
+  before computing the divergence.
+- `"trueangular"`: the angle between vectors divided by \pi, from 0 for
+  the same direction to 1 for opposite directions. By package
+  convention, the distance is 0 between two zero vectors and 1/2 when
+  exactly one vector is zero.
+- `"tsss"` the Triangle Area Similarity-Sector Area Similarity or TS-SS
+  metric as described in (Heidarian and Dinneen 2016). Compared to
+  results in PyNNDescent (as of version 0.5.11), distances are smaller
+  by a factor of 2 in this package. This does not affect the returned
+  nearest neighbors, only the distances. Multiply them by 2 if you need
+  to get closer to the PyNNDescent results. By package convention, the
+  distance is 0 whenever either vector is all zero, for dense and sparse
+  input. A zero vector therefore ties at distance 0 with every vector;
+  no ordering among tied neighbors is guaranteed.
+- `"yule"` the Yule dissimilarity. Intended for binary data.
+
+For non-sparse data, the following variants preprocess each row once.
+This trades memory for a potential speed up during the distance
+calculation:
+
+- `"cosine-preprocess"`: normalize each vector to unit length before
+  computing cosine distance.
+- `"correlation-preprocess"`: center and normalize each vector before
+  computing correlation distance.
+
+Both calculate distances directly on the ordinary scale; no inverse
+transform is needed. Minor numerical differences from the
+non-preprocessed versions can be expected. Their conventions also differ
+for zero or constant vectors: two zero vectors have `"cosine"` distance
+0 but `"cosine-preprocess"` distance 1; two constant vectors have
+`"correlation"` distance 0 but `"correlation-preprocess"` distance 1.
+When exactly one vector is zero (for cosine) or constant (for
+correlation), both versions return 1.
+
+The internal names `"alternative-cosine"`, `"alternative-dot"`,
+`"alternative-hellinger"` and `"alternative-jaccard"` are also currently
+accepted, but return transformed distances when selected directly. Use
+the ordinary names above. Where available, `use_alt_metric` lets the
+implementation use a faster internal calculation and convert the results
+back to the ordinary distance scale. Currently this applies to
+Euclidean, dot, Hellinger and Jaccard distances; it has no effect on
+cosine, correlation, or their preprocessing variants.
+
+## Numerical precision
+
+Numeric coordinates are converted to single precision (`float`) in the
+native code, which also stores distances in single precision. The
+returned `dist` matrices use R’s double precision, but that does not
+recover information lost during conversion or calculation. Brute force
+compares every pair of points; “exact” describes the search, not
+double-precision numerical accuracy.
+
+For example, these two values differ by 1 in R, but become the same
+number in single precision:
+
+``` r
+
+query <- matrix(1e8)
+reference <- matrix(1e8 + 1)
+c(
+  R = abs(reference - query),
+  rnndescent = brute_force_knn_query(query, reference, k = 1)$dist
+)
+#>          R rnndescent 
+#>          1          0
+```
+
+For Euclidean data with a large common offset, subtracting that offset
+from both query and reference in R can help retain small differences. A
+common translation preserves Euclidean distances but generally changes
+cosine and probability distances, so the choice of preprocessing depends
+on the metric.
+
+Numeric feature inputs must contain only finite values. `NA`, `NaN`,
+`Inf` and `-Inf` raise an error for both dense and sparse data,
+including query and reference inputs.
+
+Very large finite inputs can also overflow intermediate calculations and
+leave missing neighbors (`idx = 0`, `dist = NA`), including with brute
+force. This remains an unresolved numerical limitation.
+
+## Specialized Binary Metrics
+
+Logical feature matrices must contain only `TRUE` and `FALSE`. Missing
+logical values (`NA`) raise an error when the features are used, with
+both ordinary and specialized binary metrics. If treating missing values
+as `FALSE` is appropriate for your data, replace them explicitly before
+calling, for example with `x[is.na(x)] <- FALSE`.
+
+Some metrics are intended for use with binary data. This means that:
+
+- For the binary metrics, use numeric `0` and `1` or a logical matrix.
+  These metrics generally treat zero as absent and nonzero as present,
+  so values `1` and `2` are both present. Hamming also supports
+  nonbinary numeric values and compares the actual values.
+- If you provide the data as a `logical` matrix, a much faster
+  implementation is used.
+
+The metrics you can use with binary data are:
+
+- `"dice"`
+- `"hamming"`
+- `"jaccard"`
+- `"kulsinski"`
+- `"matching"`
+- `"rogerstanimoto"`
+- `"russellrao"`
+- `"sokalmichener"`
+- `"sokalsneath"`
+- `"yule"`
+
+Here’s an example of using binary data stored as 0s and 1s with the
+`"hamming"` metric:
+
+``` r
+
+set.seed(42)
+binary_data <- matrix(sample(c(0, 1), 100, replace = TRUE), ncol = 10)
+head(binary_data)
+#>      [,1] [,2] [,3] [,4] [,5] [,6] [,7] [,8] [,9] [,10]
+#> [1,]    0    0    0    1    0    1    0    1    1     0
+#> [2,]    0    1    0    1    0    0    1    0    0     1
+#> [3,]    0    0    0    1    1    1    1    1    1     0
+#> [4,]    0    1    0    1    1    1    1    1    0     1
+#> [5,]    1    0    0    0    1    1    1    1    0     1
+#> [6,]    1    0    1    1    1    1    1    1    1     1
+```
+
+``` r
+
+nn <- brute_force_knn(binary_data, k = 4, metric = "hamming")
+```
+
+Now let’s convert it to a logical matrix:
+
+``` r
+
+logical_data <- binary_data == 1
+head(logical_data)
+#>       [,1]  [,2]  [,3]  [,4]  [,5]  [,6]  [,7]  [,8]  [,9] [,10]
+#> [1,] FALSE FALSE FALSE  TRUE FALSE  TRUE FALSE  TRUE  TRUE FALSE
+#> [2,] FALSE  TRUE FALSE  TRUE FALSE FALSE  TRUE FALSE FALSE  TRUE
+#> [3,] FALSE FALSE FALSE  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE FALSE
+#> [4,] FALSE  TRUE FALSE  TRUE  TRUE  TRUE  TRUE  TRUE FALSE  TRUE
+#> [5,]  TRUE FALSE FALSE FALSE  TRUE  TRUE  TRUE  TRUE FALSE  TRUE
+#> [6,]  TRUE FALSE  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE
+```
+
+``` r
+
+logical_nn <- brute_force_knn(logical_data, k = 4, metric = "hamming")
+```
+
+The results will be the same:
+
+``` r
+
+all.equal(nn, logical_nn)
+#> [1] TRUE
+```
+
+but on a real-world dataset, the logical version will be much faster.
+
+## References
+
+Choi, Seung-Seok, Sung-Hyuk Cha, Charles C Tappert, et al. 2010. “A
+Survey of Binary Similarity and Distance Measures.” *Journal of
+Systemics, Cybernetics and Informatics* 8 (1): 43–48.
+
+Heidarian, Arash, and Michael J. Dinneen. 2016. “A Hybrid Geometric
+Approach for Measuring Similarity Level Among Documents and Document
+Clustering.” *2016 IEEE Second International Conference on Big Data
+Computing Service and Applications (BigDataService)*, 142–51.
+<https://doi.org/10.1109/BigDataService.2016.14>.

@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Metrics • rnndescent</title>
 <!-- katex math --><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" integrity="sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+" crossorigin="anonymous">
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" integrity="sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/Yr2r3Dy4lfFg" crossorigin="anonymous"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script><script src="../katex-auto.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" integrity="sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/Yr2r3Dy4lfFg" crossorigin="anonymous"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script><script src="../katex-auto.js"></script><script src="../lightswitch.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
@@ -18,11 +18,11 @@
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
-    <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
+    <nav class="navbar navbar-expand-lg fixed-top " aria-label="Site navigation"><div class="container">
 
     <a class="navbar-brand me-2" href="../index.html">rnndescent</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -49,10 +49,25 @@
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-documentation-version" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Documentation version</button>
+  <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-documentation-version">
+<li><a class="dropdown-item" href="https://jlmelville.github.io/rnndescent/">CRAN release</a></li>
+    <li><a class="dropdown-item" href="https://jlmelville.github.io/rnndescent/dev/">Development</a></li>
+  </ul>
+</li>
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
 </form></li>
 <li class="nav-item"><a class="external-link nav-link" href="https://github.com/jlmelville/rnndescent/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-lightswitch" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true" aria-label="Light switch"><span class="fa fa-sun"></span></button>
+  <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-lightswitch">
+<li><button class="dropdown-item" data-bs-theme-value="light"><span class="fa fa-sun"></span> Light</button></li>
+    <li><button class="dropdown-item" data-bs-theme-value="dark"><span class="fa fa-moon"></span> Dark</button></li>
+    <li><button class="dropdown-item" data-bs-theme-value="auto"><span class="fa fa-adjust"></span> Auto</button></li>
+  </ul>
+</li>
       </ul>
 </div>
 
@@ -69,7 +84,7 @@
       <h1>Metrics</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/jlmelville/rnndescent/blob/master/vignettes/metrics.Rmd" class="external-link"><code>vignettes/metrics.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/jlmelville/rnndescent/blob/v0.2.0/vignettes/metrics.Rmd" class="external-link"><code>vignettes/metrics.Rmd</code></a></small>
       <div class="d-none name"><code>metrics.Rmd</code></div>
     </div>
 
@@ -99,37 +114,23 @@ so you may want to look in that reference for an exact definition.</p>
 also known as the L-infinity norm (<span class="math inline">L_\infty</span>).</li>
 <li>
 <code>"correlation"</code>: 1 minus the <a href="https://en.wikipedia.org/wiki/Pearson_correlation_coefficient" class="external-link">Pearson
-correlation</a>. The distance between two all-zero vectors is 0 for
-dense and sparse input. This is a package convention: Pearson
-correlation is undefined for zero-variance vectors.</li>
+correlation</a>.</li>
 <li>
 <code>"cosine"</code>: 1 minus the <a href="https://en.wikipedia.org/wiki/Cosine_similarity" class="external-link">cosine
 similarity</a>.</li>
 <li>
-<code>"dice"</code>: 1 minus the <a href="https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient" class="external-link">Dice
+<code>"dice"</code>: the <a href="https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient" class="external-link">Dice
 coefficient</a>, also known as the Sørensen–Dice coefficient. Intended
 for binary data.</li>
-<li>
-<code>"dot"</code>: 1 minus the dot product after normalizing each
-vector to unit length, capped at 1. Both dense and sparse vectors are
-normalized, so their magnitudes don’t affect the distance. For nonzero
-vectors, this agrees with <code>"cosine"</code> when the cosine
-similarity is positive. Otherwise <code>"dot"</code> returns 1: for
-example, opposite vectors have a <code>"cosine"</code> distance of 2 but
-a <code>"dot"</code> distance of 1. If either or both vectors are zero,
-the distance is also 1. Logical matrices use the same calculation on 0s
-and 1s.</li>
 <li>
 <code>"euclidean"</code>: the Euclidean distance, also known as the
 L2 norm.</li>
 <li>
 <code>"hamming"</code>: the <a href="https://en.wikipedia.org/wiki/Hamming_distance" class="external-link">Hamming
-distance</a>, the fraction of features with unequal values. Numeric
-values need not be binary.</li>
+distance</a>. Intended for binary data.</li>
 <li>
 <code>"haversine"</code>: the Haversine (great-circle) distance for
-2D latitude and longitude coordinates in <em>radians</em>. The returned
-distance is an angle in radians on the unit sphere. This is for
+2D latitude and longitude coordinates in <em>radians</em>. This is for
 compatibility with the PyNNDescent implementation, but be aware that
 functions like <code>distHaversine</code> in the <a href="https://CRAN.R-project.org/package=geosphere" class="external-link">geosphere</a>
 package expect latitude and longitude in <em>degrees</em>. An error will
@@ -137,19 +138,16 @@ be raised if values that appear to be supplied in degrees are
 encountered.</li>
 <li>
 <code>"hellinger"</code>: the <a href="https://en.wikipedia.org/wiki/Hellinger_distance" class="external-link">Hellinger
-distance</a>. This is intended for probability distributions: use
-non-negative values, such as probabilities or counts. The calculation
-accounts for each row’s total, so the values need not sum to
-<code>1</code>.</li>
+distance</a>. This is intended to be used with a probability
+distribution, so ensure that each row of your input data contains
+non-negative values which sum to <code>1</code>.</li>
 <li>
-<code>"jaccard"</code>: 1 minus the <a href="https://en.wikipedia.org/wiki/Jaccard_index" class="external-link">Jaccard index</a>,
+<code>"jaccard"</code>: the <a href="https://en.wikipedia.org/wiki/Jaccard_index" class="external-link">Jaccard index</a>,
 also known as the Tanimoto coefficient. Intended for binary data.</li>
 <li>
 <code>"jensenshannon"</code>: the <a href="https://en.wikipedia.org/wiki/Jensen%E2%80%93Shannon_divergence" class="external-link">Jensen-Shannon
-divergence</a>. Like <code>"hellinger"</code>, this is intended for
-non-negative probability weights or counts. The calculation adds a small
-value to the components and normalizes them before computing the
-divergence.</li>
+divergence</a>. Like <code>"hellinger"</code>, this is intended to be
+used with a probability distribution.</li>
 <li>
 <code>"kulsinski"</code>: the Kulsinski dissimilarity as defined in
 the Python package <code>scipy.spatial.distance.kulsinski</code> (this
@@ -160,13 +158,6 @@ function is deprecated in scipy). Intended for binary data.</li>
 <code>"manhattan"</code>: the Manhattan distance, also known as the
 L1 norm or <a href="https://en.wikipedia.org/wiki/Taxicab_geometry" class="external-link">Taxicab
 distance</a>.</li>
-<li>
-<code>"matching"</code>: the fraction of features for which one
-value is zero and the other is nonzero. It accepts dense and sparse
-numeric input as well as logical matrices. Two nonzero values match,
-even if they differ: for example, 2 and 7 match here but not with
-<code>"hamming"</code>. For logical or 0/1 data, the two distances
-agree.</li>
 <li>
 <code>"rogerstanimoto"</code>: the <a href="https://en.wikipedia.org/wiki/Qualitative_variation#Rogers%E2%80%93Tanimoto_coefficient" class="external-link">Rogers-Tanimoto
 coefficient</a>.</li>
@@ -184,109 +175,39 @@ rank correlation</a>
 </li>
 <li>
 <code>"symmetrickl"</code> symmetrized version of the <a href="https://en.wikipedia.org/wiki/Kullback%E2%80%93Leibler_divergence" class="external-link">Kullback-Leibler
-divergence</a>. The symmetrization is calculated as <span class="math inline">D_{KL}(P||Q) + D_{KL}(Q||P)</span>. Like
-<code>"jensenshannon"</code>, this uses non-negative probability weights
-or counts, adds a small value to the components, and normalizes them
-before computing the divergence.</li>
-<li>
-<code>"trueangular"</code>: the angle between vectors divided by
-<span class="math inline">\pi</span>, from 0 for the same direction to 1
-for opposite directions. By package convention, the distance is 0
-between two zero vectors and 1/2 when exactly one vector is zero.</li>
+divergence</a>. The symmetrization is calculated as <span class="math inline">D_{KL}(P||Q) + D_{KL}(Q||P)</span>.</li>
 <li>
 <code>"tsss"</code> the Triangle Area Similarity-Sector Area
 Similarity or TS-SS metric as described in <span class="citation">(Heidarian and Dinneen 2016)</span>. Compared to
 results in PyNNDescent (as of version 0.5.11), distances are smaller by
 a factor of 2 in this package. This does not affect the returned nearest
 neighbors, only the distances. Multiply them by 2 if you need to get
-closer to the PyNNDescent results. By package convention, the distance
-is 0 whenever either vector is all zero, for dense and sparse input. A
-zero vector therefore ties at distance 0 with every vector; no ordering
-among tied neighbors is guaranteed.</li>
+closer to the PyNNDescent results.</li>
 <li>
 <code>"yule"</code> the Yule dissimilarity. Intended for binary
 data.</li>
 </ul>
-<p>For non-sparse data, the following variants preprocess each row once.
-This trades memory for a potential speed up during the distance
-calculation:</p>
+<p>For non-sparse data, the following variants are available with
+preprocessing: this trades memory for a potential speed up during the
+distance calculation. Some minor numerical differences should be
+expected compared to the non-preprocessed versions:</p>
 <ul>
 <li>
-<code>"cosine-preprocess"</code>: normalize each vector to unit
-length before computing cosine distance.</li>
+<code>"cosine-preprocess"</code>: <code>cosine</code> with
+preprocessing.</li>
 <li>
-<code>"correlation-preprocess"</code>: center and normalize each
-vector before computing correlation distance.</li>
+<code>"correlation-preprocess"</code>: <code>correlation</code> with
+preprocessing.</li>
 </ul>
-<p>Both calculate distances directly on the ordinary scale; no inverse
-transform is needed. Minor numerical differences from the
-non-preprocessed versions can be expected. Their conventions also differ
-for zero or constant vectors: two zero vectors have
-<code>"cosine"</code> distance 0 but <code>"cosine-preprocess"</code>
-distance 1; two constant vectors have <code>"correlation"</code>
-distance 0 but <code>"correlation-preprocess"</code> distance 1. When
-exactly one vector is zero (for cosine) or constant (for correlation),
-both versions return 1.</p>
-<p>The internal names <code>"alternative-cosine"</code>,
-<code>"alternative-dot"</code>, <code>"alternative-hellinger"</code> and
-<code>"alternative-jaccard"</code> are also currently accepted, but
-return transformed distances when selected directly. Use the ordinary
-names above. Where available, <code>use_alt_metric</code> lets the
-implementation use a faster internal calculation and convert the results
-back to the ordinary distance scale. Currently this applies to
-Euclidean, dot, Hellinger and Jaccard distances; it has no effect on
-cosine, correlation, or their preprocessing variants.</p>
-<div class="section level2">
-<h2 id="numerical-precision">Numerical precision<a class="anchor" aria-label="anchor" href="#numerical-precision"></a>
-</h2>
-<p>Numeric coordinates are converted to single precision
-(<code>float</code>) in the native code, which also stores distances in
-single precision. The returned <code>dist</code> matrices use R’s double
-precision, but that does not recover information lost during conversion
-or calculation. Brute force compares every pair of points; “exact”
-describes the search, not double-precision numerical accuracy.</p>
-<p>For example, these two values differ by 1 in R, but become the same
-number in single precision:</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">query</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">1e8</span><span class="op">)</span></span>
-<span><span class="va">reference</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">1e8</span> <span class="op">+</span> <span class="fl">1</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
-<span>  R <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">reference</span> <span class="op">-</span> <span class="va">query</span><span class="op">)</span>,</span>
-<span>  rnndescent <span class="op">=</span> <span class="fu"><a href="../reference/brute_force_knn_query.html">brute_force_knn_query</a></span><span class="op">(</span><span class="va">query</span>, <span class="va">reference</span>, k <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">$</span><span class="va">dist</span></span>
-<span><span class="op">)</span></span>
-<span><span class="co">#&gt;          R rnndescent </span></span>
-<span><span class="co">#&gt;          1          0</span></span></code></pre></div>
-<p>For Euclidean data with a large common offset, subtracting that
-offset from both query and reference in R can help retain small
-differences. A common translation preserves Euclidean distances but
-generally changes cosine and probability distances, so the choice of
-preprocessing depends on the metric.</p>
-<p>Numeric feature inputs must contain only finite values.
-<code>NA</code>, <code>NaN</code>, <code>Inf</code> and
-<code>-Inf</code> raise an error for both dense and sparse data,
-including query and reference inputs.</p>
-<p>Very large finite inputs can also overflow intermediate calculations
-and leave missing neighbors (<code>idx = 0</code>,
-<code>dist = NA</code>), including with brute force. This remains an
-unresolved numerical limitation.</p>
-</div>
 <div class="section level2">
 <h2 id="specialized-binary-metrics">Specialized Binary Metrics<a class="anchor" aria-label="anchor" href="#specialized-binary-metrics"></a>
 </h2>
-<p>Logical feature matrices must contain only <code>TRUE</code> and
-<code>FALSE</code>. Missing logical values (<code>NA</code>) raise an
-error when the features are used, with both ordinary and specialized
-binary metrics. If treating missing values as <code>FALSE</code> is
-appropriate for your data, replace them explicitly before calling, for
-example with <code>x[is.na(x)] &lt;- FALSE</code>.</p>
 <p>Some metrics are intended for use with binary data. This means
 that:</p>
 <ul>
-<li>For the binary metrics, use numeric <code>0</code> and
-<code>1</code> or a logical matrix. These metrics generally treat zero
-as absent and nonzero as present, so values <code>1</code> and
-<code>2</code> are both present. Hamming also supports nonbinary numeric
-values and compares the actual values.</li>
+<li>Your numeric data should consist of only two distinct values,
+typically <code>0</code> and <code>1</code>. You will get unpredictable
+results otherwise.</li>
 <li>If you provide the data as a <code>logical</code> matrix, a much
 faster implementation is used.</li>
 </ul>
@@ -305,7 +226,7 @@ faster implementation is used.</li>
 </ul>
 <p>Here’s an example of using binary data stored as 0s and 1s with the
 <code>"hamming"</code> metric:</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span></span>
 <span><span class="va">binary_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span>, <span class="fl">100</span>, replace <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>, ncol <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">binary_data</span><span class="op">)</span></span>
@@ -316,10 +237,10 @@ faster implementation is used.</li>
 <span><span class="co">#&gt; [4,]    0    1    0    1    1    1    1    1    0     1</span></span>
 <span><span class="co">#&gt; [5,]    1    0    0    0    1    1    1    1    0     1</span></span>
 <span><span class="co">#&gt; [6,]    1    0    1    1    1    1    1    1    1     1</span></span></code></pre></div>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">nn</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/brute_force_knn.html">brute_force_knn</a></span><span class="op">(</span><span class="va">binary_data</span>, k <span class="op">=</span> <span class="fl">4</span>, metric <span class="op">=</span> <span class="st">"hamming"</span><span class="op">)</span></span></code></pre></div>
 <p>Now let’s convert it to a logical matrix:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">logical_data</span> <span class="op">&lt;-</span> <span class="va">binary_data</span> <span class="op">==</span> <span class="fl">1</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">logical_data</span><span class="op">)</span></span>
 <span><span class="co">#&gt;       [,1]  [,2]  [,3]  [,4]  [,5]  [,6]  [,7]  [,8]  [,9] [,10]</span></span>
@@ -329,10 +250,10 @@ faster implementation is used.</li>
 <span><span class="co">#&gt; [4,] FALSE  TRUE FALSE  TRUE  TRUE  TRUE  TRUE  TRUE FALSE  TRUE</span></span>
 <span><span class="co">#&gt; [5,]  TRUE FALSE FALSE FALSE  TRUE  TRUE  TRUE  TRUE FALSE  TRUE</span></span>
 <span><span class="co">#&gt; [6,]  TRUE FALSE  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE</span></span></code></pre></div>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">logical_nn</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/brute_force_knn.html">brute_force_knn</a></span><span class="op">(</span><span class="va">logical_data</span>, k <span class="op">=</span> <span class="fl">4</span>, metric <span class="op">=</span> <span class="st">"hamming"</span><span class="op">)</span></span></code></pre></div>
 <p>The results will be the same:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/all.equal.html" class="external-link">all.equal</a></span><span class="op">(</span><span class="va">nn</span>, <span class="va">logical_nn</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
 <p>but on a real-world dataset, the logical version will be much

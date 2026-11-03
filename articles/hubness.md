@@ -113,14 +113,14 @@ respect to the largest distance)
 hist(g2d_nnbf$dist[, -1] / max(g2d_nnbf$dist[, -1]), xlab = "distances", main = "2D 15-NN")
 ```
 
-![](hubness_files/figure-html/NN%20distances%20distribution-1.png)
+![](hubness_files/figure-html/NN-distances-distribution-1.png)
 
 ``` r
 
 hist(g1000d_nnbf$dist[, -1] / max(g1000d_nnbf$dist[, -1]), xlab = "distances", main = "1000D 15-NN")
 ```
 
-![](hubness_files/figure-html/NN%20distances%20distribution-2.png)
+![](hubness_files/figure-html/NN-distances-distribution-2.png)
 
 Compared to low dimensional data, we can see that the high dimensional
 distances are distributed around a higher distance as well as more
@@ -137,7 +137,7 @@ hist(g1000d_nnd$dist[, -1] / max(g1000d_nnd$dist[, -1]),
 )
 ```
 
-![](hubness_files/figure-html/NND%20distances%20distribution-1.png)
+![](hubness_files/figure-html/NND-distances-distribution-1.png)
 
 Pretty much indistinguishable from the exact results, so it seems like
 there isn’t an obvious diagnostic from the distances themselves.
@@ -145,13 +145,13 @@ there isn’t an obvious diagnostic from the distances themselves.
 Is the distribution of the errors in the NND results uniform or are some
 items neighborhoods noticeably better predicted than others? This
 function will calculate a vector of the relative RMS error between two
-sets of neighbors in terms of distances. It divides the RMS error by the
-RMS of the reference distances:
+sets of neighbors in terms of distances:
 
 ``` r
 
 nn_rrmsev <- function(nn, ref) {
-  sqrt(apply((nn$dist[, -1] - ref$dist[, -1])^2, 1, sum) /
+  n <- ncol(ref$dist) - 1
+  sqrt(apply((nn$dist[, -1] - ref$dist[, -1])^2 / n, 1, sum) /
     apply(ref$dist[, -1]^2, 1, sum))
 }
 ```
@@ -174,7 +174,7 @@ hist(g1000d_rrmse,
 )
 ```
 
-![](hubness_files/figure-html/histogram%20of%20distance%20difference-1.png)
+![](hubness_files/figure-html/histogram-of-distance-difference-1.png)
 
 None of the relative errors are actually that large, so if you only care
 about the value of kth nearest neighbor distances, then even in the
@@ -200,7 +200,7 @@ hist(g1000d_nnd_acc,
 )
 ```
 
-![](hubness_files/figure-html/hist%201000D-1.png)
+![](hubness_files/figure-html/hist-1000D-1.png)
 
 This shows a similar pattern: some items have very high accuracy and
 some have noticeably worse accuracy than average. For completeness, here
@@ -217,7 +217,7 @@ plot(
 )
 ```
 
-![](hubness_files/figure-html/rrmse%20vs%20acc-1.png)
+![](hubness_files/figure-html/rrmse-vs-acc-1.png)
 
 Nothing very surprising here: there’s a fairly consistent spread of
 RRMSE for a given accuracy.
@@ -233,27 +233,26 @@ others.
 look for items that appear very frequently in the k-nearest neighbor
 graph. The `k_occur` function counts “k-occurrences” of each item in a
 dataset, i.e. a count of the number of times an item appears in the
-k-nearest neighbor graph. You can also see it as the in-degree of each
-item, or as reversing the direction of the edges and then counting the
-out-degree.
+k-nearest neighbor graph. You can also see it as reversing the direction
+of the edges in the k-nearest neighbor graph and then counting the
+in-degree of each item.
 
 If the distribution of neighbors was entirely uniform we would expect to
 see each item appear k times. If there are hubs then the k-occurrence
-could get as large as the size of the dataset, N. Here an “antihub” is
-an item that is not a neighbor of any other item. Each item includes
-itself in these graphs, so an anti-hub has k-occurrence 1. An item
-appearing fewer than k times is below average, but need not be an
-anti-hub.
+could get as large as the size of the dataset, N. An item which appears
+in the neighbor graph fewer than k times could be termed an “antihub”.
+Our definition of a neighbor of an item always includes the item itself,
+so we would expect the minimum k-occurrence to be 1.
 
 Also, because there are always only Nk edges in a k-nearest neighbor
 graph, if an item appears more than the expected amount this implies
 that other items must be under-represented. Practically speaking, there
 are always going to be items with a larger k-occurrence than expected
-and hence some with a lower k-occurrence. Hubness is more a case of
-deciding on a cut-off after which the presence of an item with a lot of
-neighbors starts causing you problems, which is going to be dependent on
-what you are planning to do with the neighbor graph (and probably the
-number of neighbors you want).
+and hence some with a lower k-occurrence, so hubness or anti-hubness is
+more a case of deciding on a cut-off after which the presence of an item
+with a lot of neighbors starts causing you problems, which is going to
+be dependent on what you are planning to do with the neighbor graph (and
+probably the number of neighbors you want).
 
 ### k-occurrence in the 2D case
 
@@ -289,7 +288,7 @@ k-occurrences:
 hist(g2d_bfko, main = "2D 15-NN", xlab = "k-occurrences")
 ```
 
-![](hubness_files/figure-html/2D%20k-occurrence%20histogram-1.png)
+![](hubness_files/figure-html/2D-k-occurrence-histogram-1.png)
 
 This unremarkable-looking distribution is a visual indication of a
 dataset without a lot of hubness and anti-hubs lurking to cause problems
@@ -306,7 +305,7 @@ g1000d_bfko <- k_occur(g1000d_nnbf$idx, k = 15)
 hist(g1000d_bfko, main = "1000D 15-NN", xlab = "k-occurrences")
 ```
 
-![](hubness_files/figure-html/1000D%20k-occurrences-1.png)
+![](hubness_files/figure-html/1000D-k-occurrences-1.png)
 
 The differences are pretty stark. The first thing to notice is the
 x-axis. In the 2D case, the maximum k-occurrence was ~20. For the 1000D
@@ -322,7 +321,7 @@ hist(pmin(g1000d_bfko, max(g2d_bfko)),
 )
 ```
 
-![](hubness_files/figure-html/zoomed%20k-occurrences-1.png)
+![](hubness_files/figure-html/zoomed-k-occurrences-1.png)
 
 It’s a very different distribution to the 2D case: we have a large
 number of anti-hubs and a noticeable number of hubs. There’s certainly
@@ -350,10 +349,10 @@ sum(g1000d_bfko == 1)
 #> [1] 221
 ```
 
-221 of the 1000 points do not appear as a neighbor of any other point.
-This has serious implications for using a neighbor graph for certain
-purposes: you cannot reach those points by starting at another point in
-the graph and following neighbors.
+A quarter of the dataset does not appear as a neighbor of any other
+point. This has serious implications for using a neighbor graph for
+certain purposes: you cannot reach a quarter of the dataset by starting
+at an arbitrary point in the graph and following neighbors.
 
 This also might point to why nearest neighbor descent has trouble with
 this high dimensional case: if we rely on points turning up as a
@@ -379,7 +378,7 @@ g1000d_nndko <- k_occur(g1000d_nnd$idx, k = 15)
 hist(g1000d_nndko, main = "1000D 15-NND", xlab = "k-occurrences")
 ```
 
-![](hubness_files/figure-html/1000D%20NND%20k-occurences-1.png)
+![](hubness_files/figure-html/1000D-NND-k-occurences-1.png)
 
 That seems similar to the true results, and zooming in like we did with
 the exact results:
@@ -392,7 +391,7 @@ hist(pmin(g1000d_nndko, max(g2d_bfko)),
 )
 ```
 
-![](hubness_files/figure-html/zoomed%20NND%20k-occurrences-1.png)
+![](hubness_files/figure-html/zoomed-NND-k-occurrences-1.png)
 
 Visually this looks a lot like the distribution of the exact results.
 Next, the numerical summary:
@@ -436,7 +435,7 @@ plot(g1000d_nndko, g1000d_bfko,
 abline(a = 0, b = 1)
 ```
 
-![](hubness_files/figure-html/approximate%20vs%20true%201000D%20k-occurrence-1.png)
+![](hubness_files/figure-html/approximate-vs-true-1000D-k-occurrence-1.png)
 
 ``` r
 
@@ -463,7 +462,7 @@ plot(g1000d_nndko, g1000d_bfko,
 abline(a = 0, b = 1)
 ```
 
-![](hubness_files/figure-html/zoomed%20approximate%20vs%20true%201000D%20k-occurrence-1.png)
+![](hubness_files/figure-html/zoomed-approximate-vs-true-1000D-k-occurrence-1.png)
 
 here it seems that there is a tendency to over-estimate the
 k-occurrence. Anti-hubs are also not perfectly identified, but there are
@@ -492,16 +491,16 @@ plot(g1000d_nndko, g1000d_nnd_acc,
 )
 ```
 
-![](hubness_files/figure-html/predicting%20accuracy%20with%20NND%20k-occurrence-1.png)
+![](hubness_files/figure-html/predicting-accuracy-with-NND-k-occurrence-1.png)
 
 So the answer to the question is “not really”, but there *is* a trend.
 The empty space in the lower right of the plot indicates that items with
-a large k-occurrence (hubs) are very well predicted. In this dataset,
-every item above a k-occurrence of 150 has its neighborhood perfectly
-predicted. However, at the other end of the k-occurrence spectrum, we
-can see that while the lower bound on the predicted accuracy does
-plummet as the k-occurrence is reduced, some anti-hubs actually do have
-their neighborhoods very accurately predicted too.
+a large k-occurrence (hubs) are very well predicted. And above a
+k-occurrence of 150, we are guaranteed to perfectly predict the
+neighborhood of an item. However, at the other end of the k-occurrence
+spectrum, we can see that while the lower bound on the predicted
+accuracy does plummet as the k-occurrence is reduced, some anti-hubs
+actually do have their neighborhoods very accurately predicted too.
 
 Unfortunately this means that k-occurrence is a bit too rough to use to
 predict poorly-predicted items. Let’s say that we wanted to get all the
@@ -534,7 +533,7 @@ sum(g1000d_nndko <= max(g1000d_nndko[g1000d_nnd_acc < 0.9]))
 #> [1] 929
 ```
 
-That’s most of the dataset. If we dropped the threshold to 80% accuracy,
+That’s most of the dataset. If we dropped the threshold to 80 accuracy,
 does it help?
 
 ``` r
@@ -560,7 +559,7 @@ that the converged NND results, despite not being 100% accurate do a
 good job at expressing the hubness of the underlying data. How converged
 do the results need to be? What if we think of NND as a tool for
 identifying hubness in datasets as a whole rather than for accurate
-approximate nearest neighbor graphs? Could a much less converged NND
+approximate nearest neighbor graphs? Could a much less unconverged NND
 graph, while obviously being even less accurate, still correctly
 identify a dataset as having hubs?
 
@@ -589,7 +588,7 @@ graph. But let’s take a look at the k-occurrence distribution:
 hist(g1000d_nndkoi1, main = "1000D 15-NND (1 iter)", xlab = "k-occurrences")
 ```
 
-![](hubness_files/figure-html/unconverged%20ko%20distribution-1.png)
+![](hubness_files/figure-html/unconverged-ko-distribution-1.png)
 
 Looking familiar. Zooming in…
 
@@ -601,7 +600,7 @@ hist(pmin(g1000d_nndkoi1, max(g2d_bfko)),
 )
 ```
 
-![](hubness_files/figure-html/unconverged%20ko%20distribution%20zoomed-1.png)
+![](hubness_files/figure-html/unconverged-ko-distribution-zoomed-1.png)
 
 The distribution is at least similar to the converged version. Taking a
 look at some numbers:
@@ -634,7 +633,7 @@ g2d_nndkoi1 <- k_occur(g2d_nnd_iter1$idx, k = 15)
 hist(g2d_nndkoi1, main = "2D 15-NND (1 iter)", xlab = "k-occurrences")
 ```
 
-![](hubness_files/figure-html/unconverged%202D%20NND-1.png)
+![](hubness_files/figure-html/unconverged-2D-NND-1.png)
 
 ``` r
 
@@ -702,13 +701,12 @@ neighbor_overlap(g1000d_nnbf, g1000d_nnd_w)
 ```
 
 Like a 2%ish improvement. It’s not nothing. And despite the extra
-computation and O\left(N\right) storage and O\left(kN\right) counting
-work required to calculate the k-occurrences in each iteration, with
-high-dimensional data the distance calculations tend to dominate the run
-time, so there’s no reason to *not* set `weight_by_degree = TRUE` in
-this case. However, for the rest of the vignette, we’ll keep it set to
-`FALSE` (the default) so it’s easier to evaluate the contribution of
-other changes.
+computation and O\left(kN\right) storage required to calculate the
+k-occurrences in each iteration, with high-dimensional data the distance
+calculations tend to dominate the run time, so there’s no reason to
+*not* set `weight_by_degree = TRUE` in this case. However, for the rest
+of the vignette, we’ll keep it set to `FALSE` (the default) so it’s
+easier to evaluate the contribution of other changes.
 
 ### Use More Neighbors
 
@@ -746,7 +744,7 @@ an improvement over the default setting (which is set to be the same as
 ### Decrease the convergence tolerance
 
 You could set `delta` to lower than the default of `0.001` or even to
-`0` to continue until convergence, subject to the `n_iters` limit:
+`0` to force the algorithm to run until convergence:
 
 ``` r
 
@@ -803,7 +801,7 @@ plot(
 )
 ```
 
-![](hubness_files/figure-html/NND%20100D%20compare%20accuracy-1.png)
+![](hubness_files/figure-html/NND-100D-compare-accuracy-1.png)
 
 ``` r
 
@@ -838,10 +836,11 @@ g1000d_search_graph <-
   )
 ```
 
-The preparation procedure diversifies the forward edges, adds reversed
-edges, and prunes the result. Reversing an edge can give an anti-hub an
-incoming edge, although pruning may remove it again. Reversing edges
-also cannot connect components that were already disconnected.
+This augments the neighbor graph with the reversed edges of the neighbor
+graph, so that if i is one of the nearest neighbors of j, we guarantee
+that j is also considered a near neighbor i. This ameliorates the issue
+of anti-hubs because all k neighbors of an anti-hub now have it in their
+neighbor list.
 
 The downside of including all reversed edges in the neighbor graph is
 that the neighbor list of a hub is now going to be very large as it
@@ -858,8 +857,7 @@ reintroduced due to the edge reduction, but hopefully the distribution
 of edges is a bit more equitable.
 
 Here is a summary and histogram of the k-occurrences of the search
-graph. Unlike the neighbor graph, this search graph has no self edges,
-so an anti-hub has k-occurrence zero:
+graph:
 
 ``` r
 
@@ -867,15 +865,15 @@ g1000d_sgko <- k_occur(g1000d_search_graph)
 hist(g1000d_sgko, main = "search graph k-occurrences", xlab = "k-occurrences")
 ```
 
-![](hubness_files/figure-html/histogram%20of%20k-occurrences%20of%20search%20graph-1.png)
+![](hubness_files/figure-html/histogram-of-k-occurrences-of-search-graph-1.png)
 
 ``` r
 
 summary(g1000d_sgko)
 #>    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
 #>   1.000   4.000   5.000   7.258   9.000  22.000
-sum(g1000d_sgko == 0)
-#> [1] 0
+sum(g1000d_sgko == 1)
+#> [1] 24
 ```
 
 This is not *quite* as skewed as the neighbor graph, but there is still
@@ -977,16 +975,15 @@ neighbor_overlap(g1000d_nnbf, g1000d_search0, k = 15)
 but it seems like some sort of back-tracking is to be recommended with
 this approach. The downside is that you could be searching through a
 large proportion of the dataset, in which case you would save time by
-using the `brute_force_knn_query`.
+using the `brute_force_query`.
 
 In conjunction with `epsilon`, you can also use `max_search_fraction`
-which will limit the additional graph search to a fraction of the
-dataset. The points examined during initialization do not count toward
-this limit. Set it to a value between 0 and 1, e.g.
-`max_search_fraction = 0.1` to limit the additional graph search to 10%
-of the reference data beyond the initial neighbors. The default is `1`,
-so that `epsilon` entirely controls the search termination. A similar
-parameter is used in (Harwood and Drummond 2016).
+which will terminate the search if the fraction of the dataset searched
+exceeds the specified value. Set it to a value between 0 and 1, e.g.
+`max_search_fraction = 0.1` if you don’t want more than 10% of the
+reference data being searched. The default is `1`, so that `epsilon`
+entirely controls the search termination. A similar parameter is used in
+(Harwood and Drummond 2016).
 
 ``` r
 
@@ -1009,25 +1006,25 @@ Accuracies are again reduced.
 
 ## Conclusions
 
-- High-dimensional data can produce hubs, as in the Gaussian example
-  here.
+- High dimensional data leads to hubs.
 - The “hubness” of an item in a dataset can be measured by the
   k-occurrence in the corresponding nearest neighbor graph. The higher
   the k-occurrence, the more of a hub it is.
-- Hubs imply that some items have below-average k-occurrence, although
-  those items need not be anti-hubs. In this example there are many
-  anti-hubs too.
-- In this example, the low k-occurrence items are more likely to have
-  poorly predicted neighborhoods, although k-occurrence alone is a rough
-  diagnostic.
+- The existence of a hubs implies the existence of “anti-hubs”,
+  i.e. items with a low k-occurrence. A small number of hubs can create
+  a disproportionately larger number of anti-hubs, with a larger value
+  of the k-occurrence creating more anti-hubs.
+- The accuracy of nearest neighbor descent is reduced by the presence of
+  hubs: specifically, the lower the k-occurrence of an item, the greater
+  the probability of a low accuracy of its nearest neighbors.
 - Accuracy of nearest neighbor descent can be improved by searching for
   a larger number of neighbors and then truncating the result to the
   desired size, at the cost of a longer run-time and memory usage.
-- Alternatively, you can run the nearest neighbor descent multiple times
-  from different random starting points and merge the results.
+- Alternatively, you can run the the nearest neighbor descent multiple
+  times from different random starting points and merge the results.
 - Setting `weight_by_degree = TRUE` is probably worth doing, albeit it
   gives a very modest improvement.
-- In this example, more accurate results are obtained by converting the
+- More accurate and efficient results are obtained by converting the
   nearest neighbor descent results into a search graph and then querying
   the graph with the original data, using the nearest neighbor results
   for initialization and a back-tracking search.
@@ -1040,16 +1037,16 @@ of the neighbor graph, I suggest the following steps:
 2.  Evaluate the hubness of the graph with `k_occur`.
 3.  If the maximum k-occurrence exceeds a threshold (maybe `10 * k` is a
     good starting point), then you could try the following:
-4.  Restart `nnd_knn` (you may as well use the output from the first
+4.  Restart `nnd_knn` (you as may as well use the output from the first
     step as the initialization) with `max_candidates` set to a larger
     value. You probably don’t want to set it larger than `60`.
 5.  Repeat step 4 to get a second graph.
 6.  Merge the graphs from steps 4 and 5 with `merge_knn`.
 7.  Use the merged graph for `prepare_search_graph`, and then run
     `graph_knn_query` with back-tracking search (set `epsilon > 0`) to
-    refine the results further.
-8.  If in step 3, the maximum k-occurrence is *less* than the threshold,
-    then you are probably ok to run `nnd_knn` with defaults.
+    refine the results further. 8 If in step 3, the maximum k-occurrence
+    is *less* than the threshold, then you are probably ok to run
+    `nnd_knn` with defaults.
 
 This should provide a robust approach to producing accurate approximate
 nearest neighbors without spending time on unnecessary graph search when
@@ -1068,7 +1065,7 @@ Miloš Radovanović. 2019. “The Influence of Hubness on NN-Descent.”
 *International Journal on Artificial Intelligence Tools* 28 (06):
 1960002.
 
-Dong, Wei, Moses Charikar, and Kai Li. 2011. “Efficient k-Nearest
+Dong, Wei, Charikar Moses, and Kai Li. 2011. “Efficient k-Nearest
 Neighbor Graph Construction for Generic Similarity Measures.”
 *Proceedings of the 20th International Conference on World Wide Web*,
 577–86.

@@ -36,7 +36,7 @@ tree:
 2.  Select a split point along that dimension.
 3.  Split the data into two child nodes based on the split point.
 4.  Repeat steps 1-3 on each of the two groups.
-5.  When the number of items in a group is at most some threshold, the
+5.  When the number of items in a group is less than some threshold, the
     node is now a leaf, and stop splitting.
 
 Variations of steps 1 and 2 determines the vast majority of the
@@ -49,11 +49,10 @@ For a random partition tree we:
 1.  Select two points at random.
 2.  Calculate the mid-point between those two points.
 
-Use the line between the two points as the normal to a hyperplane
-through the midpoint: the hyperplane is their perpendicular bisector.
-This defines a split in the data. This is not *exactly* the algorithm as
-described in (Dasgupta and Freund 2008), but it is how it’s done in the
-very similar method [Annoy](https://github.com/spotify/annoy).
+This is enough to define a hyperplane in the data. This is not *exactly*
+the algorithm as described in (Dasgupta and Freund 2008), but it is how
+it’s done in the very similar method
+[Annoy](https://github.com/spotify/annoy).
 
 Step 3 then involves calculating which side of the hyperplane each point
 is on and assigning data to the child nodes on that basis.
@@ -79,15 +78,13 @@ Some options at your disposal:
 
 - `metric`: the type of distance calculation to use. The default is
   `euclidean`, but there are a lot to choose from. See the help text for
-  the `metric` parameter in
-  [`rpf_build()`](https://jlmelville.github.io/rnndescent/reference/rpf_build.md)
-  for details.
+  the `metric` parameter in rpf_build()\` for details.
 - `n_trees`: the number of trees to build. The default is to choose
   based on the size of the data provided, with a maximum of 32:
   eventually you will get diminishing returns from the number of trees
   in a forest.
 - `leaf_size`: the number of items in a leaf. The splitting procedure
-  stops when there are at most this number of items in a node. The
+  stops when there are fewer than this number of items in a node. The
   default is `10` but you will want the leaf size to scale with the
   number of neighbors you will look for, so I have increased it to `15`
   for this example. The bigger this value the more accurate the search
@@ -128,11 +125,11 @@ tree from the root to a leaf, calculating the side of each hyperplane it
 encounters. All the items in the leaf in which it ends up are then
 candidates for nearest neighbors.
 
-To query the forest we just built, we use the `rpf_knn_query` function.
+To query the forest we just build, we use the `rpf_knn_query` function.
 Apart from the forest itself, we also need the data we want to query
 (`query`) and the data used to build the forest (`reference`), because
-the forest doesn’t store that information. In this case, because we are
-looking at the k-nearest neighbors of `iris`, the `query` and the
+the forest doesn’t store that information. In thus case, because we are
+looking at the k-nearest neighbors or `iris`, the `query` and the
 `reference` are the same, but they don’t have to be. At this point, we
 must also specify the number of neighbors we want.
 
@@ -157,11 +154,10 @@ You could use the querying approach mentioned above for finding the
 k-nearest neighbors of the data that was used in building the tree.
 However, the data has already been partitioned so if you want k-nearest
 neighbor data, there’s a more efficient way to do that: for each leaf,
-the other members of that leaf are candidates for the k-nearest
-neighbors of each point in it. While usually the distance calculations
-take up most of the time when looking for neighbors, you do avoid having
-to make any tree traversals and the associated hyperplane distance
-calculations.
+the k-nearest neighbors of each point in the leaf are the other members
+of that leaf. While usually the distance calculations take up most of
+the time when looking for neighbors, you do avoid having to make any
+tree traversals and the associated hyperplane distance calculations.
 
 ``` r
 
@@ -256,9 +252,8 @@ bin_knn_imp <-
   )
 ```
 
-The following uses explicit rather than implicit splits. It may produce
-a different forest and different neighbors, and for large binary
-datasets is likely to be noticeably slower:
+The following will give the same results but for large datasets is
+likely to be noticeably slower:
 
 ``` r
 
@@ -323,7 +318,7 @@ Dasgupta, Sanjoy, and Yoav Freund. 2008. “Random Projection Trees and
 Low Dimensional Manifolds.” *Proceedings of the Fortieth Annual ACM
 Symposium on Theory of Computing*, 537–46.
 
-Dong, Wei, Moses Charikar, and Kai Li. 2011. “Efficient k-Nearest
+Dong, Wei, Charikar Moses, and Kai Li. 2011. “Efficient k-Nearest
 Neighbor Graph Construction for Generic Similarity Measures.”
 *Proceedings of the 20th International Conference on World Wide Web*,
 577–86.

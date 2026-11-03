@@ -49,7 +49,7 @@ install.packages("rnndescent")
 ``` r
 
 # install.packages("pak")
-pak::pak("jlmelville/rnndescent")
+pak::pkg_install("jlmelville/rnndescent")
 ```
 
 This packages makes use of C++ code which must be compiled. You may have
@@ -70,22 +70,6 @@ safe side, I would advise building without a custom `Makevars`.
 `rnndescent` uses C++17. This shouldn’t be too big a problem but not all
 R platforms support it (sorry if this affects you).
 
-## Supported C++ headers
-
-Downstream R packages can use these installed headers by adding
-`rnndescent` to their `LinkingTo` field:
-
-- `pforr.h` provides parallel loops, requires C++11 and threads, and
-  otherwise depends only on the C++ standard library.
-- `rnndescent/random.h` provides the package’s random-number adapters,
-  requires C++17 and R, and also requires the `Rcpp`, `dqrng` and `BH`
-  headers. Add those packages to `LinkingTo` as well.
-- `tdoann/distance.h` provides distance functions, requires C++17, and
-  depends only on the C++ standard library.
-
-Other installed C++ headers are implementation details and are not
-supported as direct include entry points.
-
 ## Example
 
 ``` r
@@ -98,7 +82,7 @@ iris_knn <- rnnd_knn(iris, k = 15)
 # Build an index
 iris_even <- iris[seq_len(nrow(iris)) %% 2 == 0, ]
 # Specify the number of neighbors you are likely to want to query for
-iris_index <- rnnd_build(iris_even, k = 15)
+iris_index <- rnnd_build(iris_index, k = 15)
 
 # Query then index
 iris_odd <- iris[seq_len(nrow(iris)) %% 2 == 1, ]
@@ -167,9 +151,10 @@ are licensed differently:
 - `inst/include/dqsample.h` is a modification of some sampling code from
   [dqrng](https://github.com/daqana/dqrng) and is [AGPLv3 or
   later](https://www.gnu.org/licenses/agpl-3.0.en.html).
-- `inst/include/pforr.h` is a modification of some code from from
-  [RcppParallel](https://github.com/RcppCore/RcppParallel) and is [GPLv2
-  or later](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
+- `inst/include/RcppPerpendicular.h` is a modification of some code from
+  from [RcppParallel](https://github.com/RcppCore/RcppParallel) and is
+  [GPLv2 or
+  later](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
 - The underlying nearest neighbor descent C++ library, which can be
   found under `inst/include/tdoann`, is licensed under the [BSD
   2-Clause](https://opensource.org/license/bsd-2-clause/).
@@ -209,42 +194,56 @@ definition, which is not currently supported.
 
 # Package index
 
-## All functions
+## Main interface
+
+Find approximate neighbors or build and query an index.
+
+- [`rnnd_knn()`](https://jlmelville.github.io/rnndescent/reference/rnnd_knn.md)
+  : Find approximate nearest neighbors
+- [`rnnd_build()`](https://jlmelville.github.io/rnndescent/reference/rnnd_build.md)
+  : Build approximate nearest neighbors index and neighbor graph
+- [`rnnd_query()`](https://jlmelville.github.io/rnndescent/reference/rnnd_query.md)
+  : Query an index for approximate nearest neighbors
+
+## Individual search methods
+
+Find or query neighbors using brute force, random selection, nearest
+neighbor descent, or random projection forests.
 
 - [`brute_force_knn()`](https://jlmelville.github.io/rnndescent/reference/brute_force_knn.md)
   : Find exact nearest neighbors by brute force
 - [`brute_force_knn_query()`](https://jlmelville.github.io/rnndescent/reference/brute_force_knn_query.md)
   : Query exact nearest neighbors by brute force
-- [`graph_knn_query()`](https://jlmelville.github.io/rnndescent/reference/graph_knn_query.md)
-  : Query a search graph for nearest neighbors
-- [`k_occur()`](https://jlmelville.github.io/rnndescent/reference/k_occur.md)
-  : Quantify hubness of a nearest neighbor graph
-- [`merge_knn()`](https://jlmelville.github.io/rnndescent/reference/merge_knn.md)
-  : Merge multiple approximate nearest neighbors graphs
-- [`neighbor_overlap()`](https://jlmelville.github.io/rnndescent/reference/neighbor_overlap.md)
-  : Overlap between the indices of two nearest neighbor graphs
-- [`nnd_knn()`](https://jlmelville.github.io/rnndescent/reference/nnd_knn.md)
-  : Find nearest neighbors using nearest neighbor descent
-- [`prepare_search_graph()`](https://jlmelville.github.io/rnndescent/reference/prepare_search_graph.md)
-  : Convert a nearest neighbor graph into a search graph
 - [`random_knn()`](https://jlmelville.github.io/rnndescent/reference/random_knn.md)
   : Find nearest neighbors by random selection
 - [`random_knn_query()`](https://jlmelville.github.io/rnndescent/reference/random_knn_query.md)
   : Query nearest neighbors by random selection
-- [`rnnd_build()`](https://jlmelville.github.io/rnndescent/reference/rnnd_build.md)
-  : Build approximate nearest neighbors index and neighbor graph
-- [`rnnd_knn()`](https://jlmelville.github.io/rnndescent/reference/rnnd_knn.md)
-  : Find approximate nearest neighbors
-- [`rnnd_query()`](https://jlmelville.github.io/rnndescent/reference/rnnd_query.md)
-  : Query an index for approximate nearest neighbors
-- [`rpf_build()`](https://jlmelville.github.io/rnndescent/reference/rpf_build.md)
-  : Create a random projection forest nearest neighbor index
-- [`rpf_filter()`](https://jlmelville.github.io/rnndescent/reference/rpf_filter.md)
-  : Keep the best trees in a random projection forest
+- [`nnd_knn()`](https://jlmelville.github.io/rnndescent/reference/nnd_knn.md)
+  : Find nearest neighbors using nearest neighbor descent
 - [`rpf_knn()`](https://jlmelville.github.io/rnndescent/reference/rpf_knn.md)
   : Find nearest neighbors using a random projection forest
+- [`rpf_build()`](https://jlmelville.github.io/rnndescent/reference/rpf_build.md)
+  : Create a random projection forest nearest neighbor index
 - [`rpf_knn_query()`](https://jlmelville.github.io/rnndescent/reference/rpf_knn_query.md)
   : Query a random projection forest index for nearest neighbors
+- [`rpf_filter()`](https://jlmelville.github.io/rnndescent/reference/rpf_filter.md)
+  : Keep the best trees in a random projection forest
+
+## Graph search and utilities
+
+Prepare and query search graphs, merge neighbor graphs, and assess their
+properties.
+
+- [`prepare_search_graph()`](https://jlmelville.github.io/rnndescent/reference/prepare_search_graph.md)
+  : Convert a nearest neighbor graph into a search graph
+- [`graph_knn_query()`](https://jlmelville.github.io/rnndescent/reference/graph_knn_query.md)
+  : Query a search graph for nearest neighbors
+- [`merge_knn()`](https://jlmelville.github.io/rnndescent/reference/merge_knn.md)
+  : Merge multiple approximate nearest neighbors graphs
+- [`k_occur()`](https://jlmelville.github.io/rnndescent/reference/k_occur.md)
+  : Quantify hubness of a nearest neighbor graph
+- [`neighbor_overlap()`](https://jlmelville.github.io/rnndescent/reference/neighbor_overlap.md)
+  : Overlap between the indices of two nearest neighbor graphs
 
 # Articles
 

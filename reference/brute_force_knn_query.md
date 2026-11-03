@@ -35,9 +35,7 @@ brute_force_knn_query(
   converted to `numerical` matrix format internally, so if your data
   columns are `logical` and intended to be used with the specialized
   binary `metric`s, you should convert it to a logical matrix first
-  (otherwise you will get the slower dense numerical version). Numeric
-  feature values must be finite: `NA`, `NaN`, `Inf` and `-Inf` are not
-  allowed.
+  (otherwise you will get the slower dense numerical version).
 
 - reference:
 
@@ -50,8 +48,7 @@ brute_force_knn_query(
   [`base::data.frame()`](https://rdrr.io/r/base/data.frame.html),
   [`base::matrix()`](https://rdrr.io/r/base/matrix.html) or
   [`Matrix::sparseMatrix()`](https://rdrr.io/pkg/Matrix/man/sparseMatrix.html).
-  Sparse matrices should be in `dgCMatrix` format. Numeric feature
-  values must be finite: `NA`, `NaN`, `Inf` and `-Inf` are not allowed.
+  Sparse matrices should be in `dgCMatrix` format.
 
 - k:
 
@@ -73,9 +70,6 @@ brute_force_knn_query(
 
   - `"dice"`
 
-  - `"dot"` (1 minus the normalized dot product, capped at 1; 1 if
-    either vector is zero)
-
   - `"euclidean"`
 
   - `"hamming"`
@@ -96,9 +90,6 @@ brute_force_knn_query(
 
   - `"manhattan"`
 
-  - `"matching"` (fraction of features whose zero/nonzero indicators
-    differ)
-
   - `"rogerstanimoto"`
 
   - `"russellrao"`
@@ -110,9 +101,6 @@ brute_force_knn_query(
   - `"spearmanr"` (1 minus the Spearman rank correlation)
 
   - `"symmetrickl"` (symmetric Kullback-Leibler divergence)
-
-  - `"trueangular"` (angle between vectors divided by pi; 0 for two zero
-    vectors and 1/2 when exactly one vector is zero)
 
   - `"tsss"` (Triangle Area Similarity-Sector Area Similarity or TS-SS
     metric)
@@ -213,9 +201,9 @@ iris_query_nn <- brute_force_knn_query(iris_query,
   reference = iris_ref,
   k = 4, metric = "euclidean", verbose = TRUE
 )
-#> 19:21:36 Using alt metric 'sqeuclidean' for 'euclidean'
-#> 19:21:36 Calculating brute force k-nearest neighbors from reference with k = 4
-#> 19:21:36 Finished
+#> 20:07:17 Using alt metric 'sqeuclidean' for 'euclidean'
+#> 20:07:17 Calculating brute force k-nearest neighbors from reference with k = 4
+#> 20:07:17 Finished
 
 # Manhattan (l1) distance
 iris_query_nn <- brute_force_knn_query(iris_query,

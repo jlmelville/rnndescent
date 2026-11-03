@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>rnndescent • rnndescent</title>
 <!-- katex math --><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" integrity="sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+" crossorigin="anonymous">
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" integrity="sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/Yr2r3Dy4lfFg" crossorigin="anonymous"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script><script src="../katex-auto.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" integrity="sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/Yr2r3Dy4lfFg" crossorigin="anonymous"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script><script src="../katex-auto.js"></script><script src="../lightswitch.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
@@ -18,11 +18,11 @@
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
-    <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
+    <nav class="navbar navbar-expand-lg fixed-top " aria-label="Site navigation"><div class="container">
 
     <a class="navbar-brand me-2" href="../index.html">rnndescent</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -49,10 +49,25 @@
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-documentation-version" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Documentation version</button>
+  <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-documentation-version">
+<li><a class="dropdown-item" href="https://jlmelville.github.io/rnndescent/">CRAN release</a></li>
+    <li><a class="dropdown-item" href="https://jlmelville.github.io/rnndescent/dev/">Development</a></li>
+  </ul>
+</li>
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
 </form></li>
 <li class="nav-item"><a class="external-link nav-link" href="https://github.com/jlmelville/rnndescent/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-lightswitch" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true" aria-label="Light switch"><span class="fa fa-sun"></span></button>
+  <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-lightswitch">
+<li><button class="dropdown-item" data-bs-theme-value="light"><span class="fa fa-sun"></span> Light</button></li>
+    <li><button class="dropdown-item" data-bs-theme-value="dark"><span class="fa fa-moon"></span> Dark</button></li>
+    <li><button class="dropdown-item" data-bs-theme-value="auto"><span class="fa fa-adjust"></span> Auto</button></li>
+  </ul>
+</li>
       </ul>
 </div>
 
@@ -69,7 +84,7 @@
       <h1>rnndescent</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/jlmelville/rnndescent/blob/master/vignettes/rnndescent.Rmd" class="external-link"><code>vignettes/rnndescent.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/jlmelville/rnndescent/blob/v0.2.0/vignettes/rnndescent.Rmd" class="external-link"><code>vignettes/rnndescent.Rmd</code></a></small>
       <div class="d-none name"><code>rnndescent.Rmd</code></div>
     </div>
 
@@ -80,21 +95,21 @@ nearest neighbors, based heavily on the Python package <a href="https://github.c
 independent reimplementation written in C++. It uses the following
 techniques:</p>
 <ol style="list-style-type: decimal">
-<li>Initialization by creating a forest of random projection trees <span class="citation">(Dasgupta and Freund 2008)</span>.</li>
+<li>Initialization by creating a forest of random project trees <span class="citation">(Dasgupta and Freund 2008)</span>.</li>
 <li>Optimization by using nearest neighbor descent <span class="citation">(Dong et al. 2011)</span>.</li>
 <li>For building a search graph, graph diversification techniques from
 FANNG <span class="citation">(Harwood and Drummond 2016)</span>.</li>
 <li>For querying new data, the back-tracking search from NGT <span class="citation">(Iwasaki and Miyazaki 2018)</span> (without dynamic
 degree-adjustment).</li>
 </ol>
-<p>The easiest way to find k-nearest neighbors is to use
-<code>rnnd_knn</code>. To query new data, use <code>rnnd_build</code> to
-build an index and <code>rnnd_query</code> to search it. These functions
-combine several of the available techniques with sensible defaults. For
+<p>The easiest way to find k-nearest neighbors and query new data is to
+use the <code>rnnd_knn</code> function, which combine several of the
+available techniques into sensible defaults use the
+<code>rnnd_build</code> and <code>rnnd_query</code> functions. For
 greater flexibility, the underlying functions used by
 <code>rnnd_build</code> and <code>rnnd_query</code> can be used
 directly. The other vignettes in this package describe their use and go
-into more detail about how the methods work.</p>
+into more detail about the how the methods work.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://jlmelville.github.io/rnndescent/">rnndescent</a></span><span class="op">)</span></span></code></pre></div>
 <div class="section level2">
@@ -138,7 +153,7 @@ usual in R, these are 1-indexed.</li>
 </h2>
 <p><code>rnnd_knn</code> returns the k-nearest neighbors, but does not
 return any “index” that you can use to query new data. To do that, use
-<code>rnnd_build</code>. Normally you would query the index with data
+<code>rnnd_build</code>. Normally you would query the index with
 different from that which you used to build the index, so let’s split
 <code>iris</code> up:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
@@ -147,7 +162,7 @@ different from that which you used to build the index, so let’s split
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">iris_index</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rnnd_build.html">rnnd_build</a></span><span class="op">(</span><span class="va">iris_even</span>, k <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span></code></pre></div>
 <p>The index is also a list but with a lot more components (none of
-which are intended for manual examination), apart from the neighbor
+which are intended for manual examination), apart from the the neighbor
 graph which can be found under the <code>graph</code> component in the
 same format as the return value of <code>rnnd_knn</code>:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
@@ -251,10 +266,8 @@ other nearest neighbor packages. See the <a href="metrics.html">metrics</a> vign
 </h2>
 <ul>
 <li>Dense matrices and data frames.</li>
-<li>Sparse matrices in <code>dgCMatrix</code>, <code>dgRMatrix</code>,
-or <code>dgTMatrix</code> form. The main distances supported for dense
-matrices are also available for sparse matrices, except for Haversine.
-The optional preprocessing variants are dense-only.</li>
+<li>Sparse matrices, in the <code>dgCMatrix</code>. All the same
+distances are supported as for dense matrices.</li>
 <li>Additionally, for dense binary data, if you supply it as a
 <code>logical</code> matrix, then for certain distances intended for
 binary data, specialized functions will be used to speed up the
@@ -280,7 +293,7 @@ and Low Dimensional Manifolds.”</span> <em>Proceedings of the Fortieth
 Annual ACM Symposium on Theory of Computing</em>, 537–46.
 </div>
 <div id="ref-dong2011efficient" class="csl-entry">
-Dong, Wei, Moses Charikar, and Kai Li. 2011. <span>“Efficient k-Nearest
+Dong, Wei, Charikar Moses, and Kai Li. 2011. <span>“Efficient k-Nearest
 Neighbor Graph Construction for Generic Similarity Measures.”</span>
 <em>Proceedings of the 20th International Conference on World Wide
 Web</em>, 577–86.

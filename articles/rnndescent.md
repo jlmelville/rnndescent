@@ -6,7 +6,7 @@ based heavily on the Python package
 McInnes](https://github.com/lmcinnes), but is a fully independent
 reimplementation written in C++. It uses the following techniques:
 
-1.  Initialization by creating a forest of random projection trees
+1.  Initialization by creating a forest of random project trees
     (Dasgupta and Freund 2008).
 2.  Optimization by using nearest neighbor descent (Dong et al. 2011).
 3.  For building a search graph, graph diversification techniques from
@@ -14,13 +14,13 @@ reimplementation written in C++. It uses the following techniques:
 4.  For querying new data, the back-tracking search from NGT (Iwasaki
     and Miyazaki 2018) (without dynamic degree-adjustment).
 
-The easiest way to find k-nearest neighbors is to use `rnnd_knn`. To
-query new data, use `rnnd_build` to build an index and `rnnd_query` to
-search it. These functions combine several of the available techniques
-with sensible defaults. For greater flexibility, the underlying
-functions used by `rnnd_build` and `rnnd_query` can be used directly.
-The other vignettes in this package describe their use and go into more
-detail about how the methods work.
+The easiest way to find k-nearest neighbors and query new data is to use
+the `rnnd_knn` function, which combine several of the available
+techniques into sensible defaults use the `rnnd_build` and `rnnd_query`
+functions. For greater flexibility, the underlying functions used by
+`rnnd_build` and `rnnd_query` can be used directly. The other vignettes
+in this package describe their use and go into more detail about the how
+the methods work.
 
 ``` r
 
@@ -67,8 +67,8 @@ lapply(iris_knn, function(x) {
 
 `rnnd_knn` returns the k-nearest neighbors, but does not return any
 “index” that you can use to query new data. To do that, use
-`rnnd_build`. Normally you would query the index with data different
-from that which you used to build the index, so let’s split `iris` up:
+`rnnd_build`. Normally you would query the index with different from
+that which you used to build the index, so let’s split `iris` up:
 
 ``` r
 
@@ -82,7 +82,7 @@ iris_index <- rnnd_build(iris_even, k = 5)
 ```
 
 The index is also a list but with a lot more components (none of which
-are intended for manual examination), apart from the neighbor graph
+are intended for manual examination), apart from the the neighbor graph
 which can be found under the `graph` component in the same format as the
 return value of `rnnd_knn`:
 
@@ -206,10 +206,8 @@ vignette for more details.
 ## Supported Data Types
 
 - Dense matrices and data frames.
-- Sparse matrices in `dgCMatrix`, `dgRMatrix`, or `dgTMatrix` form. The
-  main distances supported for dense matrices are also available for
-  sparse matrices, except for Haversine. The optional preprocessing
-  variants are dense-only.
+- Sparse matrices, in the `dgCMatrix`. All the same distances are
+  supported as for dense matrices.
 - Additionally, for dense binary data, if you supply it as a `logical`
   matrix, then for certain distances intended for binary data,
   specialized functions will be used to speed up the computation.
@@ -234,7 +232,7 @@ Dasgupta, Sanjoy, and Yoav Freund. 2008. “Random Projection Trees and
 Low Dimensional Manifolds.” *Proceedings of the Fortieth Annual ACM
 Symposium on Theory of Computing*, 537–46.
 
-Dong, Wei, Moses Charikar, and Kai Li. 2011. “Efficient k-Nearest
+Dong, Wei, Charikar Moses, and Kai Li. 2011. “Efficient k-Nearest
 Neighbor Graph Construction for Generic Similarity Measures.”
 *Proceedings of the 20th International Conference on World Wide Web*,
 577–86.

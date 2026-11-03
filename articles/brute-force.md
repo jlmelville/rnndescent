@@ -15,11 +15,6 @@ very slow. That said as it can be easily parallelized, you can get a
 surprisingly long way with it, especially if you only need the k-nearest
 neighbors and won’t be running a neighbor search multiple times.
 
-Here, “exact” refers to exhaustive search. Distance calculations still
-have the [numerical precision and range
-limitations](https://jlmelville.github.io/rnndescent/articles/metrics.html#numerical-precision)
-described in the metrics vignette.
-
 Let’s calculate the exact 15 nearest neighbors for the `iris` dataset:
 
 ``` r
@@ -41,9 +36,9 @@ lapply(iris_nbrs, function(x) {
 #> [3,]    0 0.1414213 0.2449490 0.2645751 0.2645753
 ```
 
-And here’s an example of querying the even items in the `iris` data
-against the odd items. The indices in `iris_query_nbrs` refer to rows of
-`iris_odd`:
+And here’s an example of querying the odd items in the `iris` data
+against the even items (i.e. the indices in `iris_nbrs` will refer to
+the odd items):
 
 ``` r
 

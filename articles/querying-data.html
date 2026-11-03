@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Querying Data • rnndescent</title>
 <!-- katex math --><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" integrity="sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+" crossorigin="anonymous">
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" integrity="sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/Yr2r3Dy4lfFg" crossorigin="anonymous"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script><script src="../katex-auto.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" integrity="sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/Yr2r3Dy4lfFg" crossorigin="anonymous"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script><script src="../katex-auto.js"></script><script src="../lightswitch.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
@@ -18,11 +18,11 @@
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
-    <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
+    <nav class="navbar navbar-expand-lg fixed-top " aria-label="Site navigation"><div class="container">
 
     <a class="navbar-brand me-2" href="../index.html">rnndescent</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -49,10 +49,25 @@
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-documentation-version" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Documentation version</button>
+  <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-documentation-version">
+<li><a class="dropdown-item" href="https://jlmelville.github.io/rnndescent/">CRAN release</a></li>
+    <li><a class="dropdown-item" href="https://jlmelville.github.io/rnndescent/dev/">Development</a></li>
+  </ul>
+</li>
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
 </form></li>
 <li class="nav-item"><a class="external-link nav-link" href="https://github.com/jlmelville/rnndescent/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-lightswitch" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true" aria-label="Light switch"><span class="fa fa-sun"></span></button>
+  <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-lightswitch">
+<li><button class="dropdown-item" data-bs-theme-value="light"><span class="fa fa-sun"></span> Light</button></li>
+    <li><button class="dropdown-item" data-bs-theme-value="dark"><span class="fa fa-moon"></span> Dark</button></li>
+    <li><button class="dropdown-item" data-bs-theme-value="auto"><span class="fa fa-adjust"></span> Auto</button></li>
+  </ul>
+</li>
       </ul>
 </div>
 
@@ -69,7 +84,7 @@
       <h1>Querying Data</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/jlmelville/rnndescent/blob/master/vignettes/querying-data.Rmd" class="external-link"><code>vignettes/querying-data.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/jlmelville/rnndescent/blob/v0.2.0/vignettes/querying-data.Rmd" class="external-link"><code>vignettes/querying-data.Rmd</code></a></small>
       <div class="d-none name"><code>querying-data.Rmd</code></div>
     </div>
 
@@ -178,18 +193,11 @@ least you must provide a <code>reference_graph</code> to search, the
 <code>reference</code> data that built the <code>reference_graph</code>
 (so we can calculate distances), <code>k</code> the number of neighbors
 you want, and of course the <code>query</code> data:</p>
-<p>First we need a graph among the reference points themselves. The
-earlier <code>rpf_nbrs</code> describes odd query rows against even
-reference rows, so it is not a graph of the reference data.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">reference_nbrs</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rpf_knn_query.html">rpf_knn_query</a></span><span class="op">(</span></span>
-<span>  query <span class="op">=</span> <span class="va">iris_even</span>, reference <span class="op">=</span> <span class="va">iris_even</span>, forest <span class="op">=</span> <span class="va">rpf_index</span>, k <span class="op">=</span> <span class="fl">15</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">graph_nbrs</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/graph_knn_query.html">graph_knn_query</a></span><span class="op">(</span></span>
 <span>  query <span class="op">=</span> <span class="va">iris_odd</span>,</span>
 <span>  reference <span class="op">=</span> <span class="va">iris_even</span>,</span>
-<span>  reference_graph <span class="op">=</span> <span class="va">reference_nbrs</span>,</span>
+<span>  reference_graph <span class="op">=</span> <span class="va">rpf_nbrs</span>,</span>
 <span>  k <span class="op">=</span> <span class="fl">15</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p>If you aren’t using the <code>metric = "euclidean"</code>, you should
@@ -222,14 +230,12 @@ library. The larger the value, the more back-tracking is permitted. The
 exact meaning of the value is related to how large a distance is
 considered “close enough” the current neighbor list of the query to be
 worth exploring.</p>
-<p><code>epsilon</code> applies to the distance scale used internally by
-the search. For default Euclidean search, that scale is squared
-distance: <code>epsilon = 0.1</code> allows a squared distance 10%
-larger, or an ordinary distance about 4.88% larger. With
-<code>use_alt_metric = FALSE</code>, the same setting allows an ordinary
-Euclidean distance 10% larger. Other internal transformations do not all
-give the same percentage on the returned distance scale. Setting
-<code>epsilon = 0</code> gives a pure greedy search.</p>
+<p><code>epsilon = 0.1</code> means that the query-candidate distance is
+allowed to be 10% larger than the largest distance in the neighbor list.
+If you set <code>epsilon = 0.2</code>, for example, then the
+query-candidate distance is allowed to be 20% higher than the largest
+distance in the neighbor list and so on. If you set
+<code>epsilon = 0</code> then you get a pure greedy search.</p>
 <p>It’s hard to give a general rule for what value to set, because it’s
 highly dependent on the distribution of distances in the dataset and
 that is determined by the distance metric and the dimensionality of the
@@ -281,7 +287,7 @@ input data. Even a brute force search can be very fast on this data.
 This could be a good way to get a good guess for the real data.</p>
 <p>This is a very contrived example with <code>iris</code>, but let’s do
 it anyway:</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">numeric_iris</span> <span class="op">&lt;-</span> <span class="va">iris</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">sapply</a></span><span class="op">(</span><span class="va">iris</span>, <span class="va">is.numeric</span><span class="op">)</span><span class="op">]</span></span>
 <span><span class="va">logical_iris</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sweep.html" class="external-link">sweep</a></span><span class="op">(</span><span class="va">numeric_iris</span>, <span class="fl">2</span>, <span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">colMeans</a></span><span class="op">(</span><span class="va">numeric_iris</span><span class="op">)</span>, <span class="st">"&gt;"</span><span class="op">)</span></span>
 <span><span class="va">logical_iris_even</span> <span class="op">&lt;-</span> <span class="va">logical_iris</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">logical_iris</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/r/base/Arithmetic.html" class="external-link">%%</a></span> <span class="fl">2</span> <span class="op">==</span> <span class="fl">0</span>, <span class="op">]</span></span>
@@ -295,7 +301,7 @@ it anyway:</p>
 <span><span class="co">#&gt; [5,]        FALSE        TRUE        FALSE       FALSE</span></span>
 <span><span class="co">#&gt; [6,]        FALSE        TRUE        FALSE       FALSE</span></span></code></pre></div>
 <p>Do a brute force search on the binarized data:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">iris_logical_brute_nbrs</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/brute_force_knn_query.html">brute_force_knn_query</a></span><span class="op">(</span></span>
 <span>  query <span class="op">=</span> <span class="va">logical_iris_odd</span>,</span>
 <span>  reference <span class="op">=</span> <span class="va">logical_iris_even</span>,</span>
@@ -305,11 +311,11 @@ it anyway:</p>
 <p>Then pass the indices of the brute force search to
 <code>graph_knn_query</code>, which will generate the Euclidean
 distances for you:</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">graph_nbrs</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/graph_knn_query.html">graph_knn_query</a></span><span class="op">(</span></span>
 <span>  query <span class="op">=</span> <span class="va">iris_odd</span>,</span>
 <span>  reference <span class="op">=</span> <span class="va">iris_even</span>,</span>
-<span>  reference_graph <span class="op">=</span> <span class="va">reference_nbrs</span>,</span>
+<span>  reference_graph <span class="op">=</span> <span class="va">rpf_nbrs</span>,</span>
 <span>  init <span class="op">=</span> <span class="va">iris_logical_brute_nbrs</span><span class="op">$</span><span class="va">idx</span>,</span>
 <span>  k <span class="op">=</span> <span class="fl">15</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -324,11 +330,11 @@ time in the “real” search with <code>graph_knn_query</code>.</p>
 <p>If you have previously built an RP Forest with the data you may also
 use that to initialize the query. We can re-use <code>rpf_index</code>
 here.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">forest_init_nbrs</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/graph_knn_query.html">graph_knn_query</a></span><span class="op">(</span></span>
 <span>  query <span class="op">=</span> <span class="va">iris_odd</span>,</span>
 <span>  reference <span class="op">=</span> <span class="va">iris_even</span>,</span>
-<span>  reference_graph <span class="op">=</span> <span class="va">reference_nbrs</span>,</span>
+<span>  reference_graph <span class="op">=</span> <span class="va">rpf_nbrs</span>,</span>
 <span>  init <span class="op">=</span> <span class="va">rpf_index</span>,</span>
 <span>  k <span class="op">=</span> <span class="fl">15</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -353,28 +359,33 @@ can actually be reached via the k-nearest neighbors graph. Some nodes
 just aren’t very popular and may not be in the neighbor list of
 <em>any</em> other item. That means you can never reach them via the
 k-nearest neighbors graph, no matter how thoroughly you search it.</p>
-<p>Reversing edges and adding them to the graph can help with this
-problem. If an edge from <code>j</code> to <code>i</code> is retained,
-its reverse offers a route from <code>i</code> to <code>j</code>. This
-cannot connect separate components, and pruning can remove edges again.
-Adding reverse edges also introduces another problem, which is that just
-like some items are very unpopular, other items might be very popular
-and appear often in the neighbor list of other items. Having a large
-number of these edges in the graph can make the search very slow. We
-therefore need to prune some of these edges.</p>
+<p>We can solve this problem by reversing all the edges in the graph and
+adding them to the graph. So if you can get to item <code>i</code> from
+item <code>j</code>, you can now get to item <code>j</code> from item
+<code>i</code>. This solves one problem but adds some more which is that
+just like some items are very unpopular, other items might be very
+popular and appear often in the neighbor list of other items. Having a
+large number of these edges in the graph can make the search very slow.
+We therefore need to prune some of these edges.</p>
 <p><code>prepare_search_graph</code> is a function that will take a
 k-nearest neighbor graph and add edges to it to make it more useful for
 a search. The procedure is based on the process described in <span class="citation">(Harwood and Drummond 2016)</span> and consists of:</p>
 <ol style="list-style-type: decimal">
-<li>Diversifying the forward edges by “occlusion pruning”. For an item
-<span class="math inline">i</span>, consider a closer retained neighbor
-<span class="math inline">p</span> and a farther candidate <span class="math inline">q</span>. If <span class="math inline">d_{pq} \lt
-d_{iq}</span>, then <span class="math inline">p</span> occludes <span class="math inline">q</span>: the edge <span class="math inline">i
-\rightarrow q</span> can be removed because <span class="math inline">q</span> may be reachable through <span class="math inline">p</span>.</li>
-<li>Reversing the remaining edges and diversifying those reverse edges
-in turn.</li>
-<li>Merging the forward and reverse edges, then removing the longest
-edges from any item whose degree exceeds the threshold.</li>
+<li>Reversing all the edges in the graph.</li>
+<li>“Diversifying” the graph by “occlusion pruning”. This considers
+triplets of points, and removes long edges which are probably redundant.
+For an item <span class="math inline">i</span> with neighbors <span class="math inline">p</span> and <span class="math inline">q</span> if
+the distances <span class="math inline">d_{pq} \lt d_{ip}</span>
+i.e. the neighbors are closer to each other than they are to <span class="math inline">i</span>, then it is said that <span class="math inline">p</span> occludes <span class="math inline">q</span>
+and we don’t need both edges <span class="math inline">i \rightarrow
+p</span> and <span class="math inline">i \rightarrow q</span> – it’s
+likely that <span class="math inline">q</span> is in the neighbor list
+of <span class="math inline">p</span> or vice versa, so it’s unlikely
+that we are doing any harm by getting rid of <span class="math inline">i
+\rightarrow p</span>.</li>
+<li>After occlusion pruning, if any item still has an excessive number
+of edges, the longest edges are removed until the number of edges is
+below the threshold.</li>
 </ol>
 <p>To control all this pruning the following parameters are
 available:</p>
@@ -406,11 +417,11 @@ which means to allow as many as 50% more edge than the original graph.
 So if the input graph was for <code>k = 15</code>, each item in the
 search graph will have at most <code>15 * 1.5 = 22</code> edges.</p>
 <p>Let’s see how this works on the <code>iris</code> neighbors:</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span></span>
 <span><span class="va">iris_search_graph</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/prepare_search_graph.html">prepare_search_graph</a></span><span class="op">(</span></span>
 <span>  data <span class="op">=</span> <span class="va">iris_even</span>,</span>
-<span>  graph <span class="op">=</span> <span class="va">reference_nbrs</span>,</span>
+<span>  graph <span class="op">=</span> <span class="va">rpf_nbrs</span>,</span>
 <span>  diversify_prob <span class="op">=</span> <span class="fl">0.1</span>,</span>
 <span>  pruning_degree_multiplier <span class="op">=</span> <span class="fl">1.5</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -418,19 +429,19 @@ search graph will have at most <code>15 * 1.5 = 22</code> edges.</p>
 edges per item, the neighbor graph format isn’t suitable. Instead you
 get back a sparse matrix, specifically a <code>dgCMatrix</code>. Here’s
 a histogram of how the edges are distributed:</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">search_graph_edges</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/diff.html" class="external-link">diff</a></span><span class="op">(</span><span class="va">iris_search_graph</span><span class="op">@</span><span class="va">p</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/hist.html" class="external-link">hist</a></span><span class="op">(</span><span class="va">search_graph_edges</span>,</span>
 <span>  main <span class="op">=</span> <span class="st">"Distribution of search graph edges"</span>, xlab <span class="op">=</span> <span class="st">"# edges"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="querying-data_files/figure-html/iris%20search%20graph%20histogram-1.png" class="r-plt" alt="" width="700"></p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<p><img src="querying-data_files/figure-html/iris-search-graph-histogram-1.png" class="r-plt" alt="" width="700"></p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/range.html" class="external-link">range</a></span><span class="op">(</span><span class="va">search_graph_edges</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1]  8 17</span></span></code></pre></div>
-<p>The histogram shows how the degrees vary after diversification and
-pruning. The range above gives the smallest and largest degrees for this
-run.</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<span><span class="co">#&gt; [1] 11 22</span></span></code></pre></div>
+<p>So most items have around about <code>k = 15</code> edges just like
+the nearest neighbor graph. But some have have the maximum number of
+edges and few have only 10 edges.</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">search_nbrs</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/graph_knn_query.html">graph_knn_query</a></span><span class="op">(</span></span>
 <span>  query <span class="op">=</span> <span class="va">iris_odd</span>,</span>
 <span>  reference <span class="op">=</span> <span class="va">iris_even</span>,</span>

@@ -120,23 +120,12 @@ provide a `reference_graph` to search, the `reference` data that built
 the `reference_graph` (so we can calculate distances), `k` the number of
 neighbors you want, and of course the `query` data:
 
-First we need a graph among the reference points themselves. The earlier
-`rpf_nbrs` describes odd query rows against even reference rows, so it
-is not a graph of the reference data.
-
-``` r
-
-reference_nbrs <- rpf_knn_query(
-  query = iris_even, reference = iris_even, forest = rpf_index, k = 15
-)
-```
-
 ``` r
 
 graph_nbrs <- graph_knn_query(
   query = iris_odd,
   reference = iris_even,
-  reference_graph = reference_nbrs,
+  reference_graph = rpf_nbrs,
   k = 15
 )
 ```
@@ -169,13 +158,11 @@ exact meaning of the value is related to how large a distance is
 considered “close enough” the current neighbor list of the query to be
 worth exploring.
 
-`epsilon` applies to the distance scale used internally by the search.
-For default Euclidean search, that scale is squared distance:
-`epsilon = 0.1` allows a squared distance 10% larger, or an ordinary
-distance about 4.88% larger. With `use_alt_metric = FALSE`, the same
-setting allows an ordinary Euclidean distance 10% larger. Other internal
-transformations do not all give the same percentage on the returned
-distance scale. Setting `epsilon = 0` gives a pure greedy search.
+`epsilon = 0.1` means that the query-candidate distance is allowed to be
+10% larger than the largest distance in the neighbor list. If you set
+`epsilon = 0.2`, for example, then the query-candidate distance is
+allowed to be 20% higher than the largest distance in the neighbor list
+and so on. If you set `epsilon = 0` then you get a pure greedy search.
 
 It’s hard to give a general rule for what value to set, because it’s
 highly dependent on the distribution of distances in the dataset and
@@ -258,7 +245,7 @@ which will generate the Euclidean distances for you:
 graph_nbrs <- graph_knn_query(
   query = iris_odd,
   reference = iris_even,
-  reference_graph = reference_nbrs,
+  reference_graph = rpf_nbrs,
   init = iris_logical_brute_nbrs$idx,
   k = 15
 )
@@ -279,7 +266,7 @@ that to initialize the query. We can re-use `rpf_index` here.
 forest_init_nbrs <- graph_knn_query(
   query = iris_odd,
   reference = iris_even,
-  reference_graph = reference_nbrs,
+  reference_graph = rpf_nbrs,
   init = rpf_index,
   k = 15
 )
@@ -305,28 +292,32 @@ neighbor list of *any* other item. That means you can never reach them
 via the k-nearest neighbors graph, no matter how thoroughly you search
 it.
 
-Reversing edges and adding them to the graph can help with this problem.
-If an edge from `j` to `i` is retained, its reverse offers a route from
-`i` to `j`. This cannot connect separate components, and pruning can
-remove edges again. Adding reverse edges also introduces another
-problem, which is that just like some items are very unpopular, other
-items might be very popular and appear often in the neighbor list of
-other items. Having a large number of these edges in the graph can make
-the search very slow. We therefore need to prune some of these edges.
+We can solve this problem by reversing all the edges in the graph and
+adding them to the graph. So if you can get to item `i` from item `j`,
+you can now get to item `j` from item `i`. This solves one problem but
+adds some more which is that just like some items are very unpopular,
+other items might be very popular and appear often in the neighbor list
+of other items. Having a large number of these edges in the graph can
+make the search very slow. We therefore need to prune some of these
+edges.
 
 `prepare_search_graph` is a function that will take a k-nearest neighbor
 graph and add edges to it to make it more useful for a search. The
 procedure is based on the process described in (Harwood and Drummond
 2016) and consists of:
 
-1.  Diversifying the forward edges by “occlusion pruning”. For an item
-    i, consider a closer retained neighbor p and a farther candidate q.
-    If d\_{pq} \lt d\_{iq}, then p occludes q: the edge i \rightarrow q
-    can be removed because q may be reachable through p.
-2.  Reversing the remaining edges and diversifying those reverse edges
-    in turn.
-3.  Merging the forward and reverse edges, then removing the longest
-    edges from any item whose degree exceeds the threshold.
+1.  Reversing all the edges in the graph.
+2.  “Diversifying” the graph by “occlusion pruning”. This considers
+    triplets of points, and removes long edges which are probably
+    redundant. For an item i with neighbors p and q if the distances
+    d\_{pq} \lt d\_{ip} i.e. the neighbors are closer to each other than
+    they are to i, then it is said that p occludes q and we don’t need
+    both edges i \rightarrow p and i \rightarrow q – it’s likely that q
+    is in the neighbor list of p or vice versa, so it’s unlikely that we
+    are doing any harm by getting rid of i \rightarrow p.
+3.  After occlusion pruning, if any item still has an excessive number
+    of edges, the longest edges are removed until the number of edges is
+    below the threshold.
 
 To control all this pruning the following parameters are available:
 
@@ -366,7 +357,7 @@ Let’s see how this works on the `iris` neighbors:
 set.seed(42)
 iris_search_graph <- prepare_search_graph(
   data = iris_even,
-  graph = reference_nbrs,
+  graph = rpf_nbrs,
   diversify_prob = 0.1,
   pruning_degree_multiplier = 1.5
 )
@@ -385,17 +376,17 @@ hist(search_graph_edges,
 )
 ```
 
-![](querying-data_files/figure-html/iris%20search%20graph%20histogram-1.png)
+![](querying-data_files/figure-html/iris-search-graph-histogram-1.png)
 
 ``` r
 
 range(search_graph_edges)
-#> [1]  8 17
+#> [1] 11 22
 ```
 
-The histogram shows how the degrees vary after diversification and
-pruning. The range above gives the smallest and largest degrees for this
-run.
+So most items have around about `k = 15` edges just like the nearest
+neighbor graph. But some have have the maximum number of edges and few
+have only 10 edges.
 
 ``` r
 

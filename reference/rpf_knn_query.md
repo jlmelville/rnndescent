@@ -35,9 +35,7 @@ rpf_knn_query(
   converted to `numerical` matrix format internally, so if your data
   columns are `logical` and intended to be used with the specialized
   binary `metric`s, you should convert it to a logical matrix first
-  (otherwise you will get the slower dense numerical version). Numeric
-  feature values must be finite: `NA`, `NaN`, `Inf` and `-Inf` are not
-  allowed.
+  (otherwise you will get the slower dense numerical version).
 
 - reference:
 
@@ -51,8 +49,7 @@ rpf_knn_query(
   [`base::data.frame()`](https://rdrr.io/r/base/data.frame.html),
   [`base::matrix()`](https://rdrr.io/r/base/matrix.html) or
   [`Matrix::sparseMatrix()`](https://rdrr.io/pkg/Matrix/man/sparseMatrix.html).
-  Sparse matrices should be in `dgCMatrix` format. Numeric feature
-  values must be finite: `NA`, `NaN`, `Inf` and `-Inf` are not allowed.
+  Sparse matrices should be in `dgCMatrix` format.
 
 - forest:
 

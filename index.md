@@ -49,7 +49,7 @@ install.packages("rnndescent")
 ``` r
 
 # install.packages("pak")
-pak::pak("jlmelville/rnndescent")
+pak::pkg_install("jlmelville/rnndescent")
 ```
 
 This packages makes use of C++ code which must be compiled. You may have
@@ -70,22 +70,6 @@ safe side, I would advise building without a custom `Makevars`.
 `rnndescent` uses C++17. This shouldn’t be too big a problem but not all
 R platforms support it (sorry if this affects you).
 
-## Supported C++ headers
-
-Downstream R packages can use these installed headers by adding
-`rnndescent` to their `LinkingTo` field:
-
-- `pforr.h` provides parallel loops, requires C++11 and threads, and
-  otherwise depends only on the C++ standard library.
-- `rnndescent/random.h` provides the package’s random-number adapters,
-  requires C++17 and R, and also requires the `Rcpp`, `dqrng` and `BH`
-  headers. Add those packages to `LinkingTo` as well.
-- `tdoann/distance.h` provides distance functions, requires C++17, and
-  depends only on the C++ standard library.
-
-Other installed C++ headers are implementation details and are not
-supported as direct include entry points.
-
 ## Example
 
 ``` r
@@ -98,7 +82,7 @@ iris_knn <- rnnd_knn(iris, k = 15)
 # Build an index
 iris_even <- iris[seq_len(nrow(iris)) %% 2 == 0, ]
 # Specify the number of neighbors you are likely to want to query for
-iris_index <- rnnd_build(iris_even, k = 15)
+iris_index <- rnnd_build(iris_index, k = 15)
 
 # Query then index
 iris_odd <- iris[seq_len(nrow(iris)) %% 2 == 1, ]
@@ -167,9 +151,10 @@ are licensed differently:
 - `inst/include/dqsample.h` is a modification of some sampling code from
   [dqrng](https://github.com/daqana/dqrng) and is [AGPLv3 or
   later](https://www.gnu.org/licenses/agpl-3.0.en.html).
-- `inst/include/pforr.h` is a modification of some code from from
-  [RcppParallel](https://github.com/RcppCore/RcppParallel) and is [GPLv2
-  or later](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
+- `inst/include/RcppPerpendicular.h` is a modification of some code from
+  from [RcppParallel](https://github.com/RcppCore/RcppParallel) and is
+  [GPLv2 or
+  later](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
 - The underlying nearest neighbor descent C++ library, which can be
   found under `inst/include/tdoann`, is licensed under the [BSD
   2-Clause](https://opensource.org/license/bsd-2-clause/).

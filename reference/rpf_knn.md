@@ -39,9 +39,7 @@ rpf_knn(
   converted to `numerical` matrix format internally, so if your data
   columns are `logical` and intended to be used with the specialized
   binary `metric`s, you should convert it to a logical matrix first
-  (otherwise you will get the slower dense numerical version). Numeric
-  feature values must be finite: `NA`, `NaN`, `Inf` and `-Inf` are not
-  allowed.
+  (otherwise you will get the slower dense numerical version).
 
 - k:
 
@@ -64,9 +62,6 @@ rpf_knn(
 
   - `"dice"`
 
-  - `"dot"` (1 minus the normalized dot product, capped at 1; 1 if
-    either vector is zero)
-
   - `"euclidean"`
 
   - `"hamming"`
@@ -87,9 +82,6 @@ rpf_knn(
 
   - `"manhattan"`
 
-  - `"matching"` (fraction of features whose zero/nonzero indicators
-    differ)
-
   - `"rogerstanimoto"`
 
   - `"russellrao"`
@@ -101,9 +93,6 @@ rpf_knn(
   - `"spearmanr"` (1 minus the Spearman rank correlation)
 
   - `"symmetrickl"` (symmetric Kullback-Leibler divergence)
-
-  - `"trueangular"` (angle between vectors divided by pi; 0 for two zero
-    vectors and 1/2 when exactly one vector is zero)
 
   - `"tsss"` (Triangle Area Similarity-Sector Area Similarity or TS-SS
     metric)
