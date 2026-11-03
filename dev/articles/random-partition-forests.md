@@ -249,11 +249,7 @@ written only with generic floating point data in mind.
 ``` r
 
 bin_knn_imp <-
-  rpf_knn(binary_data,
-    k = 15,
-    metric = "hamming",
-    margin = "implicit"
-  )
+  rpf_knn(binary_data, k = 15, metric = "hamming", margin = "implicit")
 ```
 
 The following uses explicit rather than implicit splits. It may produce
@@ -263,11 +259,7 @@ datasets is likely to be noticeably slower:
 ``` r
 
 bin_knn_exp <-
-  rpf_knn(binary_data,
-    k = 15,
-    metric = "hamming",
-    margin = "explicit"
-  )
+  rpf_knn(binary_data, k = 15, metric = "hamming", margin = "explicit")
 ```
 
 So if the implicit margin method is faster (and makes sense for more

@@ -110,7 +110,11 @@ respect to the largest distance)
 
 ``` r
 
-hist(g2d_nnbf$dist[, -1] / max(g2d_nnbf$dist[, -1]), xlab = "distances", main = "2D 15-NN")
+hist(
+  g2d_nnbf$dist[, -1] / max(g2d_nnbf$dist[, -1]),
+  xlab = "distances",
+  main = "2D 15-NN"
+)
 ```
 
 ![Histogram of normalized 2D neighbor distances, concentrated at low
@@ -119,7 +123,11 @@ tail.](hubness_files/figure-html/NN-distances-distribution-1.png)
 
 ``` r
 
-hist(g1000d_nnbf$dist[, -1] / max(g1000d_nnbf$dist[, -1]), xlab = "distances", main = "1000D 15-NN")
+hist(
+  g1000d_nnbf$dist[, -1] / max(g1000d_nnbf$dist[, -1]),
+  xlab = "distances",
+  main = "1000D 15-NN"
+)
 ```
 
 ![Histogram of normalized 1000D neighbor distances, concentrated at
@@ -135,7 +143,8 @@ high-dimensional case for the neighbors found by NND:
 
 ``` r
 
-hist(g1000d_nnd$dist[, -1] / max(g1000d_nnd$dist[, -1]),
+hist(
+  g1000d_nnd$dist[, -1] / max(g1000d_nnd$dist[, -1]),
   xlab = "distances",
   main = "1000D 15-NND"
 )
@@ -157,8 +166,10 @@ RMS of the reference distances:
 ``` r
 
 nn_rrmsev <- function(nn, ref) {
-  sqrt(apply((nn$dist[, -1] - ref$dist[, -1])^2, 1, sum) /
-    apply(ref$dist[, -1]^2, 1, sum))
+  sqrt(
+    apply((nn$dist[, -1] - ref$dist[, -1])^2, 1, sum) /
+      apply(ref$dist[, -1]^2, 1, sum)
+  )
 }
 ```
 
@@ -174,10 +185,7 @@ Here’s a histogram of RRMS distance errors:
 ``` r
 
 g1000d_rrmse <- nn_rrmsev(g1000d_nnd, g1000d_nnbf)
-hist(g1000d_rrmse,
-  main = "1000D distance error",
-  xlab = "Relative RMS error"
-)
+hist(g1000d_rrmse, main = "1000D distance error", xlab = "Relative RMS error")
 ```
 
 ![Histogram of relative RMS distance errors: many items have zero or
@@ -201,11 +209,7 @@ accuracies:
 
 g1000d_nnd_acc <-
   neighbor_overlap(g1000d_nnbf, g1000d_nnd, k = 15, ret_vec = TRUE)$overlaps
-hist(g1000d_nnd_acc,
-  main = "1000D accuracy",
-  xlab = "accuracy",
-  xlim = c(0, 1)
-)
+hist(g1000d_nnd_acc, main = "1000D accuracy", xlab = "accuracy", xlim = c(0, 1))
 ```
 
 ![Histogram of per-item neighbor overlap in 1000 dimensions, showing a
@@ -332,7 +336,8 @@ than the largest 2D k-occurrence:
 
 ``` r
 
-hist(pmin(g1000d_bfko, max(g2d_bfko)),
+hist(
+  pmin(g1000d_bfko, max(g2d_bfko)),
   main = "1000D 15-NN zoomed",
   xlab = "k-occurrences"
 )
@@ -406,7 +411,8 @@ the exact results:
 
 ``` r
 
-hist(pmin(g1000d_nndko, max(g2d_bfko)),
+hist(
+  pmin(g1000d_nndko, max(g2d_bfko)),
   main = "1000D 15-NND zoomed",
   xlab = "k-occurrences"
 )
@@ -449,8 +455,11 @@ distributed across the data. So let’s see how well the NND k-occurrences
 
 ``` r
 
-plot(g1000d_nndko, g1000d_bfko,
-  xlab = "approximate", ylab = "exact",
+plot(
+  g1000d_nndko,
+  g1000d_bfko,
+  xlab = "approximate",
+  ylab = "exact",
   xlim = c(0, max(g1000d_nndko, g1000d_bfko)),
   ylim = c(0, max(g1000d_nndko, g1000d_bfko)),
   main = "1000D k-occ"
@@ -479,8 +488,11 @@ Zooming in to lower values of the k-occurrence:
 
 ``` r
 
-plot(g1000d_nndko, g1000d_bfko,
-  xlab = "approximate", ylab = "exact",
+plot(
+  g1000d_nndko,
+  g1000d_bfko,
+  xlab = "approximate",
+  ylab = "exact",
   xlim = c(0, max(g2d_bfko)),
   ylim = c(0, max(g2d_bfko)),
   main = "1000D low k-occ"
@@ -512,8 +524,11 @@ neighbors:
 
 ``` r
 
-plot(g1000d_nndko, g1000d_nnd_acc,
-  xlab = "NND k-occ", ylab = "accuracy",
+plot(
+  g1000d_nndko,
+  g1000d_nnd_acc,
+  xlab = "NND k-occ",
+  ylab = "accuracy",
   xlim = c(0, max(g1000d_nndko, g1000d_bfko)),
   main = "1000D acc vs NND k-occ"
 )
@@ -626,7 +641,8 @@ Looking familiar. Zooming in…
 
 ``` r
 
-hist(pmin(g1000d_nndkoi1, max(g2d_bfko)),
+hist(
+  pmin(g1000d_nndkoi1, max(g2d_bfko)),
   main = "1000D 15-NND (1 iter, zoomed)",
   xlab = "k-occurrences"
 )
@@ -727,11 +743,7 @@ case, it’s worth trying though:
 ``` r
 
 g1000d_nnd_w <-
-  nnd_knn(g1000d,
-    k = 15,
-    metric = "euclidean",
-    weight_by_degree = TRUE
-  )
+  nnd_knn(g1000d, k = 15, metric = "euclidean", weight_by_degree = TRUE)
 neighbor_overlap(g1000d_nnbf, g1000d_nnd_w)
 #> [1] 0.8021333
 ```
@@ -769,7 +781,12 @@ that are considered at each iteration. This is controlled by the
 
 ``` r
 
-g1000d_nnd_mc30 <- nnd_knn(g1000d, k = 15, metric = "euclidean", max_candidates = 30)
+g1000d_nnd_mc30 <- nnd_knn(
+  g1000d,
+  k = 15,
+  metric = "euclidean",
+  max_candidates = 30
+)
 neighbor_overlap(g1000d_nnbf, g1000d_nnd_mc30)
 #> [1] 0.8796
 ```

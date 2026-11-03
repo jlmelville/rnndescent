@@ -199,7 +199,10 @@ earlier <code>rpf_nbrs</code> describes odd query rows against even
 reference rows, so it is not a graph of the reference data.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">reference_nbrs</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rpf_knn_query.html">rpf_knn_query</a></span><span class="op">(</span></span>
-<span>  query <span class="op">=</span> <span class="va">iris_even</span>, reference <span class="op">=</span> <span class="va">iris_even</span>, forest <span class="op">=</span> <span class="va">rpf_index</span>, k <span class="op">=</span> <span class="fl">15</span></span>
+<span>  query <span class="op">=</span> <span class="va">iris_even</span>,</span>
+<span>  reference <span class="op">=</span> <span class="va">iris_even</span>,</span>
+<span>  forest <span class="op">=</span> <span class="va">rpf_index</span>,</span>
+<span>  k <span class="op">=</span> <span class="fl">15</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">graph_nbrs</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/graph_knn_query.html">graph_knn_query</a></span><span class="op">(</span></span>
@@ -436,8 +439,10 @@ get back a sparse matrix, specifically a <code>dgCMatrix</code>. Here’s
 a histogram of how the edges are distributed:</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">search_graph_edges</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/diff.html" class="external-link">diff</a></span><span class="op">(</span><span class="va">iris_search_graph</span><span class="op">@</span><span class="va">p</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/hist.html" class="external-link">hist</a></span><span class="op">(</span><span class="va">search_graph_edges</span>,</span>
-<span>  main <span class="op">=</span> <span class="st">"Distribution of search graph edges"</span>, xlab <span class="op">=</span> <span class="st">"# edges"</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/hist.html" class="external-link">hist</a></span><span class="op">(</span></span>
+<span>  <span class="va">search_graph_edges</span>,</span>
+<span>  main <span class="op">=</span> <span class="st">"Distribution of search graph edges"</span>,</span>
+<span>  xlab <span class="op">=</span> <span class="st">"# edges"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p><img src="querying-data_files/figure-html/iris-search-graph-histogram-1.png" class="r-plt" alt="Histogram of iris search graph degrees, showing the distribution of edge counts after pruning." width="700"></p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">

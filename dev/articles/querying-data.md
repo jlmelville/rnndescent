@@ -127,7 +127,10 @@ is not a graph of the reference data.
 ``` r
 
 reference_nbrs <- rpf_knn_query(
-  query = iris_even, reference = iris_even, forest = rpf_index, k = 15
+  query = iris_even,
+  reference = iris_even,
+  forest = rpf_index,
+  k = 15
 )
 ```
 
@@ -380,8 +383,10 @@ the edges are distributed:
 ``` r
 
 search_graph_edges <- diff(iris_search_graph@p)
-hist(search_graph_edges,
-  main = "Distribution of search graph edges", xlab = "# edges"
+hist(
+  search_graph_edges,
+  main = "Distribution of search graph edges",
+  xlab = "# edges"
 )
 ```
 

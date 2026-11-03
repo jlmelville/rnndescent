@@ -329,21 +329,13 @@ called which should be much faster than the functions written only with
 generic floating point data in mind.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">bin_knn_imp</span> <span class="op">&lt;-</span></span>
-<span>  <span class="fu"><a href="../reference/rpf_knn.html">rpf_knn</a></span><span class="op">(</span><span class="va">binary_data</span>,</span>
-<span>    k <span class="op">=</span> <span class="fl">15</span>,</span>
-<span>    metric <span class="op">=</span> <span class="st">"hamming"</span>,</span>
-<span>    margin <span class="op">=</span> <span class="st">"implicit"</span></span>
-<span>  <span class="op">)</span></span></code></pre></div>
+<span>  <span class="fu"><a href="../reference/rpf_knn.html">rpf_knn</a></span><span class="op">(</span><span class="va">binary_data</span>, k <span class="op">=</span> <span class="fl">15</span>, metric <span class="op">=</span> <span class="st">"hamming"</span>, margin <span class="op">=</span> <span class="st">"implicit"</span><span class="op">)</span></span></code></pre></div>
 <p>The following uses explicit rather than implicit splits. It may
 produce a different forest and different neighbors, and for large binary
 datasets is likely to be noticeably slower:</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">bin_knn_exp</span> <span class="op">&lt;-</span></span>
-<span>  <span class="fu"><a href="../reference/rpf_knn.html">rpf_knn</a></span><span class="op">(</span><span class="va">binary_data</span>,</span>
-<span>    k <span class="op">=</span> <span class="fl">15</span>,</span>
-<span>    metric <span class="op">=</span> <span class="st">"hamming"</span>,</span>
-<span>    margin <span class="op">=</span> <span class="st">"explicit"</span></span>
-<span>  <span class="op">)</span></span></code></pre></div>
+<span>  <span class="fu"><a href="../reference/rpf_knn.html">rpf_knn</a></span><span class="op">(</span><span class="va">binary_data</span>, k <span class="op">=</span> <span class="fl">15</span>, metric <span class="op">=</span> <span class="st">"hamming"</span>, margin <span class="op">=</span> <span class="st">"explicit"</span><span class="op">)</span></span></code></pre></div>
 <p>So if the implicit margin method is faster (and makes sense for more
 metrics) why would you ever want to use the explicit method? Well, the
 implicit method is only faster for binary data with specialized metrics.

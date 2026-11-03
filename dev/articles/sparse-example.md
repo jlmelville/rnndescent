@@ -103,22 +103,19 @@ take a look at the end (spoiler alerts for the end of Persuasion):
 
 ``` r
 
-tail(data, 10)
+writeLines(tail(data, 10)$text)
 ```
 
-    # A tibble: 10 × 2
-       text                                                                      book
-       <chr>                                                                     <fct>
-     1 "affection.  His profession was all that could ever make her friends"     Persuasion
-     2 "wish that tenderness less, the dread of a future war all that could dim" Persuasion
-     3 "her sunshine.  She gloried in being a sailor's wife, but she must pay"   Persuasion
-     4 "the tax of quick alarm for belonging to that profession which is, if"    Persuasion
-     5 "possible, more distinguished in its domestic virtues than in its"        Persuasion
-     6 "national importance."                                                    Persuasion
-     7 ""                                                                        Persuasion
-     8 ""                                                                        Persuasion
-     9 ""                                                                        Persuasion
-    10 "Finis"                                                                   Persuasion
+    affection.  His profession was all that could ever make her friends
+    wish that tenderness less, the dread of a future war all that could dim
+    her sunshine.  She gloried in being a sailor's wife, but she must pay
+    the tax of quick alarm for belonging to that profession which is, if
+    possible, more distinguished in its domestic virtues than in its
+    national importance.
+
+
+
+    Finis
 
 Alright, so we can expect a lot of blank rows. I’d like a bit more text
 per entry (and also this reduces the number of rows we need to process
@@ -148,12 +145,12 @@ head(data_processed)
     # A tibble: 6 × 3
       book                row_group text
       <fct>                   <dbl> <chr>
-    1 Sense & Sensibility         1 "SENSE AND SENSIBILITY  by Jane Austen  (1811)     CHAPTER 1"
-    2 Sense & Sensibility         2 "  The family of Dashwood had long been settled in Sussex.  Their estate was large, and their residence was at Norland Park, in t…
-    3 Sense & Sensibility         3 "alteration in his home; for to supply her loss, he invited and received into his house the family of his nephew Mr. Henry Dashwo…
-    4 Sense & Sensibility         4 " By a former marriage, Mr. Henry Dashwood had one son: by his present lady, three daughters.  The son, a steady respectable youn…
-    5 Sense & Sensibility         5 "father only seven thousand pounds in his own disposal; for the remaining moiety of his first wife's fortune was also secured to …
-    6 Sense & Sensibility         6 "son's son, a child of four years old, it was secured, in such a way, as to leave to himself no power of providing for those who …
+    1 Sense & Sensibility         1 "SENSE AND SENSIBILITY  by Jane Austen …
+    2 Sense & Sensibility         2 "  The family of Dashwood had long been…
+    3 Sense & Sensibility         3 "alteration in his home; for to supply …
+    4 Sense & Sensibility         4 " By a former marriage, Mr. Henry Dashw…
+    5 Sense & Sensibility         5 "father only seven thousand pounds in h…
+    6 Sense & Sensibility         6 "son's son, a child of four years old, …
 
 ## Text Analysis
 
@@ -355,21 +352,27 @@ data_processed[popular_indices, c("book", "text")]
     # A tibble: 6 × 2
       book              text
       <fct>             <chr>
-    1 Mansfield Park    "You will be what you ought to be to her. I hope it does not distress you very much, Fanny?\"…
-    2 Emma              "know any body was coming. 'It is only Mrs. Cole,' said I, 'depend upon it. Nobody else would…
-    3 Pride & Prejudice "Jane? Shall you like to have such a brother?\"  \"Very, very much. Nothing could give either…
-    4 Emma              " \"Perhaps she might; but it is not every man's fate to marry the woman who loves him best. …
-    5 Northanger Abbey  " \"Henry!\" she replied with a smile. \"Yes, he does dance very well.\"  \"He must have thou…
-    6 Pride & Prejudice " \"I wish you joy. If you love Mr. Darcy half as well as I do my dear Wickham, you must be v…
+    1 Mansfield Park    "You will be what you ought to be to her. I hope it…
+    2 Emma              "know any body was coming. 'It is only Mrs. Cole,' …
+    3 Pride & Prejudice "Jane? Shall you like to have such a brother?\"  \"…
+    4 Emma              " \"Perhaps she might; but it is not every man's fa…
+    5 Northanger Abbey  " \"Henry!\" she replied with a smile. \"Yes, he do…
+    6 Pride & Prejudice " \"I wish you joy. If you love Mr. Darcy half as w…
 
 Here’s the full text from the most popular item:
 
 ``` r
 
-data_processed[popular_indices[1], ]$text
+writeLines(strwrap(data_processed[popular_indices[1], ]$text, width = 72))
 ```
 
-    [1] "You will be what you ought to be to her. I hope it does not distress you very much, Fanny?\"  \"Indeed it does: I cannot like it. I love this house and everything in it: I shall love nothing there. You know how uncomfortable I feel with her.\"  \"I can say nothing for her manner to you as a child; but it was the same with us all, or nearly so. She never knew how to be pleasant to children. But you are now of an age to be treated better; I think she is"
+    You will be what you ought to be to her. I hope it does not distress
+    you very much, Fanny?"  "Indeed it does: I cannot like it. I love this
+    house and everything in it: I shall love nothing there. You know how
+    uncomfortable I feel with her."  "I can say nothing for her manner to
+    you as a child; but it was the same with us all, or nearly so. She
+    never knew how to be pleasant to children. But you are now of an age to
+    be treated better; I think she is
 
 All dialog and it does contain the word “love” in a lot of them. But
 without looking at other text, it’s hard to say if that is a
@@ -390,18 +393,32 @@ data_processed[sample(unpopular_indices, 6), c("book", "text")]
     # A tibble: 6 × 2
       book                text
       <fct>               <chr>
-    1 Emma                "a letter, among the thousands that are constantly passing about the kingdom, is even carried wrong--and not one in a million, I supp…
-    2 Northanger Abbey    "Catherine heard neither the particulars nor the result. Her companion's discourse now sunk from its hitherto animated pitch to nothi…
-    3 Mansfield Park      "whose distress she thought of most. Julia's elopement could affect her comparatively but little; she was amazed and shocked; but it …
-    4 Persuasion          "tried, more fixed in a knowledge of each other's character, truth, and attachment; more equal to act, more justified in acting.  And…
-    5 Sense & Sensibility "but not on picturesque principles.  I do not like crooked, twisted, blasted trees.  I admire them much more if they are tall, straig…
-    6 Sense & Sensibility "and though a sigh sometimes escaped her, it never passed away without the atonement of a smile.  After dinner she would try her pian…
+    1 Emma                "a letter, among the thousands that are constantl…
+    2 Northanger Abbey    "Catherine heard neither the particulars nor the …
+    3 Mansfield Park      "whose distress she thought of most. Julia's elop…
+    4 Persuasion          "tried, more fixed in a knowledge of each other's…
+    5 Sense & Sensibility "but not on picturesque principles.  I do not lik…
+    6 Sense & Sensibility "and though a sigh sometimes escaped her, it neve…
 
 And here’s the full text of a randomly selected item:
 
-    data_processed[sample(unpopular_indices, 1),]$text
+``` r
 
-    [1] "unwelcome, most ill-timed, most appalling! Mr. Yates might consider it only as a vexatious interruption for the evening, and Mr. Rushworth might imagine it a blessing; but every other heart was sinking under some degree of self-condemnation or undefined alarm, every other heart was suggesting, \"What will become of us? what is to be done now?\" It was a terrible pause; and terrible to every ear were the corroborating sounds of opening doors and passing footsteps.  Julia was the first to move and speak again. Jealousy and bitterness had been suspended: selfishness was lost in the common cause; but at the"
+writeLines(strwrap(
+  data_processed[sample(unpopular_indices, 1), ]$text,
+  width = 72
+))
+```
+
+    unwelcome, most ill-timed, most appalling! Mr. Yates might consider it
+    only as a vexatious interruption for the evening, and Mr. Rushworth
+    might imagine it a blessing; but every other heart was sinking under
+    some degree of self-condemnation or undefined alarm, every other heart
+    was suggesting, "What will become of us? what is to be done now?" It
+    was a terrible pause; and terrible to every ear were the corroborating
+    sounds of opening doors and passing footsteps.  Julia was the first to
+    move and speak again. Jealousy and bitterness had been suspended:
+    selfishness was lost in the common cause; but at the
 
 There’s definitely a different flavor to the text of the anti-hubs we
 see here compared to the hubs, but this is only a small fraction of the
@@ -426,8 +443,10 @@ mean_pap[mean_pap > 0] |>
   head(10)
 ```
 
-    elizabeth      darcy     bennet    bingley       jane       will       said    wickham    collins      lydia
-    0.04253865 0.03290232 0.02795931 0.02545364 0.01991761 0.01847970 0.01713893 0.01687501 0.01687119 0.01438015
+     elizabeth      darcy     bennet    bingley       jane       will
+    0.04253865 0.03290232 0.02795931 0.02545364 0.01991761 0.01847970
+          said    wickham    collins      lydia
+    0.01713893 0.01687501 0.01687119 0.01438015
 
 That actually corresponds ok with results from the `tidytext` vignette:
 it’s mainly character names (and, er, `'said'`).
@@ -443,8 +462,10 @@ mean_tfidf[mean_tfidf > 0] |>
   head(10)
 ```
 
-          will        mrs       said       must       miss       much        one      think       know      never
-    0.01630534 0.01513324 0.01446493 0.01388111 0.01355313 0.01307697 0.01266730 0.01200490 0.01169455 0.01152472
+          will        mrs       said       must       miss       much
+    0.01630534 0.01513324 0.01446493 0.01388111 0.01355313 0.01307697
+           one      think       know      never
+    0.01266730 0.01200490 0.01169455 0.01152472
 
 Now we have more generic words, although `said` is still there. Way to
 go, `said`.
@@ -460,8 +481,10 @@ mean_popular_tfidf[mean_popular_tfidf > 0] %>%
   head(10)
 ```
 
-          love      quite       well       feel      think       like      shall       sure    nothing        yes
-    0.08188918 0.07007464 0.06825873 0.06808318 0.06540969 0.06223084 0.06055058 0.05710714 0.05624428 0.05375587
+          love      quite       well       feel      think       like
+    0.08188918 0.07007464 0.06825873 0.06808318 0.06540969 0.06223084
+         shall       sure    nothing        yes
+    0.06055058 0.05710714 0.05624428 0.05375587
 
 There’s `love` right at the top. No `said` to be seen, and not a lot of
 overlap with the average words.
@@ -477,8 +500,10 @@ mean_unpopular_tfidf[mean_unpopular_tfidf > 0] |>
   head(10)
 ```
 
-          every        much        mind       might        must     harriet     without         one        long       first
-    0.014918830 0.011596126 0.011479893 0.011270905 0.011188771 0.010718795 0.010047623 0.009764715 0.009650010 0.009499682
+          every        much        mind       might        must     harriet
+    0.014918830 0.011596126 0.011479893 0.011270905 0.011188771 0.010718795
+        without         one        long       first
+    0.010047623 0.009764715 0.009650010 0.009499682
 
 There is a bit more overlap with the average words here, but what was it
 Tolstoy said about unhappy families? I wouldn’t necessarily expect a
@@ -579,11 +604,7 @@ in the input space, so we use `metric = "euclidean"` rather than
 ``` r
 
 umap_nbrs <-
-  brute_force_knn(js_umap,
-    k = 15,
-    n_threads = 6,
-    metric = "euclidean"
-  )
+  brute_force_knn(js_umap, k = 15, n_threads = 6, metric = "euclidean")
 ```
 
 Now we can measure the overlap between the two neighbor graphs:

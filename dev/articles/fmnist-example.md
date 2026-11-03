@@ -123,7 +123,12 @@ always worth trying the initial knn graph.
 
 ``` r
 
-fmnist_train_rnnd <- rnnd_knn(fmnist_train, k = 15, n_threads = 6, verbose = TRUE)
+fmnist_train_rnnd <- rnnd_knn(
+  fmnist_train,
+  k = 15,
+  n_threads = 6,
+  verbose = TRUE
+)
 ```
 
 This took 11 seconds. How accurate are the results?
@@ -158,7 +163,12 @@ parameter is `ef = 15`.
 
 ``` r
 
-fmnist_train_hnsw <- hnsw_search(uwot:::x2m(fmnist_train), hnsw_index, k = 15, n_threads = 6)
+fmnist_train_hnsw <- hnsw_search(
+  uwot:::x2m(fmnist_train),
+  hnsw_index,
+  k = 15,
+  n_threads = 6
+)
 ```
 
 A very impressive 3 seconds for index searching.
@@ -185,7 +195,8 @@ use `n_trees = 50` to build:
 ``` r
 
 annoy_index <-
-  uwot:::annoy_build(uwot:::x2m(fmnist_train),
+  uwot:::annoy_build(
+    uwot:::x2m(fmnist_train),
     metric = "euclidean",
     n_trees = 50
   )
@@ -228,7 +239,8 @@ skewed in favor of tree building. We could probably build fewer trees
 ``` r
 
 annoy_index <-
-  uwot:::annoy_build(uwot:::x2m(fmnist_train),
+  uwot:::annoy_build(
+    uwot:::x2m(fmnist_train),
     metric = "euclidean",
     n_trees = 30
   )
@@ -338,11 +350,7 @@ the k-nearest neighbor graph, so we need only query the data.
 ``` r
 
 fmnist_test_hnsw <-
-  hnsw_search(uwot:::x2m(fmnist_test),
-    hnsw_index,
-    k = 15,
-    n_threads = 6
-  )
+  hnsw_search(uwot:::x2m(fmnist_test), hnsw_index, k = 15, n_threads = 6)
 ```
 
 Index searching is fast. I will round it up to 1 second, but it was more

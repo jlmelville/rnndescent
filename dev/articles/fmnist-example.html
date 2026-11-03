@@ -194,7 +194,12 @@ an index and then querying that index with the original data,
 query or retaining a full reusable search index. Querying can improve
 the result, but it’s always worth trying the initial knn graph.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">fmnist_train_rnnd</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rnnd_knn.html">rnnd_knn</a></span><span class="op">(</span><span class="va">fmnist_train</span>, k <span class="op">=</span> <span class="fl">15</span>, n_threads <span class="op">=</span> <span class="fl">6</span>, verbose <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">fmnist_train_rnnd</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rnnd_knn.html">rnnd_knn</a></span><span class="op">(</span></span>
+<span>  <span class="va">fmnist_train</span>,</span>
+<span>  k <span class="op">=</span> <span class="fl">15</span>,</span>
+<span>  n_threads <span class="op">=</span> <span class="fl">6</span>,</span>
+<span>  verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 <p>This took 11 seconds. How accurate are the results?</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/neighbor_overlap.html">neighbor_overlap</a></span><span class="op">(</span><span class="va">fmnist_train_rnnd</span>, <span class="va">fmnist_train_bf</span><span class="op">)</span></span></code></pre></div>
@@ -218,7 +223,12 @@ the HNSW parameters are <code>M = 16</code> and
 <p>Index building took 17 seconds. For searching, the default search
 parameter is <code>ef = 15</code>.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">fmnist_train_hnsw</span> <span class="op">&lt;-</span> <span class="fu">hnsw_search</span><span class="op">(</span><span class="fu">uwot</span><span class="fu">:::</span><span class="fu">x2m</span><span class="op">(</span><span class="va">fmnist_train</span><span class="op">)</span>, <span class="va">hnsw_index</span>, k <span class="op">=</span> <span class="fl">15</span>, n_threads <span class="op">=</span> <span class="fl">6</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">fmnist_train_hnsw</span> <span class="op">&lt;-</span> <span class="fu">hnsw_search</span><span class="op">(</span></span>
+<span>  <span class="fu">uwot</span><span class="fu">:::</span><span class="fu">x2m</span><span class="op">(</span><span class="va">fmnist_train</span><span class="op">)</span>,</span>
+<span>  <span class="va">hnsw_index</span>,</span>
+<span>  k <span class="op">=</span> <span class="fl">15</span>,</span>
+<span>  n_threads <span class="op">=</span> <span class="fl">6</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 <p>A very impressive 3 seconds for index searching.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/neighbor_overlap.html">neighbor_overlap</a></span><span class="op">(</span><span class="va">fmnist_train_hnsw</span>, <span class="va">fmnist_train_bf</span><span class="op">)</span></span></code></pre></div>
@@ -236,7 +246,8 @@ its nearest neighbor search, so we can make use of those functions
 parameters. We use <code>n_trees = 50</code> to build:</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">annoy_index</span> <span class="op">&lt;-</span></span>
-<span>  <span class="fu">uwot</span><span class="fu">:::</span><span class="fu">annoy_build</span><span class="op">(</span><span class="fu">uwot</span><span class="fu">:::</span><span class="fu">x2m</span><span class="op">(</span><span class="va">fmnist_train</span><span class="op">)</span>,</span>
+<span>  <span class="fu">uwot</span><span class="fu">:::</span><span class="fu">annoy_build</span><span class="op">(</span></span>
+<span>    <span class="fu">uwot</span><span class="fu">:::</span><span class="fu">x2m</span><span class="op">(</span><span class="va">fmnist_train</span><span class="op">)</span>,</span>
 <span>    metric <span class="op">=</span> <span class="st">"euclidean"</span>,</span>
 <span>    n_trees <span class="op">=</span> <span class="fl">50</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
@@ -267,7 +278,8 @@ probably build fewer trees (which is slow) and spend (relatively) more
 time searching:</p>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">annoy_index</span> <span class="op">&lt;-</span></span>
-<span>  <span class="fu">uwot</span><span class="fu">:::</span><span class="fu">annoy_build</span><span class="op">(</span><span class="fu">uwot</span><span class="fu">:::</span><span class="fu">x2m</span><span class="op">(</span><span class="va">fmnist_train</span><span class="op">)</span>,</span>
+<span>  <span class="fu">uwot</span><span class="fu">:::</span><span class="fu">annoy_build</span><span class="op">(</span></span>
+<span>    <span class="fu">uwot</span><span class="fu">:::</span><span class="fu">x2m</span><span class="op">(</span><span class="va">fmnist_train</span><span class="op">)</span>,</span>
 <span>    metric <span class="op">=</span> <span class="st">"euclidean"</span>,</span>
 <span>    n_trees <span class="op">=</span> <span class="fl">30</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
@@ -351,11 +363,7 @@ but we don’t need to worry about that for now.</p>
 for the k-nearest neighbor graph, so we need only query the data.</p>
 <div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fmnist_test_hnsw</span> <span class="op">&lt;-</span></span>
-<span>  <span class="fu">hnsw_search</span><span class="op">(</span><span class="fu">uwot</span><span class="fu">:::</span><span class="fu">x2m</span><span class="op">(</span><span class="va">fmnist_test</span><span class="op">)</span>,</span>
-<span>    <span class="va">hnsw_index</span>,</span>
-<span>    k <span class="op">=</span> <span class="fl">15</span>,</span>
-<span>    n_threads <span class="op">=</span> <span class="fl">6</span></span>
-<span>  <span class="op">)</span></span></code></pre></div>
+<span>  <span class="fu">hnsw_search</span><span class="op">(</span><span class="fu">uwot</span><span class="fu">:::</span><span class="fu">x2m</span><span class="op">(</span><span class="va">fmnist_test</span><span class="op">)</span>, <span class="va">hnsw_index</span>, k <span class="op">=</span> <span class="fl">15</span>, n_threads <span class="op">=</span> <span class="fl">6</span><span class="op">)</span></span></code></pre></div>
 <p>Index searching is fast. I will round it up to 1 second, but it was
 more like 0.65 seconds.</p>
 <div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
