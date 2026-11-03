@@ -106,7 +106,7 @@ correlation is undefined for zero-variance vectors.</li>
 <code>"cosine"</code>: 1 minus the <a href="https://en.wikipedia.org/wiki/Cosine_similarity" class="external-link">cosine
 similarity</a>.</li>
 <li>
-<code>"dice"</code>: the <a href="https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient" class="external-link">Dice
+<code>"dice"</code>: 1 minus the <a href="https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient" class="external-link">Dice
 coefficient</a>, also known as the Sørensen–Dice coefficient. Intended
 for binary data.</li>
 <li>
@@ -124,10 +124,12 @@ and 1s.</li>
 L2 norm.</li>
 <li>
 <code>"hamming"</code>: the <a href="https://en.wikipedia.org/wiki/Hamming_distance" class="external-link">Hamming
-distance</a>. Intended for binary data.</li>
+distance</a>, the fraction of features with unequal values. Numeric
+values need not be binary.</li>
 <li>
 <code>"haversine"</code>: the Haversine (great-circle) distance for
-2D latitude and longitude coordinates in <em>radians</em>. This is for
+2D latitude and longitude coordinates in <em>radians</em>. The returned
+distance is an angle in radians on the unit sphere. This is for
 compatibility with the PyNNDescent implementation, but be aware that
 functions like <code>distHaversine</code> in the <a href="https://CRAN.R-project.org/package=geosphere" class="external-link">geosphere</a>
 package expect latitude and longitude in <em>degrees</em>. An error will
@@ -140,7 +142,7 @@ non-negative values, such as probabilities or counts. The calculation
 accounts for each row’s total, so the values need not sum to
 <code>1</code>.</li>
 <li>
-<code>"jaccard"</code>: the <a href="https://en.wikipedia.org/wiki/Jaccard_index" class="external-link">Jaccard index</a>,
+<code>"jaccard"</code>: 1 minus the <a href="https://en.wikipedia.org/wiki/Jaccard_index" class="external-link">Jaccard index</a>,
 also known as the Tanimoto coefficient. Intended for binary data.</li>
 <li>
 <code>"jensenshannon"</code>: the <a href="https://en.wikipedia.org/wiki/Jensen%E2%80%93Shannon_divergence" class="external-link">Jensen-Shannon
@@ -205,25 +207,35 @@ among tied neighbors is guaranteed.</li>
 <code>"yule"</code> the Yule dissimilarity. Intended for binary
 data.</li>
 </ul>
-<p>For non-sparse data, the following variants are available with
-preprocessing: this trades memory for a potential speed up during the
-distance calculation. Some minor numerical differences should be
-expected compared to the non-preprocessed versions:</p>
+<p>For non-sparse data, the following variants preprocess each row once.
+This trades memory for a potential speed up during the distance
+calculation:</p>
 <ul>
 <li>
-<code>"cosine-preprocess"</code>: <code>cosine</code> with
-preprocessing.</li>
+<code>"cosine-preprocess"</code>: normalize each vector to unit
+length before computing cosine distance.</li>
 <li>
-<code>"correlation-preprocess"</code>: <code>correlation</code> with
-preprocessing.</li>
+<code>"correlation-preprocess"</code>: center and normalize each
+vector before computing correlation distance.</li>
 </ul>
+<p>Both calculate distances directly on the ordinary scale; no inverse
+transform is needed. Minor numerical differences from the
+non-preprocessed versions can be expected. Their conventions also differ
+for zero or constant vectors: two zero vectors have
+<code>"cosine"</code> distance 0 but <code>"cosine-preprocess"</code>
+distance 1; two constant vectors have <code>"correlation"</code>
+distance 0 but <code>"correlation-preprocess"</code> distance 1. When
+exactly one vector is zero (for cosine) or constant (for correlation),
+both versions return 1.</p>
 <p>The internal names <code>"alternative-cosine"</code>,
 <code>"alternative-dot"</code>, <code>"alternative-hellinger"</code> and
 <code>"alternative-jaccard"</code> are also currently accepted, but
 return transformed distances when selected directly. Use the ordinary
 names above. Where available, <code>use_alt_metric</code> lets the
 implementation use a faster internal calculation and convert the results
-back to the ordinary distance scale.</p>
+back to the ordinary distance scale. Currently this applies to
+Euclidean, dot, Hellinger and Jaccard distances; it has no effect on
+cosine, correlation, or their preprocessing variants.</p>
 <div class="section level2">
 <h2 id="numerical-precision">Numerical precision<a class="anchor" aria-label="anchor" href="#numerical-precision"></a>
 </h2>
@@ -270,9 +282,11 @@ example with <code>x[is.na(x)] &lt;- FALSE</code>.</p>
 <p>Some metrics are intended for use with binary data. This means
 that:</p>
 <ul>
-<li>Your numeric data should consist of only two distinct values,
-typically <code>0</code> and <code>1</code>. You will get unpredictable
-results otherwise.</li>
+<li>For the binary metrics, use numeric <code>0</code> and
+<code>1</code> or a logical matrix. These metrics generally treat zero
+as absent and nonzero as present, so values <code>1</code> and
+<code>2</code> are both present. Hamming also supports nonbinary numeric
+values and compares the actual values.</li>
 <li>If you provide the data as a <code>logical</code> matrix, a much
 faster implementation is used.</li>
 </ul>

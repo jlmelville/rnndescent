@@ -34,7 +34,7 @@ look in that reference for an exact definition.
   for zero-variance vectors.
 - `"cosine"`: 1 minus the [cosine
   similarity](https://en.wikipedia.org/wiki/Cosine_similarity).
-- `"dice"`: the [Dice
+- `"dice"`: 1 minus the [Dice
   coefficient](https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient),
   also known as the Sørensen–Dice coefficient. Intended for binary data.
 - `"dot"`: 1 minus the dot product after normalizing each vector to unit
@@ -47,10 +47,12 @@ look in that reference for an exact definition.
   the same calculation on 0s and 1s.
 - `"euclidean"`: the Euclidean distance, also known as the L2 norm.
 - `"hamming"`: the [Hamming
-  distance](https://en.wikipedia.org/wiki/Hamming_distance). Intended
-  for binary data.
+  distance](https://en.wikipedia.org/wiki/Hamming_distance), the
+  fraction of features with unequal values. Numeric values need not be
+  binary.
 - `"haversine"`: the Haversine (great-circle) distance for 2D latitude
-  and longitude coordinates in *radians*. This is for compatibility with
+  and longitude coordinates in *radians*. The returned distance is an
+  angle in radians on the unit sphere. This is for compatibility with
   the PyNNDescent implementation, but be aware that functions like
   `distHaversine` in the
   [geosphere](https://CRAN.R-project.org/package=geosphere) package
@@ -61,7 +63,7 @@ look in that reference for an exact definition.
   intended for probability distributions: use non-negative values, such
   as probabilities or counts. The calculation accounts for each row’s
   total, so the values need not sum to `1`.
-- `"jaccard"`: the [Jaccard
+- `"jaccard"`: 1 minus the [Jaccard
   index](https://en.wikipedia.org/wiki/Jaccard_index), also known as the
   Tanimoto coefficient. Intended for binary data.
 - `"jensenshannon"`: the [Jensen-Shannon
@@ -111,20 +113,32 @@ look in that reference for an exact definition.
   no ordering among tied neighbors is guaranteed.
 - `"yule"` the Yule dissimilarity. Intended for binary data.
 
-For non-sparse data, the following variants are available with
-preprocessing: this trades memory for a potential speed up during the
-distance calculation. Some minor numerical differences should be
-expected compared to the non-preprocessed versions:
+For non-sparse data, the following variants preprocess each row once.
+This trades memory for a potential speed up during the distance
+calculation:
 
-- `"cosine-preprocess"`: `cosine` with preprocessing.
-- `"correlation-preprocess"`: `correlation` with preprocessing.
+- `"cosine-preprocess"`: normalize each vector to unit length before
+  computing cosine distance.
+- `"correlation-preprocess"`: center and normalize each vector before
+  computing correlation distance.
+
+Both calculate distances directly on the ordinary scale; no inverse
+transform is needed. Minor numerical differences from the
+non-preprocessed versions can be expected. Their conventions also differ
+for zero or constant vectors: two zero vectors have `"cosine"` distance
+0 but `"cosine-preprocess"` distance 1; two constant vectors have
+`"correlation"` distance 0 but `"correlation-preprocess"` distance 1.
+When exactly one vector is zero (for cosine) or constant (for
+correlation), both versions return 1.
 
 The internal names `"alternative-cosine"`, `"alternative-dot"`,
 `"alternative-hellinger"` and `"alternative-jaccard"` are also currently
 accepted, but return transformed distances when selected directly. Use
 the ordinary names above. Where available, `use_alt_metric` lets the
 implementation use a faster internal calculation and convert the results
-back to the ordinary distance scale.
+back to the ordinary distance scale. Currently this applies to
+Euclidean, dot, Hellinger and Jaccard distances; it has no effect on
+cosine, correlation, or their preprocessing variants.
 
 ## Numerical precision
 
@@ -174,8 +188,10 @@ calling, for example with `x[is.na(x)] <- FALSE`.
 
 Some metrics are intended for use with binary data. This means that:
 
-- Your numeric data should consist of only two distinct values,
-  typically `0` and `1`. You will get unpredictable results otherwise.
+- For the binary metrics, use numeric `0` and `1` or a logical matrix.
+  These metrics generally treat zero as absent and nonzero as present,
+  so values `1` and `2` are both present. Hamming also supports
+  nonbinary numeric values and compares the actual values.
 - If you provide the data as a `logical` matrix, a much faster
   implementation is used.
 

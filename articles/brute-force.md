@@ -41,9 +41,9 @@ lapply(iris_nbrs, function(x) {
 #> [3,]    0 0.1414213 0.2449490 0.2645751 0.2645753
 ```
 
-And here’s an example of querying the odd items in the `iris` data
-against the even items (i.e. the indices in `iris_nbrs` will refer to
-the odd items):
+And here’s an example of querying the even items in the `iris` data
+against the odd items. The indices in `iris_query_nbrs` refer to rows of
+`iris_odd`:
 
 ``` r
 

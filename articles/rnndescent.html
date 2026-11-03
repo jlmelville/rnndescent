@@ -80,21 +80,21 @@ nearest neighbors, based heavily on the Python package <a href="https://github.c
 independent reimplementation written in C++. It uses the following
 techniques:</p>
 <ol style="list-style-type: decimal">
-<li>Initialization by creating a forest of random project trees <span class="citation">(Dasgupta and Freund 2008)</span>.</li>
+<li>Initialization by creating a forest of random projection trees <span class="citation">(Dasgupta and Freund 2008)</span>.</li>
 <li>Optimization by using nearest neighbor descent <span class="citation">(Dong et al. 2011)</span>.</li>
 <li>For building a search graph, graph diversification techniques from
 FANNG <span class="citation">(Harwood and Drummond 2016)</span>.</li>
 <li>For querying new data, the back-tracking search from NGT <span class="citation">(Iwasaki and Miyazaki 2018)</span> (without dynamic
 degree-adjustment).</li>
 </ol>
-<p>The easiest way to find k-nearest neighbors and query new data is to
-use the <code>rnnd_knn</code> function, which combine several of the
-available techniques into sensible defaults use the
-<code>rnnd_build</code> and <code>rnnd_query</code> functions. For
+<p>The easiest way to find k-nearest neighbors is to use
+<code>rnnd_knn</code>. To query new data, use <code>rnnd_build</code> to
+build an index and <code>rnnd_query</code> to search it. These functions
+combine several of the available techniques with sensible defaults. For
 greater flexibility, the underlying functions used by
 <code>rnnd_build</code> and <code>rnnd_query</code> can be used
 directly. The other vignettes in this package describe their use and go
-into more detail about the how the methods work.</p>
+into more detail about how the methods work.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://jlmelville.github.io/rnndescent/">rnndescent</a></span><span class="op">)</span></span></code></pre></div>
 <div class="section level2">
@@ -138,7 +138,7 @@ usual in R, these are 1-indexed.</li>
 </h2>
 <p><code>rnnd_knn</code> returns the k-nearest neighbors, but does not
 return any “index” that you can use to query new data. To do that, use
-<code>rnnd_build</code>. Normally you would query the index with
+<code>rnnd_build</code>. Normally you would query the index with data
 different from that which you used to build the index, so let’s split
 <code>iris</code> up:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
@@ -147,7 +147,7 @@ different from that which you used to build the index, so let’s split
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">iris_index</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rnnd_build.html">rnnd_build</a></span><span class="op">(</span><span class="va">iris_even</span>, k <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span></code></pre></div>
 <p>The index is also a list but with a lot more components (none of
-which are intended for manual examination), apart from the the neighbor
+which are intended for manual examination), apart from the neighbor
 graph which can be found under the <code>graph</code> component in the
 same format as the return value of <code>rnnd_knn</code>:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
@@ -251,8 +251,10 @@ other nearest neighbor packages. See the <a href="metrics.html">metrics</a> vign
 </h2>
 <ul>
 <li>Dense matrices and data frames.</li>
-<li>Sparse matrices, in the <code>dgCMatrix</code>. All the same
-distances are supported as for dense matrices.</li>
+<li>Sparse matrices in <code>dgCMatrix</code>, <code>dgRMatrix</code>,
+or <code>dgTMatrix</code> form. The main distances supported for dense
+matrices are also available for sparse matrices, except for Haversine.
+The optional preprocessing variants are dense-only.</li>
 <li>Additionally, for dense binary data, if you supply it as a
 <code>logical</code> matrix, then for certain distances intended for
 binary data, specialized functions will be used to speed up the
@@ -278,7 +280,7 @@ and Low Dimensional Manifolds.”</span> <em>Proceedings of the Fortieth
 Annual ACM Symposium on Theory of Computing</em>, 537–46.
 </div>
 <div id="ref-dong2011efficient" class="csl-entry">
-Dong, Wei, Charikar Moses, and Kai Li. 2011. <span>“Efficient k-Nearest
+Dong, Wei, Moses Charikar, and Kai Li. 2011. <span>“Efficient k-Nearest
 Neighbor Graph Construction for Generic Similarity Measures.”</span>
 <em>Proceedings of the 20th International Conference on World Wide
 Web</em>, 577–86.

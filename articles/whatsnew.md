@@ -37,7 +37,7 @@ version number has been bumped to 0.1.1.
 the k-nearest neighbors graph for a dataset (i.e. no querying). I have
 also removed some other functions and made some other breaking changes
 as I prepare for CRAN submission. See the
-[NEWS](https://jlmelville.github.io/rnndescent/articles/NEWS.md) for
+[NEWS](https://jlmelville.github.io/rnndescent/news/index.html) for
 details.
 
 *19 Nov 2023* The `rnnd_build` function and `rnnd_query` functions have
@@ -49,10 +49,11 @@ functions. The latter could return in a different package at some point.
 
 *13 November 2023*. I have added most of the metrics that don’t need
 extra parameters for both sparse and non-sparse data, e.g. `braycurtis`,
-`dice`, `jaccard`, `hellinger` etc. See the `Missing Metrics` section at
-the end of this README for those which are not implemented. There are a
-few breaking changes (mainly around the hamming metric, see `NEWS.md`
-for the exact details).
+`dice`, `jaccard`, `hellinger` etc. See the [`Missing Metrics`
+section](https://github.com/jlmelville/rnndescent#missing-metrics) of
+the README for those which are not implemented. There are a few breaking
+changes (mainly around the hamming metric, see `NEWS.md` for the exact
+details).
 
 *06 November 2023* Sparse data support has been added. You should be
 able to use e.g. a `dgCMatrix` with all the methods and currently
@@ -60,7 +61,7 @@ supported metrics as easily as a dense matrix.
 
 *30 October 2023* At last, a workable random partition forest
 implementation has been added. This can be used standalone
-(e.g. `rpf_knn`, `rpf_build`, `rpt_knn_query`) or as initialization to
+(e.g. `rpf_knn`, `rpf_build`, `rpf_knn_query`) or as initialization to
 nearest neighbor descent (`nnd_knn(init = "tree", ...)`). The forest
 itself can be serialized with `saveRDS` but you will pay a price for
 that convenience by having to pass it back and forth from the R to C++

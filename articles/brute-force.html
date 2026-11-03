@@ -108,9 +108,9 @@ vignette.</p>
 <span><span class="co">#&gt; [1,]    0 0.1000000 0.1414212 0.1414212 0.1414213</span></span>
 <span><span class="co">#&gt; [2,]    0 0.1414213 0.1414213 0.1414213 0.1732050</span></span>
 <span><span class="co">#&gt; [3,]    0 0.1414213 0.2449490 0.2645751 0.2645753</span></span></code></pre></div>
-<p>And here’s an example of querying the odd items in the
-<code>iris</code> data against the even items (i.e. the indices in
-<code>iris_nbrs</code> will refer to the odd items):</p>
+<p>And here’s an example of querying the even items in the
+<code>iris</code> data against the odd items. The indices in
+<code>iris_query_nbrs</code> refer to rows of <code>iris_odd</code>:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">iris_even</span> <span class="op">&lt;-</span> <span class="va">iris</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">iris</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/r/base/Arithmetic.html" class="external-link">%%</a></span> <span class="fl">2</span> <span class="op">==</span> <span class="fl">0</span>, <span class="op">]</span></span>
 <span><span class="va">iris_odd</span> <span class="op">&lt;-</span> <span class="va">iris</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">iris</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/r/base/Arithmetic.html" class="external-link">%%</a></span> <span class="fl">2</span> <span class="op">==</span> <span class="fl">1</span>, <span class="op">]</span></span>

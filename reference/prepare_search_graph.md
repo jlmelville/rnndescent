@@ -303,9 +303,9 @@ iris_query_nn <- graph_knn_query(
   reference_graph = ref_search_graph, k = 4, metric = "euclidean",
   verbose = TRUE
 )
-#> 05:18:40 Using alt metric 'sqeuclidean' for 'euclidean'
-#> 05:18:40 Initializing from random neighbors
-#> 05:18:40 Generating random k-nearest neighbor graph from reference with k = 4
-#> 05:18:40 Searching nearest neighbor graph with epsilon = 0.1 and max_search_fraction = 1
-#> 05:18:40 Finished
+#> 19:21:38 Using alt metric 'sqeuclidean' for 'euclidean'
+#> 19:21:38 Initializing from random neighbors
+#> 19:21:38 Generating random k-nearest neighbor graph from reference with k = 4
+#> 19:21:38 Searching nearest neighbor graph with epsilon = 0.1 and max_search_fraction = 1
+#> 19:21:38 Finished
 ```

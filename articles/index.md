@@ -15,7 +15,7 @@
 
 ### What’s New
 
-A summary of the latest changes to `uwot`.
+A summary of the latest changes to `rnndescent`.
 
 - [What's
   New](https://jlmelville.github.io/rnndescent/articles/whatsnew.md):
