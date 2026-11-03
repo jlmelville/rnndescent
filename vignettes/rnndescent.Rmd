@@ -20,7 +20,7 @@ heavily on the Python package [PyNNDescent](https://github.com/lmcinnes/pynndesc
 by [Leland McInnes](https://github.com/lmcinnes), but is a fully independent
 reimplementation written in C++. It uses the following techniques:
 
-1. Initialization by creating a forest of random project trees
+1. Initialization by creating a forest of random projection trees
 [@dasgupta2008random].
 2. Optimization by using nearest neighbor descent
 [@dong2011efficient]. 
@@ -29,12 +29,12 @@ from FANNG [@harwood2016fanng].
 4. For querying new data, the back-tracking search from NGT
 [@iwasaki2018optimization] (without dynamic degree-adjustment).
 
-The easiest way to find k-nearest neighbors and query new data is to use the
-`rnnd_knn` function, which combine several of the available techniques into
-sensible defaults use the `rnnd_build` and `rnnd_query` functions. For greater
+The easiest way to find k-nearest neighbors is to use `rnnd_knn`. To query new
+data, use `rnnd_build` to build an index and `rnnd_query` to search it. These
+functions combine several of the available techniques with sensible defaults. For greater
 flexibility, the underlying functions used by `rnnd_build` and `rnnd_query` can
 be used directly. The other vignettes in this package describe their use and go
-into more detail about the how the methods work.
+into more detail about how the methods work.
 
 ```{r setup}
 library(rnndescent)
@@ -68,7 +68,7 @@ lapply(iris_knn, function(x) {
 
 `rnnd_knn` returns the k-nearest neighbors, but does not return any "index" that
 you can use to query new data. To do that, use `rnnd_build`. Normally you would
-query the index with different from that which you used to build the index, so
+query the index with data different from that which you used to build the index, so
 let's split `iris` up:
 
 ```{r iris split}
@@ -81,7 +81,7 @@ iris_index <- rnnd_build(iris_even, k = 5)
 ```
 
 The index is also a list but with a lot more components (none of which are 
-intended for manual examination), apart from the the neighbor graph which can
+intended for manual examination), apart from the neighbor graph which can
 be found under the `graph` component in the same format as the return value of
 `rnnd_knn`:
 
@@ -169,8 +169,9 @@ neighbor packages. See the [metrics](metrics.html) vignette for more details.
 ## Supported Data Types
 
 * Dense matrices and data frames.
-* Sparse matrices, in the `dgCMatrix`. All the same distances are supported as
-for dense matrices.
+* Sparse matrices in `dgCMatrix`, `dgRMatrix`, or `dgTMatrix` form. The main
+distances supported for dense matrices are also available for sparse matrices,
+except for Haversine. The optional preprocessing variants are dense-only.
 * Additionally, for dense binary data, if you supply it as a `logical` matrix,
 then for certain distances intended for binary data, specialized functions will
 be used to speed up the computation.

@@ -14,7 +14,7 @@ articles:
   - hubness
   - metrics
 - title: What's New
-  desc: "A summary of the latest changes to `uwot`."
+  desc: "A summary of the latest changes to `rnndescent`."
   contents:
    - articles/whatsnew
 - title: Articles

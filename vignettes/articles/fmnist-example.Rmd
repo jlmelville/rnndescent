@@ -21,8 +21,8 @@ compares the rnndescent with the R bindings for
 
 ## This is not a Vignette
 
-This article doesn't contain any "live" documentation nor do I paste the output.
-Having to install packages of github and also doing brute force search is not
+This article doesn't contain any "live" documentation; I show selected numeric
+results below. Having to install packages from GitHub and also doing brute force search is not
 very user-friendly, so only run this code if you know what you are letting
 yourself in for. 
 
@@ -32,6 +32,8 @@ On my 8th gen Intel i7 laptop with six cores, the slowest part is the brute
 force search which takes about 10 minutes. If you have a reasonably modern
 machine it shouldn't be tying up your computer for hours on end.
 
+These are historical measurements: the run date and package
+versions are not recorded here, so they should not be taken as a promise of current performance.
 I made no particular efforts to be super accurate with timings. I ran all of
 the approximate nearest neighbor methods several times and reporting to the
 nearest second seems fine. I also did not shut down any other programs on my
@@ -41,7 +43,7 @@ activities on the machine either.
 ## Setup
 
 Some packages need installing. To get to the Fashion MNIST dataset, I use the
-[snedata](jlmelville/snedata) package which is not on CRAN. Therefore in turn
+[snedata](https://github.com/jlmelville/snedata) package which is not on CRAN. Therefore in turn
 you will need to install via another package, e.g. 
 [devtools](https://cran.r-project.org/package=devtools) or in this case
 [pak](https://cran.r-project.org/package=pak):
@@ -77,7 +79,7 @@ fmnist <- snedata::download_fashion_mnist()
 
 This is in the same format as the famous
 [MNIST](https://en.wikipedia.org/wiki/MNIST_database) data, but instead of being
-images of handwritten images, it's images of different types of clothing.
+images of handwritten digits, it's images of different types of clothing.
 
 The typical split is the first 60,000 images as the training set, and the rest
 as the test set.
@@ -114,10 +116,10 @@ exact results.
 ### rnndescent
 
 While all the methods here can find k-nearest neighbors by building an index
-and then querying that index with the original data, `rnndescent` can extract
-the k-nearest neighbors directly from the index without a separate query step.
-The query step will produce a more accurate result, but it's always worth
-trying the initial knn graph.
+and then querying that index with the original data, `rnnd_knn` constructs the
+neighbor graph without a separate query or retaining a full reusable search
+index. Querying can improve the result, but it's always worth trying the
+initial knn graph.
 
 ```{r rnnd knn}
 fmnist_train_rnnd <- rnnd_knn(fmnist_train, k = 15, n_threads = 6, verbose = TRUE)
@@ -279,7 +281,8 @@ faster than that.
 
 ### rnndescent
 
-We avoided having to build an index with `rnndescent` for the k-nearest neighbor tasks. Now we must.
+For the k-nearest neighbor task, `rnnd_knn` did not retain a reusable search
+index. Now we need to build one.
 
 ```{r build rnnd index}
 rnnd_index <-
@@ -344,7 +347,7 @@ or so.
 
 ### Annoy
 
-Like HSNW, we will re-use the Annoy index from the k-nearest neighbors graph
+Like HNSW, we will re-use the Annoy index from the k-nearest neighbors graph
 building. This is the one where we set `n_trees = 30`.
 
 ```{r search annoy index}
