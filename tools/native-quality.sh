@@ -179,16 +179,24 @@ done < <(
 )
 clang-format --dry-run --Werror "${format_sources[@]}"
 
-graph_flags=(-std=gnu++17 -pthread -Iinst/include -Wall -Wextra -Wpedantic -Werror)
+native_test_flags=(-std=gnu++17 -pthread -Iinst/include -Wall -Wextra -Wpedantic -Werror)
 for compiler in "${compilers[@]}"; do
-  graph_compiler_flags=("${graph_flags[@]}")
+  compiler_test_flags=("${native_test_flags[@]}")
   if [[ $compiler == clang++ ]]; then
-    graph_compiler_flags+=(-stdlib=libc++)
+    compiler_test_flags+=(-stdlib=libc++)
   fi
-  graph_executable="$scratch_dir/test-nngraph-$compiler"
-  "$compiler" "${graph_compiler_flags[@]}" tools/test-nngraph.cpp -o "$graph_executable"
-  "$graph_executable"
+  for native_test in nngraph tauprng; do
+    test_executable="$scratch_dir/test-$native_test-$compiler"
+    "$compiler" "${compiler_test_flags[@]}" "tools/test-$native_test.cpp" -o "$test_executable"
+    "$test_executable"
+  done
 done
+
+tau_ubsan_executable="$scratch_dir/test-tauprng-ubsan"
+g++ "${native_test_flags[@]}" -fsanitize=undefined -fno-sanitize-recover=all \
+  tools/test-tauprng.cpp -o "$tau_ubsan_executable"
+"$tau_ubsan_executable"
+printf 'tau_prng UBSan: PASS (GCC)\n'
 
 tools/test-pforr-exception-transport.sh
 Rscript --vanilla tools/test-rnn-progress.R

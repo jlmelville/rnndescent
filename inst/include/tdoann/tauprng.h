@@ -87,7 +87,10 @@ public:
     return static_cast<int32_t>(state0 ^ state1 ^ state2);
   }
 
-  auto rand() -> double { return std::abs(operator()() / DINT_MAX); }
+  auto rand() -> double {
+    const double value = std::abs(operator()() / DINT_MAX);
+    return value < 1.0 ? value : std::nextafter(1.0, 0.0);
+  }
 };
 } // namespace tdoann
 #endif // TDOANN_TAUPRNG_H

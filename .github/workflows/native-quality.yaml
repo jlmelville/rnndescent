@@ -12,6 +12,7 @@ on:
       - tools/native-quality.sh
       - tools/requirements-clang-format.txt
       - tools/test-nngraph.cpp
+      - tools/test-tauprng.cpp
       - tools/test-pforr-exception-transport.cpp
       - tools/test-pforr-exception-transport.sh
       - tools/tsan-pforr.sh
@@ -30,6 +31,7 @@ on:
       - tools/native-quality.sh
       - tools/requirements-clang-format.txt
       - tools/test-nngraph.cpp
+      - tools/test-tauprng.cpp
       - tools/test-pforr-exception-transport.cpp
       - tools/test-pforr-exception-transport.sh
       - tools/tsan-pforr.sh
