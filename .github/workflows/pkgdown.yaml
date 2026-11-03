@@ -56,6 +56,7 @@ jobs:
           name: pkgdown-site
           path: docs
           if-no-files-found: error
+          include-hidden-files: true
 
   deploy-site:
     name: Deploy pkgdown site
