@@ -520,7 +520,7 @@ js_umap <-
 
 Let's plot what we got:
 
-```{r plot umap}
+```{r plot-umap, fig.alt = "UMAP scatter plot of Austen text passages colored by book; passages mostly cluster by book, with smaller Persuasion and Northanger Abbey clusters."}
 ggplot(
   data.frame(js_umap, Book = data_processed$book),
   aes(x = X1, y = X2, color = Book)
@@ -538,7 +538,7 @@ ggplot(
   guides(color = guide_legend(override.aes = list(size = 5)))
 ```
 
-![UMAP plot](umap-austen.png)
+![UMAP scatter plot of Austen text passages colored by book; passages mostly cluster by book, with smaller Persuasion and Northanger Abbey clusters.](umap-austen.png)
 
 Hey, that looks pretty good! We can see that the texts from each book are mostly
 clustered together. The clusters for "Persuasion" and "Northanger Abbey" are

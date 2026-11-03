@@ -2,6 +2,56 @@ url: https://jlmelville.github.io/rnndescent/
 template:
   bootstrap: 5
   math-rendering: katex
+  light-switch: true
+  theme: github-light
+  theme-dark: github-dark
+  bslib:
+    danger: "#A6081A"
+
+development:
+  mode: auto
+
+llm-docs: true
+
+navbar:
+  structure:
+    right: [versions, search, github, lightswitch]
+  components:
+    versions:
+      text: Documentation version
+      menu:
+      - text: CRAN release
+        href: https://jlmelville.github.io/rnndescent/
+      - text: Development
+        href: https://jlmelville.github.io/rnndescent/dev/
+
+reference:
+- title: Main interface
+  desc: Find approximate neighbors or build and query an index.
+- contents:
+  - rnnd_knn
+  - rnnd_build
+  - rnnd_query
+- title: Individual search methods
+  desc: Find or query neighbors using brute force, random selection, nearest neighbor descent, or random projection forests.
+- contents:
+  - brute_force_knn
+  - brute_force_knn_query
+  - random_knn
+  - random_knn_query
+  - nnd_knn
+  - rpf_knn
+  - rpf_build
+  - rpf_knn_query
+  - rpf_filter
+- title: Graph search and utilities
+  desc: Prepare and query search graphs, merge neighbor graphs, and assess their properties.
+- contents:
+  - prepare_search_graph
+  - graph_knn_query
+  - merge_knn
+  - k_occur
+  - neighbor_overlap
 
 articles:
 - title: All vignettes

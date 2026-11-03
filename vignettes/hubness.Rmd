@@ -111,7 +111,7 @@ Let's look at the distribution of nearest neighbor distances in high and low
 dimensions (for easier comparison, I have normalized them with respect to the
 largest distance)
 
-```{r NN distances distribution}
+```{r NN-distances-distribution, fig.alt = c("Histogram of normalized 2D neighbor distances, concentrated at low values with a right tail.", "Histogram of normalized 1000D neighbor distances, concentrated at higher values in a roughly symmetric distribution.")}
 hist(g2d_nnbf$dist[, -1] / max(g2d_nnbf$dist[, -1]), xlab = "distances", main = "2D 15-NN")
 hist(g1000d_nnbf$dist[, -1] / max(g1000d_nnbf$dist[, -1]), xlab = "distances", main = "1000D 15-NN")
 ```
@@ -123,7 +123,7 @@ distribution.
 Here are the distribution of the neighbor distances in the high-dimensional case
 for the neighbors found by NND:
 
-```{r NND distances distribution}
+```{r NND-distances-distribution, fig.alt = "Histogram of normalized approximate 1000D neighbor distances, concentrated at higher values in a roughly symmetric distribution."}
 hist(g1000d_nnd$dist[, -1] / max(g1000d_nnd$dist[, -1]),
   xlab = "distances",
   main = "1000D 15-NND"
@@ -154,7 +154,7 @@ penalized a less harshly than a more distant point.
 
 Here's a histogram of RRMS distance errors:
 
-```{r histogram of distance difference}
+```{r histogram-of-distance-difference, fig.alt = "Histogram of relative RMS distance errors: many items have zero or small errors, with a tail of larger errors."}
 g1000d_rrmse <- nn_rrmsev(g1000d_nnd, g1000d_nnbf)
 hist(g1000d_rrmse,
   main = "1000D distance error",
@@ -173,7 +173,7 @@ TRUE`, `neighbor_overlap` will now return a list with the individual overlaps as
 `overlaps` vector (the overall mean average overlap is returned as the `mean`
 item). Here is a histograms of the accuracies:
 
-```{r hist 1000D}
+```{r hist-1000D, fig.alt = "Histogram of per-item neighbor overlap in 1000 dimensions, showing a range of accuracies with many high values."}
 g1000d_nnd_acc <-
   neighbor_overlap(g1000d_nnbf, g1000d_nnd, k = 15, ret_vec = TRUE)$overlaps
 hist(g1000d_nnd_acc,
@@ -188,7 +188,7 @@ noticeably worse accuracy than average. For completeness, here is the relationsh
 accuracy and RRMSE:
 
 
-```{r rrmse vs acc}
+```{r rrmse-vs-acc, fig.alt = "Scatter plot of relative RMS distance error against neighbor overlap; errors vary at a given accuracy."}
 plot(
   g1000d_nnd_acc,
   g1000d_rrmse,
@@ -254,7 +254,7 @@ sum(g2d_bfko == 1)
 there is only one anti-hub in this dataset. Here's a histogram of the 
 k-occurrences:
 
-```{r 2D k-occurrence histogram}
+```{r 2D-k-occurrence-histogram, fig.alt = "Histogram of exact 2D k-occurrences, concentrated around 15 with few extreme values."}
 hist(g2d_bfko, main = "2D 15-NN", xlab = "k-occurrences")
 ```
 
@@ -266,7 +266,7 @@ neighbor descent.
 
 Here's what the k-occurrence histogram looks like for the high dimensional case:
 
-```{r 1000D k-occurrences}
+```{r 1000D-k-occurrences, fig.alt = "Histogram of exact 1000D k-occurrences, strongly right-skewed with a long tail extending to about 300."}
 g1000d_bfko <- k_occur(g1000d_nnbf$idx, k = 15)
 hist(g1000d_bfko, main = "1000D 15-NN", xlab = "k-occurrences")
 ```
@@ -276,7 +276,7 @@ the 2D case, the maximum k-occurrence was ~20. For the 1000D we are looking at
 ~300. It's hard to see any details, so let's zoom in on the same region as the
 2D case by clipping any k-occurrence larger than the largest 2D k-occurrence:
 
-```{r zoomed k-occurrences}
+```{r zoomed-k-occurrences, fig.alt = "Histogram of exact 1000D k-occurrences clipped at the maximum 2D value, showing many low counts and a pile-up at the clipping limit."}
 hist(pmin(g1000d_bfko, max(g2d_bfko)),
   main = "1000D 15-NN zoomed",
   xlab = "k-occurrences"
@@ -325,7 +325,7 @@ the first place. But even if the approximate nearest neighbor graph produced by
 NND isn't highly accurate, does it still show similar characteristics of
 hubness?
 
-```{r 1000D NND k-occurences}
+```{r 1000D-NND-k-occurences, fig.alt = "Histogram of approximate 1000D k-occurrences, strongly right-skewed with a long tail."}
 g1000d_nndko <- k_occur(g1000d_nnd$idx, k = 15)
 hist(g1000d_nndko, main = "1000D 15-NND", xlab = "k-occurrences")
 ```
@@ -333,7 +333,7 @@ hist(g1000d_nndko, main = "1000D 15-NND", xlab = "k-occurrences")
 That seems similar to the true results, and zooming in like we did with the
 exact results:
 
-```{r zoomed NND k-occurrences}
+```{r zoomed-NND-k-occurrences, fig.alt = "Histogram of approximate 1000D k-occurrences clipped at the maximum 2D value, showing many low counts and a pile-up at the clipping limit."}
 hist(pmin(g1000d_nndko, max(g2d_bfko)),
   main = "1000D 15-NND zoomed",
   xlab = "k-occurrences"
@@ -366,7 +366,7 @@ seem to track the exact results fairly well, but as we have seen, the errors
 in the approximate results are not uniformly distributed across the data. So
 let's see how well the NND k-occurrences "predict" the exact results:
 
-```{r approximate vs true 1000D k-occurrence}
+```{r approximate-vs-true-1000D-k-occurrence, fig.alt = "Scatter plot of exact against approximate 1000D k-occurrences with an equality line; the strong relationship tends to fall below the line at high counts."}
 plot(g1000d_nndko, g1000d_bfko,
   xlab = "approximate", ylab = "exact",
   xlim = c(0, max(g1000d_nndko, g1000d_bfko)),
@@ -384,7 +384,7 @@ matters, and there is no ambiguity over which nodes are most hub-like.
 
 Zooming in to lower values of the k-occurrence:
 
-```{r zoomed approximate vs true 1000D k-occurrence}
+```{r zoomed-approximate-vs-true-1000D-k-occurrence, fig.alt = "Scatter plot of exact against approximate 1000D k-occurrences at low counts, with an equality line; approximate counts tend to be higher."}
 plot(g1000d_nndko, g1000d_bfko,
   xlab = "approximate", ylab = "exact",
   xlim = c(0, max(g2d_bfko)),
@@ -410,7 +410,7 @@ perhaps they could be treated specially (or by some other algorithm).
 
 Here's a plot of the accuracy against the k-occurrences of the NND neighbors:
 
-```{r predicting accuracy with NND k-occurrence}
+```{r predicting-accuracy-with-NND-k-occurrence, fig.alt = "Scatter plot of neighbor overlap against approximate k-occurrence: high-count hubs have high accuracy, while low-count items span a wider range."}
 plot(g1000d_nndko, g1000d_nnd_acc,
   xlab = "NND k-occ", ylab = "accuracy",
   xlim = c(0, max(g1000d_nndko, g1000d_bfko)),
@@ -494,13 +494,13 @@ neighbor_overlap(g1000d_nnbf, g1000d_nnd_iter1, k = 15)
 Ok, I think we can all agree we do *not* have an accurate neighbor graph. But
 let's take a look at the k-occurrence distribution:
 
-```{r unconverged ko distribution}
+```{r unconverged-ko-distribution, fig.alt = "Histogram of 1000D k-occurrences after one NND iteration, with many low counts and a long right tail."}
 hist(g1000d_nndkoi1, main = "1000D 15-NND (1 iter)", xlab = "k-occurrences")
 ```
 
 Looking familiar. Zooming in...
 
-```{r unconverged ko distribution zoomed}
+```{r unconverged-ko-distribution-zoomed, fig.alt = "Histogram of 1000D k-occurrences after one NND iteration, clipped at the maximum 2D count; many counts are low and others pile up at the limit."}
 hist(pmin(g1000d_nndkoi1, max(g2d_bfko)),
   main = "1000D 15-NND (1 iter, zoomed)",
   xlab = "k-occurrences"
@@ -526,7 +526,7 @@ Let's just check that what we are seeing is not an artifact of unconverged
 nearest neighbor descent, by running through the same procedure with the 2D
 dataset:
 
-```{r unconverged 2D NND}
+```{r unconverged-2D-NND, fig.alt = "Histogram of 2D k-occurrences after one NND iteration, concentrated around 15 with relatively few extreme counts."}
 g2d_nnd_iter1 <- nnd_knn(g2d, k = 15, metric = "euclidean", n_iters = 1)
 g2d_nndkoi1 <- k_occur(g2d_nnd_iter1$idx, k = 15)
 hist(g2d_nndkoi1, main = "2D 15-NND (1 iter)", xlab = "k-occurrences")
@@ -659,7 +659,7 @@ neighbor_overlap(g1000d_nnbf, g1000d_nnd_merge, k = 15)
 That's a big improvement. So it does seem like there is some diversity in the
 results. 
 
-```{r NND 100D compare accuracy}
+```{r NND-100D-compare-accuracy, fig.alt = "Scatter plot comparing per-item neighbor overlap across two NND runs, showing substantial variation between runs."}
 g1000d_nnd_rep_acc <-
   neighbor_overlap(g1000d_nnbf, g1000d_nnd_rep, k = 15, ret_vec = TRUE)$overlaps
 plot(
@@ -719,7 +719,7 @@ Here is a summary and histogram of the k-occurrences of the search graph. Unlike
 the neighbor graph, this search graph has no self edges, so an anti-hub has
 k-occurrence zero:
 
-```{r histogram of k-occurrences of search graph}
+```{r histogram-of-k-occurrences-of-search-graph, fig.alt = "Histogram of search graph k-occurrences, right-skewed with many low counts and a long tail."}
 g1000d_sgko <- k_occur(g1000d_search_graph)
 hist(g1000d_sgko, main = "search graph k-occurrences", xlab = "k-occurrences")
 summary(g1000d_sgko)
