@@ -4,6 +4,11 @@
 
 ### Bug fixes and minor improvements
 
+- Reject negative original feature values when consumed by Hellinger,
+  Jensen-Shannon or symmetric KL, before native float conversion.
+  Ordinary metrics, zero vectors and unused features keep their existing
+  behavior.
+
 - Cap Tau PRNG floating endpoints below one for C++ header users,
   preserving integer draws and other converted values. Current R RNG
   choices are unchanged.
