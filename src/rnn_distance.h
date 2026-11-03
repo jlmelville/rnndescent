@@ -154,6 +154,29 @@ get_sparse_preprocess_map() {
   return map;
 }
 
+inline bool is_probability_metric(const std::string &metric) {
+  return metric == "hellinger" || metric == "alternative-hellinger" ||
+         metric == "jensenshannon" || metric == "symmetrickl";
+}
+
+// Check original values while copying so float conversion cannot hide
+// negatives.
+template <typename In, typename Input>
+std::vector<In> r_to_vec_for_probability(const Input &data,
+                                         const std::string &metric,
+                                         const char *name = "data") {
+  std::vector<In> result(data.size());
+  auto output = result.begin();
+  for (const double value : data) {
+    if (value < 0.0) {
+      Rcpp::stop("metric '" + metric +
+                 "' requires non-negative feature values in '" + name + "'");
+    }
+    *output++ = static_cast<In>(value);
+  }
+  return result;
+}
+
 inline void validate_haversine_ndim(std::size_t ndim,
                                     const std::string &metric) {
   if (metric == "haversine" && ndim != 2) {
@@ -290,8 +313,14 @@ create_query_distance_impl(const Rcpp::NumericMatrix &reference,
   const auto ndim = reference.nrow();
   validate_haversine_ndim(ndim, metric);
   validate_haversine_ndim(query.nrow(), metric);
-  auto ref_vec = r_to_vec<In>(reference);
-  auto query_vec = r_to_vec<In>(query);
+  const bool probability_metric = is_probability_metric(metric);
+  auto ref_vec =
+      probability_metric
+          ? r_to_vec_for_probability<In>(reference, metric, "reference")
+          : r_to_vec<In>(reference);
+  auto query_vec = probability_metric
+                       ? r_to_vec_for_probability<In>(query, metric, "query")
+                       : r_to_vec<In>(query);
 
   return create_query_distance_impl<Args...>(
       std::move(ref_vec), std::move(query_vec), ndim, metric);
@@ -382,7 +411,9 @@ create_self_distance_impl(const Rcpp::NumericMatrix &data,
   using In = typename FactoryTraits<Args...>::input_type;
 
   const auto ndim = data.nrow();
-  auto data_vec = r_to_vec<In>(data);
+  auto data_vec = is_probability_metric(metric)
+                      ? r_to_vec_for_probability<In>(data, metric)
+                      : r_to_vec<In>(data);
 
   return create_self_distance_impl<Args...>(std::move(data_vec), ndim, metric);
 }
@@ -475,13 +506,20 @@ create_sparse_query_distance_impl(const Rcpp::IntegerVector &ref_ind,
                                   std::size_t ndim, const std::string &metric) {
   using In = typename FactoryTraits<Args...>::input_type;
 
+  const bool probability_metric = is_probability_metric(metric);
   auto ref_ind_cpp = r_to_vec<std::size_t>(ref_ind);
   auto ref_ptr_cpp = r_to_vec<std::size_t>(ref_ptr);
-  auto ref_data_cpp = r_to_vec<In>(ref_data);
+  auto ref_data_cpp =
+      probability_metric
+          ? r_to_vec_for_probability<In>(ref_data, metric, "reference")
+          : r_to_vec<In>(ref_data);
 
   auto query_ind_cpp = r_to_vec<std::size_t>(query_ind);
   auto query_ptr_cpp = r_to_vec<std::size_t>(query_ptr);
-  auto query_data_cpp = r_to_vec<In>(query_data);
+  auto query_data_cpp =
+      probability_metric
+          ? r_to_vec_for_probability<In>(query_data, metric, "query")
+          : r_to_vec<In>(query_data);
 
   return create_sparse_query_distance_impl<
       typename FactoryTraits<Args...>::type>(
@@ -550,7 +588,9 @@ create_sparse_self_distance_impl(const Rcpp::IntegerVector &ind,
 
   auto ind_vec = r_to_vec<std::size_t>(ind);
   auto ptr_vec = r_to_vec<std::size_t>(ptr);
-  auto data_vec = r_to_vec<In>(data);
+  auto data_vec = is_probability_metric(metric)
+                      ? r_to_vec_for_probability<In>(data, metric)
+                      : r_to_vec<In>(data);
 
   return create_sparse_self_distance_impl<
       typename FactoryTraits<Args...>::type>(std::move(ind_vec),

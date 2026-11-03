@@ -518,7 +518,9 @@ List rnn_rp_tree_knn_explicit(const NumericMatrix &data, uint32_t nnbrs,
   using In = RNN_DEFAULT_IN;
 
   const std::size_t ndim = data.nrow();
-  auto data_vec = r_to_vec<In>(data);
+  auto data_vec = is_probability_metric(metric)
+                      ? r_to_vec_for_probability<In>(data, metric)
+                      : r_to_vec<In>(data);
 
   RParallelExecutor executor;
   auto rp_forest =
@@ -566,7 +568,9 @@ List rnn_sparse_rp_tree_knn_explicit(
   using Idx = RNN_DEFAULT_IDX;
   using In = RNN_DEFAULT_IN;
 
-  auto data_vec = r_to_vec<In>(data);
+  auto data_vec = is_probability_metric(metric)
+                      ? r_to_vec_for_probability<In>(data, metric)
+                      : r_to_vec<In>(data);
   auto ind_vec = r_to_vec<std::size_t>(ind);
   auto ptr_vec = r_to_vec<std::size_t>(ptr);
 
@@ -705,7 +709,9 @@ List rnn_rp_forest_build(const NumericMatrix &data, const std::string &metric,
   using In = RNN_DEFAULT_IN;
 
   const std::size_t ndim = data.nrow();
-  auto data_vec = r_to_vec<In>(data);
+  auto data_vec = is_probability_metric(metric)
+                      ? r_to_vec_for_probability<In>(data, metric)
+                      : r_to_vec<In>(data);
 
   RParallelExecutor executor;
   auto rp_forest =
@@ -730,7 +736,9 @@ List rnn_sparse_rp_forest_build(const IntegerVector &ind,
 
   const std::size_t nobs = ptr.size() - 1;
 
-  auto data_vec = r_to_vec<In>(data);
+  auto data_vec = is_probability_metric(metric)
+                      ? r_to_vec_for_probability<In>(data, metric)
+                      : r_to_vec<In>(data);
   auto ind_vec = r_to_vec<std::size_t>(ind);
   auto ptr_vec = r_to_vec<std::size_t>(ptr);
 
