@@ -4,6 +4,10 @@
 
 ### Bug fixes and minor improvements
 
+- Cap Tau PRNG floating endpoints below one for C++ header users,
+  preserving integer draws and other converted values. Current R RNG
+  choices are unchanged.
+
 - Propagate detected user interrupts as R interrupts instead of
   returning partial results. Existing interrupt checks, worker batching
   and successful-call behavior are unchanged.

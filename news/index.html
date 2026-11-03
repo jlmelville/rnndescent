@@ -48,7 +48,8 @@
 <h2 class="pkg-version" data-toc-text="development version" id="rnndescent-development-version">rnndescent (development version)<a class="anchor" aria-label="anchor" href="#rnndescent-development-version"></a></h2>
 <div class="section level3">
 <h3 id="bug-fixes-and-minor-improvements-development-version">Bug fixes and minor improvements<a class="anchor" aria-label="anchor" href="#bug-fixes-and-minor-improvements-development-version"></a></h3>
-<ul><li><p>Propagate detected user interrupts as R interrupts instead of returning partial results. Existing interrupt checks, worker batching and successful-call behavior are unchanged.</p></li>
+<ul><li><p>Cap Tau PRNG floating endpoints below one for C++ header users, preserving integer draws and other converted values. Current R RNG choices are unchanged.</p></li>
+<li><p>Propagate detected user interrupts as R interrupts instead of returning partial results. Existing interrupt checks, worker batching and successful-call behavior are unchanged.</p></li>
 <li><p>Prepare feature inputs once per call across nested build, index and forest-query routes, preserving existing results and random-number behavior.</p></li>
 <li><p>Reject fractional and non-finite supplied neighbor IDs before native integer conversion, and reject IDs beyond the native integer range. Whole-valued doubles and missing entries remain valid.</p></li>
 <li><p>Handle empty zero-point native neighbor graphs without division by zero, and remove an unused sorting setting without changing effective batching.</p></li>
