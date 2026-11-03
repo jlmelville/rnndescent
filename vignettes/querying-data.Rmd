@@ -117,7 +117,10 @@ a graph of the reference data.
 
 ```{r reference graph}
 reference_nbrs <- rpf_knn_query(
-  query = iris_even, reference = iris_even, forest = rpf_index, k = 15
+  query = iris_even,
+  reference = iris_even,
+  forest = rpf_index,
+  k = 15
 )
 ```
 
@@ -340,8 +343,10 @@ specifically a `dgCMatrix`. Here's a histogram of how the edges are distributed:
 
 ```{r iris-search-graph-histogram, fig.alt = "Histogram of iris search graph degrees, showing the distribution of edge counts after pruning."}
 search_graph_edges <- diff(iris_search_graph@p)
-hist(search_graph_edges,
-  main = "Distribution of search graph edges", xlab = "# edges"
+hist(
+  search_graph_edges,
+  main = "Distribution of search graph edges",
+  xlab = "# edges"
 )
 range(search_graph_edges)
 ```
