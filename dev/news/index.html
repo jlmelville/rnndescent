@@ -59,7 +59,8 @@
 <h2 class="pkg-version" data-toc-text="development version" id="rnndescent-development-version">rnndescent (development version)<a class="anchor" aria-label="anchor" href="#rnndescent-development-version"></a></h2>
 <div class="section level3">
 <h3 id="bug-fixes-and-minor-improvements-development-version">Bug fixes and minor improvements<a class="anchor" aria-label="anchor" href="#bug-fixes-and-minor-improvements-development-version"></a></h3>
-<ul><li><p>Reject negative original feature values when consumed by Hellinger, Jensen-Shannon or symmetric KL, before native float conversion. Ordinary metrics, zero vectors and unused features keep their existing behavior.</p></li>
+<ul><li><p>Skip population sampling for already-full rows when filling a partially missing neighbor graph. This changes the local RNG stream for later incomplete rows, so the same seed and thread setting may produce different filled neighbors and approximate results for mixed initializers. Deterministic serial/fixed-schedule repetition is preserved; parallel NN-descent remains scheduling-dependent.</p></li>
+<li><p>Reject negative original feature values when consumed by Hellinger, Jensen-Shannon or symmetric KL, before native float conversion. Ordinary metrics, zero vectors and unused features keep their existing behavior.</p></li>
 <li><p>Cap Tau PRNG floating endpoints below one for C++ header users, preserving integer draws and other converted values. Current R RNG choices are unchanged.</p></li>
 <li><p>Propagate detected user interrupts as R interrupts instead of returning partial results. Existing interrupt checks, worker batching and successful-call behavior are unchanged.</p></li>
 <li><p>Prepare feature inputs once per call across nested build, index and forest-query routes, preserving existing results and random-number behavior.</p></li>
