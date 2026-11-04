@@ -43,6 +43,20 @@ jobs:
         with:
           use-public-rspm: true
 
+      - name: Check R Markdown formatting
+        shell: bash
+        run: |
+          air --version
+          # Shared pkgdown formatter pinned to its reviewed skill revision.
+          curl --fail --location --silent --show-error \
+            https://raw.githubusercontent.com/jlmelville/codex-workflows/fed18a49d881a09851e9852aec1ef79a317d282b/skills/r-docs-pkgdown/scripts/format-rmd.py \
+            --output "${RUNNER_TEMP}/format-rmd.py"
+          printf '%s  %s\n' \
+            '3fee3412a5d81d7d391bdce9228148e856f3532ee6b227e07396d8501ffe4fe1' \
+            "${RUNNER_TEMP}/format-rmd.py" | shasum -a 256 --check --quiet
+          mapfile -d '' -t rmd_files < <(git ls-files -z -- '*.[Rr][Mm][Dd]')
+          python3 "${RUNNER_TEMP}/format-rmd.py" --check "${rmd_files[@]}"
+
       # Pinned to a full-length commit SHA for immutability; Dependabot updates this reference.
       - uses: r-lib/actions/setup-r-dependencies@f9a764fea8d5c63df6ef9a5c7795bf7deb5d7e05
         with:
