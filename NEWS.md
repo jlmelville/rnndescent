@@ -2,6 +2,12 @@
 
 ## Bug fixes and minor improvements
 
+* Skip population sampling for already-full rows when filling a partially missing neighbor graph.
+  This changes the local RNG stream for later incomplete rows, so the same seed and thread setting
+  may produce different filled neighbors and approximate results for mixed initializers.
+  Deterministic serial/fixed-schedule repetition is preserved; parallel NN-descent remains
+  scheduling-dependent.
+
 * Reject negative original feature values when consumed by Hellinger, Jensen-Shannon or symmetric
   KL, before native float conversion. Ordinary metrics, zero vectors and unused features keep
   their existing behavior.

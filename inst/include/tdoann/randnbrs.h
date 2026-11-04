@@ -44,6 +44,9 @@ auto fill_random(NbrHeap &current_graph,
                  RandomIntGenerator<typename NbrHeap::Index> &rng,
                  typename NbrHeap::Index query,
                  typename NbrHeap::Index n_ref_points) {
+  if (current_graph.is_full(query)) {
+    return;
+  }
   auto sampled_refs = rng.sample(static_cast<int>(n_ref_points),
                                  static_cast<int>(n_ref_points));
   for (const auto ref : sampled_refs) {
