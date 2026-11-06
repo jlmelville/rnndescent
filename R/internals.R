@@ -515,6 +515,10 @@ validate_nn_graph_matrix <- function(nn, nr, nc, msg = "matrix") {
   }
 }
 
+default_n_trees <- function(n_obs) {
+  min(32, 5 + as.integer(round(n_obs^0.25)))
+}
+
 # called by rpf_knn and nnd_knn
 rpf_knn_impl <-
   function(
@@ -535,8 +539,7 @@ rpf_knn_impl <-
   ) {
     if (is.null(n_trees)) {
       # data is transposed at this point so n_obs is in the number of columns
-      n_trees <- 5 + as.integer(round(ncol(data)^0.25))
-      n_trees <- min(32, n_trees)
+      n_trees <- default_n_trees(ncol(data))
     }
     if (is.null(leaf_size)) {
       leaf_size <- max(10, k)

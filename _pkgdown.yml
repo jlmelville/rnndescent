@@ -72,3 +72,4 @@ articles:
   contents:
   - articles/sparse-example
   - articles/fmnist-example
+  - articles/tree-count

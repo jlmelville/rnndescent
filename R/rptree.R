@@ -271,8 +271,7 @@ rpf_build <- function(
   data <- x2m(data, obs)
 
   if (is.null(n_trees)) {
-    n_trees <- 5 + as.integer(round(n_obs(data)^0.25))
-    n_trees <- min(32, n_trees)
+    n_trees <- default_n_trees(n_obs(data))
   }
   n_trees <- check_count(n_trees, "n_trees")
   leaf_size <- check_count(leaf_size, "leaf_size")
