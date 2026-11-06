@@ -290,3 +290,5 @@ Some longer, more involved examples.
   Example](https://jlmelville.github.io/rnndescent/dev/articles/sparse-example.md):
 - [Fashion MNIST
   Example](https://jlmelville.github.io/rnndescent/dev/articles/fmnist-example.md):
+- [How many trees should I
+  use?](https://jlmelville.github.io/rnndescent/dev/articles/tree-count.md):
