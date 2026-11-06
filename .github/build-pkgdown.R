@@ -59,6 +59,18 @@ build_sites <- function() {
       )
     )
   }
+  articles <- list.files(
+    file.path(release, "vignettes"),
+    pattern = "[.]Rmd$",
+    recursive = TRUE
+  )
+  articles <- sub("[.]Rmd$", "", articles)
+  for (i in seq_along(config$articles)) {
+    config$articles[[i]]$contents <- intersect(
+      config$articles[[i]]$contents,
+      articles
+    )
+  }
   config$development$mode <- "release"
   config$repo$branch <- tag
   yaml::write_yaml(config, file.path(release, "_pkgdown.yml"))
