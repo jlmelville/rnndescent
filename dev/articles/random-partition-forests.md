@@ -85,7 +85,9 @@ Some options at your disposal:
 - `n_trees`: the number of trees to build. The default is to choose
   based on the size of the data provided, with a maximum of 32:
   eventually you will get diminishing returns from the number of trees
-  in a forest.
+  in a forest. See [How many trees should I
+  use?](https://jlmelville.github.io/rnndescent/dev/articles/tree-count.md)
+  for a comparison of different values.
 - `leaf_size`: the number of items in a leaf. The splitting procedure
   stops when there are at most this number of items in a node. The
   default is `10` but you will want the leaf size to scale with the
