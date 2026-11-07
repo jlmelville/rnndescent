@@ -38,7 +38,7 @@ check_optional_count <- function(x, name, min = 1L, max = NULL) {
 }
 
 check_n_threads <- function(n_threads) {
-  check_count(n_threads, "n_threads", min = 0L)
+  check_count(n_threads, "n_threads", min = 0L, max = .Machine$integer.max)
 }
 
 check_matching_features <- function(reference, query, obs) {
@@ -101,30 +101,7 @@ check_square_graph <- function(
       )
     }
 
-    if (anyNA(graph$idx)) {
-      stop(graph_name, " indices must not be NA; use 0 for missing entries")
-    }
-
-    missing_idx <- graph$idx == 0L
-    missing_dist <- is.na(graph$dist)
-    if (any(missing_idx != missing_dist)) {
-      stop(
-        graph_name,
-        " must use idx = 0 and dist = NA together for missing entries"
-      )
-    }
-
-    bad_idx <- !missing_idx & (graph$idx < 1L | graph$idx > n_reference)
-    if (any(bad_idx)) {
-      stop(
-        graph_name,
-        " indices must be between 1 and ",
-        n_reference,
-        " or 0 for missing entries"
-      )
-    }
-
-    check_graph_indices(graph$idx, graph_name)
+    check_graph_entries(graph, n_reference, graph_name)
     return(graph)
   }
 
@@ -169,16 +146,7 @@ check_graph <- function(idx, dist = NULL, k = NULL) {
   if (is.list(idx)) {
     idx <- idx$idx
   }
-  if (!methods::is(idx, "matrix")) {
-    stop("Expected a matrix of neighbor indices in 'idx'")
-  }
-  if (!methods::is(dist, "matrix")) {
-    stop("Expected a matrix of neighbor distances in 'dist'")
-  }
-  same_dims <- dim(idx) == dim(dist)
-  if (!(is.logical(same_dims) && !anyNA(same_dims) && all(same_dims))) {
-    stop("'idx' and 'dist' must have the same dimensions")
-  }
+  check_graph_matrices(idx, dist)
   if (is.null(k)) {
     k <- ncol(idx)
   }
@@ -187,6 +155,18 @@ check_graph <- function(idx, dist = NULL, k = NULL) {
     stop("'k' must be greater than 0")
   }
   list(idx = idx, dist = dist, k = k)
+}
+
+check_graph_matrices <- function(idx, dist) {
+  if (!methods::is(idx, "matrix")) {
+    stop("Expected a matrix of neighbor indices in 'idx'")
+  }
+  if (!methods::is(dist, "matrix")) {
+    stop("Expected a matrix of neighbor distances in 'dist'")
+  }
+  if (!identical(dim(idx), dim(dist))) {
+    stop("'idx' and 'dist' must have the same dimensions")
+  }
 }
 
 # Existing callers check NA, missing entries and reference bounds first.
@@ -234,23 +214,33 @@ check_init_graph <- function(nn, n_points, n_reference) {
     )
   }
 
-  if (anyNA(nn$idx)) {
-    stop(
-      "initial neighbor graph indices must not be NA; use 0 for missing entries"
-    )
-  }
+  check_candidate_indices(nn$idx, n_reference, "initial neighbor graph")
+  nn
+}
 
-  bad_idx <- nn$idx != 0 & (nn$idx < 1 | nn$idx > n_reference)
-  if (any(bad_idx)) {
+check_candidate_indices <- function(idx, n_reference, graph_name) {
+  if (anyNA(idx)) {
+    stop(graph_name, " indices must not be NA; use 0 for missing entries")
+  }
+  if (any((idx != 0L & idx < 1L) | idx > n_reference)) {
     stop(
-      "initial neighbor graph indices must be between 1 and ",
+      graph_name,
+      " indices must be between 1 and ",
       n_reference,
       " or 0 for missing entries"
     )
   }
+  check_graph_indices(idx, graph_name)
+}
 
-  check_graph_indices(nn$idx, "initial neighbor graph")
-  nn
+check_graph_entries <- function(graph, n_reference, graph_name) {
+  check_candidate_indices(graph$idx, n_reference, graph_name)
+  if (any((graph$idx == 0L) != is.na(graph$dist))) {
+    stop(
+      graph_name,
+      " must use idx = 0 and dist = NA together for missing entries"
+    )
+  }
 }
 
 # data and query must be column-oriented
@@ -305,75 +295,7 @@ prepare_init_graph <-
     # ensure nn$dist is not NULL and has correct distances at this point
     if (is.null(nn$dist) || recalculate_distances) {
       tsmessage("Generating distances for initial indices")
-      if (!is.null(query)) {
-        if (is_sparse(data)) {
-          nn <- rnn_sparse_idx_to_graph_query(
-            ref_ind = data@i,
-            ref_ptr = data@p,
-            ref_data = data@x,
-            query_ind = query@i,
-            query_ptr = query@p,
-            query_data = query@x,
-            ndim = nrow(data),
-            idx = nn$idx,
-            metric = metric,
-            n_threads = n_threads,
-            verbose = verbose
-          )
-        } else if (is.logical(data)) {
-          nn <-
-            rnn_logical_idx_to_graph_query(
-              reference = data,
-              query = query,
-              idx = nn$idx,
-              metric = metric,
-              n_threads = n_threads,
-              verbose = verbose
-            )
-        } else {
-          nn <-
-            rnn_idx_to_graph_query(
-              reference = data,
-              query = query,
-              idx = nn$idx,
-              metric = metric,
-              n_threads = n_threads,
-              verbose = verbose
-            )
-        }
-      } else {
-        if (is_sparse(data)) {
-          nn <-
-            rnn_sparse_idx_to_graph_self(
-              ind = data@i,
-              ptr = data@p,
-              data = data@x,
-              ndim = nrow(data),
-              idx = nn$idx,
-              metric = metric,
-              n_threads = n_threads,
-              verbose = verbose
-            )
-        } else if (is.logical(data)) {
-          nn <-
-            rnn_logical_idx_to_graph_self(
-              data = data,
-              idx = nn$idx,
-              metric = metric,
-              n_threads = n_threads,
-              verbose = verbose
-            )
-        } else {
-          nn <-
-            rnn_idx_to_graph_self(
-              data = data,
-              idx = nn$idx,
-              metric = metric,
-              n_threads = n_threads,
-              verbose = verbose
-            )
-        }
-      }
+      nn <- score_knn_indices(data, nn$idx, query, metric, n_threads, verbose)
     }
 
     # nn$idx and nn$dist exist and are either the right size or too big
@@ -390,6 +312,52 @@ prepare_init_graph <-
     }
     stop("Still not right!")
   }
+
+# Column-oriented inputs and validated indices.
+score_knn_indices <- function(data, idx, query, metric, n_threads, verbose) {
+  if (!is.null(query)) {
+    if (is_sparse(data)) {
+      return(rnn_sparse_idx_to_graph_query(
+        ref_ind = data@i,
+        ref_ptr = data@p,
+        ref_data = data@x,
+        query_ind = query@i,
+        query_ptr = query@p,
+        query_data = query@x,
+        ndim = nrow(data),
+        idx = idx,
+        metric = metric,
+        n_threads = n_threads,
+        verbose = verbose
+      ))
+    }
+    scorer <- if (is.logical(data)) {
+      rnn_logical_idx_to_graph_query
+    } else {
+      rnn_idx_to_graph_query
+    }
+    return(scorer(data, query, idx, metric, n_threads, verbose))
+  }
+
+  if (is_sparse(data)) {
+    return(rnn_sparse_idx_to_graph_self(
+      ind = data@i,
+      ptr = data@p,
+      data = data@x,
+      ndim = nrow(data),
+      idx = idx,
+      metric = metric,
+      n_threads = n_threads,
+      verbose = verbose
+    ))
+  }
+  scorer <- if (is.logical(data)) {
+    rnn_logical_idx_to_graph_self
+  } else {
+    rnn_idx_to_graph_self
+  }
+  scorer(data, idx, metric, n_threads, verbose)
+}
 
 get_reference_graph_k <- function(reference_graph) {
   ncol(reference_graph$idx)
