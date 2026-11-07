@@ -20,6 +20,9 @@
 <url><loc>https://jlmelville.github.io/rnndescent/dev/reference/graph_knn_query.html</loc></url>
 <url><loc>https://jlmelville.github.io/rnndescent/dev/reference/index.html</loc></url>
 <url><loc>https://jlmelville.github.io/rnndescent/dev/reference/k_occur.html</loc></url>
+<url><loc>https://jlmelville.github.io/rnndescent/dev/reference/knn-utilities.html</loc></url>
+<url><loc>https://jlmelville.github.io/rnndescent/dev/reference/knn_distances.html</loc></url>
+<url><loc>https://jlmelville.github.io/rnndescent/dev/reference/knn_to_sparse.html</loc></url>
 <url><loc>https://jlmelville.github.io/rnndescent/dev/reference/merge_knn.html</loc></url>
 <url><loc>https://jlmelville.github.io/rnndescent/dev/reference/neighbor_overlap.html</loc></url>
 <url><loc>https://jlmelville.github.io/rnndescent/dev/reference/nnd_knn.html</loc></url>

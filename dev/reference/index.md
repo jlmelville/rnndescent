@@ -50,3 +50,12 @@ properties.
   : Quantify hubness of a nearest neighbor graph
 - [`neighbor_overlap()`](https://jlmelville.github.io/rnndescent/dev/reference/neighbor_overlap.md)
   : Overlap between the indices of two nearest neighbor graphs
+- [`truncate_knn()`](https://jlmelville.github.io/rnndescent/dev/reference/knn-utilities.md)
+  [`sort_knn()`](https://jlmelville.github.io/rnndescent/dev/reference/knn-utilities.md)
+  [`remove_self_knn()`](https://jlmelville.github.io/rnndescent/dev/reference/knn-utilities.md)
+  [`self_first_knn()`](https://jlmelville.github.io/rnndescent/dev/reference/knn-utilities.md)
+  : Manipulate nearest neighbor graphs
+- [`knn_to_sparse()`](https://jlmelville.github.io/rnndescent/dev/reference/knn_to_sparse.md)
+  : Convert a neighbor graph to a sparse matrix
+- [`knn_distances()`](https://jlmelville.github.io/rnndescent/dev/reference/knn_distances.md)
+  : Calculate distances for fixed neighbor indices

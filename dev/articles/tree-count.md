@@ -30,10 +30,10 @@ Random initialization and forests of 2, 5, 10, 20 and 40 trees, followed
 by NN-descent, using Euclidean distance. Times and final recall are
 medians of three seeds on an Apple M2 with 8 GiB memory and eight
 threads. Recall measures reference neighbors found. Neighbor counts and
-recall exclude each observation itself; the code below requests one
-extra position and assumes self is the first neighbor in each graph.
-Each timing column has its own median, so the components need not add to
-the displayed total.
+recall exclude each observation itself. The benchmark requested one
+extra position and assumed self was the first neighbor in each graph.
+The example below removes self by index. Each timing column has its own
+median, so the components need not add to the displayed total.
 
 Times cover initialization and descent, excluding searchable index
 preparation and queries. Nearby runtime ranges often overlap.
@@ -188,14 +188,23 @@ tree_time["elapsed"]
 random_time["elapsed"]
 100 *
   neighbor_overlap(
-    graph$idx[, -1],
-    reference$idx[, -1]
+    remove_self_knn(graph),
+    remove_self_knn(reference)
   )
 100 *
   neighbor_overlap(
-    random_graph$idx[, -1],
-    reference$idx[, -1]
+    remove_self_knn(random_graph),
+    remove_self_knn(reference)
   )
+```
+
+To reuse a larger result with fewer neighbors, keep its first columns
+with
+[`truncate_knn()`](https://jlmelville.github.io/rnndescent/dev/reference/knn-utilities.md).
+
+``` r
+
+graph_10 <- truncate_knn(graph, k = 10)
 ```
 
 [`rnnd_build()`](https://jlmelville.github.io/rnndescent/dev/reference/rnnd_build.md)

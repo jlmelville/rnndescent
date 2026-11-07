@@ -118,10 +118,10 @@ to be worth the time?</p>
 followed by NN-descent, using Euclidean distance. Times and final recall
 are medians of three seeds on an Apple M2 with 8 GiB memory and eight
 threads. Recall measures reference neighbors found. Neighbor counts and
-recall exclude each observation itself; the code below requests one
-extra position and assumes self is the first neighbor in each graph.
-Each timing column has its own median, so the components need not add to
-the displayed total.</p>
+recall exclude each observation itself. The benchmark requested one
+extra position and assumed self was the first neighbor in each graph.
+The example below removes self by index. Each timing column has its own
+median, so the components need not add to the displayed total.</p>
 <p>Times cover initialization and descent, excluding searchable index
 preparation and queries. Nearby runtime ranges often overlap.</p>
 <!-- Source: bench/rpf-projection-DONTCHECKMEIN/results/tree-guidance/summary.csv;
@@ -647,14 +647,18 @@ terms of adjusting parameters, for high-dimensional datasets, increasing
 <span><span class="va">random_time</span><span class="op">[</span><span class="st">"elapsed"</span><span class="op">]</span></span>
 <span><span class="fl">100</span> <span class="op">*</span></span>
 <span>  <span class="fu"><a href="../reference/neighbor_overlap.html">neighbor_overlap</a></span><span class="op">(</span></span>
-<span>    <span class="va">graph</span><span class="op">$</span><span class="va">idx</span><span class="op">[</span>, <span class="op">-</span><span class="fl">1</span><span class="op">]</span>,</span>
-<span>    <span class="va">reference</span><span class="op">$</span><span class="va">idx</span><span class="op">[</span>, <span class="op">-</span><span class="fl">1</span><span class="op">]</span></span>
+<span>    <span class="fu"><a href="../reference/knn-utilities.html">remove_self_knn</a></span><span class="op">(</span><span class="va">graph</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="../reference/knn-utilities.html">remove_self_knn</a></span><span class="op">(</span><span class="va">reference</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span>
 <span><span class="fl">100</span> <span class="op">*</span></span>
 <span>  <span class="fu"><a href="../reference/neighbor_overlap.html">neighbor_overlap</a></span><span class="op">(</span></span>
-<span>    <span class="va">random_graph</span><span class="op">$</span><span class="va">idx</span><span class="op">[</span>, <span class="op">-</span><span class="fl">1</span><span class="op">]</span>,</span>
-<span>    <span class="va">reference</span><span class="op">$</span><span class="va">idx</span><span class="op">[</span>, <span class="op">-</span><span class="fl">1</span><span class="op">]</span></span>
+<span>    <span class="fu"><a href="../reference/knn-utilities.html">remove_self_knn</a></span><span class="op">(</span><span class="va">random_graph</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="../reference/knn-utilities.html">remove_self_knn</a></span><span class="op">(</span><span class="va">reference</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
+<p>To reuse a larger result with fewer neighbors, keep its first columns
+with <code><a href="../reference/knn-utilities.html">truncate_knn()</a></code>.</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">graph_10</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/knn-utilities.html">truncate_knn</a></span><span class="op">(</span><span class="va">graph</span>, k <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span></code></pre></div>
 <p><code><a href="../reference/rnnd_build.html">rnnd_build()</a></code> also accepts <code>n_trees</code> when you
 need a searchable index.</p>
 </div>
