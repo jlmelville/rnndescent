@@ -1,39 +1,66 @@
 # Sparse ------------------------------------------------------------------
 
-graph_to_sparse <- function(graph, repr, drop0 = FALSE, transpose = FALSE) {
-  idx <- graph$idx
-  dist <- graph$dist
-  n_nbrs <- ncol(idx)
-  n_row <- nrow(idx)
-  n_ref <- nrow(idx)
+#' Convert a neighbor graph to a sparse matrix
+#'
+#' Rows represent observations or queries and columns represent reference
+#' observations. Set `transpose = TRUE` to reverse the axes. Missing neighbors
+#' (`idx = 0`, `dist = NA`) are omitted. Stored zero distances are retained.
+#' If a row contains the same neighbor more than once, the last stored distance
+#' is used.
+#'
+#' @param graph A neighbor graph containing `idx` and `dist` matrices.
+#' @param n_reference Number of reference observations. Supply this explicitly
+#'   for query results when the reference size differs from the number of rows.
+#' @param transpose Whether to put reference observations in rows.
+#' @return A numeric `dgCMatrix` of distances.
+#' @examples
+#' graph <- brute_force_knn(iris[1:8, 1:4], k = 5)
+#' knn_to_sparse(graph)
+#' @export
+knn_to_sparse <- function(
+  graph,
+  n_reference = nrow(graph$idx),
+  transpose = FALSE
+) {
+  graph <- knn_matrices(graph)
+  n_reference <- check_count(
+    n_reference,
+    "n_reference",
+    min = 0L,
+    max = .Machine$integer.max
+  )
+  if (!is.logical(transpose) || length(transpose) != 1L || is.na(transpose)) {
+    stop("'transpose' must be TRUE or FALSE")
+  }
+  check_graph_entries(graph, n_reference, "graph")
+  graph_to_sparse(graph, "C", n_reference, transpose, use_last = TRUE)
+}
+
+graph_to_sparse <- function(
+  graph,
+  repr,
+  n_reference = nrow(graph$idx),
+  transpose = FALSE,
+  use_last = FALSE
+) {
+  n_row <- nrow(graph$idx)
+  dims <- c(n_row, n_reference)
+  keep <- !is.na(graph$dist)
+  i <- rep(seq_len(n_row), times = ncol(graph$idx))[keep]
+  j <- graph$idx[keep]
+  x <- as.double(graph$dist[keep])
 
   if (transpose) {
-    i <- as.vector(idx)
-    j <- rep(1:n_row, times = n_nbrs)
-  } else {
-    i <- rep(1:n_row, times = n_nbrs)
-    j <- as.vector(idx)
+    dims <- rev(dims)
   }
-  x <- as.vector(dist)
-
-  # filter out missing data
-  keep_indices <- !is.na(x)
-  i <- i[keep_indices]
-  j <- j[keep_indices]
-  x <- x[keep_indices]
-
-  res <- Matrix::sparseMatrix(
-    i = i,
-    j = j,
+  Matrix::sparseMatrix(
+    i = if (transpose) j else i,
+    j = if (transpose) i else j,
     x = x,
-    dims = c(n_row, n_ref),
-    repr = repr
+    dims = dims,
+    repr = repr,
+    use.last.ij = use_last
   )
-
-  if (drop0) {
-    res <- Matrix::drop0(res)
-  }
-  res
 }
 
 graph_to_rsparse <- function(graph) {

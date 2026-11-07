@@ -1,5 +1,10 @@
 # rnndescent (development version)
 
+## New features
+
+* Add utilities to truncate and sort neighbor graphs, adjust self neighbors, convert graphs to
+  sparse matrices, and calculate distances for supplied neighbor indices.
+
 ## Bug fixes and minor improvements
 
 * Skip population sampling for already-full rows when filling a partially missing neighbor graph.

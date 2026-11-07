@@ -52,6 +52,9 @@ reference:
   - merge_knn
   - k_occur
   - neighbor_overlap
+  - knn-utilities
+  - knn_to_sparse
+  - knn_distances
 
 articles:
 - title: All vignettes
