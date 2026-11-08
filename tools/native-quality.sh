@@ -179,13 +179,13 @@ done < <(
 )
 clang-format --dry-run --Werror "${format_sources[@]}"
 
-native_test_flags=(-std=gnu++17 -pthread -Iinst/include -Wall -Wextra -Wpedantic -Werror)
+native_test_flags=(-std=gnu++17 -pthread -Isrc -Iinst/include -Wall -Wextra -Wpedantic -Werror)
 for compiler in "${compilers[@]}"; do
   compiler_test_flags=("${native_test_flags[@]}")
   if [[ $compiler == clang++ ]]; then
     compiler_test_flags+=(-stdlib=libc++)
   fi
-  for native_test in nngraph tauprng; do
+  for native_test in nngraph nnd-route tauprng; do
     test_executable="$scratch_dir/test-$native_test-$compiler"
     "$compiler" "${compiler_test_flags[@]}" "tools/test-$native_test.cpp" -o "$test_executable"
     "$test_executable"

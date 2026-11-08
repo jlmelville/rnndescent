@@ -78,13 +78,12 @@ create_serial_local_join(const tdoann::NNDHeap<Out, Idx> &nn_heap,
 }
 
 template <typename Out, typename Idx>
-List nn_descent_impl(const tdoann::BaseDistance<Out, Idx> &distance,
-                     const IntegerMatrix &nn_idx, const NumericMatrix &nn_dist,
-                     std::size_t max_candidates, uint32_t n_iters, double delta,
-                     bool low_memory, bool weight_by_degree,
-                     std::size_t n_threads, bool verbose,
-                     const std::string &progress_type,
-                     rnndescent::DenseDistanceFour<Out, Idx> kernel = {}) {
+List nn_descent_impl(
+    const tdoann::BaseDistance<Out, Idx> &distance, const IntegerMatrix &nn_idx,
+    const NumericMatrix &nn_dist, std::size_t max_candidates, uint32_t n_iters,
+    double delta, bool low_memory, bool weight_by_degree, std::size_t n_threads,
+    bool verbose, const std::string &progress_type,
+    const rnndescent::DenseDistanceFour<Out, Idx> *dense_kernel = nullptr) {
   auto nnd_heap =
       r_to_knn_heap<tdoann::NNDHeap<Out, Idx>>(nn_idx, nn_dist, n_threads);
 
@@ -102,18 +101,18 @@ List nn_descent_impl(const tdoann::BaseDistance<Out, Idx> &distance,
                                  parallel_rand, n_threads, executor);
     };
 
-    if (!kernel.evaluate) {
+    if (dense_kernel && low_memory) {
+      rnndescent::DenseParallelLocalJoin<Out, Idx, false> local_join(
+          *dense_kernel, distance);
+      build(local_join);
+    } else if (dense_kernel && dense_kernel->evaluate) {
+      rnndescent::DenseParallelLocalJoin<Out, Idx, true> local_join(
+          *dense_kernel, nnd_heap, distance);
+      build(local_join);
+    } else {
       auto local_join =
           create_parallel_local_join(nnd_heap, distance, low_memory);
       build(*local_join);
-    } else if (low_memory) {
-      rnndescent::BatchedParallelLocalJoin<Out, Idx, false> local_join(
-          kernel, distance);
-      build(local_join);
-    } else {
-      rnndescent::BatchedParallelLocalJoin<Out, Idx, true> local_join(
-          kernel, nnd_heap, distance);
-      build(local_join);
     }
   } else {
     auto local_join_ptr =
@@ -173,7 +172,7 @@ List rnn_descent(const NumericMatrix &data, const IntegerMatrix &nn_idx,
   }
   return nn_descent_impl(*distance_ptr, nn_idx, nn_dist, max_candidates,
                          n_iters, delta, low_memory, weight_by_degree,
-                         n_threads, verbose, progress_type, kernel);
+                         n_threads, verbose, progress_type, &kernel);
 }
 
 // [[Rcpp::export]]

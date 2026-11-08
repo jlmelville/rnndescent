@@ -98,19 +98,29 @@ protected:
     }
   }
 
-  template <typename Worker>
+  template <typename Worker, typename Apply>
   auto dispatch_candidates(NNDHeap<Out, Idx> &current_graph,
                            NNDProgressBase &progress, std::size_t n_threads,
-                           const Executor &executor, Worker worker)
+                           const Executor &executor, Worker worker, Apply apply)
       -> std::size_t {
     std::size_t num_updates = 0;
-    auto after_local_join = [&](std::size_t, std::size_t) {
-      num_updates += this->apply(current_graph);
+    auto after_local_join = [&](std::size_t begin, std::size_t end) {
+      num_updates += apply(begin, end);
     };
     ExecutionParams exec_params{16384};
     dispatch_work(worker, after_local_join, current_graph.n_points, n_threads,
                   exec_params, progress.get_base_progress(), executor);
     return num_updates;
+  }
+
+  template <typename Worker>
+  auto dispatch_candidates(NNDHeap<Out, Idx> &current_graph,
+                           NNDProgressBase &progress, std::size_t n_threads,
+                           const Executor &executor, Worker worker)
+      -> std::size_t {
+    return dispatch_candidates(
+        current_graph, progress, n_threads, executor, worker,
+        [&](std::size_t, std::size_t) { return this->apply(current_graph); });
   }
 
 public:

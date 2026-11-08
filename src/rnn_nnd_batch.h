@@ -15,6 +15,7 @@
 #include <type_traits>
 #include <utility>
 
+#include "rnn_nnd_route.h"
 #include "tdoann/distance.h"
 #include "tdoann/nndparallel.h"
 
@@ -103,31 +104,44 @@ private:
 };
 
 template <typename Out, typename Idx, bool Cached>
-class BatchedParallelLocalJoin
+class DenseParallelLocalJoin
     : public std::conditional_t<Cached,
                                 tdoann::CacheParallelLocalJoin<Out, Idx>,
-                                tdoann::LowMemParallelLocalJoin<Out, Idx>> {
+                                RoutedLowMemParallelLocalJoin<Out, Idx>> {
   using Join =
       std::conditional_t<Cached, tdoann::CacheParallelLocalJoin<Out, Idx>,
-                         tdoann::LowMemParallelLocalJoin<Out, Idx>>;
+                         RoutedLowMemParallelLocalJoin<Out, Idx>>;
   using Heap = tdoann::NNDHeap<Out, Idx>;
   using Candidates = tdoann::NNHeap<Out, Idx>;
   DenseDistanceFour<Out, Idx> kernel;
 
 public:
   template <typename... Args>
-  BatchedParallelLocalJoin(DenseDistanceFour<Out, Idx> kernel, Args &&...args)
+  DenseParallelLocalJoin(DenseDistanceFour<Out, Idx> kernel, Args &&...args)
       : Join(std::forward<Args>(args)...), kernel(kernel) {}
 
   auto execute(Heap &graph, const Candidates &new_nbrs,
                const Candidates &old_nbrs, tdoann::NNDProgressBase &progress,
                std::size_t n_threads, const tdoann::Executor &executor)
       -> std::size_t {
+    auto generate = [&](std::size_t begin, std::size_t end) {
+      if (kernel.evaluate) {
+        generate_range(graph, new_nbrs, old_nbrs, begin, end);
+      } else {
+        Join::execute(graph, new_nbrs, old_nbrs, new_nbrs.n_nbrs, begin, end);
+      }
+    };
+    if constexpr (!Cached) {
+      if (n_threads > 1) {
+        return this->dispatch_candidates(
+            graph, progress, n_threads, executor, generate,
+            [&](std::size_t begin, std::size_t end) {
+              return this->apply_routed(graph, begin, end, n_threads, executor);
+            });
+      }
+    }
     return this->dispatch_candidates(graph, progress, n_threads, executor,
-                                     [&](std::size_t begin, std::size_t end) {
-                                       generate_range(graph, new_nbrs, old_nbrs,
-                                                      begin, end);
-                                     });
+                                     generate);
   }
 
 private:
