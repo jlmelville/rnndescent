@@ -634,6 +634,36 @@ test_that("query search budgets control exploration", {
   expect_equal(budgeted$dist, matrix(0.1, nrow = 1), tolerance = 1e-6)
 })
 
+test_that("squared-Euclidean queries keep adjacency order and distance budgets", {
+  reference <- matrix(c(10, 8, 6, 4, -4, 2, 0, 20), ncol = 1)
+  query <- matrix(0)
+  init <- list(idx = matrix(1L), dist = matrix(10))
+  # The transposed search graph gives vertex 1 a visited edge, four
+  # candidates (including a tie) and a closer fifth candidate.
+  graph <- Matrix::sparseMatrix(
+    i = c(1:6, 7L),
+    j = c(rep(1L, 6L), 6L),
+    x = 1,
+    dims = c(8L, 8L)
+  )
+  expected <- c(1L, 2L, 3L, 4L, 4L, 6L, 7L)
+
+  for (budget in 0:6) {
+    result <- graph_knn_query(
+      query = query,
+      reference = reference,
+      reference_graph = graph,
+      init = init,
+      k = 1,
+      max_search_fraction = budget / nrow(reference),
+      use_alt_metric = TRUE
+    )
+    idx <- expected[[budget + 1L]]
+    expect_identical(result$idx, matrix(idx))
+    expect_equal(result$dist, matrix(abs(reference[idx, 1L])))
+  }
+})
+
 test_that("Euclidean queries reject invalid controls and graphs", {
   # errors
   expect_error(

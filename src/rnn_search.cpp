@@ -30,6 +30,7 @@
 #include "rnn_distance.h"
 #include "rnn_heaptor.h"
 #include "rnn_init.h"
+#include "rnn_nnd_batch.h"
 #include "rnn_parallel.h"
 #include "rnn_progress.h"
 #include "rnn_rtoheap.h"
@@ -47,12 +48,13 @@ std::string fmt_double(double d, int precision = 2) {
   return oss.str();
 }
 
-template <typename Out, typename Idx>
+template <typename Out, typename Idx, typename CalculateFour = std::nullptr_t>
 List nn_query_impl(const tdoann::BaseDistance<Out, Idx> &distance,
                    const List &reference_graph_list,
                    const IntegerMatrix &nn_idx, const NumericMatrix &nn_dist,
                    double epsilon, double max_search_fraction,
-                   std::size_t n_threads, bool verbose) {
+                   std::size_t n_threads, bool verbose,
+                   const CalculateFour &calculate_four = nullptr) {
   const auto search_graph = r_to_sparse_graph<Out, Idx>(reference_graph_list);
   auto nn_heap = r_to_query_heap<tdoann::NNHeap<Out, Idx>>(nn_idx, nn_dist);
 
@@ -73,7 +75,7 @@ List nn_query_impl(const tdoann::BaseDistance<Out, Idx> &distance,
   RPProgress progress(verbose);
   tdoann::nn_query(search_graph, nn_heap, distance, epsilon,
                    max_distance_calculations, distance_counts, n_threads,
-                   progress, executor);
+                   progress, executor, calculate_four);
 
   if (verbose) {
     std::size_t min_count = 0UL;
@@ -118,7 +120,21 @@ List rnn_query(const NumericMatrix &reference, const List &reference_graph_list,
                const NumericMatrix &nn_dist, const std::string &metric,
                double epsilon, double max_search_fraction,
                std::size_t n_threads, bool verbose) {
-  auto distance_ptr = create_query_distance(reference, query, metric);
+  auto distance_ptr = create_query_vector_distance(reference, query, metric);
+  if (metric == "sqeuclidean" && reference.ncol() >= 4) {
+    using Kernel =
+        rnndescent::DenseDistanceFour<RNN_DEFAULT_DIST, RNN_DEFAULT_IDX>;
+    const auto *data = &*distance_ptr->get_x(0);
+    const std::size_t dimension = reference.nrow();
+    auto calculate_four = [&](RNN_DEFAULT_IDX row,
+                              const Kernel::Targets &targets) {
+      return Kernel::run_from<rnndescent::DenseBatchMetric::squared_euclidean>(
+          &*distance_ptr->get_y(row), data, dimension, targets);
+    };
+    return nn_query_impl(*distance_ptr, reference_graph_list, nn_idx, nn_dist,
+                         epsilon, max_search_fraction, n_threads, verbose,
+                         calculate_four);
+  }
   return nn_query_impl(*distance_ptr, reference_graph_list, nn_idx, nn_dist,
                        epsilon, max_search_fraction, n_threads, verbose);
 }

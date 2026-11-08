@@ -45,7 +45,12 @@ template <typename Out, typename Idx> struct DenseDistanceFour {
   template <DenseBatchMetric Metric>
   static auto run(const float *data, std::size_t dimension, Idx p,
                   const Targets &q) -> Distances {
-    const auto *x = data + p * dimension;
+    return run_from<Metric>(data + p * dimension, data, dimension, q);
+  }
+
+  template <DenseBatchMetric Metric>
+  static auto run_from(const float *x, const float *data, std::size_t dimension,
+                       const Targets &q) -> Distances {
     const auto *y0 = data + q[0] * dimension;
     const auto *y1 = data + q[1] * dimension;
     const auto *y2 = data + q[2] * dimension;
