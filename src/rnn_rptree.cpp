@@ -841,7 +841,8 @@ List rp_forest_search(const Matrix &query, const Matrix &reference,
                       const List &search_forest, uint32_t n_nbrs,
                       const std::string &metric, bool cache,
                       std::size_t n_threads, bool verbose = false,
-                      bool check_reference_during_copy = false) {
+                      bool check_reference_during_copy = false,
+                      SEXP prepared_query = R_NilValue) {
   RParallelExecutor executor;
   std::string margin_type = search_forest["margin"];
 
@@ -866,7 +867,11 @@ List rp_forest_search(const Matrix &query, const Matrix &reference,
     auto nn_heap = tdoann::search_forest(search_forest_cpp, *distance_ptr,
                                          n_nbrs, rng_provider, cache, n_threads,
                                          progress, executor);
-    return heap_to_r(nn_heap);
+    auto result = heap_to_r(nn_heap);
+    if (prepared_query != R_NilValue) {
+      prepared_query_slot(prepared_query) = std::move(distance_ptr);
+    }
+    return result;
   } else if (margin_type == margin_type_to_string(MarginType::IMPLICIT)) {
     auto distance_ptr = create_query_distance(reference, query, metric);
     return rnn_rp_forest_search_implicit(*distance_ptr, search_forest, n_nbrs,
@@ -882,10 +887,11 @@ List rnn_rp_forest_search(const NumericMatrix &query,
                           const List &search_forest, uint32_t n_nbrs,
                           const std::string &metric, bool cache,
                           std::size_t n_threads, bool verbose = false,
-                          bool check_reference_during_copy = false) {
+                          bool check_reference_during_copy = false,
+                          SEXP prepared_query = R_NilValue) {
   return rp_forest_search(query, reference, search_forest, n_nbrs, metric,
                           cache, n_threads, verbose,
-                          check_reference_during_copy);
+                          check_reference_during_copy, prepared_query);
 }
 
 // [[Rcpp::export]]

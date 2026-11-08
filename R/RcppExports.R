@@ -153,8 +153,8 @@ rnn_sparse_rp_forest_implicit_build <- function(ind, ptr, data, ndim, metric, n_
     .Call(`_rnndescent_rnn_sparse_rp_forest_implicit_build`, ind, ptr, data, ndim, metric, n_trees, leaf_size, max_tree_depth, n_threads, verbose)
 }
 
-rnn_rp_forest_search <- function(query, reference, search_forest, n_nbrs, metric, cache, n_threads, verbose = FALSE, check_reference_during_copy = FALSE) {
-    .Call(`_rnndescent_rnn_rp_forest_search`, query, reference, search_forest, n_nbrs, metric, cache, n_threads, verbose, check_reference_during_copy)
+rnn_rp_forest_search <- function(query, reference, search_forest, n_nbrs, metric, cache, n_threads, verbose = FALSE, check_reference_during_copy = FALSE, prepared_query = NULL) {
+    .Call(`_rnndescent_rnn_rp_forest_search`, query, reference, search_forest, n_nbrs, metric, cache, n_threads, verbose, check_reference_during_copy, prepared_query)
 }
 
 rnn_logical_rp_forest_search <- function(query, reference, search_forest, n_nbrs, metric, cache, n_threads, verbose = FALSE) {
@@ -169,8 +169,12 @@ rnn_score_forest <- function(idx, search_forest, n_trees, n_threads, verbose = F
     .Call(`_rnndescent_rnn_score_forest`, idx, search_forest, n_trees, n_threads, verbose)
 }
 
-rnn_query <- function(reference, reference_graph_list, query, nn_idx, nn_dist, metric, epsilon, max_search_fraction, n_threads, verbose, check_reference_during_copy = FALSE) {
-    .Call(`_rnndescent_rnn_query`, reference, reference_graph_list, query, nn_idx, nn_dist, metric, epsilon, max_search_fraction, n_threads, verbose, check_reference_during_copy)
+rnn_with_prepared_query <- function(search) {
+    .Call(`_rnndescent_rnn_with_prepared_query`, search)
+}
+
+rnn_query <- function(reference, reference_graph_list, query, nn_idx, nn_dist, metric, epsilon, max_search_fraction, n_threads, verbose, check_reference_during_copy = FALSE, prepared_query = NULL) {
+    .Call(`_rnndescent_rnn_query`, reference, reference_graph_list, query, nn_idx, nn_dist, metric, epsilon, max_search_fraction, n_threads, verbose, check_reference_during_copy, prepared_query)
 }
 
 rnn_logical_query <- function(reference, reference_graph_list, query, nn_idx, nn_dist, metric, epsilon, max_search_fraction, n_threads, verbose) {

@@ -378,6 +378,21 @@ create_query_distance(const Rcpp::LogicalMatrix &reference,
       std::move(ref_vec), std::move(query_vec), ndim, metric);
 }
 
+using PreparedDenseQuery = std::unique_ptr<
+    tdoann::VectorDistance<RNN_DEFAULT_IN, RNN_DEFAULT_DIST, RNN_DEFAULT_IDX>>;
+
+inline SEXP prepared_query_tag() {
+  return Rf_install("rnndescent:prepared_dense_query");
+}
+
+inline PreparedDenseQuery &prepared_query_slot(SEXP handle) {
+  if (TYPEOF(handle) != EXTPTRSXP ||
+      R_ExternalPtrTag(handle) != prepared_query_tag()) {
+    Rcpp::stop("Invalid prepared query handle");
+  }
+  return *Rcpp::XPtr<PreparedDenseQuery>(handle);
+}
+
 template <typename Idx = RNN_DEFAULT_IDX>
 std::unique_ptr<tdoann::VectorDistance<RNN_DEFAULT_IN, RNN_DEFAULT_DIST, Idx>>
 create_query_vector_distance(const Rcpp::NumericMatrix &reference,

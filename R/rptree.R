@@ -503,7 +503,8 @@ rpf_knn_query_impl <- function(
   cache,
   n_threads,
   verbose,
-  check_reference_during_copy = FALSE
+  check_reference_during_copy = FALSE,
+  prepared_query = NULL
 ) {
   tsmessage(thread_msg(
     "Querying rp forest for k = ",
@@ -558,7 +559,8 @@ rpf_knn_query_impl <- function(
         cache = cache,
         n_threads = n_threads,
         verbose = verbose,
-        check_reference_during_copy = check_reference_during_copy
+        check_reference_during_copy = check_reference_during_copy,
+        prepared_query = prepared_query
       )
   }
 

@@ -423,21 +423,27 @@ rnnd_query <-
       reference <- x2m(reference, "C", "reference")
     }
     check_matching_features(reference, query, "C")
-    res <- graph_knn_query_impl(
-      query = query,
-      reference = reference,
-      reference_graph = index$search_graph,
-      k = k,
-      metric = index$original_metric,
-      init = init,
-      epsilon = epsilon,
-      max_search_fraction = max_search_fraction,
-      use_alt_metric = index$use_alt_metric,
-      n_threads = n_threads,
-      verbose = verbose,
-      check_reference_during_copy = check_reference_during_copy
-    )
-    res
+    search <- function(prepared_query = NULL) {
+      graph_knn_query_impl(
+        query = query,
+        reference = reference,
+        reference_graph = index$search_graph,
+        k = k,
+        metric = index$original_metric,
+        init = init,
+        epsilon = epsilon,
+        max_search_fraction = max_search_fraction,
+        use_alt_metric = index$use_alt_metric,
+        n_threads = n_threads,
+        verbose = verbose,
+        check_reference_during_copy = check_reference_during_copy,
+        prepared_query = prepared_query
+      )
+    }
+    if (check_reference_during_copy && is_rpforest(init)) {
+      return(rnn_with_prepared_query(search))
+    }
+    search()
   }
 
 
@@ -1802,7 +1808,8 @@ graph_knn_query_impl <- function(
   use_alt_metric,
   n_threads,
   verbose,
-  check_reference_during_copy = FALSE
+  check_reference_during_copy = FALSE,
+  prepared_query = NULL
 ) {
   if (is.list(init) && is_rpforest(init)) {
     tsmessage("Reading metric data from forest")
@@ -1875,7 +1882,8 @@ graph_knn_query_impl <- function(
       cache = TRUE,
       n_threads = n_threads,
       verbose = verbose,
-      check_reference_during_copy = check_reference_during_copy
+      check_reference_during_copy = check_reference_during_copy,
+      prepared_query = prepared_query
     )
     # Forest seeding has already checked the first reference copy.
     check_reference_during_copy <- FALSE
@@ -1995,7 +2003,8 @@ graph_knn_query_impl <- function(
         list(
           reference = reference,
           query = query,
-          check_reference_during_copy = check_reference_during_copy
+          check_reference_during_copy = check_reference_during_copy,
+          prepared_query = prepared_query
         ),
         args
       )

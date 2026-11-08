@@ -272,6 +272,37 @@ test_that("index queries recheck the current stored reference on each call", {
   }
 })
 
+test_that("prepared forest query handles expire after success and error", {
+  data <- matrix(as.double(seq_len(24)), nrow = 8)
+  index <- rnnd_build(data, k = 2, n_trees = 1, n_iters = 1)
+  native_query <- getFromNamespace("rnn_query", "rnndescent")
+  traversal_args <- NULL
+  fail <- FALSE
+  local_mocked_bindings(
+    rnn_query = function(...) {
+      traversal_args <<- list(...)
+      if (fail) {
+        stop("traversal failed")
+      }
+      do.call(native_query, traversal_args)
+    },
+    .package = "rnndescent"
+  )
+
+  expect_no_error(rnnd_query(index, data, k = 2))
+  expect_error(
+    do.call(native_query, traversal_args),
+    "external pointer is not valid"
+  )
+
+  fail <- TRUE
+  expect_error(rnnd_query(index, data, k = 2), "traversal failed")
+  expect_error(
+    do.call(native_query, traversal_args),
+    "external pointer is not valid"
+  )
+})
+
 test_that("forest metric overrides remain lazy on direct graph queries", {
   data <- matrix(seq_len(24), nrow = 8)
   graph <- brute_force_knn(data, k = 2)

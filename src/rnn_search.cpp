@@ -114,15 +114,36 @@ List nn_query_impl(const tdoann::BaseDistance<Out, Idx> &distance,
   return heap_to_r(nn_heap, n_threads, progress, executor);
 }
 
+// The nested native search calls manage RNG state themselves.
+// [[Rcpp::export(rng = false)]]
+SEXP rnn_with_prepared_query(Rcpp::Function search) {
+  PreparedDenseQuery distance;
+  Rcpp::XPtr<PreparedDenseQuery> handle(&distance, false, prepared_query_tag());
+  // Clear the handle before the owning stack frame goes away, including on
+  // error.
+  struct ClearHandle {
+    SEXP ptr;
+    ~ClearHandle() { R_ClearExternalPtr(ptr); }
+  } clear{handle};
+  return search(handle);
+}
+
 // [[Rcpp::export]]
 List rnn_query(const NumericMatrix &reference, const List &reference_graph_list,
                const NumericMatrix &query, const IntegerMatrix &nn_idx,
                const NumericMatrix &nn_dist, const std::string &metric,
                double epsilon, double max_search_fraction,
                std::size_t n_threads, bool verbose,
-               bool check_reference_during_copy = false) {
-  auto distance_ptr = create_query_vector_distance(reference, query, metric,
-                                                   check_reference_during_copy);
+               bool check_reference_during_copy = false,
+               SEXP prepared_query = R_NilValue) {
+  auto distance_ptr =
+      prepared_query == R_NilValue
+          ? create_query_vector_distance(reference, query, metric,
+                                         check_reference_during_copy)
+          : std::move(prepared_query_slot(prepared_query));
+  if (!distance_ptr) {
+    Rcpp::stop("No prepared query calculator from forest seeding");
+  }
   if (metric == "sqeuclidean" && reference.ncol() >= 4) {
     using Kernel =
         rnndescent::DenseDistanceFour<RNN_DEFAULT_DIST, RNN_DEFAULT_IDX>;
