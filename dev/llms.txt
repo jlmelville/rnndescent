@@ -301,3 +301,5 @@ Some longer, more involved examples.
   Example](https://jlmelville.github.io/rnndescent/dev/articles/fmnist-example.md):
 - [How many trees should I
   use?](https://jlmelville.github.io/rnndescent/dev/articles/tree-count.md):
+- [A sparse random projection for forest
+  initialization](https://jlmelville.github.io/rnndescent/dev/articles/sparse-rp-example.md):
