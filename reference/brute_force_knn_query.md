@@ -201,9 +201,9 @@ iris_query_nn <- brute_force_knn_query(iris_query,
   reference = iris_ref,
   k = 4, metric = "euclidean", verbose = TRUE
 )
-#> 19:20:26 Using alt metric 'sqeuclidean' for 'euclidean'
-#> 19:20:26 Calculating brute force k-nearest neighbors from reference with k = 4
-#> 19:20:26 Finished
+#> 20:28:28 Using alt metric 'sqeuclidean' for 'euclidean'
+#> 20:28:28 Calculating brute force k-nearest neighbors from reference with k = 4
+#> 20:28:28 Finished
 
 # Manhattan (l1) distance
 iris_query_nn <- brute_force_knn_query(iris_query,
