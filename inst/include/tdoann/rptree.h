@@ -434,13 +434,14 @@ void generate_leaf_updates(
     const NNHeap<Out, Idx> &current_graph, const std::vector<Idx> &leaves,
     std::size_t max_leaf_size,
     std::vector<std::vector<std::tuple<Idx, Idx, Out>>> &updates,
-    std::size_t neighbor_begin, std::size_t begin, std::size_t end) {
+    std::size_t neighbor_begin, std::size_t begin, std::size_t end,
+    std::size_t batch_begin = 0) {
   constexpr auto npos = static_cast<Idx>(-1);
 
   for (std::size_t n = begin; n < end; ++n) {
     auto leaf_begin = leaves.begin() + n * max_leaf_size;
     auto leaf_end = leaf_begin + max_leaf_size;
-    auto &leaf_updates = updates[n];
+    auto &leaf_updates = updates[n - batch_begin];
 
     for (auto i = leaf_begin; i != leaf_end; ++i) {
       Idx p = *i;
@@ -473,25 +474,32 @@ void init_rp_tree(const BaseDistance<Out, Idx> &distance,
                   bool include_self, std::size_t n_threads,
                   ProgressBase &progress, const Executor &executor) {
 
+  constexpr std::size_t batch_size = 65536;
   const std::size_t n_leaves = leaves.size() / max_leaf_size;
-  std::vector<std::vector<std::tuple<Idx, Idx, Out>>> updates(n_leaves);
+  std::vector<std::vector<std::tuple<Idx, Idx, Out>>> updates(
+      std::min(n_leaves, batch_size));
 
   // if include_self = true, then an item can be a neighbor of itself
   std::size_t neighbor_begin = include_self ? 0 : 1;
 
   auto worker = [&distance, &current_graph, &leaves, &updates, neighbor_begin,
                  max_leaf_size](std::size_t begin, std::size_t end) {
+    // Each worker receives a subrange of a single dispatch batch.
+    const auto batch_begin = begin - begin % batch_size;
     generate_leaf_updates(distance, current_graph, leaves, max_leaf_size,
-                          updates, neighbor_begin, begin, end);
+                          updates, neighbor_begin, begin, end, batch_begin);
   };
-  auto after_worker = [&current_graph, &updates](std::size_t, std::size_t) {
-    for (const auto &block_updates : updates) {
-      for (const auto &[p, q, d] : block_updates) {
+  auto after_worker = [&current_graph, &updates](std::size_t begin,
+                                                 std::size_t end) {
+    for (std::size_t i = 0; i < end - begin; ++i) {
+      auto &leaf_updates = updates[i];
+      for (const auto &[p, q, d] : leaf_updates) {
         current_graph.checked_push_pair(p, d, q);
       }
+      leaf_updates.clear();
     }
   };
-  ExecutionParams exec_params{65536};
+  ExecutionParams exec_params{batch_size};
   progress.set_n_iters(1);
   dispatch_work(worker, after_worker, n_leaves, n_threads, exec_params,
                 progress, executor);
