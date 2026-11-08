@@ -25,7 +25,8 @@ enum class DenseBatchMetric {
   euclidean,
   inner_product,
   dot,
-  alternative_dot
+  alternative_dot,
+  manhattan
 };
 
 template <typename Out, typename Idx> struct DenseDistanceFour {
@@ -69,6 +70,11 @@ template <typename Out, typename Idx> struct DenseDistanceFour {
         sum1 += d1 * d1;
         sum2 += d2 * d2;
         sum3 += d3 * d3;
+      } else if constexpr (Metric == DenseBatchMetric::manhattan) {
+        sum0 += std::abs(anchor - y0[j]);
+        sum1 += std::abs(anchor - y1[j]);
+        sum2 += std::abs(anchor - y2[j]);
+        sum3 += std::abs(anchor - y3[j]);
       } else {
         sum0 += anchor * y0[j];
         sum1 += anchor * y1[j];

@@ -141,6 +141,9 @@ auto batch_kernel(const std::string &metric) -> BatchDistance::Evaluate {
   if (metric == "euclidean") {
     return BatchDistance::run<Metric::euclidean>;
   }
+  if (metric == "manhattan") {
+    return BatchDistance::run<Metric::manhattan>;
+  }
   if (metric == "cosine-preprocess" || metric == "correlation-preprocess") {
     return BatchDistance::run<Metric::inner_product>;
   }
