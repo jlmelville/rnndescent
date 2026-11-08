@@ -55,55 +55,85 @@ public:
                         Idx idx_q, std::size_t key) = 0;
   virtual auto apply(NNDHeap<Out, Idx> &current_graph) -> unsigned long = 0;
 
-  auto execute(const NNDHeap<Out, Idx> &current_graph,
-               const NNHeap<Out, Idx> &new_nbrs, decltype(new_nbrs) &old_nbrs,
-               std::size_t max_candidates, std::size_t begin, std::size_t end) {
+protected:
+  template <typename Process>
+  static void visit_candidates(const NNHeap<Out, Idx> &new_nbrs,
+                               decltype(new_nbrs) &old_nbrs,
+                               std::size_t max_candidates, std::size_t begin,
+                               std::size_t end, Process process) {
     for (auto i = begin, i_begin = begin * max_candidates; i < end;
          i++, i_begin += max_candidates) {
       for (std::size_t j = 0; j < max_candidates; j++) {
-        auto new_j = new_nbrs.idx[i_begin + j];
-        if (new_j == npos) {
+        const auto anchor = new_nbrs.idx[i_begin + j];
+        if (anchor == npos) {
           continue;
         }
 
-        // (new, new) pairs: loop from j->max_candidates
-        for (auto k = j; k < max_candidates; k++) {
-          auto new_k = new_nbrs.idx[i_begin + k];
-          if (new_k == npos) {
-            continue;
+        process(i, anchor, [&](auto emit) {
+          // (new, new) pairs: loop from j->max_candidates
+          for (auto k = j; k < max_candidates; k++) {
+            const auto q = new_nbrs.idx[i_begin + k];
+            if (q != npos) {
+              emit(q);
+            }
           }
-          this->generate(current_graph, new_j, new_k, i);
-        }
 
-        // (new, old) pairs loop from 0->max_candidates
-        for (std::size_t k = 0; k < max_candidates; k++) {
-          auto old_k = old_nbrs.idx[i_begin + k];
-          if (old_k == npos) {
-            continue;
+          // (new, old) pairs: loop from 0->max_candidates
+          for (std::size_t k = 0; k < max_candidates; k++) {
+            const auto q = old_nbrs.idx[i_begin + k];
+            if (q != npos) {
+              emit(q);
+            }
           }
-          this->generate(current_graph, new_j, old_k, i);
-        }
+        });
       }
     }
+  }
+
+  static void queue_update(const NNDHeap<Out, Idx> &graph,
+                           std::vector<Update> &updates, Idx p, Idx q,
+                           Out distance) {
+    if (graph.accepts_either(p, q, distance)) {
+      updates.emplace_back(p, q, distance);
+    }
+  }
+
+  template <typename Worker>
+  auto dispatch_candidates(NNDHeap<Out, Idx> &current_graph,
+                           NNDProgressBase &progress, std::size_t n_threads,
+                           const Executor &executor, Worker worker)
+      -> std::size_t {
+    std::size_t num_updates = 0;
+    auto after_local_join = [&](std::size_t, std::size_t) {
+      num_updates += this->apply(current_graph);
+    };
+    ExecutionParams exec_params{16384};
+    dispatch_work(worker, after_local_join, current_graph.n_points, n_threads,
+                  exec_params, progress.get_base_progress(), executor);
+    return num_updates;
+  }
+
+public:
+  auto execute(const NNDHeap<Out, Idx> &current_graph,
+               const NNHeap<Out, Idx> &new_nbrs, decltype(new_nbrs) &old_nbrs,
+               std::size_t max_candidates, std::size_t begin, std::size_t end) {
+    visit_candidates(new_nbrs, old_nbrs, max_candidates, begin, end,
+                     [&](std::size_t row, Idx p, auto visit) {
+                       visit(
+                           [&](Idx q) { generate(current_graph, p, q, row); });
+                     });
   }
 
   auto execute(NNDHeap<Out, Idx> &current_graph,
                const NNHeap<Out, Idx> &new_nbrs, decltype(new_nbrs) &old_nbrs,
                NNDProgressBase &progress, std::size_t n_threads,
                const Executor &executor) -> std::size_t {
-    std::size_t num_updates = 0;
-    auto local_join_worker = [&](std::size_t begin, std::size_t end) {
-      this->execute(current_graph, new_nbrs, old_nbrs, new_nbrs.n_nbrs, begin,
-                    end);
-    };
-    auto after_local_join = [&](std::size_t, std::size_t) {
-      num_updates += this->apply(current_graph);
-    };
-    ExecutionParams exec_params{16384};
-    dispatch_work(local_join_worker, after_local_join, current_graph.n_points,
-                  n_threads, exec_params, progress.get_base_progress(),
-                  executor);
-    return num_updates;
+    return dispatch_candidates(current_graph, progress, n_threads, executor,
+                               [&](std::size_t begin, std::size_t end) {
+                                 this->execute(current_graph, new_nbrs,
+                                               old_nbrs, new_nbrs.n_nbrs, begin,
+                                               end);
+                               });
   }
 };
 
@@ -121,9 +151,7 @@ public:
   void generate(const NNDHeap<Out, Idx> &current_graph, Idx p, Idx q,
                 std::size_t key) override {
     const auto d_pq = distance.calculate(p, q);
-    if (current_graph.accepts_either(p, q, d_pq)) {
-      edge_updates[key].emplace_back(p, q, d_pq);
-    }
+    this->queue_update(current_graph, edge_updates[key], p, q, d_pq);
   }
 
   unsigned long apply(NNDHeap<Out, Idx> &current_graph) override {
@@ -161,9 +189,8 @@ public:
     }
 
     const auto dist_pq = distance.calculate(idx_pp, idx_qq);
-    if (current_graph.accepts_either(idx_pp, idx_qq, dist_pq)) {
-      edge_updates[key].emplace_back(idx_pp, idx_qq, dist_pq);
-    }
+    this->queue_update(current_graph, edge_updates[key], idx_pp, idx_qq,
+                       dist_pq);
   }
 
   unsigned long apply(NNDHeap<Out, Idx> &current_graph) override {
@@ -289,13 +316,13 @@ void flag_new_candidates(NNDHeap<Out, Idx> &current_graph,
   dispatch_work(worker, current_graph.n_points, n_threads, executor);
 }
 
-template <typename Out, typename Idx>
-void nnd_build(NNDHeap<Out, Idx> &current_graph,
-               ParallelLocalJoin<Out, Idx> &local_join,
-               std::size_t max_candidates, uint32_t n_iters, double delta,
-               bool weight_by_degree, NNDProgressBase &progress,
-               ParallelRandomProvider &parallel_rand, std::size_t n_threads,
-               const Executor &executor) {
+template <typename Out, typename Idx, typename LocalJoin>
+void nnd_build_parallel(NNDHeap<Out, Idx> &current_graph, LocalJoin &local_join,
+                        std::size_t max_candidates, uint32_t n_iters,
+                        double delta, bool weight_by_degree,
+                        NNDProgressBase &progress,
+                        ParallelRandomProvider &parallel_rand,
+                        std::size_t n_threads, const Executor &executor) {
   const std::size_t n_points = current_graph.n_points;
 
   for (auto iter = 0U; iter < n_iters; iter++) {
@@ -314,6 +341,18 @@ void nnd_build(NNDHeap<Out, Idx> &current_graph,
       break;
     }
   }
+}
+
+template <typename Out, typename Idx>
+void nnd_build(NNDHeap<Out, Idx> &current_graph,
+               ParallelLocalJoin<Out, Idx> &local_join,
+               std::size_t max_candidates, uint32_t n_iters, double delta,
+               bool weight_by_degree, NNDProgressBase &progress,
+               ParallelRandomProvider &parallel_rand, std::size_t n_threads,
+               const Executor &executor) {
+  nnd_build_parallel(current_graph, local_join, max_candidates, n_iters, delta,
+                     weight_by_degree, progress, parallel_rand, n_threads,
+                     executor);
 }
 
 } // namespace tdoann

@@ -30,6 +30,7 @@
 #include "rnn_distance.h"
 #include "rnn_heaptor.h"
 #include "rnn_init.h"
+#include "rnn_nnd_batch.h"
 #include "rnn_progress.h"
 #include "rnn_rtoheap.h"
 
@@ -82,7 +83,8 @@ List nn_descent_impl(const tdoann::BaseDistance<Out, Idx> &distance,
                      std::size_t max_candidates, uint32_t n_iters, double delta,
                      bool low_memory, bool weight_by_degree,
                      std::size_t n_threads, bool verbose,
-                     const std::string &progress_type) {
+                     const std::string &progress_type,
+                     rnndescent::DenseDistanceFour<Out, Idx> kernel = {}) {
   auto nnd_heap =
       r_to_knn_heap<tdoann::NNDHeap<Out, Idx>>(nn_idx, nn_dist, n_threads);
 
@@ -93,12 +95,26 @@ List nn_descent_impl(const tdoann::BaseDistance<Out, Idx> &distance,
   RParallelExecutor executor;
 
   if (n_threads > 0) {
-    auto local_join_ptr =
-        create_parallel_local_join(nnd_heap, distance, low_memory);
     rnndescent::ParallelRNGAdapter<rnndescent::PcgRand> parallel_rand;
-    tdoann::nnd_build(nnd_heap, *local_join_ptr, max_candidates, n_iters, delta,
-                      weight_by_degree, *nnd_progress_ptr, parallel_rand,
-                      n_threads, executor);
+    auto build = [&](auto &local_join) {
+      tdoann::nnd_build_parallel(nnd_heap, local_join, max_candidates, n_iters,
+                                 delta, weight_by_degree, *nnd_progress_ptr,
+                                 parallel_rand, n_threads, executor);
+    };
+
+    if (!kernel.evaluate) {
+      auto local_join =
+          create_parallel_local_join(nnd_heap, distance, low_memory);
+      build(*local_join);
+    } else if (low_memory) {
+      rnndescent::BatchedParallelLocalJoin<Out, Idx, false> local_join(
+          kernel, distance);
+      build(local_join);
+    } else {
+      rnndescent::BatchedParallelLocalJoin<Out, Idx, true> local_join(
+          kernel, nnd_heap, distance);
+      build(local_join);
+    }
   } else {
     auto local_join_ptr =
         create_serial_local_join(nnd_heap, distance, low_memory);
@@ -111,16 +127,50 @@ List nn_descent_impl(const tdoann::BaseDistance<Out, Idx> &distance,
                    executor);
 }
 
+namespace {
+using DenseDistance =
+    tdoann::VectorDistance<RNN_DEFAULT_IN, RNN_DEFAULT_DIST, RNN_DEFAULT_IDX>;
+using BatchDistance =
+    rnndescent::DenseDistanceFour<RNN_DEFAULT_DIST, RNN_DEFAULT_IDX>;
+
+auto batch_kernel(const std::string &metric) -> BatchDistance::Evaluate {
+  using Metric = rnndescent::DenseBatchMetric;
+  if (metric == "sqeuclidean") {
+    return BatchDistance::run<Metric::squared_euclidean>;
+  }
+  if (metric == "euclidean") {
+    return BatchDistance::run<Metric::euclidean>;
+  }
+  if (metric == "cosine-preprocess" || metric == "correlation-preprocess") {
+    return BatchDistance::run<Metric::inner_product>;
+  }
+  if (metric == "dot") {
+    return BatchDistance::run<Metric::dot>;
+  }
+  if (metric == "alternative-dot") {
+    return BatchDistance::run<Metric::alternative_dot>;
+  }
+  return nullptr;
+}
+} // namespace
+
 // [[Rcpp::export]]
 List rnn_descent(const NumericMatrix &data, const IntegerMatrix &nn_idx,
                  const NumericMatrix &nn_dist, const std::string &metric,
                  std::size_t max_candidates, uint32_t n_iters, double delta,
                  bool low_memory, bool weight_by_degree, std::size_t n_threads,
                  bool verbose, const std::string &progress_type) {
-  auto distance_ptr = create_self_distance(data, metric);
+  auto distance_ptr = create_self_distance_impl<DenseDistance>(data, metric);
+  BatchDistance kernel;
+  if (n_threads > 0 && distance_ptr->get_nx() > 0) {
+    if (const auto evaluate = batch_kernel(metric)) {
+      kernel = {&*distance_ptr->get_x(0), static_cast<std::size_t>(data.nrow()),
+                evaluate};
+    }
+  }
   return nn_descent_impl(*distance_ptr, nn_idx, nn_dist, max_candidates,
                          n_iters, delta, low_memory, weight_by_degree,
-                         n_threads, verbose, progress_type);
+                         n_threads, verbose, progress_type, kernel);
 }
 
 // [[Rcpp::export]]

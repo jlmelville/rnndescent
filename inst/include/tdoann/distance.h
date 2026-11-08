@@ -190,6 +190,25 @@ template <typename Out, typename It> Out dice(It xbegin, It xend, It ybegin) {
   return num_not_equal / static_cast<Out>(2 * num_true_true + num_not_equal);
 }
 
+// Keep the scalar and batched dot-product kernels on the same distance scale.
+template <typename Out> Out finish_inner_product(Out similarity) {
+  return std::max(Out{1} - similarity, Out{0});
+}
+
+template <typename Out> Out finish_dot(Out similarity) {
+  if (similarity <= 0) {
+    return 1;
+  }
+  return finish_inner_product(similarity);
+}
+
+template <typename Out> Out finish_alternative_dot(Out similarity) {
+  if (similarity <= 0) {
+    return std::numeric_limits<Out>::max();
+  }
+  return std::max(-std::log2(similarity), Out{0});
+}
+
 template <typename Out, typename It>
 Out dot(const It xbegin, const It xend, const It ybegin) {
   Out result = 0;
@@ -197,10 +216,7 @@ Out dot(const It xbegin, const It xend, const It ybegin) {
     result += (*xit) * (*yit);
   }
 
-  if (result <= 0) {
-    return 1;
-  }
-  return std::max(1 - result, Out{0});
+  return finish_dot(result);
 }
 
 template <typename Out, typename It>
@@ -210,10 +226,7 @@ Out alternative_dot(const It xbegin, const It xend, const It ybegin) {
     result += (*xit) * (*yit);
   }
 
-  if (result <= 0) {
-    return std::numeric_limits<Out>::max();
-  }
-  return std::max(-std::log2(result), Out{0});
+  return finish_alternative_dot(result);
 }
 
 template <typename Out, typename It>
@@ -298,7 +311,7 @@ Out inner_product(const It xbegin, const It xend, const It ybegin) {
   for (It xit = xbegin, yit = ybegin; xit != xend; ++xit, ++yit) {
     sum += *xit * *yit;
   }
-  return std::max(1 - sum, Out{0});
+  return finish_inner_product(sum);
 }
 
 template <typename Out, typename It>
