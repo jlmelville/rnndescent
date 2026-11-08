@@ -312,3 +312,5 @@ graph_10 <- truncate_knn(graph, k = 10)
 ```
 
 `rnnd_build()` also accepts `n_trees` when you need a searchable index.
+For another idea for reducing forest construction time, see the
+[sparse random projection example](sparse-rp-example.html).
