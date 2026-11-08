@@ -47,6 +47,26 @@ namespace tdoann {
 
 // Tree Building
 
+// Graph initialization only needs leaf memberships in split order.
+template <typename Idx> struct RPLeafTree {
+  using Index = Idx;
+  std::vector<std::vector<Idx>> indices;
+  std::size_t leaf_size = 0;
+
+  RPLeafTree() = default;
+  RPLeafTree(std::size_t n_points, std::size_t target_size, std::size_t) {
+    indices.reserve(std::max(std::size_t{1}, n_points / target_size));
+  }
+
+  template <typename... Args> void add_node(const Args &...) {}
+  bool is_leaf(std::size_t) const { return true; }
+
+  void add_leaf(const std::vector<Idx> &members) {
+    indices.push_back(members);
+    leaf_size = std::max(leaf_size, members.size());
+  }
+};
+
 template <typename In, typename Idx> struct RPTree {
   using Index = Idx;
 
@@ -277,9 +297,9 @@ angular_random_projection_split(const std::vector<In> &data, size_t ndim,
                          std::move(hyperplane_vector), In(0));
 }
 
-template <typename In, typename Idx, typename SplitFunc>
+template <typename In, typename Idx, typename SplitFunc, typename Tree>
 void make_tree_recursive(const std::vector<In> &data, std::size_t ndim,
-                         const std::vector<Idx> &indices, RPTree<In, Idx> &tree,
+                         const std::vector<Idx> &indices, Tree &tree,
                          RandomIntGenerator<Idx> &rng, SplitFunc split_function,
                          uint32_t leaf_size, uint32_t max_depth) {
   if (indices.size() > leaf_size && max_depth > 0) {
@@ -304,15 +324,14 @@ void make_tree_recursive(const std::vector<In> &data, std::size_t ndim,
   }
 }
 
-template <typename In, typename Idx>
-RPTree<In, Idx> make_dense_tree(const std::vector<In> &data, std::size_t ndim,
-                                RandomIntGenerator<Idx> &rng,
-                                uint32_t leaf_size, uint32_t max_tree_depth,
-                                bool angular) {
+template <typename In, typename Idx, typename Tree = RPTree<In, Idx>>
+Tree make_dense_tree(const std::vector<In> &data, std::size_t ndim,
+                     RandomIntGenerator<Idx> &rng, uint32_t leaf_size,
+                     uint32_t max_tree_depth, bool angular) {
   std::vector<Idx> indices(data.size() / ndim);
   std::iota(indices.begin(), indices.end(), 0);
 
-  RPTree<In, Idx> tree(indices.size(), leaf_size, ndim);
+  Tree tree(indices.size(), leaf_size, ndim);
   if (angular) {
 
     auto angular_splitter = [](const auto &data, auto ndim, const auto &indices,
@@ -334,22 +353,22 @@ RPTree<In, Idx> make_dense_tree(const std::vector<In> &data, std::size_t ndim,
   return tree;
 }
 
-template <typename In, typename Idx>
-std::vector<RPTree<In, Idx>>
+template <typename In, typename Idx, typename Tree = RPTree<In, Idx>>
+std::vector<Tree>
 make_forest(const std::vector<In> &data, std::size_t ndim, uint32_t n_trees,
             uint32_t leaf_size, uint32_t max_tree_depth,
             ParallelRandomIntProvider<Idx> &parallel_rand, bool angular,
             std::size_t n_threads, ProgressBase &progress,
             const Executor &executor) {
-  std::vector<RPTree<In, Idx>> rp_forest(n_trees);
+  std::vector<Tree> rp_forest(n_trees);
 
   parallel_rand.initialize();
 
   auto worker = [&](std::size_t begin, std::size_t end) {
     auto rng = parallel_rand.get_parallel_instance(end);
     for (auto i = begin; i < end; ++i) {
-      rp_forest[i] =
-          make_dense_tree(data, ndim, *rng, leaf_size, max_tree_depth, angular);
+      rp_forest[i] = make_dense_tree<In, Idx, Tree>(data, ndim, *rng, leaf_size,
+                                                    max_tree_depth, angular);
     }
   };
 
@@ -377,7 +396,7 @@ get_leaves_from_tree(const Tree &tree, std::size_t max_leaf_size) {
   using Idx = typename Tree::Index;
 
   std::size_t n_leaves = 0;
-  for (std::size_t i = 0; i < tree.children.size(); ++i) {
+  for (std::size_t i = 0; i < tree.indices.size(); ++i) {
     if (tree.is_leaf(i)) {
       ++n_leaves;
     }
@@ -387,7 +406,7 @@ get_leaves_from_tree(const Tree &tree, std::size_t max_leaf_size) {
 
   std::vector<Idx> leaf_indices(n_leaves * max_leaf_size, idx_sentinel);
   std::size_t insert_position = 0;
-  for (std::size_t i = 0; i < tree.children.size(); ++i) {
+  for (std::size_t i = 0; i < tree.indices.size(); ++i) {
     if (tree.is_leaf(i)) {
       const auto &indices = tree.indices[i];
       std::copy(indices.begin(), indices.end(),
@@ -408,7 +427,7 @@ get_leaves_from_forest(const std::vector<Tree> &forest,
   // Calculate total number of leaves and reserve space
   std::size_t total_leaves = 0;
   for (const auto &tree : forest) {
-    for (std::size_t i = 0; i < tree.children.size(); ++i) {
+    for (std::size_t i = 0; i < tree.indices.size(); ++i) {
       if (tree.is_leaf(i)) {
         ++total_leaves;
       }

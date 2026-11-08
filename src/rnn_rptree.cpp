@@ -20,6 +20,7 @@
 #include <array>
 #include <cmath>
 #include <string_view>
+#include <utility>
 
 #include <Rcpp.h>
 
@@ -470,8 +471,8 @@ r_to_sparse_search_forest(List forest_list) {
   return search_forest;
 }
 
-template <typename In, typename Idx>
-std::vector<tdoann::RPTree<In, Idx>>
+template <typename In, typename Idx, typename Tree = tdoann::RPTree<In, Idx>>
+std::vector<Tree>
 build_rp_forest(const std::vector<In> &data_vec, std::size_t ndim,
                 const std::string &metric, uint32_t n_trees, uint32_t leaf_size,
                 uint32_t max_tree_depth, std::size_t n_threads, bool verbose,
@@ -483,13 +484,14 @@ build_rp_forest(const std::vector<In> &data_vec, std::size_t ndim,
                 << "margin calculation\n";
   }
   RPProgress forest_progress(verbose);
-  return tdoann::make_forest(data_vec, ndim, n_trees, leaf_size, max_tree_depth,
-                             rng_provider, angular, n_threads, forest_progress,
-                             executor);
+  return tdoann::make_forest<In, Idx, Tree>(
+      data_vec, ndim, n_trees, leaf_size, max_tree_depth, rng_provider, angular,
+      n_threads, forest_progress, executor);
 }
 
-template <typename In, typename Idx>
-std::vector<tdoann::SparseRPTree<In, Idx>> build_sparse_rp_forest(
+template <typename In, typename Idx,
+          typename Tree = tdoann::SparseRPTree<In, Idx>>
+std::vector<Tree> build_sparse_rp_forest(
     const std::vector<In> &data_vec, const std::vector<std::size_t> &ind_vec,
     const std::vector<std::size_t> &ptr_vec, std::size_t ndim,
     const std::string &metric, uint32_t n_trees, uint32_t leaf_size,
@@ -502,9 +504,35 @@ std::vector<tdoann::SparseRPTree<In, Idx>> build_sparse_rp_forest(
                 << "margin calculation\n";
   }
   RPProgress forest_progress(verbose);
-  return tdoann::make_sparse_forest(
+  return tdoann::make_sparse_forest<In, Idx, Tree>(
       ind_vec, ptr_vec, data_vec, ndim, n_trees, leaf_size, max_tree_depth,
       rng_provider, angular, n_threads, forest_progress, executor);
+}
+
+template <typename Tree, typename BuildForest>
+auto prepare_initialization_leaves(std::vector<Tree> &full_forest,
+                                   const BuildForest &build_forest,
+                                   bool ret_forest, std::size_t leaf_size,
+                                   bool verbose) {
+  auto pack = [&](const auto &forest) {
+    if (verbose) {
+      tsmessage() << "Extracting leaf array from forest\n";
+    }
+    const auto width = check_leaf_size(forest, leaf_size, verbose);
+    auto leaves = tdoann::get_leaves_from_forest(forest, width);
+    if (verbose) {
+      tsmessage() << "Creating knn using " << leaves.size() / width
+                  << " leaves\n";
+    }
+    return std::make_pair(std::move(leaves), width);
+  };
+
+  if (ret_forest) {
+    full_forest = build_forest(Tree{});
+    return pack(full_forest);
+  }
+  using LeafTree = tdoann::RPLeafTree<typename Tree::Index>;
+  return pack(build_forest(LeafTree{}));
 }
 
 // [[Rcpp::export]]
@@ -523,23 +551,16 @@ List rnn_rp_tree_knn_explicit(const NumericMatrix &data, uint32_t nnbrs,
                       : r_to_vec<In>(data);
 
   RParallelExecutor executor;
-  auto rp_forest =
-      build_rp_forest<In, Idx>(data_vec, ndim, metric, n_trees, leaf_size,
-                               max_tree_depth, n_threads, verbose, executor);
+  std::vector<tdoann::RPTree<In, Idx>> rp_forest;
+  auto build_forest = [&](auto tree) {
+    using Tree = decltype(tree);
+    return build_rp_forest<In, Idx, Tree>(data_vec, ndim, metric, n_trees,
+                                          leaf_size, max_tree_depth, n_threads,
+                                          verbose, executor);
+  };
+  auto [leaf_array, max_leaf_size] = prepare_initialization_leaves(
+      rp_forest, build_forest, ret_forest, leaf_size, verbose);
 
-  if (verbose) {
-    tsmessage() << "Extracting leaf array from forest\n";
-  }
-  const std::size_t max_leaf_size =
-      check_leaf_size(rp_forest, leaf_size, verbose);
-
-  std::vector<Idx> leaf_array =
-      tdoann::get_leaves_from_forest(rp_forest, max_leaf_size);
-
-  if (verbose) {
-    tsmessage() << "Creating knn using " << leaf_array.size() / max_leaf_size
-                << " leaves\n";
-  }
   RPProgress knn_progress(verbose);
 
   auto distance =
@@ -577,23 +598,16 @@ List rnn_sparse_rp_tree_knn_explicit(
   const std::size_t nobs = ptr.size() - 1;
 
   RParallelExecutor executor;
-  auto rp_forest = build_sparse_rp_forest<In, Idx>(
-      data_vec, ind_vec, ptr_vec, ndim, metric, n_trees, leaf_size,
-      max_tree_depth, n_threads, verbose, executor);
+  std::vector<tdoann::SparseRPTree<In, Idx>> rp_forest;
+  auto build_forest = [&](auto tree) {
+    using Tree = decltype(tree);
+    return build_sparse_rp_forest<In, Idx, Tree>(
+        data_vec, ind_vec, ptr_vec, ndim, metric, n_trees, leaf_size,
+        max_tree_depth, n_threads, verbose, executor);
+  };
+  auto [leaf_array, max_leaf_size] = prepare_initialization_leaves(
+      rp_forest, build_forest, ret_forest, leaf_size, verbose);
 
-  if (verbose) {
-    tsmessage() << "Extracting leaf array from forest\n";
-  }
-  const std::size_t max_leaf_size =
-      check_leaf_size(rp_forest, leaf_size, verbose);
-
-  std::vector<Idx> leaf_array =
-      tdoann::get_leaves_from_forest(rp_forest, max_leaf_size);
-
-  if (verbose) {
-    tsmessage() << "Creating knn using " << leaf_array.size() / max_leaf_size
-                << " leaves\n";
-  }
   RPProgress knn_progress(verbose);
   auto distance_ptr =
       create_sparse_self_distance(std::move(ind_vec), std::move(ptr_vec),
@@ -625,23 +639,16 @@ List rp_tree_knn_implicit_impl(const tdoann::BaseDistance<Out, Idx> &distance,
   RParallelExecutor executor;
   rnndescent::ParallelIntRNGAdapter<Idx, rnndescent::DQIntSampler> rng_provider;
   RPProgress forest_progress(verbose);
-  auto rp_forest =
-      tdoann::make_forest(distance, ndim, n_trees, leaf_size, max_tree_depth,
-                          rng_provider, n_threads, forest_progress, executor);
+  std::vector<tdoann::RPTreeImplicit<Idx>> rp_forest;
+  auto build_forest = [&](auto tree) {
+    using Tree = decltype(tree);
+    return tdoann::make_forest<Out, Idx, Tree>(
+        distance, ndim, n_trees, leaf_size, max_tree_depth, rng_provider,
+        n_threads, forest_progress, executor);
+  };
+  auto [leaf_array, max_leaf_size] = prepare_initialization_leaves(
+      rp_forest, build_forest, ret_forest, leaf_size, verbose);
 
-  if (verbose) {
-    tsmessage() << "Extracting leaf array from forest\n";
-  }
-  const std::size_t max_leaf_size =
-      check_leaf_size(rp_forest, leaf_size, verbose);
-
-  std::vector<Idx> leaf_array =
-      tdoann::get_leaves_from_forest(rp_forest, max_leaf_size);
-
-  if (verbose) {
-    tsmessage() << "Creating knn using " << leaf_array.size() / max_leaf_size
-                << " leaves\n";
-  }
   RPProgress knn_progress(verbose);
 
   auto neighbor_heap =

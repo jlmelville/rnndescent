@@ -80,6 +80,38 @@ test_that("RP forests recover neighbors with Euclidean and cosine distances", {
 })
 
 
+test_that("leaf-only forests preserve the initial graph and RNG state", {
+  x <- as.matrix(iris[c(1:12, 51:62), 1:4])
+  x[1, ] <- x[2, ]
+  cases <- list(
+    list(data = x, metric = "euclidean"),
+    list(data = Matrix::Matrix(x, sparse = TRUE), metric = "cosine"),
+    list(data = x > 3, metric = "jaccard")
+  )
+
+  for (args in cases) {
+    args <- c(
+      args,
+      list(
+        k = 4L,
+        n_trees = 5L,
+        leaf_size = 3L,
+        max_tree_depth = 2L,
+        include_self = FALSE,
+        n_threads = 2L
+      )
+    )
+    set.seed(472L)
+    leaf_graph <- do.call(rpf_knn, args)
+    leaf_rng <- .Random.seed
+
+    set.seed(472L)
+    full_graph <- do.call(rpf_knn, c(args, list(ret_forest = TRUE)))
+    expect_identical(.Random.seed, leaf_rng)
+    expect_identical(full_graph[c("idx", "dist")], leaf_graph)
+  }
+})
+
 test_that("threaded RP forests preserve neighbor quality and missing entries", {
   # multi-threading
   set.seed(1337)
