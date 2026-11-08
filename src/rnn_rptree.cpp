@@ -20,6 +20,7 @@
 #include <array>
 #include <cmath>
 #include <string_view>
+#include <type_traits>
 #include <utility>
 
 #include <Rcpp.h>
@@ -839,12 +840,20 @@ template <typename Matrix>
 List rp_forest_search(const Matrix &query, const Matrix &reference,
                       const List &search_forest, uint32_t n_nbrs,
                       const std::string &metric, bool cache,
-                      std::size_t n_threads, bool verbose = false) {
+                      std::size_t n_threads, bool verbose = false,
+                      bool check_reference_during_copy = false) {
   RParallelExecutor executor;
   std::string margin_type = search_forest["margin"];
 
   if (margin_type == margin_type_to_string(MarginType::EXPLICIT)) {
-    auto distance_ptr = create_query_vector_distance(reference, query, metric);
+    auto distance_ptr = [&] {
+      if constexpr (std::is_same_v<Matrix, NumericMatrix>) {
+        return create_query_vector_distance(reference, query, metric,
+                                            check_reference_during_copy);
+      } else {
+        return create_query_vector_distance(reference, query, metric);
+      }
+    }();
 
     using In = typename tdoann::DistanceTraits<decltype(distance_ptr)>::Input;
     using Idx = typename tdoann::DistanceTraits<decltype(distance_ptr)>::Index;
@@ -872,9 +881,11 @@ List rnn_rp_forest_search(const NumericMatrix &query,
                           const NumericMatrix &reference,
                           const List &search_forest, uint32_t n_nbrs,
                           const std::string &metric, bool cache,
-                          std::size_t n_threads, bool verbose = false) {
+                          std::size_t n_threads, bool verbose = false,
+                          bool check_reference_during_copy = false) {
   return rp_forest_search(query, reference, search_forest, n_nbrs, metric,
-                          cache, n_threads, verbose);
+                          cache, n_threads, verbose,
+                          check_reference_during_copy);
 }
 
 // [[Rcpp::export]]

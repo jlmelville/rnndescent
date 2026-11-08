@@ -119,8 +119,10 @@ List rnn_query(const NumericMatrix &reference, const List &reference_graph_list,
                const NumericMatrix &query, const IntegerMatrix &nn_idx,
                const NumericMatrix &nn_dist, const std::string &metric,
                double epsilon, double max_search_fraction,
-               std::size_t n_threads, bool verbose) {
-  auto distance_ptr = create_query_vector_distance(reference, query, metric);
+               std::size_t n_threads, bool verbose,
+               bool check_reference_during_copy = false) {
+  auto distance_ptr = create_query_vector_distance(reference, query, metric,
+                                                   check_reference_during_copy);
   if (metric == "sqeuclidean" && reference.ncol() >= 4) {
     using Kernel =
         rnndescent::DenseDistanceFour<RNN_DEFAULT_DIST, RNN_DEFAULT_IDX>;

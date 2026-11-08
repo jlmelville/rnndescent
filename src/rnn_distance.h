@@ -303,11 +303,28 @@ create_query_distance_impl(
       preprocess_func);
 }
 
+template <typename In>
+auto copy_finite_reference(const Rcpp::NumericMatrix &reference)
+    -> std::vector<In> {
+  const auto size = reference.size();
+  std::vector<In> result(size);
+  const double *input = reference.begin();
+  for (R_xlen_t i = 0; i < size; ++i) {
+    const double value = input[i];
+    if (!std::isfinite(value)) {
+      Rcpp::stop("reference must contain only finite numeric feature values");
+    }
+    result[i] = static_cast<In>(value);
+  }
+  return result;
+}
+
 template <typename... Args>
 std::unique_ptr<typename FactoryTraits<Args...>::type>
 create_query_distance_impl(const Rcpp::NumericMatrix &reference,
                            const Rcpp::NumericMatrix &query,
-                           const std::string &metric) {
+                           const std::string &metric,
+                           bool check_reference_during_copy = false) {
   using In = typename FactoryTraits<Args...>::input_type;
 
   const auto ndim = reference.nrow();
@@ -317,7 +334,8 @@ create_query_distance_impl(const Rcpp::NumericMatrix &reference,
   auto ref_vec =
       probability_metric
           ? r_to_vec_for_probability<In>(reference, metric, "reference")
-          : r_to_vec<In>(reference);
+          : (check_reference_during_copy ? copy_finite_reference<In>(reference)
+                                         : r_to_vec<In>(reference));
   auto query_vec = probability_metric
                        ? r_to_vec_for_probability<In>(query, metric, "query")
                        : r_to_vec<In>(query);
@@ -364,10 +382,11 @@ template <typename Idx = RNN_DEFAULT_IDX>
 std::unique_ptr<tdoann::VectorDistance<RNN_DEFAULT_IN, RNN_DEFAULT_DIST, Idx>>
 create_query_vector_distance(const Rcpp::NumericMatrix &reference,
                              const Rcpp::NumericMatrix &query,
-                             const std::string &metric) {
+                             const std::string &metric,
+                             bool check_reference_during_copy = false) {
   return create_query_distance_impl<
       tdoann::VectorDistance<RNN_DEFAULT_IN, RNN_DEFAULT_DIST, Idx>>(
-      reference, query, metric);
+      reference, query, metric, check_reference_during_copy);
 }
 
 template <typename Idx = RNN_DEFAULT_IDX>

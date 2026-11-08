@@ -167,6 +167,13 @@ for (representation in c("dense", "integer", "logical", "sparse")) {
           },
           index_supplied = function() {
             rnnd_query(index, data, k = 2, init = graph, obs = orientation)
+          },
+          index_indices = function() {
+            rnnd_query(index, data, k = 2, init = graph$idx, obs = orientation)
+          },
+          index_random = function() {
+            index$search_forest <- NULL
+            rnnd_query(index, data, k = 2, obs = orientation)
           }
         )
         original_x2m <- getFromNamespace("x2m", "rnndescent")
@@ -187,7 +194,15 @@ for (representation in c("dense", "integer", "logical", "sparse")) {
         for (name in names(queries)) {
           roles <- character()
           invisible(queries[[name]]())
-          expect_identical(sort(roles), c("query", "reference"), info = name)
+          expected <- if (
+            representation == "dense" &&
+              name %in% c("index_forest", "index_supplied")
+          ) {
+            "query"
+          } else {
+            c("query", "reference")
+          }
+          expect_identical(sort(roles), expected, info = name)
         }
       }
     )
@@ -229,28 +244,30 @@ test_that("direct and wrapper NND retain valid lazy argument forcing", {
 })
 
 test_that("index queries recheck the current stored reference on each call", {
-  data <- matrix(seq_len(24), nrow = 8)
+  data <- matrix(as.double(seq_len(24)), nrow = 8)
   for (sparse in c(FALSE, TRUE)) {
     input <- if (sparse) Matrix::Matrix(data, sparse = TRUE) else data
     index <- rnnd_build(input, k = 2, n_trees = 1, n_iters = 1)
     supplied <- index$graph
     for (initializer in list(NULL, supplied)) {
       expect_no_error(rnnd_query(index, input, k = 2, init = initializer))
-      bad_index <- index
-      bad_index$data[1, 1] <- Inf
-      before <- bad_index
-      set.seed(1934)
-      dqrng::dqset.seed(1934)
-      rng_before <- list(R = .Random.seed, dq = dqrng::dqrng_get_state())
-      expect_error(
-        rnnd_query(bad_index, input, k = 2, init = initializer),
-        "^reference must contain only finite numeric feature values$"
-      )
-      expect_identical(
-        list(R = .Random.seed, dq = dqrng::dqrng_get_state()),
-        rng_before
-      )
-      expect_identical(bad_index, before)
+      for (bad in if (sparse) Inf else c(NA_real_, NaN, Inf, -Inf)) {
+        bad_index <- index
+        bad_index$data[1, 1] <- bad
+        before <- bad_index
+        set.seed(1934)
+        dqrng::dqset.seed(1934)
+        rng_before <- list(R = .Random.seed, dq = dqrng::dqrng_get_state())
+        expect_error(
+          rnnd_query(bad_index, input, k = 2, init = initializer),
+          "^reference must contain only finite numeric feature values$"
+        )
+        expect_identical(
+          list(R = .Random.seed, dq = dqrng::dqrng_get_state()),
+          rng_before
+        )
+        expect_identical(bad_index, before)
+      }
     }
   }
 })

@@ -695,8 +695,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // rnn_rp_forest_search
-List rnn_rp_forest_search(const NumericMatrix& query, const NumericMatrix& reference, const List& search_forest, uint32_t n_nbrs, const std::string& metric, bool cache, std::size_t n_threads, bool verbose);
-RcppExport SEXP _rnndescent_rnn_rp_forest_search(SEXP querySEXP, SEXP referenceSEXP, SEXP search_forestSEXP, SEXP n_nbrsSEXP, SEXP metricSEXP, SEXP cacheSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
+List rnn_rp_forest_search(const NumericMatrix& query, const NumericMatrix& reference, const List& search_forest, uint32_t n_nbrs, const std::string& metric, bool cache, std::size_t n_threads, bool verbose, bool check_reference_during_copy);
+RcppExport SEXP _rnndescent_rnn_rp_forest_search(SEXP querySEXP, SEXP referenceSEXP, SEXP search_forestSEXP, SEXP n_nbrsSEXP, SEXP metricSEXP, SEXP cacheSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP, SEXP check_reference_during_copySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -708,7 +708,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< bool >::type cache(cacheSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type n_threads(n_threadsSEXP);
     Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
-    rcpp_result_gen = Rcpp::wrap(rnn_rp_forest_search(query, reference, search_forest, n_nbrs, metric, cache, n_threads, verbose));
+    Rcpp::traits::input_parameter< bool >::type check_reference_during_copy(check_reference_during_copySEXP);
+    rcpp_result_gen = Rcpp::wrap(rnn_rp_forest_search(query, reference, search_forest, n_nbrs, metric, cache, n_threads, verbose, check_reference_during_copy));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -769,8 +770,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // rnn_query
-List rnn_query(const NumericMatrix& reference, const List& reference_graph_list, const NumericMatrix& query, const IntegerMatrix& nn_idx, const NumericMatrix& nn_dist, const std::string& metric, double epsilon, double max_search_fraction, std::size_t n_threads, bool verbose);
-RcppExport SEXP _rnndescent_rnn_query(SEXP referenceSEXP, SEXP reference_graph_listSEXP, SEXP querySEXP, SEXP nn_idxSEXP, SEXP nn_distSEXP, SEXP metricSEXP, SEXP epsilonSEXP, SEXP max_search_fractionSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
+List rnn_query(const NumericMatrix& reference, const List& reference_graph_list, const NumericMatrix& query, const IntegerMatrix& nn_idx, const NumericMatrix& nn_dist, const std::string& metric, double epsilon, double max_search_fraction, std::size_t n_threads, bool verbose, bool check_reference_during_copy);
+RcppExport SEXP _rnndescent_rnn_query(SEXP referenceSEXP, SEXP reference_graph_listSEXP, SEXP querySEXP, SEXP nn_idxSEXP, SEXP nn_distSEXP, SEXP metricSEXP, SEXP epsilonSEXP, SEXP max_search_fractionSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP, SEXP check_reference_during_copySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -784,7 +785,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type max_search_fraction(max_search_fractionSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type n_threads(n_threadsSEXP);
     Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
-    rcpp_result_gen = Rcpp::wrap(rnn_query(reference, reference_graph_list, query, nn_idx, nn_dist, metric, epsilon, max_search_fraction, n_threads, verbose));
+    Rcpp::traits::input_parameter< bool >::type check_reference_during_copy(check_reference_during_copySEXP);
+    rcpp_result_gen = Rcpp::wrap(rnn_query(reference, reference_graph_list, query, nn_idx, nn_dist, metric, epsilon, max_search_fraction, n_threads, verbose, check_reference_during_copy));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -884,11 +886,11 @@ static const R_CallMethodDef CallEntries[] = {
     {"_rnndescent_rnn_rp_forest_implicit_build", (DL_FUNC) &_rnndescent_rnn_rp_forest_implicit_build, 7},
     {"_rnndescent_rnn_logical_rp_forest_implicit_build", (DL_FUNC) &_rnndescent_rnn_logical_rp_forest_implicit_build, 7},
     {"_rnndescent_rnn_sparse_rp_forest_implicit_build", (DL_FUNC) &_rnndescent_rnn_sparse_rp_forest_implicit_build, 10},
-    {"_rnndescent_rnn_rp_forest_search", (DL_FUNC) &_rnndescent_rnn_rp_forest_search, 8},
+    {"_rnndescent_rnn_rp_forest_search", (DL_FUNC) &_rnndescent_rnn_rp_forest_search, 9},
     {"_rnndescent_rnn_logical_rp_forest_search", (DL_FUNC) &_rnndescent_rnn_logical_rp_forest_search, 8},
     {"_rnndescent_rnn_sparse_rp_forest_search", (DL_FUNC) &_rnndescent_rnn_sparse_rp_forest_search, 13},
     {"_rnndescent_rnn_score_forest", (DL_FUNC) &_rnndescent_rnn_score_forest, 5},
-    {"_rnndescent_rnn_query", (DL_FUNC) &_rnndescent_rnn_query, 10},
+    {"_rnndescent_rnn_query", (DL_FUNC) &_rnndescent_rnn_query, 11},
     {"_rnndescent_rnn_logical_query", (DL_FUNC) &_rnndescent_rnn_logical_query, 10},
     {"_rnndescent_rnn_sparse_query", (DL_FUNC) &_rnndescent_rnn_sparse_query, 15},
     {"_rnndescent_is_binary_metric", (DL_FUNC) &_rnndescent_is_binary_metric, 1},

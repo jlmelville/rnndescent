@@ -399,7 +399,29 @@ rnnd_query <-
     }
     check_query_search_controls(epsilon, max_search_fraction)
     check_sparse(index$data, query)
-    reference <- x2m(index$data, "C", "reference")
+    check_reference_during_copy <- FALSE
+    reference <- index$data
+    if (
+      is.matrix(reference) &&
+        is.double(reference) &&
+        !is.object(reference) &&
+        length(reference) > 0L &&
+        is.list(init) &&
+        !is.object(init) &&
+        identical(index$original_metric, "euclidean")
+    ) {
+      check_reference_during_copy <- if (is_rpforest(init)) {
+        identical(init$margin, "explicit") &&
+          identical(init$original_metric, "euclidean") &&
+          (identical(init$actual_metric, "sqeuclidean") ||
+            identical(init$actual_metric, "euclidean"))
+      } else {
+        !is.null(init$idx) && !is.null(init$dist)
+      }
+    }
+    if (!check_reference_during_copy) {
+      reference <- x2m(reference, "C", "reference")
+    }
     check_matching_features(reference, query, "C")
     res <- graph_knn_query_impl(
       query = query,
@@ -412,7 +434,8 @@ rnnd_query <-
       max_search_fraction = max_search_fraction,
       use_alt_metric = index$use_alt_metric,
       n_threads = n_threads,
-      verbose = verbose
+      verbose = verbose,
+      check_reference_during_copy = check_reference_during_copy
     )
     res
   }
@@ -1778,7 +1801,8 @@ graph_knn_query_impl <- function(
   max_search_fraction,
   use_alt_metric,
   n_threads,
-  verbose
+  verbose,
+  check_reference_during_copy = FALSE
 ) {
   if (is.list(init) && is_rpforest(init)) {
     tsmessage("Reading metric data from forest")
@@ -1850,8 +1874,11 @@ graph_knn_query_impl <- function(
       k = k,
       cache = TRUE,
       n_threads = n_threads,
-      verbose = verbose
+      verbose = verbose,
+      check_reference_during_copy = check_reference_during_copy
     )
+    # Forest seeding has already checked the first reference copy.
+    check_reference_during_copy <- FALSE
     if (use_alt_metric) {
       init$dist <-
         apply_alt_metric_uncorrection(metric, init$dist, is_sparse(reference))
@@ -1965,7 +1992,11 @@ graph_knn_query_impl <- function(
     res <- do.call(
       rnn_query,
       c(
-        list(reference = reference, query = query),
+        list(
+          reference = reference,
+          query = query,
+          check_reference_during_copy = check_reference_during_copy
+        ),
         args
       )
     )
