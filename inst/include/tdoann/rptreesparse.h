@@ -155,13 +155,24 @@ select_side_sparse(typename std::vector<std::size_t>::const_iterator ind_start,
                    RandomIntGenerator<Idx> &rng) {
   constexpr In EPS = 1e-8;
 
-  auto [_, mul_data] =
-      sparse_mul<In>(hyperplane_ind.begin(), hyperplane_ind.size(),
-                     hyperplane_data.begin(), ind_start, ind_size, data_start);
-
   In margin = hyperplane_offset;
-  for (auto val : mul_data) {
-    margin += val;
+  std::size_t plane_pos = 0;
+  std::size_t point_pos = 0;
+  while (plane_pos < hyperplane_ind.size() && point_pos < ind_size) {
+    const auto plane_index = hyperplane_ind[plane_pos];
+    const auto point_index = *(ind_start + point_pos);
+    if (plane_index == point_index) {
+      const In product = hyperplane_data[plane_pos] * *(data_start + point_pos);
+      if (product != In{0}) {
+        margin += product;
+      }
+      ++plane_pos;
+      ++point_pos;
+    } else if (plane_index < point_index) {
+      ++plane_pos;
+    } else {
+      ++point_pos;
+    }
   }
 
   if (std::abs(margin) < EPS) {
@@ -430,10 +441,9 @@ template <typename In, typename Idx> struct SparseSearchTree {
 
   SparseSearchTree() = default;
 
-  SparseSearchTree(std::size_t n_nodes, std::size_t n_points, std::size_t ndim,
-                   Idx lsize)
-      : hyperplanes_ind(n_nodes, std::vector<std::size_t>(ndim)),
-        hyperplanes_data(n_nodes, std::vector<In>(ndim)),
+  SparseSearchTree(std::size_t n_nodes, std::size_t n_points,
+                   std::size_t /* ndim */, Idx lsize)
+      : hyperplanes_ind(n_nodes), hyperplanes_data(n_nodes),
         offsets(n_nodes, std::numeric_limits<In>::quiet_NaN()),
         children(n_nodes, std::make_pair(static_cast<std::size_t>(-1),
                                          static_cast<std::size_t>(-1))),

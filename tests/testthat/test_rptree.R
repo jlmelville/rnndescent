@@ -1021,6 +1021,37 @@ test_that("rp tree APIs normalize non-dgC sparse inputs", {
 })
 
 
+test_that("sparse margins accumulate products starting with the offset", {
+  reference <- Matrix::drop0(rbind(c(0, 0, 0), c(1, 1, 1)))
+  query <- Matrix::drop0(matrix(c(1, 1, 1), nrow = 1))
+  set.seed(42)
+  forest <- rpf_build(
+    reference,
+    n_trees = 1,
+    leaf_size = 1,
+    margin = "explicit"
+  )
+  tree <- forest$trees[[1]]
+  # The offset rounds away on the first addition. Adding it last would
+  # change the margin from -0.25 to 0.25 and visit the other leaf.
+  tree$offsets[1] <- 0.5
+  tree$hyperplanes_ind <- 0:2
+  tree$hyperplanes_data <- c(1e8, -1e8, -0.25)
+  tree$hyperplanes_ptr <- c(0L, 3L, 3L, 3L)
+  forest$trees[[1]] <- tree
+  right_leaf <- tree$children[1, 2] + 1L
+  right_index <- tree$indices[tree$children[right_leaf, 1] + 1L] + 1L
+  result <- rpf_knn_query(query, reference, forest = forest, k = 1)
+  expect_equal(result$idx, matrix(right_index))
+
+  # Older serialized forests include unused feature-length arrays at leaves.
+  tree$hyperplanes_ind <- c(tree$hyperplanes_ind, rep(0L, 6))
+  tree$hyperplanes_data <- c(tree$hyperplanes_data, rep(0, 6))
+  tree$hyperplanes_ptr <- c(0L, 3L, 6L, 9L)
+  forest$trees[[1]] <- tree
+  expect_equal(rpf_knn_query(query, reference, forest = forest, k = 1), result)
+})
+
 test_that("sparse explicit margin", {
   set.seed(1337)
   dknn <- rpf_knn(ui10z, k = 4, leaf_size = 3, n_trees = 2, margin = "explicit")
@@ -1058,6 +1089,11 @@ test_that("sparse explicit margin", {
   expect_equal(sforest6$margin, "explicit")
   expect_equal(sknn6$forest$margin, "explicit")
   expect_equal(sforest6, sknn6$forest)
+  for (tree in sforest6$trees) {
+    leaf <- is.nan(tree$offsets)
+    expect_true(any(!leaf))
+    expect_true(all(diff(tree$hyperplanes_ptr)[leaf] == 0L))
+  }
 
   s6_ff <- rpf_filter(sknn6)
   expect_equal(length(s6_ff$trees), 1)

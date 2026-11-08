@@ -2,6 +2,30 @@ cosine_sparse <- function(x) {
   methods::as(Matrix::Matrix(x, sparse = TRUE), "generalMatrix")
 }
 
+test_that("cosine and normalized dot distances are nonnegative at self matches", {
+  x <- matrix(c(1, 1, 4), nrow = 1)
+  for (data in list(x, cosine_sparse(x))) {
+    for (metric in c(
+      "cosine",
+      "alternative-cosine",
+      "dot",
+      "alternative-dot"
+    )) {
+      for (alt in if (metric == "dot") c(FALSE, TRUE) else FALSE) {
+        result <- brute_force_knn_query(
+          data,
+          data,
+          k = 1,
+          metric = metric,
+          use_alt_metric = alt
+        )
+        expect_gte(result$dist[1, 1], 0, label = metric)
+        expect_lt(result$dist[1, 1], 1e-6, label = metric)
+      }
+    }
+  }
+})
+
 cosine_oracle <- function(reference, query = reference) {
   rn <- sqrt(rowSums(reference^2))
   qn <- sqrt(rowSums(query^2))

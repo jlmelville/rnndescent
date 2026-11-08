@@ -146,7 +146,8 @@ Out cosine(const It xbegin, const It xend, const It ybegin) {
   if (norm_x == 0 || norm_y == 0) {
     return 1;
   }
-  return 1 - (result / (std::sqrt(norm_x) * std::sqrt(norm_y)));
+  const Out distance = 1 - (result / (std::sqrt(norm_x) * std::sqrt(norm_y)));
+  return std::max(distance, Out{0});
 }
 
 template <typename Out, typename It>
@@ -170,7 +171,7 @@ Out alternative_cosine(const It xbegin, const It xend, const It ybegin) {
   if (norm_x == 0 || norm_y == 0 || result <= 0) {
     return std::numeric_limits<Out>::max();
   }
-  return std::log2(std::sqrt(norm_x * norm_y) / result);
+  return std::max(std::log2(std::sqrt(norm_x * norm_y) / result), Out{0});
 }
 
 template <typename Out, typename It> Out dice(It xbegin, It xend, It ybegin) {
@@ -199,7 +200,7 @@ Out dot(const It xbegin, const It xend, const It ybegin) {
   if (result <= 0) {
     return 1;
   }
-  return 1 - result;
+  return std::max(1 - result, Out{0});
 }
 
 template <typename Out, typename It>
@@ -212,7 +213,7 @@ Out alternative_dot(const It xbegin, const It xend, const It ybegin) {
   if (result <= 0) {
     return std::numeric_limits<Out>::max();
   }
-  return -std::log2(result);
+  return std::max(-std::log2(result), Out{0});
 }
 
 template <typename Out, typename It>

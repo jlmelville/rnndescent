@@ -103,6 +103,7 @@ test_that("correlation vector conventions agree across dense and sparse data", {
     zero_constant = c(0, 0, 0),
     zero_variable = c(0, 0, 0),
     constant_variable = c(1, 1, 1),
+    constant_nonzero_mean = c(1, 1, 1),
     identical = c(-1, 0, 1),
     opposite = c(-1, 0, 1),
     orthogonal = c(-1, 0, 1)
@@ -113,11 +114,12 @@ test_that("correlation vector conventions agree across dense and sparse data", {
     c(2, 2, 2),
     c(-1, 0, 1),
     c(-1, 0, 1),
+    c(2, 0, 1),
     c(-1, 0, 1),
     c(1, 0, -1),
     c(1, -2, 1)
   )
-  expected <- c(0, 0, 0, 1, 1, 0, 2, 1)
+  expected <- c(0, 0, 0, 1, 1, 1, 0, 2, 1)
   for (sparse in c(FALSE, TRUE)) {
     for (i in seq_len(nrow(query))) {
       q <- query[i, , drop = FALSE]
@@ -206,13 +208,16 @@ test_that("correlation distances and neighbors survive positive rescaling", {
   }
 })
 
-test_that("sparse correlation preserves zero-centered-product membership", {
+test_that("sparse correlation counts shared features with zero centered products", {
   x <- c(1, 2, 2, 0, 0, 1, 1, 1)
   y <- c(2, 1, 2, 1, 0, 0, 1, 1)
-  # Shared columns with zero centered products are absent from product indices.
-  # Preserve the established sparse result, including when the inputs swap.
-  for (pair in list(list(x, y), list(y, x), list(x, x))) {
-    expected <- if (identical(pair[[1]], pair[[2]])) 0 else 1
+  for (pair in list(
+    list(x, y),
+    list(y, x),
+    list(x, x),
+    list(c(1, 2, 0), c(2, 0, 1))
+  )) {
+    expected <- 1 - stats::cor(pair[[1]], pair[[2]])
     for (obs in c("R", "C")) {
       q <- Matrix::drop0(matrix(pair[[1]], nrow = 1))
       r <- Matrix::drop0(matrix(pair[[2]], nrow = 1))
@@ -229,7 +234,7 @@ test_that("sparse correlation preserves zero-centered-product membership", {
           obs = obs,
           n_threads = n_threads
         )
-        expect_identical(result$dist, matrix(expected))
+        expect_equal_abs(result$dist, matrix(expected), tolerance = 1e-6)
         expect_equal(result$idx, matrix(1L))
       }
     }

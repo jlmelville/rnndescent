@@ -470,7 +470,6 @@ Out sparse_correlation(
 
   Out mu_x = 0;
   Out mu_y = 0;
-  Out dot_product = 0;
 
   if (ind1_size == 0 && ind2_size == 0) {
     return 0;
@@ -486,65 +485,41 @@ Out sparse_correlation(
   mu_x /= ndim;
   mu_y /= ndim;
 
-  std::vector<Out> shifted_data1(ind1_size);
-  std::vector<Out> shifted_data2(ind2_size);
-
-  for (std::size_t i = 0; i < ind1_size; ++i) {
-    shifted_data1[i] = *(data1_start + i) - mu_x;
-  }
-  for (std::size_t i = 0; i < ind2_size; ++i) {
-    shifted_data2[i] = *(data2_start + i) - mu_y;
-  }
-
-  Out norm1 =
-      std::sqrt(std::inner_product(shifted_data1.begin(), shifted_data1.end(),
-                                   shifted_data1.begin(), Out{0}) +
-                (ndim - ind1_size) * mu_x * mu_x);
-  Out norm2 =
-      std::sqrt(std::inner_product(shifted_data2.begin(), shifted_data2.end(),
-                                   shifted_data2.begin(), Out{0}) +
-                (ndim - ind2_size) * mu_y * mu_y);
-
-  auto dot_prod = sparse_mul<Out>(ind1_start, ind1_size, shifted_data1.begin(),
-                                  ind2_start, ind2_size, shifted_data2.begin());
-  auto &dot_prod_inds = dot_prod.first;
-  auto &dot_prod_data = dot_prod.second;
-
-  for (auto val : dot_prod_data) {
-    dot_product += val;
-  }
-
-  // sparse_mul omits zero products; match its indices, not input overlap.
-  std::size_t dot_pos = 0;
-  for (std::size_t i = 0; i < ind1_size; ++i) {
-    const auto index = *(ind1_start + i);
-    while (dot_pos < dot_prod_inds.size() && dot_prod_inds[dot_pos] < index) {
-      ++dot_pos;
+  Out dot_product = 0;
+  Out sq1 = 0;
+  Out sq2 = 0;
+  std::size_t i1 = 0;
+  std::size_t i2 = 0;
+  std::size_t union_size = 0;
+  // Merge the original supports, even when a centered product is zero.
+  // ndim is past the last valid feature index.
+  while (i1 < ind1_size || i2 < ind2_size) {
+    const auto j1 = i1 < ind1_size ? *(ind1_start + i1) : ndim;
+    const auto j2 = i2 < ind2_size ? *(ind2_start + i2) : ndim;
+    Out x = -mu_x;
+    Out y = -mu_y;
+    if (j1 <= j2) {
+      x = *(data1_start + i1) - mu_x;
+      sq1 += x * x;
+      ++i1;
     }
-    if (dot_pos == dot_prod_inds.size() || dot_prod_inds[dot_pos] != index) {
-      dot_product -= shifted_data1[i] * mu_y;
+    if (j2 <= j1) {
+      y = *(data2_start + i2) - mu_y;
+      sq2 += y * y;
+      ++i2;
     }
-  }
-  dot_pos = 0;
-  for (std::size_t i = 0; i < ind2_size; ++i) {
-    const auto index = *(ind2_start + i);
-    while (dot_pos < dot_prod_inds.size() && dot_prod_inds[dot_pos] < index) {
-      ++dot_pos;
-    }
-    if (dot_pos == dot_prod_inds.size() || dot_prod_inds[dot_pos] != index) {
-      dot_product -= shifted_data2[i] * mu_x;
-    }
+    dot_product += x * y;
+    ++union_size;
   }
 
-  auto all_indices =
-      arr_union(std::vector<std::size_t>(ind1_start, ind1_start + ind1_size),
-                std::vector<std::size_t>(ind2_start, ind2_start + ind2_size));
-  dot_product += mu_x * mu_y * (ndim - all_indices.size());
+  const Out norm1 = std::sqrt(sq1 + (ndim - ind1_size) * mu_x * mu_x);
+  const Out norm2 = std::sqrt(sq2 + (ndim - ind2_size) * mu_y * mu_y);
+  dot_product += mu_x * mu_y * (ndim - union_size);
 
   if (norm1 == 0 && norm2 == 0) {
     return 0;
   }
-  if (dot_product == 0) {
+  if (norm1 == 0 || norm2 == 0 || dot_product == 0) {
     return 1;
   }
   return 1 - (dot_product / (norm1 * norm2));
@@ -654,7 +629,7 @@ Out sparse_alternative_cosine(
   if (norm_x == 0 || norm_y == 0 || result <= 0) {
     return FLOAT_MAX;
   }
-  return std::log2((norm_x * norm_y) / result);
+  return std::max(std::log2((norm_x * norm_y) / result), Out{0});
 }
 
 template <typename Out, typename DataIt>
@@ -704,7 +679,7 @@ Out sparse_dot(typename std::vector<std::size_t>::const_iterator ind1_start,
   if (result <= 0) {
     return 1;
   }
-  return 1 - result;
+  return std::max(1 - result, Out{0});
 }
 
 template <typename Out, typename DataIt>
@@ -735,7 +710,7 @@ auto sparse_alternative_dot(
   if (result <= 0) {
     return std::numeric_limits<Out>::max();
   }
-  return -std::log2(result);
+  return std::max(-std::log2(result), Out{0});
 }
 
 template <typename Out, typename DataIt>
