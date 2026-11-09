@@ -1,10 +1,10 @@
 # Prepare an index for repeated queries
 
-Copy a dense numeric Euclidean index with an explicit search forest into
-native memory once. Pass the returned handle to
+Copy an index into native memory once and pass the returned handle to
 [`rnnd_query()`](https://jlmelville.github.io/rnndescent/dev/reference/rnnd_query.md)
-for repeated queries. Both balanced hub trees and explicit random
-projection forests are supported.
+for repeated queries. Dense numeric Euclidean indexes support explicit
+search forests, including balanced hub trees. Sparse indexes support the
+sparse metrics with either explicit or implicit search forests.
 
 ## Usage
 
@@ -16,7 +16,7 @@ rnnd_prepare(index)
 
 - index:
 
-  A dense Euclidean index from
+  A dense Euclidean or sparse index from
   [`rnnd_build()`](https://jlmelville.github.io/rnndescent/dev/reference/rnnd_build.md).
 
 ## Value

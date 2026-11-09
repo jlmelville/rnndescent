@@ -6,7 +6,8 @@
 
 - Use
   [`rnnd_prepare()`](https://jlmelville.github.io/rnndescent/dev/reference/rnnd_prepare.md)
-  to reuse a native dense Euclidean index across repeated calls to
+  to reuse a native dense Euclidean or sparse index across repeated
+  calls to
   [`rnnd_query()`](https://jlmelville.github.io/rnndescent/dev/reference/rnnd_query.md).
 
 - Add utilities to truncate and sort neighbor graphs, adjust self

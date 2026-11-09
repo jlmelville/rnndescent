@@ -31,8 +31,9 @@ rnnd_query(
 
   A nearest neighbor index produced by
   [`rnnd_build()`](https://jlmelville.github.io/rnndescent/dev/reference/rnnd_build.md)
-  or a prepared dense Euclidean index from
+  or a prepared index from
   [`rnnd_prepare()`](https://jlmelville.github.io/rnndescent/dev/reference/rnnd_prepare.md).
+  Prepared sparse indexes require sparse query data.
 
 - query:
 
