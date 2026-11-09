@@ -1,6 +1,7 @@
 # Internals ---------------------------------------------------------------
 
 .onUnload <- function(libpath) {
+  rnn_release_prepared_indexes()
   library.dynam.unload("rnndescent", libpath)
 }
 

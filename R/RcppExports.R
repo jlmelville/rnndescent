@@ -113,6 +113,14 @@ rnn_sparse_random_knn_query <- function(ref_ind, ref_ptr, ref_data, query_ind, q
     .Call(`_rnndescent_rnn_sparse_random_knn_query`, ref_ind, ref_ptr, ref_data, query_ind, query_ptr, query_data, ndim, nnbrs, metric, order_by_distance, n_threads, verbose)
 }
 
+rnn_release_prepared_indexes <- function() {
+    invisible(.Call(`_rnndescent_rnn_release_prepared_indexes`))
+}
+
+rnn_prepare_dense_index <- function(reference, graph, forest, metric) {
+    .Call(`_rnndescent_rnn_prepare_dense_index`, reference, graph, forest, metric)
+}
+
 rnn_rp_tree_knn_explicit <- function(data, nnbrs, metric, n_trees, leaf_size, max_tree_depth, include_self, unzero = TRUE, ret_forest = FALSE, n_threads = 0L, verbose = FALSE) {
     .Call(`_rnndescent_rnn_rp_tree_knn_explicit`, data, nnbrs, metric, n_trees, leaf_size, max_tree_depth, include_self, unzero, ret_forest, n_threads, verbose)
 }
@@ -171,6 +179,10 @@ rnn_sparse_rp_forest_search <- function(ref_ind, ref_ptr, ref_data, query_ind, q
 
 rnn_score_forest <- function(idx, search_forest, n_trees, n_threads, verbose = FALSE) {
     .Call(`_rnndescent_rnn_score_forest`, idx, search_forest, n_trees, n_threads, verbose)
+}
+
+rnn_query_prepared <- function(handle, query, k, epsilon, max_search_fraction, n_threads, verbose) {
+    .Call(`_rnndescent_rnn_query_prepared`, handle, query, k, epsilon, max_search_fraction, n_threads, verbose)
 }
 
 rnn_with_prepared_query <- function(search) {

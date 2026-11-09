@@ -17,7 +17,8 @@ rnnd_query(
 )
 }
 \arguments{
-\item{index}{A nearest neighbor index produced by \code{\link[=rnnd_build]{rnnd_build()}}.}
+\item{index}{A nearest neighbor index produced by \code{\link[=rnnd_build]{rnnd_build()}} or a
+prepared dense Euclidean index from \code{\link[=rnnd_prepare]{rnnd_prepare()}}.}
 
 \item{query}{Matrix of \code{n} query items, with observations in the rows and
 features in the columns. Optionally, the data may be passed with the
@@ -57,7 +58,7 @@ will terminate the search early if the specified fraction of the reference
 data has been searched. Default is 1.}
 
 \item{init}{An optional matrix of \code{k} initial nearest neighbors for each
-query point.}
+query point. Use \code{NULL} with a prepared index to seed from its search forest.}
 
 \item{n_threads}{Number of threads to use.}
 
@@ -105,5 +106,5 @@ Optimization of indexing based on k-nearest neighbor graph for proximity search 
 \url{https://arxiv.org/abs/1810.07355}
 }
 \seealso{
-\code{\link[=rnnd_query]{rnnd_query()}}
+\code{\link[=rnnd_prepare]{rnnd_prepare()}}
 }

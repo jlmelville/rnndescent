@@ -31,6 +31,7 @@ reference:
 - contents:
   - rnnd_knn
   - rnnd_build
+  - rnnd_prepare
   - rnnd_query
 - title: Individual search methods
   desc: Find or query neighbors using brute force, random selection, nearest neighbor descent, or random projection forests.

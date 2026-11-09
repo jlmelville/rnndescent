@@ -32,6 +32,7 @@
 #include "rnn_init.h"
 #include "rnn_nnd_batch.h"
 #include "rnn_parallel.h"
+#include "rnn_prepared_index.h"
 #include "rnn_progress.h"
 #include "rnn_rtoheap.h"
 
@@ -50,12 +51,11 @@ std::string fmt_double(double d, int precision = 2) {
 
 template <typename Out, typename Idx, typename CalculateFour = std::nullptr_t>
 List nn_query_impl(const tdoann::BaseDistance<Out, Idx> &distance,
-                   const List &reference_graph_list,
+                   const tdoann::SparseNNGraph<Out, Idx> &search_graph,
                    const IntegerMatrix &nn_idx, const NumericMatrix &nn_dist,
                    double epsilon, double max_search_fraction,
                    std::size_t n_threads, bool verbose,
                    const CalculateFour &calculate_four = nullptr) {
-  const auto search_graph = r_to_sparse_graph<Out, Idx>(reference_graph_list);
   auto nn_heap = r_to_query_heap<tdoann::NNHeap<Out, Idx>>(nn_idx, nn_dist);
 
   auto max_distance_calculations =
@@ -114,6 +114,80 @@ List nn_query_impl(const tdoann::BaseDistance<Out, Idx> &distance,
   return heap_to_r(nn_heap, n_threads, progress, executor);
 }
 
+template <typename Out, typename Idx, typename CalculateFour = std::nullptr_t>
+List nn_query_impl(const tdoann::BaseDistance<Out, Idx> &distance,
+                   const List &graph, const IntegerMatrix &nn_idx,
+                   const NumericMatrix &nn_dist, double epsilon,
+                   double max_search_fraction, std::size_t n_threads,
+                   bool verbose,
+                   const CalculateFour &calculate_four = nullptr) {
+  return nn_query_impl(distance, r_to_sparse_graph<Out, Idx>(graph), nn_idx,
+                       nn_dist, epsilon, max_search_fraction, n_threads,
+                       verbose, calculate_four);
+}
+
+template <typename Graph>
+List dense_query_impl(
+    const tdoann::VectorDistance<RNN_DEFAULT_IN, RNN_DEFAULT_DIST,
+                                 RNN_DEFAULT_IDX> &distance,
+    const Graph &graph, const IntegerMatrix &nn_idx,
+    const NumericMatrix &nn_dist, const std::string &metric,
+    std::size_t dimension, double epsilon, double max_search_fraction,
+    std::size_t n_threads, bool verbose) {
+  if (metric == "sqeuclidean" && distance.get_nx() >= 4) {
+    using Kernel =
+        rnndescent::DenseDistanceFour<RNN_DEFAULT_DIST, RNN_DEFAULT_IDX>;
+    const auto *data = &*distance.get_x(0);
+    auto calculate_four = [&](RNN_DEFAULT_IDX row,
+                              const Kernel::Targets &targets) {
+      return Kernel::run_from<rnndescent::DenseBatchMetric::squared_euclidean>(
+          &*distance.get_y(row), data, dimension, targets);
+    };
+    return nn_query_impl(distance, graph, nn_idx, nn_dist, epsilon,
+                         max_search_fraction, n_threads, verbose,
+                         calculate_four);
+  }
+  return nn_query_impl(distance, graph, nn_idx, nn_dist, epsilon,
+                       max_search_fraction, n_threads, verbose);
+}
+
+// [[Rcpp::export(rng = false)]]
+List rnn_query_prepared(SEXP handle, const NumericMatrix &query, uint32_t k,
+                        double epsilon, double max_search_fraction,
+                        std::size_t n_threads, bool verbose) {
+  const auto &index = rnndescent::prepared_dense_index(handle);
+  if (static_cast<std::size_t>(query.nrow()) != index.ndim) {
+    Rcpp::stop("query must have the same number of features as the reference");
+  }
+  if (k == 0 || k > index.graph.n_points) {
+    Rcpp::stop("k must be a single integer between 1 and " +
+               std::to_string(index.graph.n_points));
+  }
+  const Rcpp::RNGScope scope;
+  rnndescent::PreparedIndexQuery distance(index, query);
+  using Idx = RNN_DEFAULT_IDX;
+  rnndescent::ParallelIntRNGAdapter<Idx, rnndescent::DQIntSampler> rng_provider;
+  RParallelExecutor executor;
+  RPProgress progress(verbose);
+  auto seed_heap =
+      tdoann::search_forest(index.forest, distance, k, rng_provider, true,
+                            n_threads, progress, executor);
+  // Preserve the current sorted-seed order before building the traversal heap.
+  const auto seeds = heap_to_r(seed_heap);
+  auto result = dense_query_impl(
+      distance, index.graph, seeds["idx"], seeds["dist"], index.metric,
+      index.ndim, epsilon, max_search_fraction, n_threads, verbose);
+  if (index.metric == "sqeuclidean") {
+    NumericMatrix distances = result["dist"];
+    for (auto &value : distances) {
+      if (!R_IsNA(value)) {
+        value = std::sqrt(value);
+      }
+    }
+  }
+  return result;
+}
+
 // The nested native search calls manage RNG state themselves.
 // [[Rcpp::export(rng = false)]]
 SEXP rnn_with_prepared_query(Rcpp::Function search) {
@@ -144,22 +218,9 @@ List rnn_query(const NumericMatrix &reference, const List &reference_graph_list,
   if (!distance_ptr) {
     Rcpp::stop("No prepared query calculator from forest seeding");
   }
-  if (metric == "sqeuclidean" && reference.ncol() >= 4) {
-    using Kernel =
-        rnndescent::DenseDistanceFour<RNN_DEFAULT_DIST, RNN_DEFAULT_IDX>;
-    const auto *data = &*distance_ptr->get_x(0);
-    const std::size_t dimension = reference.nrow();
-    auto calculate_four = [&](RNN_DEFAULT_IDX row,
-                              const Kernel::Targets &targets) {
-      return Kernel::run_from<rnndescent::DenseBatchMetric::squared_euclidean>(
-          &*distance_ptr->get_y(row), data, dimension, targets);
-    };
-    return nn_query_impl(*distance_ptr, reference_graph_list, nn_idx, nn_dist,
-                         epsilon, max_search_fraction, n_threads, verbose,
-                         calculate_four);
-  }
-  return nn_query_impl(*distance_ptr, reference_graph_list, nn_idx, nn_dist,
-                       epsilon, max_search_fraction, n_threads, verbose);
+  return dense_query_impl(*distance_ptr, reference_graph_list, nn_idx, nn_dist,
+                          metric, reference.nrow(), epsilon,
+                          max_search_fraction, n_threads, verbose);
 }
 
 // [[Rcpp::export]]

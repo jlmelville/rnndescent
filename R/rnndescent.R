@@ -333,6 +333,69 @@ rnnd_build <- function(
   index
 }
 
+#' Prepare an index for repeated queries
+#'
+#' Copy a dense numeric Euclidean index with an explicit search forest into
+#' native memory once. Pass the returned handle to [rnnd_query()] for repeated
+#' queries. Both balanced hub trees and explicit random projection forests are
+#' supported.
+#'
+#' @param index A dense Euclidean index from [rnnd_build()].
+#' @return A prepared index handle for use in the current R session.
+#' @details
+#' The handle owns a snapshot of the reference, search graph and forest. Changes
+#' to the original index require a new call to `rnnd_prepare()`. Garbage
+#' collection releases the native memory when the handle is no longer in use.
+#' Unloading the package also releases the snapshot and invalidates the handle.
+#' To use the index in another session, save the original index and prepare it
+#' again after loading it.
+#' @seealso [rnnd_query()], [rnnd_build()]
+#' @examples
+#' index <- rnnd_build(iris[1:75, ], k = 5)
+#' prepared <- rnnd_prepare(index)
+#' rnnd_query(prepared, iris[76:80, ], k = 5)
+#' @export
+rnnd_prepare <- function(index) {
+  if (!is.list(index)) {
+    stop("index must be an index from rnnd_build()")
+  }
+  reference <- index$data
+  if (
+    !is.matrix(reference) ||
+      is.object(reference) ||
+      !(is.double(reference) || is.integer(reference)) ||
+      length(reference) == 0L ||
+      !identical(index$original_metric, "euclidean")
+  ) {
+    stop("rnnd_prepare() requires a nonempty dense numeric Euclidean index")
+  }
+  forest <- index$search_forest
+  if (
+    !is.list(forest) ||
+      !isTRUE(is_rpforest(forest)) ||
+      !identical(forest$margin, "explicit") ||
+      !identical(forest$original_metric, "euclidean") ||
+      !identical(
+        forest$actual_metric,
+        if (isTRUE(forest$use_alt_metric)) "sqeuclidean" else "euclidean"
+      )
+  ) {
+    stop("rnnd_prepare() requires an explicit Euclidean search forest")
+  }
+  check_rpforest_matches_reference(
+    forest,
+    ncol(reference),
+    nrow(reference),
+    FALSE
+  )
+  graph <- check_reference_graph_size(index$search_graph, ncol(reference))
+  graph <- if (is.list(graph)) graph_to_list(graph) else tcsparse_to_list(graph)
+  structure(
+    rnn_prepare_dense_index(reference, graph, forest, forest$actual_metric),
+    class = "rnndescent_prepared_index"
+  )
+}
+
 #' Query an index for approximate nearest neighbors
 #'
 #' Takes a nearest neighbor index produced by [rnnd_build()] and uses it to
@@ -342,7 +405,8 @@ rnnd_build <- function(
 #' total number of distance calculations can also be bounded, similar to the
 #' method of Harwood and Drummond (2016).
 #'
-#' @param index A nearest neighbor index produced by [rnnd_build()].
+#' @param index A nearest neighbor index produced by [rnnd_build()] or a
+#'   prepared dense Euclidean index from [rnnd_prepare()].
 #' @param query Matrix of `n` query items, with observations in the rows and
 #'   features in the columns. Optionally, the data may be passed with the
 #'   observations in the columns, by setting `obs = "C"`, which should be more
@@ -378,7 +442,7 @@ rnnd_build <- function(
 #'  data has been searched. Default is 1.
 #' @param n_threads Number of threads to use.
 #' @param init An optional matrix of `k` initial nearest neighbors for each
-#'  query point.
+#'   query point. Use `NULL` with a prepared index to seed from its search forest.
 #' @param verbose If `TRUE`, log information to the console.
 #' @param obs set to `"C"` to indicate that the input `data` orientation stores
 #'   each observation as a column. The default `"R"` means that observations are
@@ -389,7 +453,7 @@ rnnd_build <- function(
 #' @return the approximate nearest neighbor index, a list containing:
 #'  * `idx` an n by k matrix containing the nearest neighbor indices.
 #'  * `dist` an n by k matrix containing the nearest neighbor distances.
-#' @seealso [rnnd_query()]
+#' @seealso [rnnd_prepare()]
 #' @examples
 #' iris_even <- iris[seq_len(nrow(iris)) %% 2 == 0, ]
 #' iris_odd <- iris[seq_len(nrow(iris)) %% 2 == 1, ]
@@ -422,7 +486,8 @@ rnnd_query <-
   ) {
     obs <- match.arg(toupper(obs), c("C", "R"))
     n_threads <- check_n_threads(n_threads)
-    if (is.null(init) && !is.null(index$search_forest)) {
+    prepared <- inherits(index, "rnndescent_prepared_index")
+    if (!prepared && is.null(init) && !is.null(index$search_forest)) {
       init <- index$search_forest
     }
 
@@ -431,6 +496,24 @@ rnnd_query <-
       query <- Matrix::t(query)
     }
     check_query_search_controls(epsilon, max_search_fraction)
+    if (prepared) {
+      if (!is.null(init)) {
+        stop("init must be NULL when querying a prepared index")
+      }
+      if (!is.matrix(query) || !(is.double(query) || is.integer(query))) {
+        stop("Prepared indexes require a dense numeric query")
+      }
+      k <- check_count(k, "k", max = .Machine$integer.max)
+      return(rnn_query_prepared(
+        index,
+        query,
+        k,
+        epsilon,
+        max_search_fraction,
+        n_threads,
+        verbose
+      ))
+    }
     check_sparse(index$data, query)
     check_reference_during_copy <- FALSE
     reference <- index$data
