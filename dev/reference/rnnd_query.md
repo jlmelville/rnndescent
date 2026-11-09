@@ -30,7 +30,9 @@ rnnd_query(
 - index:
 
   A nearest neighbor index produced by
-  [`rnnd_build()`](https://jlmelville.github.io/rnndescent/dev/reference/rnnd_build.md).
+  [`rnnd_build()`](https://jlmelville.github.io/rnndescent/dev/reference/rnnd_build.md)
+  or a prepared dense Euclidean index from
+  [`rnnd_prepare()`](https://jlmelville.github.io/rnndescent/dev/reference/rnnd_prepare.md).
 
 - query:
 
@@ -83,7 +85,8 @@ rnnd_query(
 - init:
 
   An optional matrix of `k` initial nearest neighbors for each query
-  point.
+  point. Use `NULL` with a prepared index to seed from its search
+  forest.
 
 - n_threads:
 
@@ -122,7 +125,7 @@ k-nearest neighbor graph for proximity search in high-dimensional data.
 
 ## See also
 
-`rnnd_query()`
+[`rnnd_prepare()`](https://jlmelville.github.io/rnndescent/dev/reference/rnnd_prepare.md)
 
 ## Examples
 

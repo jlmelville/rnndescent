@@ -217,6 +217,8 @@ Find approximate neighbors or build and query an index.
   : Find approximate nearest neighbors
 - [`rnnd_build()`](https://jlmelville.github.io/rnndescent/dev/reference/rnnd_build.md)
   : Build approximate nearest neighbors index and neighbor graph
+- [`rnnd_prepare()`](https://jlmelville.github.io/rnndescent/dev/reference/rnnd_prepare.md)
+  : Prepare an index for repeated queries
 - [`rnnd_query()`](https://jlmelville.github.io/rnndescent/dev/reference/rnnd_query.md)
   : Query an index for approximate nearest neighbors
 
