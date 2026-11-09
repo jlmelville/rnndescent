@@ -513,6 +513,22 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rnn_prepare_sparse_index
+SEXP rnn_prepare_sparse_index(const IntegerVector& ind, const IntegerVector& ptr, const NumericVector& data, int ndim, const List& graph, const List& forest, const std::string& metric);
+RcppExport SEXP _rnndescent_rnn_prepare_sparse_index(SEXP indSEXP, SEXP ptrSEXP, SEXP dataSEXP, SEXP ndimSEXP, SEXP graphSEXP, SEXP forestSEXP, SEXP metricSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< const IntegerVector& >::type ind(indSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type ptr(ptrSEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< int >::type ndim(ndimSEXP);
+    Rcpp::traits::input_parameter< const List& >::type graph(graphSEXP);
+    Rcpp::traits::input_parameter< const List& >::type forest(forestSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
+    rcpp_result_gen = Rcpp::wrap(rnn_prepare_sparse_index(ind, ptr, data, ndim, graph, forest, metric));
+    return rcpp_result_gen;
+END_RCPP
+}
 // rnn_rp_tree_knn_explicit
 List rnn_rp_tree_knn_explicit(const NumericMatrix& data, uint32_t nnbrs, const std::string& metric, uint32_t n_trees, uint32_t leaf_size, uint32_t max_tree_depth, bool include_self, bool unzero, bool ret_forest, std::size_t n_threads, bool verbose);
 RcppExport SEXP _rnndescent_rnn_rp_tree_knn_explicit(SEXP dataSEXP, SEXP nnbrsSEXP, SEXP metricSEXP, SEXP n_treesSEXP, SEXP leaf_sizeSEXP, SEXP max_tree_depthSEXP, SEXP include_selfSEXP, SEXP unzeroSEXP, SEXP ret_forestSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
@@ -822,6 +838,26 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rnn_query_prepared_sparse
+List rnn_query_prepared_sparse(SEXP handle, const IntegerVector& query_ind, const IntegerVector& query_ptr, const NumericVector& query_data, int ndim, uint32_t k, double epsilon, double max_search_fraction, std::size_t n_threads, bool verbose, SEXP convert_seed_distances);
+RcppExport SEXP _rnndescent_rnn_query_prepared_sparse(SEXP handleSEXP, SEXP query_indSEXP, SEXP query_ptrSEXP, SEXP query_dataSEXP, SEXP ndimSEXP, SEXP kSEXP, SEXP epsilonSEXP, SEXP max_search_fractionSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP, SEXP convert_seed_distancesSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< SEXP >::type handle(handleSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type query_ind(query_indSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type query_ptr(query_ptrSEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type query_data(query_dataSEXP);
+    Rcpp::traits::input_parameter< int >::type ndim(ndimSEXP);
+    Rcpp::traits::input_parameter< uint32_t >::type k(kSEXP);
+    Rcpp::traits::input_parameter< double >::type epsilon(epsilonSEXP);
+    Rcpp::traits::input_parameter< double >::type max_search_fraction(max_search_fractionSEXP);
+    Rcpp::traits::input_parameter< std::size_t >::type n_threads(n_threadsSEXP);
+    Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type convert_seed_distances(convert_seed_distancesSEXP);
+    rcpp_result_gen = Rcpp::wrap(rnn_query_prepared_sparse(handle, query_ind, query_ptr, query_data, ndim, k, epsilon, max_search_fraction, n_threads, verbose, convert_seed_distances));
+    return rcpp_result_gen;
+END_RCPP
+}
 // rnn_with_prepared_query
 SEXP rnn_with_prepared_query(Rcpp::Function search);
 RcppExport SEXP _rnndescent_rnn_with_prepared_query(SEXP searchSEXP) {
@@ -942,6 +978,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_rnndescent_rnn_sparse_random_knn_query", (DL_FUNC) &_rnndescent_rnn_sparse_random_knn_query, 12},
     {"_rnndescent_rnn_release_prepared_indexes", (DL_FUNC) &_rnndescent_rnn_release_prepared_indexes, 0},
     {"_rnndescent_rnn_prepare_dense_index", (DL_FUNC) &_rnndescent_rnn_prepare_dense_index, 4},
+    {"_rnndescent_rnn_prepare_sparse_index", (DL_FUNC) &_rnndescent_rnn_prepare_sparse_index, 7},
     {"_rnndescent_rnn_rp_tree_knn_explicit", (DL_FUNC) &_rnndescent_rnn_rp_tree_knn_explicit, 11},
     {"_rnndescent_rnn_sparse_rp_tree_knn_explicit", (DL_FUNC) &_rnndescent_rnn_sparse_rp_tree_knn_explicit, 14},
     {"_rnndescent_rnn_sparse_rp_tree_knn_implicit", (DL_FUNC) &_rnndescent_rnn_sparse_rp_tree_knn_implicit, 14},
@@ -958,6 +995,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_rnndescent_rnn_sparse_rp_forest_search", (DL_FUNC) &_rnndescent_rnn_sparse_rp_forest_search, 13},
     {"_rnndescent_rnn_score_forest", (DL_FUNC) &_rnndescent_rnn_score_forest, 5},
     {"_rnndescent_rnn_query_prepared", (DL_FUNC) &_rnndescent_rnn_query_prepared, 7},
+    {"_rnndescent_rnn_query_prepared_sparse", (DL_FUNC) &_rnndescent_rnn_query_prepared_sparse, 11},
     {"_rnndescent_rnn_with_prepared_query", (DL_FUNC) &_rnndescent_rnn_with_prepared_query, 1},
     {"_rnndescent_rnn_query", (DL_FUNC) &_rnndescent_rnn_query, 12},
     {"_rnndescent_rnn_logical_query", (DL_FUNC) &_rnndescent_rnn_logical_query, 10},

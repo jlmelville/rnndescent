@@ -7,16 +7,16 @@
 rnnd_prepare(index)
 }
 \arguments{
-\item{index}{A dense Euclidean index from \code{\link[=rnnd_build]{rnnd_build()}}.}
+\item{index}{A dense Euclidean or sparse index from \code{\link[=rnnd_build]{rnnd_build()}}.}
 }
 \value{
 A prepared index handle for use in the current R session.
 }
 \description{
-Copy a dense numeric Euclidean index with an explicit search forest into
-native memory once. Pass the returned handle to \code{\link[=rnnd_query]{rnnd_query()}} for repeated
-queries. Both balanced hub trees and explicit random projection forests are
-supported.
+Copy an index into native memory once and pass the returned handle to
+\code{\link[=rnnd_query]{rnnd_query()}} for repeated queries. Dense numeric Euclidean indexes support
+explicit search forests, including balanced hub trees. Sparse indexes
+support the sparse metrics with either explicit or implicit search forests.
 }
 \details{
 The handle owns a snapshot of the reference, search graph and forest. Changes

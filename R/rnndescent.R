@@ -335,12 +335,12 @@ rnnd_build <- function(
 
 #' Prepare an index for repeated queries
 #'
-#' Copy a dense numeric Euclidean index with an explicit search forest into
-#' native memory once. Pass the returned handle to [rnnd_query()] for repeated
-#' queries. Both balanced hub trees and explicit random projection forests are
-#' supported.
+#' Copy an index into native memory once and pass the returned handle to
+#' [rnnd_query()] for repeated queries. Dense numeric Euclidean indexes support
+#' explicit search forests, including balanced hub trees. Sparse indexes
+#' support the sparse metrics with either explicit or implicit search forests.
 #'
-#' @param index A dense Euclidean index from [rnnd_build()].
+#' @param index A dense Euclidean or sparse index from [rnnd_build()].
 #' @return A prepared index handle for use in the current R session.
 #' @details
 #' The handle owns a snapshot of the reference, search graph and forest. Changes
@@ -360,40 +360,134 @@ rnnd_prepare <- function(index) {
     stop("index must be an index from rnnd_build()")
   }
   reference <- index$data
-  if (
-    !is.matrix(reference) ||
-      is.object(reference) ||
-      !(is.double(reference) || is.integer(reference)) ||
-      length(reference) == 0L ||
-      !identical(index$original_metric, "euclidean")
-  ) {
-    stop("rnnd_prepare() requires a nonempty dense numeric Euclidean index")
-  }
   forest <- index$search_forest
-  if (
-    !is.list(forest) ||
-      !isTRUE(is_rpforest(forest)) ||
-      !identical(forest$margin, "explicit") ||
-      !identical(forest$original_metric, "euclidean") ||
+  sparse <- is_sparse(reference)
+  if (sparse) {
+    reference <- x2m(reference, "C", "reference")
+    if (ncol(reference) == 0L) {
+      stop("rnnd_prepare() requires a nonempty sparse index")
+    }
+    if (
+      !is.list(forest) ||
+        !isTRUE(is_rpforest(forest)) ||
+        !isTRUE(forest$margin %in% c("explicit", "implicit")) ||
+        !is.character(forest$original_metric) ||
+        length(forest$original_metric) != 1L ||
+        is.na(forest$original_metric) ||
+        !identical(forest$original_metric, index$original_metric)
+    ) {
+      stop("rnnd_prepare() requires a compatible sparse search forest")
+    }
+    metric <- forest$original_metric
+    # As in ordinary queries, older cosine trees use plain cosine distances.
+    actual_metric <- if (identical(metric, "cosine")) {
+      "cosine"
+    } else {
+      forest$actual_metric
+    }
+    use_alt_metric <- isTRUE(forest$use_alt_metric)
+    if (
       !identical(
-        forest$actual_metric,
-        if (isTRUE(forest$use_alt_metric)) "sqeuclidean" else "euclidean"
+        actual_metric,
+        get_actual_metric(use_alt_metric, metric, reference, FALSE)
       )
-  ) {
-    stop("rnnd_prepare() requires an explicit Euclidean search forest")
+    ) {
+      stop("rnnd_prepare() requires a compatible sparse search forest metric")
+    }
+  } else {
+    if (
+      !is.matrix(reference) ||
+        is.object(reference) ||
+        !(is.double(reference) || is.integer(reference)) ||
+        length(reference) == 0L ||
+        !identical(index$original_metric, "euclidean")
+    ) {
+      stop("rnnd_prepare() requires a nonempty dense numeric Euclidean index")
+    }
+    if (
+      !is.list(forest) ||
+        !isTRUE(is_rpforest(forest)) ||
+        !identical(forest$margin, "explicit") ||
+        !identical(forest$original_metric, "euclidean") ||
+        !identical(
+          forest$actual_metric,
+          if (isTRUE(forest$use_alt_metric)) "sqeuclidean" else "euclidean"
+        )
+    ) {
+      stop("rnnd_prepare() requires an explicit Euclidean search forest")
+    }
   }
   check_rpforest_matches_reference(
     forest,
     ncol(reference),
     nrow(reference),
-    FALSE
+    sparse
   )
   graph <- check_reference_graph_size(index$search_graph, ncol(reference))
   graph <- if (is.list(graph)) graph_to_list(graph) else tcsparse_to_list(graph)
+  if (sparse) {
+    return(structure(
+      rnn_prepare_sparse_index(
+        reference@i,
+        reference@p,
+        reference@x,
+        nrow(reference),
+        graph,
+        forest,
+        actual_metric
+      ),
+      class = c(
+        "rnndescent_prepared_sparse_index",
+        "rnndescent_prepared_index"
+      ),
+      metric_correction = if (use_alt_metric && metric != actual_metric) metric
+    ))
+  }
   structure(
     rnn_prepare_dense_index(reference, graph, forest, forest$actual_metric),
     class = "rnndescent_prepared_index"
   )
+}
+
+query_prepared_sparse <- function(
+  index,
+  query,
+  k,
+  epsilon,
+  max_search_fraction,
+  n_threads,
+  verbose
+) {
+  if (!is_sparse(query)) {
+    stop("Prepared sparse indexes require a sparse query")
+  }
+  metric <- attr(index, "metric_correction", exact = TRUE)
+  convert_seed_distances <- if (!is.null(metric)) {
+    function(dist) {
+      apply_alt_metric_uncorrection(
+        metric,
+        apply_alt_metric_correction(metric, dist, TRUE),
+        TRUE
+      )
+    }
+  }
+  result <- rnn_query_prepared_sparse(
+    index,
+    query@i,
+    query@p,
+    query@x,
+    nrow(query),
+    k,
+    epsilon,
+    max_search_fraction,
+    n_threads,
+    verbose,
+    convert_seed_distances
+  )
+  if (!is.null(metric)) {
+    result$dist <- apply_alt_metric_correction(metric, result$dist, TRUE)
+  }
+  result
 }
 
 #' Query an index for approximate nearest neighbors
@@ -406,7 +500,8 @@ rnnd_prepare <- function(index) {
 #' method of Harwood and Drummond (2016).
 #'
 #' @param index A nearest neighbor index produced by [rnnd_build()] or a
-#'   prepared dense Euclidean index from [rnnd_prepare()].
+#'   prepared index from [rnnd_prepare()]. Prepared sparse indexes require
+#'   sparse query data.
 #' @param query Matrix of `n` query items, with observations in the rows and
 #'   features in the columns. Optionally, the data may be passed with the
 #'   observations in the columns, by setting `obs = "C"`, which should be more
@@ -499,6 +594,18 @@ rnnd_query <-
     if (prepared) {
       if (!is.null(init)) {
         stop("init must be NULL when querying a prepared index")
+      }
+      if (inherits(index, "rnndescent_prepared_sparse_index")) {
+        k <- check_count(k, "k", max = .Machine$integer.max)
+        return(query_prepared_sparse(
+          index,
+          query,
+          k,
+          epsilon,
+          max_search_fraction,
+          n_threads,
+          verbose
+        ))
       }
       if (!is.matrix(query) || !(is.double(query) || is.integer(query))) {
         stop("Prepared indexes require a dense numeric query")

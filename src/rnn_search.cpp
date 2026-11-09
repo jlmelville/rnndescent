@@ -155,7 +155,9 @@ List dense_query_impl(
 List rnn_query_prepared(SEXP handle, const NumericMatrix &query, uint32_t k,
                         double epsilon, double max_search_fraction,
                         std::size_t n_threads, bool verbose) {
-  const auto &index = rnndescent::prepared_dense_index(handle);
+  const auto &index =
+      rnndescent::prepared_index<rnndescent::PreparedDenseIndex>(
+          handle, rnndescent::prepared_index_tag());
   if (static_cast<std::size_t>(query.nrow()) != index.ndim) {
     Rcpp::stop("query must have the same number of features as the reference");
   }
@@ -186,6 +188,56 @@ List rnn_query_prepared(SEXP handle, const NumericMatrix &query, uint32_t k,
     }
   }
   return result;
+}
+
+// [[Rcpp::export(rng = false)]]
+List rnn_query_prepared_sparse(SEXP handle, const IntegerVector &query_ind,
+                               const IntegerVector &query_ptr,
+                               const NumericVector &query_data, int ndim,
+                               uint32_t k, double epsilon,
+                               double max_search_fraction,
+                               std::size_t n_threads, bool verbose,
+                               SEXP convert_seed_distances) {
+  using Index = rnndescent::PreparedSparseIndex;
+  const auto &index = rnndescent::prepared_index<Index>(
+      handle, rnndescent::prepared_sparse_index_tag());
+  if (static_cast<std::size_t>(ndim) != index.ndim) {
+    Rcpp::stop("query must have the same number of features as the reference");
+  }
+  if (k == 0 || k > index.graph.n_points) {
+    Rcpp::stop("k must be a single integer between 1 and " +
+               std::to_string(index.graph.n_points));
+  }
+  rnndescent::check_prepared_sparse_storage(query_ind, query_ptr,
+                                            query_data.size(), ndim);
+  const Rcpp::RNGScope scope;
+  rnndescent::PreparedSparseQuery distance(index, query_ind, query_ptr,
+                                           query_data);
+  rnndescent::ParallelIntRNGAdapter<Index::Idx, rnndescent::DQIntSampler>
+      rng_provider;
+  RParallelExecutor executor;
+  RPProgress progress(verbose);
+  auto seed_heap = std::visit(
+      [&](const auto &forest) {
+        return tdoann::search_forest(forest, distance, k, rng_provider, true,
+                                     n_threads, progress, executor);
+      },
+      index.forest);
+  const auto seeds = heap_to_r(seed_heap);
+  const IntegerMatrix indices = seeds["idx"];
+  NumericMatrix distances = seeds["dist"];
+  // The ordinary R path converts forest distances to the public metric and
+  // back before traversal. Reuse its conversion to preserve rounding.
+  if (convert_seed_distances != R_NilValue) {
+    const Rcpp::Function convert(convert_seed_distances);
+    distances = Rcpp::as<NumericMatrix>(convert(distances));
+    if (distances.nrow() != indices.nrow() ||
+        distances.ncol() != indices.ncol()) {
+      Rcpp::stop("Converted seed distances must preserve their dimensions");
+    }
+  }
+  return nn_query_impl(distance, index.graph, indices, distances, epsilon,
+                       max_search_fraction, n_threads, verbose);
 }
 
 // The nested native search calls manage RNG state themselves.

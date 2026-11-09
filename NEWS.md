@@ -2,8 +2,8 @@
 
 ## New features
 
-* Use `rnnd_prepare()` to reuse a native dense Euclidean index across
-  repeated calls to `rnnd_query()`.
+* Use `rnnd_prepare()` to reuse a native dense Euclidean or sparse index
+  across repeated calls to `rnnd_query()`.
 
 * Add utilities to truncate and sort neighbor graphs, adjust self neighbors, convert graphs to
   sparse matrices, and calculate distances for supplied neighbor indices.

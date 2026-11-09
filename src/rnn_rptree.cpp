@@ -20,6 +20,7 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <limits>
 #include <memory>
 #include <string_view>
 #include <type_traits>
@@ -398,11 +399,54 @@ namespace {
 // run their finalizers before the native library is unmapped.
 std::unordered_map<SEXP, SEXP> prepared_index_refs;
 
-void finalize_prepared_index(SEXP handle) {
-  delete static_cast<rnndescent::PreparedDenseIndex *>(
-      R_ExternalPtrAddr(handle));
+template <typename Index> void finalize_prepared_index(SEXP handle) {
+  delete static_cast<Index *>(R_ExternalPtrAddr(handle));
   R_ClearExternalPtr(handle);
   prepared_index_refs.erase(handle);
+}
+
+template <typename Index>
+SEXP register_prepared_index(std::unique_ptr<Index> index, SEXP tag) {
+  Rcpp::XPtr<Index> handle(nullptr, false, tag);
+  const auto registration =
+      prepared_index_refs.emplace(handle, R_NilValue).first;
+  try {
+    registration->second = Rcpp::unwindProtect([&] {
+      return R_MakeWeakRefC(handle, R_NilValue, finalize_prepared_index<Index>,
+                            TRUE);
+    });
+  } catch (...) {
+    prepared_index_refs.erase(registration);
+    throw;
+  }
+  R_SetExternalPtrAddr(handle, index.release());
+  return handle;
+}
+
+template <typename IsLeaf>
+void check_prepared_tree(const IntegerMatrix &children,
+                         const IntegerVector &indices, int n_reference,
+                         IsLeaf is_leaf) {
+  const int n_nodes = children.nrow();
+  if (n_nodes == 0 || children.ncol() != 2 || indices.size() != n_reference) {
+    Rcpp::stop("Invalid prepared search tree dimensions");
+  }
+  for (int i = 0; i < n_nodes; ++i) {
+    const int left = children(i, 0);
+    const int right = children(i, 1);
+    if (is_leaf(i)) {
+      if (left < 0 || right < left || right > n_reference) {
+        Rcpp::stop("Invalid leaf range in prepared search tree");
+      }
+    } else if (left <= i || right <= i || left >= n_nodes || right >= n_nodes) {
+      Rcpp::stop("Invalid child in prepared search tree");
+    }
+  }
+  if (std::any_of(indices.begin(), indices.end(), [n_reference](int idx) {
+        return idx < 0 || idx >= n_reference;
+      })) {
+    Rcpp::stop("Invalid reference index in prepared search tree");
+  }
 }
 
 void check_prepared_forest(const List &forest, int n_reference, int ndim) {
@@ -417,29 +461,30 @@ void check_prepared_forest(const List &forest, int n_reference, int ndim) {
     const IntegerMatrix children = tree["children"];
     const IntegerVector indices = tree["indices"];
     const int n_nodes = hyperplanes.nrow();
-    if (n_nodes == 0 || hyperplanes.ncol() != ndim ||
-        offsets.size() != n_nodes || children.nrow() != n_nodes ||
-        children.ncol() != 2 || indices.size() != n_reference) {
+    if (hyperplanes.ncol() != ndim || offsets.size() != n_nodes ||
+        children.nrow() != n_nodes) {
       Rcpp::stop("Invalid prepared search tree dimensions");
     }
-    for (int i = 0; i < n_nodes; ++i) {
-      const int left = children(i, 0);
-      const int right = children(i, 1);
-      if (std::isnan(offsets[i])) {
-        if (left < 0 || right < left || right > n_reference) {
-          Rcpp::stop("Invalid leaf range in prepared search tree");
-        }
-      } else if (left <= i || right <= i || left >= n_nodes ||
-                 right >= n_nodes) {
-        Rcpp::stop("Invalid child in prepared search tree");
-      }
-    }
-    if (std::any_of(indices.begin(), indices.end(), [n_reference](int idx) {
-          return idx < 0 || idx >= n_reference;
-        })) {
-      Rcpp::stop("Invalid reference index in prepared search tree");
-    }
+    check_prepared_tree(children, indices, n_reference,
+                        [&](int i) { return std::isnan(offsets[i]); });
   }
+}
+
+auto prepared_search_graph(const List &graph, std::size_t n_reference)
+    -> rnndescent::PreparedDenseIndex::Graph {
+  auto search_graph = r_to_sparse_graph(graph);
+  if (search_graph.n_points != n_reference ||
+      search_graph.row_ptr.front() != 0 ||
+      search_graph.row_ptr.back() != search_graph.col_idx.size() ||
+      search_graph.dist.size() != search_graph.col_idx.size() ||
+      !std::is_sorted(search_graph.row_ptr.begin(),
+                      search_graph.row_ptr.end()) ||
+      std::any_of(
+          search_graph.col_idx.begin(), search_graph.col_idx.end(),
+          [n_reference](RNN_DEFAULT_IDX idx) { return idx >= n_reference; })) {
+    Rcpp::stop("Invalid prepared search graph");
+  }
+  return search_graph;
 }
 } // namespace
 
@@ -459,37 +504,14 @@ SEXP rnn_prepare_dense_index(const NumericMatrix &reference, const List &graph,
     Rcpp::stop("Expected a nonempty dense Euclidean reference");
   }
   check_prepared_forest(forest, reference.ncol(), reference.nrow());
-  auto search_graph = r_to_sparse_graph<Index::Out, Index::Idx>(graph);
-  const auto n_reference = static_cast<std::size_t>(reference.ncol());
-  if (search_graph.n_points != n_reference ||
-      search_graph.row_ptr.front() != 0 ||
-      search_graph.row_ptr.back() != search_graph.col_idx.size() ||
-      search_graph.dist.size() != search_graph.col_idx.size() ||
-      !std::is_sorted(search_graph.row_ptr.begin(),
-                      search_graph.row_ptr.end()) ||
-      std::any_of(
-          search_graph.col_idx.begin(), search_graph.col_idx.end(),
-          [n_reference](Index::Idx idx) { return idx >= n_reference; })) {
-    Rcpp::stop("Invalid prepared search graph");
-  }
+  auto search_graph = prepared_search_graph(graph, reference.ncol());
   auto index = std::make_unique<Index>(Index{
       copy_finite_reference<Index::In>(reference), std::move(search_graph),
       r_to_search_forest<Index::In, Index::Idx>(forest),
       static_cast<std::size_t>(reference.nrow()), metric,
       get_dense_distance_funcs<Index::In, Index::Out>(metric).first});
-  Rcpp::XPtr<Index> handle(nullptr, false, rnndescent::prepared_index_tag());
-  const auto registration =
-      prepared_index_refs.emplace(handle, R_NilValue).first;
-  try {
-    registration->second = Rcpp::unwindProtect([&] {
-      return R_MakeWeakRefC(handle, R_NilValue, finalize_prepared_index, TRUE);
-    });
-  } catch (...) {
-    prepared_index_refs.erase(registration);
-    throw;
-  }
-  R_SetExternalPtrAddr(handle, index.release());
-  return handle;
+  return register_prepared_index(std::move(index),
+                                 rnndescent::prepared_index_tag());
 }
 
 template <typename Idx>
@@ -574,6 +596,82 @@ r_to_sparse_search_forest(List forest_list) {
     search_forest[i] = r_to_sparse_search_tree<In, Idx>(trees[i]);
   }
   return search_forest;
+}
+
+namespace {
+auto prepare_sparse_search_forest(const List &forest, int n_reference, int ndim)
+    -> rnndescent::PreparedSparseIndex::Forest {
+  using Index = rnndescent::PreparedSparseIndex;
+  const List trees = forest["trees"];
+  if (trees.size() == 0) {
+    Rcpp::stop("Prepared index requires at least one search tree");
+  }
+  const std::string margin = forest["margin"];
+  if (margin == "implicit") {
+    for (const auto &entry : trees) {
+      const List tree = entry;
+      const IntegerMatrix children = tree["children"];
+      const IntegerMatrix normals = tree["normal_indices"];
+      if (normals.nrow() != children.nrow() || normals.ncol() != 2) {
+        Rcpp::stop("Invalid prepared search tree dimensions");
+      }
+      check_prepared_tree(children, tree["indices"], n_reference, [&](int i) {
+        const int left = normals(i, 0);
+        const int right = normals(i, 1);
+        if (left == -1) {
+          return true;
+        }
+        if (left < 0 || left >= n_reference || right < 0 ||
+            right >= n_reference) {
+          Rcpp::stop("Invalid reference index in prepared search tree");
+        }
+        return false;
+      });
+    }
+    return r_to_search_forest_implicit<Index::Idx>(forest);
+  }
+  for (const auto &entry : trees) {
+    const List tree = entry;
+    const IntegerMatrix children = tree["children"];
+    const NumericVector offsets = tree["offsets"];
+    const NumericVector hyperplanes = tree["hyperplanes_data"];
+    const IntegerVector ind = tree["hyperplanes_ind"];
+    const IntegerVector ptr = tree["hyperplanes_ptr"];
+    if (offsets.size() != children.nrow() || ptr.size() - 1 != offsets.size()) {
+      Rcpp::stop("Invalid prepared search tree dimensions");
+    }
+    rnndescent::check_prepared_sparse_storage(ind, ptr, hyperplanes.size(),
+                                              ndim);
+    check_prepared_tree(children, tree["indices"], n_reference,
+                        [&](int i) { return std::isnan(offsets[i]); });
+  }
+  return r_to_sparse_search_forest<Index::In, Index::Idx>(forest);
+}
+} // namespace
+
+// [[Rcpp::export(rng = false)]]
+SEXP rnn_prepare_sparse_index(const IntegerVector &ind,
+                              const IntegerVector &ptr,
+                              const NumericVector &data, int ndim,
+                              const List &graph, const List &forest,
+                              const std::string &metric) {
+  using Index = rnndescent::PreparedSparseIndex;
+  if (ndim <= 0 || ptr.size() < 2 ||
+      ptr.size() - 1 > std::numeric_limits<int>::max()) {
+    Rcpp::stop("Expected a nonempty sparse reference");
+  }
+  rnndescent::check_prepared_sparse_storage(ind, ptr, data.size(), ndim);
+  const int n_reference = ptr.size() - 1;
+  auto search_graph = prepared_search_graph(graph, n_reference);
+  auto search_forest = prepare_sparse_search_forest(forest, n_reference, ndim);
+  auto reference = create_sparse_self_distance_impl<Index::Distance>(
+      ind, ptr, data, ndim, metric);
+  auto index = std::make_unique<Index>(
+      Index{std::move(reference), std::move(search_graph),
+            std::move(search_forest), static_cast<std::size_t>(ndim), metric,
+            get_sparse_distance_funcs<Index::In, Index::Out>(metric).first});
+  return register_prepared_index(std::move(index),
+                                 rnndescent::prepared_sparse_index_tag());
 }
 
 template <typename In, typename Idx, typename Tree = tdoann::RPTree<In, Idx>>
