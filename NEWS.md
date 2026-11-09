@@ -7,6 +7,9 @@
 
 ## Bug fixes and minor improvements
 
+* Build a balanced, graph-informed search tree when a dense Euclidean index
+  uses one explicit tree for query initialization.
+
 * Skip population sampling for already-full rows when filling a partially missing neighbor graph.
   This changes the local RNG stream for later incomplete rows, so the same seed and thread setting
   may produce different filled neighbors and approximate results for mixed initializers.

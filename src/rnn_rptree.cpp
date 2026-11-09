@@ -32,6 +32,7 @@
 
 #include "rnn_distance.h"
 #include "rnn_heaptor.h"
+#include "rnn_hub_tree.h"
 #include "rnn_parallel.h"
 #include "rnn_progress.h"
 #include "rnn_util.h"
@@ -729,6 +730,31 @@ List rnn_rp_forest_build(const NumericMatrix &data, const std::string &metric,
   auto search_forest = tdoann::convert_rp_forest(rp_forest, data.ncol(), ndim);
 
   return search_forest_to_r(search_forest, metric);
+}
+
+// [[Rcpp::export]]
+List rnn_hub_forest_build(const NumericMatrix &data,
+                          const IntegerVector &degree,
+                          const std::string &metric, uint32_t leaf_size,
+                          uint32_t max_tree_depth) {
+  using Idx = RNN_DEFAULT_IDX;
+  using In = RNN_DEFAULT_IN;
+  if (data.nrow() == 0 || data.ncol() == 0 || degree.size() != data.ncol() ||
+      leaf_size == 0) {
+    Rcpp::stop("Hub tree requires nonempty data, one degree per point and a "
+               "positive leaf size");
+  }
+
+  std::vector<tdoann::SearchTree<In, Idx>> forest;
+  {
+    const auto values = r_to_vec<In>(data);
+    const auto degrees = r_to_vec<int>(degree);
+    rnndescent::HubTreeBuilder<In, Idx> builder(values, degrees, data.nrow(),
+                                                leaf_size, max_tree_depth);
+    forest.push_back(builder.make_tree());
+  }
+  Rcpp::checkUserInterrupt();
+  return search_forest_to_r(forest, metric);
 }
 
 // [[Rcpp::export]]

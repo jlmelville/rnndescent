@@ -137,6 +137,10 @@ rnn_rp_forest_build <- function(data, metric, n_trees, leaf_size, max_tree_depth
     .Call(`_rnndescent_rnn_rp_forest_build`, data, metric, n_trees, leaf_size, max_tree_depth, n_threads, verbose)
 }
 
+rnn_hub_forest_build <- function(data, degree, metric, leaf_size, max_tree_depth) {
+    .Call(`_rnndescent_rnn_hub_forest_build`, data, degree, metric, leaf_size, max_tree_depth)
+}
+
 rnn_sparse_rp_forest_build <- function(ind, ptr, data, ndim, metric, n_trees, leaf_size, max_tree_depth, n_threads = 0L, verbose = FALSE) {
     .Call(`_rnndescent_rnn_sparse_rp_forest_build`, ind, ptr, data, ndim, metric, n_trees, leaf_size, max_tree_depth, n_threads, verbose)
 }

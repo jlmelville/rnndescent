@@ -117,8 +117,11 @@
 #'   a small improvement in accuracy. Because this incurs a small extra cost of
 #'   counting the degree of each node, and because it tends to delay early
 #'   convergence, by default this is `FALSE`.
-#' @param n_search_trees, the number of trees to keep in the search forest as
-#'   part of index preparation. The default is `1`.
+#' @param n_search_trees The number of trees to keep for query initialization.
+#'   The default is `1`. For dense numeric Euclidean data with `init = "tree"`
+#'   and explicit margins, a single search tree uses balanced splits informed
+#'   by the neighbor graph. Otherwise, the retained trees come from the random
+#'   projection forest used for graph initialization, when available.
 #' @param diversify_prob the degree of diversification of the search graph
 #'   by removing unnecessary edges through occlusion pruning. This should take a
 #'   value between `0` (no diversification) and `1` (remove as many edges as
@@ -226,6 +229,16 @@ rnnd_build <- function(
     data <- Matrix::t(data)
   }
 
+  use_hub_tree <- n_search_trees == 1L &&
+    identical(metric, "euclidean") &&
+    is.matrix(data) &&
+    is.numeric(data) &&
+    is.character(init) &&
+    length(init) == 1L &&
+    tolower(init) %in% "tree" &&
+    length(margin) == 1L &&
+    tolower(margin) %in% c("auto", "explicit")
+
   index <- nnd_knn_prepared(
     data,
     k = k,
@@ -238,7 +251,7 @@ rnnd_build <- function(
       max_tree_depth = max_tree_depth,
       margin = margin
     ),
-    ret_forest = TRUE,
+    ret_forest = !use_hub_tree,
     n_iters = n_iters,
     delta = delta,
     max_candidates = max_candidates,
@@ -266,7 +279,27 @@ rnnd_build <- function(
   index$original_metric <- metric
   index$use_alt_metric <- use_alt_metric
 
-  if (!is.null(index$forest)) {
+  if (use_hub_tree) {
+    tsmessage("Building balanced hub tree for query initialization")
+    degree <- rnn_reverse_nbr_size(
+      index$graph$idx,
+      ncol(index$graph$idx),
+      ncol(data)
+    )
+    search_forest <- rnn_hub_forest_build(
+      data,
+      degree = degree,
+      metric = if (use_alt_metric) "sqeuclidean" else "euclidean",
+      leaf_size = if (is.null(leaf_size)) max(10, k) else leaf_size,
+      max_tree_depth = max_tree_depth
+    )
+    index$search_forest <- set_forest_data(
+      search_forest,
+      use_alt_metric,
+      metric,
+      FALSE
+    )
+  } else if (!is.null(index$forest)) {
     index$search_forest <-
       rpf_filter(
         nn = index$graph,

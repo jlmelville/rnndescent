@@ -216,8 +216,11 @@ a small improvement in accuracy. Because this incurs a small extra cost of
 counting the degree of each node, and because it tends to delay early
 convergence, by default this is \code{FALSE}.}
 
-\item{n_search_trees, }{the number of trees to keep in the search forest as
-part of index preparation. The default is \code{1}.}
+\item{n_search_trees}{The number of trees to keep for query initialization.
+The default is \code{1}. For dense numeric Euclidean data with \code{init = "tree"}
+and explicit margins, a single search tree uses balanced splits informed
+by the neighbor graph. Otherwise, the retained trees come from the random
+projection forest used for graph initialization, when available.}
 
 \item{pruning_degree_multiplier}{How strongly to truncate the final neighbor
 list for each item. The neighbor list of each item will be truncated to
