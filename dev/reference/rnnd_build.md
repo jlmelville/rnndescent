@@ -294,10 +294,14 @@ rnnd_build(
   of counting the degree of each node, and because it tends to delay
   early convergence, by default this is `FALSE`.
 
-- n_search_trees, :
+- n_search_trees:
 
-  the number of trees to keep in the search forest as part of index
-  preparation. The default is `1`.
+  The number of trees to keep for query initialization. The default is
+  `1`. For dense numeric Euclidean data with `init = "tree"` and
+  explicit margins, a single search tree uses balanced splits informed
+  by the neighbor graph. Otherwise, the retained trees come from the
+  random projection forest used for graph initialization, when
+  available.
 
 - pruning_degree_multiplier:
 
