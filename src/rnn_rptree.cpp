@@ -500,8 +500,10 @@ SEXP rnn_prepare_dense_index(const NumericMatrix &reference, const List &graph,
                              const List &forest, const std::string &metric) {
   using Index = rnndescent::PreparedDenseIndex;
   if (reference.nrow() == 0 || reference.ncol() == 0 ||
-      (metric != "euclidean" && metric != "sqeuclidean")) {
-    Rcpp::stop("Expected a nonempty dense Euclidean reference");
+      (metric != "euclidean" && metric != "sqeuclidean" &&
+       metric != "cosine-preprocess")) {
+    Rcpp::stop(
+        "Expected a nonempty dense Euclidean or cosine-preprocess reference");
   }
   check_prepared_forest(forest, reference.ncol(), reference.nrow());
   auto search_graph = prepared_search_graph(graph, reference.ncol());
@@ -510,6 +512,9 @@ SEXP rnn_prepare_dense_index(const NumericMatrix &reference, const List &graph,
       r_to_search_forest<Index::In, Index::Idx>(forest),
       static_cast<std::size_t>(reference.nrow()), metric,
       get_dense_distance_funcs<Index::In, Index::Out>(metric).first});
+  if (metric == "cosine-preprocess") {
+    tdoann::normalize(index->reference, index->ndim);
+  }
   return register_prepared_index(std::move(index),
                                  rnndescent::prepared_index_tag());
 }

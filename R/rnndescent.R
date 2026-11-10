@@ -336,11 +336,12 @@ rnnd_build <- function(
 #' Prepare an index for repeated queries
 #'
 #' Copy an index into native memory once and pass the returned handle to
-#' [rnnd_query()] for repeated queries. Dense numeric Euclidean indexes support
-#' explicit search forests, including balanced hub trees. Sparse indexes
-#' support the sparse metrics with either explicit or implicit search forests.
+#' [rnnd_query()] for repeated queries. Dense numeric indexes using
+#' `"euclidean"` or `"cosine-preprocess"` require an explicit search forest.
+#' Sparse indexes support the sparse metrics with either explicit or implicit
+#' search forests.
 #'
-#' @param index A dense Euclidean or sparse index from [rnnd_build()].
+#' @param index A supported index from [rnnd_build()].
 #' @return A prepared index handle for use in the current R session.
 #' @details
 #' The handle owns a snapshot of the reference, search graph and forest. Changes
@@ -349,6 +350,11 @@ rnnd_build <- function(
 #' Unloading the package also releases the snapshot and invalidates the handle.
 #' To use the index in another session, save the original index and prepare it
 #' again after loading it.
+#'
+#' Preparing a dense `"cosine-preprocess"` index normalizes the reference once.
+#' Queries normalize each incoming vector and evaluate up to four candidate
+#' distances together during graph traversal. Floating-point rounding can
+#' differ from ordinary queries and may affect the ordering of near ties.
 #' @seealso [rnnd_query()], [rnnd_build()]
 #' @examples
 #' index <- rnnd_build(iris[1:75, ], k = 5)
@@ -395,26 +401,34 @@ rnnd_prepare <- function(index) {
       stop("rnnd_prepare() requires a compatible sparse search forest metric")
     }
   } else {
+    metric <- index$original_metric
     if (
       !is.matrix(reference) ||
         is.object(reference) ||
         !(is.double(reference) || is.integer(reference)) ||
         length(reference) == 0L ||
-        !identical(index$original_metric, "euclidean")
+        !isTRUE(metric %in% c("euclidean", "cosine-preprocess"))
     ) {
-      stop("rnnd_prepare() requires a nonempty dense numeric Euclidean index")
+      stop(
+        "rnnd_prepare() requires a nonempty dense numeric Euclidean or cosine-preprocess index"
+      )
     }
     if (
       !is.list(forest) ||
         !isTRUE(is_rpforest(forest)) ||
         !identical(forest$margin, "explicit") ||
-        !identical(forest$original_metric, "euclidean") ||
+        !identical(forest$original_metric, metric) ||
         !identical(
           forest$actual_metric,
-          if (isTRUE(forest$use_alt_metric)) "sqeuclidean" else "euclidean"
+          get_actual_metric(
+            isTRUE(forest$use_alt_metric),
+            metric,
+            reference,
+            FALSE
+          )
         )
     ) {
-      stop("rnnd_prepare() requires an explicit Euclidean search forest")
+      stop("rnnd_prepare() requires a compatible explicit dense search forest")
     }
   }
   check_rpforest_matches_reference(

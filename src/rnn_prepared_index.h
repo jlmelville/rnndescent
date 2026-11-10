@@ -99,7 +99,11 @@ class PreparedIndexQuery final
 public:
   PreparedIndexQuery(const PreparedDenseIndex &index,
                      const Rcpp::NumericMatrix &query_matrix)
-      : index(index), query(r_to_vec<In>(query_matrix)) {}
+      : index(index), query(r_to_vec<In>(query_matrix)) {
+    if (index.metric == "cosine-preprocess") {
+      tdoann::normalize(query, index.ndim);
+    }
+  }
 
   std::size_t get_nx() const override { return index.graph.n_points; }
   std::size_t get_ny() const override { return query.size() / index.ndim; }

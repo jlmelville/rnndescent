@@ -45,6 +45,46 @@ test_that("prepared dense Euclidean queries preserve results and RNG state", {
   }
 })
 
+test_that("prepared dense cosine queries preserve signed distances and search budgets", {
+  set.seed(120L)
+  reference <- matrix(rnorm(321L * 37L), nrow = 321L)
+  reference[1L, ] <- 0
+  reference[2L, ] <- -reference[3L, ]
+  query <- rbind(reference[1:4, ], matrix(rnorm(12L * 37L), ncol = 37L))
+  index <- rnnd_build(
+    reference,
+    k = 12L,
+    metric = "cosine-preprocess",
+    n_trees = 3L,
+    leaf_size = 12L
+  )
+  prepared <- rnnd_prepare(index)
+  run <- function(index, threads, fraction, k = 8L) {
+    set.seed(291L)
+    dqrng::dqset.seed(291L)
+    result <- rnnd_query(
+      index,
+      query,
+      k = k,
+      max_search_fraction = fraction,
+      n_threads = threads
+    )
+    list(result = result, rng = .Random.seed, dq = dqrng::dqrng_get_state())
+  }
+  for (threads in c(0L, 2L)) {
+    for (fraction in c(0, 7.25 / nrow(reference), 1)) {
+      actual <- run(prepared, threads, fraction)
+      expected <- run(index, threads, fraction)
+      expect_identical(actual$result$idx, expected$result$idx)
+      expect_lt(max(abs(actual$result$dist - expected$result$dist)), 1e-6)
+      expect_identical(actual$result$dist[1L, ], rep(1, 8L))
+      expect_identical(actual[c("rng", "dq")], expected[c("rng", "dq")])
+    }
+  }
+  wide <- run(prepared, 0L, 0, k = 200L)$result
+  expect_true(any(wide$dist[-1L, ] > 1))
+})
+
 test_that("prepared indexes own a snapshot and reject invalid inputs", {
   data <- matrix(0:63, ncol = 2)
   index <- rnnd_build(data, k = 4L, n_trees = 2L, n_iters = 1L)
@@ -61,7 +101,7 @@ test_that("prepared indexes own a snapshot and reject invalid inputs", {
   expect_error(rnnd_prepare(bad_reference), "finite numeric feature values")
   implicit <- index
   implicit$search_forest$margin <- "implicit"
-  expect_error(rnnd_prepare(implicit), "explicit Euclidean search forest")
+  expect_error(rnnd_prepare(implicit), "explicit dense search forest")
 
   index$data[] <- -1L
   index$search_forest <- NULL
