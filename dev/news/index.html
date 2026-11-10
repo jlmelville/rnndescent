@@ -59,7 +59,7 @@
 <h2 class="pkg-version" data-toc-text="development version" id="rnndescent-development-version">rnndescent (development version)<a class="anchor" aria-label="anchor" href="#rnndescent-development-version"></a></h2>
 <div class="section level3">
 <h3 id="new-features-development-version">New features<a class="anchor" aria-label="anchor" href="#new-features-development-version"></a></h3>
-<ul><li><p>Use <code><a href="../reference/rnnd_prepare.html">rnnd_prepare()</a></code> to reuse a native dense Euclidean or sparse index across repeated calls to <code><a href="../reference/rnnd_query.html">rnnd_query()</a></code>.</p></li>
+<ul><li><p>Use <code><a href="../reference/rnnd_prepare.html">rnnd_prepare()</a></code> to reuse a native dense Euclidean, dense <code>cosine-preprocess</code>, or sparse index across repeated calls to <code><a href="../reference/rnnd_query.html">rnnd_query()</a></code>. Prepared dense <code>cosine-preprocess</code> indexes normalize the reference once and batch distance calculations during graph traversal.</p></li>
 <li><p>Add utilities to truncate and sort neighbor graphs, adjust self neighbors, convert graphs to sparse matrices, and calculate distances for supplied neighbor indices.</p></li>
 </ul></div>
 <div class="section level3">
