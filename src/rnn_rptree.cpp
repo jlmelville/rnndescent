@@ -40,6 +40,7 @@
 #include "rnn_parallel.h"
 #include "rnn_prepared_index.h"
 #include "rnn_progress.h"
+#include "rnn_rptree_shared.h"
 #include "rnn_util.h"
 
 using Rcpp::_;
@@ -692,6 +693,17 @@ build_rp_forest(const std::vector<In> &data_vec, std::size_t ndim,
                 << "margin calculation\n";
   }
   RPProgress forest_progress(verbose);
+  if constexpr (std::is_same_v<Tree, tdoann::RPLeafTree<Idx>>) {
+    if (n_threads > 1 && (metric == "euclidean" || metric == "sqeuclidean") &&
+        max_tree_depth > 0 && data_vec.size() / ndim > leaf_size) {
+      if (verbose) {
+        tsmessage() << "Sharing dense Euclidean projections across trees\n";
+      }
+      return rnndescent::shared_forest::build(
+          data_vec, ndim, n_trees, leaf_size, max_tree_depth, rng_provider,
+          n_threads, forest_progress, executor);
+    }
+  }
   return tdoann::make_forest<In, Idx, Tree>(
       data_vec, ndim, n_trees, leaf_size, max_tree_depth, rng_provider, angular,
       n_threads, forest_progress, executor);

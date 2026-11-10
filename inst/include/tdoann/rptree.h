@@ -164,27 +164,12 @@ uint8_t select_side(typename std::vector<In>::const_iterator data_it,
   return margin > 0 ? 0 : 1;
 }
 
-template <typename In, typename Idx>
-void split_indices(const std::vector<In> &data, std::size_t ndim,
-                   const std::vector<Idx> &indices,
-                   const std::vector<In> &hyperplane_vector,
-                   In hyperplane_offset, std::vector<Idx> &indices_left,
-                   std::vector<Idx> &indices_right,
-                   RandomIntGenerator<Idx> &rng) {
-  std::vector<uint8_t> side(indices.size(), 0);
-  std::size_t n_left = 0;
-  std::size_t n_right = 0;
-
-  for (std::size_t i = 0; i < indices.size(); ++i) {
-    side[i] = select_side(data.begin() + indices[i] * ndim, hyperplane_vector,
-                          hyperplane_offset, rng);
-    if (side[i] == 0) {
-      ++n_left;
-    } else {
-      ++n_right;
-    }
-  }
-
+template <typename Idx>
+void partition_indices(const std::vector<Idx> &indices,
+                       std::vector<uint8_t> &side, std::size_t n_left,
+                       std::size_t n_right, std::vector<Idx> &indices_left,
+                       std::vector<Idx> &indices_right,
+                       RandomIntGenerator<Idx> &rng) {
   // If either side is empty, reset counts and assign sides randomly.
   if (n_left == 0 || n_right == 0) {
     n_left = 0;
@@ -213,14 +198,39 @@ void split_indices(const std::vector<In> &data, std::size_t ndim,
 }
 
 template <typename In, typename Idx>
-std::tuple<std::vector<Idx>, std::vector<Idx>, std::vector<In>, In>
-euclidean_random_projection_split(const std::vector<In> &data, std::size_t ndim,
-                                  const std::vector<Idx> &indices,
-                                  RandomIntGenerator<Idx> &rng) {
+void split_indices(const std::vector<In> &data, std::size_t ndim,
+                   const std::vector<Idx> &indices,
+                   const std::vector<In> &hyperplane_vector,
+                   In hyperplane_offset, std::vector<Idx> &indices_left,
+                   std::vector<Idx> &indices_right,
+                   RandomIntGenerator<Idx> &rng) {
+  std::vector<uint8_t> side(indices.size(), 0);
+  std::size_t n_left = 0;
+  std::size_t n_right = 0;
+
+  for (std::size_t i = 0; i < indices.size(); ++i) {
+    side[i] = select_side(data.begin() + indices[i] * ndim, hyperplane_vector,
+                          hyperplane_offset, rng);
+    if (side[i] == 0) {
+      ++n_left;
+    } else {
+      ++n_right;
+    }
+  }
+
+  partition_indices(indices, side, n_left, n_right, indices_left, indices_right,
+                    rng);
+}
+
+template <typename In, typename Idx>
+std::pair<std::vector<In>, In>
+euclidean_split_plane(const std::vector<In> &data, std::size_t ndim,
+                      const std::vector<Idx> &indices,
+                      RandomIntGenerator<Idx> &rng) {
   auto [left_index, right_index] = select_random_points(indices, rng);
 
-  Idx left = indices[left_index] * ndim;
-  Idx right = indices[right_index] * ndim;
+  const std::size_t left = indices[left_index] * ndim;
+  const std::size_t right = indices[right_index] * ndim;
 
   // Compute hyperplane vector and offset
   std::vector<In> hyperplane_vector(ndim);
@@ -233,6 +243,16 @@ euclidean_random_projection_split(const std::vector<In> &data, std::size_t ndim,
   }
   hyperplane_offset -= sum / 2.0;
 
+  return {std::move(hyperplane_vector), hyperplane_offset};
+}
+
+template <typename In, typename Idx>
+std::tuple<std::vector<Idx>, std::vector<Idx>, std::vector<In>, In>
+euclidean_random_projection_split(const std::vector<In> &data, std::size_t ndim,
+                                  const std::vector<Idx> &indices,
+                                  RandomIntGenerator<Idx> &rng) {
+  auto [hyperplane_vector, hyperplane_offset] =
+      euclidean_split_plane(data, ndim, indices, rng);
   std::vector<Idx> indices_left;
   std::vector<Idx> indices_right;
   split_indices(data, ndim, indices, hyperplane_vector, hyperplane_offset,

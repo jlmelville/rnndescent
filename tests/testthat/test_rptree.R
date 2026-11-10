@@ -80,13 +80,17 @@ test_that("RP forests recover neighbors with Euclidean and cosine distances", {
 })
 
 
-test_that("leaf-only forests preserve the initial graph and RNG state", {
+test_that("recursive leaf-only forests preserve the initial graph and RNG state", {
   x <- as.matrix(iris[c(1:12, 51:62), 1:4])
   x[1, ] <- x[2, ]
   cases <- list(
-    list(data = x, metric = "euclidean"),
-    list(data = Matrix::Matrix(x, sparse = TRUE), metric = "cosine"),
-    list(data = x > 3, metric = "jaccard")
+    list(data = x, metric = "euclidean", n_threads = 1L),
+    list(
+      data = Matrix::Matrix(x, sparse = TRUE),
+      metric = "cosine",
+      n_threads = 2L
+    ),
+    list(data = x > 3, metric = "jaccard", n_threads = 2L)
   )
 
   for (args in cases) {
@@ -97,8 +101,7 @@ test_that("leaf-only forests preserve the initial graph and RNG state", {
         n_trees = 5L,
         leaf_size = 3L,
         max_tree_depth = 2L,
-        include_self = FALSE,
-        n_threads = 2L
+        include_self = FALSE
       )
     )
     set.seed(472L)
@@ -129,10 +132,15 @@ test_that("threaded RP forests preserve neighbor quality and missing entries", {
     tolerance = 1e-4
   )
 
-  # euclidean converges
+  # Dense Euclidean uses shared splits and has its own per-node streams.
   set.seed(1337)
   uiris_rnn <- rpf_knn(uiris, 15, n_trees = 40, n_threads = 2)
-  expect_equal(sum(uiris_rnn$dist), ui_edsum, tolerance = 1e-3)
+  rng <- .Random.seed
+  set.seed(1337)
+  replay <- rpf_knn(uiris, 15, n_trees = 40, n_threads = 2)
+  expect_identical(replay, uiris_rnn)
+  expect_identical(.Random.seed, rng)
+  expect_gte(neighbor_overlap(uiris_rnn, brute_force_knn(uiris, 15)), 0.95)
 
   # cosine
   set.seed(1337)
