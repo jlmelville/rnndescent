@@ -18,6 +18,11 @@
 
 ### Bug fixes and minor improvements
 
+- Share projections across the first eight levels of multithreaded dense
+  Euclidean initialization forests when only their leaves are needed.
+  The changed split order can produce different approximate neighbors
+  for the same seed.
+
 - Build a balanced, graph-informed search tree when a dense Euclidean
   index uses one explicit tree for query initialization.
 

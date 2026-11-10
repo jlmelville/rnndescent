@@ -64,7 +64,8 @@
 </ul></div>
 <div class="section level3">
 <h3 id="bug-fixes-and-minor-improvements-development-version">Bug fixes and minor improvements<a class="anchor" aria-label="anchor" href="#bug-fixes-and-minor-improvements-development-version"></a></h3>
-<ul><li><p>Build a balanced, graph-informed search tree when a dense Euclidean index uses one explicit tree for query initialization.</p></li>
+<ul><li><p>Share projections across the first eight levels of multithreaded dense Euclidean initialization forests when only their leaves are needed. The changed split order can produce different approximate neighbors for the same seed.</p></li>
+<li><p>Build a balanced, graph-informed search tree when a dense Euclidean index uses one explicit tree for query initialization.</p></li>
 <li><p>Skip population sampling for already-full rows when filling a partially missing neighbor graph. This changes the local RNG stream for later incomplete rows, so the same seed and thread setting may produce different filled neighbors and approximate results for mixed initializers. Deterministic serial/fixed-schedule repetition is preserved; parallel NN-descent remains scheduling-dependent.</p></li>
 <li><p>Reject negative original feature values when consumed by Hellinger, Jensen-Shannon or symmetric KL, before native float conversion. Ordinary metrics, zero vectors and unused features keep their existing behavior.</p></li>
 <li><p>Cap Tau PRNG floating endpoints below one for C++ header users, preserving integer draws and other converted values. Current R RNG choices are unchanged.</p></li>
