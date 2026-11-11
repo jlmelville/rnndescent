@@ -12,6 +12,9 @@
 
 ## Bug fixes and minor improvements
 
+* Batch candidate distances during dense graph traversal for `braycurtis`,
+  `canberra`, and `chebyshev` to speed up batch queries.
+
 * Extend shared dense graph traversal to `manhattan`, `cosine`,
   `alternative-cosine`, `correlation`, `hellinger`, and
   `alternative-hellinger`. Small floating-point differences can change the

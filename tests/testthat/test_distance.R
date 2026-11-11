@@ -250,6 +250,9 @@ test_that("shared dense graph queries agree with exhaustive scalar distances", {
   )
   init <- matrix(rep(1:3, each = nrow(query)), nrow(query))
   for (metric in c(
+    "braycurtis",
+    "canberra",
+    "chebyshev",
     "manhattan",
     "cosine",
     "alternative-cosine",

@@ -250,7 +250,56 @@ auto query_product_four(const float *x, const float *data,
   return result;
 }
 
+enum class QueryCoordinateMetric { bray_curtis, canberra, chebyshev };
+
+template <QueryCoordinateMetric Metric>
+auto query_coordinate_four(const float *x, const float *data,
+                           std::size_t dimension,
+                           const QueryKernel::Targets &targets)
+    -> QueryKernel::Distances {
+  std::array<const float *, 4> candidates;
+  for (std::size_t lane = 0; lane < candidates.size(); ++lane) {
+    candidates[lane] = data + dimension * targets[lane];
+  }
+  QueryKernel::Distances result{};
+  QueryKernel::Distances denominator{};
+  for (std::size_t j = 0; j < dimension; ++j) {
+    const auto anchor = x[j];
+    for (std::size_t lane = 0; lane < candidates.size(); ++lane) {
+      const auto other = candidates[lane][j];
+      const auto difference = std::abs(anchor - other);
+      if constexpr (Metric == QueryCoordinateMetric::bray_curtis) {
+        result[lane] += difference;
+        denominator[lane] += std::abs(anchor + other);
+      } else if constexpr (Metric == QueryCoordinateMetric::canberra) {
+        const auto scale = std::abs(anchor) + std::abs(other);
+        if (scale > 0) {
+          result[lane] += difference / scale;
+        }
+      } else {
+        result[lane] = std::max(result[lane], difference);
+      }
+    }
+  }
+  if constexpr (Metric == QueryCoordinateMetric::bray_curtis) {
+    for (std::size_t lane = 0; lane < candidates.size(); ++lane) {
+      result[lane] =
+          denominator[lane] == 0 ? 0 : result[lane] / denominator[lane];
+    }
+  }
+  return result;
+}
+
 auto shared_query_kernel(const std::string &metric) -> EvaluateFour {
+  if (metric == "braycurtis") {
+    return query_coordinate_four<QueryCoordinateMetric::bray_curtis>;
+  }
+  if (metric == "canberra") {
+    return query_coordinate_four<QueryCoordinateMetric::canberra>;
+  }
+  if (metric == "chebyshev") {
+    return query_coordinate_four<QueryCoordinateMetric::chebyshev>;
+  }
   using Metric = rnndescent::DenseBatchMetric;
   if (metric == "cosine") {
     return query_product_four<QueryProductMetric::cosine>;
