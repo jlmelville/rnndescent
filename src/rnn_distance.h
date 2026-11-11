@@ -20,7 +20,9 @@
 #ifndef RNN_DISTANCE_H
 #define RNN_DISTANCE_H
 
+#include <algorithm>
 #include <cmath>
+#include <cstdint>
 #include <memory>
 #include <type_traits>
 #include <unordered_map>
@@ -355,6 +357,33 @@ create_query_distance(const Rcpp::NumericMatrix &reference,
       reference, query, metric);
 }
 
+inline auto pack_logical_query_matrix(const Rcpp::LogicalMatrix &matrix)
+    -> tdoann::BitVec {
+  constexpr std::size_t word_bits = tdoann::BITVEC_BIT_WIDTH;
+  const auto n_features = static_cast<std::size_t>(matrix.nrow());
+  const auto n_observations = static_cast<std::size_t>(matrix.ncol());
+  tdoann::BitVec packed;
+  packed.reserve(n_observations * tdoann::num_blocks_needed(n_features));
+  auto values = matrix.begin();
+  bool missing = false;
+  for (std::size_t i = 0; i < n_observations; ++i) {
+    for (std::size_t offset = 0; offset < n_features; offset += word_bits) {
+      const auto count = std::min(word_bits, n_features - offset);
+      std::uint64_t word = 0;
+      for (std::size_t bit = 0; bit < count; ++bit) {
+        const auto value = *values++;
+        missing |= value == NA_LOGICAL;
+        word |= static_cast<std::uint64_t>(value != 0) << bit;
+      }
+      packed.emplace_back(word);
+    }
+  }
+  if (missing) {
+    Rcpp::stop("Logical feature values must not be NA");
+  }
+  return packed;
+}
+
 template <typename In = RNN_DEFAULT_IN, typename Idx = RNN_DEFAULT_IDX>
 std::unique_ptr<tdoann::BaseDistance<RNN_DEFAULT_DIST, Idx>>
 create_query_distance(const Rcpp::LogicalMatrix &reference,
@@ -362,6 +391,14 @@ create_query_distance(const Rcpp::LogicalMatrix &reference,
                       const std::string &metric) {
   using Out = RNN_DEFAULT_DIST;
   const auto ndim = reference.nrow();
+
+  if (metric == "alternative-jaccard") {
+    auto ref_bits = pack_logical_query_matrix(reference);
+    auto query_bits = pack_logical_query_matrix(query);
+    return std::make_unique<tdoann::BinaryQueryDistanceCalculator<Out, Idx>>(
+        std::move(ref_bits), std::move(query_bits), reference.ncol(),
+        query.ncol(), ndim, tdoann::balternative_jaccard<Out, Idx>);
+  }
 
   const auto &metric_map = get_binary_metric_map<Out, Idx>();
   if (metric_map.count(metric) > 0) {

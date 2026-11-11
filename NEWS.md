@@ -12,6 +12,9 @@
 
 ## Bug fixes and minor improvements
 
+* Pack dense logical inputs for default `jaccard` queries to speed up
+  implicit-forest seeding and graph traversal.
+
 * Batch candidate distances during dense graph traversal for `braycurtis`,
   `canberra`, and `chebyshev` to speed up batch queries.
 

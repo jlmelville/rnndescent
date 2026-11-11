@@ -427,6 +427,32 @@ test_that("Jaccard", {
   expect_equal(spunc, spnoc, tolerance = 1e-7)
 })
 
+test_that("default logical Jaccard handles partial and full packed words", {
+  for (width in c(63L, 64L, 65L)) {
+    reference <- matrix(FALSE, width, 5L)
+    reference[c(1L, width), 2L] <- TRUE
+    reference[1L, 3L] <- TRUE
+    reference[width, 4L] <- TRUE
+    reference[2L, 5L] <- TRUE
+    query <- reference[, c(1L, 2L, 5L)]
+    logical_result <- brute_force_knn_query(
+      query,
+      reference,
+      k = 5L,
+      metric = "jaccard",
+      obs = "C"
+    )
+    numeric_result <- brute_force_knn_query(
+      query * 1,
+      reference * 1,
+      k = 5L,
+      metric = "jaccard",
+      obs = "C"
+    )
+    expect_identical(logical_result, numeric_result)
+  }
+})
+
 test_that("Jensen-Shannon", {
   bfdense <- brute_force_knn(bitdata, k = 4, metric = "jensenshannon")
 

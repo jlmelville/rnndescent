@@ -28,8 +28,10 @@
 #define TDOANN_DISTANCEBIN_H
 
 #include <algorithm>
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
+#include <limits>
 #include <numeric>
 #include <utility>
 #include <vector>
@@ -77,9 +79,10 @@ Out bhamming(const BitVec &x, const Idx i, const BitVec &y, Idx j,
   return sum / static_cast<Out>(ndim);
 }
 
-template <typename Out, typename Idx = uint32_t>
-Out bjaccard(const BitVec &x, Idx i, const BitVec &y, Idx j, std::size_t len,
-             std::size_t /* ndim */) {
+template <typename Idx>
+auto binary_jaccard_counts(const BitVec &x, Idx i, const BitVec &y, Idx j,
+                           std::size_t len)
+    -> std::pair<std::size_t, std::size_t> {
   std::size_t intersection = 0;
   std::size_t union_count = 0;
   std::size_t di = len * i;
@@ -92,10 +95,32 @@ Out bjaccard(const BitVec &x, Idx i, const BitVec &y, Idx j, std::size_t len,
     union_count += (x_bitset | y_bitset).count();
   }
 
+  return {intersection, union_count};
+}
+
+template <typename Out, typename Idx = uint32_t>
+Out bjaccard(const BitVec &x, Idx i, const BitVec &y, Idx j, std::size_t len,
+             std::size_t /* ndim */) {
+  const auto [intersection, union_count] =
+      binary_jaccard_counts(x, i, y, j, len);
   if (union_count == 0) {
     return 0;
   }
   return (union_count - intersection) / static_cast<Out>(union_count);
+}
+
+template <typename Out, typename Idx = uint32_t>
+Out balternative_jaccard(const BitVec &x, Idx i, const BitVec &y, Idx j,
+                         std::size_t len, std::size_t /* ndim */) {
+  const auto [intersection, union_count] =
+      binary_jaccard_counts(x, i, y, j, len);
+  if (union_count == 0) {
+    return 0;
+  }
+  if (intersection == 0) {
+    return std::numeric_limits<Out>::max();
+  }
+  return -std::log2(static_cast<Out>(intersection) / union_count);
 }
 
 template <typename Out, typename Idx = uint32_t>
@@ -286,6 +311,12 @@ public:
         ny(y.size() / ndim), bx(to_bitvec(std::forward<VecIn>(x), ndim)),
         by(to_bitvec(std::forward<VecIn>(y), ndim)), distance_func(distance),
         ndim(ndim) {}
+
+  BinaryQueryDistanceCalculator(BitVec &&x, BitVec &&y, std::size_t nx,
+                                std::size_t ny, std::size_t ndim,
+                                BinaryDistanceFunc<Out, Idx> distance)
+      : vec_len(num_blocks_needed(ndim)), nx(nx), ny(ny), bx(std::move(x)),
+        by(std::move(y)), distance_func(distance), ndim(ndim) {}
 
   ~BinaryQueryDistanceCalculator() override = default;
 
