@@ -283,6 +283,11 @@ public:
         bdata(to_bitvec(std::forward<VecIn>(data), ndim)),
         distance_func(distance), ndim(ndim) {}
 
+  BinarySelfDistanceCalculator(BitVec &&data, std::size_t nx, std::size_t ndim,
+                               BinaryDistanceFunc<Out, Idx> distance)
+      : vec_len(num_blocks_needed(ndim)), nx(nx), bdata(std::move(data)),
+        distance_func(distance), ndim(ndim) {}
+
   ~BinarySelfDistanceCalculator() override = default;
 
   std::size_t get_nx() const override { return nx; }

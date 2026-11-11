@@ -14,6 +14,12 @@
 
 ## Bug fixes and minor improvements
 
+* Use packed distances for default `jaccard` builds on dense logical matrices
+  during implicit forest construction, nearest neighbor descent, and search
+  graph pruning.
+
+* Honor stored alternate-metric flags such as `1L` in `rnnd_prepare()`.
+
 * Cache ranks on first use during dense `spearmanr` queries. Dense numeric
   searches share the cache between forest seeding and graph traversal.
 

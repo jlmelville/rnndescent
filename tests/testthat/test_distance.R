@@ -450,6 +450,10 @@ test_that("default logical Jaccard handles partial and full packed words", {
       obs = "C"
     )
     expect_identical(logical_result, numeric_result)
+    expect_identical(
+      brute_force_knn(reference, k = 5L, metric = "jaccard", obs = "C"),
+      brute_force_knn(reference * 1, k = 5L, metric = "jaccard", obs = "C")
+    )
   }
 })
 

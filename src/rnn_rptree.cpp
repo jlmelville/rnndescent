@@ -691,7 +691,7 @@ SEXP rnn_prepare_logical_index(const LogicalMatrix &reference,
   auto search_forest =
       prepare_implicit_search_forest<Index::Idx>(forest, reference.ncol());
   auto index = std::make_unique<Index>(
-      Index{pack_logical_query_matrix(reference), std::move(search_graph),
+      Index{pack_logical_matrix(reference), std::move(search_graph),
             std::move(search_forest),
             static_cast<std::size_t>(reference.nrow()), calculate});
   return register_prepared_index(std::move(index),

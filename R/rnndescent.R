@@ -420,7 +420,7 @@ rnnd_prepare <- function(index) {
   } else {
     forest$actual_metric
   }
-  use_alt_metric <- isTRUE(forest$use_alt_metric)
+  use_alt_metric <- forest$use_alt_metric
   if (
     !identical(
       actual_metric,

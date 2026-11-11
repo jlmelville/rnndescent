@@ -405,7 +405,7 @@ create_query_distance(const Rcpp::NumericMatrix &reference,
       reference, query, metric);
 }
 
-inline auto pack_logical_query_matrix(const Rcpp::LogicalMatrix &matrix)
+inline auto pack_logical_matrix(const Rcpp::LogicalMatrix &matrix)
     -> tdoann::BitVec {
   constexpr std::size_t word_bits = tdoann::BITVEC_BIT_WIDTH;
   const auto n_features = static_cast<std::size_t>(matrix.nrow());
@@ -453,8 +453,8 @@ create_query_distance(const Rcpp::LogicalMatrix &reference,
   const auto evaluate = get_binary_query_distance_func<Out, Idx>(metric);
 
   if (metric == "alternative-jaccard") {
-    auto ref_bits = pack_logical_query_matrix(reference);
-    auto query_bits = pack_logical_query_matrix(query);
+    auto ref_bits = pack_logical_matrix(reference);
+    auto query_bits = pack_logical_matrix(query);
     return std::make_unique<tdoann::BinaryQueryDistanceCalculator<Out, Idx>>(
         std::move(ref_bits), std::move(query_bits), reference.ncol(),
         query.ncol(), ndim, evaluate);
@@ -564,6 +564,12 @@ create_self_distance(const Rcpp::LogicalMatrix &data,
                      const std::string &metric) {
   using Out = RNN_DEFAULT_DIST;
   const auto ndim = data.nrow();
+
+  if (metric == "alternative-jaccard") {
+    return std::make_unique<tdoann::BinarySelfDistanceCalculator<Out, Idx>>(
+        pack_logical_matrix(data), data.ncol(), ndim,
+        tdoann::balternative_jaccard<Out, Idx>);
+  }
 
   const auto &metric_map = get_binary_metric_map<Out, Idx>();
   if (metric_map.count(metric) > 0) {

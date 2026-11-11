@@ -14,7 +14,7 @@ test_that("prepared dense Euclidean queries preserve results and RNG state", {
     )
     list(result = result, rng = .Random.seed, dq = dqrng::dqrng_get_state())
   }
-  for (use_alt_metric in c(TRUE, FALSE)) {
+  for (use_alt_metric in list(TRUE, FALSE, 1L, 0L)) {
     set.seed(739L)
     index <- rnnd_build(
       data,

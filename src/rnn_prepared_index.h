@@ -200,7 +200,7 @@ class PreparedLogicalQuery final
 public:
   PreparedLogicalQuery(const PreparedLogicalIndex &index,
                        const Rcpp::LogicalMatrix &query_matrix)
-      : index(index), query(pack_logical_query_matrix(query_matrix)),
+      : index(index), query(pack_logical_matrix(query_matrix)),
         n_query(query_matrix.ncol()),
         vec_len(tdoann::num_blocks_needed(index.ndim)) {}
 
