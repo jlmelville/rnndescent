@@ -450,6 +450,37 @@ List rnn_query_prepared_sparse(SEXP handle, const IntegerVector &query_ind,
                        max_search_fraction, n_threads, verbose);
 }
 
+// [[Rcpp::export(rng = false)]]
+List rnn_query_prepared_logical(SEXP handle, const LogicalMatrix &query,
+                                uint32_t k, double epsilon,
+                                double max_search_fraction,
+                                std::size_t n_threads, bool verbose,
+                                SEXP convert_seed_distances) {
+  using Index = rnndescent::PreparedLogicalIndex;
+  const auto &index = rnndescent::prepared_index<Index>(
+      handle, rnndescent::prepared_logical_index_tag());
+  if (static_cast<std::size_t>(query.nrow()) != index.ndim) {
+    Rcpp::stop("query must have the same number of features as the reference");
+  }
+  if (k == 0 || k > index.graph.n_points) {
+    Rcpp::stop("k must be a single integer between 1 and " +
+               std::to_string(index.graph.n_points));
+  }
+  const Rcpp::RNGScope scope;
+  rnndescent::PreparedLogicalQuery distance(index, query);
+  rnndescent::ParallelIntRNGAdapter<Index::Idx, rnndescent::DQIntSampler>
+      rng_provider;
+  RParallelExecutor executor;
+  RPProgress progress(verbose);
+  auto seed_heap =
+      tdoann::search_forest(index.forest, distance, k, rng_provider, true,
+                            n_threads, progress, executor);
+  const auto seeds = heap_to_r(seed_heap);
+  const auto distances = prepared_seed_distances(seeds, convert_seed_distances);
+  return nn_query_impl(distance, index.graph, seeds["idx"], distances, epsilon,
+                       max_search_fraction, n_threads, verbose);
+}
+
 // The nested native search calls manage RNG state themselves.
 // [[Rcpp::export(rng = false)]]
 SEXP rnn_with_prepared_query(Rcpp::Function search) {

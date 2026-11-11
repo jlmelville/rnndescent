@@ -613,36 +613,46 @@ r_to_sparse_search_forest(List forest_list) {
 }
 
 namespace {
-auto prepare_sparse_search_forest(const List &forest, int n_reference, int ndim)
-    -> rnndescent::PreparedSparseIndex::Forest {
-  using Index = rnndescent::PreparedSparseIndex;
+template <typename Idx>
+auto prepare_implicit_search_forest(const List &forest, int n_reference)
+    -> std::vector<tdoann::SearchTreeImplicit<Idx>> {
   const List trees = forest["trees"];
   if (trees.size() == 0) {
     Rcpp::stop("Prepared index requires at least one search tree");
   }
+  for (const auto &entry : trees) {
+    const List tree = entry;
+    const IntegerMatrix children = tree["children"];
+    const IntegerMatrix normals = tree["normal_indices"];
+    if (normals.nrow() != children.nrow() || normals.ncol() != 2) {
+      Rcpp::stop("Invalid prepared search tree dimensions");
+    }
+    check_prepared_tree(children, tree["indices"], n_reference, [&](int i) {
+      const int left = normals(i, 0);
+      const int right = normals(i, 1);
+      if (left == -1) {
+        return true;
+      }
+      if (left < 0 || left >= n_reference || right < 0 ||
+          right >= n_reference) {
+        Rcpp::stop("Invalid reference index in prepared search tree");
+      }
+      return false;
+    });
+  }
+  return r_to_search_forest_implicit<Idx>(forest);
+}
+
+auto prepare_sparse_search_forest(const List &forest, int n_reference, int ndim)
+    -> rnndescent::PreparedSparseIndex::Forest {
+  using Index = rnndescent::PreparedSparseIndex;
   const std::string margin = forest["margin"];
   if (margin == "implicit") {
-    for (const auto &entry : trees) {
-      const List tree = entry;
-      const IntegerMatrix children = tree["children"];
-      const IntegerMatrix normals = tree["normal_indices"];
-      if (normals.nrow() != children.nrow() || normals.ncol() != 2) {
-        Rcpp::stop("Invalid prepared search tree dimensions");
-      }
-      check_prepared_tree(children, tree["indices"], n_reference, [&](int i) {
-        const int left = normals(i, 0);
-        const int right = normals(i, 1);
-        if (left == -1) {
-          return true;
-        }
-        if (left < 0 || left >= n_reference || right < 0 ||
-            right >= n_reference) {
-          Rcpp::stop("Invalid reference index in prepared search tree");
-        }
-        return false;
-      });
-    }
-    return r_to_search_forest_implicit<Index::Idx>(forest);
+    return prepare_implicit_search_forest<Index::Idx>(forest, n_reference);
+  }
+  const List trees = forest["trees"];
+  if (trees.size() == 0) {
+    Rcpp::stop("Prepared index requires at least one search tree");
   }
   for (const auto &entry : trees) {
     const List tree = entry;
@@ -662,6 +672,31 @@ auto prepare_sparse_search_forest(const List &forest, int n_reference, int ndim)
   return r_to_sparse_search_forest<Index::In, Index::Idx>(forest);
 }
 } // namespace
+
+// [[Rcpp::export(rng = false)]]
+SEXP rnn_prepare_logical_index(const LogicalMatrix &reference,
+                               const List &graph, const List &forest,
+                               const std::string &metric) {
+  using Index = rnndescent::PreparedLogicalIndex;
+  if (reference.nrow() == 0 || reference.ncol() == 0) {
+    Rcpp::stop("Expected a nonempty dense logical reference");
+  }
+  const auto calculate =
+      get_binary_query_distance_func<Index::Out, Index::Idx>(metric);
+  if (!calculate) {
+    Rcpp::stop(
+        "rnnd_prepare() requires a packed metric for dense logical indexes");
+  }
+  auto search_graph = prepared_search_graph(graph, reference.ncol());
+  auto search_forest =
+      prepare_implicit_search_forest<Index::Idx>(forest, reference.ncol());
+  auto index = std::make_unique<Index>(
+      Index{pack_logical_query_matrix(reference), std::move(search_graph),
+            std::move(search_forest),
+            static_cast<std::size_t>(reference.nrow()), calculate});
+  return register_prepared_index(std::move(index),
+                                 rnndescent::prepared_logical_index_tag());
+}
 
 // [[Rcpp::export(rng = false)]]
 SEXP rnn_prepare_sparse_index(const IntegerVector &ind,

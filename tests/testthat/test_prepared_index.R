@@ -271,6 +271,118 @@ test_that("prepared dense indexes apply metric-specific input validation", {
   }
 })
 
+logical_prepared_metrics <- c(
+  "alternative-jaccard",
+  "dice",
+  "hamming",
+  "jaccard",
+  "kulsinski",
+  "matching",
+  "rogerstanimoto",
+  "russellrao",
+  "sokalmichener",
+  "sokalsneath",
+  "yule"
+)
+
+for (metric in logical_prepared_metrics) {
+  test_that(
+    paste("prepared logical queries match ordinary queries for", metric),
+    {
+      set.seed(739L)
+      reference <- matrix(runif(48L * 65L) > 0.7, nrow = 48L)
+      reference[1L, ] <- FALSE
+      reference[2L, ] <- TRUE
+      query <- rbind(
+        reference[1:4, , drop = FALSE],
+        matrix(runif(5L * 65L) > 0.5, nrow = 5L)
+      )
+      run <- function(index, query, threads, fraction) {
+        set.seed(291L)
+        dqrng::dqset.seed(291L)
+        result <- rnnd_query(
+          index,
+          query,
+          k = 6L,
+          n_threads = threads,
+          max_search_fraction = fraction
+        )
+        list(result = result, rng = .Random.seed, dq = dqrng::dqrng_get_state())
+      }
+      for (use_alt_metric in if (metric == "jaccard") {
+        c(TRUE, FALSE)
+      } else {
+        TRUE
+      }) {
+        index <- rnnd_build(
+          reference,
+          k = 8L,
+          metric = metric,
+          margin = "implicit",
+          use_alt_metric = use_alt_metric,
+          n_trees = 2L,
+          n_search_trees = 2L,
+          leaf_size = 5L,
+          n_iters = 1L
+        )
+        before <- list(.Random.seed, dqrng::dqrng_get_state())
+        prepared <- rnnd_prepare(index)
+        expect_identical(list(.Random.seed, dqrng::dqrng_get_state()), before)
+        for (threads in c(0L, 2L)) {
+          for (fraction in c(0, 7.25 / nrow(reference), 1)) {
+            expect_identical(
+              run(prepared, query, threads, fraction),
+              run(index, query, threads, fraction)
+            )
+          }
+        }
+        empty <- query[integer(), , drop = FALSE]
+        expect_identical(run(prepared, empty, 0L, 1), run(index, empty, 0L, 1))
+      }
+    }
+  )
+}
+
+test_that("prepared logical indexes own a snapshot and validate inputs", {
+  set.seed(739L)
+  data <- matrix(runif(40L * 65L) > 0.7, nrow = 40L)
+  index <- rnnd_build(data, k = 6L, metric = "jaccard", n_iters = 1L)
+  prepared <- rnnd_prepare(index)
+  expect_s3_class(prepared, "rnndescent_prepared_index")
+  query <- data[1:4, , drop = FALSE]
+  set.seed(401L)
+  expected <- rnnd_query(prepared, query, k = 6L)
+
+  explicit <- index
+  explicit$search_forest$margin <- "explicit"
+  expect_error(rnnd_prepare(explicit), "implicit logical search forest")
+  bad_tree <- index
+  bad_tree$search_forest$trees[[1L]]$normal_indices[1L, 1L] <- nrow(data)
+  expect_error(rnnd_prepare(bad_tree), "Invalid reference index")
+  index$data[1L] <- NA
+  expect_error(rnnd_prepare(index), "must not be NA")
+  rm(index)
+
+  unsupported <- rnnd_build(
+    data,
+    k = 6L,
+    metric = "euclidean",
+    margin = "implicit",
+    n_iters = 1L
+  )
+  expect_error(rnnd_prepare(unsupported), "requires a packed metric")
+  expect_error(rnnd_query(prepared, 1 * query, k = 6L), "dense logical query")
+  expect_error(
+    rnnd_query(prepared, query[, -1L], k = 6L),
+    "same number of features"
+  )
+  expect_error(rnnd_query(prepared, query, k = 41L), "between 1 and 40")
+  set.seed(401L)
+  expect_identical(rnnd_query(prepared, query, k = 6L), expected)
+  query[1L] <- NA
+  expect_error(rnnd_query(prepared, query, k = 6L), "must not be NA")
+})
+
 sparse_prepared_metrics <- c(
   "alternative-cosine",
   "alternative-dot",

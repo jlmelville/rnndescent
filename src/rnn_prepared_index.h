@@ -56,6 +56,10 @@ inline auto prepared_sparse_index_tag() -> SEXP {
   return Rf_install("rnndescent:prepared_sparse_index");
 }
 
+inline auto prepared_logical_index_tag() -> SEXP {
+  return Rf_install("rnndescent:prepared_logical_index");
+}
+
 template <typename Index>
 auto prepared_index(SEXP handle, SEXP tag) -> const Index & {
   if (TYPEOF(handle) != EXTPTRSXP || R_ExternalPtrTag(handle) != tag ||
@@ -81,6 +85,18 @@ struct PreparedSparseIndex {
   std::size_t ndim;
   std::string metric;
   tdoann::SparseDistanceFunc<In, Out> calculate;
+};
+
+struct PreparedLogicalIndex {
+  using Out = RNN_DEFAULT_DIST;
+  using Idx = RNN_DEFAULT_IDX;
+  using Graph = tdoann::SparseNNGraph<Out, Idx>;
+
+  tdoann::BitVec reference;
+  Graph graph;
+  std::vector<tdoann::SearchTreeImplicit<Idx>> forest;
+  std::size_t ndim;
+  tdoann::BinaryDistanceFunc<Out, Idx> calculate;
 };
 
 // Check the offsets and feature bounds before using them to traverse storage.
@@ -167,6 +183,32 @@ public:
     auto [qry_ind, qry_size, qry_data] = get_y(qry);
     return index.calculate(ref_ind, ref_size, ref_data, qry_ind, qry_size,
                            qry_data, index.ndim);
+  }
+};
+
+class PreparedLogicalQuery final
+    : public tdoann::BaseDistance<PreparedLogicalIndex::Out,
+                                  PreparedLogicalIndex::Idx> {
+  using Out = PreparedLogicalIndex::Out;
+  using Idx = PreparedLogicalIndex::Idx;
+
+  const PreparedLogicalIndex &index;
+  tdoann::BitVec query;
+  std::size_t n_query;
+  std::size_t vec_len;
+
+public:
+  PreparedLogicalQuery(const PreparedLogicalIndex &index,
+                       const Rcpp::LogicalMatrix &query_matrix)
+      : index(index), query(pack_logical_query_matrix(query_matrix)),
+        n_query(query_matrix.ncol()),
+        vec_len(tdoann::num_blocks_needed(index.ndim)) {}
+
+  std::size_t get_nx() const override { return index.graph.n_points; }
+  std::size_t get_ny() const override { return n_query; }
+  Out calculate(const Idx &ref, const Idx &qry) const override {
+    return index.calculate(index.reference, ref, query, qry, vec_len,
+                           index.ndim);
   }
 };
 

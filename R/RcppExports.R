@@ -121,6 +121,10 @@ rnn_prepare_dense_index <- function(reference, graph, forest, metric) {
     .Call(`_rnndescent_rnn_prepare_dense_index`, reference, graph, forest, metric)
 }
 
+rnn_prepare_logical_index <- function(reference, graph, forest, metric) {
+    .Call(`_rnndescent_rnn_prepare_logical_index`, reference, graph, forest, metric)
+}
+
 rnn_prepare_sparse_index <- function(ind, ptr, data, ndim, graph, forest, metric) {
     .Call(`_rnndescent_rnn_prepare_sparse_index`, ind, ptr, data, ndim, graph, forest, metric)
 }
@@ -191,6 +195,10 @@ rnn_query_prepared <- function(handle, query, k, epsilon, max_search_fraction, n
 
 rnn_query_prepared_sparse <- function(handle, query_ind, query_ptr, query_data, ndim, k, epsilon, max_search_fraction, n_threads, verbose, convert_seed_distances) {
     .Call(`_rnndescent_rnn_query_prepared_sparse`, handle, query_ind, query_ptr, query_data, ndim, k, epsilon, max_search_fraction, n_threads, verbose, convert_seed_distances)
+}
+
+rnn_query_prepared_logical <- function(handle, query, k, epsilon, max_search_fraction, n_threads, verbose, convert_seed_distances) {
+    .Call(`_rnndescent_rnn_query_prepared_logical`, handle, query, k, epsilon, max_search_fraction, n_threads, verbose, convert_seed_distances)
 }
 
 rnn_with_prepared_query <- function(search) {

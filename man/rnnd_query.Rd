@@ -19,7 +19,8 @@ rnnd_query(
 \arguments{
 \item{index}{A nearest neighbor index produced by \code{\link[=rnnd_build]{rnnd_build()}} or a
 prepared index from \code{\link[=rnnd_prepare]{rnnd_prepare()}}. Prepared sparse indexes require
-sparse query data.}
+sparse query data. Prepared dense logical indexes require dense logical
+query data.}
 
 \item{query}{Matrix of \code{n} query items, with observations in the rows and
 features in the columns. Optionally, the data may be passed with the

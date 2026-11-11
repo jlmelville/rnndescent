@@ -337,8 +337,9 @@ rnnd_build <- function(
 #'
 #' Copy an index into native memory once and pass the returned handle to
 #' [rnnd_query()] for repeated queries. Dense numeric indexes support the
-#' dense metrics with an explicit search forest. Sparse indexes support the
-#' sparse metrics with either explicit or implicit search forests.
+#' dense metrics with an explicit search forest. Dense logical indexes support
+#' packed binary metrics with an implicit search forest. Sparse indexes support
+#' the sparse metrics with either explicit or implicit search forests.
 #'
 #' @param index A supported index from [rnnd_build()].
 #' @return A prepared index handle for use in the current R session.
@@ -352,9 +353,11 @@ rnnd_build <- function(
 #'
 #' Preparation applies any metric-specific reference preprocessing once.
 #' For dense `"spearmanr"`, the native snapshot stores reference ranks and
-#' queries rank their features once for distance scoring. Graph traversal uses
-#' the same distance kernels as ordinary queries. Floating-point rounding can
-#' differ and may affect the ordering of near ties.
+#' queries rank their features once for distance scoring. Dense logical
+#' preparation packs the reference once and packs only the incoming queries
+#' on subsequent calls. Graph traversal uses the same distance kernels as
+#' ordinary queries. Floating-point rounding can differ for dense numeric
+#' indexes and may affect the ordering of near ties.
 #' @seealso [rnnd_query()], [rnnd_build()]
 #' @examples
 #' index <- rnnd_build(iris[1:75, ], k = 5)
@@ -368,6 +371,7 @@ rnnd_prepare <- function(index) {
   reference <- index$data
   forest <- index$search_forest
   sparse <- is_sparse(reference)
+  logical_index <- is.matrix(reference) && is.logical(reference)
   if (sparse) {
     reference <- x2m(reference, "C", "reference")
     if (ncol(reference) == 0L) {
@@ -376,12 +380,28 @@ rnnd_prepare <- function(index) {
   } else if (
     !is.matrix(reference) ||
       is.object(reference) ||
-      !(is.double(reference) || is.integer(reference)) ||
+      !(logical_index || is.double(reference) || is.integer(reference)) ||
       length(reference) == 0L
   ) {
+    if (logical_index) {
+      stop("rnnd_prepare() requires a nonempty dense logical index")
+    }
     stop("rnnd_prepare() requires a nonempty dense numeric index")
   }
-  margins <- if (sparse) c("explicit", "implicit") else "explicit"
+  margins <- if (sparse) {
+    c("explicit", "implicit")
+  } else if (logical_index) {
+    "implicit"
+  } else {
+    "explicit"
+  }
+  forest_type <- if (sparse) {
+    "sparse"
+  } else if (logical_index) {
+    "implicit logical"
+  } else {
+    "explicit dense"
+  }
   if (
     !is.list(forest) ||
       !isTRUE(is_rpforest(forest)) ||
@@ -391,10 +411,7 @@ rnnd_prepare <- function(index) {
       is.na(forest$original_metric) ||
       !identical(forest$original_metric, index$original_metric)
   ) {
-    if (sparse) {
-      stop("rnnd_prepare() requires a compatible sparse search forest")
-    }
-    stop("rnnd_prepare() requires a compatible explicit dense search forest")
+    stop("rnnd_prepare() requires a compatible ", forest_type, " search forest")
   }
   metric <- forest$original_metric
   # Ordinary queries reuse older cosine trees with plain cosine scoring.
@@ -410,11 +427,10 @@ rnnd_prepare <- function(index) {
       get_actual_metric(use_alt_metric, metric, reference, FALSE)
     )
   ) {
-    if (sparse) {
-      stop("rnnd_prepare() requires a compatible sparse search forest metric")
-    }
     stop(
-      "rnnd_prepare() requires a compatible explicit dense search forest metric"
+      "rnnd_prepare() requires a compatible ",
+      forest_type,
+      " search forest metric"
     )
   }
   metric_correction <- if (use_alt_metric && metric != actual_metric) metric
@@ -444,6 +460,16 @@ rnnd_prepare <- function(index) {
       metric_correction = metric_correction
     ))
   }
+  if (logical_index) {
+    return(structure(
+      rnn_prepare_logical_index(reference, graph, forest, actual_metric),
+      class = c(
+        "rnndescent_prepared_logical_index",
+        "rnndescent_prepared_index"
+      ),
+      metric_correction = metric_correction
+    ))
+  }
   structure(
     rnn_prepare_dense_index(reference, graph, forest, actual_metric),
     class = "rnndescent_prepared_index",
@@ -461,11 +487,17 @@ query_prepared_index <- function(
   verbose
 ) {
   sparse <- inherits(index, "rnndescent_prepared_sparse_index")
+  logical_index <- inherits(index, "rnndescent_prepared_logical_index")
   if (sparse) {
     k <- check_count(k, "k", max = .Machine$integer.max)
     if (!is_sparse(query)) {
       stop("Prepared sparse indexes require a sparse query")
     }
+  } else if (logical_index) {
+    if (!is.matrix(query) || !is.logical(query)) {
+      stop("Prepared logical indexes require a dense logical query")
+    }
+    k <- check_count(k, "k", max = .Machine$integer.max)
   } else {
     if (!is.matrix(query) || !(is.double(query) || is.integer(query))) {
       stop("Prepared indexes require a dense numeric query")
@@ -489,6 +521,17 @@ query_prepared_index <- function(
       query@p,
       query@x,
       nrow(query),
+      k,
+      epsilon,
+      max_search_fraction,
+      n_threads,
+      verbose,
+      convert_seed_distances
+    )
+  } else if (logical_index) {
+    rnn_query_prepared_logical(
+      index,
+      query,
       k,
       epsilon,
       max_search_fraction,
@@ -525,7 +568,8 @@ query_prepared_index <- function(
 #'
 #' @param index A nearest neighbor index produced by [rnnd_build()] or a
 #'   prepared index from [rnnd_prepare()]. Prepared sparse indexes require
-#'   sparse query data.
+#'   sparse query data. Prepared dense logical indexes require dense logical
+#'   query data.
 #' @param query Matrix of `n` query items, with observations in the rows and
 #'   features in the columns. Optionally, the data may be passed with the
 #'   observations in the columns, by setting `obs = "C"`, which should be more

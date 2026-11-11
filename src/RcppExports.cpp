@@ -513,6 +513,19 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rnn_prepare_logical_index
+SEXP rnn_prepare_logical_index(const LogicalMatrix& reference, const List& graph, const List& forest, const std::string& metric);
+RcppExport SEXP _rnndescent_rnn_prepare_logical_index(SEXP referenceSEXP, SEXP graphSEXP, SEXP forestSEXP, SEXP metricSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< const LogicalMatrix& >::type reference(referenceSEXP);
+    Rcpp::traits::input_parameter< const List& >::type graph(graphSEXP);
+    Rcpp::traits::input_parameter< const List& >::type forest(forestSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
+    rcpp_result_gen = Rcpp::wrap(rnn_prepare_logical_index(reference, graph, forest, metric));
+    return rcpp_result_gen;
+END_RCPP
+}
 // rnn_prepare_sparse_index
 SEXP rnn_prepare_sparse_index(const IntegerVector& ind, const IntegerVector& ptr, const NumericVector& data, int ndim, const List& graph, const List& forest, const std::string& metric);
 RcppExport SEXP _rnndescent_rnn_prepare_sparse_index(SEXP indSEXP, SEXP ptrSEXP, SEXP dataSEXP, SEXP ndimSEXP, SEXP graphSEXP, SEXP forestSEXP, SEXP metricSEXP) {
@@ -859,6 +872,23 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rnn_query_prepared_logical
+List rnn_query_prepared_logical(SEXP handle, const LogicalMatrix& query, uint32_t k, double epsilon, double max_search_fraction, std::size_t n_threads, bool verbose, SEXP convert_seed_distances);
+RcppExport SEXP _rnndescent_rnn_query_prepared_logical(SEXP handleSEXP, SEXP querySEXP, SEXP kSEXP, SEXP epsilonSEXP, SEXP max_search_fractionSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP, SEXP convert_seed_distancesSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< SEXP >::type handle(handleSEXP);
+    Rcpp::traits::input_parameter< const LogicalMatrix& >::type query(querySEXP);
+    Rcpp::traits::input_parameter< uint32_t >::type k(kSEXP);
+    Rcpp::traits::input_parameter< double >::type epsilon(epsilonSEXP);
+    Rcpp::traits::input_parameter< double >::type max_search_fraction(max_search_fractionSEXP);
+    Rcpp::traits::input_parameter< std::size_t >::type n_threads(n_threadsSEXP);
+    Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type convert_seed_distances(convert_seed_distancesSEXP);
+    rcpp_result_gen = Rcpp::wrap(rnn_query_prepared_logical(handle, query, k, epsilon, max_search_fraction, n_threads, verbose, convert_seed_distances));
+    return rcpp_result_gen;
+END_RCPP
+}
 // rnn_with_prepared_query
 SEXP rnn_with_prepared_query(Rcpp::Function search);
 RcppExport SEXP _rnndescent_rnn_with_prepared_query(SEXP searchSEXP) {
@@ -979,6 +1009,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_rnndescent_rnn_sparse_random_knn_query", (DL_FUNC) &_rnndescent_rnn_sparse_random_knn_query, 12},
     {"_rnndescent_rnn_release_prepared_indexes", (DL_FUNC) &_rnndescent_rnn_release_prepared_indexes, 0},
     {"_rnndescent_rnn_prepare_dense_index", (DL_FUNC) &_rnndescent_rnn_prepare_dense_index, 4},
+    {"_rnndescent_rnn_prepare_logical_index", (DL_FUNC) &_rnndescent_rnn_prepare_logical_index, 4},
     {"_rnndescent_rnn_prepare_sparse_index", (DL_FUNC) &_rnndescent_rnn_prepare_sparse_index, 7},
     {"_rnndescent_rnn_rp_tree_knn_explicit", (DL_FUNC) &_rnndescent_rnn_rp_tree_knn_explicit, 11},
     {"_rnndescent_rnn_sparse_rp_tree_knn_explicit", (DL_FUNC) &_rnndescent_rnn_sparse_rp_tree_knn_explicit, 14},
@@ -997,6 +1028,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_rnndescent_rnn_score_forest", (DL_FUNC) &_rnndescent_rnn_score_forest, 5},
     {"_rnndescent_rnn_query_prepared", (DL_FUNC) &_rnndescent_rnn_query_prepared, 8},
     {"_rnndescent_rnn_query_prepared_sparse", (DL_FUNC) &_rnndescent_rnn_query_prepared_sparse, 11},
+    {"_rnndescent_rnn_query_prepared_logical", (DL_FUNC) &_rnndescent_rnn_query_prepared_logical, 8},
     {"_rnndescent_rnn_with_prepared_query", (DL_FUNC) &_rnndescent_rnn_with_prepared_query, 1},
     {"_rnndescent_rnn_query", (DL_FUNC) &_rnndescent_rnn_query, 12},
     {"_rnndescent_rnn_logical_query", (DL_FUNC) &_rnndescent_rnn_logical_query, 10},

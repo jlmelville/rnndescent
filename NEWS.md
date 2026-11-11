@@ -4,9 +4,10 @@
 
 * Use `rnnd_prepare()` to reuse a native index across repeated calls to
   `rnnd_query()`. Dense numeric indexes support the dense metrics with an
-  explicit search forest, and sparse indexes support explicit and implicit
-  forests. Preparation applies reference preprocessing once and caches dense
-  `spearmanr` reference ranks.
+  explicit search forest, dense logical indexes support packed binary metrics
+  with an implicit forest, and sparse indexes support explicit and implicit
+  forests. Preparation applies reference preprocessing once, caches dense
+  `spearmanr` reference ranks, and retains packed logical references.
 
 * Add utilities to truncate and sort neighbor graphs, adjust self neighbors, convert graphs to
   sparse matrices, and calculate distances for supplied neighbor indices.

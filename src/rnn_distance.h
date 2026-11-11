@@ -432,6 +432,17 @@ inline auto pack_logical_query_matrix(const Rcpp::LogicalMatrix &matrix)
   return packed;
 }
 
+template <typename Out, typename Idx>
+auto get_binary_query_distance_func(const std::string &metric)
+    -> tdoann::BinaryDistanceFunc<Out, Idx> {
+  if (metric == "alternative-jaccard") {
+    return tdoann::balternative_jaccard<Out, Idx>;
+  }
+  const auto &metrics = get_binary_metric_map<Out, Idx>();
+  const auto found = metrics.find(metric);
+  return found == metrics.end() ? nullptr : found->second;
+}
+
 template <typename In = RNN_DEFAULT_IN, typename Idx = RNN_DEFAULT_IDX>
 std::unique_ptr<tdoann::BaseDistance<RNN_DEFAULT_DIST, Idx>>
 create_query_distance(const Rcpp::LogicalMatrix &reference,
@@ -439,22 +450,21 @@ create_query_distance(const Rcpp::LogicalMatrix &reference,
                       const std::string &metric) {
   using Out = RNN_DEFAULT_DIST;
   const auto ndim = reference.nrow();
+  const auto evaluate = get_binary_query_distance_func<Out, Idx>(metric);
 
   if (metric == "alternative-jaccard") {
     auto ref_bits = pack_logical_query_matrix(reference);
     auto query_bits = pack_logical_query_matrix(query);
     return std::make_unique<tdoann::BinaryQueryDistanceCalculator<Out, Idx>>(
         std::move(ref_bits), std::move(query_bits), reference.ncol(),
-        query.ncol(), ndim, tdoann::balternative_jaccard<Out, Idx>);
+        query.ncol(), ndim, evaluate);
   }
 
-  const auto &metric_map = get_binary_metric_map<Out, Idx>();
-  if (metric_map.count(metric) > 0) {
+  if (evaluate) {
     std::vector<uint8_t> ref_bvec = r_to_binvec(reference);
     std::vector<uint8_t> query_bvec = r_to_binvec(query);
     return std::make_unique<tdoann::BinaryQueryDistanceCalculator<Out, Idx>>(
-        std::move(ref_bvec), std::move(query_bvec), ndim,
-        metric_map.at(metric));
+        std::move(ref_bvec), std::move(query_bvec), ndim, evaluate);
   }
 
   auto ref_vec = r_to_vec<In>(reference);
