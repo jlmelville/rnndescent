@@ -64,7 +64,10 @@
 </ul></div>
 <div class="section level3">
 <h3 id="bug-fixes-and-minor-improvements-development-version">Bug fixes and minor improvements<a class="anchor" aria-label="anchor" href="#bug-fixes-and-minor-improvements-development-version"></a></h3>
-<ul><li><p>Extend shared dense graph traversal to <code>manhattan</code>, <code>cosine</code>, <code>alternative-cosine</code>, <code>correlation</code>, <code>hellinger</code>, and <code>alternative-hellinger</code>. Small floating-point differences can change the order of near-tied neighbors.</p></li>
+<ul><li><p>Cache ranks on first use during dense <code>spearmanr</code> queries. Dense numeric searches share the cache between forest seeding and graph traversal.</p></li>
+<li><p>Pack dense logical inputs for default <code>jaccard</code> queries to speed up implicit-forest seeding and graph traversal.</p></li>
+<li><p>Batch candidate distances during dense graph traversal for <code>braycurtis</code>, <code>canberra</code>, and <code>chebyshev</code> to speed up batch queries.</p></li>
+<li><p>Extend shared dense graph traversal to <code>manhattan</code>, <code>cosine</code>, <code>alternative-cosine</code>, <code>correlation</code>, <code>hellinger</code>, and <code>alternative-hellinger</code>. Small floating-point differences can change the order of near-tied neighbors.</p></li>
 <li><p>Batch dense graph traversal for <code>dot</code>, <code>alternative-dot</code>, <code>cosine-preprocess</code>, and <code>correlation-preprocess</code> using shared traversal code. Small floating-point differences can change the order of near-tied neighbors.</p></li>
 <li><p>Share projections across the first eight levels of multithreaded dense Euclidean initialization forests when only their leaves are needed. The changed split order can produce different approximate neighbors for the same seed.</p></li>
 <li><p>Build a balanced, graph-informed search tree when a dense Euclidean index uses one explicit tree for query initialization.</p></li>

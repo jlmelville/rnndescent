@@ -18,6 +18,16 @@
 
 ### Bug fixes and minor improvements
 
+- Cache ranks on first use during dense `spearmanr` queries. Dense
+  numeric searches share the cache between forest seeding and graph
+  traversal.
+
+- Pack dense logical inputs for default `jaccard` queries to speed up
+  implicit-forest seeding and graph traversal.
+
+- Batch candidate distances during dense graph traversal for
+  `braycurtis`, `canberra`, and `chebyshev` to speed up batch queries.
+
 - Extend shared dense graph traversal to `manhattan`, `cosine`,
   `alternative-cosine`, `correlation`, `hellinger`, and
   `alternative-hellinger`. Small floating-point differences can change
