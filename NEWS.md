@@ -12,6 +12,11 @@
 
 ## Bug fixes and minor improvements
 
+* Batch dense graph traversal for `dot`, `alternative-dot`,
+  `cosine-preprocess`, and `correlation-preprocess` using shared traversal
+  code. Small floating-point differences can change the order of near-tied
+  neighbors.
+
 * Share projections across the first eight levels of multithreaded dense
   Euclidean initialization forests when only their leaves are needed. The
   changed split order can produce different approximate neighbors for the

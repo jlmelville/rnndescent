@@ -145,6 +145,44 @@ List dense_query_four_impl(
                        max_search_fraction, n_threads, verbose, calculate_four);
 }
 
+namespace {
+
+using QueryDistance =
+    tdoann::VectorDistance<RNN_DEFAULT_IN, RNN_DEFAULT_DIST, RNN_DEFAULT_IDX>;
+using QueryKernel =
+    rnndescent::DenseDistanceFour<RNN_DEFAULT_DIST, RNN_DEFAULT_IDX>;
+using EvaluateFour = decltype(&QueryKernel::run_from<
+                              rnndescent::DenseBatchMetric::inner_product>);
+
+struct DotQueryFour {
+  const QueryDistance &distance;
+  const float *reference;
+  std::size_t dimension;
+  EvaluateFour evaluate;
+
+  auto operator()(RNN_DEFAULT_IDX row,
+                  const QueryKernel::Targets &targets) const
+      -> QueryKernel::Distances {
+    return evaluate(&*distance.get_y(row), reference, dimension, targets);
+  }
+};
+
+auto dot_query_kernel(const std::string &metric) -> EvaluateFour {
+  using Metric = rnndescent::DenseBatchMetric;
+  if (metric == "cosine-preprocess" || metric == "correlation-preprocess") {
+    return QueryKernel::run_from<Metric::inner_product>;
+  }
+  if (metric == "dot") {
+    return QueryKernel::run_from<Metric::dot>;
+  }
+  if (metric == "alternative-dot") {
+    return QueryKernel::run_from<Metric::alternative_dot>;
+  }
+  return nullptr;
+}
+
+} // namespace
+
 template <typename Graph>
 List dense_query_impl(
     const tdoann::VectorDistance<RNN_DEFAULT_IN, RNN_DEFAULT_DIST,
@@ -158,6 +196,14 @@ List dense_query_impl(
         rnndescent::DenseBatchMetric::squared_euclidean>(
         distance, graph, nn_idx, nn_dist, dimension, epsilon,
         max_search_fraction, n_threads, verbose);
+  }
+  if (const auto evaluate = dot_query_kernel(metric);
+      evaluate && distance.get_nx() >= 4) {
+    const DotQueryFour calculate_four{distance, &*distance.get_x(0), dimension,
+                                      evaluate};
+    return nn_query_impl(distance, graph, nn_idx, nn_dist, epsilon,
+                         max_search_fraction, n_threads, verbose,
+                         calculate_four);
   }
   return nn_query_impl(distance, graph, nn_idx, nn_dist, epsilon,
                        max_search_fraction, n_threads, verbose);
@@ -188,11 +234,6 @@ List rnn_query_prepared(SEXP handle, const NumericMatrix &query, uint32_t k,
                             n_threads, progress, executor);
   // Preserve the current sorted-seed order before building the traversal heap.
   const auto seeds = heap_to_r(seed_heap);
-  if (index.metric == "cosine-preprocess" && distance.get_nx() >= 4) {
-    return dense_query_four_impl<rnndescent::DenseBatchMetric::inner_product>(
-        distance, index.graph, seeds["idx"], seeds["dist"], index.ndim, epsilon,
-        max_search_fraction, n_threads, verbose);
-  }
   auto result = dense_query_impl(
       distance, index.graph, seeds["idx"], seeds["dist"], index.metric,
       index.ndim, epsilon, max_search_fraction, n_threads, verbose);

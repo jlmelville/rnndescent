@@ -193,3 +193,45 @@ test_that("sparse", {
   expect_equal(spannd, bfz, tolerance = 1e-5)
   expect_equal(spcnnd, bfz, tolerance = 1e-5)
 })
+
+test_that("dense dot-product queries respect candidate order and search budgets", {
+  query <- matrix(c(1, -1, 0), nrow = 1L)
+  reference <- seq_len(8L) %o%
+    c(1, -1, 0) +
+    matrix(rep(c(1, 1, -2), 8L), ncol = 3L, byrow = TRUE)
+  graph <- Matrix::sparseMatrix(
+    i = c(1:6, 7L),
+    j = c(rep(1L, 6L), 6L),
+    x = 1,
+    dims = c(8L, 8L)
+  )
+  cases <- list(
+    list("dot", TRUE),
+    list("dot", FALSE),
+    list("alternative-dot", FALSE),
+    list("cosine-preprocess", FALSE),
+    list("correlation-preprocess", FALSE)
+  )
+  for (case in cases) {
+    metric <- case[[1L]]
+    for (budget in 0:6) {
+      expected <- matrix(budget + 1L)
+      result <- graph_knn_query(
+        query = query,
+        reference = reference,
+        reference_graph = graph,
+        init = matrix(1L),
+        k = 1L,
+        metric = metric,
+        use_alt_metric = case[[2L]],
+        max_search_fraction = budget / nrow(reference)
+      )
+      expect_identical(result$idx, expected)
+      expect_equal(
+        result$dist,
+        knn_distances(reference, expected, metric = metric, query = query)$dist,
+        tolerance = 1e-6
+      )
+    }
+  }
+})
