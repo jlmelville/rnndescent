@@ -229,6 +229,62 @@ test_that("Haversine", {
   )
 })
 
+test_that("shared dense graph queries agree with exhaustive scalar distances", {
+  reference <- rbind(
+    c(-3, 1, 0, 0),
+    c(0, 2, -1, 1),
+    c(1, -1, 0, 2),
+    c(1, -2, 3, 0),
+    c(-1, 2, -3, 0),
+    c(0, 0, 0, 0),
+    c(1, 1, 1, 1),
+    c(0, 0, 1, 2)
+  )
+  query <- rbind(c(1, -2, 3, 0), c(0, 0, 0, 0))
+  # The first seed exposes a full batch of four candidates and a scalar tail.
+  graph <- Matrix::sparseMatrix(
+    i = 4:8,
+    j = rep(1L, 5),
+    x = 1,
+    dims = c(8L, 8L)
+  )
+  init <- matrix(rep(1:3, each = nrow(query)), nrow(query))
+  for (metric in c(
+    "manhattan",
+    "cosine",
+    "alternative-cosine",
+    "correlation",
+    "hellinger"
+  )) {
+    ref <- if (metric == "hellinger") abs(reference) else reference
+    qry <- if (metric == "hellinger") abs(query) else query
+    for (alt in if (metric == "hellinger") c(FALSE, TRUE) else FALSE) {
+      result <- graph_knn_query(
+        qry,
+        ref,
+        graph,
+        k = 3L,
+        init = init,
+        metric = metric,
+        use_alt_metric = alt
+      )
+      exact <- brute_force_knn_query(
+        qry,
+        ref,
+        k = 3L,
+        metric = metric,
+        use_alt_metric = alt
+      )
+      expect_equal(result$dist, exact$dist, tolerance = 2e-6)
+      expect_equal(
+        result$dist,
+        knn_distances(ref, result$idx, metric = metric, query = qry)$dist,
+        tolerance = 2e-6
+      )
+    }
+  }
+})
+
 test_that("Hellinger", {
   bfdense <- brute_force_knn(bitdata, k = 4, metric = "hellinger")
   araw <- brute_force_knn(bitdata, k = 4, metric = "alternative-hellinger")

@@ -12,6 +12,11 @@
 
 ## Bug fixes and minor improvements
 
+* Extend shared dense graph traversal to `manhattan`, `cosine`,
+  `alternative-cosine`, `correlation`, `hellinger`, and
+  `alternative-hellinger`. Small floating-point differences can change the
+  order of near-tied neighbors.
+
 * Batch dense graph traversal for `dot`, `alternative-dot`,
   `cosine-preprocess`, and `correlation-preprocess` using shared traversal
   code. Small floating-point differences can change the order of near-tied

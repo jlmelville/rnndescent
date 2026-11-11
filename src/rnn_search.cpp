@@ -19,8 +19,11 @@
 
 // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers,modernize-use-trailing-return-type,readability-magic-numbers)
 
+#include <algorithm>
+#include <array>
 #include <cmath>
 #include <iomanip>
+#include <limits>
 #include <sstream>
 
 #include <Rcpp.h>
@@ -154,7 +157,7 @@ using QueryKernel =
 using EvaluateFour = decltype(&QueryKernel::run_from<
                               rnndescent::DenseBatchMetric::inner_product>);
 
-struct DotQueryFour {
+struct SharedQueryFour {
   const QueryDistance &distance;
   const float *reference;
   std::size_t dimension;
@@ -167,8 +170,106 @@ struct DotQueryFour {
   }
 };
 
-auto dot_query_kernel(const std::string &metric) -> EvaluateFour {
+enum class QueryProductMetric {
+  cosine,
+  alternative_cosine,
+  correlation,
+  hellinger,
+  alternative_hellinger
+};
+
+template <QueryProductMetric Metric>
+auto query_product_four(const float *x, const float *data,
+                        std::size_t dimension,
+                        const QueryKernel::Targets &targets)
+    -> QueryKernel::Distances {
+  constexpr bool centered = Metric == QueryProductMetric::correlation;
+  constexpr bool probability =
+      Metric == QueryProductMetric::hellinger ||
+      Metric == QueryProductMetric::alternative_hellinger;
+  std::array<const float *, 4> ys;
+  for (std::size_t lane = 0; lane < ys.size(); ++lane) {
+    ys[lane] = data + dimension * targets[lane];
+  }
+  float x_mean = 0;
+  QueryKernel::Distances y_mean{};
+  if constexpr (centered) {
+    for (std::size_t j = 0; j < dimension; ++j) {
+      x_mean += x[j];
+      for (std::size_t lane = 0; lane < ys.size(); ++lane) {
+        y_mean[lane] += ys[lane][j];
+      }
+    }
+    x_mean /= dimension;
+    for (auto &mean : y_mean) {
+      mean /= dimension;
+    }
+  }
+
+  // Accumulate the query norm once for all four candidates.
+  float x_norm = 0;
+  QueryKernel::Distances y_norm{}, product{};
+  for (std::size_t j = 0; j < dimension; ++j) {
+    const float xj = centered ? x[j] - x_mean : x[j];
+    x_norm += probability ? xj : xj * xj;
+    for (std::size_t lane = 0; lane < ys.size(); ++lane) {
+      const float yj = centered ? ys[lane][j] - y_mean[lane] : ys[lane][j];
+      const float xy = xj * yj;
+      y_norm[lane] += probability ? yj : yj * yj;
+      product[lane] += probability ? std::sqrt(xy) : xy;
+    }
+  }
+
+  // Preserve each scalar metric's zero-norm and rounding conventions.
+  QueryKernel::Distances result{};
+  for (std::size_t lane = 0; lane < ys.size(); ++lane) {
+    const float yn = y_norm[lane];
+    const float dot = product[lane];
+    if (x_norm == 0 && yn == 0) {
+      result[lane] = 0;
+    } else if constexpr (Metric == QueryProductMetric::alternative_cosine ||
+                         Metric == QueryProductMetric::alternative_hellinger) {
+      if (x_norm == 0 || yn == 0 || dot <= 0) {
+        result[lane] = std::numeric_limits<float>::max();
+      } else {
+        const float distance = std::log2(std::sqrt(x_norm * yn) / dot);
+        result[lane] = Metric == QueryProductMetric::alternative_cosine
+                           ? std::max(distance, 0.0f)
+                           : distance;
+      }
+    } else if (x_norm == 0 || yn == 0) {
+      result[lane] = 1;
+    } else if constexpr (Metric == QueryProductMetric::hellinger) {
+      result[lane] =
+          std::sqrt(std::max(1 - dot / std::sqrt(x_norm * yn), 0.0f));
+    } else {
+      const float distance = 1 - dot / (std::sqrt(x_norm) * std::sqrt(yn));
+      result[lane] = centered ? distance : std::max(distance, 0.0f);
+    }
+  }
+  return result;
+}
+
+auto shared_query_kernel(const std::string &metric) -> EvaluateFour {
   using Metric = rnndescent::DenseBatchMetric;
+  if (metric == "cosine") {
+    return query_product_four<QueryProductMetric::cosine>;
+  }
+  if (metric == "alternative-cosine") {
+    return query_product_four<QueryProductMetric::alternative_cosine>;
+  }
+  if (metric == "correlation") {
+    return query_product_four<QueryProductMetric::correlation>;
+  }
+  if (metric == "hellinger") {
+    return query_product_four<QueryProductMetric::hellinger>;
+  }
+  if (metric == "alternative-hellinger") {
+    return query_product_four<QueryProductMetric::alternative_hellinger>;
+  }
+  if (metric == "manhattan") {
+    return QueryKernel::run_from<Metric::manhattan>;
+  }
   if (metric == "cosine-preprocess" || metric == "correlation-preprocess") {
     return QueryKernel::run_from<Metric::inner_product>;
   }
@@ -197,10 +298,10 @@ List dense_query_impl(
         distance, graph, nn_idx, nn_dist, dimension, epsilon,
         max_search_fraction, n_threads, verbose);
   }
-  if (const auto evaluate = dot_query_kernel(metric);
+  if (const auto evaluate = shared_query_kernel(metric);
       evaluate && distance.get_nx() >= 4) {
-    const DotQueryFour calculate_four{distance, &*distance.get_x(0), dimension,
-                                      evaluate};
+    const SharedQueryFour calculate_four{distance, &*distance.get_x(0),
+                                         dimension, evaluate};
     return nn_query_impl(distance, graph, nn_idx, nn_dist, epsilon,
                          max_search_fraction, n_threads, verbose,
                          calculate_four);
