@@ -1117,6 +1117,16 @@ List rp_forest_search(const Matrix &query, const Matrix &reference,
     }
     return result;
   } else if (margin_type == margin_type_to_string(MarginType::IMPLICIT)) {
+    if constexpr (std::is_same_v<Matrix, NumericMatrix>) {
+      if (prepared_query != R_NilValue) {
+        auto distance_ptr =
+            create_query_vector_distance(reference, query, metric);
+        auto result = rnn_rp_forest_search_implicit(
+            *distance_ptr, search_forest, n_nbrs, cache, n_threads, verbose);
+        prepared_query_slot(prepared_query) = std::move(distance_ptr);
+        return result;
+      }
+    }
     auto distance_ptr = create_query_distance(reference, query, metric);
     return rnn_rp_forest_search_implicit(*distance_ptr, search_forest, n_nbrs,
                                          cache, n_threads, verbose);

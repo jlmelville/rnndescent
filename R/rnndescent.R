@@ -677,7 +677,11 @@ rnnd_query <-
         prepared_query = prepared_query
       )
     }
-    if (check_reference_during_copy && is_rpforest(init)) {
+    reuse_spearman <- is.matrix(reference) &&
+      is.numeric(reference) &&
+      is.list(init) &&
+      identical(init$actual_metric, "spearmanr")
+    if ((check_reference_during_copy || reuse_spearman) && is_rpforest(init)) {
       return(rnn_with_prepared_query(search))
     }
     search()

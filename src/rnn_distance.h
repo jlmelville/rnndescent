@@ -24,6 +24,7 @@
 #include <cmath>
 #include <cstdint>
 #include <memory>
+#include <mutex>
 #include <type_traits>
 #include <unordered_map>
 
@@ -283,6 +284,44 @@ struct FactoryTraits<tdoann::SparseVectorDistance<In, Out, Idx>> {
   using index_type = Idx;
 };
 
+// Forest projections still read the original coordinates via get_x/get_y.
+template <typename In, typename Out, typename Idx>
+class SpearmanQueryDistance final
+    : public tdoann::QueryDistanceCalculator<In, Out, Idx> {
+  using Base = tdoann::QueryDistanceCalculator<In, Out, Idx>;
+  using Iterator = typename Base::Iterator;
+
+  struct RankedRow {
+    std::once_flag ready;
+    std::vector<Out> values;
+  };
+
+  mutable std::vector<RankedRow> reference_ranks;
+  mutable std::vector<RankedRow> query_ranks;
+
+  auto ranks(RankedRow &row, Iterator begin) const -> const std::vector<Out> & {
+    std::call_once(row.ready, [&] {
+      row.values = tdoann::rankdata<Out>(begin, begin + this->ndim);
+    });
+    return row.values;
+  }
+
+public:
+  SpearmanQueryDistance(std::vector<In> &&reference, std::vector<In> &&query,
+                        std::size_t dimension)
+      : Base(std::move(reference), std::move(query), dimension,
+             tdoann::spearmanr<Out, Iterator>),
+        reference_ranks(this->get_nx()), query_ranks(this->get_ny()) {}
+
+  Out calculate(const Idx &reference, const Idx &query) const override {
+    const auto &x_rank =
+        ranks(reference_ranks[reference], this->get_x(reference));
+    const auto &y_rank = ranks(query_ranks[query], this->get_y(query));
+    return tdoann::correlation<Out>(x_rank.cbegin(), x_rank.cend(),
+                                    y_rank.cbegin());
+  }
+};
+
 template <typename... Args>
 std::unique_ptr<typename FactoryTraits<Args...>::type>
 create_query_distance_impl(
@@ -296,6 +335,11 @@ create_query_distance_impl(
   validate_haversine_ndim(ndim, metric);
   validate_haversine_radians(ref_vec, ndim, metric);
   validate_haversine_radians(query_vec, ndim, metric);
+
+  if (metric == "spearmanr") {
+    return std::make_unique<SpearmanQueryDistance<In, Out, Idx>>(
+        std::move(ref_vec), std::move(query_vec), ndim);
+  }
 
   auto [distance_func, preprocess_func] =
       get_dense_distance_funcs<In, Out>(metric);

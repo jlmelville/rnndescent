@@ -538,6 +538,44 @@ test_that("Spearman Rank", {
   )
 })
 
+test_that("cached Spearman queries preserve tied ranks and constant vectors", {
+  set.seed(94L)
+  reference <- matrix(sample(-4:4, 33L * 64L, replace = TRUE), 33L, 64L)
+  reference[, 1L] <- 0
+  reference[, 2L] <- 1
+  query <- cbind(reference[, 1:6], -reference[, 7:10])
+
+  for (margin in c("explicit", "implicit")) {
+    index <- rnnd_build(
+      reference,
+      k = 8L,
+      metric = "spearmanr",
+      margin = margin,
+      n_trees = 3L,
+      n_iters = 2L,
+      obs = "C"
+    )
+    for (threads in c(0L, 8L)) {
+      result <- rnnd_query(index, query, k = 4L, obs = "C", n_threads = threads)
+      expected <- matrix(0, ncol(query), 4L)
+      for (i in seq_len(ncol(query))) {
+        y <- query[, i]
+        for (j in seq_len(ncol(expected))) {
+          x <- reference[, result$idx[i, j]]
+          constant_x <- length(unique(x)) == 1L
+          constant_y <- length(unique(y)) == 1L
+          expected[i, j] <- if (constant_x || constant_y) {
+            as.numeric(constant_x != constant_y)
+          } else {
+            1 - stats::cor(x, y, method = "spearman")
+          }
+        }
+      }
+      expect_equal(result$dist, expected, tolerance = 1e-6)
+    }
+  }
+})
+
 test_that("Symmetric KL", {
   bfdense <- brute_force_knn(bitdata, k = 4, metric = "symmetrickl")
 
