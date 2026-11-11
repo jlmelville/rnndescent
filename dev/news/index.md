@@ -9,9 +9,11 @@
   to reuse a native index across repeated calls to
   [`rnnd_query()`](https://jlmelville.github.io/rnndescent/dev/reference/rnnd_query.md).
   Dense numeric indexes support the dense metrics with an explicit
-  search forest, and sparse indexes support explicit and implicit
-  forests. Preparation applies reference preprocessing once and caches
-  dense `spearmanr` reference ranks.
+  search forest, dense logical indexes support packed binary metrics
+  with an implicit forest, and sparse indexes support explicit and
+  implicit forests. Preparation applies reference preprocessing once,
+  caches dense `spearmanr` reference ranks, and retains packed logical
+  references.
 
 - Add utilities to truncate and sort neighbor graphs, adjust self
   neighbors, convert graphs to sparse matrices, and calculate distances

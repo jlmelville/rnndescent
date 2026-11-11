@@ -3,8 +3,9 @@
 Copy an index into native memory once and pass the returned handle to
 [`rnnd_query()`](https://jlmelville.github.io/rnndescent/dev/reference/rnnd_query.md)
 for repeated queries. Dense numeric indexes support the dense metrics
-with an explicit search forest. Sparse indexes support the sparse
-metrics with either explicit or implicit search forests.
+with an explicit search forest. Dense logical indexes support packed
+binary metrics with an implicit search forest. Sparse indexes support
+the sparse metrics with either explicit or implicit search forests.
 
 ## Usage
 
@@ -34,9 +35,11 @@ original index and prepare it again after loading it.
 
 Preparation applies any metric-specific reference preprocessing once.
 For dense `"spearmanr"`, the native snapshot stores reference ranks and
-queries rank their features once for distance scoring. Graph traversal
-uses the same distance kernels as ordinary queries. Floating-point
-rounding can differ and may affect the ordering of near ties.
+queries rank their features once for distance scoring. Dense logical
+preparation packs the reference once and packs only the incoming queries
+on subsequent calls. Graph traversal uses the same distance kernels as
+ordinary queries. Floating-point rounding can differ for dense numeric
+indexes and may affect the ordering of near ties.
 
 ## See also
 

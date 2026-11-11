@@ -33,7 +33,8 @@ rnnd_query(
   [`rnnd_build()`](https://jlmelville.github.io/rnndescent/dev/reference/rnnd_build.md)
   or a prepared index from
   [`rnnd_prepare()`](https://jlmelville.github.io/rnndescent/dev/reference/rnnd_prepare.md).
-  Prepared sparse indexes require sparse query data.
+  Prepared sparse indexes require sparse query data. Prepared dense
+  logical indexes require dense logical query data.
 
 - query:
 
