@@ -125,6 +125,152 @@ test_that("prepared indexes own a snapshot and reject invalid inputs", {
   expect_error(rnnd_query(restored, query, k = 4L), "Call rnnd_prepare\\(\\)")
 })
 
+dense_prepared_metrics <- c(
+  "alternative-cosine",
+  "alternative-dot",
+  "alternative-hellinger",
+  "alternative-jaccard",
+  "braycurtis",
+  "canberra",
+  "chebyshev",
+  "correlation",
+  "correlation-preprocess",
+  "cosine",
+  "cosine-preprocess",
+  "dice",
+  "dot",
+  "euclidean",
+  "hamming",
+  "haversine",
+  "hellinger",
+  "jaccard",
+  "jensenshannon",
+  "kulsinski",
+  "manhattan",
+  "matching",
+  "rogerstanimoto",
+  "russellrao",
+  "sokalmichener",
+  "sokalsneath",
+  "spearmanr",
+  "sqeuclidean",
+  "symmetrickl",
+  "trueangular",
+  "tsss",
+  "yule"
+)
+
+for (metric in dense_prepared_metrics) {
+  test_that(
+    paste("prepared dense queries match ordinary queries for", metric),
+    {
+      set.seed(739L)
+      data <- matrix(runif(56L * 11L, -1, 1), nrow = 56L)
+      data[1L, ] <- 0
+      data[49L, ] <- 0
+      if (metric == "haversine") {
+        data <- data[, 1:2]
+      } else if (
+        metric %in%
+          c(
+            "hellinger",
+            "alternative-hellinger",
+            "jensenshannon",
+            "symmetrickl"
+          )
+      ) {
+        data <- abs(data)
+        data[data < 0.25] <- 0
+      } else if (
+        metric %in%
+          c(
+            "alternative-jaccard",
+            "dice",
+            "hamming",
+            "jaccard",
+            "kulsinski",
+            "matching",
+            "rogerstanimoto",
+            "russellrao",
+            "sokalmichener",
+            "sokalsneath",
+            "yule"
+          )
+      ) {
+        data <- (data > 0) * 1
+      } else if (metric == "spearmanr") {
+        data <- round(data * 3)
+        data[50L, ] <- 1
+      }
+      reference <- data[1:48, , drop = FALSE]
+      query <- data[49:56, , drop = FALSE]
+      run <- function(index, query, threads, fraction) {
+        set.seed(291L)
+        dqrng::dqset.seed(291L)
+        result <- rnnd_query(
+          index,
+          query,
+          k = 6L,
+          n_threads = threads,
+          max_search_fraction = fraction
+        )
+        list(result = result, rng = .Random.seed, dq = dqrng::dqrng_get_state())
+      }
+      alt_modes <- if (
+        metric %in% c("dot", "euclidean", "hellinger", "jaccard")
+      ) {
+        c(TRUE, FALSE)
+      } else {
+        TRUE
+      }
+      for (alt in alt_modes) {
+        index <- rnnd_build(
+          reference,
+          k = 8L,
+          metric = metric,
+          use_alt_metric = alt,
+          margin = "explicit",
+          n_trees = 2L,
+          n_search_trees = 2L,
+          n_iters = 1L
+        )
+        prepared <- rnnd_prepare(index)
+        for (threads in c(0L, 2L)) {
+          for (fraction in c(0, 7.25 / nrow(reference), 1)) {
+            expect_identical(
+              run(prepared, query, threads, fraction),
+              run(index, query, threads, fraction)
+            )
+          }
+        }
+        empty <- query[integer(), , drop = FALSE]
+        expect_identical(run(prepared, empty, 0L, 1), run(index, empty, 0L, 1))
+      }
+    }
+  )
+}
+
+test_that("prepared dense indexes apply metric-specific input validation", {
+  coords <- cbind(seq(-0.6, 0.6, length.out = 16L), seq(0, 1, length.out = 16L))
+  haversine <- rnnd_build(coords, k = 4L, metric = "haversine", n_iters = 1L)
+  prepared <- rnnd_prepare(haversine)
+  expect_error(
+    rnnd_query(prepared, matrix(c(pi, 0), nrow = 1L), k = 4L),
+    "expects radians"
+  )
+  haversine$data[1L, 1L] <- pi
+  expect_error(rnnd_prepare(haversine), "expects radians")
+
+  for (metric in c("hellinger", "jensenshannon", "symmetrickl")) {
+    index <- rnnd_build(abs(coords), k = 4L, metric = metric, n_iters = 1L)
+    prepared <- rnnd_prepare(index)
+    query <- matrix(c(-1e-300, 1), nrow = 1L)
+    expect_error(rnnd_query(prepared, query, k = 4L), "non-negative")
+    index$data[1L, 1L] <- -1e-300
+    expect_error(rnnd_prepare(index), "non-negative")
+  }
+})
+
 sparse_prepared_metrics <- c(
   "alternative-cosine",
   "alternative-dot",

@@ -14,10 +14,9 @@ A prepared index handle for use in the current R session.
 }
 \description{
 Copy an index into native memory once and pass the returned handle to
-\code{\link[=rnnd_query]{rnnd_query()}} for repeated queries. Dense numeric indexes using
-\code{"euclidean"} or \code{"cosine-preprocess"} require an explicit search forest.
-Sparse indexes support the sparse metrics with either explicit or implicit
-search forests.
+\code{\link[=rnnd_query]{rnnd_query()}} for repeated queries. Dense numeric indexes support the
+dense metrics with an explicit search forest. Sparse indexes support the
+sparse metrics with either explicit or implicit search forests.
 }
 \details{
 The handle owns a snapshot of the reference, search graph and forest. Changes
@@ -27,10 +26,11 @@ Unloading the package also releases the snapshot and invalidates the handle.
 To use the index in another session, save the original index and prepare it
 again after loading it.
 
-Preparing a dense \code{"cosine-preprocess"} index normalizes the reference once.
-Queries normalize each incoming vector and evaluate up to four candidate
-distances together during graph traversal. Floating-point rounding can
-differ from ordinary queries and may affect the ordering of near ties.
+Preparation applies any metric-specific reference preprocessing once.
+For dense \code{"spearmanr"}, the native snapshot stores reference ranks and
+queries rank their features once for distance scoring. Graph traversal uses
+the same distance kernels as ordinary queries. Floating-point rounding can
+differ and may affect the ordering of near ties.
 }
 \examples{
 index <- rnnd_build(iris[1:75, ], k = 5)

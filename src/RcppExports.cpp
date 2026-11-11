@@ -823,8 +823,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // rnn_query_prepared
-List rnn_query_prepared(SEXP handle, const NumericMatrix& query, uint32_t k, double epsilon, double max_search_fraction, std::size_t n_threads, bool verbose);
-RcppExport SEXP _rnndescent_rnn_query_prepared(SEXP handleSEXP, SEXP querySEXP, SEXP kSEXP, SEXP epsilonSEXP, SEXP max_search_fractionSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
+List rnn_query_prepared(SEXP handle, const NumericMatrix& query, uint32_t k, double epsilon, double max_search_fraction, std::size_t n_threads, bool verbose, SEXP convert_seed_distances);
+RcppExport SEXP _rnndescent_rnn_query_prepared(SEXP handleSEXP, SEXP querySEXP, SEXP kSEXP, SEXP epsilonSEXP, SEXP max_search_fractionSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP, SEXP convert_seed_distancesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::traits::input_parameter< SEXP >::type handle(handleSEXP);
@@ -834,7 +834,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type max_search_fraction(max_search_fractionSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type n_threads(n_threadsSEXP);
     Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
-    rcpp_result_gen = Rcpp::wrap(rnn_query_prepared(handle, query, k, epsilon, max_search_fraction, n_threads, verbose));
+    Rcpp::traits::input_parameter< SEXP >::type convert_seed_distances(convert_seed_distancesSEXP);
+    rcpp_result_gen = Rcpp::wrap(rnn_query_prepared(handle, query, k, epsilon, max_search_fraction, n_threads, verbose, convert_seed_distances));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -994,7 +995,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_rnndescent_rnn_logical_rp_forest_search", (DL_FUNC) &_rnndescent_rnn_logical_rp_forest_search, 8},
     {"_rnndescent_rnn_sparse_rp_forest_search", (DL_FUNC) &_rnndescent_rnn_sparse_rp_forest_search, 13},
     {"_rnndescent_rnn_score_forest", (DL_FUNC) &_rnndescent_rnn_score_forest, 5},
-    {"_rnndescent_rnn_query_prepared", (DL_FUNC) &_rnndescent_rnn_query_prepared, 7},
+    {"_rnndescent_rnn_query_prepared", (DL_FUNC) &_rnndescent_rnn_query_prepared, 8},
     {"_rnndescent_rnn_query_prepared_sparse", (DL_FUNC) &_rnndescent_rnn_query_prepared_sparse, 11},
     {"_rnndescent_rnn_with_prepared_query", (DL_FUNC) &_rnndescent_rnn_with_prepared_query, 1},
     {"_rnndescent_rnn_query", (DL_FUNC) &_rnndescent_rnn_query, 12},

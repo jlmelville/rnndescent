@@ -165,12 +165,16 @@ inline bool is_probability_metric(const std::string &metric) {
 // Check original values while copying so float conversion cannot hide
 // negatives.
 template <typename In, typename Input>
-std::vector<In> r_to_vec_for_probability(const Input &data,
-                                         const std::string &metric,
-                                         const char *name = "data") {
+std::vector<In>
+r_to_vec_for_probability(const Input &data, const std::string &metric,
+                         const char *name = "data", bool check_finite = false) {
   std::vector<In> result(data.size());
   auto output = result.begin();
   for (const double value : data) {
+    if (check_finite && !std::isfinite(value)) {
+      Rcpp::stop(std::string(name) +
+                 " must contain only finite numeric feature values");
+    }
     if (value < 0.0) {
       Rcpp::stop("metric '" + metric +
                  "' requires non-negative feature values in '" + name + "'");

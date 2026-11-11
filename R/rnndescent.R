@@ -336,10 +336,9 @@ rnnd_build <- function(
 #' Prepare an index for repeated queries
 #'
 #' Copy an index into native memory once and pass the returned handle to
-#' [rnnd_query()] for repeated queries. Dense numeric indexes using
-#' `"euclidean"` or `"cosine-preprocess"` require an explicit search forest.
-#' Sparse indexes support the sparse metrics with either explicit or implicit
-#' search forests.
+#' [rnnd_query()] for repeated queries. Dense numeric indexes support the
+#' dense metrics with an explicit search forest. Sparse indexes support the
+#' sparse metrics with either explicit or implicit search forests.
 #'
 #' @param index A supported index from [rnnd_build()].
 #' @return A prepared index handle for use in the current R session.
@@ -351,10 +350,11 @@ rnnd_build <- function(
 #' To use the index in another session, save the original index and prepare it
 #' again after loading it.
 #'
-#' Preparing a dense `"cosine-preprocess"` index normalizes the reference once.
-#' Queries normalize each incoming vector and evaluate up to four candidate
-#' distances together during graph traversal. Floating-point rounding can
-#' differ from ordinary queries and may affect the ordering of near ties.
+#' Preparation applies any metric-specific reference preprocessing once.
+#' For dense `"spearmanr"`, the native snapshot stores reference ranks and
+#' queries rank their features once for distance scoring. Graph traversal uses
+#' the same distance kernels as ordinary queries. Floating-point rounding can
+#' differ and may affect the ordering of near ties.
 #' @seealso [rnnd_query()], [rnnd_build()]
 #' @examples
 #' index <- rnnd_build(iris[1:75, ], k = 5)
@@ -373,64 +373,51 @@ rnnd_prepare <- function(index) {
     if (ncol(reference) == 0L) {
       stop("rnnd_prepare() requires a nonempty sparse index")
     }
-    if (
-      !is.list(forest) ||
-        !isTRUE(is_rpforest(forest)) ||
-        !isTRUE(forest$margin %in% c("explicit", "implicit")) ||
-        !is.character(forest$original_metric) ||
-        length(forest$original_metric) != 1L ||
-        is.na(forest$original_metric) ||
-        !identical(forest$original_metric, index$original_metric)
-    ) {
+  } else if (
+    !is.matrix(reference) ||
+      is.object(reference) ||
+      !(is.double(reference) || is.integer(reference)) ||
+      length(reference) == 0L
+  ) {
+    stop("rnnd_prepare() requires a nonempty dense numeric index")
+  }
+  margins <- if (sparse) c("explicit", "implicit") else "explicit"
+  if (
+    !is.list(forest) ||
+      !isTRUE(is_rpforest(forest)) ||
+      !isTRUE(forest$margin %in% margins) ||
+      !is.character(forest$original_metric) ||
+      length(forest$original_metric) != 1L ||
+      is.na(forest$original_metric) ||
+      !identical(forest$original_metric, index$original_metric)
+  ) {
+    if (sparse) {
       stop("rnnd_prepare() requires a compatible sparse search forest")
     }
-    metric <- forest$original_metric
-    # As in ordinary queries, older cosine trees use plain cosine distances.
-    actual_metric <- if (identical(metric, "cosine")) {
-      "cosine"
-    } else {
-      forest$actual_metric
-    }
-    use_alt_metric <- isTRUE(forest$use_alt_metric)
-    if (
-      !identical(
-        actual_metric,
-        get_actual_metric(use_alt_metric, metric, reference, FALSE)
-      )
-    ) {
+    stop("rnnd_prepare() requires a compatible explicit dense search forest")
+  }
+  metric <- forest$original_metric
+  # Ordinary queries reuse older cosine trees with plain cosine scoring.
+  actual_metric <- if (identical(metric, "cosine")) {
+    "cosine"
+  } else {
+    forest$actual_metric
+  }
+  use_alt_metric <- isTRUE(forest$use_alt_metric)
+  if (
+    !identical(
+      actual_metric,
+      get_actual_metric(use_alt_metric, metric, reference, FALSE)
+    )
+  ) {
+    if (sparse) {
       stop("rnnd_prepare() requires a compatible sparse search forest metric")
     }
-  } else {
-    metric <- index$original_metric
-    if (
-      !is.matrix(reference) ||
-        is.object(reference) ||
-        !(is.double(reference) || is.integer(reference)) ||
-        length(reference) == 0L ||
-        !isTRUE(metric %in% c("euclidean", "cosine-preprocess"))
-    ) {
-      stop(
-        "rnnd_prepare() requires a nonempty dense numeric Euclidean or cosine-preprocess index"
-      )
-    }
-    if (
-      !is.list(forest) ||
-        !isTRUE(is_rpforest(forest)) ||
-        !identical(forest$margin, "explicit") ||
-        !identical(forest$original_metric, metric) ||
-        !identical(
-          forest$actual_metric,
-          get_actual_metric(
-            isTRUE(forest$use_alt_metric),
-            metric,
-            reference,
-            FALSE
-          )
-        )
-    ) {
-      stop("rnnd_prepare() requires a compatible explicit dense search forest")
-    }
+    stop(
+      "rnnd_prepare() requires a compatible explicit dense search forest metric"
+    )
   }
+  metric_correction <- if (use_alt_metric && metric != actual_metric) metric
   check_rpforest_matches_reference(
     forest,
     ncol(reference),
@@ -454,16 +441,17 @@ rnnd_prepare <- function(index) {
         "rnndescent_prepared_sparse_index",
         "rnndescent_prepared_index"
       ),
-      metric_correction = if (use_alt_metric && metric != actual_metric) metric
+      metric_correction = metric_correction
     ))
   }
   structure(
-    rnn_prepare_dense_index(reference, graph, forest, forest$actual_metric),
-    class = "rnndescent_prepared_index"
+    rnn_prepare_dense_index(reference, graph, forest, actual_metric),
+    class = "rnndescent_prepared_index",
+    metric_correction = metric_correction
   )
 }
 
-query_prepared_sparse <- function(
+query_prepared_index <- function(
   index,
   query,
   k,
@@ -472,34 +460,56 @@ query_prepared_sparse <- function(
   n_threads,
   verbose
 ) {
-  if (!is_sparse(query)) {
-    stop("Prepared sparse indexes require a sparse query")
+  sparse <- inherits(index, "rnndescent_prepared_sparse_index")
+  if (sparse) {
+    k <- check_count(k, "k", max = .Machine$integer.max)
+    if (!is_sparse(query)) {
+      stop("Prepared sparse indexes require a sparse query")
+    }
+  } else {
+    if (!is.matrix(query) || !(is.double(query) || is.integer(query))) {
+      stop("Prepared indexes require a dense numeric query")
+    }
+    k <- check_count(k, "k", max = .Machine$integer.max)
   }
   metric <- attr(index, "metric_correction", exact = TRUE)
   convert_seed_distances <- if (!is.null(metric)) {
     function(dist) {
       apply_alt_metric_uncorrection(
         metric,
-        apply_alt_metric_correction(metric, dist, TRUE),
-        TRUE
+        apply_alt_metric_correction(metric, dist, sparse),
+        sparse
       )
     }
   }
-  result <- rnn_query_prepared_sparse(
-    index,
-    query@i,
-    query@p,
-    query@x,
-    nrow(query),
-    k,
-    epsilon,
-    max_search_fraction,
-    n_threads,
-    verbose,
-    convert_seed_distances
-  )
+  result <- if (sparse) {
+    rnn_query_prepared_sparse(
+      index,
+      query@i,
+      query@p,
+      query@x,
+      nrow(query),
+      k,
+      epsilon,
+      max_search_fraction,
+      n_threads,
+      verbose,
+      convert_seed_distances
+    )
+  } else {
+    rnn_query_prepared(
+      index,
+      query,
+      k,
+      epsilon,
+      max_search_fraction,
+      n_threads,
+      verbose,
+      convert_seed_distances
+    )
+  }
   if (!is.null(metric)) {
-    result$dist <- apply_alt_metric_correction(metric, result$dist, TRUE)
+    result$dist <- apply_alt_metric_correction(metric, result$dist, sparse)
   }
   result
 }
@@ -609,23 +619,7 @@ rnnd_query <-
       if (!is.null(init)) {
         stop("init must be NULL when querying a prepared index")
       }
-      if (inherits(index, "rnndescent_prepared_sparse_index")) {
-        k <- check_count(k, "k", max = .Machine$integer.max)
-        return(query_prepared_sparse(
-          index,
-          query,
-          k,
-          epsilon,
-          max_search_fraction,
-          n_threads,
-          verbose
-        ))
-      }
-      if (!is.matrix(query) || !(is.double(query) || is.integer(query))) {
-        stop("Prepared indexes require a dense numeric query")
-      }
-      k <- check_count(k, "k", max = .Machine$integer.max)
-      return(rnn_query_prepared(
+      return(query_prepared_index(
         index,
         query,
         k,

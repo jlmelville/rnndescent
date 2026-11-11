@@ -24,6 +24,14 @@
 
 namespace rnndescent {
 
+template <typename In>
+void rank_dense_observations(std::vector<In> &data, std::size_t dimension) {
+  for (auto begin = data.begin(); begin != data.end(); begin += dimension) {
+    const auto ranks = tdoann::rankdata<In>(begin, begin + dimension);
+    std::copy(ranks.cbegin(), ranks.cend(), begin);
+  }
+}
+
 struct PreparedDenseIndex {
   using In = RNN_DEFAULT_IN;
   using Out = RNN_DEFAULT_DIST;
@@ -37,6 +45,7 @@ struct PreparedDenseIndex {
   std::size_t ndim;
   std::string metric;
   tdoann::DistanceFunc<In, Out> calculate;
+  tdoann::PreprocessFunc<In> preprocess;
 };
 
 inline auto prepared_index_tag() -> SEXP {
@@ -95,13 +104,22 @@ class PreparedIndexQuery final
 
   const PreparedDenseIndex &index;
   std::vector<In> query;
+  std::vector<In> query_ranks;
 
 public:
   PreparedIndexQuery(const PreparedDenseIndex &index,
                      const Rcpp::NumericMatrix &query_matrix)
-      : index(index), query(r_to_vec<In>(query_matrix)) {
-    if (index.metric == "cosine-preprocess") {
-      tdoann::normalize(query, index.ndim);
+      : index(index), query(is_probability_metric(index.metric)
+                                ? r_to_vec_for_probability<In>(
+                                      query_matrix, index.metric, "query")
+                                : r_to_vec<In>(query_matrix)) {
+    validate_haversine_radians(query, index.ndim, index.metric);
+    if (index.preprocess) {
+      index.preprocess(query, index.ndim);
+    } else if (index.metric == "spearmanr") {
+      // Explicit forest projections use the original query coordinates.
+      query_ranks = query;
+      rank_dense_observations(query_ranks, index.ndim);
     }
   }
 
@@ -115,7 +133,10 @@ public:
   }
   Out calculate(const Idx &ref, const Idx &qry) const override {
     auto begin = get_x(ref);
-    return index.calculate(begin, begin + index.ndim, get_y(qry));
+    const auto values = query_ranks.empty()
+                            ? get_y(qry)
+                            : query_ranks.cbegin() + qry * index.ndim;
+    return index.calculate(begin, begin + index.ndim, values);
   }
 };
 

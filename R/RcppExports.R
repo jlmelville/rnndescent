@@ -185,8 +185,8 @@ rnn_score_forest <- function(idx, search_forest, n_trees, n_threads, verbose = F
     .Call(`_rnndescent_rnn_score_forest`, idx, search_forest, n_trees, n_threads, verbose)
 }
 
-rnn_query_prepared <- function(handle, query, k, epsilon, max_search_fraction, n_threads, verbose) {
-    .Call(`_rnndescent_rnn_query_prepared`, handle, query, k, epsilon, max_search_fraction, n_threads, verbose)
+rnn_query_prepared <- function(handle, query, k, epsilon, max_search_fraction, n_threads, verbose, convert_seed_distances) {
+    .Call(`_rnndescent_rnn_query_prepared`, handle, query, k, epsilon, max_search_fraction, n_threads, verbose, convert_seed_distances)
 }
 
 rnn_query_prepared_sparse <- function(handle, query_ind, query_ptr, query_data, ndim, k, epsilon, max_search_fraction, n_threads, verbose, convert_seed_distances) {

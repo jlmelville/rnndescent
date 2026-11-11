@@ -500,22 +500,30 @@ void rnn_release_prepared_indexes() {
 SEXP rnn_prepare_dense_index(const NumericMatrix &reference, const List &graph,
                              const List &forest, const std::string &metric) {
   using Index = rnndescent::PreparedDenseIndex;
-  if (reference.nrow() == 0 || reference.ncol() == 0 ||
-      (metric != "euclidean" && metric != "sqeuclidean" &&
-       metric != "cosine-preprocess")) {
-    Rcpp::stop(
-        "Expected a nonempty dense Euclidean or cosine-preprocess reference");
+  if (reference.nrow() == 0 || reference.ncol() == 0) {
+    Rcpp::stop("Expected a nonempty dense numeric reference");
   }
+  auto [calculate, preprocess] =
+      get_dense_distance_funcs<Index::In, Index::Out>(metric);
+  const auto ndim = static_cast<std::size_t>(reference.nrow());
+  validate_haversine_ndim(ndim, metric);
   check_prepared_forest(forest, reference.ncol(), reference.nrow());
   auto search_graph = prepared_search_graph(graph, reference.ncol());
-  auto index = std::make_unique<Index>(Index{
-      copy_finite_reference<Index::In>(reference), std::move(search_graph),
-      r_to_search_forest<Index::In, Index::Idx>(forest),
-      static_cast<std::size_t>(reference.nrow()), metric,
-      get_dense_distance_funcs<Index::In, Index::Out>(metric).first});
-  if (metric == "cosine-preprocess") {
-    tdoann::normalize(index->reference, index->ndim);
+  auto data = is_probability_metric(metric)
+                  ? r_to_vec_for_probability<Index::In>(reference, metric,
+                                                        "reference", true)
+                  : copy_finite_reference<Index::In>(reference);
+  validate_haversine_radians(data, ndim, metric);
+  if (preprocess) {
+    preprocess(data, ndim);
+  } else if (metric == "spearmanr") {
+    rnndescent::rank_dense_observations(data, ndim);
+    calculate = tdoann::correlation<Index::Out, tdoann::DataIt<Index::In>>;
   }
+  auto index = std::make_unique<Index>(
+      Index{std::move(data), std::move(search_graph),
+            r_to_search_forest<Index::In, Index::Idx>(forest), ndim, metric,
+            calculate, preprocess});
   return register_prepared_index(std::move(index),
                                  rnndescent::prepared_index_tag());
 }

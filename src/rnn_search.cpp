@@ -359,10 +359,31 @@ List dense_query_impl(
                        max_search_fraction, n_threads, verbose);
 }
 
+namespace {
+
+auto prepared_seed_distances(const List &seeds, SEXP convert_seed_distances)
+    -> NumericMatrix {
+  const NumericMatrix distances = seeds["dist"];
+  if (convert_seed_distances == R_NilValue) {
+    return distances;
+  }
+  // Match the ordinary path's conversion to the public metric and back.
+  const Rcpp::Function convert(convert_seed_distances);
+  auto converted = Rcpp::as<NumericMatrix>(convert(distances));
+  if (converted.nrow() != distances.nrow() ||
+      converted.ncol() != distances.ncol()) {
+    Rcpp::stop("Converted seed distances must preserve their dimensions");
+  }
+  return converted;
+}
+
+} // namespace
+
 // [[Rcpp::export(rng = false)]]
 List rnn_query_prepared(SEXP handle, const NumericMatrix &query, uint32_t k,
                         double epsilon, double max_search_fraction,
-                        std::size_t n_threads, bool verbose) {
+                        std::size_t n_threads, bool verbose,
+                        SEXP convert_seed_distances) {
   const auto &index =
       rnndescent::prepared_index<rnndescent::PreparedDenseIndex>(
           handle, rnndescent::prepared_index_tag());
@@ -384,18 +405,10 @@ List rnn_query_prepared(SEXP handle, const NumericMatrix &query, uint32_t k,
                             n_threads, progress, executor);
   // Preserve the current sorted-seed order before building the traversal heap.
   const auto seeds = heap_to_r(seed_heap);
-  auto result = dense_query_impl(
-      distance, index.graph, seeds["idx"], seeds["dist"], index.metric,
-      index.ndim, epsilon, max_search_fraction, n_threads, verbose);
-  if (index.metric == "sqeuclidean") {
-    NumericMatrix distances = result["dist"];
-    for (auto &value : distances) {
-      if (!R_IsNA(value)) {
-        value = std::sqrt(value);
-      }
-    }
-  }
-  return result;
+  const auto distances = prepared_seed_distances(seeds, convert_seed_distances);
+  return dense_query_impl(distance, index.graph, seeds["idx"], distances,
+                          index.metric, index.ndim, epsilon,
+                          max_search_fraction, n_threads, verbose);
 }
 
 // [[Rcpp::export(rng = false)]]
@@ -432,19 +445,8 @@ List rnn_query_prepared_sparse(SEXP handle, const IntegerVector &query_ind,
       },
       index.forest);
   const auto seeds = heap_to_r(seed_heap);
-  const IntegerMatrix indices = seeds["idx"];
-  NumericMatrix distances = seeds["dist"];
-  // The ordinary R path converts forest distances to the public metric and
-  // back before traversal. Reuse its conversion to preserve rounding.
-  if (convert_seed_distances != R_NilValue) {
-    const Rcpp::Function convert(convert_seed_distances);
-    distances = Rcpp::as<NumericMatrix>(convert(distances));
-    if (distances.nrow() != indices.nrow() ||
-        distances.ncol() != indices.ncol()) {
-      Rcpp::stop("Converted seed distances must preserve their dimensions");
-    }
-  }
-  return nn_query_impl(distance, index.graph, indices, distances, epsilon,
+  const auto distances = prepared_seed_distances(seeds, convert_seed_distances);
+  return nn_query_impl(distance, index.graph, seeds["idx"], distances, epsilon,
                        max_search_fraction, n_threads, verbose);
 }
 
