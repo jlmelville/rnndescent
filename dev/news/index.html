@@ -64,7 +64,8 @@
 </ul></div>
 <div class="section level3">
 <h3 id="bug-fixes-and-minor-improvements-development-version">Bug fixes and minor improvements<a class="anchor" aria-label="anchor" href="#bug-fixes-and-minor-improvements-development-version"></a></h3>
-<ul><li><p>Batch dense graph traversal for <code>dot</code>, <code>alternative-dot</code>, <code>cosine-preprocess</code>, and <code>correlation-preprocess</code> using shared traversal code. Small floating-point differences can change the order of near-tied neighbors.</p></li>
+<ul><li><p>Extend shared dense graph traversal to <code>manhattan</code>, <code>cosine</code>, <code>alternative-cosine</code>, <code>correlation</code>, <code>hellinger</code>, and <code>alternative-hellinger</code>. Small floating-point differences can change the order of near-tied neighbors.</p></li>
+<li><p>Batch dense graph traversal for <code>dot</code>, <code>alternative-dot</code>, <code>cosine-preprocess</code>, and <code>correlation-preprocess</code> using shared traversal code. Small floating-point differences can change the order of near-tied neighbors.</p></li>
 <li><p>Share projections across the first eight levels of multithreaded dense Euclidean initialization forests when only their leaves are needed. The changed split order can produce different approximate neighbors for the same seed.</p></li>
 <li><p>Build a balanced, graph-informed search tree when a dense Euclidean index uses one explicit tree for query initialization.</p></li>
 <li><p>Skip population sampling for already-full rows when filling a partially missing neighbor graph. This changes the local RNG stream for later incomplete rows, so the same seed and thread setting may produce different filled neighbors and approximate results for mixed initializers. Deterministic serial/fixed-schedule repetition is preserved; parallel NN-descent remains scheduling-dependent.</p></li>
