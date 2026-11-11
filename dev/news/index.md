@@ -6,11 +6,12 @@
 
 - Use
   [`rnnd_prepare()`](https://jlmelville.github.io/rnndescent/dev/reference/rnnd_prepare.md)
-  to reuse a native dense Euclidean, dense `cosine-preprocess`, or
-  sparse index across repeated calls to
+  to reuse a native index across repeated calls to
   [`rnnd_query()`](https://jlmelville.github.io/rnndescent/dev/reference/rnnd_query.md).
-  Prepared dense `cosine-preprocess` indexes normalize the reference
-  once and batch distance calculations during graph traversal.
+  Dense numeric indexes support the dense metrics with an explicit
+  search forest, and sparse indexes support explicit and implicit
+  forests. Preparation applies reference preprocessing once and caches
+  dense `spearmanr` reference ranks.
 
 - Add utilities to truncate and sort neighbor graphs, adjust self
   neighbors, convert graphs to sparse matrices, and calculate distances

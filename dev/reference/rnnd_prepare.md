@@ -2,10 +2,9 @@
 
 Copy an index into native memory once and pass the returned handle to
 [`rnnd_query()`](https://jlmelville.github.io/rnndescent/dev/reference/rnnd_query.md)
-for repeated queries. Dense numeric indexes using `"euclidean"` or
-`"cosine-preprocess"` require an explicit search forest. Sparse indexes
-support the sparse metrics with either explicit or implicit search
-forests.
+for repeated queries. Dense numeric indexes support the dense metrics
+with an explicit search forest. Sparse indexes support the sparse
+metrics with either explicit or implicit search forests.
 
 ## Usage
 
@@ -33,11 +32,11 @@ longer in use. Unloading the package also releases the snapshot and
 invalidates the handle. To use the index in another session, save the
 original index and prepare it again after loading it.
 
-Preparing a dense `"cosine-preprocess"` index normalizes the reference
-once. Queries normalize each incoming vector and evaluate up to four
-candidate distances together during graph traversal. Floating-point
-rounding can differ from ordinary queries and may affect the ordering of
-near ties.
+Preparation applies any metric-specific reference preprocessing once.
+For dense `"spearmanr"`, the native snapshot stores reference ranks and
+queries rank their features once for distance scoring. Graph traversal
+uses the same distance kernels as ordinary queries. Floating-point
+rounding can differ and may affect the ordering of near ties.
 
 ## See also
 
