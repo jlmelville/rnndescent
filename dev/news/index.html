@@ -64,7 +64,8 @@
 </ul></div>
 <div class="section level3">
 <h3 id="bug-fixes-and-minor-improvements-development-version">Bug fixes and minor improvements<a class="anchor" aria-label="anchor" href="#bug-fixes-and-minor-improvements-development-version"></a></h3>
-<ul><li><p>Use packed distances for default <code>jaccard</code> builds on dense logical matrices during implicit forest construction, nearest neighbor descent, and search graph pruning.</p></li>
+<ul><li><p>Reuse distance preparation between forest seeding and graph traversal in <code><a href="../reference/rnnd_query.html">rnnd_query()</a></code> for dense numeric, sparse, and compatible dense logical inputs. This packs dense logical data only once when querying an implicit forest with default <code>jaccard</code>.</p></li>
+<li><p>Use packed distances for default <code>jaccard</code> builds on dense logical matrices during implicit forest construction, nearest neighbor descent, and search graph pruning.</p></li>
 <li><p>Honor stored alternate-metric flags such as <code>1L</code> in <code><a href="../reference/rnnd_prepare.html">rnnd_prepare()</a></code>.</p></li>
 <li><p>Cache ranks on first use during dense <code>spearmanr</code> queries. Dense numeric searches share the cache between forest seeding and graph traversal.</p></li>
 <li><p>Pack dense logical inputs for default <code>jaccard</code> queries to speed up implicit-forest seeding and graph traversal.</p></li>
