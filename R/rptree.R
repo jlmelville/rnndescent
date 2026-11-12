@@ -534,7 +534,8 @@ rpf_knn_query_impl <- function(
         metric = metric,
         cache = cache,
         n_threads = n_threads,
-        verbose = verbose
+        verbose = verbose,
+        prepared_query = prepared_query
       )
   } else if (is.logical(reference)) {
     res <-
@@ -546,7 +547,8 @@ rpf_knn_query_impl <- function(
         metric = metric,
         cache = cache,
         n_threads = n_threads,
-        verbose = verbose
+        verbose = verbose,
+        prepared_query = prepared_query
       )
   } else {
     res <-

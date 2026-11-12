@@ -484,8 +484,8 @@ List rnn_query_prepared_logical(SEXP handle, const LogicalMatrix &query,
 // The nested native search calls manage RNG state themselves.
 // [[Rcpp::export(rng = false)]]
 SEXP rnn_with_prepared_query(Rcpp::Function search) {
-  PreparedDenseQuery distance;
-  Rcpp::XPtr<PreparedDenseQuery> handle(&distance, false, prepared_query_tag());
+  PreparedQuery distance;
+  Rcpp::XPtr<PreparedQuery> handle(&distance, false, prepared_query_tag());
   // Clear the handle before the owning stack frame goes away, including on
   // error.
   struct ClearHandle {
@@ -503,17 +503,17 @@ List rnn_query(const NumericMatrix &reference, const List &reference_graph_list,
                std::size_t n_threads, bool verbose,
                bool check_reference_during_copy = false,
                SEXP prepared_query = R_NilValue) {
-  auto distance_ptr =
-      prepared_query == R_NilValue
-          ? create_query_vector_distance(reference, query, metric,
-                                         check_reference_during_copy)
-          : std::move(prepared_query_slot(prepared_query));
+  auto distance_ptr = take_prepared_query(prepared_query);
   if (!distance_ptr) {
-    Rcpp::stop("No prepared query calculator from forest seeding");
+    distance_ptr = create_query_vector_distance(reference, query, metric,
+                                                check_reference_during_copy);
   }
-  return dense_query_impl(*distance_ptr, reference_graph_list, nn_idx, nn_dist,
-                          metric, reference.nrow(), epsilon,
-                          max_search_fraction, n_threads, verbose);
+  using Distance =
+      tdoann::VectorDistance<RNN_DEFAULT_IN, RNN_DEFAULT_DIST, RNN_DEFAULT_IDX>;
+  return dense_query_impl(dynamic_cast<const Distance &>(*distance_ptr),
+                          reference_graph_list, nn_idx, nn_dist, metric,
+                          reference.nrow(), epsilon, max_search_fraction,
+                          n_threads, verbose);
 }
 
 // [[Rcpp::export]]
@@ -522,8 +522,12 @@ List rnn_logical_query(const LogicalMatrix &reference,
                        const LogicalMatrix &query, const IntegerMatrix &nn_idx,
                        const NumericMatrix &nn_dist, const std::string &metric,
                        double epsilon, double max_search_fraction,
-                       std::size_t n_threads, bool verbose) {
-  auto distance_ptr = create_query_distance(reference, query, metric);
+                       std::size_t n_threads, bool verbose,
+                       SEXP prepared_query = R_NilValue) {
+  auto distance_ptr = take_prepared_query(prepared_query);
+  if (!distance_ptr) {
+    distance_ptr = create_query_distance(reference, query, metric);
+  }
   return nn_query_impl(*distance_ptr, reference_graph_list, nn_idx, nn_dist,
                        epsilon, max_search_fraction, n_threads, verbose);
 }
@@ -536,10 +540,13 @@ List rnn_sparse_query(
     std::size_t ndim, const List &reference_graph_list,
     const IntegerMatrix &nn_idx, const NumericMatrix &nn_dist,
     const std::string &metric, double epsilon, double max_search_fraction,
-    std::size_t n_threads, bool verbose) {
-  auto distance_ptr =
-      create_sparse_query_distance(ref_ind, ref_ptr, ref_data, query_ind,
-                                   query_ptr, query_data, ndim, metric);
+    std::size_t n_threads, bool verbose, SEXP prepared_query = R_NilValue) {
+  auto distance_ptr = take_prepared_query(prepared_query);
+  if (!distance_ptr) {
+    distance_ptr =
+        create_sparse_query_distance(ref_ind, ref_ptr, ref_data, query_ind,
+                                     query_ptr, query_data, ndim, metric);
+  }
   return nn_query_impl(*distance_ptr, reference_graph_list, nn_idx, nn_dist,
                        epsilon, max_search_fraction, n_threads, verbose);
 }

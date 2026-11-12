@@ -1155,24 +1155,29 @@ List rp_forest_search(const Matrix &query, const Matrix &reference,
                                          n_nbrs, rng_provider, cache, n_threads,
                                          progress, executor);
     auto result = heap_to_r(nn_heap);
-    if (prepared_query != R_NilValue) {
+    // Explicit logical trees use numeric vectors for their margins. The
+    // graph still needs a packed calculator for binary metrics.
+    const bool share_calculator =
+        std::is_same_v<Matrix, NumericMatrix> ||
+        !get_binary_query_distance_func<RNN_DEFAULT_DIST, Idx>(metric);
+    if (prepared_query != R_NilValue && share_calculator) {
       prepared_query_slot(prepared_query) = std::move(distance_ptr);
     }
     return result;
   } else if (margin_type == margin_type_to_string(MarginType::IMPLICIT)) {
-    if constexpr (std::is_same_v<Matrix, NumericMatrix>) {
-      if (prepared_query != R_NilValue) {
-        auto distance_ptr =
-            create_query_vector_distance(reference, query, metric);
-        auto result = rnn_rp_forest_search_implicit(
-            *distance_ptr, search_forest, n_nbrs, cache, n_threads, verbose);
-        prepared_query_slot(prepared_query) = std::move(distance_ptr);
-        return result;
+    auto distance_ptr = [&] {
+      if constexpr (std::is_same_v<Matrix, NumericMatrix>) {
+        return create_query_vector_distance(reference, query, metric);
+      } else {
+        return create_query_distance(reference, query, metric);
       }
+    }();
+    auto result = rnn_rp_forest_search_implicit(
+        *distance_ptr, search_forest, n_nbrs, cache, n_threads, verbose);
+    if (prepared_query != R_NilValue) {
+      prepared_query_slot(prepared_query) = std::move(distance_ptr);
     }
-    auto distance_ptr = create_query_distance(reference, query, metric);
-    return rnn_rp_forest_search_implicit(*distance_ptr, search_forest, n_nbrs,
-                                         cache, n_threads, verbose);
+    return result;
   } else {
     Rcpp::stop("Bad search forest type ", margin_type);
   }
@@ -1196,9 +1201,10 @@ List rnn_logical_rp_forest_search(const LogicalMatrix &query,
                                   const LogicalMatrix &reference,
                                   const List &search_forest, uint32_t n_nbrs,
                                   const std::string &metric, bool cache,
-                                  std::size_t n_threads, bool verbose = false) {
+                                  std::size_t n_threads, bool verbose = false,
+                                  SEXP prepared_query = R_NilValue) {
   return rp_forest_search(query, reference, search_forest, n_nbrs, metric,
-                          cache, n_threads, verbose);
+                          cache, n_threads, verbose, false, prepared_query);
 }
 
 // [[Rcpp::export]]
@@ -1208,7 +1214,7 @@ List rnn_sparse_rp_forest_search(
     const IntegerVector &query_ptr, const NumericVector &query_data,
     std::size_t ndim, const List &search_forest, uint32_t n_nbrs,
     const std::string &metric, bool cache, std::size_t n_threads,
-    bool verbose = false) {
+    bool verbose = false, SEXP prepared_query = R_NilValue) {
   RParallelExecutor executor;
   std::string margin_type = search_forest["margin"];
 
@@ -1228,13 +1234,21 @@ List rnn_sparse_rp_forest_search(
     auto nn_heap = tdoann::search_forest(search_forest_cpp, *distance_ptr,
                                          n_nbrs, rng_provider, cache, n_threads,
                                          progress, executor);
-    return heap_to_r(nn_heap);
+    auto result = heap_to_r(nn_heap);
+    if (prepared_query != R_NilValue) {
+      prepared_query_slot(prepared_query) = std::move(distance_ptr);
+    }
+    return result;
   } else if (margin_type == margin_type_to_string(MarginType::IMPLICIT)) {
     auto distance_ptr =
         create_sparse_query_distance(ref_ind, ref_ptr, ref_data, query_ind,
                                      query_ptr, query_data, ndim, metric);
-    return rnn_rp_forest_search_implicit(*distance_ptr, search_forest, n_nbrs,
-                                         cache, n_threads, verbose);
+    auto result = rnn_rp_forest_search_implicit(
+        *distance_ptr, search_forest, n_nbrs, cache, n_threads, verbose);
+    if (prepared_query != R_NilValue) {
+      prepared_query_slot(prepared_query) = std::move(distance_ptr);
+    }
+    return result;
   } else {
     Rcpp::stop("Bad search forest type ", margin_type);
   }

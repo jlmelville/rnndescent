@@ -177,12 +177,12 @@ rnn_rp_forest_search <- function(query, reference, search_forest, n_nbrs, metric
     .Call(`_rnndescent_rnn_rp_forest_search`, query, reference, search_forest, n_nbrs, metric, cache, n_threads, verbose, check_reference_during_copy, prepared_query)
 }
 
-rnn_logical_rp_forest_search <- function(query, reference, search_forest, n_nbrs, metric, cache, n_threads, verbose = FALSE) {
-    .Call(`_rnndescent_rnn_logical_rp_forest_search`, query, reference, search_forest, n_nbrs, metric, cache, n_threads, verbose)
+rnn_logical_rp_forest_search <- function(query, reference, search_forest, n_nbrs, metric, cache, n_threads, verbose = FALSE, prepared_query = NULL) {
+    .Call(`_rnndescent_rnn_logical_rp_forest_search`, query, reference, search_forest, n_nbrs, metric, cache, n_threads, verbose, prepared_query)
 }
 
-rnn_sparse_rp_forest_search <- function(ref_ind, ref_ptr, ref_data, query_ind, query_ptr, query_data, ndim, search_forest, n_nbrs, metric, cache, n_threads, verbose = FALSE) {
-    .Call(`_rnndescent_rnn_sparse_rp_forest_search`, ref_ind, ref_ptr, ref_data, query_ind, query_ptr, query_data, ndim, search_forest, n_nbrs, metric, cache, n_threads, verbose)
+rnn_sparse_rp_forest_search <- function(ref_ind, ref_ptr, ref_data, query_ind, query_ptr, query_data, ndim, search_forest, n_nbrs, metric, cache, n_threads, verbose = FALSE, prepared_query = NULL) {
+    .Call(`_rnndescent_rnn_sparse_rp_forest_search`, ref_ind, ref_ptr, ref_data, query_ind, query_ptr, query_data, ndim, search_forest, n_nbrs, metric, cache, n_threads, verbose, prepared_query)
 }
 
 rnn_score_forest <- function(idx, search_forest, n_trees, n_threads, verbose = FALSE) {
@@ -209,12 +209,12 @@ rnn_query <- function(reference, reference_graph_list, query, nn_idx, nn_dist, m
     .Call(`_rnndescent_rnn_query`, reference, reference_graph_list, query, nn_idx, nn_dist, metric, epsilon, max_search_fraction, n_threads, verbose, check_reference_during_copy, prepared_query)
 }
 
-rnn_logical_query <- function(reference, reference_graph_list, query, nn_idx, nn_dist, metric, epsilon, max_search_fraction, n_threads, verbose) {
-    .Call(`_rnndescent_rnn_logical_query`, reference, reference_graph_list, query, nn_idx, nn_dist, metric, epsilon, max_search_fraction, n_threads, verbose)
+rnn_logical_query <- function(reference, reference_graph_list, query, nn_idx, nn_dist, metric, epsilon, max_search_fraction, n_threads, verbose, prepared_query = NULL) {
+    .Call(`_rnndescent_rnn_logical_query`, reference, reference_graph_list, query, nn_idx, nn_dist, metric, epsilon, max_search_fraction, n_threads, verbose, prepared_query)
 }
 
-rnn_sparse_query <- function(ref_ind, ref_ptr, ref_data, query_ind, query_ptr, query_data, ndim, reference_graph_list, nn_idx, nn_dist, metric, epsilon, max_search_fraction, n_threads, verbose) {
-    .Call(`_rnndescent_rnn_sparse_query`, ref_ind, ref_ptr, ref_data, query_ind, query_ptr, query_data, ndim, reference_graph_list, nn_idx, nn_dist, metric, epsilon, max_search_fraction, n_threads, verbose)
+rnn_sparse_query <- function(ref_ind, ref_ptr, ref_data, query_ind, query_ptr, query_data, ndim, reference_graph_list, nn_idx, nn_dist, metric, epsilon, max_search_fraction, n_threads, verbose, prepared_query = NULL) {
+    .Call(`_rnndescent_rnn_sparse_query`, ref_ind, ref_ptr, ref_data, query_ind, query_ptr, query_data, ndim, reference_graph_list, nn_idx, nn_dist, metric, epsilon, max_search_fraction, n_threads, verbose, prepared_query)
 }
 
 is_binary_metric <- function(metric) {

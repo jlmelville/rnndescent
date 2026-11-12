@@ -715,11 +715,7 @@ rnnd_query <-
         prepared_query = prepared_query
       )
     }
-    reuse_spearman <- is.matrix(reference) &&
-      is.numeric(reference) &&
-      is.list(init) &&
-      identical(init$actual_metric, "spearmanr")
-    if ((check_reference_during_copy || reuse_spearman) && is_rpforest(init)) {
+    if (is.list(init) && is_rpforest(init)) {
       return(rnn_with_prepared_query(search))
     }
     search()
@@ -2262,7 +2258,8 @@ graph_knn_query_impl <- function(
           query_ind = query@i,
           query_ptr = query@p,
           query_data = query@x,
-          ndim = nrow(reference)
+          ndim = nrow(reference),
+          prepared_query = prepared_query
         ),
         args
       )
@@ -2271,7 +2268,11 @@ graph_knn_query_impl <- function(
     res <- do.call(
       rnn_logical_query,
       c(
-        list(reference = reference, query = query),
+        list(
+          reference = reference,
+          query = query,
+          prepared_query = prepared_query
+        ),
         args
       )
     )

@@ -14,6 +14,11 @@
 
 ## Bug fixes and minor improvements
 
+* Reuse distance preparation between forest seeding and graph traversal in
+  `rnnd_query()` for dense numeric, sparse, and compatible dense logical
+  inputs. This packs dense logical data only once when querying an implicit
+  forest with default `jaccard`.
+
 * Use packed distances for default `jaccard` builds on dense logical matrices
   during implicit forest construction, nearest neighbor descent, and search
   graph pruning.
