@@ -414,12 +414,7 @@ rnnd_prepare <- function(index) {
     stop("rnnd_prepare() requires a compatible ", forest_type, " search forest")
   }
   metric <- forest$original_metric
-  # Ordinary queries reuse older cosine trees with plain cosine scoring.
-  actual_metric <- if (identical(metric, "cosine")) {
-    "cosine"
-  } else {
-    forest$actual_metric
-  }
+  actual_metric <- forest_scoring_metric(forest)
   use_alt_metric <- forest$use_alt_metric
   if (
     !identical(
@@ -674,26 +669,12 @@ rnnd_query <-
       ))
     }
     check_sparse(index$data, query)
-    check_reference_during_copy <- FALSE
     reference <- index$data
-    if (
-      is.matrix(reference) &&
-        is.double(reference) &&
-        !is.object(reference) &&
-        length(reference) > 0L &&
-        is.list(init) &&
-        !is.object(init) &&
-        identical(index$original_metric, "euclidean")
-    ) {
-      check_reference_during_copy <- if (is_rpforest(init)) {
-        identical(init$margin, "explicit") &&
-          identical(init$original_metric, "euclidean") &&
-          (identical(init$actual_metric, "sqeuclidean") ||
-            identical(init$actual_metric, "euclidean"))
-      } else {
-        !is.null(init$idx) && !is.null(init$dist)
-      }
-    }
+    check_reference_during_copy <- can_validate_reference_on_copy(
+      reference,
+      index$original_metric,
+      init
+    )
     if (!check_reference_during_copy) {
       reference <- x2m(reference, "C", "reference")
     }
@@ -721,6 +702,31 @@ rnnd_query <-
     search()
   }
 
+
+# A native copy can validate the reference only if it is the first consumer.
+# Random initialization and indices without distances may score it earlier.
+can_validate_reference_on_copy <- function(reference, metric, init) {
+  if (
+    !is.matrix(reference) ||
+      !is.double(reference) ||
+      is.object(reference) ||
+      length(reference) == 0L ||
+      !is.list(init) ||
+      is.object(init) ||
+      !identical(metric, "euclidean")
+  ) {
+    return(FALSE)
+  }
+  if (is_rpforest(init)) {
+    return(
+      identical(init$margin, "explicit") &&
+        identical(init$original_metric, "euclidean") &&
+        (identical(init$actual_metric, "sqeuclidean") ||
+          identical(init$actual_metric, "euclidean"))
+    )
+  }
+  !is.null(init$idx) && !is.null(init$dist)
+}
 
 #' Find approximate nearest neighbors
 #'
@@ -2088,11 +2094,8 @@ graph_knn_query_impl <- function(
 ) {
   if (is.list(init) && is_rpforest(init)) {
     tsmessage("Reading metric data from forest")
-    actual_metric <- init$actual_metric
+    actual_metric <- forest_scoring_metric(init)
     metric <- init$original_metric
-    if (metric == "cosine") {
-      actual_metric <- "cosine"
-    }
     use_alt_metric <- init$use_alt_metric
     if (use_alt_metric && metric != actual_metric) {
       tsmessage("Using alt metric '", actual_metric, "' for '", metric, "'")

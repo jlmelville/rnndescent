@@ -433,8 +433,9 @@ inline auto pack_logical_matrix(const Rcpp::LogicalMatrix &matrix)
 }
 
 template <typename Out, typename Idx>
-auto get_binary_query_distance_func(const std::string &metric)
+auto find_packed_distance_func(const std::string &metric)
     -> tdoann::BinaryDistanceFunc<Out, Idx> {
+  // Auto forest selection continues to use the original binary metric map.
   if (metric == "alternative-jaccard") {
     return tdoann::balternative_jaccard<Out, Idx>;
   }
@@ -450,21 +451,12 @@ create_query_distance(const Rcpp::LogicalMatrix &reference,
                       const std::string &metric) {
   using Out = RNN_DEFAULT_DIST;
   const auto ndim = reference.nrow();
-  const auto evaluate = get_binary_query_distance_func<Out, Idx>(metric);
-
-  if (metric == "alternative-jaccard") {
+  if (const auto evaluate = find_packed_distance_func<Out, Idx>(metric)) {
     auto ref_bits = pack_logical_matrix(reference);
     auto query_bits = pack_logical_matrix(query);
     return std::make_unique<tdoann::BinaryQueryDistanceCalculator<Out, Idx>>(
         std::move(ref_bits), std::move(query_bits), reference.ncol(),
         query.ncol(), ndim, evaluate);
-  }
-
-  if (evaluate) {
-    std::vector<uint8_t> ref_bvec = r_to_binvec(reference);
-    std::vector<uint8_t> query_bvec = r_to_binvec(query);
-    return std::make_unique<tdoann::BinaryQueryDistanceCalculator<Out, Idx>>(
-        std::move(ref_bvec), std::move(query_bvec), ndim, evaluate);
   }
 
   auto ref_vec = r_to_vec<In>(reference);
@@ -570,17 +562,9 @@ create_self_distance(const Rcpp::LogicalMatrix &data,
   using Out = RNN_DEFAULT_DIST;
   const auto ndim = data.nrow();
 
-  if (metric == "alternative-jaccard") {
+  if (const auto evaluate = find_packed_distance_func<Out, Idx>(metric)) {
     return std::make_unique<tdoann::BinarySelfDistanceCalculator<Out, Idx>>(
-        pack_logical_matrix(data), data.ncol(), ndim,
-        tdoann::balternative_jaccard<Out, Idx>);
-  }
-
-  const auto &metric_map = get_binary_metric_map<Out, Idx>();
-  if (metric_map.count(metric) > 0) {
-    std::vector<uint8_t> data_bvec = r_to_binvec(data);
-    return std::make_unique<tdoann::BinarySelfDistanceCalculator<Out, Idx>>(
-        std::move(data_bvec), ndim, metric_map.at(metric));
+        pack_logical_matrix(data), data.ncol(), ndim, evaluate);
   }
 
   auto data_vec = r_to_vec<In>(data);

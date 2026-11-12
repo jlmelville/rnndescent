@@ -385,6 +385,56 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rnn_release_prepared_indexes
+void rnn_release_prepared_indexes();
+RcppExport SEXP _rnndescent_rnn_release_prepared_indexes() {
+BEGIN_RCPP
+    rnn_release_prepared_indexes();
+    return R_NilValue;
+END_RCPP
+}
+// rnn_prepare_dense_index
+SEXP rnn_prepare_dense_index(const NumericMatrix& reference, const List& graph, const List& forest, const std::string& metric);
+RcppExport SEXP _rnndescent_rnn_prepare_dense_index(SEXP referenceSEXP, SEXP graphSEXP, SEXP forestSEXP, SEXP metricSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type reference(referenceSEXP);
+    Rcpp::traits::input_parameter< const List& >::type graph(graphSEXP);
+    Rcpp::traits::input_parameter< const List& >::type forest(forestSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
+    rcpp_result_gen = Rcpp::wrap(rnn_prepare_dense_index(reference, graph, forest, metric));
+    return rcpp_result_gen;
+END_RCPP
+}
+// rnn_prepare_logical_index
+SEXP rnn_prepare_logical_index(const LogicalMatrix& reference, const List& graph, const List& forest, const std::string& metric);
+RcppExport SEXP _rnndescent_rnn_prepare_logical_index(SEXP referenceSEXP, SEXP graphSEXP, SEXP forestSEXP, SEXP metricSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< const LogicalMatrix& >::type reference(referenceSEXP);
+    Rcpp::traits::input_parameter< const List& >::type graph(graphSEXP);
+    Rcpp::traits::input_parameter< const List& >::type forest(forestSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
+    rcpp_result_gen = Rcpp::wrap(rnn_prepare_logical_index(reference, graph, forest, metric));
+    return rcpp_result_gen;
+END_RCPP
+}
+// rnn_prepare_sparse_index
+SEXP rnn_prepare_sparse_index(const IntegerVector& ind, const IntegerVector& ptr, const NumericVector& data, int ndim, const List& graph, const List& forest, const std::string& metric);
+RcppExport SEXP _rnndescent_rnn_prepare_sparse_index(SEXP indSEXP, SEXP ptrSEXP, SEXP dataSEXP, SEXP ndimSEXP, SEXP graphSEXP, SEXP forestSEXP, SEXP metricSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< const IntegerVector& >::type ind(indSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type ptr(ptrSEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< int >::type ndim(ndimSEXP);
+    Rcpp::traits::input_parameter< const List& >::type graph(graphSEXP);
+    Rcpp::traits::input_parameter< const List& >::type forest(forestSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
+    rcpp_result_gen = Rcpp::wrap(rnn_prepare_sparse_index(ind, ptr, data, ndim, graph, forest, metric));
+    return rcpp_result_gen;
+END_RCPP
+}
 // rnn_sparse_random_knn
 List rnn_sparse_random_knn(const IntegerVector& ind, const IntegerVector& ptr, const NumericVector& data, std::size_t ndim, uint32_t nnbrs, const std::string& metric, bool order_by_distance, std::size_t n_threads, bool verbose);
 RcppExport SEXP _rnndescent_rnn_sparse_random_knn(SEXP indSEXP, SEXP ptrSEXP, SEXP dataSEXP, SEXP ndimSEXP, SEXP nnbrsSEXP, SEXP metricSEXP, SEXP order_by_distanceSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
@@ -489,56 +539,6 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< std::size_t >::type n_threads(n_threadsSEXP);
     Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
     rcpp_result_gen = Rcpp::wrap(rnn_sparse_random_knn_query(ref_ind, ref_ptr, ref_data, query_ind, query_ptr, query_data, ndim, nnbrs, metric, order_by_distance, n_threads, verbose));
-    return rcpp_result_gen;
-END_RCPP
-}
-// rnn_release_prepared_indexes
-void rnn_release_prepared_indexes();
-RcppExport SEXP _rnndescent_rnn_release_prepared_indexes() {
-BEGIN_RCPP
-    rnn_release_prepared_indexes();
-    return R_NilValue;
-END_RCPP
-}
-// rnn_prepare_dense_index
-SEXP rnn_prepare_dense_index(const NumericMatrix& reference, const List& graph, const List& forest, const std::string& metric);
-RcppExport SEXP _rnndescent_rnn_prepare_dense_index(SEXP referenceSEXP, SEXP graphSEXP, SEXP forestSEXP, SEXP metricSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::traits::input_parameter< const NumericMatrix& >::type reference(referenceSEXP);
-    Rcpp::traits::input_parameter< const List& >::type graph(graphSEXP);
-    Rcpp::traits::input_parameter< const List& >::type forest(forestSEXP);
-    Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
-    rcpp_result_gen = Rcpp::wrap(rnn_prepare_dense_index(reference, graph, forest, metric));
-    return rcpp_result_gen;
-END_RCPP
-}
-// rnn_prepare_logical_index
-SEXP rnn_prepare_logical_index(const LogicalMatrix& reference, const List& graph, const List& forest, const std::string& metric);
-RcppExport SEXP _rnndescent_rnn_prepare_logical_index(SEXP referenceSEXP, SEXP graphSEXP, SEXP forestSEXP, SEXP metricSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::traits::input_parameter< const LogicalMatrix& >::type reference(referenceSEXP);
-    Rcpp::traits::input_parameter< const List& >::type graph(graphSEXP);
-    Rcpp::traits::input_parameter< const List& >::type forest(forestSEXP);
-    Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
-    rcpp_result_gen = Rcpp::wrap(rnn_prepare_logical_index(reference, graph, forest, metric));
-    return rcpp_result_gen;
-END_RCPP
-}
-// rnn_prepare_sparse_index
-SEXP rnn_prepare_sparse_index(const IntegerVector& ind, const IntegerVector& ptr, const NumericVector& data, int ndim, const List& graph, const List& forest, const std::string& metric);
-RcppExport SEXP _rnndescent_rnn_prepare_sparse_index(SEXP indSEXP, SEXP ptrSEXP, SEXP dataSEXP, SEXP ndimSEXP, SEXP graphSEXP, SEXP forestSEXP, SEXP metricSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::traits::input_parameter< const IntegerVector& >::type ind(indSEXP);
-    Rcpp::traits::input_parameter< const IntegerVector& >::type ptr(ptrSEXP);
-    Rcpp::traits::input_parameter< const NumericVector& >::type data(dataSEXP);
-    Rcpp::traits::input_parameter< int >::type ndim(ndimSEXP);
-    Rcpp::traits::input_parameter< const List& >::type graph(graphSEXP);
-    Rcpp::traits::input_parameter< const List& >::type forest(forestSEXP);
-    Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
-    rcpp_result_gen = Rcpp::wrap(rnn_prepare_sparse_index(ind, ptr, data, ndim, graph, forest, metric));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -1005,16 +1005,16 @@ static const R_CallMethodDef CallEntries[] = {
     {"_rnndescent_rnn_logical_diversify", (DL_FUNC) &_rnndescent_rnn_logical_diversify, 6},
     {"_rnndescent_rnn_merge_graph_lists", (DL_FUNC) &_rnndescent_rnn_merge_graph_lists, 2},
     {"_rnndescent_rnn_degree_prune", (DL_FUNC) &_rnndescent_rnn_degree_prune, 3},
+    {"_rnndescent_rnn_release_prepared_indexes", (DL_FUNC) &_rnndescent_rnn_release_prepared_indexes, 0},
+    {"_rnndescent_rnn_prepare_dense_index", (DL_FUNC) &_rnndescent_rnn_prepare_dense_index, 4},
+    {"_rnndescent_rnn_prepare_logical_index", (DL_FUNC) &_rnndescent_rnn_prepare_logical_index, 4},
+    {"_rnndescent_rnn_prepare_sparse_index", (DL_FUNC) &_rnndescent_rnn_prepare_sparse_index, 7},
     {"_rnndescent_rnn_sparse_random_knn", (DL_FUNC) &_rnndescent_rnn_sparse_random_knn, 9},
     {"_rnndescent_rnn_random_knn", (DL_FUNC) &_rnndescent_rnn_random_knn, 6},
     {"_rnndescent_rnn_logical_random_knn", (DL_FUNC) &_rnndescent_rnn_logical_random_knn, 6},
     {"_rnndescent_rnn_random_knn_query", (DL_FUNC) &_rnndescent_rnn_random_knn_query, 7},
     {"_rnndescent_rnn_logical_random_knn_query", (DL_FUNC) &_rnndescent_rnn_logical_random_knn_query, 7},
     {"_rnndescent_rnn_sparse_random_knn_query", (DL_FUNC) &_rnndescent_rnn_sparse_random_knn_query, 12},
-    {"_rnndescent_rnn_release_prepared_indexes", (DL_FUNC) &_rnndescent_rnn_release_prepared_indexes, 0},
-    {"_rnndescent_rnn_prepare_dense_index", (DL_FUNC) &_rnndescent_rnn_prepare_dense_index, 4},
-    {"_rnndescent_rnn_prepare_logical_index", (DL_FUNC) &_rnndescent_rnn_prepare_logical_index, 4},
-    {"_rnndescent_rnn_prepare_sparse_index", (DL_FUNC) &_rnndescent_rnn_prepare_sparse_index, 7},
     {"_rnndescent_rnn_rp_tree_knn_explicit", (DL_FUNC) &_rnndescent_rnn_rp_tree_knn_explicit, 11},
     {"_rnndescent_rnn_sparse_rp_tree_knn_explicit", (DL_FUNC) &_rnndescent_rnn_sparse_rp_tree_knn_explicit, 14},
     {"_rnndescent_rnn_sparse_rp_tree_knn_implicit", (DL_FUNC) &_rnndescent_rnn_sparse_rp_tree_knn_implicit, 14},

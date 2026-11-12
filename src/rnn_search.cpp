@@ -23,17 +23,19 @@
 #include <array>
 #include <cmath>
 #include <iomanip>
-#include <limits>
 #include <sstream>
+#include <type_traits>
+#include <utility>
+#include <variant>
 
 #include <Rcpp.h>
 
 #include "tdoann/search.h"
 
 #include "rnn_distance.h"
+#include "rnn_distance_batch.h"
 #include "rnn_heaptor.h"
 #include "rnn_init.h"
-#include "rnn_nnd_batch.h"
 #include "rnn_parallel.h"
 #include "rnn_prepared_index.h"
 #include "rnn_progress.h"
@@ -220,31 +222,20 @@ auto query_product_four(const float *x, const float *data,
     }
   }
 
-  // Preserve each scalar metric's zero-norm and rounding conventions.
   QueryKernel::Distances result{};
   for (std::size_t lane = 0; lane < ys.size(); ++lane) {
     const float yn = y_norm[lane];
     const float dot = product[lane];
-    if (x_norm == 0 && yn == 0) {
-      result[lane] = 0;
-    } else if constexpr (Metric == QueryProductMetric::alternative_cosine ||
-                         Metric == QueryProductMetric::alternative_hellinger) {
-      if (x_norm == 0 || yn == 0 || dot <= 0) {
-        result[lane] = std::numeric_limits<float>::max();
-      } else {
-        const float distance = std::log2(std::sqrt(x_norm * yn) / dot);
-        result[lane] = Metric == QueryProductMetric::alternative_cosine
-                           ? std::max(distance, 0.0f)
-                           : distance;
-      }
-    } else if (x_norm == 0 || yn == 0) {
-      result[lane] = 1;
+    if constexpr (Metric == QueryProductMetric::cosine) {
+      result[lane] = tdoann::finish_cosine(dot, x_norm, yn);
+    } else if constexpr (Metric == QueryProductMetric::alternative_cosine) {
+      result[lane] = tdoann::finish_alternative_cosine(dot, x_norm, yn);
+    } else if constexpr (Metric == QueryProductMetric::correlation) {
+      result[lane] = tdoann::finish_correlation(dot, x_norm, yn);
     } else if constexpr (Metric == QueryProductMetric::hellinger) {
-      result[lane] =
-          std::sqrt(std::max(1 - dot / std::sqrt(x_norm * yn), 0.0f));
+      result[lane] = tdoann::finish_hellinger(dot, x_norm, yn);
     } else {
-      const float distance = 1 - dot / (std::sqrt(x_norm) * std::sqrt(yn));
-      result[lane] = centered ? distance : std::max(distance, 0.0f);
+      result[lane] = tdoann::finish_log_normalized_product(dot, x_norm, yn);
     }
   }
   return result;
@@ -361,6 +352,17 @@ List dense_query_impl(
 
 namespace {
 
+template <typename Index>
+void check_prepared_query_shape(const Index &index, int ndim, uint32_t k) {
+  if (static_cast<std::size_t>(ndim) != index.ndim) {
+    Rcpp::stop("query must have the same number of features as the reference");
+  }
+  if (k == 0 || k > index.graph.n_points) {
+    Rcpp::stop("k must be a single integer between 1 and " +
+               std::to_string(index.graph.n_points));
+  }
+}
+
 auto prepared_seed_distances(const List &seeds, SEXP convert_seed_distances)
     -> NumericMatrix {
   const NumericMatrix distances = seeds["dist"];
@@ -377,6 +379,33 @@ auto prepared_seed_distances(const List &seeds, SEXP convert_seed_distances)
   return converted;
 }
 
+template <typename Forest, typename Distance>
+auto prepared_query_seeds(const Forest &forest, const Distance &distance,
+                          uint32_t k, std::size_t n_threads, bool verbose,
+                          SEXP convert_seed_distances)
+    -> std::pair<IntegerMatrix, NumericMatrix> {
+  rnndescent::ParallelIntRNGAdapter<RNN_DEFAULT_IDX, rnndescent::DQIntSampler>
+      rng_provider;
+  RParallelExecutor executor;
+  RPProgress progress(verbose);
+  auto search = [&](const auto &trees) {
+    return tdoann::search_forest(trees, distance, k, rng_provider, true,
+                                 n_threads, progress, executor);
+  };
+  auto seed_heap = [&] {
+    if constexpr (std::is_same_v<Forest,
+                                 rnndescent::PreparedSparseIndex::Forest>) {
+      return std::visit(search, forest);
+    } else {
+      return search(forest);
+    }
+  }();
+  // Keep the sorted seed order and the ordinary query's distance conversion.
+  const auto seeds = heap_to_r(seed_heap);
+  const IntegerMatrix indices = seeds["idx"];
+  return {indices, prepared_seed_distances(seeds, convert_seed_distances)};
+}
+
 } // namespace
 
 // [[Rcpp::export(rng = false)]]
@@ -387,26 +416,12 @@ List rnn_query_prepared(SEXP handle, const NumericMatrix &query, uint32_t k,
   const auto &index =
       rnndescent::prepared_index<rnndescent::PreparedDenseIndex>(
           handle, rnndescent::prepared_index_tag());
-  if (static_cast<std::size_t>(query.nrow()) != index.ndim) {
-    Rcpp::stop("query must have the same number of features as the reference");
-  }
-  if (k == 0 || k > index.graph.n_points) {
-    Rcpp::stop("k must be a single integer between 1 and " +
-               std::to_string(index.graph.n_points));
-  }
+  check_prepared_query_shape(index, query.nrow(), k);
   const Rcpp::RNGScope scope;
   rnndescent::PreparedIndexQuery distance(index, query);
-  using Idx = RNN_DEFAULT_IDX;
-  rnndescent::ParallelIntRNGAdapter<Idx, rnndescent::DQIntSampler> rng_provider;
-  RParallelExecutor executor;
-  RPProgress progress(verbose);
-  auto seed_heap =
-      tdoann::search_forest(index.forest, distance, k, rng_provider, true,
-                            n_threads, progress, executor);
-  // Preserve the current sorted-seed order before building the traversal heap.
-  const auto seeds = heap_to_r(seed_heap);
-  const auto distances = prepared_seed_distances(seeds, convert_seed_distances);
-  return dense_query_impl(distance, index.graph, seeds["idx"], distances,
+  const auto [indices, distances] = prepared_query_seeds(
+      index.forest, distance, k, n_threads, verbose, convert_seed_distances);
+  return dense_query_impl(distance, index.graph, indices, distances,
                           index.metric, index.ndim, epsilon,
                           max_search_fraction, n_threads, verbose);
 }
@@ -422,31 +437,15 @@ List rnn_query_prepared_sparse(SEXP handle, const IntegerVector &query_ind,
   using Index = rnndescent::PreparedSparseIndex;
   const auto &index = rnndescent::prepared_index<Index>(
       handle, rnndescent::prepared_sparse_index_tag());
-  if (static_cast<std::size_t>(ndim) != index.ndim) {
-    Rcpp::stop("query must have the same number of features as the reference");
-  }
-  if (k == 0 || k > index.graph.n_points) {
-    Rcpp::stop("k must be a single integer between 1 and " +
-               std::to_string(index.graph.n_points));
-  }
+  check_prepared_query_shape(index, ndim, k);
   rnndescent::check_prepared_sparse_storage(query_ind, query_ptr,
                                             query_data.size(), ndim);
   const Rcpp::RNGScope scope;
   rnndescent::PreparedSparseQuery distance(index, query_ind, query_ptr,
                                            query_data);
-  rnndescent::ParallelIntRNGAdapter<Index::Idx, rnndescent::DQIntSampler>
-      rng_provider;
-  RParallelExecutor executor;
-  RPProgress progress(verbose);
-  auto seed_heap = std::visit(
-      [&](const auto &forest) {
-        return tdoann::search_forest(forest, distance, k, rng_provider, true,
-                                     n_threads, progress, executor);
-      },
-      index.forest);
-  const auto seeds = heap_to_r(seed_heap);
-  const auto distances = prepared_seed_distances(seeds, convert_seed_distances);
-  return nn_query_impl(distance, index.graph, seeds["idx"], distances, epsilon,
+  const auto [indices, distances] = prepared_query_seeds(
+      index.forest, distance, k, n_threads, verbose, convert_seed_distances);
+  return nn_query_impl(distance, index.graph, indices, distances, epsilon,
                        max_search_fraction, n_threads, verbose);
 }
 
@@ -459,25 +458,12 @@ List rnn_query_prepared_logical(SEXP handle, const LogicalMatrix &query,
   using Index = rnndescent::PreparedLogicalIndex;
   const auto &index = rnndescent::prepared_index<Index>(
       handle, rnndescent::prepared_logical_index_tag());
-  if (static_cast<std::size_t>(query.nrow()) != index.ndim) {
-    Rcpp::stop("query must have the same number of features as the reference");
-  }
-  if (k == 0 || k > index.graph.n_points) {
-    Rcpp::stop("k must be a single integer between 1 and " +
-               std::to_string(index.graph.n_points));
-  }
+  check_prepared_query_shape(index, query.nrow(), k);
   const Rcpp::RNGScope scope;
   rnndescent::PreparedLogicalQuery distance(index, query);
-  rnndescent::ParallelIntRNGAdapter<Index::Idx, rnndescent::DQIntSampler>
-      rng_provider;
-  RParallelExecutor executor;
-  RPProgress progress(verbose);
-  auto seed_heap =
-      tdoann::search_forest(index.forest, distance, k, rng_provider, true,
-                            n_threads, progress, executor);
-  const auto seeds = heap_to_r(seed_heap);
-  const auto distances = prepared_seed_distances(seeds, convert_seed_distances);
-  return nn_query_impl(distance, index.graph, seeds["idx"], distances, epsilon,
+  const auto [indices, distances] = prepared_query_seeds(
+      index.forest, distance, k, n_threads, verbose, convert_seed_distances);
+  return nn_query_impl(distance, index.graph, indices, distances, epsilon,
                        max_search_fraction, n_threads, verbose);
 }
 

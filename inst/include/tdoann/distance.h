@@ -94,6 +94,50 @@ Out chebyshev(const It xbegin, const It xend, const It ybegin) {
   return result;
 }
 
+// Scalar and batched kernels use the same zero-norm and rounding rules.
+template <typename Out>
+Out finish_correlation(Out product, Out norm_x, Out norm_y) {
+  if (norm_x == 0 && norm_y == 0) {
+    return 0;
+  }
+  if (norm_x == 0 || norm_y == 0) {
+    return 1;
+  }
+  return 1 - (product / (std::sqrt(norm_x) * std::sqrt(norm_y)));
+}
+
+template <typename Out> Out finish_cosine(Out product, Out norm_x, Out norm_y) {
+  return std::max(finish_correlation(product, norm_x, norm_y), Out{0});
+}
+
+template <typename Out>
+Out finish_log_normalized_product(Out product, Out norm_x, Out norm_y) {
+  if (norm_x == 0 && norm_y == 0) {
+    return 0;
+  }
+  if (norm_x == 0 || norm_y == 0 || product <= 0) {
+    return std::numeric_limits<Out>::max();
+  }
+  return std::log2(std::sqrt(norm_x * norm_y) / product);
+}
+
+template <typename Out>
+Out finish_alternative_cosine(Out product, Out norm_x, Out norm_y) {
+  return std::max(finish_log_normalized_product(product, norm_x, norm_y),
+                  Out{0});
+}
+
+template <typename Out>
+Out finish_hellinger(Out product, Out norm_x, Out norm_y) {
+  if (norm_x == 0 && norm_y == 0) {
+    return 0;
+  }
+  if (norm_x == 0 || norm_y == 0) {
+    return 1;
+  }
+  return std::sqrt(std::max(1 - product / std::sqrt(norm_x * norm_y), Out{0}));
+}
+
 template <typename Out, typename It>
 Out correlation(const It xbegin, const It xend, const It ybegin) {
   Out xmu = 0;
@@ -117,13 +161,7 @@ Out correlation(const It xbegin, const It xend, const It ybegin) {
     normy += y * y;
   }
 
-  if (normx == 0 && normy == 0) {
-    return 0;
-  }
-  if (normx == 0 || normy == 0) {
-    return 1;
-  }
-  return 1 - (res / (std::sqrt(normx) * std::sqrt(normy)));
+  return finish_correlation(res, normx, normy);
 }
 
 template <typename Out, typename It>
@@ -140,14 +178,7 @@ Out cosine(const It xbegin, const It xend, const It ybegin) {
     norm_y += y * y;
   }
 
-  if (norm_x == 0 && norm_y == 0) {
-    return 0;
-  }
-  if (norm_x == 0 || norm_y == 0) {
-    return 1;
-  }
-  const Out distance = 1 - (result / (std::sqrt(norm_x) * std::sqrt(norm_y)));
-  return std::max(distance, Out{0});
+  return finish_cosine(result, norm_x, norm_y);
 }
 
 template <typename Out, typename It>
@@ -164,14 +195,7 @@ Out alternative_cosine(const It xbegin, const It xend, const It ybegin) {
     norm_y += y * y;
   }
 
-  if (norm_x == 0 && norm_y == 0) {
-    return 0;
-  }
-
-  if (norm_x == 0 || norm_y == 0 || result <= 0) {
-    return std::numeric_limits<Out>::max();
-  }
-  return std::max(std::log2(std::sqrt(norm_x * norm_y) / result), Out{0});
+  return finish_alternative_cosine(result, norm_x, norm_y);
 }
 
 template <typename Out, typename It> Out dice(It xbegin, It xend, It ybegin) {
@@ -272,14 +296,7 @@ Out hellinger(const It xbegin, const It xend, const It ybegin) {
     l1_norm_y += *yit;
   }
 
-  if (l1_norm_x == 0 && l1_norm_y == 0) {
-    return 0;
-  }
-  if (l1_norm_x == 0 || l1_norm_y == 0) {
-    return 1;
-  }
-  return std::sqrt(
-      std::max(1 - result / std::sqrt(l1_norm_x * l1_norm_y), Out{0}));
+  return finish_hellinger(result, l1_norm_x, l1_norm_y);
 }
 
 template <typename Out, typename It>
@@ -294,15 +311,7 @@ Out alternative_hellinger(const It xbegin, const It xend, const It ybegin) {
     l1_norm_y += *yit;
   }
 
-  constexpr Out FLOAT_MAX = std::numeric_limits<Out>::max();
-
-  if (l1_norm_x == 0 && l1_norm_y == 0) {
-    return 0;
-  }
-  if (l1_norm_x == 0 || l1_norm_y == 0 || result <= 0) {
-    return FLOAT_MAX;
-  }
-  return std::log2(std::sqrt(l1_norm_x * l1_norm_y) / result);
+  return finish_log_normalized_product(result, l1_norm_x, l1_norm_y);
 }
 
 template <typename Out, typename It>

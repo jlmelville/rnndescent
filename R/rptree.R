@@ -513,12 +513,7 @@ rpf_knn_query_impl <- function(
     n_threads = n_threads
   ))
 
-  # Older cosine forests retain partitions; candidate distances are recomputed.
-  metric <- if (forest$original_metric == "cosine") {
-    "cosine"
-  } else {
-    forest$actual_metric
-  }
+  metric <- forest_scoring_metric(forest)
   if (is_sparse(reference)) {
     res <-
       rnn_sparse_rp_forest_search(

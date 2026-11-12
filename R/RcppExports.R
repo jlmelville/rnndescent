@@ -89,6 +89,22 @@ rnn_degree_prune <- function(graph_list, max_degree, n_threads) {
     .Call(`_rnndescent_rnn_degree_prune`, graph_list, max_degree, n_threads)
 }
 
+rnn_release_prepared_indexes <- function() {
+    invisible(.Call(`_rnndescent_rnn_release_prepared_indexes`))
+}
+
+rnn_prepare_dense_index <- function(reference, graph, forest, metric) {
+    .Call(`_rnndescent_rnn_prepare_dense_index`, reference, graph, forest, metric)
+}
+
+rnn_prepare_logical_index <- function(reference, graph, forest, metric) {
+    .Call(`_rnndescent_rnn_prepare_logical_index`, reference, graph, forest, metric)
+}
+
+rnn_prepare_sparse_index <- function(ind, ptr, data, ndim, graph, forest, metric) {
+    .Call(`_rnndescent_rnn_prepare_sparse_index`, ind, ptr, data, ndim, graph, forest, metric)
+}
+
 rnn_sparse_random_knn <- function(ind, ptr, data, ndim, nnbrs, metric = "euclidean", order_by_distance = TRUE, n_threads = 0L, verbose = FALSE) {
     .Call(`_rnndescent_rnn_sparse_random_knn`, ind, ptr, data, ndim, nnbrs, metric, order_by_distance, n_threads, verbose)
 }
@@ -111,22 +127,6 @@ rnn_logical_random_knn_query <- function(reference, query, nnbrs, metric = "eucl
 
 rnn_sparse_random_knn_query <- function(ref_ind, ref_ptr, ref_data, query_ind, query_ptr, query_data, ndim, nnbrs, metric = "euclidean", order_by_distance = TRUE, n_threads = 0L, verbose = FALSE) {
     .Call(`_rnndescent_rnn_sparse_random_knn_query`, ref_ind, ref_ptr, ref_data, query_ind, query_ptr, query_data, ndim, nnbrs, metric, order_by_distance, n_threads, verbose)
-}
-
-rnn_release_prepared_indexes <- function() {
-    invisible(.Call(`_rnndescent_rnn_release_prepared_indexes`))
-}
-
-rnn_prepare_dense_index <- function(reference, graph, forest, metric) {
-    .Call(`_rnndescent_rnn_prepare_dense_index`, reference, graph, forest, metric)
-}
-
-rnn_prepare_logical_index <- function(reference, graph, forest, metric) {
-    .Call(`_rnndescent_rnn_prepare_logical_index`, reference, graph, forest, metric)
-}
-
-rnn_prepare_sparse_index <- function(ind, ptr, data, ndim, graph, forest, metric) {
-    .Call(`_rnndescent_rnn_prepare_sparse_index`, ind, ptr, data, ndim, graph, forest, metric)
 }
 
 rnn_rp_tree_knn_explicit <- function(data, nnbrs, metric, n_trees, leaf_size, max_tree_depth, include_self, unzero = TRUE, ret_forest = FALSE, n_threads = 0L, verbose = FALSE) {

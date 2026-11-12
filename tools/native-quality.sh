@@ -123,6 +123,7 @@ maintained_sources=(
   src/rnn_merge.cpp
   src/rnn_nnd.cpp
   src/rnn_prepare.cpp
+  src/rnn_prepared_index.cpp
   src/rnn_randnbrs.cpp
   src/rnn_rptree.cpp
   src/rnn_search.cpp

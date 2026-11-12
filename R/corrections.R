@@ -86,6 +86,15 @@ apply_alt_metric_correction <- function(metric, dist, is_sparse = FALSE) {
   }
 }
 
+forest_scoring_metric <- function(forest) {
+  # Older cosine forests retain their partitions and use plain cosine scoring.
+  if (forest$original_metric == "cosine") {
+    "cosine"
+  } else {
+    forest$actual_metric
+  }
+}
+
 get_actual_metric <- function(use_alt_metric, metric, data, verbose) {
   if (use_alt_metric) {
     actual_metric <- find_alt_metric(metric, is_sparse(data))

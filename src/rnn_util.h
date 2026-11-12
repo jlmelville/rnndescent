@@ -185,8 +185,4 @@ auto sparse_graph_to_r(const SparseNNGraph &sparse_graph) -> Rcpp::List {
                             Rcpp::_("dist") = sparse_graph.dist);
 }
 
-inline std::vector<uint8_t> r_to_binvec(const Rcpp::LogicalMatrix &data) {
-  return r_to_vec<uint8_t>(data);
-}
-
 #endif // RNN_UTIL_H
