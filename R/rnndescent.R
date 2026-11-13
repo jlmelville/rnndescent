@@ -341,7 +341,7 @@ rnnd_build <- function(
 #' packed binary metrics with an implicit search forest. Sparse indexes support
 #' the sparse metrics with either explicit or implicit search forests.
 #'
-#' @param index A supported index from [rnnd_build()].
+#' @param index An index from [rnnd_build()] with a compatible search forest.
 #' @return A prepared index handle for use in the current R session.
 #' @details
 #' The handle owns a snapshot of the reference, search graph and forest. Changes
@@ -600,7 +600,8 @@ query_prepared_index <- function(
 #'  data has been searched. Default is 1.
 #' @param n_threads Number of threads to use.
 #' @param init An optional matrix of `k` initial nearest neighbors for each
-#'   query point. Use `NULL` with a prepared index to seed from its search forest.
+#'   query point. A prepared index requires `init = NULL` and uses its search
+#'   forest to initialize the query.
 #' @param verbose If `TRUE`, log information to the console.
 #' @param obs set to `"C"` to indicate that the input `data` orientation stores
 #'   each observation as a column. The default `"R"` means that observations are

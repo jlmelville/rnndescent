@@ -7,7 +7,7 @@
 rnnd_prepare(index)
 }
 \arguments{
-\item{index}{A supported index from \code{\link[=rnnd_build]{rnnd_build()}}.}
+\item{index}{An index from \code{\link[=rnnd_build]{rnnd_build()}} with a compatible search forest.}
 }
 \value{
 A prepared index handle for use in the current R session.

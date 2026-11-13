@@ -60,7 +60,8 @@ will terminate the search early if the specified fraction of the reference
 data has been searched. Default is 1.}
 
 \item{init}{An optional matrix of \code{k} initial nearest neighbors for each
-query point. Use \code{NULL} with a prepared index to seed from its search forest.}
+query point. A prepared index requires \code{init = NULL} and uses its search
+forest to initialize the query.}
 
 \item{n_threads}{Number of threads to use.}
 
