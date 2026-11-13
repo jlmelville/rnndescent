@@ -146,5 +146,7 @@ iris_nn <- random_knn(iris, k = 4, metric = "euclidean", verbose = TRUE)
 
 # These results can be improved by nearest neighbors descent. You don't need
 # to specify k here because this is worked out from the initial input
-iris_nn <- nnd_knn(iris, init = iris_nn, metric = "euclidean", verbose = TRUE)
+iris_nn <- nnd_knn(
+  iris, init = iris_nn, metric = "euclidean", verbose = TRUE
+)
 }

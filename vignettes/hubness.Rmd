@@ -435,11 +435,10 @@ plot(
 
 So the answer to the question is "not really", but there *is* a trend. The empty
 space in the lower right of the plot indicates that items with a large
-k-occurrence (hubs) are very well predicted. In this dataset, every item above a k-occurrence of 150 has its neighborhood
-perfectly predicted. However, at the
-other end of the k-occurrence spectrum, we can see that while the lower bound on
-the predicted accuracy does plummet as the k-occurrence is reduced, some
-anti-hubs actually do have their neighborhoods very accurately predicted too.
+k-occurrence (hubs) are very well predicted. In this dataset, every item above a k-occurrence of 150
+has its neighborhood perfectly predicted. However, at the other end of the k-occurrence spectrum,
+we can see that while the lower bound on the predicted accuracy does plummet as the k-occurrence
+is reduced, some anti-hubs actually do have their neighborhoods very accurately predicted too.
 
 Unfortunately this means that k-occurrence is a bit too rough to use to predict
 poorly-predicted items. Let's say that we wanted to get all the items where the
@@ -597,10 +596,10 @@ neighbor_overlap(g1000d_nnbf, g1000d_nnd_w)
 
 Like a 2%ish improvement. It's not nothing. And despite the extra computation
 and $O\left(N\right)$ storage and $O\left(kN\right)$ counting work required
-to calculate the k-occurrences in each iteration, with high-dimensional data the distance calculations tend to dominate
-the run time, so there's no reason to *not* set `weight_by_degree = TRUE`
-in this case. However, for the rest of the vignette, we'll keep it set to `FALSE`
-(the default) so it's easier to evaluate the contribution of other changes.
+to calculate the k-occurrences in each iteration, with high-dimensional data the distance
+calculations tend to dominate the run time, so there's no reason to *not* set
+`weight_by_degree = TRUE` in this case. However, for the rest of the vignette, we'll keep it set
+to `FALSE` (the default) so it's easier to evaluate the contribution of other changes.
 
 ### Use More Neighbors
 
@@ -836,7 +835,8 @@ of the dataset, in which case you would save time by using the
 
 In conjunction with `epsilon`, you can also use `max_search_fraction` which will
 limit the additional graph search to a fraction of the dataset. The points
-examined during initialization do not count toward this limit. Set it to a value between 0 and 1, e.g.
+examined during initialization do not count toward this limit. Set it to a value
+between 0 and 1, e.g.
 `max_search_fraction = 0.1` to limit the additional graph search to 10% of
 the reference data beyond the initial neighbors. The default is `1`, so that
 `epsilon` entirely controls

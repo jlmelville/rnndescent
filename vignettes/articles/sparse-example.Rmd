@@ -27,7 +27,8 @@ However due to my lack of experience with tidy data principles, I will be using
 [tm](https://cran.r-project.org/package=tm) and
 [slam](https://cran.r-project.org/package=slam) to create the TF-IDF matrix.
 
-This article was inspired by a [similar example in Python](https://umap-learn.readthedocs.io/en/latest/sparse.html#a-text-analysis-example).
+This article was inspired by a
+[similar example in Python](https://umap-learn.readthedocs.io/en/latest/sparse.html#a-text-analysis-example).
 
 ## This is not a Vignette
 
@@ -232,7 +233,8 @@ tfidf_spl2 <-
 
 I'm going to use a divergence-based distance metric which assumes that each
 row is a probability distribution so I will do an L1 normalization
-which requires even more creativity. [This gist by privefl](https://gist.github.com/privefl/1895694804bf9c91a28dd85d3ebf953d) was
+which requires even more creativity.
+[This gist by privefl](https://gist.github.com/privefl/1895694804bf9c91a28dd85d3ebf953d) was
 my guide here:
 
 ```{r L1 normalize}

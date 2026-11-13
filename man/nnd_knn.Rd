@@ -233,7 +233,9 @@ iris_nn <- nnd_knn(iris, k = 4, metric = "euclidean", verbose = TRUE)
 # calculate the initialization are compatible with the metric options used
 # by nnd_knn).
 iris_nn <- random_knn(iris, k = 4, metric = "euclidean")
-iris_nn <- nnd_knn(iris, init = iris_nn, metric = "euclidean", verbose = TRUE)
+iris_nn <- nnd_knn(
+  iris, init = iris_nn, metric = "euclidean", verbose = TRUE
+)
 
 # Number of iterations controls how much optimization is attempted. A smaller
 # value will run faster but give poorer results
@@ -248,9 +250,12 @@ iris_nn <- nnd_knn(iris, k = 4, metric = "euclidean", max_candidates = 50)
 # stop progress earlier. The verbose flag will provide some information if
 # convergence is occurring before all iterations are carried out.
 set.seed(1337)
-iris_nn <- nnd_knn(iris, k = 4, metric = "euclidean", n_iters = 5, delta = 0.5)
+iris_nn <- nnd_knn(
+  iris, k = 4, metric = "euclidean", n_iters = 5, delta = 0.5
+)
 
-# To ensure that descent only stops if no improvements are made, set delta = 0
+# To ensure that descent only stops if no improvements are made,
+# set delta = 0
 set.seed(1337)
 iris_nn <- nnd_knn(iris, k = 4, metric = "euclidean", n_iters = 5, delta = 0)
 
@@ -274,7 +279,8 @@ In \emph{Proceedings of the fortieth annual ACM symposium on Theory of computing
 \doi{10.1145/1374376.1374452}.
 
 Dong, W., Moses, C., & Li, K. (2011, March).
-Efficient k-nearest neighbor graph construction for generic similarity measures.
+Efficient k-nearest neighbor graph construction for generic similarity
+measures.
 In \emph{Proceedings of the 20th international conference on World Wide Web}
 (pp. 577-586).
 ACM.

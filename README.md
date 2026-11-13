@@ -10,13 +10,13 @@
 [![Last Commit](https://img.shields.io/github/last-commit/jlmelville/rnndescent)](https://github.com/jlmelville/rnndescent)
 <!-- badges: end -->
 
-An R package for finding approximate nearest neighbors, translated from the 
-Python package [PyNNDescent](https://github.com/lmcinnes/pynndescent) written 
-by the great Leland McInnes. As the name suggests, it uses the Nearest Neighbor 
-Descent method ([Dong et al., 2011](https://doi.org/10.1145/1963405.1963487)), 
-but also makes use of Random Partition Trees 
+An R package for finding approximate nearest neighbors, translated from the
+Python package [PyNNDescent](https://github.com/lmcinnes/pynndescent) written
+by the great Leland McInnes. As the name suggests, it uses the Nearest Neighbor
+Descent method ([Dong et al., 2011](https://doi.org/10.1145/1963405.1963487)),
+but also makes use of Random Partition Trees
 ([Dasgupta and Freund, 2008](https://doi.org/10.1145/1374376.1374452))
-as well as ideas from [FANNG](https://doi.org/10.1109/CVPR.2016.616) and 
+as well as ideas from [FANNG](https://doi.org/10.1109/CVPR.2016.616) and
 [NGT](https://github.com/yahoojapan/NGT).
 
 You can use rnndescent for:
@@ -25,14 +25,14 @@ You can use rnndescent for:
 [RcppAnnoy](https://cran.r-project.org/package=RcppAnnoy) or
 [RcppHNSW](https://cran.r-project.org/package=RcppHNSW).
 * using this package for nearest neighbor search all on its own...
-* ... including finding nearest neighbors on sparse data, which most other 
+* ... including finding nearest neighbors on sparse data, which most other
 packages in the R ecosystem cannot do.
 * and a much larger number of metrics than most other packages.
 
 ## Documentation
 
-See the 
-[Get Started](https://jlmelville.github.io/rnndescent/articles/rnndescent.html) 
+See the
+[Get Started](https://jlmelville.github.io/rnndescent/articles/rnndescent.html)
 article for the basics. The other
 [vignettes](https://jlmelville.github.io/rnndescent/articles/) go into more
 detail.
@@ -69,11 +69,11 @@ carry out a few extra steps before being able to build:
 [may cause linking errors](https://github.com/jlmelville/uwot/issues/1).
 This sort of thing is a potential problem on all platforms but seems to bite
 Mac owners more.
-[The R for Mac OS X FAQ](https://cran.r-project.org/bin/macosx/RMacOSX-FAQ.html#Installation-of-source-packages)
+[The R for Mac OS X FAQ][mac-faq]
 may be helpful here to work out what you can get away with. To be on the safe
 side, I would advise building without a custom `Makevars`.
 
-`rnndescent` uses C++17. This shouldn't be too big a problem but not all R 
+`rnndescent` uses C++17. This shouldn't be too big a problem but not all R
 platforms support it (sorry if this affects you).
 
 ## Supported C++ headers
@@ -118,7 +118,7 @@ For more details, please see the
 Many. See the [metrics article](https://jlmelville.github.io/rnndescent/articles/metrics.html)
 for a list.
 
-## Missing Features 
+## Missing Features
 
 Compared to PyNNDescent, `rnndescent` is currently lacking, in decreasing order
 of likelihood of implementation:
@@ -171,7 +171,7 @@ from [dqrng](https://github.com/daqana/dqrng) and is
 from [RcppParallel](https://github.com/RcppCore/RcppParallel) and is
 [GPLv2 or later](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
 * The underlying nearest neighbor descent C++ library, which can be found under
-`inst/include/tdoann`, is licensed under the 
+`inst/include/tdoann`, is licensed under the
 [BSD 2-Clause](https://opensource.org/license/bsd-2-clause/).
 
 As far as I know, these licenses are all compatible with re-licensing under
@@ -191,7 +191,7 @@ The following metrics are in PyNNDescent but are not supported in rnndescent:
 * Weighted Minkowski
 
 These require passing extra information as part of the metric definition, which
-is not currently supported. 
+is not currently supported.
 
 ## See Also
 
@@ -202,3 +202,5 @@ a Julia implementation.
 * [NNDescent.cpp](https://github.com/AnabelSMRuggiero/NNDescent.cpp), another
 C++ implementation.
 * [nndescent](https://github.com/brj0/nndescent), another C++ implementation, with Python bindings.
+
+[mac-faq]: https://cran.r-project.org/bin/macosx/RMacOSX-FAQ.html#Installation-of-source-packages

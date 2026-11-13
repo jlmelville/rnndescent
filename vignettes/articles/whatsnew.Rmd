@@ -12,7 +12,8 @@ details.
 warning on gcc-16. There is also now support for the Haversine metric and many
 small bug fixes and validation improvements.
 
-*05 September 2025*: Version 0.1.8 has been released to CRAN. This fixes some test tolerances that causes Mac M1 checks on CRAN to fail.
+*05 September 2025*: Version 0.1.8 has been released to CRAN. This fixes some test tolerances that
+causes Mac M1 checks on CRAN to fail.
 
 *14 May 2024*: Version 0.1.6 has been released to CRAN. The previous release
 didn't quite get compatibility with `dqrng` right so here is another attempt.
@@ -37,7 +38,8 @@ number has been bumped to 0.1.1.
 *24 Nov 2023* A new function `rnnd_knn` has been added if you just want the
 k-nearest neighbors graph for a dataset (i.e. no querying). I have also removed
 some other functions and made some other breaking changes as I prepare for
-CRAN submission. See the [NEWS](https://jlmelville.github.io/rnndescent/news/index.html) for details.
+CRAN submission. See the [NEWS](https://jlmelville.github.io/rnndescent/news/index.html)
+for details.
 
 *19 Nov 2023* The `rnnd_build` function and `rnnd_query` functions have been
 added which simplify creating a knn/building an index and querying it,
@@ -48,7 +50,8 @@ could return in a different package at some point.
 
 *13 November 2023*. I have added most of the metrics that don't need extra
 parameters for both sparse and non-sparse data, e.g. `braycurtis`, `dice`,
-`jaccard`, `hellinger` etc. See the [`Missing Metrics` section](https://github.com/jlmelville/rnndescent#missing-metrics) of the
+`jaccard`, `hellinger` etc. See the
+[`Missing Metrics` section](https://github.com/jlmelville/rnndescent#missing-metrics) of the
 README for those which are not implemented. There are a few breaking changes
 (mainly around the hamming metric, see `NEWS.md` for the exact details).
 

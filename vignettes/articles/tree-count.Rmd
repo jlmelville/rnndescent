@@ -33,8 +33,8 @@ Random initialization and forests of 2, 5, 10, 20 and 40 trees, followed by NN-d
 Euclidean distance. Times and final recall are medians of three seeds on an Apple M2 with 8 GiB
 memory and eight threads. Recall measures reference neighbors found. Neighbor counts and recall
 exclude each observation itself. The benchmark requested one extra position and assumed self was
-the first neighbor in each graph. The example below removes self by index. Each timing column has its
-own median, so the components need not add to the displayed total.
+the first neighbor in each graph. The example below removes self by index. Each timing column
+has its own median, so the components need not add to the displayed total.
 
 Times cover initialization and descent, excluding searchable index preparation and queries. Nearby
 runtime ranges often overlap.

@@ -22,9 +22,12 @@ This library is based heavily on the 'PyNNDescent' Python library.
 
 General resources:
 \itemize{
-\item Website for the 'rnndescent' package: \url{https://github.com/jlmelville/rnndescent}
-\item Documentation for the 'rnndescent' package: \url{https://jlmelville.github.io/rnndescent/}
-\item Website of the 'PyNNDescent' package: \url{https://github.com/lmcinnes/pynndescent}
+\item Website for the 'rnndescent' package:
+\url{https://github.com/jlmelville/rnndescent}
+\item Documentation for the 'rnndescent' package:
+\url{https://jlmelville.github.io/rnndescent/}
+\item Website of the 'PyNNDescent' package:
+\url{https://github.com/lmcinnes/pynndescent}
 }
 
 The following functions provide the main interface to the package, with
@@ -38,7 +41,8 @@ useful defaults:
 Some diagnostic and helper functions to help explore the the structure of the
 graphs and how well the approximation is working:
 \itemize{
-\item Find exact nearest neighbors: \code{\link[=brute_force_knn]{brute_force_knn()}}, \code{\link[=brute_force_knn_query]{brute_force_knn_query()}}.
+\item Find exact nearest neighbors: \code{\link[=brute_force_knn]{brute_force_knn()}},
+\code{\link[=brute_force_knn_query]{brute_force_knn_query()}}.
 \item Merging graphs: \code{\link[=merge_knn]{merge_knn()}}.
 \item Hubness: \code{\link[=k_occur]{k_occur()}}.
 \item Overlap/accuracy of two neighbor graphs: \code{\link[=neighbor_overlap]{neighbor_overlap()}}.
@@ -50,8 +54,8 @@ the \verb{rnnd_*} functions provide:
 \item Find approximate nearest neighbors: \code{\link[=rpf_knn]{rpf_knn()}}, \code{\link[=nnd_knn]{nnd_knn()}}.
 \item Generating random neighbors: \code{\link[=random_knn]{random_knn()}}, \code{\link[=random_knn_query]{random_knn_query()}}.
 \item Building an index: \code{\link[=rpf_build]{rpf_build()}}, \code{\link[=rpf_filter]{rpf_filter()}}.
-\item Querying an index for new data: \code{\link[=rpf_knn_query]{rpf_knn_query()}}, \code{\link[=prepare_search_graph]{prepare_search_graph()}},
-\code{\link[=graph_knn_query]{graph_knn_query()}}.
+\item Querying an index for new data: \code{\link[=rpf_knn_query]{rpf_knn_query()}},
+\code{\link[=prepare_search_graph]{prepare_search_graph()}}, \code{\link[=graph_knn_query]{graph_knn_query()}}.
 }
 }
 \references{
@@ -62,7 +66,8 @@ In \emph{Proceedings of the fortieth annual ACM symposium on Theory of computing
 \doi{10.1145/1374376.1374452}.
 
 Dong, W., Moses, C., & Li, K. (2011, March).
-Efficient k-nearest neighbor graph construction for generic similarity measures.
+Efficient k-nearest neighbor graph construction for generic similarity
+measures.
 In \emph{Proceedings of the 20th international conference on World Wide Web}
 (pp. 577-586).
 ACM.
@@ -70,7 +75,8 @@ ACM.
 
 Harwood, B., & Drummond, T. (2016).
 Fanng: Fast approximate nearest neighbour graphs.
-In \emph{Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition}
+In \emph{Proceedings of the IEEE Conference on Computer Vision and Pattern
+Recognition}
 (pp. 5713-5722).
 
 Radovanovic, M., Nanopoulos, A., & Ivanovic, M. (2010).
@@ -79,7 +85,8 @@ Hubs in space: Popular nearest neighbors in high-dimensional data.
 \url{https://www.jmlr.org/papers/v11/radovanovic10a.html}
 
 Iwasaki, M., & Miyazaki, D. (2018).
-Optimization of indexing based on k-nearest neighbor graph for proximity search in high-dimensional data.
+Optimization of indexing based on k-nearest neighbor graph for proximity
+search in high-dimensional data.
 \emph{arXiv preprint} \emph{arXiv:1810.07355}.
 \url{https://arxiv.org/abs/1810.07355}
 }

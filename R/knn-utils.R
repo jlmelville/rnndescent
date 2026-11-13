@@ -143,7 +143,8 @@ select_self_knn <- function(graph, k, include_self, self_dist = NULL) {
 #' @param metric Distance metric, evaluated directly. See [brute_force_knn()].
 #' @param query Optional query observations with the same feature layout as
 #'   `data`. Query and reference must both be sparse or both dense, and
-#'   their logical or numeric storage must match. Logical features cannot be `NA`.
+#'   their logical or numeric storage must match. Logical features cannot be
+#'   `NA`.
 #' @param n_threads Number of threads to use. Zero runs serially.
 #' @param verbose Whether to report progress.
 #' @param obs Whether observations are in rows (`"R"`) or columns (`"C"`).

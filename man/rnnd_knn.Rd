@@ -164,8 +164,8 @@ Angular (Euclidean after normalization), explicitly calculates a hyperplane
 and offset, and then calculates the margin based on the dot product with
 the hyperplane.
 \item \code{"implicit"} calculates the distance from a point to each of the
-points defining the normal vector. The margin is calculated by comparing the
-two distances: the point is assigned to the side of the hyperplane that
+points defining the normal vector. The margin is calculated by comparing
+the two distances: the point is assigned to the side of the hyperplane that
 the normal vector point with the closest distance belongs to.
 \item \code{"auto"} (the default) picks the margin method depending on whether a
 binary-specific \code{metric} such as \code{"bhammming"} is chosen, in which case
@@ -261,7 +261,8 @@ In \emph{Proceedings of the fortieth annual ACM symposium on Theory of computing
 \doi{10.1145/1374376.1374452}.
 
 Dong, W., Moses, C., & Li, K. (2011, March).
-Efficient k-nearest neighbor graph construction for generic similarity measures.
+Efficient k-nearest neighbor graph construction for generic similarity
+measures.
 In \emph{Proceedings of the 20th international conference on World Wide Web}
 (pp. 577-586).
 ACM.

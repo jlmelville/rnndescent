@@ -7,17 +7,19 @@
 rnnd_prepare(index)
 }
 \arguments{
-\item{index}{An index from \code{\link[=rnnd_build]{rnnd_build()}} with a compatible search forest.}
+\item{index}{An index from \code{\link[=rnnd_build]{rnnd_build()}} with a
+compatible search forest.}
 }
 \value{
 A prepared index handle for use in the current R session.
 }
 \description{
 Copy an index into native memory once and pass the returned handle to
-\code{\link[=rnnd_query]{rnnd_query()}} for repeated queries. Dense numeric indexes support the
-dense metrics with an explicit search forest. Dense logical indexes support
-packed binary metrics with an implicit search forest. Sparse indexes support
-the sparse metrics with either explicit or implicit search forests.
+\code{\link[=rnnd_query]{rnnd_query()}} for repeated queries. Dense numeric indexes
+support the dense metrics with an explicit search forest. Dense logical
+indexes support packed binary metrics with an implicit search forest.
+Sparse indexes support the sparse metrics with either explicit or implicit
+search forests.
 }
 \details{
 The handle owns a snapshot of the reference, search graph and forest. Changes

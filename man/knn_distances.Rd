@@ -25,7 +25,8 @@ pass \code{graph$idx}.}
 
 \item{query}{Optional query observations with the same feature layout as
 \code{data}. Query and reference must both be sparse or both dense, and
-their logical or numeric storage must match. Logical features cannot be \code{NA}.}
+their logical or numeric storage must match. Logical features cannot be
+\code{NA}.}
 
 \item{n_threads}{Number of threads to use. Zero runs serially.}
 

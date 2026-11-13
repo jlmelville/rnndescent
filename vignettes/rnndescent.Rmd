@@ -152,7 +152,8 @@ neighbor_overlap(iris_index$graph, iris_knn_improved)
 
 As there was no change to the graph, the overlap is 100%. More details on this
 can be found in the [hubness](hubness.html) vignette and a more ambitious
-dataset is covered in the [FMNIST article](https://jlmelville.github.io/rnndescent/articles/fmnist-example.html).
+dataset is covered in the
+[FMNIST article](https://jlmelville.github.io/rnndescent/articles/fmnist-example.html).
 
 ## Parallelism
 
@@ -184,7 +185,8 @@ be used to speed up the computation.
 There are several options that `rnnd_build` and `rnnd_query` expose that can
 be modified to change the behavior of the different stages of the algorithm.
 See the documentation for those functions (e.g. `?rnnd_build`) or the
-[Random Partition Forests](random-partition-forests.html), [Nearest Neighbor Descent](nearest-neighbor-descent.html) and [Querying Data](querying-data.html)
+[Random Partition Forests](random-partition-forests.html),
+[Nearest Neighbor Descent](nearest-neighbor-descent.html) and [Querying Data](querying-data.html)
 vignettes for more details.
 
 ## References

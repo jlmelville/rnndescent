@@ -17,7 +17,8 @@ considered to be the ground truth.}
 \item{k}{Number of neighbors to consider. If \code{NULL}, then the minimum of the
 number of neighbors in \code{idx1} and \code{idx2} is used.}
 
-\item{ret_vec}{If \code{TRUE}, also return a vector containing the per-item overlap.}
+\item{ret_vec}{If \code{TRUE}, also return a vector containing the per-item
+overlap.}
 }
 \value{
 The mean overlap between \code{idx1} and \code{idx2}. If \code{ret_vec = TRUE},

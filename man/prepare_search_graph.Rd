@@ -222,11 +222,14 @@ iris_query_nn <- graph_knn_query(
 \references{
 Harwood, B., & Drummond, T. (2016).
 Fanng: Fast approximate nearest neighbour graphs.
-In \emph{Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition}
+In \emph{Proceedings of the IEEE Conference on Computer Vision and Pattern
+Recognition}
 (pp. 5713-5722).
 
-Jayaram Subramanya, S., Devvrit, F., Simhadri, H. V., Krishnawamy, R., & Kadekodi, R. (2019).
-Diskann: Fast accurate billion-point nearest neighbor search on a single node.
+Jayaram Subramanya, S., Devvrit, F., Simhadri, H. V., Krishnawamy, R., &
+Kadekodi, R. (2019).
+Diskann: Fast accurate billion-point nearest neighbor search on a single
+node.
 \emph{Advances in Neural Information Processing Systems}, \emph{32}.
 }
 \seealso{

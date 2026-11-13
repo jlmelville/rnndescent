@@ -17,10 +17,11 @@ rnnd_query(
 )
 }
 \arguments{
-\item{index}{A nearest neighbor index produced by \code{\link[=rnnd_build]{rnnd_build()}} or a
-prepared index from \code{\link[=rnnd_prepare]{rnnd_prepare()}}. Prepared sparse indexes require
-sparse query data. Prepared dense logical indexes require dense logical
-query data.}
+\item{index}{A nearest neighbor index produced by
+\code{\link[=rnnd_build]{rnnd_build()}} or a prepared index from
+\code{\link[=rnnd_prepare]{rnnd_prepare()}}. Prepared sparse indexes require sparse
+query data. Prepared dense logical indexes require dense logical query
+data.}
 
 \item{query}{Matrix of \code{n} query items, with observations in the rows and
 features in the columns. Optionally, the data may be passed with the
@@ -100,11 +101,13 @@ iris_odd_nbrs <- rnnd_query(index = iris_even_index, query = iris_odd, k = 4)
 \references{
 Harwood, B., & Drummond, T. (2016).
 Fanng: Fast approximate nearest neighbour graphs.
-In \emph{Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition}
+In \emph{Proceedings of the IEEE Conference on Computer Vision and Pattern
+Recognition}
 (pp. 5713-5722).
 
 Iwasaki, M., & Miyazaki, D. (2018).
-Optimization of indexing based on k-nearest neighbor graph for proximity search in high-dimensional data.
+Optimization of indexing based on k-nearest neighbor graph for proximity
+search in high-dimensional data.
 \emph{arXiv preprint} \emph{arXiv:1810.07355}.
 \url{https://arxiv.org/abs/1810.07355}
 }

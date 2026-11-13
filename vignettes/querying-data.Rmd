@@ -311,7 +311,9 @@ The
 method's pruning algorithm is almost identical but instead of a probability,
 uses a related parameter called `alpha`, which acts in the opposite direction:
 increasing `alpha` increases the density of the graph. Why am I telling you
-this? The [pbbsbench implementation of PyNNDescent](https://github.com/cmuparlay/pbbsbench/blob/9553d354b5cf18153d4ea6370664c383316174eb/benchmarks/ANN/pyNNDescent/pynn_index.h#L235) uses `alpha` instead of `diversify_prob` and
+this? The
+[pbbsbench implementation of PyNNDescent](https://github.com/cmuparlay/pbbsbench/blob/9553d354b5cf18153d4ea6370664c383316174eb/benchmarks/ANN/pyNNDescent/pynn_index.h#L235)
+uses `alpha` instead of `diversify_prob` and
 in the accompanying paper [@dobson2023scaling] they mention that the use of
 `alpha` yields "modest improvements" -- from context this seems to mean relative
 to using `diversify_prob = 1.0`. I can't give an exact mapping between the two

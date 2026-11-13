@@ -59,8 +59,8 @@
 #'   and offset, and then calculates the margin based on the dot product with
 #'   the hyperplane.
 #'   - `"implicit"` calculates the distance from a point to each of the
-#'   points defining the normal vector. The margin is calculated by comparing the
-#'   two distances: the point is assigned to the side of the hyperplane that
+#'   points defining the normal vector. The margin is calculated by comparing
+#'   the two distances: the point is assigned to the side of the hyperplane that
 #'   the normal vector point with the closest distance belongs to.
 #'   - `"auto"` (the default) picks the margin method depending on whether a
 #'   binary-specific `metric` such as `"bhammming"` is chosen, in which case
@@ -208,8 +208,8 @@ rpf_knn <- function(
 #'   and offset, and then calculates the margin based on the dot product with
 #'   the hyperplane.
 #'   - `"implicit"` calculates the distance from a point to each of the
-#'   points defining the normal vector. The margin is calculated by comparing the
-#'   two distances: the point is assigned to the side of the hyperplane that
+#'   points defining the normal vector. The margin is calculated by comparing
+#'   the two distances: the point is assigned to the side of the hyperplane that
 #'   the normal vector point with the closest distance belongs to.
 #'   - `"auto"` (the default) picks the margin method depending on whether a
 #'   binary-specific `metric` such as `"bhammming"` is chosen, in which case

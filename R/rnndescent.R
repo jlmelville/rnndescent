@@ -80,8 +80,8 @@
 #'   and offset, and then calculates the margin based on the dot product with
 #'   the hyperplane.
 #'   - `"implicit"` calculates the distance from a point to each of the
-#'   points defining the normal vector. The margin is calculated by comparing the
-#'   two distances: the point is assigned to the side of the hyperplane that
+#'   points defining the normal vector. The margin is calculated by comparing
+#'   the two distances: the point is assigned to the side of the hyperplane that
 #'   the normal vector point with the closest distance belongs to.
 #'   - `"auto"` (the default) picks the margin method depending on whether a
 #'   binary-specific `metric` such as `"bhammming"` is chosen, in which case
@@ -118,10 +118,11 @@
 #'   counting the degree of each node, and because it tends to delay early
 #'   convergence, by default this is `FALSE`.
 #' @param n_search_trees The number of trees to keep for query initialization.
-#'   The default is `1`. For dense numeric Euclidean data with `init = "tree"`
-#'   and explicit margins, a single search tree uses balanced splits informed
-#'   by the neighbor graph. Otherwise, the retained trees come from the random
-#'   projection forest used for graph initialization, when available.
+#'   The default is `1`. For dense numeric Euclidean data with
+#'   `init = "tree"` and explicit margins, a single search tree uses balanced
+#'   splits informed by the neighbor graph. Otherwise, the retained trees
+#'   come from the random projection forest used for graph initialization,
+#'   when available.
 #' @param diversify_prob the degree of diversification of the search graph
 #'   by removing unnecessary edges through occlusion pruning. This should take a
 #'   value between `0` (no diversification) and `1` (remove as many edges as
@@ -186,7 +187,8 @@
 #' \doi{10.1145/1374376.1374452}.
 #'
 #' Dong, W., Moses, C., & Li, K. (2011, March).
-#' Efficient k-nearest neighbor graph construction for generic similarity measures.
+#' Efficient k-nearest neighbor graph construction for generic similarity
+#' measures.
 #' In *Proceedings of the 20th international conference on World Wide Web*
 #' (pp. 577-586).
 #' ACM.
@@ -194,7 +196,8 @@
 #'
 #' Harwood, B., & Drummond, T. (2016).
 #' Fanng: Fast approximate nearest neighbour graphs.
-#' In *Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition*
+#' In *Proceedings of the IEEE Conference on Computer Vision and Pattern
+#' Recognition*
 #' (pp. 5713-5722).
 #' @export
 rnnd_build <- function(
@@ -336,12 +339,14 @@ rnnd_build <- function(
 #' Prepare an index for repeated queries
 #'
 #' Copy an index into native memory once and pass the returned handle to
-#' [rnnd_query()] for repeated queries. Dense numeric indexes support the
-#' dense metrics with an explicit search forest. Dense logical indexes support
-#' packed binary metrics with an implicit search forest. Sparse indexes support
-#' the sparse metrics with either explicit or implicit search forests.
+#' [rnnd_query()] for repeated queries. Dense numeric indexes
+#' support the dense metrics with an explicit search forest. Dense logical
+#' indexes support packed binary metrics with an implicit search forest.
+#' Sparse indexes support the sparse metrics with either explicit or implicit
+#' search forests.
 #'
-#' @param index An index from [rnnd_build()] with a compatible search forest.
+#' @param index An index from [rnnd_build()] with a
+#'   compatible search forest.
 #' @return A prepared index handle for use in the current R session.
 #' @details
 #' The handle owns a snapshot of the reference, search graph and forest. Changes
@@ -561,10 +566,11 @@ query_prepared_index <- function(
 #' total number of distance calculations can also be bounded, similar to the
 #' method of Harwood and Drummond (2016).
 #'
-#' @param index A nearest neighbor index produced by [rnnd_build()] or a
-#'   prepared index from [rnnd_prepare()]. Prepared sparse indexes require
-#'   sparse query data. Prepared dense logical indexes require dense logical
-#'   query data.
+#' @param index A nearest neighbor index produced by
+#'   [rnnd_build()] or a prepared index from
+#'   [rnnd_prepare()]. Prepared sparse indexes require sparse
+#'   query data. Prepared dense logical indexes require dense logical query
+#'   data.
 #' @param query Matrix of `n` query items, with observations in the rows and
 #'   features in the columns. Optionally, the data may be passed with the
 #'   observations in the columns, by setting `obs = "C"`, which should be more
@@ -623,11 +629,13 @@ query_prepared_index <- function(
 #' @references
 #' Harwood, B., & Drummond, T. (2016).
 #' Fanng: Fast approximate nearest neighbour graphs.
-#' In *Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition*
+#' In *Proceedings of the IEEE Conference on Computer Vision and Pattern
+#' Recognition*
 #' (pp. 5713-5722).
 #'
 #' Iwasaki, M., & Miyazaki, D. (2018).
-#' Optimization of indexing based on k-nearest neighbor graph for proximity search in high-dimensional data.
+#' Optimization of indexing based on k-nearest neighbor graph for proximity
+#' search in high-dimensional data.
 #' *arXiv preprint* *arXiv:1810.07355*.
 #' <https://arxiv.org/abs/1810.07355>
 #' @export
@@ -806,8 +814,8 @@ can_validate_reference_on_copy <- function(reference, metric, init) {
 #'   and offset, and then calculates the margin based on the dot product with
 #'   the hyperplane.
 #'   - `"implicit"` calculates the distance from a point to each of the
-#'   points defining the normal vector. The margin is calculated by comparing the
-#'   two distances: the point is assigned to the side of the hyperplane that
+#'   points defining the normal vector. The margin is calculated by comparing
+#'   the two distances: the point is assigned to the side of the hyperplane that
 #'   the normal vector point with the closest distance belongs to.
 #'   - `"auto"` (the default) picks the margin method depending on whether a
 #'   binary-specific `metric` such as `"bhammming"` is chosen, in which case
@@ -873,7 +881,8 @@ can_validate_reference_on_copy <- function(reference, metric, init) {
 #' \doi{10.1145/1374376.1374452}.
 #'
 #' Dong, W., Moses, C., & Li, K. (2011, March).
-#' Efficient k-nearest neighbor graph construction for generic similarity measures.
+#' Efficient k-nearest neighbor graph construction for generic similarity
+#' measures.
 #' In *Proceedings of the 20th international conference on World Wide Web*
 #' (pp. 577-586).
 #' ACM.
@@ -1119,7 +1128,9 @@ brute_force_knn <- function(
 #'
 #' # These results can be improved by nearest neighbors descent. You don't need
 #' # to specify k here because this is worked out from the initial input
-#' iris_nn <- nnd_knn(iris, init = iris_nn, metric = "euclidean", verbose = TRUE)
+#' iris_nn <- nnd_knn(
+#'   iris, init = iris_nn, metric = "euclidean", verbose = TRUE
+#' )
 #' @export
 random_knn <-
   function(
@@ -1283,7 +1294,9 @@ random_knn <-
 #' # calculate the initialization are compatible with the metric options used
 #' # by nnd_knn).
 #' iris_nn <- random_knn(iris, k = 4, metric = "euclidean")
-#' iris_nn <- nnd_knn(iris, init = iris_nn, metric = "euclidean", verbose = TRUE)
+#' iris_nn <- nnd_knn(
+#'   iris, init = iris_nn, metric = "euclidean", verbose = TRUE
+#' )
 #'
 #' # Number of iterations controls how much optimization is attempted. A smaller
 #' # value will run faster but give poorer results
@@ -1298,9 +1311,12 @@ random_knn <-
 #' # stop progress earlier. The verbose flag will provide some information if
 #' # convergence is occurring before all iterations are carried out.
 #' set.seed(1337)
-#' iris_nn <- nnd_knn(iris, k = 4, metric = "euclidean", n_iters = 5, delta = 0.5)
+#' iris_nn <- nnd_knn(
+#'   iris, k = 4, metric = "euclidean", n_iters = 5, delta = 0.5
+#' )
 #'
-#' # To ensure that descent only stops if no improvements are made, set delta = 0
+#' # To ensure that descent only stops if no improvements are made,
+#' # set delta = 0
 #' set.seed(1337)
 #' iris_nn <- nnd_knn(iris, k = 4, metric = "euclidean", n_iters = 5, delta = 0)
 #'
@@ -1323,7 +1339,8 @@ random_knn <-
 #' \doi{10.1145/1374376.1374452}.
 #'
 #' Dong, W., Moses, C., & Li, K. (2011, March).
-#' Efficient k-nearest neighbor graph construction for generic similarity measures.
+#' Efficient k-nearest neighbor graph construction for generic similarity
+#' measures.
 #' In *Proceedings of the 20th international conference on World Wide Web*
 #' (pp. 577-586).
 #' ACM.
@@ -1946,18 +1963,19 @@ random_knn_query <-
 #'   1. A list containing:
 #'
 #'       * `idx` an `n` by `k` matrix containing the nearest neighbor indices.
-#'       * `dist` (optional) an `n` by `k` matrix containing the nearest neighbor
-#'       distances.
+#'       * `dist` (optional) an `n` by `k` matrix containing the nearest
+#'       neighbor distances.
 #'
 #'       If `k` and `init` are specified as arguments to this function, and the
 #'       number of neighbors provided in `init` is not equal to `k` then:
 #'
-#'       * if `k` is smaller, only the `k` closest values in `init` are retained.
-#'       * if `k` is larger, then random neighbors will be chosen to fill `init` to
-#'       the size of `k`. Note that there is no checking if any of the random
-#'       neighbors are duplicates of what is already in `init` so effectively fewer
-#'       than `k` neighbors may be chosen for some observations under these
-#'       circumstances.
+#'       * if `k` is smaller, only the `k` closest values in `init` are
+#'       retained.
+#'       * if `k` is larger, then random neighbors will be chosen to fill
+#'       `init` to the size of `k`. Note that there is no checking if any of
+#'       the random neighbors are duplicates of what is already in `init` so
+#'       effectively fewer than `k` neighbors may be chosen for some
+#'       observations under these circumstances.
 #'
 #'       If the input distances are omitted, they will be calculated for you.
 #'  1. A random projection forest, such as that returned from [rpf_build()] or
@@ -2027,7 +2045,8 @@ random_knn_query <-
 #' @references
 #' Harwood, B., & Drummond, T. (2016).
 #' Fanng: Fast approximate nearest neighbour graphs.
-#' In *Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition*
+#' In *Proceedings of the IEEE Conference on Computer Vision and Pattern
+#' Recognition*
 #' (pp. 5713-5722).
 #'
 #' Iwasaki, M., & Miyazaki, D. (2018).
@@ -2432,11 +2451,14 @@ graph_knn_query_impl <- function(
 #' @references
 #' Harwood, B., & Drummond, T. (2016).
 #' Fanng: Fast approximate nearest neighbour graphs.
-#' In *Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition*
+#' In *Proceedings of the IEEE Conference on Computer Vision and Pattern
+#' Recognition*
 #' (pp. 5713-5722).
 #'
-#' Jayaram Subramanya, S., Devvrit, F., Simhadri, H. V., Krishnawamy, R., & Kadekodi, R. (2019).
-#' Diskann: Fast accurate billion-point nearest neighbor search on a single node.
+#' Jayaram Subramanya, S., Devvrit, F., Simhadri, H. V., Krishnawamy, R., &
+#' Kadekodi, R. (2019).
+#' Diskann: Fast accurate billion-point nearest neighbor search on a single
+#' node.
 #' *Advances in Neural Information Processing Systems*, *32*.
 #' @seealso [graph_knn_query()]
 #' @export
@@ -2852,7 +2874,8 @@ merge_knn <- function(
 #'   considered to be the ground truth.
 #' @param k Number of neighbors to consider. If `NULL`, then the minimum of the
 #'   number of neighbors in `idx1` and `idx2` is used.
-#' @param ret_vec If `TRUE`, also return a vector containing the per-item overlap.
+#' @param ret_vec If `TRUE`, also return a vector containing the per-item
+#'   overlap.
 #' @return The mean overlap between `idx1` and `idx2`. If `ret_vec = TRUE`,
 #'  then a list containing the mean overlap and the overlap of each item in
 #'  is returned with names `mean` and `overlaps`, respectively.

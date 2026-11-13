@@ -120,19 +120,20 @@ random neighbors are created. If provided, the input format must be one of:
 \item A list containing:
 \itemize{
 \item \code{idx} an \code{n} by \code{k} matrix containing the nearest neighbor indices.
-\item \code{dist} (optional) an \code{n} by \code{k} matrix containing the nearest neighbor
-distances.
+\item \code{dist} (optional) an \code{n} by \code{k} matrix containing the nearest
+neighbor distances.
 }
 
 If \code{k} and \code{init} are specified as arguments to this function, and the
 number of neighbors provided in \code{init} is not equal to \code{k} then:
 \itemize{
-\item if \code{k} is smaller, only the \code{k} closest values in \code{init} are retained.
-\item if \code{k} is larger, then random neighbors will be chosen to fill \code{init} to
-the size of \code{k}. Note that there is no checking if any of the random
-neighbors are duplicates of what is already in \code{init} so effectively fewer
-than \code{k} neighbors may be chosen for some observations under these
-circumstances.
+\item if \code{k} is smaller, only the \code{k} closest values in \code{init} are
+retained.
+\item if \code{k} is larger, then random neighbors will be chosen to fill
+\code{init} to the size of \code{k}. Note that there is no checking if any of
+the random neighbors are duplicates of what is already in \code{init} so
+effectively fewer than \code{k} neighbors may be chosen for some
+observations under these circumstances.
 }
 
 If the input distances are omitted, they will be calculated for you.
@@ -235,7 +236,8 @@ iris_query_nn <- graph_knn_query(iris_query, iris_ref, iris_ref_search_graph,
 \references{
 Harwood, B., & Drummond, T. (2016).
 Fanng: Fast approximate nearest neighbour graphs.
-In \emph{Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition}
+In \emph{Proceedings of the IEEE Conference on Computer Vision and Pattern
+Recognition}
 (pp. 5713-5722).
 
 Iwasaki, M., & Miyazaki, D. (2018).
