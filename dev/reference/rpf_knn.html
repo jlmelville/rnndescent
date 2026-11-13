@@ -222,8 +222,8 @@ Angular (Euclidean after normalization), explicitly calculates a hyperplane
 and offset, and then calculates the margin based on the dot product with
 the hyperplane.</p></li>
 <li><p><code>"implicit"</code> calculates the distance from a point to each of the
-points defining the normal vector. The margin is calculated by comparing the
-two distances: the point is assigned to the side of the hyperplane that
+points defining the normal vector. The margin is calculated by comparing
+the two distances: the point is assigned to the side of the hyperplane that
 the normal vector point with the closest distance belongs to.</p></li>
 <li><p><code>"auto"</code> (the default) picks the margin method depending on whether a
 binary-specific <code>metric</code> such as <code>"bhammming"</code> is chosen, in which case

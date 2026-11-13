@@ -240,8 +240,8 @@ Angular (Euclidean after normalization), explicitly calculates a hyperplane
 and offset, and then calculates the margin based on the dot product with
 the hyperplane.</p></li>
 <li><p><code>"implicit"</code> calculates the distance from a point to each of the
-points defining the normal vector. The margin is calculated by comparing the
-two distances: the point is assigned to the side of the hyperplane that
+points defining the normal vector. The margin is calculated by comparing
+the two distances: the point is assigned to the side of the hyperplane that
 the normal vector point with the closest distance belongs to.</p></li>
 <li><p><code>"auto"</code> (the default) picks the margin method depending on whether a
 binary-specific <code>metric</code> such as <code>"bhammming"</code> is chosen, in which case
@@ -295,10 +295,11 @@ convergence, by default this is <code>FALSE</code>.</p></dd>
 
 <dt id="arg-n-search-trees">n_search_trees<a class="anchor" aria-label="anchor" href="#arg-n-search-trees"></a></dt>
 <dd><p>The number of trees to keep for query initialization.
-The default is <code>1</code>. For dense numeric Euclidean data with <code>init = "tree"</code>
-and explicit margins, a single search tree uses balanced splits informed
-by the neighbor graph. Otherwise, the retained trees come from the random
-projection forest used for graph initialization, when available.</p></dd>
+The default is <code>1</code>. For dense numeric Euclidean data with
+<code>init = "tree"</code> and explicit margins, a single search tree uses balanced
+splits informed by the neighbor graph. Otherwise, the retained trees
+come from the random projection forest used for graph initialization,
+when available.</p></dd>
 
 
 <dt id="arg-pruning-degree-multiplier">pruning_degree_multiplier<a class="anchor" aria-label="anchor" href="#arg-pruning-degree-multiplier"></a></dt>
@@ -387,7 +388,8 @@ In <em>Proceedings of the fortieth annual ACM symposium on Theory of computing</
 <a href="https://doi.org/10.1145/1374376.1374452" class="external-link">doi:10.1145/1374376.1374452</a>
 .</p>
 <p>Dong, W., Moses, C., &amp; Li, K. (2011, March).
-Efficient k-nearest neighbor graph construction for generic similarity measures.
+Efficient k-nearest neighbor graph construction for generic similarity
+measures.
 In <em>Proceedings of the 20th international conference on World Wide Web</em>
 (pp. 577-586).
 ACM.
@@ -395,7 +397,8 @@ ACM.
 .</p>
 <p>Harwood, B., &amp; Drummond, T. (2016).
 Fanng: Fast approximate nearest neighbour graphs.
-In <em>Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition</em>
+In <em>Proceedings of the IEEE Conference on Computer Vision and Pattern
+Recognition</em>
 (pp. 5713-5722).</p>
     </div>
     <div class="section level2">

@@ -75,15 +75,19 @@ Drummond, 2016) and back-tracking (Iwasakai and Miyazaki, 2018) to improve
 the search performance. The package also provides functions to diagnose
 hubness in nearest neighbor results (Radovanovic and co-workers, 2010).</p>
 <p>This library is based heavily on the 'PyNNDescent' Python library.</p>
-<p>General resources:</p><ul><li><p>Website for the 'rnndescent' package: <a href="https://github.com/jlmelville/rnndescent" class="external-link">https://github.com/jlmelville/rnndescent</a></p></li>
-<li><p>Documentation for the 'rnndescent' package: <a href="https://jlmelville.github.io/rnndescent/">https://jlmelville.github.io/rnndescent/</a></p></li>
-<li><p>Website of the 'PyNNDescent' package: <a href="https://github.com/lmcinnes/pynndescent" class="external-link">https://github.com/lmcinnes/pynndescent</a></p></li>
+<p>General resources:</p><ul><li><p>Website for the 'rnndescent' package:
+<a href="https://github.com/jlmelville/rnndescent" class="external-link">https://github.com/jlmelville/rnndescent</a></p></li>
+<li><p>Documentation for the 'rnndescent' package:
+<a href="https://jlmelville.github.io/rnndescent/">https://jlmelville.github.io/rnndescent/</a></p></li>
+<li><p>Website of the 'PyNNDescent' package:
+<a href="https://github.com/lmcinnes/pynndescent" class="external-link">https://github.com/lmcinnes/pynndescent</a></p></li>
 </ul><p>The following functions provide the main interface to the package, with
 useful defaults:</p><ul><li><p>Find the approximate nearest neighbors: <code><a href="rnnd_knn.html">rnnd_knn()</a></code></p></li>
 <li><p>Create a search index and query new neighbors: <code><a href="rnnd_build.html">rnnd_build()</a></code>.</p></li>
 <li><p>Query new neighbors (or refine an existing knn graph): <code><a href="rnnd_query.html">rnnd_query()</a></code>.</p></li>
 </ul><p>Some diagnostic and helper functions to help explore the the structure of the
-graphs and how well the approximation is working:</p><ul><li><p>Find exact nearest neighbors: <code><a href="brute_force_knn.html">brute_force_knn()</a></code>, <code><a href="brute_force_knn_query.html">brute_force_knn_query()</a></code>.</p></li>
+graphs and how well the approximation is working:</p><ul><li><p>Find exact nearest neighbors: <code><a href="brute_force_knn.html">brute_force_knn()</a></code>,
+<code><a href="brute_force_knn_query.html">brute_force_knn_query()</a></code>.</p></li>
 <li><p>Merging graphs: <code><a href="merge_knn.html">merge_knn()</a></code>.</p></li>
 <li><p>Hubness: <code><a href="k_occur.html">k_occur()</a></code>.</p></li>
 <li><p>Overlap/accuracy of two neighbor graphs: <code><a href="neighbor_overlap.html">neighbor_overlap()</a></code>.</p></li>
@@ -91,8 +95,8 @@ graphs and how well the approximation is working:</p><ul><li><p>Find exact neare
 the <code>rnnd_*</code> functions provide:</p><ul><li><p>Find approximate nearest neighbors: <code><a href="rpf_knn.html">rpf_knn()</a></code>, <code><a href="nnd_knn.html">nnd_knn()</a></code>.</p></li>
 <li><p>Generating random neighbors: <code><a href="random_knn.html">random_knn()</a></code>, <code><a href="random_knn_query.html">random_knn_query()</a></code>.</p></li>
 <li><p>Building an index: <code><a href="rpf_build.html">rpf_build()</a></code>, <code><a href="rpf_filter.html">rpf_filter()</a></code>.</p></li>
-<li><p>Querying an index for new data: <code><a href="rpf_knn_query.html">rpf_knn_query()</a></code>, <code><a href="prepare_search_graph.html">prepare_search_graph()</a></code>,
-<code><a href="graph_knn_query.html">graph_knn_query()</a></code>.</p></li>
+<li><p>Querying an index for new data: <code><a href="rpf_knn_query.html">rpf_knn_query()</a></code>,
+<code><a href="prepare_search_graph.html">prepare_search_graph()</a></code>, <code><a href="graph_knn_query.html">graph_knn_query()</a></code>.</p></li>
 </ul></div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
@@ -103,7 +107,8 @@ In <em>Proceedings of the fortieth annual ACM symposium on Theory of computing</
 <a href="https://doi.org/10.1145/1374376.1374452" class="external-link">doi:10.1145/1374376.1374452</a>
 .</p>
 <p>Dong, W., Moses, C., &amp; Li, K. (2011, March).
-Efficient k-nearest neighbor graph construction for generic similarity measures.
+Efficient k-nearest neighbor graph construction for generic similarity
+measures.
 In <em>Proceedings of the 20th international conference on World Wide Web</em>
 (pp. 577-586).
 ACM.
@@ -111,14 +116,16 @@ ACM.
 .</p>
 <p>Harwood, B., &amp; Drummond, T. (2016).
 Fanng: Fast approximate nearest neighbour graphs.
-In <em>Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition</em>
+In <em>Proceedings of the IEEE Conference on Computer Vision and Pattern
+Recognition</em>
 (pp. 5713-5722).</p>
 <p>Radovanovic, M., Nanopoulos, A., &amp; Ivanovic, M. (2010).
 Hubs in space: Popular nearest neighbors in high-dimensional data.
 <em>Journal of Machine Learning Research</em>, <em>11</em>, 2487-2531.
 <a href="https://www.jmlr.org/papers/v11/radovanovic10a.html" class="external-link">https://www.jmlr.org/papers/v11/radovanovic10a.html</a></p>
 <p>Iwasaki, M., &amp; Miyazaki, D. (2018).
-Optimization of indexing based on k-nearest neighbor graph for proximity search in high-dimensional data.
+Optimization of indexing based on k-nearest neighbor graph for proximity
+search in high-dimensional data.
 <em>arXiv preprint</em> <em>arXiv:1810.07355</em>.
 <a href="https://arxiv.org/abs/1810.07355" class="external-link">https://arxiv.org/abs/1810.07355</a></p>
     </div>

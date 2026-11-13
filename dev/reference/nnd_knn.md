@@ -319,23 +319,25 @@ iris_nn <- nnd_knn(iris, k = 4, metric = "manhattan", n_threads = 1)
 
 # Use verbose flag to see information about progress
 iris_nn <- nnd_knn(iris, k = 4, metric = "euclidean", verbose = TRUE)
-#> 05:06:30 Using alt metric 'sqeuclidean' for 'euclidean'
-#> 05:06:30 Initializing neighbors using 'rand' method
-#> 05:06:30 Generating random k-nearest neighbor graph with k = 4
-#> 05:06:30 Running nearest neighbor descent for 7 iterations
-#> 05:06:30 Finished
+#> 05:17:43 Using alt metric 'sqeuclidean' for 'euclidean'
+#> 05:17:43 Initializing neighbors using 'rand' method
+#> 05:17:43 Generating random k-nearest neighbor graph with k = 4
+#> 05:17:43 Running nearest neighbor descent for 7 iterations
+#> 05:17:43 Finished
 
 # Nearest neighbor descent uses random initialization, but you can pass any
 # approximation using the init argument (as long as the metrics used to
 # calculate the initialization are compatible with the metric options used
 # by nnd_knn).
 iris_nn <- random_knn(iris, k = 4, metric = "euclidean")
-iris_nn <- nnd_knn(iris, init = iris_nn, metric = "euclidean", verbose = TRUE)
-#> 05:06:30 Using alt metric 'sqeuclidean' for 'euclidean'
-#> 05:06:30 Initializing from user-supplied graph
-#> 05:06:30 Applying metric correction to initial distances from 'euclidean' to 'sqeuclidean'
-#> 05:06:30 Running nearest neighbor descent for 7 iterations
-#> 05:06:30 Finished
+iris_nn <- nnd_knn(
+  iris, init = iris_nn, metric = "euclidean", verbose = TRUE
+)
+#> 05:17:43 Using alt metric 'sqeuclidean' for 'euclidean'
+#> 05:17:43 Initializing from user-supplied graph
+#> 05:17:43 Applying metric correction to initial distances from 'euclidean' to 'sqeuclidean'
+#> 05:17:43 Running nearest neighbor descent for 7 iterations
+#> 05:17:43 Finished
 
 # Number of iterations controls how much optimization is attempted. A smaller
 # value will run faster but give poorer results
@@ -350,9 +352,12 @@ iris_nn <- nnd_knn(iris, k = 4, metric = "euclidean", max_candidates = 50)
 # stop progress earlier. The verbose flag will provide some information if
 # convergence is occurring before all iterations are carried out.
 set.seed(1337)
-iris_nn <- nnd_knn(iris, k = 4, metric = "euclidean", n_iters = 5, delta = 0.5)
+iris_nn <- nnd_knn(
+  iris, k = 4, metric = "euclidean", n_iters = 5, delta = 0.5
+)
 
-# To ensure that descent only stops if no improvements are made, set delta = 0
+# To ensure that descent only stops if no improvements are made,
+# set delta = 0
 set.seed(1337)
 iris_nn <- nnd_knn(iris, k = 4, metric = "euclidean", n_iters = 5, delta = 0)
 

@@ -157,10 +157,6 @@ head(cbind(row_in_X = neighbors$idx[1, ], distance = neighbors$dist[1, ]))
 
 ## A small comparison
 
-These benchmarks used rnndescent at commit `f648624c`, before later
-changes to forest construction and distance calculations. Timings and
-recall may differ with the current implementation.
-
 The comparisons use Euclidean distance and eight threads. Build times
 are medians over five seeds and include index preparation, but exclude
 serialization. The recall column compares nonself neighbors with saved
