@@ -87,8 +87,8 @@ rnnd_query(
 - init:
 
   An optional matrix of `k` initial nearest neighbors for each query
-  point. Use `NULL` with a prepared index to seed from its search
-  forest.
+  point. A prepared index requires `init = NULL` and uses its search
+  forest to initialize the query.
 
 - n_threads:
 

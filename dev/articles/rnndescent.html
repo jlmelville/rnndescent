@@ -209,6 +209,10 @@ can get <strong>very</strong> large, especially if you set
 <span><span class="co">#&gt; [1,] 0.1000000 0.1414213 0.1414213 0.1732050 0.2236068</span></span>
 <span><span class="co">#&gt; [2,] 0.1414213 0.2449490 0.2645753 0.3000001 0.3000002</span></span>
 <span><span class="co">#&gt; [3,] 0.1414213 0.1732050 0.2236066 0.2449488 0.2449488</span></span></code></pre></div>
+<p>If you’ll query the same index repeatedly, use
+<code><a href="../reference/rnnd_prepare.html">rnnd_prepare()</a></code> once and pass the returned handle to
+<code><a href="../reference/rnnd_query.html">rnnd_query()</a></code>. See <code><a href="../reference/rnnd_prepare.html">?rnnd_prepare</a></code> for supported
+indexes.</p>
 <p>You don’t need to keep the data that was used to build the index
 around, because internally, the index stores that (that’s one of the
 reasons the index can get large).</p>

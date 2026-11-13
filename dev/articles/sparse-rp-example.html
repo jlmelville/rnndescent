@@ -257,7 +257,10 @@ performance in this article, but the code is here for completeness.</p>
 <div class="section level2">
 <h2 id="a-small-comparison">A small comparison<a class="anchor" aria-label="anchor" href="#a-small-comparison"></a>
 </h2>
-<p>These results use Euclidean distance and eight threads. Build times
+<p>These benchmarks used rnndescent at commit <code>f648624c</code>,
+before later changes to forest construction and distance calculations.
+Timings and recall may differ with the current implementation.</p>
+<p>The comparisons use Euclidean distance and eight threads. Build times
 are medians over five seeds and include index preparation, but exclude
 serialization. The recall column compares nonself neighbors with saved
 reference neighbors calculated from brute force search.</p>

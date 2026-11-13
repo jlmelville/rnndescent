@@ -17,8 +17,9 @@ rnnd_prepare(index)
 
 - index:
 
-  A supported index from
-  [`rnnd_build()`](https://jlmelville.github.io/rnndescent/dev/reference/rnnd_build.md).
+  An index from
+  [`rnnd_build()`](https://jlmelville.github.io/rnndescent/dev/reference/rnnd_build.md)
+  with a compatible search forest.
 
 ## Value
 

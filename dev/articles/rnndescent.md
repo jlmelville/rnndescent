@@ -135,6 +135,14 @@ lapply(iris_odd_nn, function(x) {
 #> [3,] 0.1414213 0.1732050 0.2236066 0.2449488 0.2449488
 ```
 
+If you’ll query the same index repeatedly, use
+[`rnnd_prepare()`](https://jlmelville.github.io/rnndescent/dev/reference/rnnd_prepare.md)
+once and pass the returned handle to
+[`rnnd_query()`](https://jlmelville.github.io/rnndescent/dev/reference/rnnd_query.md).
+See
+[`?rnnd_prepare`](https://jlmelville.github.io/rnndescent/dev/reference/rnnd_prepare.md)
+for supported indexes.
+
 You don’t need to keep the data that was used to build the index around,
 because internally, the index stores that (that’s one of the reasons the
 index can get large).
