@@ -75,6 +75,7 @@
 <ul><li>Speed up forest initialization and parallel nearest neighbor descent, and reduce memory used by forests built solely for initialization.</li>
 <li>Reuse distance preparation across query stages, cache dense Spearman ranks, and batch candidate distances for several dense metrics. Pack logical matrices directly for supported binary metrics during builds and queries.</li>
 <li>Balance reverse diversification work across threads when preparing sparse search graphs.</li>
+<li>Batch squared-Euclidean distances during threaded reverse diversification of dense search graphs.</li>
 <li>Cache norms during nearest neighbor descent for dense ordinary cosine.</li>
 <li>Build large dense Euclidean hub trees in parallel during <code><a href="../reference/rnnd_build.html">rnnd_build()</a></code> and check for interrupts while workers run.</li>
 </ul></div>
