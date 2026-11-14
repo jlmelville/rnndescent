@@ -31,6 +31,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <numeric>
+#include <type_traits>
 #include <vector>
 
 #include "distancebase.h"
@@ -39,6 +40,8 @@
 #include "random.h"
 
 namespace tdoann {
+
+constexpr std::size_t diversification_rows_per_worker = 100;
 
 // Returns a vector of indices that represents the sorted order of elements in
 // the range [first, last).
@@ -95,14 +98,19 @@ auto degree_prune(const SparseNNGraph<Out, Idx> &graph, std::size_t max_degree,
 
 // remove neighbors which are "occlusions"
 // for point i with neighbors p and q, if d(p, q) < d(i, p), then p occludes q
-template <typename Out, typename Idx>
+template <typename Out, typename Idx, typename Stop = std::nullptr_t>
 void remove_long_edges_impl(const SparseNNGraph<Out, Idx> &graph,
                             const BaseDistance<Out, Idx> &distance,
                             RandomGenerator &rand, double prune_probability,
                             SparseNNGraph<Out, Idx> &result, std::size_t begin,
-                            std::size_t end) {
+                            std::size_t end, const Stop &stop = nullptr) {
   static constexpr auto zero = Out{0};
   for (std::size_t i = begin; i < end; i++) {
+    if constexpr (!std::is_same_v<Stop, std::nullptr_t>) {
+      if (stop()) {
+        return;
+      }
+    }
     const std::size_t n_nbrs = graph.n_nbrs(i);
     if (n_nbrs == 0) {
       continue;
@@ -118,6 +126,11 @@ void remove_long_edges_impl(const SparseNNGraph<Out, Idx> &graph,
     // loop starts at 1: we always keep the nearest neighbor so we start with
     // the next nearest neighbor
     for (std::size_t j = 1; j < n_nbrs; j++) {
+      if constexpr (!std::is_same_v<Stop, std::nullptr_t>) {
+        if (stop()) {
+          return;
+        }
+      }
       const std::size_t jth_nearest = ordered[j];
       const std::size_t ijn = row_ptr_i + jth_nearest;
       Idx nbr_j = graph.col_idx[ijn];
@@ -176,7 +189,7 @@ auto remove_long_edges(const SparseNNGraph<Out, Idx> &graph,
     remove_long_edges_impl(graph, distance, *rand, prune_probability, result,
                            begin, end);
   };
-  ExecutionParams exec_params{100 * n_threads};
+  ExecutionParams exec_params{diversification_rows_per_worker * n_threads};
   dispatch_work(worker, graph.n_points, n_threads, exec_params, progress,
                 executor);
   return result;

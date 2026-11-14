@@ -591,3 +591,40 @@ test_that("prune twice with different prob", {
   expect_gt(Matrix::nnzero(sg1_0.5), Matrix::nnzero(sg1))
   expect_gt(Matrix::nnzero(sg0.5), Matrix::nnzero(sg1_0.5))
 })
+
+test_that("degree scheduling preserves sparse reverse pruning and RNG state", {
+  set.seed(271L)
+  data <- matrix(runif(259L * 5L), nrow = 259L)
+  data[data < 0.45] <- 0
+  data <- Matrix::Matrix(data, sparse = TRUE)
+  graph <- brute_force_knn(data, k = 12L, metric = "cosine")
+  original <- rnndescent:::rnn_sparse_diversify
+  enabled <- FALSE
+  reverse_passes <- 0L
+  local_mocked_bindings(
+    rnn_sparse_diversify = function(..., balance_work = FALSE) {
+      reverse_passes <<- reverse_passes + as.integer(balance_work)
+      original(..., balance_work = balance_work && enabled)
+    },
+    .package = "rnndescent"
+  )
+  prepare <- function(seed) {
+    set.seed(seed)
+    dqrng::dqset.seed(seed)
+    result <- prepare_search_graph(
+      data,
+      graph,
+      metric = "cosine",
+      diversify_prob = 0.5,
+      n_threads = 2L
+    )
+    list(graph = result, rng = .Random.seed, dqrng = dqrng::dqrng_get_state())
+  }
+  first <- prepare(712L)
+  second <- prepare(713L)
+  expect_false(identical(first$graph, second$graph))
+  enabled <- TRUE
+  expect_identical(prepare(712L), first)
+  expect_identical(prepare(713L), second)
+  expect_identical(reverse_passes, 4L)
+})

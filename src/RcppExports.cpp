@@ -310,8 +310,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // rnn_sparse_diversify
-List rnn_sparse_diversify(const IntegerVector& ind, const IntegerVector& ptr, const NumericVector& data, std::size_t ndim, const List& graph_list, const std::string& metric, double prune_probability, std::size_t n_threads, bool verbose);
-RcppExport SEXP _rnndescent_rnn_sparse_diversify(SEXP indSEXP, SEXP ptrSEXP, SEXP dataSEXP, SEXP ndimSEXP, SEXP graph_listSEXP, SEXP metricSEXP, SEXP prune_probabilitySEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
+List rnn_sparse_diversify(const IntegerVector& ind, const IntegerVector& ptr, const NumericVector& data, std::size_t ndim, const List& graph_list, const std::string& metric, double prune_probability, std::size_t n_threads, bool verbose, bool balance_work);
+RcppExport SEXP _rnndescent_rnn_sparse_diversify(SEXP indSEXP, SEXP ptrSEXP, SEXP dataSEXP, SEXP ndimSEXP, SEXP graph_listSEXP, SEXP metricSEXP, SEXP prune_probabilitySEXP, SEXP n_threadsSEXP, SEXP verboseSEXP, SEXP balance_workSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -324,7 +324,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type prune_probability(prune_probabilitySEXP);
     Rcpp::traits::input_parameter< std::size_t >::type n_threads(n_threadsSEXP);
     Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
-    rcpp_result_gen = Rcpp::wrap(rnn_sparse_diversify(ind, ptr, data, ndim, graph_list, metric, prune_probability, n_threads, verbose));
+    Rcpp::traits::input_parameter< bool >::type balance_work(balance_workSEXP);
+    rcpp_result_gen = Rcpp::wrap(rnn_sparse_diversify(ind, ptr, data, ndim, graph_list, metric, prune_probability, n_threads, verbose, balance_work));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -1000,7 +1001,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_rnndescent_rnn_descent", (DL_FUNC) &_rnndescent_rnn_descent, 12},
     {"_rnndescent_rnn_logical_descent", (DL_FUNC) &_rnndescent_rnn_logical_descent, 12},
     {"_rnndescent_rnn_sparse_descent", (DL_FUNC) &_rnndescent_rnn_sparse_descent, 15},
-    {"_rnndescent_rnn_sparse_diversify", (DL_FUNC) &_rnndescent_rnn_sparse_diversify, 9},
+    {"_rnndescent_rnn_sparse_diversify", (DL_FUNC) &_rnndescent_rnn_sparse_diversify, 10},
     {"_rnndescent_rnn_diversify", (DL_FUNC) &_rnndescent_rnn_diversify, 6},
     {"_rnndescent_rnn_logical_diversify", (DL_FUNC) &_rnndescent_rnn_logical_diversify, 6},
     {"_rnndescent_rnn_merge_graph_lists", (DL_FUNC) &_rnndescent_rnn_merge_graph_lists, 2},

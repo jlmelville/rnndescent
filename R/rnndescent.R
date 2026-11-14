@@ -2600,7 +2600,8 @@ prepare_search_graph_impl <- function(
       metric = actual_metric,
       prune_probability = diversify_prob,
       verbose = verbose,
-      n_threads = n_threads
+      n_threads = n_threads,
+      balance_work = TRUE
     )
   } else {
     rdiv <- rsp
@@ -2667,7 +2668,8 @@ diversify <- function(
   metric = "euclidean",
   prune_probability = 1.0,
   n_threads = 0,
-  verbose = FALSE
+  verbose = FALSE,
+  balance_work = FALSE
 ) {
   nnz_before <- Matrix::nnzero(graph)
   sp_before <- nn_sparsity_sp(graph)
@@ -2691,7 +2693,8 @@ diversify <- function(
           ind = data@i,
           ptr = data@p,
           data = data@x,
-          ndim = nrow(data)
+          ndim = nrow(data),
+          balance_work = balance_work
         )
       )
     )

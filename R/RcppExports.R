@@ -69,8 +69,8 @@ rnn_sparse_descent <- function(ind, ptr, data, ndim, nn_idx, nn_dist, metric, ma
     .Call(`_rnndescent_rnn_sparse_descent`, ind, ptr, data, ndim, nn_idx, nn_dist, metric, max_candidates, n_iters, delta, low_memory, weight_by_degree, n_threads, verbose, progress_type)
 }
 
-rnn_sparse_diversify <- function(ind, ptr, data, ndim, graph_list, metric, prune_probability, n_threads, verbose) {
-    .Call(`_rnndescent_rnn_sparse_diversify`, ind, ptr, data, ndim, graph_list, metric, prune_probability, n_threads, verbose)
+rnn_sparse_diversify <- function(ind, ptr, data, ndim, graph_list, metric, prune_probability, n_threads, verbose, balance_work = FALSE) {
+    .Call(`_rnndescent_rnn_sparse_diversify`, ind, ptr, data, ndim, graph_list, metric, prune_probability, n_threads, verbose, balance_work)
 }
 
 rnn_diversify <- function(data, graph_list, metric, prune_probability, n_threads, verbose) {
