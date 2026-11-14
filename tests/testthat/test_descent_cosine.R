@@ -30,6 +30,34 @@ test_that("cosine descent agrees across memory and thread settings", {
   expect_equal(sum(uiris_rnn$dist), 1.347357, tolerance = 1e-3)
 })
 
+test_that("dense cosine descent preserves scores for zero and scaled rows", {
+  set.seed(3881L)
+  data <- matrix(rnorm(29L * 64L), nrow = 29L)
+  data[, 1:2] <- 0
+  data[, 4:6] <- data[, 3L] + outer(rnorm(29L), c(1e-5, 1.001e-5, 5e-4))
+  data[, 7:9] <- data[, 7:9] * 2^-48
+  data[, 10:12] <- data[, 10:12] * 2^48
+  data[, 13:14] <- data[, 13:14] * 2^-80
+  init <- list(
+    idx = matrix(0L, ncol(data), 8L),
+    dist = matrix(NA_real_, ncol(data), 8L)
+  )
+  set.seed(710L)
+  dqrng::dqset.seed(710L)
+  graph <- rnnd_knn(
+    data,
+    k = 8L,
+    metric = "cosine",
+    init = init,
+    n_iters = 1L,
+    obs = "C"
+  )
+  expect_true(all(graph$idx > 0L))
+  expected <- knn_distances(data, graph$idx, metric = "cosine", obs = "C")
+  expect_equal(graph$dist, expected$dist, tolerance = 1e-6)
+  expect_true(all(graph$dist[1:2, ] %in% c(0, 1)))
+})
+
 # Query
 
 test_that("cosine queries return valid neighbors and distances", {

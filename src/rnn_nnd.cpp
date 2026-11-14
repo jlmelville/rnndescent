@@ -19,6 +19,10 @@
 
 // NOLINTBEGIN(modernize-use-trailing-return-type)
 
+#include <algorithm>
+#include <cmath>
+#include <limits>
+
 #include <Rcpp.h>
 
 #include "rnndescent/random.h"
@@ -132,6 +136,59 @@ using DenseDistance =
 using BatchDistance =
     rnndescent::DenseDistanceFour<RNN_DEFAULT_DIST, RNN_DEFAULT_IDX>;
 
+auto cosine_norms(const float *data, std::size_t count, std::size_t dimension)
+    -> std::vector<float> {
+  std::vector<float> norms(count);
+  for (std::size_t row = 0; row < count; ++row) {
+    float squared = 0;
+    const auto *values = data + row * dimension;
+    // Keep the indexed scan and feature order for float rounding parity.
+    for (std::size_t j = 0; j < dimension; ++j) {
+      squared += values[j] * values[j];
+    }
+    // Keep the original kernel for zero and near the limits of float
+    // arithmetic, where rounding can change underflow or overflow.
+    constexpr float lower = 4 * std::numeric_limits<float>::min();
+    constexpr float upper = std::numeric_limits<float>::max() / 4;
+    norms[row] =
+        squared >= lower && squared <= upper ? std::sqrt(squared) : -1.0f;
+  }
+  return norms;
+}
+
+class CosineSelfDistance final
+    : public tdoann::SelfDistanceCalculator<RNN_DEFAULT_IN, RNN_DEFAULT_DIST,
+                                            RNN_DEFAULT_IDX> {
+  using Base = tdoann::SelfDistanceCalculator<RNN_DEFAULT_IN, RNN_DEFAULT_DIST,
+                                              RNN_DEFAULT_IDX>;
+  std::vector<float> norms;
+
+public:
+  CosineSelfDistance(std::vector<float> &&data, std::size_t dimension,
+                     DistanceFunc ordinary_cosine)
+      : Base(std::move(data), dimension, ordinary_cosine),
+        norms(cosine_norms(x.data(), nx, ndim)) {}
+
+  float calculate(const RNN_DEFAULT_IDX &i,
+                  const RNN_DEFAULT_IDX &j) const override {
+    const float norm_i = norms[i];
+    const float norm_j = norms[j];
+    auto first = get_x(i);
+    const auto end = first + ndim;
+    auto second = get_x(j);
+    if (norm_i < 0 || norm_j < 0) {
+      return distance_func(first, end, second);
+    }
+    float dot = 0;
+    for (; first != end; ++first, ++second) {
+      const float a = *first;
+      const float b = *second;
+      dot += a * b;
+    }
+    return std::max(1.0f - dot / (norm_i * norm_j), 0.0f);
+  }
+};
+
 auto batch_kernel(const std::string &metric) -> BatchDistance::Evaluate {
   using Metric = rnndescent::DenseBatchMetric;
   if (metric == "sqeuclidean") {
@@ -162,8 +219,17 @@ List rnn_descent(const NumericMatrix &data, const IntegerMatrix &nn_idx,
                  std::size_t max_candidates, uint32_t n_iters, double delta,
                  bool low_memory, bool weight_by_degree, std::size_t n_threads,
                  bool verbose, const std::string &progress_type) {
-  auto distance_ptr = create_self_distance_impl<DenseDistance>(data, metric);
   BatchDistance kernel;
+  if (metric == "cosine") {
+    const CosineSelfDistance distance(
+        r_to_vec<RNN_DEFAULT_IN>(data), data.nrow(),
+        get_dense_distance_funcs<RNN_DEFAULT_IN, RNN_DEFAULT_DIST>(metric)
+            .first);
+    return nn_descent_impl(distance, nn_idx, nn_dist, max_candidates, n_iters,
+                           delta, low_memory, weight_by_degree, n_threads,
+                           verbose, progress_type, &kernel);
+  }
+  auto distance_ptr = create_self_distance_impl<DenseDistance>(data, metric);
   if (n_threads > 0 && distance_ptr->get_nx() > 0) {
     if (const auto evaluate = batch_kernel(metric)) {
       kernel = {&*distance_ptr->get_x(0), static_cast<std::size_t>(data.nrow()),
