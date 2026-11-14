@@ -74,6 +74,7 @@
 <h3 id="performance-development-version">Performance<a class="anchor" aria-label="anchor" href="#performance-development-version"></a></h3>
 <ul><li>Speed up forest initialization and parallel nearest neighbor descent, and reduce memory used by forests built solely for initialization.</li>
 <li>Reuse distance preparation across query stages, cache dense Spearman ranks, and batch candidate distances for several dense metrics. Pack logical matrices directly for supported binary metrics during builds and queries.</li>
+<li>Balance reverse diversification work across threads when preparing sparse search graphs.</li>
 </ul></div>
 <div class="section level3">
 <h3 id="validation-and-reliability-development-version">Validation and reliability<a class="anchor" aria-label="anchor" href="#validation-and-reliability-development-version"></a></h3>

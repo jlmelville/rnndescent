@@ -46,6 +46,8 @@
   ranks, and batch candidate distances for several dense metrics. Pack
   logical matrices directly for supported binary metrics during builds
   and queries.
+- Balance reverse diversification work across threads when preparing
+  sparse search graphs.
 
 ### Validation and reliability
 
