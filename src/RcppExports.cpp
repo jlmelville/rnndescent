@@ -330,8 +330,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // rnn_diversify
-List rnn_diversify(const NumericMatrix& data, const List& graph_list, const std::string& metric, double prune_probability, std::size_t n_threads, bool verbose, bool batch_reverse);
-RcppExport SEXP _rnndescent_rnn_diversify(SEXP dataSEXP, SEXP graph_listSEXP, SEXP metricSEXP, SEXP prune_probabilitySEXP, SEXP n_threadsSEXP, SEXP verboseSEXP, SEXP batch_reverseSEXP) {
+List rnn_diversify(const NumericMatrix& data, const List& graph_list, const std::string& metric, double prune_probability, std::size_t n_threads, bool verbose);
+RcppExport SEXP _rnndescent_rnn_diversify(SEXP dataSEXP, SEXP graph_listSEXP, SEXP metricSEXP, SEXP prune_probabilitySEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -341,8 +341,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type prune_probability(prune_probabilitySEXP);
     Rcpp::traits::input_parameter< std::size_t >::type n_threads(n_threadsSEXP);
     Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
-    Rcpp::traits::input_parameter< bool >::type batch_reverse(batch_reverseSEXP);
-    rcpp_result_gen = Rcpp::wrap(rnn_diversify(data, graph_list, metric, prune_probability, n_threads, verbose, batch_reverse));
+    rcpp_result_gen = Rcpp::wrap(rnn_diversify(data, graph_list, metric, prune_probability, n_threads, verbose));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -1004,7 +1003,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_rnndescent_rnn_logical_descent", (DL_FUNC) &_rnndescent_rnn_logical_descent, 12},
     {"_rnndescent_rnn_sparse_descent", (DL_FUNC) &_rnndescent_rnn_sparse_descent, 15},
     {"_rnndescent_rnn_sparse_diversify", (DL_FUNC) &_rnndescent_rnn_sparse_diversify, 10},
-    {"_rnndescent_rnn_diversify", (DL_FUNC) &_rnndescent_rnn_diversify, 7},
+    {"_rnndescent_rnn_diversify", (DL_FUNC) &_rnndescent_rnn_diversify, 6},
     {"_rnndescent_rnn_logical_diversify", (DL_FUNC) &_rnndescent_rnn_logical_diversify, 6},
     {"_rnndescent_rnn_merge_graph_lists", (DL_FUNC) &_rnndescent_rnn_merge_graph_lists, 2},
     {"_rnndescent_rnn_degree_prune", (DL_FUNC) &_rnndescent_rnn_degree_prune, 3},

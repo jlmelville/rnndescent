@@ -174,13 +174,11 @@ List rnn_sparse_diversify(const IntegerVector &ind, const IntegerVector &ptr,
 // [[Rcpp::export]]
 List rnn_diversify(const NumericMatrix &data, const List &graph_list,
                    const std::string &metric, double prune_probability,
-                   std::size_t n_threads, bool verbose,
-                   bool batch_reverse = false) {
+                   std::size_t n_threads, bool verbose) {
   using Distance =
       tdoann::VectorDistance<RNN_DEFAULT_IN, RNN_DEFAULT_DIST, RNN_DEFAULT_IDX>;
   const auto distance = create_self_distance_impl<Distance>(data, metric);
-  if (batch_reverse && n_threads > 1 && metric == "sqeuclidean" &&
-      distance->get_nx() > 0) {
+  if (n_threads > 1 && metric == "sqeuclidean" && distance->get_nx() > 0) {
     using Kernel =
         rnndescent::DenseDistanceFour<RNN_DEFAULT_DIST, RNN_DEFAULT_IDX>;
     const auto *reference = &*distance->get_x(0);

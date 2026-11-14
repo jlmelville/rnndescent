@@ -73,8 +73,8 @@ rnn_sparse_diversify <- function(ind, ptr, data, ndim, graph_list, metric, prune
     .Call(`_rnndescent_rnn_sparse_diversify`, ind, ptr, data, ndim, graph_list, metric, prune_probability, n_threads, verbose, balance_work)
 }
 
-rnn_diversify <- function(data, graph_list, metric, prune_probability, n_threads, verbose, batch_reverse = FALSE) {
-    .Call(`_rnndescent_rnn_diversify`, data, graph_list, metric, prune_probability, n_threads, verbose, batch_reverse)
+rnn_diversify <- function(data, graph_list, metric, prune_probability, n_threads, verbose) {
+    .Call(`_rnndescent_rnn_diversify`, data, graph_list, metric, prune_probability, n_threads, verbose)
 }
 
 rnn_logical_diversify <- function(data, graph_list, metric, prune_probability, n_threads, verbose) {

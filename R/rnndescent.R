@@ -2715,8 +2715,7 @@ diversify <- function(
       c(
         args,
         list(
-          data = data,
-          batch_reverse = reverse
+          data = data
         )
       )
     )
