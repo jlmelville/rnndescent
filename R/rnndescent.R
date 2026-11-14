@@ -294,7 +294,8 @@ rnnd_build <- function(
       degree = degree,
       metric = if (use_alt_metric) "sqeuclidean" else "euclidean",
       leaf_size = if (is.null(leaf_size)) max(10, k) else leaf_size,
-      max_tree_depth = max_tree_depth
+      max_tree_depth = max_tree_depth,
+      n_threads = n_threads
     )
     index$search_forest <- set_forest_data(
       search_forest,

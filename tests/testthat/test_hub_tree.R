@@ -62,3 +62,16 @@ test_that("dense Euclidean indexes use the hub tree for one explicit search tree
     expect_true(all(result$idx > 0 & is.finite(result$dist)))
   }
 })
+
+test_that("parallel hub construction preserves serial splits and leaf order", {
+  # Use a shallow, wide tree to exercise parallel construction cheaply.
+  degree <- seq_len(1025L)
+  data <- matrix(rep(degree, each = 8192L), nrow = 8192L)
+  build <- function(threads) {
+    rnn_hub_forest_build(data, degree, "sqeuclidean", 30L, 2L, threads)
+  }
+
+  serial <- build(0L)
+  expect_gt(nrow(serial$trees[[1L]]$children), 3L)
+  expect_true(identical(build(4L), serial, num.eq = FALSE))
+})

@@ -40,6 +40,8 @@
   matrices directly for supported binary metrics during builds and queries.
 * Balance reverse diversification work across threads when preparing sparse search graphs.
 * Cache norms during nearest neighbor descent for dense ordinary cosine.
+* Build large dense Euclidean hub trees in parallel during `rnnd_build()` and
+  check for interrupts while workers run.
 
 ## Validation and reliability
 

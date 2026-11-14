@@ -571,7 +571,7 @@ List rnn_rp_forest_build(const NumericMatrix &data, const std::string &metric,
 List rnn_hub_forest_build(const NumericMatrix &data,
                           const IntegerVector &degree,
                           const std::string &metric, uint32_t leaf_size,
-                          uint32_t max_tree_depth) {
+                          uint32_t max_tree_depth, std::size_t n_threads = 0) {
   using Idx = RNN_DEFAULT_IDX;
   using In = RNN_DEFAULT_IN;
   if (data.nrow() == 0 || data.ncol() == 0 || degree.size() != data.ncol() ||
@@ -586,7 +586,8 @@ List rnn_hub_forest_build(const NumericMatrix &data,
     const auto degrees = r_to_vec<int>(degree);
     rnndescent::HubTreeBuilder<In, Idx> builder(values, degrees, data.nrow(),
                                                 leaf_size, max_tree_depth);
-    forest.push_back(builder.make_tree());
+    forest.push_back(
+        builder.make_tree(n_threads, [] { Rcpp::checkUserInterrupt(); }));
   }
   Rcpp::checkUserInterrupt();
   return search_forest_to_r(forest, metric);
