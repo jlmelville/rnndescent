@@ -2602,7 +2602,7 @@ prepare_search_graph_impl <- function(
       prune_probability = diversify_prob,
       verbose = verbose,
       n_threads = n_threads,
-      balance_work = TRUE
+      reverse = TRUE
     )
   } else {
     rdiv <- rsp
@@ -2670,7 +2670,7 @@ diversify <- function(
   prune_probability = 1.0,
   n_threads = 0,
   verbose = FALSE,
-  balance_work = FALSE
+  reverse = FALSE
 ) {
   nnz_before <- Matrix::nnzero(graph)
   sp_before <- nn_sparsity_sp(graph)
@@ -2695,7 +2695,7 @@ diversify <- function(
           ptr = data@p,
           data = data@x,
           ndim = nrow(data),
-          balance_work = balance_work
+          balance_work = reverse
         )
       )
     )
@@ -2715,7 +2715,8 @@ diversify <- function(
       c(
         args,
         list(
-          data = data
+          data = data,
+          batch_reverse = reverse
         )
       )
     )

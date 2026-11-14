@@ -26,6 +26,7 @@
 #include <Rcpp.h>
 
 #include "rnn_distance.h"
+#include "rnn_distance_batch.h"
 #include "rnn_parallel.h"
 #include "rnn_progress.h"
 
@@ -130,11 +131,12 @@ auto diversify_by_degree(const tdoann::SparseNNGraph<Out, Idx> &graph,
 
 } // namespace
 
-template <typename Out, typename Idx>
+template <typename Out, typename Idx, typename CalculateFour = std::nullptr_t>
 List diversify_impl(const tdoann::BaseDistance<Out, Idx> &distance,
                     List graph_list, double prune_probability,
                     std::size_t n_threads, bool verbose,
-                    bool balance_work = false) {
+                    bool balance_work = false,
+                    const CalculateFour &calculate_four = nullptr) {
   const auto graph = r_to_sparse_graph<Out, Idx>(graph_list);
   if (balance_work && n_threads > 1 &&
       graph.n_points > tdoann::diversification_rows_per_worker * n_threads) {
@@ -153,7 +155,7 @@ List diversify_impl(const tdoann::BaseDistance<Out, Idx> &distance,
     rnndescent::ParallelRNGAdapter<rnndescent::PcgRand> parallel_rand;
     diversified = tdoann::remove_long_edges(graph, distance, parallel_rand,
                                             prune_probability, n_threads,
-                                            progress, executor);
+                                            progress, executor, calculate_four);
   }
   return sparse_graph_to_r(*diversified);
 }
@@ -172,9 +174,27 @@ List rnn_sparse_diversify(const IntegerVector &ind, const IntegerVector &ptr,
 // [[Rcpp::export]]
 List rnn_diversify(const NumericMatrix &data, const List &graph_list,
                    const std::string &metric, double prune_probability,
-                   std::size_t n_threads, bool verbose) {
-  auto distance_ptr = create_self_distance(data, metric);
-  return diversify_impl(*distance_ptr, graph_list, prune_probability, n_threads,
+                   std::size_t n_threads, bool verbose,
+                   bool batch_reverse = false) {
+  using Distance =
+      tdoann::VectorDistance<RNN_DEFAULT_IN, RNN_DEFAULT_DIST, RNN_DEFAULT_IDX>;
+  const auto distance = create_self_distance_impl<Distance>(data, metric);
+  if (batch_reverse && n_threads > 1 && metric == "sqeuclidean" &&
+      distance->get_nx() > 0) {
+    using Kernel =
+        rnndescent::DenseDistanceFour<RNN_DEFAULT_DIST, RNN_DEFAULT_IDX>;
+    const auto *reference = &*distance->get_x(0);
+    const auto dimension = static_cast<std::size_t>(data.nrow());
+    const auto calculate_four = [reference,
+                                 dimension](RNN_DEFAULT_IDX anchor,
+                                            const Kernel::Targets &targets) {
+      return Kernel::run<rnndescent::DenseBatchMetric::squared_euclidean>(
+          reference, dimension, anchor, targets);
+    };
+    return diversify_impl(*distance, graph_list, prune_probability, n_threads,
+                          verbose, false, calculate_four);
+  }
+  return diversify_impl(*distance, graph_list, prune_probability, n_threads,
                         verbose);
 }
 

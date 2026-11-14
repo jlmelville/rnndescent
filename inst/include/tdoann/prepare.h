@@ -28,6 +28,7 @@
 #define TDOANN_PREPARE_H
 
 #include <algorithm>
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <numeric>
@@ -98,12 +99,14 @@ auto degree_prune(const SparseNNGraph<Out, Idx> &graph, std::size_t max_degree,
 
 // remove neighbors which are "occlusions"
 // for point i with neighbors p and q, if d(p, q) < d(i, p), then p occludes q
-template <typename Out, typename Idx, typename Stop = std::nullptr_t>
+template <typename Out, typename Idx, typename Stop = std::nullptr_t,
+          typename CalculateFour = std::nullptr_t>
 void remove_long_edges_impl(const SparseNNGraph<Out, Idx> &graph,
                             const BaseDistance<Out, Idx> &distance,
                             RandomGenerator &rand, double prune_probability,
                             SparseNNGraph<Out, Idx> &result, std::size_t begin,
-                            std::size_t end, const Stop &stop = nullptr) {
+                            std::size_t end, const Stop &stop = nullptr,
+                            const CalculateFour &calculate_four = nullptr) {
   static constexpr auto zero = Out{0};
   for (std::size_t i = begin; i < end; i++) {
     if constexpr (!std::is_same_v<Stop, std::nullptr_t>) {
@@ -136,20 +139,58 @@ void remove_long_edges_impl(const SparseNNGraph<Out, Idx> &graph,
       Idx nbr_j = graph.col_idx[ijn];
       Out dist_ij = graph.dist[ijn];
 
-      // check the distance between j and all retained neighbors (k) so far
-      for (std::size_t k = 0; k < j; k++) {
-        const std::size_t kth_nearest = ordered[k];
-        if (!retained[kth_nearest]) {
-          // k was already considered an occlusion, no need to test
-          continue;
+      const auto prunes = [&](Out dist_jk) {
+        const auto draw = rand.unif();
+        return dist_jk < dist_ij && draw < prune_probability;
+      };
+      if constexpr (!std::is_same_v<CalculateFour, std::nullptr_t>) {
+        std::array<Idx, 4> targets;
+        std::size_t filled = 0;
+        bool pruned = false;
+        for (std::size_t k = 0; k < j; ++k) {
+          const auto kth_nearest = ordered[k];
+          if (!retained[kth_nearest]) {
+            continue;
+          }
+          targets[filled++] = graph.col_idx[row_ptr_i + kth_nearest];
+          if (filled == targets.size()) {
+            const auto values = calculate_four(nbr_j, targets);
+            // Apply comparisons and draw in scalar order up to the first prune.
+            for (const auto value : values) {
+              if (prunes(value)) {
+                pruned = true;
+                break;
+              }
+            }
+            filled = 0;
+            if (pruned) {
+              break;
+            }
+          }
         }
-        Idx nbr_k = graph.col_idx[row_ptr_i + kth_nearest];
-        Out dist_jk = distance.calculate(nbr_j, nbr_k);
-        auto rand_val = rand.unif();
-        if (dist_jk < dist_ij && rand_val < prune_probability) {
-          // j occludes k, mark j for deletion
-          retained[jth_nearest] = 0;
-          break;
+        if (!pruned) {
+          for (std::size_t lane = 0; lane < filled; ++lane) {
+            if (prunes(distance.calculate(nbr_j, targets[lane]))) {
+              pruned = true;
+              break;
+            }
+          }
+        }
+        retained[jth_nearest] = !pruned;
+      } else {
+        // check the distance between j and all retained neighbors (k) so far
+        for (std::size_t k = 0; k < j; k++) {
+          const std::size_t kth_nearest = ordered[k];
+          if (!retained[kth_nearest]) {
+            // k was already considered an occlusion, no need to test
+            continue;
+          }
+          Idx nbr_k = graph.col_idx[row_ptr_i + kth_nearest];
+          if (prunes(distance.calculate(nbr_j, nbr_k))) {
+            // j occludes k, mark j for deletion
+            retained[jth_nearest] = 0;
+            break;
+          }
         }
       }
     }
@@ -175,19 +216,20 @@ auto remove_long_edges(const SparseNNGraph<Out, Idx> &graph,
   return result;
 }
 
-template <typename Out, typename Idx>
+template <typename Out, typename Idx, typename CalculateFour = std::nullptr_t>
 auto remove_long_edges(const SparseNNGraph<Out, Idx> &graph,
                        const BaseDistance<Out, Idx> &distance,
                        ParallelRandomProvider &parallel_rand,
                        double prune_probability, std::size_t n_threads,
-                       ProgressBase &progress, const Executor &executor)
+                       ProgressBase &progress, const Executor &executor,
+                       const CalculateFour &calculate_four = nullptr)
     -> SparseNNGraph<Out, Idx> {
   SparseNNGraph<Out, Idx> result(graph.row_ptr, graph.col_idx, graph.dist);
   parallel_rand.initialize();
   auto worker = [&](std::size_t begin, std::size_t end) {
     auto rand = parallel_rand.get_parallel_instance(end);
     remove_long_edges_impl(graph, distance, *rand, prune_probability, result,
-                           begin, end);
+                           begin, end, nullptr, calculate_four);
   };
   ExecutionParams exec_params{diversification_rows_per_worker * n_threads};
   dispatch_work(worker, graph.n_points, n_threads, exec_params, progress,
