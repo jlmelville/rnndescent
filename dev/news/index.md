@@ -49,6 +49,9 @@
 - Balance reverse diversification work across threads when preparing
   sparse search graphs.
 - Cache norms during nearest neighbor descent for dense ordinary cosine.
+- Build large dense Euclidean hub trees in parallel during
+  [`rnnd_build()`](https://jlmelville.github.io/rnndescent/dev/reference/rnnd_build.md)
+  and check for interrupts while workers run.
 
 ### Validation and reliability
 
