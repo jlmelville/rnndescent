@@ -48,6 +48,7 @@
   and queries.
 - Balance reverse diversification work across threads when preparing
   sparse search graphs.
+- Cache norms during nearest neighbor descent for dense ordinary cosine.
 
 ### Validation and reliability
 
