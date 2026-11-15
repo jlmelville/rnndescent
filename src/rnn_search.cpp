@@ -54,13 +54,15 @@ std::string fmt_double(double d, int precision = 2) {
   return oss.str();
 }
 
-template <typename Out, typename Idx, typename CalculateFour = std::nullptr_t>
+template <typename Out, typename Idx, typename CalculateFour = std::nullptr_t,
+          typename PrepareTraversal = std::nullptr_t>
 List nn_query_impl(const tdoann::BaseDistance<Out, Idx> &distance,
                    const tdoann::SparseNNGraph<Out, Idx> &search_graph,
                    const IntegerMatrix &nn_idx, const NumericMatrix &nn_dist,
                    double epsilon, double max_search_fraction,
                    std::size_t n_threads, bool verbose,
-                   const CalculateFour &calculate_four = nullptr) {
+                   const CalculateFour &calculate_four = nullptr,
+                   const PrepareTraversal &prepare_traversal = nullptr) {
   auto nn_heap = r_to_query_heap<tdoann::NNHeap<Out, Idx>>(nn_idx, nn_dist);
 
   auto max_distance_calculations =
@@ -73,6 +75,9 @@ List nn_query_impl(const tdoann::BaseDistance<Out, Idx> &distance,
   // replace missing data with randomly chosen neighbors so all points have
   // k initial guesses
   fill_random(nn_heap, distance, n_threads, verbose);
+  if constexpr (!std::is_same_v<PrepareTraversal, std::nullptr_t>) {
+    prepare_traversal();
+  }
 
   std::vector<std::size_t> distance_counts(nn_heap.n_points, 0);
 
@@ -445,8 +450,11 @@ List rnn_query_prepared_sparse(SEXP handle, const IntegerVector &query_ind,
                                            query_data);
   const auto [indices, distances] = prepared_query_seeds(
       index.forest, distance, k, n_threads, verbose, convert_seed_distances);
+  // Switch the query-local kernel after seeding and random fill.
+  const auto prepare_traversal = [&] { distance.prepare_traversal(); };
   return nn_query_impl(distance, index.graph, indices, distances, epsilon,
-                       max_search_fraction, n_threads, verbose);
+                       max_search_fraction, n_threads, verbose, nullptr,
+                       prepare_traversal);
 }
 
 // [[Rcpp::export(rng = false)]]
