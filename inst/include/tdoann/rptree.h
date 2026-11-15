@@ -28,12 +28,14 @@
 #define TDOANN_RPTREE_H
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <limits>
 #include <numeric>
 #include <tuple>
+#include <type_traits>
 #include <unordered_set>
 #include <utility>
 #include <vector>
@@ -467,51 +469,73 @@ get_leaves_from_forest(const std::vector<Tree> &forest,
   return leaf_indices;
 }
 
-template <typename Out, typename Idx>
+template <typename Out, typename Idx, typename CalculateFour = std::nullptr_t>
 void generate_leaf_updates(
     const BaseDistance<Out, Idx> &distance,
     const NNHeap<Out, Idx> &current_graph, const std::vector<Idx> &leaves,
     std::size_t max_leaf_size,
     std::vector<std::vector<std::tuple<Idx, Idx, Out>>> &updates,
     std::size_t neighbor_begin, std::size_t begin, std::size_t end,
-    std::size_t batch_begin = 0) {
+    std::size_t batch_begin = 0,
+    const CalculateFour &calculate_four = nullptr) {
   constexpr auto npos = static_cast<Idx>(-1);
+  constexpr bool batched = !std::is_same_v<CalculateFour, std::nullptr_t>;
 
   for (std::size_t n = begin; n < end; ++n) {
     auto leaf_begin = leaves.begin() + n * max_leaf_size;
     auto leaf_end = leaf_begin + max_leaf_size;
+    if constexpr (batched) {
+      leaf_end = std::find(leaf_begin, leaf_end, npos);
+    }
     auto &leaf_updates = updates[n - batch_begin];
 
     for (auto i = leaf_begin; i != leaf_end; ++i) {
       Idx p = *i;
-      if (p == npos) {
-        break;
+      if constexpr (!batched) {
+        if (p == npos) {
+          break;
+        }
       }
+      auto queue = [&](Idx q, Out d) {
+        if (current_graph.accepts_either(p, q, d)) {
+          leaf_updates.emplace_back(p, q, d);
+        }
+      };
 
       // if neighbor_begin == 0 then we consider an item to be a neighbor of
       // itself, otherwise neighbor_begin = 1 and only non-degenerate pairs
       // are considered
-      for (auto j = i + neighbor_begin; j != leaf_end; ++j) {
+      auto j = i + neighbor_begin;
+      if constexpr (batched) {
+        for (; leaf_end - j >= 4; j += 4) {
+          const std::array<Idx, 4> targets{j[0], j[1], j[2], j[3]};
+          const auto distances = calculate_four(p, targets);
+          // Preserve the scalar insertion order for tied distances.
+          for (std::size_t lane = 0; lane < targets.size(); ++lane) {
+            queue(targets[lane], distances[lane]);
+          }
+        }
+      }
+      for (; j != leaf_end; ++j) {
         Idx q = *j;
-        if (q == npos) {
-          break;
+        if constexpr (!batched) {
+          if (q == npos) {
+            break;
+          }
         }
-
-        const auto d = distance.calculate(p, q);
-        if (current_graph.accepts_either(p, q, d)) {
-          leaf_updates.emplace_back(p, q, d);
-        }
+        queue(q, distance.calculate(p, q));
       }
     }
   }
 }
 
-template <typename Out, typename Idx>
+template <typename Out, typename Idx, typename CalculateFour = std::nullptr_t>
 void init_rp_tree(const BaseDistance<Out, Idx> &distance,
                   NNHeap<Out, Idx> &current_graph,
                   const std::vector<Idx> &leaves, std::size_t max_leaf_size,
                   bool include_self, std::size_t n_threads,
-                  ProgressBase &progress, const Executor &executor) {
+                  ProgressBase &progress, const Executor &executor,
+                  const CalculateFour &calculate_four = nullptr) {
 
   constexpr std::size_t batch_size = 65536;
   const std::size_t n_leaves = leaves.size() / max_leaf_size;
@@ -522,11 +546,13 @@ void init_rp_tree(const BaseDistance<Out, Idx> &distance,
   std::size_t neighbor_begin = include_self ? 0 : 1;
 
   auto worker = [&distance, &current_graph, &leaves, &updates, neighbor_begin,
-                 max_leaf_size](std::size_t begin, std::size_t end) {
+                 max_leaf_size,
+                 &calculate_four](std::size_t begin, std::size_t end) {
     // Each worker receives a subrange of a single dispatch batch.
     const auto batch_begin = begin - begin % batch_size;
     generate_leaf_updates(distance, current_graph, leaves, max_leaf_size,
-                          updates, neighbor_begin, begin, end, batch_begin);
+                          updates, neighbor_begin, begin, end, batch_begin,
+                          calculate_four);
   };
   auto after_worker = [&current_graph, &updates](std::size_t begin,
                                                  std::size_t end) {
@@ -544,16 +570,17 @@ void init_rp_tree(const BaseDistance<Out, Idx> &distance,
                 progress, executor);
 }
 
-template <typename Out, typename Idx>
+template <typename Out, typename Idx, typename CalculateFour = std::nullptr_t>
 auto init_rp_tree(const BaseDistance<Out, Idx> &distance,
                   const std::vector<Idx> &leaves, std::size_t max_leaf_size,
                   uint32_t n_nbrs, bool include_self, std::size_t n_threads,
-                  ProgressBase &progress, const Executor &executor)
+                  ProgressBase &progress, const Executor &executor,
+                  const CalculateFour &calculate_four = nullptr)
     -> NNHeap<Out, Idx> {
   NNHeap<Out, Idx> current_graph(distance.get_ny(), n_nbrs);
 
   init_rp_tree(distance, current_graph, leaves, max_leaf_size, include_self,
-               n_threads, progress, executor);
+               n_threads, progress, executor, calculate_four);
 
   return current_graph;
 }

@@ -32,6 +32,7 @@
 #include "tdoann/rptreesparse.h"
 
 #include "rnn_distance.h"
+#include "rnn_distance_batch.h"
 #include "rnn_heaptor.h"
 #include "rnn_hub_tree.h"
 #include "rnn_parallel.h"
@@ -402,9 +403,23 @@ List rnn_rp_tree_knn_explicit(const NumericMatrix &data, uint32_t nnbrs,
 
   auto distance =
       create_self_distance_calculator(std::move(data_vec), ndim, metric);
-  auto neighbor_heap =
-      tdoann::init_rp_tree(distance, leaf_array, max_leaf_size, nnbrs,
-                           include_self, n_threads, knn_progress, executor);
+  auto neighbor_heap = [&](const auto &leaves, std::size_t width) {
+    if (!ret_forest && n_threads > 1 && metric == "sqeuclidean" &&
+        distance.get_nx() > 0) {
+      using Kernel = rnndescent::DenseDistanceFour<RNN_DEFAULT_DIST, Idx>;
+      const auto *reference = &*distance.get_x(0);
+      const auto calculate_four =
+          [reference, ndim](Idx anchor, const Kernel::Targets &targets) {
+            return Kernel::run<rnndescent::DenseBatchMetric::squared_euclidean>(
+                reference, ndim, anchor, targets);
+          };
+      return tdoann::init_rp_tree(distance, leaves, width, nnbrs, include_self,
+                                  n_threads, knn_progress, executor,
+                                  calculate_four);
+    }
+    return tdoann::init_rp_tree(distance, leaves, width, nnbrs, include_self,
+                                n_threads, knn_progress, executor);
+  }(leaf_array, max_leaf_size);
   auto nn_list =
       heap_to_r(neighbor_heap, n_threads, knn_progress, executor, unzero);
   if (ret_forest) {

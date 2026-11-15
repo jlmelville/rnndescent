@@ -115,6 +115,35 @@ test_that("recursive leaf-only forests preserve the initial graph and RNG state"
   }
 })
 
+test_that("batched leaf updates preserve squared-Euclidean ties and tails", {
+  x <- as.matrix(iris[1:11, 1:4])
+  x[2, ] <- x[1, ]
+  for (self in c(FALSE, TRUE)) {
+    run <- function(ret_forest) {
+      set.seed(127L)
+      dqrng::dqset.seed(127L)
+      graph <- rpf_knn(
+        x,
+        k = 5L,
+        metric = "euclidean",
+        n_trees = 1L,
+        leaf_size = 5L,
+        max_tree_depth = 0L,
+        include_self = self,
+        n_threads = 2L,
+        ret_forest = ret_forest
+      )
+      list(
+        graph = graph[c("idx", "dist")],
+        r = .Random.seed,
+        dq = dqrng::dqrng_get_state()
+      )
+    }
+    # With zero split depth both routes visit the same single leaf.
+    expect_identical(run(FALSE), run(TRUE))
+  }
+})
+
 test_that("threaded RP forests preserve neighbor quality and missing entries", {
   # multi-threading
   set.seed(1337)
