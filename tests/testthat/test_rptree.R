@@ -144,6 +144,37 @@ test_that("batched leaf updates preserve squared-Euclidean ties and tails", {
   }
 })
 
+test_that("indexed sparse margins preserve the tree and tie RNG", {
+  set.seed(712L)
+  x <- matrix(
+    sample(c(-2, -1, 0, 0, 0, 1, 2), 8L * 64L, replace = TRUE),
+    nrow = 8L
+  )
+  x[, 1:2] <- 0
+  x[, 3L] <- x[, 4L]
+  x <- Matrix::Matrix(x, sparse = TRUE)
+  x@x[1L] <- 0
+  wide <- x
+  # Trailing empty features select the merge without changing any support.
+  wide@Dim[1L] <- 1000000L
+  run <- function(data) {
+    set.seed(329L)
+    dqrng::dqset.seed(329L)
+    graph <- rpf_knn(
+      data,
+      k = 4L,
+      metric = "cosine",
+      n_trees = 5L,
+      leaf_size = 8L,
+      n_threads = 2L,
+      obs = "C",
+      ret_forest = TRUE
+    )
+    list(graph = graph, r = .Random.seed, dq = dqrng::dqrng_get_state())
+  }
+  expect_identical(run(x), run(wide))
+})
+
 test_that("threaded RP forests preserve neighbor quality and missing entries", {
   # multi-threading
   set.seed(1337)

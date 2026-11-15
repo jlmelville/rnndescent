@@ -334,7 +334,7 @@ std::vector<Tree> build_sparse_rp_forest(
     const std::vector<std::size_t> &ptr_vec, std::size_t ndim,
     const std::string &metric, uint32_t n_trees, uint32_t leaf_size,
     uint32_t max_tree_depth, std::size_t n_threads, bool verbose,
-    const tdoann::Executor &executor) {
+    const tdoann::Executor &executor, bool indexed = false) {
   bool angular = is_angular_metric(metric);
   rnndescent::ParallelIntRNGAdapter<Idx, rnndescent::DQIntSampler> rng_provider;
   if (verbose) {
@@ -344,7 +344,7 @@ std::vector<Tree> build_sparse_rp_forest(
   RPProgress forest_progress(verbose);
   return tdoann::make_sparse_forest<In, Idx, Tree>(
       ind_vec, ptr_vec, data_vec, ndim, n_trees, leaf_size, max_tree_depth,
-      rng_provider, angular, n_threads, forest_progress, executor);
+      rng_provider, angular, n_threads, forest_progress, executor, indexed);
 }
 
 template <typename Tree, typename BuildForest>
@@ -451,11 +451,12 @@ List rnn_sparse_rp_tree_knn_explicit(
 
   RParallelExecutor executor;
   std::vector<tdoann::SparseRPTree<In, Idx>> rp_forest;
+  const bool indexed = metric == "cosine" && ret_forest && n_threads > 1;
   auto build_forest = [&](auto tree) {
     using Tree = decltype(tree);
     return build_sparse_rp_forest<In, Idx, Tree>(
         data_vec, ind_vec, ptr_vec, ndim, metric, n_trees, leaf_size,
-        max_tree_depth, n_threads, verbose, executor);
+        max_tree_depth, n_threads, verbose, executor, indexed);
   };
   auto [leaf_array, max_leaf_size] = prepare_initialization_leaves(
       rp_forest, build_forest, ret_forest, leaf_size, verbose);
