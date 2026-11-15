@@ -85,6 +85,45 @@ test_that("prepared dense cosine queries preserve signed distances and search bu
   expect_true(any(wide$dist[-1L, ] > 1))
 })
 
+test_that("prepared dense cosine seed batches preserve split ties and RNG", {
+  set.seed(771L)
+  reference <- matrix(rnorm(96L * 23L), nrow = 96L)
+  query <- matrix(rnorm(71L * 23L), nrow = 71L)
+  query[c(1L, 6L, 63L, 64L, 65L, 71L), ] <- 0
+  dqrng::dqset.seed(771L)
+  index <- rnnd_build(
+    reference,
+    k = 16L,
+    metric = "cosine",
+    use_alt_metric = FALSE,
+    margin = "explicit",
+    n_trees = 3L,
+    n_search_trees = 1L,
+    leaf_size = 8L,
+    n_iters = 2L
+  )
+  prepared <- rnnd_prepare(index)
+  run <- function(index, fraction) {
+    set.seed(291L)
+    dqrng::dqset.seed(291L)
+    result <- rnnd_query(
+      index,
+      query,
+      k = 16L,
+      max_search_fraction = fraction,
+      n_threads = 2L
+    )
+    list(result = result, rng = .Random.seed, dq = dqrng::dqrng_get_state())
+  }
+  for (fraction in c(0, 1)) {
+    expect_true(identical(
+      run(prepared, fraction),
+      run(index, fraction),
+      num.eq = FALSE
+    ))
+  }
+})
+
 test_that("prepared indexes own a snapshot and reject invalid inputs", {
   data <- matrix(0:63, ncol = 2)
   index <- rnnd_build(data, k = 4L, n_trees = 2L, n_iters = 1L)

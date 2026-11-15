@@ -387,19 +387,27 @@ auto prepared_seed_distances(const List &seeds, SEXP convert_seed_distances)
 template <typename Forest, typename Distance>
 auto prepared_query_seeds(const Forest &forest, const Distance &distance,
                           uint32_t k, std::size_t n_threads, bool verbose,
-                          SEXP convert_seed_distances)
+                          SEXP convert_seed_distances,
+                          std::size_t queries_per_worker = 1)
     -> std::pair<IntegerMatrix, NumericMatrix> {
+  constexpr bool sparse =
+      std::is_same_v<Forest, rnndescent::PreparedSparseIndex::Forest>;
   rnndescent::ParallelIntRNGAdapter<RNN_DEFAULT_IDX, rnndescent::DQIntSampler>
       rng_provider;
   RParallelExecutor executor;
   RPProgress progress(verbose);
   auto search = [&](const auto &trees) {
-    return tdoann::search_forest(trees, distance, k, rng_provider, true,
-                                 n_threads, progress, executor);
+    if constexpr (std::is_same_v<Distance, rnndescent::PreparedIndexQuery>) {
+      return tdoann::search_forest(trees, distance, k, rng_provider, true,
+                                   n_threads, progress, executor,
+                                   queries_per_worker);
+    } else {
+      return tdoann::search_forest(trees, distance, k, rng_provider, true,
+                                   n_threads, progress, executor);
+    }
   };
   auto seed_heap = [&] {
-    if constexpr (std::is_same_v<Forest,
-                                 rnndescent::PreparedSparseIndex::Forest>) {
+    if constexpr (sparse) {
       return std::visit(search, forest);
     } else {
       return search(forest);
@@ -424,8 +432,10 @@ List rnn_query_prepared(SEXP handle, const NumericMatrix &query, uint32_t k,
   check_prepared_query_shape(index, query.nrow(), k);
   const Rcpp::RNGScope scope;
   rnndescent::PreparedIndexQuery distance(index, query);
-  const auto [indices, distances] = prepared_query_seeds(
-      index.forest, distance, k, n_threads, verbose, convert_seed_distances);
+  const auto queries_per_worker = index.metric == "cosine" ? 32U : 1U;
+  const auto [indices, distances] =
+      prepared_query_seeds(index.forest, distance, k, n_threads, verbose,
+                           convert_seed_distances, queries_per_worker);
   return dense_query_impl(distance, index.graph, indices, distances,
                           index.metric, index.ndim, epsilon,
                           max_search_fraction, n_threads, verbose);

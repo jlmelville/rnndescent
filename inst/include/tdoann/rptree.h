@@ -796,25 +796,38 @@ search_forest(const std::vector<SearchTree<In, Idx>> &forest,
               const VectorDistance<In, Out, Idx> &distance, uint32_t n_nbrs,
               ParallelRandomIntProvider<Idx> &rng_provider, bool cache,
               std::size_t n_threads, ProgressBase &progress,
-              const Executor &executor) {
+              const Executor &executor, std::size_t queries_per_worker = 1) {
   const auto n_queries = distance.get_ny();
   NNHeap<Out, Idx> current_graph(n_queries, n_nbrs);
 
+  const bool grouped = n_threads > 1 && queries_per_worker > 1;
   rng_provider.initialize();
+  auto visit = [&](std::size_t i, RandomIntGenerator<Idx> &rng) {
+    if (cache) {
+      search_forest_cache(forest, distance, static_cast<Idx>(i), rng,
+                          current_graph);
+    } else {
+      search_forest(forest, distance, static_cast<Idx>(i), rng, current_graph);
+    }
+  };
   auto worker = [&](std::size_t begin, std::size_t end) {
-    auto rng_ptr = rng_provider.get_parallel_instance(end);
-    for (auto i = begin; i < end; ++i) {
-      if (cache) {
-        search_forest_cache(forest, distance, static_cast<Idx>(i), *rng_ptr,
-                            current_graph);
-      } else {
-        search_forest(forest, distance, static_cast<Idx>(i), *rng_ptr,
-                      current_graph);
+    if (grouped) {
+      for (auto i = begin; i < end; ++i) {
+        // Match the exclusive end of each original one-query worker range.
+        auto rng = rng_provider.get_parallel_instance(i + 1);
+        visit(i, *rng);
+      }
+    } else {
+      auto rng = rng_provider.get_parallel_instance(end);
+      for (auto i = begin; i < end; ++i) {
+        visit(i, *rng);
       }
     }
   };
   progress.set_n_iters(n_queries);
-  ExecutionParams exec_params(std::max(n_threads, static_cast<std::size_t>(1)));
+  const auto batch_size = std::max(n_threads, std::size_t{1});
+  ExecutionParams exec_params(grouped ? batch_size * queries_per_worker
+                                      : batch_size);
   dispatch_work(worker, n_queries, n_threads, exec_params, progress, executor);
 
   return current_graph;
