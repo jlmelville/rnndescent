@@ -39,7 +39,8 @@ template <typename NbrHeap>
 void fill_random(NbrHeap &current_graph,
                  const tdoann::BaseDistance<typename NbrHeap::DistanceOut,
                                             typename NbrHeap::Index> &distance,
-                 std::size_t n_threads, bool verbose) {
+                 std::size_t n_threads, bool verbose,
+                 bool shuffle_prefix = false) {
 
   const auto end = current_graph.idx.end();
   if (std::find(current_graph.idx.begin(), end, NbrHeap::npos()) == end) {
@@ -52,13 +53,29 @@ void fill_random(NbrHeap &current_graph,
         << "Graph contains missing data: filling with random neighbors\n";
   }
 
-  rnndescent::ParallelIntRNGAdapter<typename NbrHeap::Index,
-                                    rnndescent::DQIntSampler>
-      rng_provider;
+  using Idx = typename NbrHeap::Index;
+  rnndescent::ParallelIntRNGAdapter<Idx, rnndescent::DQIntSampler> rng_provider;
   RParallelExecutor executor;
   RPProgress fill_progress(false);
-  tdoann::fill_random(current_graph, distance, rng_provider, n_threads,
-                      fill_progress, executor);
+  if (shuffle_prefix) {
+    const Idx n_ref_points = distance.get_nx();
+    rng_provider.initialize();
+    tdoann::fill_random_rows(
+        current_graph.n_points, n_threads, fill_progress, executor,
+        [&](std::size_t end) { return rng_provider.get_instance(end); },
+        [&](auto &rng, Idx query) {
+          if (!current_graph.is_full(query)) {
+            rng.visit_shuffle_prefix(n_ref_points, [&](Idx ref) {
+              current_graph.checked_push(query, distance.calculate(ref, query),
+                                         ref);
+              return !current_graph.is_full(query);
+            });
+          }
+        });
+  } else {
+    tdoann::fill_random(current_graph, distance, rng_provider, n_threads,
+                        fill_progress, executor);
+  }
   if (verbose) {
     tsmessage() << "Finished random fill\n";
   }

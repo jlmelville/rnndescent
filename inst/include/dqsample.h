@@ -52,6 +52,26 @@ auto no_replacement_shuffle(std::shared_ptr<dqrng::random_64bit_generator> &rng,
   return std::vector<INT>(tmp.begin(), tmp.begin() + size);
 }
 
+template <typename Int, typename Consume>
+void visit_shuffle_prefix(dqrng::random_64bit_generator &rng, Int size,
+                          const Consume &consume) {
+  std::vector<Int> indices(size);
+  std::iota(indices.begin(), indices.end(), Int{0});
+  Int i = 0;
+  while (i < size) {
+    std::swap(indices[i], indices[i + rng(size - i)]);
+    const auto ref = indices[i++];
+    if (!consume(ref)) {
+      break;
+    }
+  }
+  // Preserve the worker stream for its next query, including rejections in
+  // the bounded draws for the unused suffix of the permutation.
+  for (; i < size; ++i) {
+    static_cast<void>(rng(size - i));
+  }
+}
+
 template <typename INT, typename SET>
 auto no_replacement_set(std::shared_ptr<dqrng::random_64bit_generator> &rng,
                         INT end, INT size, int offset) -> std::vector<INT> {

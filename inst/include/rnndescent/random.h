@@ -123,6 +123,11 @@ public:
     rng->seed(seed, seed2);
   }
 
+  template <typename Consume>
+  void visit_shuffle_prefix(Int size, const Consume &consume) {
+    dqsample::visit_shuffle_prefix(*rng, size, consume);
+  }
+
   // Generates a random integer in range [0, n)
   Int rand_int(Int n) override {
     std::vector<Int> result;
@@ -154,9 +159,13 @@ public:
   // parameters (e.g. the end of the window size) so that you get different
   // random numbers in each window, but they are related to the random number
   // seed
+  auto get_instance(uint64_t seed2) -> std::unique_ptr<RNG<Int>> {
+    return std::make_unique<RNG<Int>>(seed, seed2);
+  }
+
   std::unique_ptr<tdoann::RandomIntGenerator<Int>>
   get_parallel_instance(uint64_t seed2) override {
-    return std::make_unique<RNG<Int>>(seed, seed2);
+    return get_instance(seed2);
   }
 };
 

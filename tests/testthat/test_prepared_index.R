@@ -85,9 +85,10 @@ test_that("prepared dense cosine queries preserve signed distances and search bu
   expect_true(any(wide$dist[-1L, ] > 1))
 })
 
-test_that("prepared dense cosine seed batches preserve split ties and RNG", {
+test_that("prepared dense cosine preserves split ties, random fill and RNG", {
   set.seed(771L)
-  reference <- matrix(rnorm(96L * 23L), nrow = 96L)
+  # The odd reference count exercises the sampler's cached RNG word.
+  reference <- matrix(rnorm(97L * 23L), nrow = 97L)
   query <- matrix(rnorm(71L * 23L), nrow = 71L)
   query[c(1L, 6L, 63L, 64L, 65L, 71L), ] <- 0
   dqrng::dqset.seed(771L)
@@ -103,7 +104,7 @@ test_that("prepared dense cosine seed batches preserve split ties and RNG", {
     n_iters = 2L
   )
   prepared <- rnnd_prepare(index)
-  run <- function(index, fraction) {
+  run <- function(index, threads, fraction) {
     set.seed(291L)
     dqrng::dqset.seed(291L)
     result <- rnnd_query(
@@ -111,16 +112,18 @@ test_that("prepared dense cosine seed batches preserve split ties and RNG", {
       query,
       k = 16L,
       max_search_fraction = fraction,
-      n_threads = 2L
+      n_threads = threads
     )
     list(result = result, rng = .Random.seed, dq = dqrng::dqrng_get_state())
   }
-  for (fraction in c(0, 1)) {
-    expect_true(identical(
-      run(prepared, fraction),
-      run(index, fraction),
-      num.eq = FALSE
-    ))
+  for (threads in c(0L, 2L)) {
+    for (fraction in c(0, 1)) {
+      expect_true(identical(
+        run(prepared, threads, fraction),
+        run(index, threads, fraction),
+        num.eq = FALSE
+      ))
+    }
   }
 })
 
