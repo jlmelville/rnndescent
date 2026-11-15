@@ -42,6 +42,7 @@
 * Batch squared-Euclidean distances during threaded tree-based graph initialization
   and diversification for dense data.
 * Cache norms during nearest neighbor descent for dense ordinary cosine.
+* Speed up sparse ordinary cosine distances during nearest neighbor descent.
 * Speed up threaded sparse cosine tree initialization during search-index builds.
 * Build large dense Euclidean hub trees in parallel during `rnnd_build()` and
   check for interrupts while workers run.

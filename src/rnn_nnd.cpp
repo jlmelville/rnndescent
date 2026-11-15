@@ -133,6 +133,9 @@ List nn_descent_impl(
 namespace {
 using DenseDistance =
     tdoann::VectorDistance<RNN_DEFAULT_IN, RNN_DEFAULT_DIST, RNN_DEFAULT_IDX>;
+using SparseDistance =
+    tdoann::SparseSelfDistanceCalculator<RNN_DEFAULT_IN, RNN_DEFAULT_DIST,
+                                         RNN_DEFAULT_IDX>;
 using BatchDistance =
     rnndescent::DenseDistanceFour<RNN_DEFAULT_DIST, RNN_DEFAULT_IDX>;
 
@@ -263,7 +266,13 @@ List rnn_sparse_descent(const IntegerVector &ind, const IntegerVector &ptr,
                         double delta, bool low_memory, bool weight_by_degree,
                         std::size_t n_threads, bool verbose,
                         const std::string &progress_type) {
-  auto distance_ptr = create_sparse_self_distance(ind, ptr, data, ndim, metric);
+  auto distance_ptr = create_sparse_self_distance_impl<SparseDistance>(
+      ind, ptr, data, ndim, metric);
+  if (metric == "cosine") {
+    distance_ptr->distance_func =
+        tdoann::sparse_cosine<RNN_DEFAULT_DIST, SparseDistance::DataIterator,
+                              true>;
+  }
   return nn_descent_impl(*distance_ptr, nn_idx, nn_dist, max_candidates,
                          n_iters, delta, low_memory, weight_by_degree,
                          n_threads, verbose, progress_type);
