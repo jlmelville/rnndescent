@@ -36,7 +36,7 @@ struct PreparedDenseIndex {
   using In = RNN_DEFAULT_IN;
   using Out = RNN_DEFAULT_DIST;
   using Idx = RNN_DEFAULT_IDX;
-  using Graph = tdoann::SparseNNGraph<Out, Idx>;
+  using Graph = tdoann::SparseAdjacency<Idx>;
   using Tree = tdoann::SearchTree<In, Idx>;
 
   std::vector<In> reference;
@@ -75,7 +75,7 @@ struct PreparedSparseIndex {
   using Out = RNN_DEFAULT_DIST;
   using Idx = RNN_DEFAULT_IDX;
   using Distance = tdoann::SparseVectorDistance<In, Out, Idx>;
-  using Graph = tdoann::SparseNNGraph<Out, Idx>;
+  using Graph = tdoann::SparseAdjacency<Idx>;
   using Forest = std::variant<std::vector<tdoann::SparseSearchTree<In, Idx>>,
                               std::vector<tdoann::SearchTreeImplicit<Idx>>>;
 
@@ -90,7 +90,7 @@ struct PreparedSparseIndex {
 struct PreparedLogicalIndex {
   using Out = RNN_DEFAULT_DIST;
   using Idx = RNN_DEFAULT_IDX;
-  using Graph = tdoann::SparseNNGraph<Out, Idx>;
+  using Graph = tdoann::SparseAdjacency<Idx>;
 
   tdoann::BitVec reference;
   Graph graph;

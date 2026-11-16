@@ -104,19 +104,19 @@ void check_prepared_forest(const List &forest, int n_reference, int ndim) {
 
 auto prepared_search_graph(const List &graph, std::size_t n_reference)
     -> rnndescent::PreparedDenseIndex::Graph {
-  auto search_graph = r_to_sparse_graph(graph);
-  if (search_graph.n_points != n_reference ||
-      search_graph.row_ptr.front() != 0 ||
-      search_graph.row_ptr.back() != search_graph.col_idx.size() ||
-      search_graph.dist.size() != search_graph.col_idx.size() ||
-      !std::is_sorted(search_graph.row_ptr.begin(),
-                      search_graph.row_ptr.end()) ||
+  auto row_ptr = Rcpp::as<std::vector<std::size_t>>(graph["row_ptr"]);
+  auto col_idx = Rcpp::as<std::vector<RNN_DEFAULT_IDX>>(graph["col_idx"]);
+  const NumericVector distances = graph["dist"];
+  if (row_ptr.size() != n_reference + 1 || row_ptr.front() != 0 ||
+      row_ptr.back() != col_idx.size() ||
+      static_cast<std::size_t>(distances.size()) != col_idx.size() ||
+      !std::is_sorted(row_ptr.begin(), row_ptr.end()) ||
       std::any_of(
-          search_graph.col_idx.begin(), search_graph.col_idx.end(),
+          col_idx.begin(), col_idx.end(),
           [n_reference](RNN_DEFAULT_IDX idx) { return idx >= n_reference; })) {
     Rcpp::stop("Invalid prepared search graph");
   }
-  return search_graph;
+  return {std::move(row_ptr), std::move(col_idx)};
 }
 
 template <typename Idx>

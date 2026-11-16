@@ -57,7 +57,7 @@ std::string fmt_double(double d, int precision = 2) {
 template <typename Out, typename Idx, typename CalculateFour = std::nullptr_t,
           typename PrepareTraversal = std::nullptr_t>
 List nn_query_impl(const tdoann::BaseDistance<Out, Idx> &distance,
-                   const tdoann::SparseNNGraph<Out, Idx> &search_graph,
+                   const tdoann::SparseAdjacency<Idx> &search_graph,
                    const IntegerMatrix &nn_idx, const NumericMatrix &nn_dist,
                    double epsilon, double max_search_fraction,
                    std::size_t n_threads, bool verbose,

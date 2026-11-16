@@ -41,23 +41,18 @@
 
 namespace tdoann {
 
-template <typename Out = float, typename Idx = uint32_t> struct SparseNNGraph {
+template <typename Idx = uint32_t> struct SparseAdjacency {
   std::vector<std::size_t> row_ptr;
   std::vector<Idx> col_idx;
-  std::vector<Out> dist;
   std::size_t n_points;
 
-  SparseNNGraph(const std::vector<std::size_t> &row_ptr,
-                const std::vector<Idx> &col_idx, const std::vector<Out> &dist)
-      : row_ptr(row_ptr), col_idx(col_idx), dist(dist),
-        n_points(row_ptr.size() - 1) {}
+  SparseAdjacency(std::vector<std::size_t> row_ptr, std::vector<Idx> col_idx)
+      : row_ptr(std::move(row_ptr)), col_idx(std::move(col_idx)),
+        n_points(this->row_ptr.size() - 1) {}
 
-  using DistanceOut = Out;
   using Index = Idx;
 
   static constexpr auto npos() -> Idx { return static_cast<Idx>(-1); }
-
-  static constexpr auto zero = Out{0};
 
   auto n_nbrs(Idx idx) const -> std::size_t {
     return row_ptr[idx + 1] - row_ptr[idx];
@@ -67,13 +62,26 @@ template <typename Out = float, typename Idx = uint32_t> struct SparseNNGraph {
   auto index(Idx idx, Idx i) const -> Idx {
     return col_idx[row_ptr[idx] + static_cast<std::size_t>(i)];
   }
+};
+
+template <typename Out = float, typename Idx = uint32_t>
+struct SparseNNGraph : SparseAdjacency<Idx> {
+  std::vector<Out> dist;
+
+  SparseNNGraph(const std::vector<std::size_t> &row_ptr,
+                const std::vector<Idx> &col_idx, const std::vector<Out> &dist)
+      : SparseAdjacency<Idx>(row_ptr, col_idx), dist(dist) {}
+
+  using DistanceOut = Out;
+
+  static constexpr auto zero = Out{0};
 
   // distance of the ith non-zero nbr of idx
   auto distance(Idx idx, Idx i) const -> Out {
-    return dist[row_ptr[idx] + static_cast<std::size_t>(i)];
+    return dist[this->row_ptr[idx] + static_cast<std::size_t>(i)];
   }
   auto distance(Idx idx, Idx i) -> Out & {
-    return dist[row_ptr[idx] + static_cast<std::size_t>(i)];
+    return dist[this->row_ptr[idx] + static_cast<std::size_t>(i)];
   }
 
   void mark_for_deletion(Idx idx, Idx i) { distance(idx, i) = zero; }
