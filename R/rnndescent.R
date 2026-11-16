@@ -723,19 +723,29 @@ can_validate_reference_on_copy <- function(reference, metric, init) {
       length(reference) == 0L ||
       !is.list(init) ||
       is.object(init) ||
-      !identical(metric, "euclidean")
+      !(identical(metric, "euclidean") || identical(metric, "cosine"))
   ) {
     return(FALSE)
   }
   if (is_rpforest(init)) {
+    if (
+      !identical(init$margin, "explicit") ||
+        !identical(init$original_metric, metric)
+    ) {
+      return(FALSE)
+    }
+    if (identical(metric, "cosine")) {
+      return(
+        identical(init$actual_metric, "cosine") ||
+          identical(init$actual_metric, "alternative-cosine")
+      )
+    }
     return(
-      identical(init$margin, "explicit") &&
-        identical(init$original_metric, "euclidean") &&
-        (identical(init$actual_metric, "sqeuclidean") ||
-          identical(init$actual_metric, "euclidean"))
+      identical(init$actual_metric, "sqeuclidean") ||
+        identical(init$actual_metric, "euclidean")
     )
   }
-  !is.null(init$idx) && !is.null(init$dist)
+  identical(metric, "euclidean") && !is.null(init$idx) && !is.null(init$dist)
 }
 
 #' Find approximate nearest neighbors
