@@ -119,7 +119,10 @@ void non_search_query(NNHeap<Out, Idx> &current_graph,
         if (static_cast<double>(dist) >= distance_bound) {
           return;
         }
-        current_graph.checked_push(query_idx, dist, candidate_idx);
+        // The visited set already excludes every ID in the result heap.
+        if (current_graph.accepts(query_idx, dist)) {
+          current_graph.unchecked_push(query_idx, dist, candidate_idx);
+        }
         seed_set.emplace(dist, candidate_idx);
         distance_bound =
             distance_scale *
