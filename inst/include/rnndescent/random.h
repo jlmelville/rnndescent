@@ -129,11 +129,7 @@ public:
   }
 
   // Generates a random integer in range [0, n)
-  Int rand_int(Int n) override {
-    std::vector<Int> result;
-    dqsample::sample<Int>(result, rng, n, 1, false);
-    return result[0];
-  }
+  Int rand_int(Int n) override { return static_cast<Int>((*rng)(n)); }
 
   // Generates n_ints random integers in range [0, max_val)
   std::vector<Int> sample(int max_val, int n_ints) override {
