@@ -1,42 +1,80 @@
-## New Patch Release
+## Release summary
 
-This is a new minor release to fix a CRAN warning, plus some new features.
+This release adds `rnnd_prepare()` for repeated queries and new nearest-neighbor
+graph utilities. It corrects several distance calculations, improves input
+validation, and improves index construction and query performance. Users should
+rebuild graphs or indexes affected by the distance corrections described in NEWS.
 
-## Test environments
+TODO before submission — set the final release version and reconcile these
+results with the submitted source tarball. R-hub and GitHub Actions checked
+development version 0.2.0.9000 at b7b9c1c0. The local macOS check also includes
+the cosine comparison fix.
 
-* ubuntu 22.04 (on rhub) devel clang-ASAN
-* Fedora 42 (on rhub) devel valgrind
-* local ubuntu 26.04 R 4.5.2
-* ubuntu 24.04 (on github actions), R 4.5.3, R 4.6.0, devel
-* Windows Server 2022 (on github actions), R 4.5.3, R 4.6.0
-* local Windows 11 build, R 4.6.0
-* win-builder (devel)
-* mac OS X Sequoia (on github actions) R 4.6.0
-* local mac OS X Tahoe R 4.6.0
-* mac-builder (devel)
+## Completed checks
 
-## CRAN Checks
+### R-hub
 
-There are no ERRORs or NOTEs.
+All seven R-hub jobs completed successfully on 2026-11-17 UTC. Each returned
+`Status: OK` with 0 errors, 0 warnings, and 0 notes. Each job reported 6,075
+passing testthat assertions with no failures, warnings, or skips.
 
-There is 1 WARNING for r-devel-linux-x86_64-debian-gcc, r-release-linux-x86_64:
+* Ubuntu 26.04.1, R-devel r90890, Clang 23.1.6, AddressSanitizer.
+* Ubuntu 26.04.1, R-devel r90890, Clang 23.1.6, UndefinedBehaviorSanitizer.
+* Fedora 44, R-devel r90899, GCC 16.2.1, AddressSanitizer.
+* Fedora 44, R-devel r90899, GCC 16.2.1, Valgrind. Valgrind reported
+  0 memory errors and 0 bytes definitely lost.
+* Ubuntu 26.04.1, R 4.6.2, GCC 15.2.0, link-time optimization.
+* Ubuntu 22.04.5, R-devel r90685, Clang 22.1.8.
+* Fedora 44, R-devel r90899, GCC 16.2.1.
 
-```
-Version: 0.1.8
-Check: whether package can be installed
-Result: WARN 
-  Found the following significant warnings:
-    ../inst/include/tdoann/distancebase.h:143:11: warning: array subscript ‘tdoann::QueryDistanceCalculator<float, float, unsigned int>[0]’ is partly outside array bounds of ‘unsigned char [56]’ [-Warray-bounds=]
-  See ‘/home/hornik/tmp/R.check/r-devel-gcc/Work/PKGS/rnndescent.Rcheck/00install.out’ for details.
-  * used C++ compiler: ‘g++-16 (Debian 16-20260425-1) 16.0.1 20260425 (prerelease) [gcc-16 r16-8812-gd9c07462a22]’
-```
+All jobs used `--no-manual`. The GCC ASan, GCC 16, Clang 22, and LTO jobs used
+`--as-cran`. The Clang sanitizer and Valgrind jobs used their platform-specific
+check settings.
 
-This release is intended to fix this.
+[R-hub run](https://github.com/jlmelville/rnndescent/actions/runs/44028574259)
 
-## Downstream dependencies
+### Local macOS
 
-I checked 3 reverse dependencies from CRAN, comparing R CMD check results across
-CRAN and dev versions of this package.
+* macOS arm64, Homebrew R 4.6.2, Apple Clang 21.0.0.
+  `R CMD check --as-cran --no-manual` returned `Status: OK` with 0 errors,
+  0 warnings, and 0 notes. All 6,077 testthat assertions passed with no
+  failures, warnings, or skips.
 
- * I saw 0 new problems
- * I failed to check 0 packages
+### GitHub Actions
+
+The following jobs completed with 0 errors, 0 warnings, and 0 notes, using
+`--no-manual --as-cran`.
+
+* macOS Tahoe 26.7.2, R 4.6.2, Apple Clang 21.0.0.
+* Windows x64, R 4.6.2, GCC 14.3.0.
+* Windows x64, R 4.5.3, GCC 14.3.0.
+
+[GitHub Actions run](https://github.com/jlmelville/rnndescent/actions/runs/43823267204)
+
+## Remaining checks
+
+* TODO — final source tarball, `R CMD check --as-cran` on current R-devel,
+  including the PDF manual. Record the version, environment, and results.
+* TODO — rerun the Ubuntu release, oldrel-1, and devel jobs with the cosine
+  comparison fix. The previous b7b9c1c0 run has 1 check error per Ubuntu job
+  from two dense-versus-sparse cosine assertions.
+* TODO — local WSL Linux on the Intel laptop. Record the distribution, R and
+  compiler versions, check options, and results.
+* TODO — local native Windows on the Intel laptop. Record the Windows, R, and
+  Rtools versions, check options, and results.
+* TODO — win-builder R-devel. Record the R revision and results.
+* TODO — mac-builder R-devel. Record the environment and results.
+
+## Reverse dependencies
+
+TODO — complete comparisons of CRAN rnndescent 0.2.0 with development
+0.2.0.9000 at b7b9c1c0 for the following cohort.
+
+* All direct CRAN reverse dependencies, including reverse Suggests —
+  bbknnR 2.0.2, blocking 1.0.3, and uwot 0.2.5.
+* One randomly sampled indirect reverse dependency — XYomics 0.1.5, through
+  uwot, selected with seed 20261117.
+
+TODO — record completed comparisons, new problems, and packages that could
+not be checked. Describe any coverage limits from unavailable optional
+dependencies.

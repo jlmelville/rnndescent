@@ -185,7 +185,7 @@ test_that("preprocessed cosine queries return valid neighbors and distances", {
 })
 
 # sparse
-test_that("sparse", {
+test_that("dense and sparse cosine descent agree within float precision", {
   set.seed(1337)
   dznbrs <- nnd_knn(ui10z, k = 4, n_threads = 0, metric = "cosine")
   set.seed(1337)
@@ -196,7 +196,9 @@ test_that("sparse", {
     metric = "cosine",
     use_alt_metric = TRUE
   )
-  expect_equal(dznbrs, spnbrs, tolerance = 1e-5)
+  # Float cosine distances near zero need an absolute error budget.
+  expect_identical(dznbrs$idx, spnbrs$idx)
+  expect_equal_abs(dznbrs$dist, spnbrs$dist, tolerance = 1e-6)
   set.seed(1337)
   spnbrs <- nnd_knn(
     ui10sp,
@@ -205,7 +207,8 @@ test_that("sparse", {
     metric = "cosine",
     use_alt_metric = FALSE
   )
-  expect_equal(dznbrs, spnbrs, tolerance = 1e-5)
+  expect_identical(dznbrs$idx, spnbrs$idx)
+  expect_equal_abs(dznbrs$dist, spnbrs$dist, tolerance = 1e-6)
 
   # make sure uncorrection is triggered: nnd with incorrect distances will not converge
   bfz <- brute_force_knn(ui10z, k = 4, metric = "cosine")
