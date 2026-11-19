@@ -144,76 +144,75 @@ head(cbind(row_in_X = neighbors$idx[1, ], distance = neighbors$dist[1, ]))
 
 ## A small comparison
 
-The comparisons use Euclidean distance and eight threads. Build times are medians over five seeds
-and include index preparation, but exclude serialization. The recall column compares nonself
-neighbors with saved reference neighbors calculated from brute force search.
-
-At k = 15:
+The comparisons use Euclidean distance and eight threads on an Apple M2. The tables report
+medians over five seeds (42–46). Build timing runs through preparation of the search index and
+stops before serialization. Graph recall measures the overlap with exact neighbors from brute
+force search, counting 15 nonself neighbors per point in this first comparison.
 
 | Dataset | Forest | Build median (s) | Graph recall (%) |
 |:--------|:-------|-----------------:|-----------------:|
-| macosko2015 | Ordinary, 20 trees | 63.05 | 46.50 |
-| macosko2015 | Ordinary, 5 trees | 47.64 | 43.10 |
-| macosko2015 | Projected, 20 trees | 38.51 | 43.46 |
-| MNIST | Ordinary, 21 trees | 12.42 | 98.86 |
-| MNIST | Ordinary, 5 trees | 11.76 | 98.57 |
-| MNIST | Projected, 21 trees | 7.50 | 98.62 |
-| Gaussian | Ordinary, 15 trees | 2.66 | 38.01 |
-| Gaussian | Ordinary, 5 trees | 2.33 | 36.71 |
-| Gaussian | Projected, 15 trees | 2.27 | 37.23 |
-| COIL20 | Ordinary, 11 trees | 2.61 | 99.95 |
-| COIL20 | Ordinary, 5 trees | 2.09 | 99.90 |
-| COIL20 | Projected, 11 trees | 1.64 | 99.94 |
+| macosko2015 | Ordinary, 20 trees | 27.21 | 46.44 |
+| macosko2015 | Ordinary, 5 trees | 20.82 | 43.20 |
+| macosko2015 | Projected, 20 trees | 16.78 | 43.38 |
+| MNIST | Ordinary, 21 trees | 5.87 | 98.87 |
+| MNIST | Ordinary, 5 trees | 4.73 | 98.59 |
+| MNIST | Projected, 21 trees | 4.85 | 98.61 |
+| Gaussian | Ordinary, 15 trees | 1.16 | 38.03 |
+| Gaussian | Ordinary, 5 trees | 1.09 | 36.73 |
+| Gaussian | Projected, 15 trees | 1.07 | 37.27 |
+| COIL20 | Ordinary, 11 trees | 1.31 | 99.99 |
+| COIL20 | Ordinary, 5 trees | 1.25 | 99.89 |
+| COIL20 | Projected, 11 trees | 0.95 | 99.94 |
 
-Using the SRP data, the build time is even faster than a 5-tree forest in the original space. But
-recall is only slightly higher than that 5-tree forest. So you could argue that instead of using
-SRP, you should just use a 5-tree forest in the original space and save yourself the hassle of
-managing the sparse projection matrix.
+SRP saves the most time compared with a 5-tree forest on macosko2015 and COIL20. On MNIST and
+Gaussian the two build times are close. The 5-tree forest gives much the same recall on all four
+datasets and saves you the hassle of managing the sparse projection matrix.
 
 ## Saved index size and projection regeneration
 
-Is there any advantage in index size at least? We are only having to save 128 dimensions to define
-the split at each node of the trees, compared to 3,000 for e.g. macosko2015, and the only extra cost
-is the storage of the sparse signed projection matrix. Its nonzero entries have equal magnitude, so
-it should be very efficient to store.
+Is there any advantage in index size at least? The projected query tree splits in 128 dimensions,
+compared with 3,000 for macosko2015, for example. The model also needs the sparse projection
+matrix to regenerate the projected data.
 
 At k = 15, these are the median gzip-compressed RDS sizes in MiB for complete models:
 
 | Dataset | Ordinary, default trees | Ordinary, 5 trees | Projected, default trees | Regenerate Z (s) |
 |:--------|------------------------:|------------------:|-------------------------:|-----------------:|
-| macosko2015 | 38.74 | 38.65 | 31.38 | 0.253 |
-| MNIST | 39.65 | 39.64 | 39.14 | 0.143 |
-| Gaussian | 80.87 | 80.76 | 75.90 | 0.014 |
-| COIL20 | 24.88 | 24.89 | 20.62 | 0.019 |
+| macosko2015 | 33.45 | 33.46 | 31.38 | 0.258 |
+| MNIST | 38.55 | 38.54 | 39.14 | 0.127 |
+| Gaussian | 80.07 | 80.04 | 75.90 | 0.013 |
+| COIL20 | 24.07 | 24.04 | 20.62 | 0.019 |
 
-The SRP models are smaller, but the original reference data and the neighbor and search graphs still
-need to be saved. Both methods retain only one query tree, so reducing the number of trees used
-during construction barely changes the saved size.
+The projected model saves about 2–4 MiB on macosko2015, Gaussian, and COIL20. On MNIST it takes
+about 0.6 MiB more. Every model stores the original data, the neighbor and search graphs, and one
+query tree. That last point is why reducing the number of trees used during construction barely
+changes the saved size of the ordinary models.
 
-Because we don't save the `Z` matrix, it needs to be regenerated. The regeneration column shows how
-much time that takes (again a median of 5 runs just to be consistent). It is not a major bottleneck.
+The regeneration column times rebuilding `Z` from the loaded model. The median is at most about
+a quarter of a second on these datasets.
 
 ## Building 50 neighbors
 
 | Dataset | Forest | Build median (s) | Graph recall (%) |
 |:--------|:-------|-----------------:|-----------------:|
-| macosko2015 | Ordinary, 20 trees | 173.90 | 77.972 |
-| macosko2015 | Ordinary, 5 trees | 177.85 | 76.798 |
-| macosko2015 | Projected, 20 trees | 164.28 | 77.202 |
-| MNIST | Ordinary, 21 trees | 42.29 | 99.933 |
-| MNIST | Ordinary, 5 trees | 48.83 | 99.921 |
-| MNIST | Projected, 21 trees | 40.92 | 99.924 |
-| Gaussian | Ordinary, 15 trees | 10.83 | 83.387 |
-| Gaussian | Ordinary, 5 trees | 11.01 | 83.165 |
-| Gaussian | Projected, 15 trees | 11.08 | 84.656 |
-| COIL20 | Ordinary, 11 trees | 12.48 | 99.994 |
-| COIL20 | Ordinary, 5 trees | 13.10 | 99.983 |
-| COIL20 | Projected, 11 trees | 12.43 | 99.996 |
+| macosko2015 | Ordinary, 20 trees | 66.76 | 77.952 |
+| macosko2015 | Ordinary, 5 trees | 66.92 | 76.736 |
+| macosko2015 | Projected, 20 trees | 60.24 | 77.235 |
+| MNIST | Ordinary, 21 trees | 18.11 | 99.934 |
+| MNIST | Ordinary, 5 trees | 18.81 | 99.920 |
+| MNIST | Projected, 21 trees | 18.77 | 99.924 |
+| Gaussian | Ordinary, 15 trees | 4.19 | 83.451 |
+| Gaussian | Ordinary, 5 trees | 4.31 | 83.163 |
+| Gaussian | Projected, 15 trees | 4.36 | 84.625 |
+| COIL20 | Ordinary, 11 trees | 4.63 | 99.996 |
+| COIL20 | Ordinary, 5 trees | 4.98 | 99.992 |
+| COIL20 | Projected, 11 trees | 4.51 | 99.997 |
 
-If we go up to 50 nearest neighbors, then using `n_trees = 5` is slower than using the default
-larger number of trees. This is because the NND from a worse initialization spends more time
-optimizing. For a fixed number of trees, the time taken is not hugely affected and neither is
-recall: sometimes a bit better, sometimes a bit worse.
+At 50 neighbors the larger ordinary forest gives higher recall than the 5-tree forest on all
+four datasets, with similar or shorter median build times. At the same tree count, projection
+saves about 6.5 seconds on macosko2015. The other three datasets are within a second either way.
+Projection changes recall the most on the Gaussian data, where it gains about 1.2 percentage
+points.
 
 ## What if descent also uses the projection?
 
@@ -245,19 +244,22 @@ original_neighbors <- sort_knn(
 )
 ```
 
-| Dataset | k | Projected forest only: s / recall (%) | Projected forest and descent: s / recall (%) |
-|:--------|--:|--------------------------------------:|---------------------------------------------:|
-| macosko2015 | 15 | 38.51 / 43.456 | 4.38 / 7.791 |
-| macosko2015 | 50 | 164.28 / 77.202 | 11.98 / 11.050 |
-| MNIST | 15 | 7.50 / 98.618 | 4.22 / 65.194 |
-| MNIST | 50 | 40.92 / 99.924 | 13.37 / 67.690 |
-| Gaussian | 15 | 2.27 / 37.229 | 0.56 / 1.774 |
-| Gaussian | 50 | 11.08 / 84.656 | 1.82 / 4.030 |
-| COIL20 | 15 | 1.64 / 99.940 | 0.28 / 86.528 |
-| COIL20 | 50 | 12.43 / 99.996 | 0.59 / 83.332 |
+Both columns use a forest built on `Z`. The timings for descent on `Z` include making the
+projection and rescoring in the original space.
 
-Oh dear. It's certainly much faster (and that includes recalculating the distances in the original
-space and sorting them), but the recall is a bit of a disaster in all cases.
+| Dataset | k | Descent on X (s / recall %) | Descent on Z (s / recall %) |
+|:--------|--:|----------------------------:|----------------------------:|
+| macosko2015 | 15 | 16.78 / 43.377 | 3.58 / 7.792 |
+| macosko2015 | 50 | 60.24 / 77.235 | 8.45 / 11.049 |
+| MNIST | 15 | 4.85 / 98.612 | 3.10 / 65.213 |
+| MNIST | 50 | 18.77 / 99.924 | 8.12 / 67.690 |
+| Gaussian | 15 | 1.07 / 37.267 | 0.45 / 1.788 |
+| Gaussian | 50 | 4.36 / 84.625 | 1.19 / 4.038 |
+| COIL20 | 15 | 0.95 / 99.940 | 0.30 / 86.519 |
+| COIL20 | 50 | 4.51 / 99.997 | 0.47 / 83.331 |
+
+Oh dear. Descent on `Z` makes the build faster in every case. Rescoring can only reorder the
+candidates that descent found in `Z`, so the recall loss remains.
 
 So for high-dimensional data and a small number of neighbors, there might be an interesting idea
 lurking in here somewhere. Maybe using more than 128 dimensions would help? But I am not inclined to
