@@ -256,11 +256,12 @@ performance in this article, but the code is here for completeness.</p>
 <div class="section level2">
 <h2 id="a-small-comparison">A small comparison<a class="anchor" aria-label="anchor" href="#a-small-comparison"></a>
 </h2>
-<p>The comparisons use Euclidean distance and eight threads. Build times
-are medians over five seeds and include index preparation, but exclude
-serialization. The recall column compares nonself neighbors with saved
-reference neighbors calculated from brute force search.</p>
-<p>At k = 15:</p>
+<p>The comparisons use Euclidean distance and eight threads on an Apple
+M2. The tables report medians over five seeds (42–46). Build timing runs
+through preparation of the search index and stops before serialization.
+Graph recall measures the overlap with exact neighbors from brute force
+search, counting 15 nonself neighbors per point in this first
+comparison.</p>
 <table class="table">
 <thead><tr class="header">
 <th align="left">Dataset</th>
@@ -272,91 +273,89 @@ reference neighbors calculated from brute force search.</p>
 <tr class="odd">
 <td align="left">macosko2015</td>
 <td align="left">Ordinary, 20 trees</td>
-<td align="right">63.05</td>
-<td align="right">46.50</td>
+<td align="right">27.21</td>
+<td align="right">46.44</td>
 </tr>
 <tr class="even">
 <td align="left">macosko2015</td>
 <td align="left">Ordinary, 5 trees</td>
-<td align="right">47.64</td>
-<td align="right">43.10</td>
+<td align="right">20.82</td>
+<td align="right">43.20</td>
 </tr>
 <tr class="odd">
 <td align="left">macosko2015</td>
 <td align="left">Projected, 20 trees</td>
-<td align="right">38.51</td>
-<td align="right">43.46</td>
+<td align="right">16.78</td>
+<td align="right">43.38</td>
 </tr>
 <tr class="even">
 <td align="left">MNIST</td>
 <td align="left">Ordinary, 21 trees</td>
-<td align="right">12.42</td>
-<td align="right">98.86</td>
+<td align="right">5.87</td>
+<td align="right">98.87</td>
 </tr>
 <tr class="odd">
 <td align="left">MNIST</td>
 <td align="left">Ordinary, 5 trees</td>
-<td align="right">11.76</td>
-<td align="right">98.57</td>
+<td align="right">4.73</td>
+<td align="right">98.59</td>
 </tr>
 <tr class="even">
 <td align="left">MNIST</td>
 <td align="left">Projected, 21 trees</td>
-<td align="right">7.50</td>
-<td align="right">98.62</td>
+<td align="right">4.85</td>
+<td align="right">98.61</td>
 </tr>
 <tr class="odd">
 <td align="left">Gaussian</td>
 <td align="left">Ordinary, 15 trees</td>
-<td align="right">2.66</td>
-<td align="right">38.01</td>
+<td align="right">1.16</td>
+<td align="right">38.03</td>
 </tr>
 <tr class="even">
 <td align="left">Gaussian</td>
 <td align="left">Ordinary, 5 trees</td>
-<td align="right">2.33</td>
-<td align="right">36.71</td>
+<td align="right">1.09</td>
+<td align="right">36.73</td>
 </tr>
 <tr class="odd">
 <td align="left">Gaussian</td>
 <td align="left">Projected, 15 trees</td>
-<td align="right">2.27</td>
-<td align="right">37.23</td>
+<td align="right">1.07</td>
+<td align="right">37.27</td>
 </tr>
 <tr class="even">
 <td align="left">COIL20</td>
 <td align="left">Ordinary, 11 trees</td>
-<td align="right">2.61</td>
-<td align="right">99.95</td>
+<td align="right">1.31</td>
+<td align="right">99.99</td>
 </tr>
 <tr class="odd">
 <td align="left">COIL20</td>
 <td align="left">Ordinary, 5 trees</td>
-<td align="right">2.09</td>
-<td align="right">99.90</td>
+<td align="right">1.25</td>
+<td align="right">99.89</td>
 </tr>
 <tr class="even">
 <td align="left">COIL20</td>
 <td align="left">Projected, 11 trees</td>
-<td align="right">1.64</td>
+<td align="right">0.95</td>
 <td align="right">99.94</td>
 </tr>
 </tbody>
 </table>
-<p>Using the SRP data, the build time is even faster than a 5-tree
-forest in the original space. But recall is only slightly higher than
-that 5-tree forest. So you could argue that instead of using SRP, you
-should just use a 5-tree forest in the original space and save yourself
-the hassle of managing the sparse projection matrix.</p>
+<p>SRP saves the most time compared with a 5-tree forest on macosko2015
+and COIL20. On MNIST and Gaussian the two build times are close. The
+5-tree forest gives much the same recall on all four datasets and saves
+you the hassle of managing the sparse projection matrix.</p>
 </div>
 <div class="section level2">
 <h2 id="saved-index-size-and-projection-regeneration">Saved index size and projection regeneration<a class="anchor" aria-label="anchor" href="#saved-index-size-and-projection-regeneration"></a>
 </h2>
-<p>Is there any advantage in index size at least? We are only having to
-save 128 dimensions to define the split at each node of the trees,
-compared to 3,000 for e.g. macosko2015, and the only extra cost is the
-storage of the sparse signed projection matrix. Its nonzero entries have
-equal magnitude, so it should be very efficient to store.</p>
+<p>Is there any advantage in index size at least? The projected query
+tree splits in 128 dimensions, compared with 3,000 for macosko2015, for
+example. The model also needs the sparse projection matrix to regenerate
+the projected data.</p>
 <p>At k = 15, these are the median gzip-compressed RDS sizes in MiB for
 complete models:</p>
 <table class="table">
@@ -377,42 +376,42 @@ complete models:</p>
 <tbody>
 <tr class="odd">
 <td align="left">macosko2015</td>
-<td align="right">38.74</td>
-<td align="right">38.65</td>
+<td align="right">33.45</td>
+<td align="right">33.46</td>
 <td align="right">31.38</td>
-<td align="right">0.253</td>
+<td align="right">0.258</td>
 </tr>
 <tr class="even">
 <td align="left">MNIST</td>
-<td align="right">39.65</td>
-<td align="right">39.64</td>
+<td align="right">38.55</td>
+<td align="right">38.54</td>
 <td align="right">39.14</td>
-<td align="right">0.143</td>
+<td align="right">0.127</td>
 </tr>
 <tr class="odd">
 <td align="left">Gaussian</td>
-<td align="right">80.87</td>
-<td align="right">80.76</td>
+<td align="right">80.07</td>
+<td align="right">80.04</td>
 <td align="right">75.90</td>
-<td align="right">0.014</td>
+<td align="right">0.013</td>
 </tr>
 <tr class="even">
 <td align="left">COIL20</td>
-<td align="right">24.88</td>
-<td align="right">24.89</td>
+<td align="right">24.07</td>
+<td align="right">24.04</td>
 <td align="right">20.62</td>
 <td align="right">0.019</td>
 </tr>
 </tbody>
 </table>
-<p>The SRP models are smaller, but the original reference data and the
-neighbor and search graphs still need to be saved. Both methods retain
-only one query tree, so reducing the number of trees used during
-construction barely changes the saved size.</p>
-<p>Because we don’t save the <code>Z</code> matrix, it needs to be
-regenerated. The regeneration column shows how much time that takes
-(again a median of 5 runs just to be consistent). It is not a major
-bottleneck.</p>
+<p>The projected model saves about 2–4 MiB on macosko2015, Gaussian, and
+COIL20. On MNIST it takes about 0.6 MiB more. Every model stores the
+original data, the neighbor and search graphs, and one query tree. That
+last point is why reducing the number of trees used during construction
+barely changes the saved size of the ordinary models.</p>
+<p>The regeneration column times rebuilding <code>Z</code> from the
+loaded model. The median is at most about a quarter of a second on these
+datasets.</p>
 </div>
 <div class="section level2">
 <h2 id="building-50-neighbors">Building 50 neighbors<a class="anchor" aria-label="anchor" href="#building-50-neighbors"></a>
@@ -428,83 +427,83 @@ bottleneck.</p>
 <tr class="odd">
 <td align="left">macosko2015</td>
 <td align="left">Ordinary, 20 trees</td>
-<td align="right">173.90</td>
-<td align="right">77.972</td>
+<td align="right">66.76</td>
+<td align="right">77.952</td>
 </tr>
 <tr class="even">
 <td align="left">macosko2015</td>
 <td align="left">Ordinary, 5 trees</td>
-<td align="right">177.85</td>
-<td align="right">76.798</td>
+<td align="right">66.92</td>
+<td align="right">76.736</td>
 </tr>
 <tr class="odd">
 <td align="left">macosko2015</td>
 <td align="left">Projected, 20 trees</td>
-<td align="right">164.28</td>
-<td align="right">77.202</td>
+<td align="right">60.24</td>
+<td align="right">77.235</td>
 </tr>
 <tr class="even">
 <td align="left">MNIST</td>
 <td align="left">Ordinary, 21 trees</td>
-<td align="right">42.29</td>
-<td align="right">99.933</td>
+<td align="right">18.11</td>
+<td align="right">99.934</td>
 </tr>
 <tr class="odd">
 <td align="left">MNIST</td>
 <td align="left">Ordinary, 5 trees</td>
-<td align="right">48.83</td>
-<td align="right">99.921</td>
+<td align="right">18.81</td>
+<td align="right">99.920</td>
 </tr>
 <tr class="even">
 <td align="left">MNIST</td>
 <td align="left">Projected, 21 trees</td>
-<td align="right">40.92</td>
+<td align="right">18.77</td>
 <td align="right">99.924</td>
 </tr>
 <tr class="odd">
 <td align="left">Gaussian</td>
 <td align="left">Ordinary, 15 trees</td>
-<td align="right">10.83</td>
-<td align="right">83.387</td>
+<td align="right">4.19</td>
+<td align="right">83.451</td>
 </tr>
 <tr class="even">
 <td align="left">Gaussian</td>
 <td align="left">Ordinary, 5 trees</td>
-<td align="right">11.01</td>
-<td align="right">83.165</td>
+<td align="right">4.31</td>
+<td align="right">83.163</td>
 </tr>
 <tr class="odd">
 <td align="left">Gaussian</td>
 <td align="left">Projected, 15 trees</td>
-<td align="right">11.08</td>
-<td align="right">84.656</td>
+<td align="right">4.36</td>
+<td align="right">84.625</td>
 </tr>
 <tr class="even">
 <td align="left">COIL20</td>
 <td align="left">Ordinary, 11 trees</td>
-<td align="right">12.48</td>
-<td align="right">99.994</td>
+<td align="right">4.63</td>
+<td align="right">99.996</td>
 </tr>
 <tr class="odd">
 <td align="left">COIL20</td>
 <td align="left">Ordinary, 5 trees</td>
-<td align="right">13.10</td>
-<td align="right">99.983</td>
+<td align="right">4.98</td>
+<td align="right">99.992</td>
 </tr>
 <tr class="even">
 <td align="left">COIL20</td>
 <td align="left">Projected, 11 trees</td>
-<td align="right">12.43</td>
-<td align="right">99.996</td>
+<td align="right">4.51</td>
+<td align="right">99.997</td>
 </tr>
 </tbody>
 </table>
-<p>If we go up to 50 nearest neighbors, then using
-<code>n_trees = 5</code> is slower than using the default larger number
-of trees. This is because the NND from a worse initialization spends
-more time optimizing. For a fixed number of trees, the time taken is not
-hugely affected and neither is recall: sometimes a bit better, sometimes
-a bit worse.</p>
+<p>At 50 neighbors the larger ordinary forest gives higher recall than
+the 5-tree forest on all four datasets, with similar or shorter median
+build times. At the same tree count, projection saves about 6.5 seconds
+on macosko2015. The other three datasets are within a second either way.
+Projection changes recall the most on the Gaussian data, where it gains
+about 1.2 percentage points.</p>
 </div>
 <div class="section level2">
 <h2 id="what-if-descent-also-uses-the-projection">What if descent also uses the projection?<a class="anchor" aria-label="anchor" href="#what-if-descent-also-uses-the-projection"></a>
@@ -536,73 +535,76 @@ original-space distances.</p>
 <span><span class="va">original_neighbors</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/knn-utilities.html">sort_knn</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="../reference/knn_distances.html">knn_distances</a></span><span class="op">(</span><span class="va">X</span>, <span class="va">ids</span>, metric <span class="op">=</span> <span class="st">"euclidean"</span>, n_threads <span class="op">=</span> <span class="va">threads</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
+<p>Both columns use a forest built on <code>Z</code>. The timings for
+descent on <code>Z</code> include making the projection and rescoring in
+the original space.</p>
 <table class="table">
 <colgroup>
-<col width="9%">
-<col width="3%">
-<col width="40%">
-<col width="47%">
+<col width="12%">
+<col width="4%">
+<col width="41%">
+<col width="41%">
 </colgroup>
 <thead><tr class="header">
 <th align="left">Dataset</th>
 <th align="right">k</th>
-<th align="right">Projected forest only: s / recall (%)</th>
-<th align="right">Projected forest and descent: s / recall (%)</th>
+<th align="right">Descent on X (s / recall %)</th>
+<th align="right">Descent on Z (s / recall %)</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
 <td align="left">macosko2015</td>
 <td align="right">15</td>
-<td align="right">38.51 / 43.456</td>
-<td align="right">4.38 / 7.791</td>
+<td align="right">16.78 / 43.377</td>
+<td align="right">3.58 / 7.792</td>
 </tr>
 <tr class="even">
 <td align="left">macosko2015</td>
 <td align="right">50</td>
-<td align="right">164.28 / 77.202</td>
-<td align="right">11.98 / 11.050</td>
+<td align="right">60.24 / 77.235</td>
+<td align="right">8.45 / 11.049</td>
 </tr>
 <tr class="odd">
 <td align="left">MNIST</td>
 <td align="right">15</td>
-<td align="right">7.50 / 98.618</td>
-<td align="right">4.22 / 65.194</td>
+<td align="right">4.85 / 98.612</td>
+<td align="right">3.10 / 65.213</td>
 </tr>
 <tr class="even">
 <td align="left">MNIST</td>
 <td align="right">50</td>
-<td align="right">40.92 / 99.924</td>
-<td align="right">13.37 / 67.690</td>
+<td align="right">18.77 / 99.924</td>
+<td align="right">8.12 / 67.690</td>
 </tr>
 <tr class="odd">
 <td align="left">Gaussian</td>
 <td align="right">15</td>
-<td align="right">2.27 / 37.229</td>
-<td align="right">0.56 / 1.774</td>
+<td align="right">1.07 / 37.267</td>
+<td align="right">0.45 / 1.788</td>
 </tr>
 <tr class="even">
 <td align="left">Gaussian</td>
 <td align="right">50</td>
-<td align="right">11.08 / 84.656</td>
-<td align="right">1.82 / 4.030</td>
+<td align="right">4.36 / 84.625</td>
+<td align="right">1.19 / 4.038</td>
 </tr>
 <tr class="odd">
 <td align="left">COIL20</td>
 <td align="right">15</td>
-<td align="right">1.64 / 99.940</td>
-<td align="right">0.28 / 86.528</td>
+<td align="right">0.95 / 99.940</td>
+<td align="right">0.30 / 86.519</td>
 </tr>
 <tr class="even">
 <td align="left">COIL20</td>
 <td align="right">50</td>
-<td align="right">12.43 / 99.996</td>
-<td align="right">0.59 / 83.332</td>
+<td align="right">4.51 / 99.997</td>
+<td align="right">0.47 / 83.331</td>
 </tr>
 </tbody>
 </table>
-<p>Oh dear. It’s certainly much faster (and that includes recalculating
-the distances in the original space and sorting them), but the recall is
-a bit of a disaster in all cases.</p>
+<p>Oh dear. Descent on <code>Z</code> makes the build faster in every
+case. Rescoring can only reorder the candidates that descent found in
+<code>Z</code>, so the recall loss remains.</p>
 <p>So for high-dimensional data and a small number of neighbors, there
 might be an interesting idea lurking in here somewhere. Maybe using more
 than 128 dimensions would help? But I am not inclined to explore that
