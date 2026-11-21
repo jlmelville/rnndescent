@@ -6,9 +6,9 @@ validation, and improves index construction and query performance. Users should
 rebuild graphs or indexes affected by the distance corrections described in NEWS.
 
 TODO before submission — set the final release version and reconcile these
-results with the submitted source tarball. R-hub and GitHub Actions checked
-development version 0.2.0.9000 at b7b9c1c0. The local macOS check also includes
-the cosine comparison fix.
+results with the submitted source tarball. R-hub checked development version
+0.2.0.9000 at b7b9c1c0. The local macOS check and GitHub Actions run at a259d5f8
+include the cosine comparison fix.
 
 ## Completed checks
 
@@ -42,22 +42,22 @@ check settings.
 
 ### GitHub Actions
 
-The following jobs completed with 0 errors, 0 warnings, and 0 notes, using
-`--no-manual --as-cran`.
+All six `R CMD check --as-cran --no-manual` jobs at a259d5f8 reported 0 errors,
+0 warnings, and 0 notes. Each job reported 6,077 passing testthat assertions
+with no failures, warnings, or skips.
 
+* Ubuntu 26.04.1, R 4.5.3, R 4.6.2, and R-devel r90914.
 * macOS Tahoe 26.7.2, R 4.6.2, Apple Clang 21.0.0.
-* Windows x64, R 4.6.2, GCC 14.3.0.
-* Windows x64, R 4.5.3, GCC 14.3.0.
+* Windows x64, R 4.5.3 and R 4.6.2, GCC 14.3.0.
 
-[GitHub Actions run](https://github.com/jlmelville/rnndescent/actions/runs/43823267204)
+The lint, test-coverage, and pkgdown workflows also passed.
+
+[R-CMD-check run](https://github.com/jlmelville/rnndescent/actions/runs/44242117208)
 
 ## Remaining checks
 
 * TODO — final source tarball, `R CMD check --as-cran` on current R-devel,
   including the PDF manual. Record the version, environment, and results.
-* TODO — rerun the Ubuntu release, oldrel-1, and devel jobs with the cosine
-  comparison fix. The previous b7b9c1c0 run has 1 check error per Ubuntu job
-  from two dense-versus-sparse cosine assertions.
 * TODO — local WSL Linux on the Intel laptop. Record the distribution, R and
   compiler versions, check options, and results.
 * TODO — local native Windows on the Intel laptop. Record the Windows, R, and
@@ -67,14 +67,11 @@ The following jobs completed with 0 errors, 0 warnings, and 0 notes, using
 
 ## Reverse dependencies
 
-TODO — complete comparisons of CRAN rnndescent 0.2.0 with development
-0.2.0.9000 at b7b9c1c0 for the following cohort.
+On macOS arm64 with R 4.6.2, we compared CRAN rnndescent 0.2.0 with development
+0.2.0.9000 at b7b9c1c0. All four comparisons completed with no new problems.
 
-* All direct CRAN reverse dependencies, including reverse Suggests —
-  bbknnR 2.0.2, blocking 1.0.3, and uwot 0.2.5.
-* One randomly sampled indirect reverse dependency — XYomics 0.1.5, through
-  uwot, selected with seed 20261117.
-
-TODO — record completed comparisons, new problems, and packages that could
-not be checked. Describe any coverage limits from unavailable optional
-dependencies.
+* All three direct CRAN reverse dependencies returned `OK` on both versions.
+  bbknnR 2.0.2 and blocking 1.0.3 import rnndescent. uwot 0.2.5 suggests it.
+* XYomics 0.1.5, sampled from indirect reverse dependencies through uwot with
+  seed 20261117, had the same Clang `char_traits` deprecation warning on both
+  versions.
