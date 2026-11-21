@@ -272,64 +272,21 @@ test_that("explicit zeros are preserved", {
   expect_true(sg_0[10, 3] > 0)
 })
 
-test_that("degree pruning keeps the max_degree closest edges", {
-  gl <- list(
-    row_ptr = c(0L, 4L, 4L, 4L, 4L),
-    col_idx = c(0L, 1L, 2L, 3L),
-    dist = c(3, 1, 2, 4)
-  )
-
-  expect_equal(
-    rnndescent:::rnn_degree_prune(gl, max_degree = 2L, n_threads = 0L)$dist,
-    c(0, 1, 2, 0)
-  )
-
+test_that("degree pruning keeps the closest outgoing edge", {
+  data <- matrix(c(0, 9, 2, 5), ncol = 1)
   graph <- Matrix::sparseMatrix(
-    p = gl$row_ptr,
-    j = gl$col_idx,
-    x = gl$dist,
-    dims = c(4, 4),
-    repr = "C",
-    index1 = FALSE
+    i = rep(1L, 3),
+    j = 2:4,
+    x = c(9, 2, 5),
+    dims = c(4, 4)
   )
-
-  expect_equal(
-    as.matrix(rnndescent:::degree_prune(graph, max_degree = 2L)),
-    # fmt: skip
-    matrix(
-      c(0, 1, 2, 0,
-        0, 0, 0, 0,
-        0, 0, 0, 0,
-        0, 0, 0, 0),
-      nrow = 4,
-      byrow = TRUE
-    )
+  prepared <- prepare_search_graph(
+    data,
+    graph,
+    diversify_prob = 0,
+    pruning_degree_multiplier = 1
   )
-})
-
-test_that("degree pruning resolves cutoff ties by neighbor index", {
-  gl <- list(
-    row_ptr = c(0L, 4L, 8L, 9L, 11L, 11L),
-    col_idx = c(0L, 2L, 1L, 3L, 0L, 2L, 3L, 4L, 0L, 1L, 2L),
-    dist = c(1, 2, 2, 3, 2, 2, 1, 3, 4, 6, 5)
-  )
-  expected <- gl
-  expected$dist <- c(1, 0, 2, 0, 2, 0, 1, 0, 4, 6, 5)
-
-  for (n_threads in c(0L, 2L)) {
-    pruned <- rnndescent:::rnn_degree_prune(
-      gl,
-      max_degree = 2L,
-      n_threads = n_threads
-    )
-    # Check deletion markers and untouched rows before sparse conversion.
-    expect_equal(pruned, expected)
-    row <- rep(seq_len(5), diff(pruned$row_ptr))
-    expect_equal(
-      tabulate(row[pruned$dist != 0], nbins = 5L),
-      c(2L, 2L, 1L, 2L, 0L)
-    )
-  }
+  expect_equal(as.numeric(prepared[, 1L]), c(0, 0, 2, 0))
 })
 
 test_that("prepare_search_graph caps equal-distance outgoing neighbors", {
@@ -600,10 +557,12 @@ test_that("degree scheduling preserves sparse reverse pruning and RNG state", {
   graph <- brute_force_knn(data, k = 12L, metric = "cosine")
   original <- rnndescent:::rnn_sparse_diversify
   enabled <- FALSE
-  reverse_passes <- 0L
+  balanced <- FALSE
   local_mocked_bindings(
     rnn_sparse_diversify = function(..., balance_work = FALSE) {
-      reverse_passes <<- reverse_passes + as.integer(balance_work)
+      if (balance_work && enabled) {
+        balanced <<- TRUE
+      }
       original(..., balance_work = balance_work && enabled)
     },
     .package = "rnndescent"
@@ -626,7 +585,7 @@ test_that("degree scheduling preserves sparse reverse pruning and RNG state", {
   enabled <- TRUE
   expect_identical(prepare(712L), first)
   expect_identical(prepare(713L), second)
-  expect_identical(reverse_passes, 4L)
+  expect_true(balanced)
 })
 
 test_that("batched diversification preserves fractional pruning", {

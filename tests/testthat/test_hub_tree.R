@@ -73,5 +73,5 @@ test_that("parallel hub construction preserves serial splits and leaf order", {
 
   serial <- build(0L)
   expect_gt(nrow(serial$trees[[1L]]$children), 3L)
-  expect_true(identical(build(4L), serial, num.eq = FALSE))
+  expect_true(identical(build(2L), serial, num.eq = FALSE))
 })

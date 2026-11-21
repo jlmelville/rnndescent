@@ -125,6 +125,16 @@ test_that("fixed-index scores preserve candidate order, padding and duplicates",
     knn_distances(binary, binary_idx, metric = "jaccard"),
     list(idx = binary_idx, dist = matrix(0.5, nrow = 2))
   )
+  candidates <- matrix(c(2L, 1L), nrow = 1)
+  expect_equal(
+    knn_distances(
+      binary,
+      candidates,
+      metric = "jaccard",
+      query = matrix(c(FALSE, TRUE), nrow = 1)
+    ),
+    list(idx = candidates, dist = matrix(c(0.5, 1), nrow = 1))
+  )
 })
 
 test_that("fixed-index scoring checks bounds and dimensions before native access", {

@@ -1,32 +1,17 @@
-test_that("numeric feature inputs reject non-finite values in supported formats", {
-  data <- matrix(c(0, 1, 2, 3, 1, 0, 3, 2), ncol = 2)
-  values <- list(
-    missing = NA_real_,
-    not_a_number = NaN,
-    positive_inf = Inf,
-    negative_inf = -Inf
-  )
-  for (label in names(values)) {
-    invalid <- data
-    invalid[2, 1] <- values[[label]]
-    for (obs in c("R", "C")) {
-      oriented <- if (obs == "R") invalid else t(invalid)
-      sparse <- Matrix::Matrix(oriented, sparse = TRUE)
-      inputs <- list(
-        dense = oriented,
-        column_sparse = methods::as(sparse, "CsparseMatrix"),
-        row_sparse = methods::as(sparse, "RsparseMatrix"),
-        triplet_sparse = methods::as(sparse, "TsparseMatrix")
-      )
-      for (format in names(inputs)) {
-        test_that(paste(label, obs, format), {
-          expect_error(
-            brute_force_knn(inputs[[format]], k = 2, obs = obs),
-            "^data must contain only finite numeric feature values$"
-          )
-        })
-      }
-    }
+test_that("dense and sparse features reject every non-finite value", {
+  data <- matrix(as.double(1:8), ncol = 2)
+  message <- "data must contain only finite numeric feature values"
+  for (value in c(NA_real_, NaN, Inf, -Inf)) {
+    data[2, 1] <- value
+    expect_error(brute_force_knn(data, k = 2), message)
+    sparse <- Matrix::Matrix(t(data), sparse = TRUE)
+    expect_error(brute_force_knn(sparse, k = 2, obs = "C"), message)
+  }
+  for (storage in c("RsparseMatrix", "TsparseMatrix")) {
+    expect_error(
+      brute_force_knn(methods::as(sparse, storage), k = 2, obs = "C"),
+      message
+    )
   }
 })
 
@@ -44,72 +29,59 @@ test_that("integer and data-frame features reject missing numeric values", {
 
 test_that("public build and query routes identify the non-finite feature input", {
   set.seed(1934)
-  data <- matrix(c(0, 1, 2, 3, 1, 0, 3, 2), ncol = 2)
-  for (representation in c("dense", "sparse")) {
-    reference <- if (representation == "dense") {
-      data
-    } else {
-      Matrix::Matrix(data, sparse = TRUE)
-    }
-    invalid <- reference
-    invalid[2, 1] <- NA_real_
-    query <- reference[1, , drop = FALSE]
-    bad_query <- query
-    bad_query[1, 2] <- Inf
-    graph <- brute_force_knn(reference, k = 2)
-    forest <- rpf_build(reference, n_trees = 1, leaf_size = 2)
-    builders <- list(
-      random_knn = list(k = 2),
-      nnd_knn = list(k = 2, n_iters = 0),
-      rnnd_knn = list(k = 2, n_trees = 1, n_iters = 0),
-      rnnd_build = list(k = 2, n_trees = 1, n_iters = 0),
-      rpf_knn = list(k = 2, n_trees = 1),
-      rpf_build = list(n_trees = 1),
-      prepare_search_graph = list(graph = graph)
+  reference <- matrix(c(0, 1, 2, 3, 1, 0, 3, 2), ncol = 2)
+  invalid <- reference
+  invalid[2, 1] <- NA_real_
+  query <- reference[1, , drop = FALSE]
+  bad_query <- query
+  bad_query[1, 2] <- Inf
+  graph <- brute_force_knn(reference, k = 2)
+  forest <- rpf_build(reference, n_trees = 1, leaf_size = 2)
+  builders <- list(
+    random_knn = list(k = 2),
+    nnd_knn = list(k = 2, n_iters = 0),
+    rnnd_knn = list(k = 2, n_trees = 1, n_iters = 0),
+    rnnd_build = list(k = 2, n_trees = 1, n_iters = 0),
+    rpf_knn = list(k = 2, n_trees = 1),
+    rpf_build = list(n_trees = 1),
+    prepare_search_graph = list(graph = graph)
+  )
+  for (name in names(builders)) {
+    expect_error(
+      do.call(name, c(list(data = invalid), builders[[name]])),
+      "^data must contain only finite numeric feature values$"
     )
-    for (name in names(builders)) {
-      test_that(paste(representation, name), {
-        expect_error(
-          do.call(name, c(list(data = invalid), builders[[name]])),
-          "^data must contain only finite numeric feature values$"
-        )
-      })
-    }
-    queries <- list(
-      brute_force_knn_query = list(),
-      random_knn_query = list(),
-      graph_knn_query = list(reference_graph = graph),
-      rpf_knn_query = list(forest = forest)
-    )
-    for (name in names(queries)) {
-      test_that(paste(representation, name), {
-        expect_error(
-          do.call(
-            name,
-            c(list(query = query, reference = invalid, k = 2), queries[[name]])
-          ),
-          "^reference must contain only finite numeric feature values$"
-        )
-        expect_error(
-          do.call(
-            name,
-            c(
-              list(query = bad_query, reference = reference, k = 2),
-              queries[[name]]
-            )
-          ),
-          "^query must contain only finite numeric feature values$"
-        )
-      })
-    }
-    index <- rnnd_build(reference, k = 2, n_trees = 1, n_iters = 0)
-    test_that(paste(representation, "rnnd_query"), {
-      expect_error(
-        rnnd_query(index, bad_query, k = 2),
-        "^query must contain only finite numeric feature values$"
-      )
-    })
   }
+  queries <- list(
+    brute_force_knn_query = list(),
+    random_knn_query = list(),
+    graph_knn_query = list(reference_graph = graph),
+    rpf_knn_query = list(forest = forest)
+  )
+  for (name in names(queries)) {
+    expect_error(
+      do.call(
+        name,
+        c(list(query = query, reference = invalid, k = 2), queries[[name]])
+      ),
+      "^reference must contain only finite numeric feature values$"
+    )
+    expect_error(
+      do.call(
+        name,
+        c(
+          list(query = bad_query, reference = reference, k = 2),
+          queries[[name]]
+        )
+      ),
+      "^query must contain only finite numeric feature values$"
+    )
+  }
+  index <- rnnd_build(reference, k = 2, n_trees = 1, n_iters = 0)
+  expect_error(
+    rnnd_query(index, bad_query, k = 2),
+    "^query must contain only finite numeric feature values$"
+  )
 })
 
 test_that("cosine queries reject an infinite reference before neighbor selection", {

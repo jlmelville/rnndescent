@@ -54,14 +54,25 @@ The lint, test-coverage, and pkgdown workflows also passed.
 
 [R-CMD-check run](https://github.com/jlmelville/rnndescent/actions/runs/44242117208)
 
+### Local Intel laptop, 2026-11-21
+
+Both systems checked the same 0.2.0.9000 development tarball after the edgeless search graph fix
+and test suite cleanup. Its SHA-256 was
+`581611af392205d8369ae2603e0e524f071833aa27742410d629cda4d49c2b72`.
+All 2,503 testthat expectations passed with zero warnings or skips on both platforms.
+The standalone prepared-index unload and zero-feature regression tests also passed.
+
+* WSL2, Ubuntu 26.04.1 LTS, R 4.5.2, GCC 15.2.0. `R CMD check --as-cran` reported
+  0 errors, 0 warnings and 2 notes, for the development version and the distribution compiler flag
+  `-mno-omit-leaf-frame-pointer`. Both PDF and HTML manual checks passed.
+* Native Windows 11 x64 build 26200, R 4.6.2, Rtools45 with GCC 14.2.0.
+  `R CMD check --as-cran --no-manual` reported 0 errors, 0 warnings and 1 note for the
+  development version.
+
 ## Remaining checks
 
 * TODO — final source tarball, `R CMD check --as-cran` on current R-devel,
   including the PDF manual. Record the version, environment, and results.
-* TODO — local WSL Linux on the Intel laptop. Record the distribution, R and
-  compiler versions, check options, and results.
-* TODO — local native Windows on the Intel laptop. Record the Windows, R, and
-  Rtools versions, check options, and results.
 * TODO — win-builder R-devel. Record the R revision and results.
 * TODO — mac-builder R-devel. Record the environment and results.
 

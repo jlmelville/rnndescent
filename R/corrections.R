@@ -43,8 +43,7 @@ apply_alt_metric_uncorrection <- function(metric, dist, is_sparse = FALSE) {
 
 apply_dense_alt_metric_uncorrection <- function(metric, dist) {
   if (length(dist) == 0L && metric %in% c("dot", "hellinger", "jaccard")) {
-    # Keep apply()/sapply() simplification for empty matrices and vectors.
-    return(if (is.matrix(dist)) dist + 0.0 else as.list(dist))
+    return(dist + 0.0)
   }
   switch(
     metric,
@@ -62,7 +61,7 @@ apply_sparse_alt_metric_uncorrection <- function(metric, dist) {
 
 apply_dense_alt_metric_correction <- function(metric, dist) {
   if (length(dist) == 0L && metric %in% c("dot", "hellinger", "jaccard")) {
-    return(if (is.matrix(dist)) dist + 0.0 else as.list(dist))
+    return(dist + 0.0)
   }
   switch(
     metric,

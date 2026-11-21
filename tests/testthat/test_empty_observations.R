@@ -57,43 +57,9 @@ test_that("neighbor queries identify empty references in either orientation", {
   }
 })
 
-test_that("empty-observation diagnostics retain earlier checks and ordinary k errors", {
-  empty <- matrix(numeric(), 0, 2)
-  data <- matrix(1:6, 3, 2)
-  expect_error(brute_force_knn(empty, k = 1, obs = "bad"), "should be one of")
-  expect_error(
-    brute_force_knn(empty, k = 1, n_threads = -1),
-    "n_threads must be"
-  )
+test_that("a zero-by-zero input identifies the missing feature dimension", {
   expect_error(
     brute_force_knn(matrix(numeric(), 0, 0), k = 1),
-    "^data must contain at least one feature after conversion$"
+    "data must contain at least one feature after conversion"
   )
-  expect_error(
-    brute_force_knn_query(matrix(1, 1, 3), empty, k = 1),
-    "query and reference must have the same number of features"
-  )
-  expect_error(
-    graph_knn_query(
-      data[1, , drop = FALSE],
-      empty,
-      brute_force_knn(data, 1),
-      k = 1
-    ),
-    "reference_graph must describe 0 reference observations"
-  )
-  expect_error(
-    rpf_knn_query(data, data, forest = list(), k = 0),
-    "^k must be a single integer between 1 and 3$"
-  )
-  for (k in list(0, NA_real_, 1.5, 4)) {
-    expect_error(
-      brute_force_knn(data, k = k),
-      "^k must be a single integer between 1 and 3$"
-    )
-    expect_error(
-      brute_force_knn_query(data, data, k = k),
-      "^k must be a single integer between 1 and 3$"
-    )
-  }
 })

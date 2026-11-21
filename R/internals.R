@@ -244,75 +244,40 @@ check_graph_entries <- function(graph, n_reference, graph_name) {
   }
 }
 
-# data and query must be column-oriented
-# recalculate_distances if TRUE even if a distance matrix is present,
-# recalculate distances from data/query and the indices
-# If augment_low_k = TRUE then if the desired k is > the size of the input nn
-# then add random neighbors to make up the difference
-prepare_init_graph <-
-  function(
-    nn,
-    k,
-    data,
-    query = NULL,
-    metric = "euclidean",
-    recalculate_distances = FALSE,
-    augment_low_k = TRUE,
-    n_threads = 0,
-    verbose = FALSE
-  ) {
-    if (is.matrix(nn)) {
-      nn <- list(idx = nn)
-    }
-    n_reference <- ncol(data)
-    n_points <- if (is.null(query)) n_reference else ncol(query)
-    nn <- check_init_graph(nn, n_points, n_reference)
-    ## nn is a list dist may be NULL
-
-    # idx has too few or too many columns
-    if (k != ncol(nn$idx)) {
-      if (k > ncol(nn$idx)) {
-        if (!augment_low_k) {
-          stop("Not enough initial neighbors provided for k = ", k)
-        }
-      } else if (k < ncol(nn$idx)) {
-        nn$idx <- nn$idx[, 1:k, drop = FALSE]
-      }
-      # else k == ncol and we need do nothing
-    }
-
-    if (!is.null(nn$dist) && !recalculate_distances) {
-      # dist exists and we intend to use the existing values
-      if (k > ncol(nn$dist)) {
-        if (!augment_low_k) {
-          stop("Not enough initial distances provided for k = ", k)
-        }
-      } else if (k < ncol(nn$dist)) {
-        nn$dist <- nn$dist[, 1:k, drop = FALSE]
-      }
-      # otherwise k == ncol and we need do nothing
-    }
-
-    # ensure nn$dist is not NULL and has correct distances at this point
-    if (is.null(nn$dist) || recalculate_distances) {
-      tsmessage("Generating distances for initial indices")
-      nn <- score_knn_indices(data, nn$idx, query, metric, n_threads, verbose)
-    }
-
-    # nn$idx and nn$dist exist and are either the right size or too big
-    if (ncol(nn$idx) == k && ncol(nn$dist) == k) {
-      return(nn)
-    }
-
-    n_aug_nbrs <- k - ncol(nn$idx)
-    nn$idx <- cbind(nn$idx, matrix(0, nrow(nn$idx), ncol = n_aug_nbrs))
-    nn$dist <- cbind(nn$dist, matrix(NA, nrow(nn$idx), ncol = n_aug_nbrs))
-
-    if (ncol(nn$idx) == k && ncol(nn$dist) == k) {
-      return(nn)
-    }
-    stop("Still not right!")
+# Data and query are column-oriented. Zero indices are filled by the caller.
+prepare_init_graph <- function(
+  nn,
+  k,
+  data,
+  query = NULL,
+  metric = "euclidean",
+  n_threads = 0,
+  verbose = FALSE
+) {
+  if (is.matrix(nn)) {
+    nn <- list(idx = nn)
   }
+  n_reference <- ncol(data)
+  n_points <- if (is.null(query)) n_reference else ncol(query)
+  nn <- check_init_graph(nn, n_points, n_reference)
+
+  if (ncol(nn$idx) > k) {
+    nn$idx <- nn$idx[, seq_len(k), drop = FALSE]
+    if (!is.null(nn$dist)) {
+      nn$dist <- nn$dist[, seq_len(k), drop = FALSE]
+    }
+  }
+  if (is.null(nn$dist)) {
+    tsmessage("Generating distances for initial indices")
+    nn <- score_knn_indices(data, nn$idx, query, metric, n_threads, verbose)
+  }
+  extra <- k - ncol(nn$idx)
+  if (extra > 0) {
+    nn$idx <- cbind(nn$idx, matrix(0L, n_points, extra))
+    nn$dist <- cbind(nn$dist, matrix(NA_real_, n_points, extra))
+  }
+  nn
+}
 
 # Column-oriented inputs and validated indices.
 score_knn_indices <- function(data, idx, query, metric, n_threads, verbose) {
@@ -405,34 +370,17 @@ is_sparse <- function(x) {
   methods::is(x, "sparseMatrix")
 }
 
-validate_are_mergeablel <- function(nn_graphs, is_query = FALSE) {
-  nn_graph1 <- nn_graphs[[1]]
-  validate_nn_graph(nn_graph1, is_query = is_query)
-  n_graphs <- length(nn_graphs)
-  if (n_graphs > 1) {
-    for (i in 2:n_graphs) {
-      validate_are_mergeable(
-        nn_graph1,
-        nn_graphs[[i]],
-        validate1 = FALSE,
-        is_query = is_query
-      )
+validate_merge_graphs <- function(graphs, is_query) {
+  validate_nn_graph(graphs[[1L]], is_query = is_query)
+  first_nr <- nrow(graphs[[1L]]$idx)
+  for (graph in graphs[-1L]) {
+    validate_nn_graph(graph, is_query = is_query)
+    nr <- nrow(graph$idx)
+    if (nr != first_nr) {
+      stop("Graphs must have same number of rows, but are ", first_nr, ", ", nr)
     }
   }
 }
-
-validate_are_mergeable <-
-  function(nn_graph1, nn_graph2, validate1 = TRUE, is_query = FALSE) {
-    if (validate1) {
-      validate_nn_graph(nn_graph1, is_query = is_query)
-    }
-    validate_nn_graph(nn_graph2, is_query = is_query)
-    nr1 <- nrow(nn_graph1$idx)
-    nr2 <- nrow(nn_graph2$idx)
-    if (nr1 != nr2) {
-      stop("Graphs must have same number of rows, but are ", nr1, ", ", nr2)
-    }
-  }
 
 validate_nn_graph <- function(nn_graph, is_query = FALSE) {
   if (is.null(nn_graph$idx)) {

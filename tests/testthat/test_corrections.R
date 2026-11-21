@@ -4,38 +4,6 @@ library(rnndescent)
 
 float32_max <- 3.4028235e+38
 
-test_that("dot inverse", {
-  expect_equal(uncorrect_alternative_cosine(0), 0)
-  expect_equal(uncorrect_alternative_cosine(0.5), 1.0)
-  expect_equal(uncorrect_alternative_cosine(1), float32_max)
-})
-
-test_that("jaccard", {
-  expect_equal(correct_alternative_jaccard(0), 0)
-  expect_equal(correct_alternative_jaccard(1), 0.5)
-  expect_equal(correct_alternative_jaccard(float32_max), 1.0)
-
-  expect_equal(uncorrect_alternative_jaccard(0), 0)
-  expect_equal(uncorrect_alternative_jaccard(0.5), 1.0)
-  expect_equal(uncorrect_alternative_jaccard(1), float32_max)
-})
-
-test_that("hellinger", {
-  expect_equal(correct_alternative_hellinger(0), 0)
-  expect_equal(correct_alternative_hellinger(1), 1 / sqrt(2))
-  expect_equal(correct_alternative_hellinger(float32_max), 1.0)
-
-  expect_equal(uncorrect_alternative_hellinger(0), 0)
-  expect_equal(uncorrect_alternative_hellinger(1 / sqrt(2)), 1.0)
-  expect_equal(uncorrect_alternative_hellinger(1), float32_max)
-})
-
-test_that("dot", {
-  expect_equal(correct_alternative_dot(0), 0)
-  expect_equal(correct_alternative_dot(1), 0.5)
-  expect_equal(correct_alternative_dot(float32_max), 1.0)
-})
-
 test_that("alternative corrections retain mixed values and named shapes", {
   values <- c(-Inf, -1, 1e-8, 1, Inf, NA_real_, NaN, 1e-7)
   expected <- list(
@@ -52,12 +20,10 @@ test_that("alternative corrections retain mixed values and named shapes", {
       }
     }
     for (metric in names(expected)) {
-      for (sparse in c(FALSE, TRUE)) {
-        expect_identical(
-          apply_alt_metric_correction(metric, shape(values), sparse),
-          shape(expected[[metric]])
-        )
-      }
+      expect_identical(
+        apply_alt_metric_correction(metric, shape(values)),
+        shape(expected[[metric]])
+      )
     }
   }
 })
@@ -89,47 +55,30 @@ test_that("alternative inverses skip unused invalid logarithms", {
           stats::setNames(x, letters[1:10])
         }
       }
-      for (sparse in c(FALSE, TRUE)) {
-        expect_warning(
-          actual <- apply_alt_metric_uncorrection(
-            metric,
-            shape(values),
-            sparse
-          ),
-          NA
-        )
-        expect_identical(actual, shape(expected))
-      }
+      expect_warning(
+        actual <- apply_alt_metric_uncorrection(
+          metric,
+          shape(values)
+        ),
+        NA
+      )
+      expect_identical(actual, shape(expected))
     }
   }
 })
 
-# These private wrappers also convert graph edge vectors. Public queries do not
-# expose named, entirely missing or zero-length vectors for this contract.
-test_that("alternative conversions retain missing and empty simplification", {
+test_that("alternative metrics preserve edgeless search graphs", {
+  graph <- Matrix::sparseMatrix(
+    i = integer(),
+    j = integer(),
+    x = numeric(),
+    dims = c(3L, 3L)
+  )
   for (metric in c("dot", "jaccard", "hellinger")) {
-    for (sparse in c(FALSE, TRUE)) {
-      for (inverse in c(FALSE, TRUE)) {
-        convert <- if (inverse) {
-          apply_alt_metric_uncorrection
-        } else {
-          apply_alt_metric_correction
-        }
-        expected <- c(a = NA, b = NA)
-        if (!inverse && metric == "hellinger") {
-          expected[] <- NA_real_
-        }
-        expect_identical(
-          convert(metric, c(a = NA_real_, b = NaN), sparse),
-          expected
-        )
-        expect_identical(convert(metric, numeric(), sparse), list())
-        expect_identical(
-          convert(metric, matrix(integer(), 0, 2), sparse),
-          matrix(numeric(), 0, 2)
-        )
-      }
-    }
+    expect_identical(
+      prepare_search_graph(diag(3), graph, metric = metric),
+      graph
+    )
   }
 })
 

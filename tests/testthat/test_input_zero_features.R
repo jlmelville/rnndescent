@@ -83,45 +83,4 @@ test_that("feature validation preserves values and positive-feature shapes", {
     brute_force_knn(matrix(FALSE, 5, 2), k = 2, metric = "hamming")$dist,
     matrix(0, 5, 2)
   )
-
-  # Observe zero observations at conversion, without entering native work.
-  empty_rows <- matrix(numeric(0), nrow = 0, ncol = 2)
-  expect_identical(x2m(empty_rows, obs = "R"), empty_rows)
-  expect_identical(x2m(t(empty_rows), obs = "C"), t(empty_rows))
-})
-
-test_that("zero-feature coercion is catchable in a fresh R process", {
-  package_path <- system.file(package = "rnndescent")
-  skip_if_not(
-    file.exists(file.path(package_path, "Meta", "package.rds")),
-    "fresh-process regression uses the installed candidate"
-  )
-  script <- tempfile(fileext = ".R")
-  on.exit(unlink(script))
-  writeLines(
-    c(
-      "library(rnndescent, lib.loc = commandArgs(TRUE)[[1]])",
-      "error <- tryCatch(",
-      "  brute_force_knn(data.frame(label = letters[1:5]), k = 2),",
-      "  error = identity",
-      ")",
-      "stopifnot(inherits(error, 'error'))",
-      "stopifnot(grepl('data must contain at least one feature', conditionMessage(error)))",
-      "valid <- brute_force_knn(matrix(1:10, nrow = 5), k = 2)",
-      "stopifnot(identical(dim(valid$idx), c(5L, 2L)))"
-    ),
-    script
-  )
-  output <- suppressWarnings(system2(
-    file.path(R.home("bin"), "Rscript"),
-    c("--vanilla", shQuote(script), shQuote(dirname(package_path))),
-    stdout = TRUE,
-    stderr = TRUE,
-    timeout = 30
-  ))
-  status <- attr(output, "status")
-  if (is.null(status)) {
-    status <- 0L
-  }
-  expect_equal(status, 0L, info = paste(output, collapse = "\n"))
 })

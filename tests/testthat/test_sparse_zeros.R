@@ -150,6 +150,9 @@ test_that("public sparse builders and queries use numerical feature zeros", {
     )
   }
   index <- make_index(padded)
+  expect_s4_class(index$data, "dgCMatrix")
+  expect_false(any(index$data@x == 0))
+  expect_identical(padded@x, as.vector(data))
   clean_index <- make_index(Matrix::drop0(padded))
   expect_equal(index$graph, clean_index$graph)
   expect_equal(index$search_graph, clean_index$search_graph)
@@ -164,33 +167,6 @@ test_that("public sparse builders and queries use numerical feature zeros", {
   expect_identical(
     serialize(list(index$graph, index$search_graph), NULL),
     before
-  )
-})
-
-test_that("feature cleanup keeps sparse storage and caller values", {
-  data <- rbind(c(1, 1, 0, 0), c(1, 0, 1, 0))
-  padded <- sparse_zero_fixture(data)
-  for (class in c("CsparseMatrix", "RsparseMatrix", "TsparseMatrix")) {
-    converted <- rnndescent:::x2m(methods::as(padded, class))
-    # Numerical equality alone would not detect accidental densification.
-    expect_s4_class(converted, "dgCMatrix")
-    expect_identical(as.matrix(converted), data)
-    expect_false(any(converted@x == 0))
-  }
-  expect_identical(padded@x, as.vector(data))
-  expect_identical(
-    rnndescent:::x2m(Matrix::drop0(padded)),
-    Matrix::drop0(padded)
-  )
-  expect_identical(rnndescent:::x2m(data), data)
-  expect_identical(rnndescent:::x2m(data != 0), data != 0)
-  empty_values <- rnndescent:::x2m(sparse_zero_fixture(matrix(0, 2, 4)))
-  expect_equal(dim(empty_values), c(2L, 4L))
-  expect_length(empty_values@x, 0L)
-  undefined <- matrix(c(NA_real_, NaN, Inf, -Inf, 1, 0), 2)
-  expect_error(
-    rnndescent:::x2m(sparse_zero_fixture(undefined)),
-    "^data must contain only finite numeric feature values$"
   )
 })
 

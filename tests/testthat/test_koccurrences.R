@@ -40,7 +40,7 @@ test_that("query neighbor occurrences count reference indices", {
 })
 
 test_that("k-occurrence of sparse graph", {
-  rnbrs_sparse <- graph_to_csparse(rnbrs)
+  rnbrs_sparse <- knn_to_sparse(rnbrs)
   expect_equal(k_occur(rnbrs_sparse), hub10)
   expect_equal(k_occur(rnbrs_sparse, include_self = FALSE), hub10)
 })

@@ -48,7 +48,6 @@ using Rcpp::List;
 using Rcpp::LogicalMatrix;
 using Rcpp::NumericMatrix;
 using Rcpp::NumericVector;
-using Rcpp::Rcerr;
 
 // needed for RP Tree calculations
 // https://github.com/lmcinnes/pynndescent/blob/db258cea34cce7e11e90a460c1f8a0bd8b69f1c1/pynndescent/pynndescent_.py#L764
@@ -106,58 +105,6 @@ std::size_t check_leaf_size(const std::vector<Tree> &rp_forest,
     }
   }
   return max_leaf_size;
-}
-
-template <typename In, typename Idx>
-void print_rp_forest(const std::vector<tdoann::RPTree<In, Idx>> &rp_forest) {
-  for (const auto &tree : rp_forest) {
-    Rcerr << "RP Tree #nodes = " << tree.offsets.size() << "\n";
-    for (std::size_t i = 0; i < tree.offsets.size(); ++i) {
-      Rcerr << i;
-      if (tree.children[i].first == static_cast<std::size_t>(-1)) {
-        Rcerr << " leaf " << tree.indices[i].size() << " items:";
-        for (std::size_t j = 0; j < tree.indices[i].size(); ++j) {
-          Rcerr << " " << tree.indices[i][j] + 1;
-        }
-      } else {
-        Rcerr << " node  " << tree.offsets[i]
-              << " children: " << tree.children[i].first << " "
-              << tree.children[i].second;
-      }
-      Rcerr << "\n";
-    }
-  }
-}
-
-template <typename In, typename Idx>
-void print_search_forest(
-    const std::vector<tdoann::SearchTree<In, Idx>> &search_forest,
-    std::size_t ndim) {
-  for (std::size_t j = 0; j < search_forest.size(); ++j) {
-    const auto &search_tree = search_forest[j];
-
-    Rcerr << "Search Tree " << j << "#nodes = " << search_tree.offsets.size()
-          << "\n";
-    for (std::size_t i = 0; i < search_tree.offsets.size(); ++i) {
-      Rcerr << i;
-      if (std::isnan(search_tree.offsets[i])) {
-        Rcerr << " leaf ptrs: [" << search_tree.children[i].first << ", "
-              << search_tree.children[i].second << "): ";
-        for (std::size_t j = search_tree.children[i].first;
-             j < search_tree.children[i].second; ++j) {
-          Rcerr << " " << search_tree.indices[j] + 1;
-        }
-      } else {
-        Rcerr << "node-> " << search_tree.children[i].first << " "
-              << search_tree.children[i].second
-              << " off: " << search_tree.offsets[i] << " hyp:";
-        for (std::size_t j = 0; j < ndim; j++) {
-          Rcerr << " " << search_tree.hyperplanes[i][j];
-        }
-      }
-      Rcerr << "\n";
-    }
-  }
 }
 
 template <typename In, typename Idx>

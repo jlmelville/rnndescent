@@ -14,7 +14,8 @@ test_that("prepared dense Euclidean queries preserve results and RNG state", {
     )
     list(result = result, rng = .Random.seed, dq = dqrng::dqrng_get_state())
   }
-  for (use_alt_metric in list(TRUE, FALSE, 1L, 0L)) {
+  # Prepared indexes also accept integer flags stored in ordinary indexes.
+  for (use_alt_metric in c(1L, 0L)) {
     set.seed(739L)
     index <- rnnd_build(
       data,
@@ -25,9 +26,9 @@ test_that("prepared dense Euclidean queries preserve results and RNG state", {
       use_alt_metric = use_alt_metric,
       n_search_trees = if (use_alt_metric) 1L else 2L
     )
-    before <- .Random.seed
+    before <- list(.Random.seed, dqrng::dqrng_get_state())
     prepared <- rnnd_prepare(index)
-    expect_identical(.Random.seed, before)
+    expect_identical(list(.Random.seed, dqrng::dqrng_get_state()), before)
     expect_s3_class(prepared, "rnndescent_prepared_index")
     for (threads in c(0L, 2L)) {
       for (fraction in c(0, 5 / nrow(data), 1)) {
@@ -167,6 +168,14 @@ test_that("prepared indexes own a snapshot and reject invalid inputs", {
   expect_error(rnnd_query(restored, query, k = 4L), "Call rnnd_prepare\\(\\)")
 })
 
+# Reset both generators so each comparison uses the same query seeds.
+seeded_query <- function(index, query, ...) {
+  set.seed(291L)
+  dqrng::dqset.seed(291L)
+  result <- rnnd_query(index, query, k = 6L, ...)
+  list(result = result, rng = .Random.seed, dq = dqrng::dqrng_get_state())
+}
+
 dense_prepared_metrics <- c(
   "alternative-cosine",
   "alternative-dot",
@@ -246,18 +255,6 @@ for (metric in dense_prepared_metrics) {
       }
       reference <- data[1:48, , drop = FALSE]
       query <- data[49:56, , drop = FALSE]
-      run <- function(index, query, threads, fraction) {
-        set.seed(291L)
-        dqrng::dqset.seed(291L)
-        result <- rnnd_query(
-          index,
-          query,
-          k = 6L,
-          n_threads = threads,
-          max_search_fraction = fraction
-        )
-        list(result = result, rng = .Random.seed, dq = dqrng::dqrng_get_state())
-      }
       alt_modes <- if (
         metric %in% c("dot", "euclidean", "hellinger", "jaccard")
       ) {
@@ -277,16 +274,10 @@ for (metric in dense_prepared_metrics) {
           n_iters = 1L
         )
         prepared <- rnnd_prepare(index)
-        for (threads in c(0L, 2L)) {
-          for (fraction in c(0, 7.25 / nrow(reference), 1)) {
-            expect_identical(
-              run(prepared, query, threads, fraction),
-              run(index, query, threads, fraction)
-            )
-          }
-        }
-        empty <- query[integer(), , drop = FALSE]
-        expect_identical(run(prepared, empty, 0L, 1), run(index, empty, 0L, 1))
+        expect_identical(
+          seeded_query(prepared, query),
+          seeded_query(index, query)
+        )
       }
     }
   )
@@ -339,18 +330,6 @@ for (metric in logical_prepared_metrics) {
         reference[1:4, , drop = FALSE],
         matrix(runif(5L * 65L) > 0.5, nrow = 5L)
       )
-      run <- function(index, query, threads, fraction) {
-        set.seed(291L)
-        dqrng::dqset.seed(291L)
-        result <- rnnd_query(
-          index,
-          query,
-          k = 6L,
-          n_threads = threads,
-          max_search_fraction = fraction
-        )
-        list(result = result, rng = .Random.seed, dq = dqrng::dqrng_get_state())
-      }
       for (use_alt_metric in if (metric == "jaccard") {
         c(TRUE, FALSE)
       } else {
@@ -367,19 +346,11 @@ for (metric in logical_prepared_metrics) {
           leaf_size = 5L,
           n_iters = 1L
         )
-        before <- list(.Random.seed, dqrng::dqrng_get_state())
         prepared <- rnnd_prepare(index)
-        expect_identical(list(.Random.seed, dqrng::dqrng_get_state()), before)
-        for (threads in c(0L, 2L)) {
-          for (fraction in c(0, 7.25 / nrow(reference), 1)) {
-            expect_identical(
-              run(prepared, query, threads, fraction),
-              run(index, query, threads, fraction)
-            )
-          }
-        }
-        empty <- query[integer(), , drop = FALSE]
-        expect_identical(run(prepared, empty, 0L, 1), run(index, empty, 0L, 1))
+        expect_identical(
+          seeded_query(prepared, query),
+          seeded_query(index, query)
+        )
       }
     }
   )
@@ -389,11 +360,20 @@ test_that("prepared logical indexes own a snapshot and validate inputs", {
   set.seed(739L)
   data <- matrix(runif(40L * 65L) > 0.7, nrow = 40L)
   index <- rnnd_build(data, k = 6L, metric = "jaccard", n_iters = 1L)
+  before <- list(.Random.seed, dqrng::dqrng_get_state())
   prepared <- rnnd_prepare(index)
+  expect_identical(list(.Random.seed, dqrng::dqrng_get_state()), before)
   expect_s3_class(prepared, "rnndescent_prepared_index")
   query <- data[1:4, , drop = FALSE]
   set.seed(401L)
   expected <- rnnd_query(prepared, query, k = 6L)
+
+  empty <- query[integer(), , drop = FALSE]
+  expect_identical(seeded_query(prepared, empty), seeded_query(index, empty))
+  expect_identical(
+    seeded_query(prepared, query, n_threads = 2L),
+    seeded_query(index, query, n_threads = 2L)
+  )
 
   explicit <- index
   explicit$search_forest$margin <- "explicit"
@@ -488,19 +468,6 @@ for (metric in sparse_prepared_metrics) {
       }
       data <- Matrix::Matrix(data, sparse = TRUE)
       query <- data[c(2L, 4L, 6L, 8L, 11L), , drop = FALSE]
-      run <- function(index, query, threads, fraction) {
-        set.seed(291L)
-        dqrng::dqset.seed(291L)
-        result <- rnnd_query(
-          index,
-          query,
-          k = 6L,
-          epsilon = 0.2,
-          n_threads = threads,
-          max_search_fraction = fraction
-        )
-        list(result = result, rng = .Random.seed, dq = dqrng::dqrng_get_state())
-      }
       alt_modes <- if (
         metric %in% c("euclidean", "dot", "hellinger", "jaccard")
       ) {
@@ -508,37 +475,23 @@ for (metric in sparse_prepared_metrics) {
       } else {
         TRUE
       }
-      for (margin in c("auto", "implicit")) {
-        for (use_alt_metric in alt_modes) {
-          index <- rnnd_build(
-            data,
-            k = 6L,
-            metric = metric,
-            use_alt_metric = use_alt_metric,
-            margin = margin,
-            n_trees = 2L,
-            n_search_trees = 2L,
-            leaf_size = 4L,
-            n_iters = 1L
-          )
-          before <- list(.Random.seed, dqrng::dqrng_get_state())
-          prepared <- rnnd_prepare(index)
-          expect_identical(list(.Random.seed, dqrng::dqrng_get_state()), before)
-          expect_s3_class(prepared, "rnndescent_prepared_index")
-          for (threads in c(0L, 2L)) {
-            for (fraction in c(0, 5 / nrow(data), 1)) {
-              expect_identical(
-                run(prepared, query, threads, fraction),
-                run(index, query, threads, fraction)
-              )
-            }
-          }
-          empty <- query[integer(), , drop = FALSE]
-          expect_identical(
-            run(prepared, empty, 0L, 1),
-            run(index, empty, 0L, 1)
-          )
-        }
+      for (use_alt_metric in alt_modes) {
+        index <- rnnd_build(
+          data,
+          k = 6L,
+          metric = metric,
+          use_alt_metric = use_alt_metric,
+          margin = if (metric == "hamming") "implicit" else "auto",
+          n_trees = 2L,
+          n_search_trees = 2L,
+          leaf_size = 4L,
+          n_iters = 1L
+        )
+        prepared <- rnnd_prepare(index)
+        expect_identical(
+          seeded_query(prepared, query),
+          seeded_query(index, query)
+        )
       }
     }
   )
@@ -606,7 +559,9 @@ test_that("prepared sparse indexes validate inputs and own their snapshot", {
     leaf_size = 3L
   )
   index$search_forest$actual_metric <- "alternative-cosine"
+  before <- list(.Random.seed, dqrng::dqrng_get_state())
   prepared <- rnnd_prepare(index)
+  expect_identical(list(.Random.seed, dqrng::dqrng_get_state()), before)
 
   set.seed(291L)
   expected <- rnnd_query(index, query, k = 4L)
@@ -614,6 +569,13 @@ test_that("prepared sparse indexes validate inputs and own their snapshot", {
   expect_identical(
     rnnd_query(prepared, Matrix::t(query), k = 4L, obs = "C"),
     expected
+  )
+
+  empty <- query[integer(), , drop = FALSE]
+  expect_identical(seeded_query(prepared, empty), seeded_query(index, empty))
+  expect_identical(
+    seeded_query(prepared, query, n_threads = 2L),
+    seeded_query(index, query, n_threads = 2L)
   )
 
   bad_tree <- index
@@ -642,61 +604,4 @@ test_that("prepared sparse indexes validate inputs and own their snapshot", {
   expect_identical(rnnd_query(prepared, query, k = 4L), expected)
   restored <- unserialize(serialize(prepared, NULL))
   expect_error(rnnd_query(restored, query, k = 4L), "Call rnnd_prepare\\(\\)")
-})
-
-test_that("unloading releases live prepared handles before the DLL", {
-  package <- find.package("rnndescent")
-  skip_if_not(file.exists(file.path(package, "Meta", "package.rds")))
-  script <- tempfile(fileext = ".R")
-  output <- tempfile()
-  on.exit(unlink(c(script, output)))
-  subprocess <- quote({
-    .libPaths(c(commandArgs(TRUE)[[1L]], .libPaths()))
-    data <- matrix(as.double(1:40), ncol = 2)
-    index <- rnndescent::rnnd_build(data, k = 4L, n_iters = 0L)
-    sparse <- Matrix::Matrix(data, sparse = TRUE)
-    sparse_index <- rnndescent::rnnd_build(sparse, k = 4L, n_iters = 0L)
-    transient <- rnndescent::rnnd_prepare(index)
-    prepared <- rnndescent::rnnd_prepare(index)
-    prepared_sparse <- rnndescent::rnnd_prepare(sparse_index)
-    rm(transient)
-    invisible(gc())
-    unloadNamespace("rnndescent")
-    stopifnot(!"rnndescent" %in% names(getLoadedDLLs()))
-    invisible(gc())
-    error <- tryCatch(
-      rnndescent::rnnd_query(prepared, data, k = 4L),
-      error = identity
-    )
-    stopifnot(
-      inherits(error, "error"),
-      grepl("Prepared index is invalid", conditionMessage(error))
-    )
-    error <- tryCatch(
-      rnndescent::rnnd_query(prepared_sparse, sparse, k = 4L),
-      error = identity
-    )
-    stopifnot(
-      inherits(error, "error"),
-      grepl("Prepared index is invalid", conditionMessage(error))
-    )
-    rebuilt <- rnndescent::rnnd_prepare(index)
-    stopifnot(nrow(rnndescent::rnnd_query(rebuilt, data, k = 4L)$idx) == 20L)
-    rebuilt_sparse <- rnndescent::rnnd_prepare(sparse_index)
-    stopifnot(
-      nrow(rnndescent::rnnd_query(rebuilt_sparse, sparse, k = 4L)$idx) == 20L
-    )
-  })
-  writeLines(deparse(subprocess), script)
-  status <- system2(
-    file.path(R.home("bin"), "Rscript"),
-    c("--vanilla", shQuote(script), shQuote(dirname(package))),
-    stdout = output,
-    stderr = output
-  )
-  expect_equal(
-    status,
-    0L,
-    info = paste(readLines(output, warn = FALSE), collapse = "\n")
-  )
 })

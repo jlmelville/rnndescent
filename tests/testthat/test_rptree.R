@@ -176,11 +176,22 @@ test_that("indexed sparse margins preserve the tree and tie RNG", {
 })
 
 test_that("threaded RP forests preserve neighbor quality and missing entries", {
-  # multi-threading
+  # Excluding self from a singleton leaves no distance to correct.
+  res <- rpf_knn(
+    matrix(c(0, 1), nrow = 1),
+    k = 1,
+    metric = "jaccard",
+    include_self = FALSE,
+    n_threads = 2,
+    n_trees = 1
+  )
+  expect_equal(res$idx, matrix(0L, 1, 1))
+  expect_identical(is.na(res$dist), matrix(TRUE, 1, 1))
+
   set.seed(1337)
-  res <- rpf_knn(ui10, k = 4, leaf_size = 3, n_threads = 2, n_trees = 1)
-  expect_in(c(NA), res$dist)
-  expect_in(c(0), res$idx)
+  partial <- rpf_knn(ui10, k = 4, leaf_size = 3, n_threads = 2, n_trees = 1)
+  expect_true(any(partial$idx == 0L))
+  expect_identical(is.na(partial$dist), partial$idx == 0L)
 
   set.seed(1337)
   res <- rpf_knn(ui10, k = 4, n_threads = 2)
@@ -506,25 +517,6 @@ test_that("returned RP forests match builds and descent initialization", {
 })
 
 
-test_that("filtering an RP forest retains the selected tree", {
-  # filtering
-  set.seed(1337)
-  rpf_knnf3 <-
-    rpf_knn(
-      ui10,
-      k = 4,
-      metric = "euclidean",
-      n_trees = 3,
-      ret_forest = TRUE,
-      leaf_size = 4
-    )
-  expect_equal(length(rpf_knnf3$forest$trees), 3)
-  rpf_f3f <- rpf_filter(rpf_knnf3, n_trees = 1)
-  expect_equal(length(rpf_f3f$trees), 1)
-  expect_equal(rpf_f3f$trees[[1]], rpf_knnf3$forest$trees[[1]])
-})
-
-
 test_that("can't pass mismatched forest and nn to filter", {
   iris_knn_with_forest <-
     rpf_knn(iris[1:50, ], k = 15, ret_forest = TRUE)
@@ -737,47 +729,21 @@ test_that("implicit RP forests and queries match expected results", {
 
 
 test_that("filtering RP forests preserves tree contents and metadata", {
-  set.seed(1337)
-  rpf_knnfi3 <-
-    rpf_knn(
+  for (margin in c("explicit", "implicit")) {
+    set.seed(1337)
+    graph <- rpf_knn(
       ui10,
       k = 4,
-      metric = "euclidean",
       n_trees = 3,
       ret_forest = TRUE,
       leaf_size = 4,
-      margin = "implicit"
+      margin = margin
     )
-  expect_equal(length(rpf_knnfi3$forest$trees), 3)
-  rpf_fi3f <- rpf_filter(rpf_knnfi3, n_trees = 1)
-  expect_equal(length(rpf_fi3f$trees), 1)
-  expect_equal(rpf_fi3f$trees[[1]], rpf_knnfi3$forest$trees[[1]])
-  expect_equal(rpf_fi3f$margin, rpf_knnfi3$forest$margin)
-  expect_equal(rpf_fi3f$actual_metric, rpf_knnfi3$forest$actual_metric)
-  expect_equal(rpf_fi3f$version, rpf_knnfi3$forest$version)
-  expect_equal(rpf_fi3f$use_alt_metric, rpf_knnfi3$forest$use_alt_metric)
-  expect_equal(rpf_fi3f$original_metric, rpf_knnfi3$forest$original_metric)
-
-  set.seed(1337)
-  rpf_knnff3 <-
-    rpf_knn(
-      ui10,
-      k = 4,
-      metric = "euclidean",
-      n_trees = 3,
-      ret_forest = TRUE,
-      leaf_size = 4,
-      margin = "explicit"
-    )
-  expect_equal(length(rpf_knnff3$forest$trees), 3)
-  rpf_ff3f <- rpf_filter(rpf_knnff3, n_trees = 1)
-  expect_equal(length(rpf_ff3f$trees), 1)
-  expect_equal(rpf_ff3f$trees[[1]], rpf_knnff3$forest$trees[[1]])
-  expect_equal(rpf_ff3f$margin, rpf_knnff3$forest$margin)
-  expect_equal(rpf_ff3f$actual_metric, rpf_knnff3$forest$actual_metric)
-  expect_equal(rpf_ff3f$version, rpf_knnff3$forest$version)
-  expect_equal(rpf_ff3f$use_alt_metric, rpf_knnff3$forest$use_alt_metric)
-  expect_equal(rpf_ff3f$original_metric, rpf_knnff3$forest$original_metric)
+    expected <- graph$forest
+    expect_length(expected$trees, 3)
+    expected$trees <- expected$trees[1L]
+    expect_equal(rpf_filter(graph, n_trees = 1), expected)
+  }
 })
 
 test_that("implicit RP builds respect alternative metric selection", {

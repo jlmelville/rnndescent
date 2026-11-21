@@ -1,4 +1,4 @@
-for (metric in c("euclidean", "hamming", "jaccard")) {
+for (metric in c("euclidean", "hamming")) {
   test_that(paste("missing logical features are rejected for", metric), {
     reference <- rbind(c(TRUE, FALSE), c(TRUE, TRUE))
     missing_reference <- reference

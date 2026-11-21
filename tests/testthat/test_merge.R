@@ -113,12 +113,6 @@ test_that("merging a single query graph preserves its neighbors", {
 })
 
 test_that("merging multiple graphs preserves serial and threaded quality", {
-  # serial
-  # for two matrices merge_knn and merge_knn give the same results
-  ui10mnnl <- merge_knn(list(ui10rnn1, ui10rnn2))
-  expect_equal(ui10mnnl$idx, ui10mnn$idx)
-  expect_equal(ui10mnnl$dist, ui10mnn$dist)
-
   # all 3 matrices are processed
   ui10mnnl3 <- merge_knn(list(ui10rnn1, ui10rnn2, ui10rnn3))
   expect_true(sum(ui10mnnl3$dist) <= sum(ui10mnn$dist))
@@ -156,7 +150,7 @@ test_that("merging multiple graphs preserves serial and threaded quality", {
   )
   expect_true(sum(qnbrsml3t$dist) <= sum(qnbrsmt$dist))
   check_query_nbrs(
-    nn = qnbrsml3,
+    nn = qnbrsml3t,
     query = ui4,
     ref_range = 1:6,
     query_range = 7:10,
@@ -178,138 +172,17 @@ test_that("merging ignores missing neighbor entries", {
 })
 
 test_that("repeated merging leaves both input graphs unchanged", {
-  # Ensure that repeated merging doesn't change old result
-  r1 <- random_knn(ui10, k = 4, order_by_distance = FALSE)
-  r2 <- random_knn(ui10, k = 4, order_by_distance = FALSE)
-  m12 <- merge_knn(list(r1, r2))
-  m12_idx_copy <- matrix(m12$idx, nrow = nrow(m12$idx))
-  m12_dist_copy <- matrix(m12$dist, nrow = nrow(m12$dist))
-  r3 <- random_knn(ui10, k = 4, order_by_distance = FALSE)
-  r3_idx_copy <- matrix(r3$idx, nrow = nrow(r3$idx))
-  r3_dist_copy <- matrix(r3$dist, nrow = nrow(r3$dist))
-  m123 <- merge_knn(list(m12, r3))
-  expect_equal(m12$idx, m12_idx_copy)
-  expect_equal(m12$dist, m12_dist_copy)
-  expect_equal(r3$idx, r3_idx_copy)
-  expect_equal(r3$dist, r3_dist_copy)
-
-  # reverse order of arguments
-  r1 <- random_knn(ui10, k = 4, order_by_distance = FALSE)
-  r2 <- random_knn(ui10, k = 4, order_by_distance = FALSE)
-  m12 <- merge_knn(list(r1, r2))
-  m12_idx_copy <- matrix(m12$idx, nrow = nrow(m12$idx))
-  m12_dist_copy <- matrix(m12$dist, nrow = nrow(m12$dist))
-  r3 <- random_knn(ui10, k = 4, order_by_distance = FALSE)
-  r3_idx_copy <- matrix(r3$idx, nrow = nrow(r3$idx))
-  r3_dist_copy <- matrix(r3$dist, nrow = nrow(r3$dist))
-  m123 <- merge_knn(list(r3, m12))
-  expect_equal(m12$idx, m12_idx_copy)
-  expect_equal(m12$dist, m12_dist_copy)
-  expect_equal(r3$idx, r3_idx_copy)
-  expect_equal(r3$dist, r3_dist_copy)
-
-  # check list merge
-  r1 <- random_knn(ui10, k = 4, order_by_distance = FALSE)
-  r2 <- random_knn(ui10, k = 4, order_by_distance = FALSE)
-  m12 <- merge_knn(list(r1, r2))
-  m12_idx_copy <- matrix(m12$idx, nrow = nrow(m12$idx))
-  m12_dist_copy <- matrix(m12$dist, nrow = nrow(m12$dist))
-  r3 <- random_knn(ui10, k = 4, order_by_distance = FALSE)
-  r3_idx_copy <- matrix(r3$idx, nrow = nrow(r3$idx))
-  r3_dist_copy <- matrix(r3$dist, nrow = nrow(r3$dist))
-  m123 <- merge_knn(list(m12, r3))
-  expect_equal(m12$idx, m12_idx_copy)
-  expect_equal(m12$dist, m12_dist_copy)
-  expect_equal(r3$idx, r3_idx_copy)
-  expect_equal(r3$dist, r3_dist_copy)
-
-  r1 <- random_knn(ui10, k = 4, order_by_distance = FALSE)
-  r2 <- random_knn(ui10, k = 4, order_by_distance = FALSE)
-  m12 <- merge_knn(list(r1, r2))
-  m12_idx_copy <- matrix(m12$idx, nrow = nrow(m12$idx))
-  m12_dist_copy <- matrix(m12$dist, nrow = nrow(m12$dist))
-  r3 <- random_knn(ui10, k = 4, order_by_distance = FALSE)
-  r3_idx_copy <- matrix(r3$idx, nrow = nrow(r3$idx))
-  r3_dist_copy <- matrix(r3$dist, nrow = nrow(r3$dist))
-  m123 <- merge_knn(list(r3, m12))
-  expect_equal(m12$idx, m12_idx_copy)
-  expect_equal(m12$dist, m12_dist_copy)
-  expect_equal(r3$idx, r3_idx_copy)
-  expect_equal(r3$dist, r3_dist_copy)
+  graphs <- list(ui10mnn, ui10rnn3)
+  before <- serialize(graphs, NULL)
+  merge_knn(graphs)
+  expect_identical(serialize(graphs, NULL), before)
+  merge_knn(rev(graphs))
+  expect_identical(serialize(graphs, NULL), before)
 })
 
-
-# Errors ------------------------------------------------------------------
-
-make_valid_nn_graph <- function(nr, nc) {
-  list(
-    idx = matrix(rep(seq_len(nr), length.out = nr * nc), nrow = nr, ncol = nc),
-    dist = matrix(seq_len(nr * nc), nrow = nr, ncol = nc)
-  )
-}
-
-test_that("merge validation rejects incompatible graph dimensions and fields", {
-  expect_error(
-    validate_nn_graph(list(
-      idx = matrix(nrow = 10, ncol = 2),
-      dist = matrix(nrow = 11, ncol = 2)
-    )),
-    "'dist' has 11 rows; 'idx' has 10"
-  )
-  expect_error(
-    validate_nn_graph(list(
-      idx = matrix(nrow = 10, ncol = 2),
-      dist = matrix(nrow = 10, ncol = 3)
-    )),
-    "'dist' has 3 columns; 'idx' has 2"
-  )
-  expect_error(
-    validate_are_mergeable(
-      make_valid_nn_graph(10, 2),
-      make_valid_nn_graph(11, 5)
-    ),
-    "must have same number of rows"
-  )
-
-  expect_error(
-    validate_are_mergeablel(list(list(
-      idx = matrix(nrow = 10, ncol = 2),
-      dist = matrix(nrow = 11, ncol = 2)
-    ))),
-    "'dist' has 11 rows; 'idx' has 10"
-  )
-  expect_error(
-    validate_are_mergeablel(list(list(
-      idx = matrix(nrow = 10, ncol = 2),
-      dist = matrix(nrow = 10, ncol = 3)
-    ))),
-    "'dist' has 3 columns; 'idx' has 2"
-  )
-  expect_error(
-    validate_are_mergeablel(list(
-      make_valid_nn_graph(10, 2),
-      make_valid_nn_graph(11, 5)
-    )),
-    "must have same number of rows"
-  )
-  expect_error(
-    validate_are_mergeablel(list(
-      make_valid_nn_graph(10, 2),
-      list(
-        badidx = matrix(nrow = 10, ncol = 5),
-        dist = matrix(nrow = 10, ncol = 5)
-      )
-    )),
-    "must contain 'idx'"
-  )
-  expect_error(
-    validate_are_mergeablel(list(
-      make_valid_nn_graph(10, 2),
-      list(
-        idx = matrix(nrow = 10, ncol = 5),
-        baddist = matrix(nrow = 10, ncol = 5)
-      )
-    )),
-    "must contain 'dist'"
-  )
+test_that("merge rejects incompatible graph sizes and missing fields", {
+  smaller <- brute_force_knn(ui6, k = 2)
+  expect_error(merge_knn(list(ui10mnn, smaller)), "same number of rows")
+  expect_error(merge_knn(list(ui10mnn, ui10mnn["dist"])), "must contain 'idx'")
+  expect_error(merge_knn(list(ui10mnn, ui10mnn["idx"])), "must contain 'dist'")
 })

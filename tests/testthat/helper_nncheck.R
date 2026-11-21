@@ -33,71 +33,48 @@ expect_equal_abs <- function(
   invisible(actual)
 }
 
-# Graph Construction Helpers ----------------------------------------------
-
-# i should not appear in the "true" neighbors (i.e. it should be the first
-# neighbor), indexes should be in the range (1, nr) and indexes should be unique
-check_nbri <- function(nnidx, i) {
-  nr <- nrow(nnidx)
-  nc <- ncol(nnidx)
-  true_nbrs <- nnidx[i, 2:nc]
-  testthat::expect_all_true(nnidx[!!i, 2:nc] != i)
-  testthat::expect_gt(min(true_nbrs), 0, label = paste("row", i))
-  testthat::expect_lte(max(true_nbrs), nr, label = paste("row", i))
-  testthat::expect_length(unique(nnidx[!!i, 2:nc]), nc - 1)
-}
-
-check_nbri_unordered <- function(nnidx, i) {
-  nr <- nrow(nnidx)
-  nc <- ncol(nnidx)
-  nbrs <- nnidx[i, ]
-  testthat::expect_gt(min(nbrs), 0, label = paste("row", i))
-  testthat::expect_lte(max(nbrs), nr, label = paste("row", i))
-  testthat::expect_length(unique(nnidx[!!i, ]), nc)
-}
-
-check_nbrs_idx <- function(nnidx, check_order = TRUE) {
-  nr <- nrow(nnidx)
-  for (i in 1:nr) {
-    if (check_order) {
-      check_nbri(nnidx, i)
-    } else {
-      check_nbri_unordered(nnidx, i)
-    }
-  }
-}
-
-check_nbrs_dist <- function(
-  nn,
-  expected_dist,
-  tolerance = .Machine$double.eps
-) {
-  nr <- nrow(nn$idx)
-  n_nbrs <- ncol(nn$idx)
-  for (i in 1:nr) {
-    for (j in 1:n_nbrs) {
-      testthat::expect_equal(
-        nn$dist[i, j],
-        expected_dist[i, nn$idx[i, j]],
-        tolerance = tolerance,
-        label = paste0(i, ", ", j)
-      )
-    }
-  }
+check_query_nbrs_idx <- function(nnidx, nref) {
+  testthat::expect_true(all(nnidx >= 1 & nnidx <= nref & nnidx == floor(nnidx)))
+  testthat::expect_true(all(apply(nnidx, 1, anyDuplicated) == 0L))
 }
 
 check_nbrs_order <- function(nn) {
-  nbr_cols <- seq_len(ncol(nn$idx))
-  testthat::expect_true(all(
-    apply(nn$dist, 1, order) ==
-      matrix(rep(nbr_cols, times = nrow(nn$idx)), nrow = ncol(nn$idx))
-  ))
+  testthat::expect_false(any(apply(nn$dist, 1, is.unsorted)))
 }
 
-# check_idx_order = FALSE if you don't care about the order of the indices
-# check_dist_order checks that distances are in increasing order for each row
-# only reason for check_idx_order = FALSE, check_dist_order = TRUE is when
-# there are ties in the returned distances (e.g. hamming)
+# Compare every returned edge with its own reference distance and error budget.
+check_query_nbrs_dist <- function(
+  nn,
+  expected_dist,
+  ref_range,
+  query_range,
+  tolerance,
+  absolute = FALSE
+) {
+  positions <- cbind(query_range[row(nn$idx)], ref_range[nn$idx])
+  expected <- matrix(expected_dist[positions], nrow(nn$idx), ncol(nn$idx))
+  testthat::expect_identical(dim(nn$dist), dim(expected))
+  if (absolute) {
+    expect_equal_abs(unname(nn$dist), expected, tolerance)
+    return(invisible(NULL))
+  }
+
+  difference <- abs(nn$dist - expected)
+  relative <- is.finite(expected) & abs(expected) > tolerance
+  difference[relative] <- difference[relative] / abs(expected[relative])
+  ok <- (is.na(nn$dist) & is.na(expected)) |
+    (!is.na(nn$dist) &
+      !is.na(expected) &
+      (nn$dist == expected | difference < tolerance))
+  testthat::expect_true(
+    all(ok),
+    info = paste(
+      "Incorrect distances at matrix positions",
+      toString(which(!ok))
+    )
+  )
+}
+
 check_nbrs <- function(
   nn,
   expected_dist,
@@ -105,58 +82,17 @@ check_nbrs <- function(
   check_idx_order = TRUE,
   check_dist_order = check_idx_order
 ) {
-  check_nbrs_idx(nn$idx, check_order = check_idx_order)
-  check_nbrs_dist(nn, expected_dist, tolerance = tolerance)
+  rows <- seq_len(nrow(nn$idx))
+  check_query_nbrs_idx(nn$idx, length(rows))
+  if (check_idx_order) {
+    # A sampled graph can omit self. When present, self must sort first.
+    others <- nn$idx[, -1L, drop = FALSE]
+    testthat::expect_true(all(others != row(others)))
+  }
+  check_query_nbrs_dist(nn, expected_dist, rows, rows, tolerance)
   if (check_dist_order) {
     check_nbrs_order(nn)
   }
-}
-
-# Query Helpers -----------------------------------------------------------
-
-# indexes should be in the range (1, nref) and indexes should be unique
-are_valid_query_neighbors <- function(nnidx, i, nref) {
-  nc <- ncol(nnidx)
-  query_nbrs <- nnidx[i, ]
-  all(query_nbrs > 0 & query_nbrs <= nref) && length(unique(query_nbrs)) == nc
-}
-
-
-check_query_nbrs_idx <- function(nnidx, nref) {
-  nr <- nrow(nnidx)
-  for (i in 1:nr) {
-    testthat::expect_true(
-      are_valid_query_neighbors(nnidx, i, nref),
-      label = paste("query row", i)
-    )
-  }
-}
-
-check_query_nbrs_dist <- function(
-  nn,
-  expected_dist,
-  ref_range,
-  query_range,
-  tolerance = .Machine$double.eps,
-  absolute = FALSE
-) {
-  expect_distance <- if (absolute) expect_equal_abs else testthat::expect_equal
-  n_queries <- nrow(nn$idx)
-  n_nbrs <- ncol(nn$idx)
-  for (i in 1:n_queries) {
-    for (j in 1:n_nbrs) {
-      expect_distance(
-        nn$dist[i, j],
-        expected_dist[query_range[i], ref_range[nn$idx[i, j]]],
-        tolerance = tolerance,
-        label = paste0(i, ", ", j)
-      )
-    }
-  }
-}
-
-check_nn_matrix_dim <- function(m, query, k) {
-  testthat::expect_shape(m, dim = c(nrow(query), k))
 }
 
 check_query_nbrs <- function(
@@ -170,25 +106,18 @@ check_query_nbrs <- function(
   check_order = TRUE,
   absolute = FALSE
 ) {
-  check_nn_matrix_dim(nn$idx, query, k)
-  check_nn_matrix_dim(nn$dist, query, k)
-  nref <- length(ref_range)
-  check_query_nbrs_idx(nn$idx, nref)
+  testthat::expect_shape(nn$idx, dim = c(nrow(query), k))
+  check_query_nbrs_idx(nn$idx, length(ref_range))
   check_query_nbrs_dist(
     nn,
     expected_dist,
     ref_range,
     query_range,
     tolerance,
-    absolute = absolute
+    absolute
   )
   if (check_order) {
-    # this checks that distances are in increasing order for each row
-    nbr_cols <- seq_len(ncol(nn$idx))
-    testthat::expect_true(all(
-      apply(nn$dist, 1, order) ==
-        matrix(rep(nbr_cols, times = nrow(nn$idx)), nrow = ncol(nn$idx))
-    ))
+    check_nbrs_order(nn)
   }
 }
 

@@ -2788,10 +2788,6 @@ merge_graphs_sp <- function(g1, g2) {
   list_to_sparse(gl_merge)
 }
 
-nn_sparsity <- function(graph) {
-  sum(graph$idx == 0) / prod(dim(graph$idx))
-}
-
 nn_sparsity_sp <- function(graph) {
   1 - Matrix::nnzero(graph) / prod(graph@Dim)
 }
@@ -2860,7 +2856,7 @@ merge_knn <- function(
   if (length(graphs) == 0) {
     return(list())
   }
-  validate_are_mergeablel(graphs, is_query = is_query)
+  validate_merge_graphs(graphs, is_query = is_query)
 
   rnn_merge_nn_all(graphs, is_query, n_threads = n_threads, verbose = verbose)
 }

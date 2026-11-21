@@ -51,3 +51,15 @@ test_that("missing neighbor sentinel does not count as overlap", {
   expect_equal(ov$overlaps, c(0, 0.5, 0))
   expect_equal(ov$mean, mean(c(0, 0.5, 0)))
 })
+
+test_that("overlap diagnoses too few neighbor columns and unequal row counts", {
+  idx <- matrix(1:12, nrow = 3)
+  expect_error(
+    neighbor_overlap(idx, idx[, 1:2], k = 3),
+    "Not enough columns in 'idx2' for k = 3"
+  )
+  expect_error(
+    neighbor_overlap(idx, idx[1:2, ]),
+    "'idx1' and 'idx2' must have the same number of rows"
+  )
+})

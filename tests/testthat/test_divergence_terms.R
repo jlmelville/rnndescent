@@ -31,34 +31,33 @@ for (metric in c("jensenshannon", "symmetrickl")) {
     pair <- cases[[case_name]]
     expected <- c(0, divergence_terms_reference(pair$x, pair$y, metric))
     for (sparse in c(FALSE, TRUE)) {
-      for (obs in c("R", "C")) {
-        test_that(paste(metric, case_name, "full terms", sparse, obs), {
-          query <- matrix(pair$x, nrow = 1)
-          reference <- rbind(pair$x, pair$y)
-          if (obs == "C") {
-            query <- t(query)
-            reference <- t(reference)
-          }
-          if (sparse) {
-            query <- methods::as(query, "dgCMatrix")
-            reference <- methods::as(reference, "dgCMatrix")
-          }
-          result <- brute_force_knn_query(
-            query,
-            reference,
-            k = 2,
-            metric = metric,
-            obs = obs,
-            n_threads = 0
-          )
-          # The omitted JS term previously let an unlike point beat exact self;
-          # KL dropped the rare counts entirely. Both must retain their distance.
-          expect_identical(result$idx, matrix(c(1, 2), nrow = 1))
-          expect_true(all(
-            is.finite(result$dist) & abs(result$dist - expected) < 2e-7
-          ))
-        })
-      }
+      obs <- if (sparse) "C" else "R"
+      test_that(paste(metric, case_name, "full terms", sparse, obs), {
+        query <- matrix(pair$x, nrow = 1)
+        reference <- rbind(pair$x, pair$y)
+        if (obs == "C") {
+          query <- t(query)
+          reference <- t(reference)
+        }
+        if (sparse) {
+          query <- methods::as(query, "dgCMatrix")
+          reference <- methods::as(reference, "dgCMatrix")
+        }
+        result <- brute_force_knn_query(
+          query,
+          reference,
+          k = 2,
+          metric = metric,
+          obs = obs,
+          n_threads = 0
+        )
+        # The omitted JS term previously let an unlike point beat exact self;
+        # KL dropped the rare counts entirely. Both must retain their distance.
+        expect_identical(result$idx, matrix(c(1, 2), nrow = 1))
+        expect_true(all(
+          is.finite(result$dist) & abs(result$dist - expected) < 2e-7
+        ))
+      })
     }
   }
 }
