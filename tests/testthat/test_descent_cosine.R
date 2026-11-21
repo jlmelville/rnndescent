@@ -58,6 +58,38 @@ test_that("dense cosine descent preserves scores for zero and scaled rows", {
   expect_true(all(graph$dist[1:2, ] %in% c(0, 1)))
 })
 
+test_that("sparse cosine descent reproduces directly scored distances", {
+  set.seed(3891L)
+  x <- matrix(rnorm(47L * 64L), nrow = 47L)
+  x[abs(x) < 0.8] <- 0
+  x[, 1:2] <- 0
+  x[, 4L] <- x[, 3L] * (1 + seq_len(nrow(x)) * 2^-22)
+  x[, 5:7] <- x[, 5:7] * 2^-64
+  x[, 8:10] <- x[, 8:10] * 2^48
+  data <- Matrix::Matrix(x, sparse = TRUE)
+  init <- list(
+    idx = matrix(0L, ncol(x), 8L),
+    dist = matrix(NA_real_, ncol(x), 8L)
+  )
+  for (threads in c(0L, 2L)) {
+    set.seed(710L)
+    dqrng::dqset.seed(710L)
+    graph <- rnnd_knn(
+      data,
+      k = 8L,
+      metric = "cosine",
+      use_alt_metric = FALSE,
+      init = init,
+      n_iters = 2L,
+      n_threads = threads,
+      obs = "C"
+    )
+    expect_true(all(graph$idx > 0L))
+    expected <- knn_distances(data, graph$idx, metric = "cosine", obs = "C")
+    expect_true(identical(graph$dist, expected$dist, num.eq = FALSE))
+  }
+})
+
 # Query
 
 test_that("cosine queries return valid neighbors and distances", {
@@ -153,7 +185,7 @@ test_that("preprocessed cosine queries return valid neighbors and distances", {
 })
 
 # sparse
-test_that("sparse", {
+test_that("dense and sparse cosine descent agree within float precision", {
   set.seed(1337)
   dznbrs <- nnd_knn(ui10z, k = 4, n_threads = 0, metric = "cosine")
   set.seed(1337)
@@ -164,7 +196,9 @@ test_that("sparse", {
     metric = "cosine",
     use_alt_metric = TRUE
   )
-  expect_equal(dznbrs, spnbrs, tolerance = 1e-5)
+  # Float cosine distances near zero need an absolute error budget.
+  expect_identical(dznbrs$idx, spnbrs$idx)
+  expect_equal_abs(dznbrs$dist, spnbrs$dist, tolerance = 1e-6)
   set.seed(1337)
   spnbrs <- nnd_knn(
     ui10sp,
@@ -173,7 +207,8 @@ test_that("sparse", {
     metric = "cosine",
     use_alt_metric = FALSE
   )
-  expect_equal(dznbrs, spnbrs, tolerance = 1e-5)
+  expect_identical(dznbrs$idx, spnbrs$idx)
+  expect_equal_abs(dznbrs$dist, spnbrs$dist, tolerance = 1e-6)
 
   # make sure uncorrection is triggered: nnd with incorrect distances will not converge
   bfz <- brute_force_knn(ui10z, k = 4, metric = "cosine")

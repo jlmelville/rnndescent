@@ -85,6 +85,48 @@ test_that("prepared dense cosine queries preserve signed distances and search bu
   expect_true(any(wide$dist[-1L, ] > 1))
 })
 
+test_that("prepared dense cosine preserves split ties, random fill and RNG", {
+  set.seed(771L)
+  # The odd reference count exercises the sampler's cached RNG word.
+  reference <- matrix(rnorm(97L * 23L), nrow = 97L)
+  query <- matrix(rnorm(71L * 23L), nrow = 71L)
+  query[c(1L, 6L, 63L, 64L, 65L, 71L), ] <- 0
+  dqrng::dqset.seed(771L)
+  index <- rnnd_build(
+    reference,
+    k = 16L,
+    metric = "cosine",
+    use_alt_metric = FALSE,
+    margin = "explicit",
+    n_trees = 3L,
+    n_search_trees = 1L,
+    leaf_size = 8L,
+    n_iters = 2L
+  )
+  prepared <- rnnd_prepare(index)
+  run <- function(index, threads, fraction) {
+    set.seed(291L)
+    dqrng::dqset.seed(291L)
+    result <- rnnd_query(
+      index,
+      query,
+      k = 16L,
+      max_search_fraction = fraction,
+      n_threads = threads
+    )
+    list(result = result, rng = .Random.seed, dq = dqrng::dqrng_get_state())
+  }
+  for (threads in c(0L, 2L)) {
+    for (fraction in c(0, 1)) {
+      expect_true(identical(
+        run(prepared, threads, fraction),
+        run(index, threads, fraction),
+        num.eq = FALSE
+      ))
+    }
+  }
+})
+
 test_that("prepared indexes own a snapshot and reject invalid inputs", {
   data <- matrix(0:63, ncol = 2)
   index <- rnnd_build(data, k = 4L, n_trees = 2L, n_iters = 1L)
@@ -501,6 +543,57 @@ for (metric in sparse_prepared_metrics) {
     }
   )
 }
+
+test_that("prepared sparse cosine traversal preserves budgeted queries exactly", {
+  set.seed(120L)
+  reference <- matrix(rnorm(128L * 37L), nrow = 128L)
+  query <- matrix(rnorm(16L * 37L), ncol = 37L)
+  reference[abs(reference) < 0.8] <- 0
+  query[abs(query) < 0.8] <- 0
+  reference[1:2, ] <- 0
+  reference[3L, ] <- -reference[4L, ]
+  reference[5L, ] <- reference[4L, ] * (1 + seq_len(ncol(reference)) * 2^-22)
+  reference[6:7, ] <- reference[6:7, ] * 2^-64
+  reference[8:9, ] <- reference[8:9, ] * 2^48
+  query <- Matrix::Matrix(
+    rbind(reference[c(1L, 3L, 5L, 6L, 8L), ], query),
+    sparse = TRUE
+  )
+  data <- Matrix::Matrix(reference, sparse = TRUE)
+  set.seed(739L)
+  dqrng::dqset.seed(739L)
+  index <- rnnd_build(
+    data,
+    k = 12L,
+    metric = "cosine",
+    use_alt_metric = FALSE,
+    n_trees = 3L,
+    n_search_trees = 1L,
+    leaf_size = 5L,
+    n_iters = 2L
+  )
+  prepared <- rnnd_prepare(index)
+  run <- function(index, threads, fraction) {
+    set.seed(291L)
+    dqrng::dqset.seed(291L)
+    result <- rnnd_query(
+      index,
+      query,
+      k = 8L,
+      n_threads = threads,
+      max_search_fraction = fraction
+    )
+    list(result = result, rng = .Random.seed, dq = dqrng::dqrng_get_state())
+  }
+  fractions <- c(0, 8 / nrow(data), 1)
+  for (threads in c(0L, 2L)) {
+    expected <- lapply(fractions, function(f) run(index, threads, f))
+    actual <- lapply(fractions, function(f) run(prepared, threads, f))
+    expect_true(identical(actual, expected, num.eq = FALSE))
+    expect_false(identical(actual[[1L]]$result$idx, actual[[2L]]$result$idx))
+    expect_false(identical(actual[[2L]]$result$idx, actual[[3L]]$result$idx))
+  }
+})
 
 test_that("prepared sparse indexes validate inputs and own their snapshot", {
   data <- Matrix::Matrix(matrix(0:39, ncol = 2L), sparse = TRUE)

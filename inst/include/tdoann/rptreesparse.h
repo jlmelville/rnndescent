@@ -34,6 +34,7 @@
 #include <iterator>
 #include <limits>
 #include <numeric>
+#include <optional>
 #include <tuple>
 #include <unordered_set>
 #include <utility>
@@ -146,6 +147,16 @@ void normalize_inplace(DataIt start, DataIt end) {
 }
 
 template <typename In, typename Idx>
+auto sparse_side_from_margin(In margin, RandomIntGenerator<Idx> &rng)
+    -> uint8_t {
+  constexpr In EPS = 1e-8;
+  if (std::abs(margin) < EPS) {
+    return rng.rand_int(2);
+  }
+  return margin > 0 ? 0 : 1;
+}
+
+template <typename In, typename Idx>
 uint8_t
 select_side_sparse(typename std::vector<std::size_t>::const_iterator ind_start,
                    std::size_t ind_size,
@@ -153,8 +164,6 @@ select_side_sparse(typename std::vector<std::size_t>::const_iterator ind_start,
                    const std::vector<std::size_t> &hyperplane_ind,
                    const std::vector<In> &hyperplane_data, In hyperplane_offset,
                    RandomIntGenerator<Idx> &rng) {
-  constexpr In EPS = 1e-8;
-
   In margin = hyperplane_offset;
   std::size_t plane_pos = 0;
   std::size_t point_pos = 0;
@@ -175,39 +184,97 @@ select_side_sparse(typename std::vector<std::size_t>::const_iterator ind_start,
     }
   }
 
-  if (std::abs(margin) < EPS) {
-    return rng.rand_int(2);
-  }
-  return margin > 0 ? 0 : 1;
+  return sparse_side_from_margin(margin, rng);
 }
 
+template <typename In> class SparsePlaneLookup {
+  struct Slot {
+    In coefficient = 0;
+    bool present = false;
+  };
+  std::vector<Slot> features;
+
+public:
+  static auto fits(std::size_t dimension) -> bool {
+    // Bound the feature table for each parallel worker.
+    constexpr std::size_t max_scratch_bytes = 512 * 1024;
+    return dimension <= max_scratch_bytes / sizeof(Slot);
+  }
+
+  explicit SparsePlaneLookup(std::size_t dimension) : features(dimension) {}
+
+  void load(const std::vector<std::size_t> &indices,
+            const std::vector<In> &coefficients) {
+    for (std::size_t j = 0; j < indices.size(); ++j) {
+      features[indices[j]] = {coefficients[j], true};
+    }
+  }
+
+  void clear(const std::vector<std::size_t> &indices) {
+    for (const auto feature : indices) {
+      features[feature].present = false;
+    }
+  }
+
+  template <typename Idx>
+  auto select_side(typename std::vector<std::size_t>::const_iterator indices,
+                   std::size_t count,
+                   typename std::vector<In>::const_iterator data, In offset,
+                   RandomIntGenerator<Idx> &rng) const -> uint8_t {
+    In margin = offset;
+    // The point's coordinates are sorted. Skip absent features before
+    // multiplying and retain the stock test for a zero rounded product.
+    for (std::size_t pos = 0; pos < count; ++pos) {
+      const auto &slot = features[indices[pos]];
+      if (slot.present) {
+        const In product = slot.coefficient * data[pos];
+        if (product != In{0}) {
+          margin += product;
+        }
+      }
+    }
+    return sparse_side_from_margin(margin, rng);
+  }
+};
+
 template <typename In, typename Idx>
-void split_indices_sparse(const std::vector<std::size_t> &ind,
-                          const std::vector<std::size_t> &ptr,
-                          const std::vector<In> &data,
-                          const std::vector<Idx> &indices,
-                          const std::vector<std::size_t> &hyperplane_ind,
-                          const std::vector<In> &hyperplane_data,
-                          In hyperplane_offset, std::vector<Idx> &indices_left,
-                          std::vector<Idx> &indices_right,
-                          RandomIntGenerator<Idx> &rng) {
+void split_indices_sparse(
+    const std::vector<std::size_t> &ind, const std::vector<std::size_t> &ptr,
+    const std::vector<In> &data, const std::vector<Idx> &indices,
+    const std::vector<std::size_t> &hyperplane_ind,
+    const std::vector<In> &hyperplane_data, In hyperplane_offset,
+    std::vector<Idx> &indices_left, std::vector<Idx> &indices_right,
+    RandomIntGenerator<Idx> &rng, SparsePlaneLookup<In> *lookup = nullptr) {
   std::vector<uint8_t> side(indices.size(), 0);
   std::size_t n_left = 0;
   std::size_t n_right = 0;
 
-  for (std::size_t i = 0; i < indices.size(); ++i) {
-    Idx idx = indices[i];
-    auto range_start = ptr[idx];
-    auto range_end = ptr[idx + 1];
-    side[i] =
-        select_side_sparse(ind.begin() + range_start, range_end - range_start,
-                           data.begin() + range_start, hyperplane_ind,
-                           hyperplane_data, hyperplane_offset, rng);
-    if (side[i] == 0) {
-      ++n_left;
-    } else {
-      ++n_right;
+  auto score = [&](const auto &select_side) {
+    for (std::size_t i = 0; i < indices.size(); ++i) {
+      const auto point = indices[i];
+      const auto begin = ptr[point];
+      const auto end = ptr[point + 1];
+      side[i] =
+          select_side(ind.begin() + begin, end - begin, data.begin() + begin);
+      if (side[i] == 0) {
+        ++n_left;
+      } else {
+        ++n_right;
+      }
     }
+  };
+  if (lookup) {
+    lookup->load(hyperplane_ind, hyperplane_data);
+    score([&](auto coordinates, auto count, auto values) {
+      return lookup->select_side(coordinates, count, values, hyperplane_offset,
+                                 rng);
+    });
+    lookup->clear(hyperplane_ind);
+  } else {
+    score([&](auto coordinates, auto count, auto values) {
+      return select_side_sparse(coordinates, count, values, hyperplane_ind,
+                                hyperplane_data, hyperplane_offset, rng);
+    });
   }
 
   // If either side is empty, reset counts and assign sides randomly.
@@ -240,11 +307,10 @@ void split_indices_sparse(const std::vector<std::size_t> &ind,
 template <typename In, typename Idx>
 std::tuple<std::vector<Idx>, std::vector<Idx>, std::vector<std::size_t>,
            std::vector<In>, In>
-sparse_angular_random_projection_split(const std::vector<std::size_t> &ind,
-                                       const std::vector<std::size_t> &ptr,
-                                       const std::vector<In> &data,
-                                       const std::vector<Idx> &indices,
-                                       RandomIntGenerator<Idx> &rng) {
+sparse_angular_random_projection_split(
+    const std::vector<std::size_t> &ind, const std::vector<std::size_t> &ptr,
+    const std::vector<In> &data, const std::vector<Idx> &indices,
+    RandomIntGenerator<Idx> &rng, SparsePlaneLookup<In> *lookup = nullptr) {
   auto [left_index, right_index] = select_random_points(indices, rng);
 
   Idx left = indices[left_index];
@@ -278,7 +344,8 @@ sparse_angular_random_projection_split(const std::vector<std::size_t> &ind,
   std::vector<Idx> indices_left;
   std::vector<Idx> indices_right;
   split_indices_sparse(ind, ptr, data, indices, hyperplane_ind, hyperplane_data,
-                       hyperplane_offset, indices_left, indices_right, rng);
+                       hyperplane_offset, indices_left, indices_right, rng,
+                       lookup);
 
   return std::make_tuple(std::move(indices_left), std::move(indices_right),
                          std::move(hyperplane_ind), std::move(hyperplane_data),
@@ -375,17 +442,18 @@ Tree make_sparse_tree(const std::vector<std::size_t> &ind,
                       const std::vector<std::size_t> &ptr,
                       const std::vector<In> &data, std::size_t ndim,
                       RandomIntGenerator<Idx> &rng, uint32_t leaf_size,
-                      uint32_t max_tree_depth, bool angular) {
+                      uint32_t max_tree_depth, bool angular,
+                      SparsePlaneLookup<In> *lookup = nullptr) {
   std::vector<Idx> indices(ptr.size() - 1);
   std::iota(indices.begin(), indices.end(), 0);
 
   Tree tree(indices.size(), leaf_size, ndim);
 
   if (angular) {
-    auto splitter = [](const auto &ind, const auto &ptr, const auto &data,
-                       auto &indices, auto &rng) {
+    auto splitter = [lookup](const auto &ind, const auto &ptr, const auto &data,
+                             auto &indices, auto &rng) {
       return sparse_angular_random_projection_split(ind, ptr, data, indices,
-                                                    rng);
+                                                    rng, lookup);
     };
 
     make_sparse_tree_recursive(ind, ptr, data, indices, tree, rng, splitter,
@@ -410,16 +478,24 @@ std::vector<Tree> make_sparse_forest(
     std::size_t ndim, uint32_t n_trees, uint32_t leaf_size,
     uint32_t max_tree_depth, ParallelRandomIntProvider<Idx> &parallel_rand,
     bool angular, std::size_t n_threads, ProgressBase &progress,
-    const Executor &executor) {
+    const Executor &executor, bool indexed = false) {
   std::vector<Tree> rp_forest(n_trees);
 
   parallel_rand.initialize();
 
+  const bool use_lookup = indexed && angular && max_tree_depth > 0 &&
+                          indptr.size() - 1 > leaf_size &&
+                          SparsePlaneLookup<In>::fits(ndim);
   auto worker = [&](std::size_t begin, std::size_t end) {
     auto rng = parallel_rand.get_parallel_instance(end);
+    std::optional<SparsePlaneLookup<In>> lookup;
+    if (use_lookup) {
+      lookup.emplace(ndim);
+    }
     for (auto i = begin; i < end; ++i) {
       rp_forest[i] = make_sparse_tree<In, Idx, Tree>(
-          inds, indptr, data, ndim, *rng, leaf_size, max_tree_depth, angular);
+          inds, indptr, data, ndim, *rng, leaf_size, max_tree_depth, angular,
+          lookup ? &*lookup : nullptr);
     }
   };
 

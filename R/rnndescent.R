@@ -294,7 +294,8 @@ rnnd_build <- function(
       degree = degree,
       metric = if (use_alt_metric) "sqeuclidean" else "euclidean",
       leaf_size = if (is.null(leaf_size)) max(10, k) else leaf_size,
-      max_tree_depth = max_tree_depth
+      max_tree_depth = max_tree_depth,
+      n_threads = n_threads
     )
     index$search_forest <- set_forest_data(
       search_forest,
@@ -722,19 +723,29 @@ can_validate_reference_on_copy <- function(reference, metric, init) {
       length(reference) == 0L ||
       !is.list(init) ||
       is.object(init) ||
-      !identical(metric, "euclidean")
+      !(identical(metric, "euclidean") || identical(metric, "cosine"))
   ) {
     return(FALSE)
   }
   if (is_rpforest(init)) {
+    if (
+      !identical(init$margin, "explicit") ||
+        !identical(init$original_metric, metric)
+    ) {
+      return(FALSE)
+    }
+    if (identical(metric, "cosine")) {
+      return(
+        identical(init$actual_metric, "cosine") ||
+          identical(init$actual_metric, "alternative-cosine")
+      )
+    }
     return(
-      identical(init$margin, "explicit") &&
-        identical(init$original_metric, "euclidean") &&
-        (identical(init$actual_metric, "sqeuclidean") ||
-          identical(init$actual_metric, "euclidean"))
+      identical(init$actual_metric, "sqeuclidean") ||
+        identical(init$actual_metric, "euclidean")
     )
   }
-  !is.null(init$idx) && !is.null(init$dist)
+  identical(metric, "euclidean") && !is.null(init$idx) && !is.null(init$dist)
 }
 
 #' Find approximate nearest neighbors
@@ -2601,7 +2612,7 @@ prepare_search_graph_impl <- function(
       prune_probability = diversify_prob,
       verbose = verbose,
       n_threads = n_threads,
-      balance_work = TRUE
+      reverse = TRUE
     )
   } else {
     rdiv <- rsp
@@ -2669,7 +2680,7 @@ diversify <- function(
   prune_probability = 1.0,
   n_threads = 0,
   verbose = FALSE,
-  balance_work = FALSE
+  reverse = FALSE
 ) {
   nnz_before <- Matrix::nnzero(graph)
   sp_before <- nn_sparsity_sp(graph)
@@ -2694,7 +2705,7 @@ diversify <- function(
           ptr = data@p,
           data = data@x,
           ndim = nrow(data),
-          balance_work = balance_work
+          balance_work = reverse
         )
       )
     )

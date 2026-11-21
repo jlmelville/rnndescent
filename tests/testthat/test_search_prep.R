@@ -628,3 +628,38 @@ test_that("degree scheduling preserves sparse reverse pruning and RNG state", {
   expect_identical(prepare(713L), second)
   expect_identical(reverse_passes, 4L)
 })
+
+test_that("batched diversification preserves fractional pruning", {
+  axes <- diag(5)
+  data <- rbind(0, axes, 2 * axes[1, ], 3 * axes[2, ])
+  # Test a wider forward row and its transpose, which has a wider reverse row.
+  graph <- Matrix::sparseMatrix(
+    i = rep(1L, nrow(data) - 1L),
+    j = 2:nrow(data),
+    x = sqrt(rowSums(data[-1L, , drop = FALSE]^2)),
+    dims = rep(nrow(data), 2L)
+  )
+  prepare <- function(graph, probability, use_alt_metric) {
+    set.seed(710L)
+    dqrng::dqset.seed(710L)
+    result <- prepare_search_graph(
+      data,
+      graph,
+      use_alt_metric = use_alt_metric,
+      diversify_prob = probability,
+      pruning_degree_multiplier = NULL,
+      n_threads = 2L
+    )
+    list(graph = result, rng = .Random.seed, dqrng = dqrng::dqrng_get_state())
+  }
+  # All stored edge lengths are small integers, so squaring and correcting
+  # them can reproduce the scalar Euclidean result exactly.
+  for (input in list(graph, Matrix::t(graph))) {
+    for (probability in c(0.5, 1)) {
+      expect_identical(
+        prepare(input, probability, use_alt_metric = TRUE),
+        prepare(input, probability, use_alt_metric = FALSE)
+      )
+    }
+  }
+})

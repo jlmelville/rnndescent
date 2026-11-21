@@ -62,7 +62,7 @@ x2m <- function(X, obs = "R", name = "data") {
     stop(name, " must contain at least one feature after conversion")
   }
   finite <- if (is_sparse(m)) {
-    length(m@x) == 0L || (is.finite(min(m@x)) && is.finite(max(m@x)))
+    all(is.finite(m@x))
   } else {
     !is.numeric(m) ||
       length(m) == 0L ||

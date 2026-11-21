@@ -36,7 +36,7 @@ struct PreparedDenseIndex {
   using In = RNN_DEFAULT_IN;
   using Out = RNN_DEFAULT_DIST;
   using Idx = RNN_DEFAULT_IDX;
-  using Graph = tdoann::SparseNNGraph<Out, Idx>;
+  using Graph = tdoann::SparseAdjacency<Idx>;
   using Tree = tdoann::SearchTree<In, Idx>;
 
   std::vector<In> reference;
@@ -75,7 +75,7 @@ struct PreparedSparseIndex {
   using Out = RNN_DEFAULT_DIST;
   using Idx = RNN_DEFAULT_IDX;
   using Distance = tdoann::SparseVectorDistance<In, Out, Idx>;
-  using Graph = tdoann::SparseNNGraph<Out, Idx>;
+  using Graph = tdoann::SparseAdjacency<Idx>;
   using Forest = std::variant<std::vector<tdoann::SparseSearchTree<In, Idx>>,
                               std::vector<tdoann::SearchTreeImplicit<Idx>>>;
 
@@ -90,7 +90,7 @@ struct PreparedSparseIndex {
 struct PreparedLogicalIndex {
   using Out = RNN_DEFAULT_DIST;
   using Idx = RNN_DEFAULT_IDX;
-  using Graph = tdoann::SparseNNGraph<Out, Idx>;
+  using Graph = tdoann::SparseAdjacency<Idx>;
 
   tdoann::BitVec reference;
   Graph graph;
@@ -159,6 +159,8 @@ public:
 class PreparedSparseQuery final : public PreparedSparseIndex::Distance {
   const PreparedSparseIndex &index;
   std::unique_ptr<PreparedSparseIndex::Distance> query;
+  tdoann::SparseDistanceFunc<PreparedSparseIndex::In, PreparedSparseIndex::Out>
+      calculate_distance;
 
 public:
   PreparedSparseQuery(const PreparedSparseIndex &index,
@@ -167,7 +169,15 @@ public:
                       const Rcpp::NumericVector &data)
       : index(index),
         query(create_sparse_self_distance_impl<PreparedSparseIndex::Distance>(
-            ind, ptr, data, index.ndim, index.metric)) {}
+            ind, ptr, data, index.ndim, index.metric)),
+        calculate_distance(index.calculate) {}
+
+  void prepare_traversal() {
+    if (index.metric == "cosine") {
+      calculate_distance =
+          tdoann::sparse_cosine<PreparedSparseIndex::Out, DataIterator, true>;
+    }
+  }
 
   std::size_t get_nx() const override { return index.reference->get_nx(); }
   std::size_t get_ny() const override { return query->get_nx(); }
@@ -181,8 +191,8 @@ public:
                              const RNN_DEFAULT_IDX &qry) const override {
     auto [ref_ind, ref_size, ref_data] = get_x(ref);
     auto [qry_ind, qry_size, qry_data] = get_y(qry);
-    return index.calculate(ref_ind, ref_size, ref_data, qry_ind, qry_size,
-                           qry_data, index.ndim);
+    return calculate_distance(ref_ind, ref_size, ref_data, qry_ind, qry_size,
+                              qry_data, index.ndim);
   }
 };
 

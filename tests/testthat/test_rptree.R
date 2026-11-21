@@ -115,6 +115,66 @@ test_that("recursive leaf-only forests preserve the initial graph and RNG state"
   }
 })
 
+test_that("batched leaf updates preserve squared-Euclidean ties and tails", {
+  x <- as.matrix(iris[1:11, 1:4])
+  x[2, ] <- x[1, ]
+  for (self in c(FALSE, TRUE)) {
+    run <- function(ret_forest) {
+      set.seed(127L)
+      dqrng::dqset.seed(127L)
+      graph <- rpf_knn(
+        x,
+        k = 5L,
+        metric = "euclidean",
+        n_trees = 1L,
+        leaf_size = 5L,
+        max_tree_depth = 0L,
+        include_self = self,
+        n_threads = 2L,
+        ret_forest = ret_forest
+      )
+      list(
+        graph = graph[c("idx", "dist")],
+        r = .Random.seed,
+        dq = dqrng::dqrng_get_state()
+      )
+    }
+    # With zero split depth both routes visit the same single leaf.
+    expect_identical(run(FALSE), run(TRUE))
+  }
+})
+
+test_that("indexed sparse margins preserve the tree and tie RNG", {
+  set.seed(712L)
+  x <- matrix(
+    sample(c(-2, -1, 0, 0, 0, 1, 2), 8L * 64L, replace = TRUE),
+    nrow = 8L
+  )
+  x[, 1:2] <- 0
+  x[, 3L] <- x[, 4L]
+  x <- Matrix::Matrix(x, sparse = TRUE)
+  x@x[1L] <- 0
+  wide <- x
+  # Trailing empty features select the merge without changing any support.
+  wide@Dim[1L] <- 1000000L
+  run <- function(data) {
+    set.seed(329L)
+    dqrng::dqset.seed(329L)
+    graph <- rpf_knn(
+      data,
+      k = 4L,
+      metric = "cosine",
+      n_trees = 5L,
+      leaf_size = 8L,
+      n_threads = 2L,
+      obs = "C",
+      ret_forest = TRUE
+    )
+    list(graph = graph, r = .Random.seed, dq = dqrng::dqrng_get_state())
+  }
+  expect_identical(run(x), run(wide))
+})
+
 test_that("threaded RP forests preserve neighbor quality and missing entries", {
   # multi-threading
   set.seed(1337)

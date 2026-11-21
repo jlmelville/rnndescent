@@ -32,6 +32,7 @@
 #include "tdoann/rptreesparse.h"
 
 #include "rnn_distance.h"
+#include "rnn_distance_batch.h"
 #include "rnn_heaptor.h"
 #include "rnn_hub_tree.h"
 #include "rnn_parallel.h"
@@ -333,7 +334,7 @@ std::vector<Tree> build_sparse_rp_forest(
     const std::vector<std::size_t> &ptr_vec, std::size_t ndim,
     const std::string &metric, uint32_t n_trees, uint32_t leaf_size,
     uint32_t max_tree_depth, std::size_t n_threads, bool verbose,
-    const tdoann::Executor &executor) {
+    const tdoann::Executor &executor, bool indexed = false) {
   bool angular = is_angular_metric(metric);
   rnndescent::ParallelIntRNGAdapter<Idx, rnndescent::DQIntSampler> rng_provider;
   if (verbose) {
@@ -343,7 +344,7 @@ std::vector<Tree> build_sparse_rp_forest(
   RPProgress forest_progress(verbose);
   return tdoann::make_sparse_forest<In, Idx, Tree>(
       ind_vec, ptr_vec, data_vec, ndim, n_trees, leaf_size, max_tree_depth,
-      rng_provider, angular, n_threads, forest_progress, executor);
+      rng_provider, angular, n_threads, forest_progress, executor, indexed);
 }
 
 template <typename Tree, typename BuildForest>
@@ -402,9 +403,23 @@ List rnn_rp_tree_knn_explicit(const NumericMatrix &data, uint32_t nnbrs,
 
   auto distance =
       create_self_distance_calculator(std::move(data_vec), ndim, metric);
-  auto neighbor_heap =
-      tdoann::init_rp_tree(distance, leaf_array, max_leaf_size, nnbrs,
-                           include_self, n_threads, knn_progress, executor);
+  auto neighbor_heap = [&](const auto &leaves, std::size_t width) {
+    if (!ret_forest && n_threads > 1 && metric == "sqeuclidean" &&
+        distance.get_nx() > 0) {
+      using Kernel = rnndescent::DenseDistanceFour<RNN_DEFAULT_DIST, Idx>;
+      const auto *reference = &*distance.get_x(0);
+      const auto calculate_four =
+          [reference, ndim](Idx anchor, const Kernel::Targets &targets) {
+            return Kernel::run<rnndescent::DenseBatchMetric::squared_euclidean>(
+                reference, ndim, anchor, targets);
+          };
+      return tdoann::init_rp_tree(distance, leaves, width, nnbrs, include_self,
+                                  n_threads, knn_progress, executor,
+                                  calculate_four);
+    }
+    return tdoann::init_rp_tree(distance, leaves, width, nnbrs, include_self,
+                                n_threads, knn_progress, executor);
+  }(leaf_array, max_leaf_size);
   auto nn_list =
       heap_to_r(neighbor_heap, n_threads, knn_progress, executor, unzero);
   if (ret_forest) {
@@ -436,11 +451,12 @@ List rnn_sparse_rp_tree_knn_explicit(
 
   RParallelExecutor executor;
   std::vector<tdoann::SparseRPTree<In, Idx>> rp_forest;
+  const bool indexed = metric == "cosine" && ret_forest && n_threads > 1;
   auto build_forest = [&](auto tree) {
     using Tree = decltype(tree);
     return build_sparse_rp_forest<In, Idx, Tree>(
         data_vec, ind_vec, ptr_vec, ndim, metric, n_trees, leaf_size,
-        max_tree_depth, n_threads, verbose, executor);
+        max_tree_depth, n_threads, verbose, executor, indexed);
   };
   auto [leaf_array, max_leaf_size] = prepare_initialization_leaves(
       rp_forest, build_forest, ret_forest, leaf_size, verbose);
@@ -571,7 +587,7 @@ List rnn_rp_forest_build(const NumericMatrix &data, const std::string &metric,
 List rnn_hub_forest_build(const NumericMatrix &data,
                           const IntegerVector &degree,
                           const std::string &metric, uint32_t leaf_size,
-                          uint32_t max_tree_depth) {
+                          uint32_t max_tree_depth, std::size_t n_threads = 0) {
   using Idx = RNN_DEFAULT_IDX;
   using In = RNN_DEFAULT_IN;
   if (data.nrow() == 0 || data.ncol() == 0 || degree.size() != data.ncol() ||
@@ -586,7 +602,8 @@ List rnn_hub_forest_build(const NumericMatrix &data,
     const auto degrees = r_to_vec<int>(degree);
     rnndescent::HubTreeBuilder<In, Idx> builder(values, degrees, data.nrow(),
                                                 leaf_size, max_tree_depth);
-    forest.push_back(builder.make_tree());
+    forest.push_back(
+        builder.make_tree(n_threads, [] { Rcpp::checkUserInterrupt(); }));
   }
   Rcpp::checkUserInterrupt();
   return search_forest_to_r(forest, metric);

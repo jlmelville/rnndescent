@@ -58,6 +58,20 @@ auto fill_random(NbrHeap &current_graph,
   }
 }
 
+template <typename Idx, typename MakeRng, typename FillRow>
+void fill_random_rows(Idx n_queries, std::size_t n_threads,
+                      ProgressBase &progress, const Executor &executor,
+                      const MakeRng &make_rng, const FillRow &fill_row) {
+  const auto worker = [&](std::size_t begin, std::size_t end) {
+    auto rng = make_rng(end);
+    for (auto query = begin; query < end; ++query) {
+      fill_row(*rng, static_cast<Idx>(query));
+    }
+  };
+  progress.set_n_iters(1);
+  dispatch_work(worker, n_queries, n_threads, progress, executor);
+}
+
 // fill any "missing" data with random neighbors
 template <typename NbrHeap>
 auto fill_random(
@@ -67,21 +81,14 @@ auto fill_random(
     ParallelRandomIntProvider<typename NbrHeap::Index> &rng_provider,
     std::size_t n_threads, ProgressBase &progress, const Executor &executor) {
   using Idx = typename NbrHeap::Index;
-
-  Idx n_ref_points = distance.get_nx();
+  const Idx n_ref_points = distance.get_nx();
   rng_provider.initialize();
-  auto worker = [&](std::size_t begin, std::size_t end) {
-    auto rng_ptr = rng_provider.get_parallel_instance(end);
-    for (auto query = begin; query < end; ++query) {
-      fill_random(current_graph, distance, *rng_ptr, static_cast<Idx>(query),
-                  n_ref_points);
-    }
-  };
-
-  progress.set_n_iters(1);
-  ExecutionParams exec_params{};
-  dispatch_work(worker, current_graph.n_points, n_threads, exec_params,
-                progress, executor);
+  fill_random_rows(
+      current_graph.n_points, n_threads, progress, executor,
+      [&](std::size_t end) { return rng_provider.get_parallel_instance(end); },
+      [&](auto &rng, Idx query) {
+        fill_random(current_graph, distance, rng, query, n_ref_points);
+      });
 }
 
 template <typename Out, typename Idx>

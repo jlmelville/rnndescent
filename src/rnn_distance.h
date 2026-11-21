@@ -288,6 +288,14 @@ struct FactoryTraits<tdoann::SparseVectorDistance<In, Out, Idx>> {
   using index_type = Idx;
 };
 
+template <typename In, typename Out, typename Idx>
+struct FactoryTraits<tdoann::SparseSelfDistanceCalculator<In, Out, Idx>> {
+  using type = tdoann::SparseSelfDistanceCalculator<In, Out, Idx>;
+  using input_type = In;
+  using output_type = Out;
+  using index_type = Idx;
+};
+
 // Forest projections still read the original coordinates via get_x/get_y.
 template <typename In, typename Out, typename Idx>
 class SpearmanQueryDistance final

@@ -41,7 +41,7 @@
 namespace tdoann {
 
 template <typename Out, typename Idx, typename CalculateFour>
-void nn_query(const SparseNNGraph<Out, Idx> &search_graph,
+void nn_query(const SparseAdjacency<Idx> &search_graph,
               NNHeap<Out, Idx> &nn_heap, const BaseDistance<Out, Idx> &distance,
               double epsilon, std::size_t max_distance_calculations,
               std::vector<std::size_t> &distance_counts, std::size_t n_threads,
@@ -59,7 +59,7 @@ void nn_query(const SparseNNGraph<Out, Idx> &search_graph,
 }
 
 template <typename Out, typename Idx>
-void nn_query(const SparseNNGraph<Out, Idx> &search_graph,
+void nn_query(const SparseAdjacency<Idx> &search_graph,
               NNHeap<Out, Idx> &nn_heap, const BaseDistance<Out, Idx> &distance,
               double epsilon, std::size_t max_distance_calculations,
               std::vector<std::size_t> &distance_counts, std::size_t n_threads,
@@ -78,8 +78,8 @@ auto pop(std::priority_queue<T, Container, Compare> &queue) -> T {
 template <typename Out, typename Idx, typename CalculateFour>
 void non_search_query(NNHeap<Out, Idx> &current_graph,
                       const BaseDistance<Out, Idx> &distance,
-                      const SparseNNGraph<Out, Idx> &search_graph,
-                      double epsilon, std::size_t max_distance_calculations,
+                      const SparseAdjacency<Idx> &search_graph, double epsilon,
+                      std::size_t max_distance_calculations,
                       std::vector<std::size_t> &distance_counts,
                       std::size_t begin, std::size_t end,
                       const CalculateFour &calculate_four) {
@@ -119,7 +119,10 @@ void non_search_query(NNHeap<Out, Idx> &current_graph,
         if (static_cast<double>(dist) >= distance_bound) {
           return;
         }
-        current_graph.checked_push(query_idx, dist, candidate_idx);
+        // The visited set already excludes every ID in the result heap.
+        if (current_graph.accepts(query_idx, dist)) {
+          current_graph.unchecked_push(query_idx, dist, candidate_idx);
+        }
         seed_set.emplace(dist, candidate_idx);
         distance_bound =
             distance_scale *
@@ -165,8 +168,8 @@ void non_search_query(NNHeap<Out, Idx> &current_graph,
 template <typename Out, typename Idx>
 void non_search_query(NNHeap<Out, Idx> &current_graph,
                       const BaseDistance<Out, Idx> &distance,
-                      const SparseNNGraph<Out, Idx> &search_graph,
-                      double epsilon, std::size_t max_distance_calculations,
+                      const SparseAdjacency<Idx> &search_graph, double epsilon,
+                      std::size_t max_distance_calculations,
                       std::vector<std::size_t> &distance_counts,
                       std::size_t begin, std::size_t end) {
   non_search_query(current_graph, distance, search_graph, epsilon,

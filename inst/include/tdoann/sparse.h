@@ -525,7 +525,7 @@ Out sparse_correlation(
   return 1 - (dot_product / (norm1 * norm2));
 }
 
-template <typename Out, typename DataIt>
+template <typename Out, typename DataIt, bool BranchlessMerge = false>
 Out sparse_cosine(typename std::vector<std::size_t>::const_iterator ind1_start,
                   std::size_t ind1_size, DataIt data1_start,
                   typename std::vector<std::size_t>::const_iterator ind2_start,
@@ -543,22 +543,38 @@ Out sparse_cosine(typename std::vector<std::size_t>::const_iterator ind1_start,
     const auto j1 = *(ind1_start + i1);
     const auto j2 = *(ind2_start + i2);
 
-    if (j1 == j2) {
+    if constexpr (BranchlessMerge) {
+      const bool take1 = j1 <= j2;
+      const bool take2 = j2 <= j1;
       const auto val1 = static_cast<Out>(*(data1_start + i1));
       const auto val2 = static_cast<Out>(*(data2_start + i2));
-      dot_product += val1 * val2;
-      norm1 += val1 * val1;
-      norm2 += val2 * val2;
-      ++i1;
-      ++i2;
+      const auto left = take1 ? val1 : Out{0};
+      const auto right = take2 ? val2 : Out{0};
+      norm1 += left * left;
+      norm2 += right * right;
+      // Select the dot update only for shared coordinates.
+      const auto joined_dot = dot_product + val1 * val2;
+      dot_product = j1 == j2 ? joined_dot : dot_product;
+      i1 += take1;
+      i2 += take2;
     } else {
-      const auto side = static_cast<std::size_t>(j1 > j2);
-      const DataIt values[2] = {data1_start + i1, data2_start + i2};
-      Out *const norms[2] = {&norm1, &norm2};
-      const auto val = static_cast<Out>(*values[side]);
-      *norms[side] += val * val;
-      i1 += 1 - side;
-      i2 += side;
+      if (j1 == j2) {
+        const auto val1 = static_cast<Out>(*(data1_start + i1));
+        const auto val2 = static_cast<Out>(*(data2_start + i2));
+        dot_product += val1 * val2;
+        norm1 += val1 * val1;
+        norm2 += val2 * val2;
+        ++i1;
+        ++i2;
+      } else {
+        const auto side = static_cast<std::size_t>(j1 > j2);
+        const DataIt values[2] = {data1_start + i1, data2_start + i2};
+        Out *const norms[2] = {&norm1, &norm2};
+        const auto val = static_cast<Out>(*values[side]);
+        *norms[side] += val * val;
+        i1 += 1 - side;
+        i2 += side;
+      }
     }
   }
 

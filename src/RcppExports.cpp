@@ -672,8 +672,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // rnn_hub_forest_build
-List rnn_hub_forest_build(const NumericMatrix& data, const IntegerVector& degree, const std::string& metric, uint32_t leaf_size, uint32_t max_tree_depth);
-RcppExport SEXP _rnndescent_rnn_hub_forest_build(SEXP dataSEXP, SEXP degreeSEXP, SEXP metricSEXP, SEXP leaf_sizeSEXP, SEXP max_tree_depthSEXP) {
+List rnn_hub_forest_build(const NumericMatrix& data, const IntegerVector& degree, const std::string& metric, uint32_t leaf_size, uint32_t max_tree_depth, std::size_t n_threads);
+RcppExport SEXP _rnndescent_rnn_hub_forest_build(SEXP dataSEXP, SEXP degreeSEXP, SEXP metricSEXP, SEXP leaf_sizeSEXP, SEXP max_tree_depthSEXP, SEXP n_threadsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -682,7 +682,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
     Rcpp::traits::input_parameter< uint32_t >::type leaf_size(leaf_sizeSEXP);
     Rcpp::traits::input_parameter< uint32_t >::type max_tree_depth(max_tree_depthSEXP);
-    rcpp_result_gen = Rcpp::wrap(rnn_hub_forest_build(data, degree, metric, leaf_size, max_tree_depth));
+    Rcpp::traits::input_parameter< std::size_t >::type n_threads(n_threadsSEXP);
+    rcpp_result_gen = Rcpp::wrap(rnn_hub_forest_build(data, degree, metric, leaf_size, max_tree_depth, n_threads));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -1022,7 +1023,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_rnndescent_rnn_rp_tree_knn_implicit", (DL_FUNC) &_rnndescent_rnn_rp_tree_knn_implicit, 11},
     {"_rnndescent_rnn_logical_rp_tree_knn_implicit", (DL_FUNC) &_rnndescent_rnn_logical_rp_tree_knn_implicit, 11},
     {"_rnndescent_rnn_rp_forest_build", (DL_FUNC) &_rnndescent_rnn_rp_forest_build, 7},
-    {"_rnndescent_rnn_hub_forest_build", (DL_FUNC) &_rnndescent_rnn_hub_forest_build, 5},
+    {"_rnndescent_rnn_hub_forest_build", (DL_FUNC) &_rnndescent_rnn_hub_forest_build, 6},
     {"_rnndescent_rnn_sparse_rp_forest_build", (DL_FUNC) &_rnndescent_rnn_sparse_rp_forest_build, 10},
     {"_rnndescent_rnn_rp_forest_implicit_build", (DL_FUNC) &_rnndescent_rnn_rp_forest_implicit_build, 7},
     {"_rnndescent_rnn_logical_rp_forest_implicit_build", (DL_FUNC) &_rnndescent_rnn_logical_rp_forest_implicit_build, 7},

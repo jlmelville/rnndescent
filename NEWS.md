@@ -39,7 +39,15 @@
   and batch candidate distances for several dense metrics. Pack logical
   matrices directly for supported binary metrics during builds and queries.
 * Balance reverse diversification work across threads when preparing sparse search graphs.
+* Batch squared-Euclidean distances during threaded tree-based graph initialization
+  and diversification for dense data.
 * Cache norms during nearest neighbor descent for dense ordinary cosine.
+* Speed up sparse ordinary cosine distances during descent and prepared query traversal.
+* Reduce forest-seeding dispatch overhead and skip unused shuffle steps
+  when filling seeds for prepared dense cosine queries.
+* Speed up threaded sparse cosine tree initialization during search-index builds.
+* Build large dense Euclidean hub trees in parallel during `rnnd_build()` and
+  check for interrupts while workers run.
 
 ## Validation and reliability
 
