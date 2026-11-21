@@ -84,7 +84,9 @@
 </ul></div>
 <div class="section level3">
 <h3 id="validation-and-reliability-development-version">Validation and reliability<a class="anchor" aria-label="anchor" href="#validation-and-reliability-development-version"></a></h3>
-<ul><li>Reject non-finite numeric features, missing logical features, and negative features used by Hellinger, Jensen–Shannon, or symmetric KL. Reject fractional or out-of-range neighbor IDs while retaining support for missing entries.</li>
+<ul><li>
+<code><a href="../reference/prepare_search_graph.html">prepare_search_graph()</a></code> accepts edgeless sparse graphs with the default alternative calculations for Jaccard, Hellinger, and dot distances.</li>
+<li>Reject non-finite numeric features, missing logical features, and negative features used by Hellinger, Jensen–Shannon, or symmetric KL. Reject fractional or out-of-range neighbor IDs while retaining support for missing entries.</li>
 <li>Give clearer errors for malformed graphs and forests, incompatible query data, empty inputs, unsupported metrics, and invalid search settings.</li>
 <li>Queries with zero observations return empty neighbor matrices. Detected user interrupts abort the operation.</li>
 </ul></div>

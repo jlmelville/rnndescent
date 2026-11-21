@@ -63,6 +63,9 @@
 
 ### Validation and reliability
 
+- [`prepare_search_graph()`](https://jlmelville.github.io/rnndescent/dev/reference/prepare_search_graph.md)
+  accepts edgeless sparse graphs with the default alternative
+  calculations for Jaccard, Hellinger, and dot distances.
 - Reject non-finite numeric features, missing logical features, and
   negative features used by Hellinger, Jensen–Shannon, or symmetric KL.
   Reject fractional or out-of-range neighbor IDs while retaining support
