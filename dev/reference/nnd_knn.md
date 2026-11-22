@@ -319,11 +319,11 @@ iris_nn <- nnd_knn(iris, k = 4, metric = "manhattan", n_threads = 1)
 
 # Use verbose flag to see information about progress
 iris_nn <- nnd_knn(iris, k = 4, metric = "euclidean", verbose = TRUE)
-#> 22:29:00 Using alt metric 'sqeuclidean' for 'euclidean'
-#> 22:29:00 Initializing neighbors using 'rand' method
-#> 22:29:00 Generating random k-nearest neighbor graph with k = 4
-#> 22:29:00 Running nearest neighbor descent for 7 iterations
-#> 22:29:00 Finished
+#> 01:00:24 Using alt metric 'sqeuclidean' for 'euclidean'
+#> 01:00:24 Initializing neighbors using 'rand' method
+#> 01:00:24 Generating random k-nearest neighbor graph with k = 4
+#> 01:00:24 Running nearest neighbor descent for 7 iterations
+#> 01:00:24 Finished
 
 # Nearest neighbor descent uses random initialization, but you can pass any
 # approximation using the init argument (as long as the metrics used to
@@ -333,11 +333,11 @@ iris_nn <- random_knn(iris, k = 4, metric = "euclidean")
 iris_nn <- nnd_knn(
   iris, init = iris_nn, metric = "euclidean", verbose = TRUE
 )
-#> 22:29:00 Using alt metric 'sqeuclidean' for 'euclidean'
-#> 22:29:00 Initializing from user-supplied graph
-#> 22:29:00 Applying metric correction to initial distances from 'euclidean' to 'sqeuclidean'
-#> 22:29:00 Running nearest neighbor descent for 7 iterations
-#> 22:29:00 Finished
+#> 01:00:24 Using alt metric 'sqeuclidean' for 'euclidean'
+#> 01:00:24 Initializing from user-supplied graph
+#> 01:00:24 Applying metric correction to initial distances from 'euclidean' to 'sqeuclidean'
+#> 01:00:24 Running nearest neighbor descent for 7 iterations
+#> 01:00:24 Finished
 
 # Number of iterations controls how much optimization is attempted. A smaller
 # value will run faster but give poorer results
