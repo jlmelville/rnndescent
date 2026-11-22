@@ -20,10 +20,8 @@ This release adds prepared indexes for repeated queries and fixes several distan
 
 0 errors | 0 warnings
 
-* Local Windows and WSL2 reported a NOTE for the development version number.
-  On WSL2 the only NOTE for 0.3.0 was for Ubuntu's compiler flag `-mno-omit-leaf-frame-pointer`.
-* Win-Builder reported one NOTE for six Wikipedia links (HTTP 429) and a broken vignette link.
-  The Wikipedia links resolved on recheck. The corrected vignette link works in the built package.
+Win-Builder reported one NOTE for six Wikipedia links (HTTP 429) and a broken vignette link.
+The Wikipedia links resolved on recheck. The corrected vignette link works in the built package.
 
 ## CRAN checks
 
