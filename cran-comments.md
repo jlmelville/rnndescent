@@ -1,29 +1,38 @@
-## New Minor Release
+## Minor release
 
 This release adds prepared indexes for repeated queries and fixes several distance calculations.
 
 ## Test environments
 
-* R-hub, Ubuntu and Fedora, R-devel (ASan, UBSan and Valgrind) and R 4.6.2 (LTO)
-* GitHub Actions, Ubuntu (R 4.5.3, 4.6.2 and R-devel), Windows (R 4.5.3 and 4.6.2)
-  and macOS (R 4.6.2)
-* Local macOS arm64 and Windows 11 (R 4.6.2), Ubuntu 26.04 on WSL2 (R 4.5.2)
-* win-builder (R-devel)
+* local Ubuntu 26.04 LTS (WSL2), R 4.5.2, GCC 15.2.0
+* Ubuntu 26.04 (on GitHub Actions), R 4.5.3, R 4.6.2 and R-devel, GCC 15.2.0
+* local Windows 11, R 4.6.2, GCC 14.2.0
+* Windows Server 2025 (on GitHub Actions), R 4.5.3 and R 4.6.2, GCC 14.3.0
+* Windows Server 2022 (on Win-Builder), R-devel r90926, GCC 14.3.0
+* local macOS arm64, R 4.6.2, Apple Clang 21.0.0
+* macOS Tahoe 26 arm64 (on GitHub Actions), R 4.6.2, Apple Clang 21.0.0
+* Ubuntu 22.04 (on R-hub), R-devel, Clang 22.1.8
+* Ubuntu 26.04 (on R-hub), R-devel, Clang 23.1.6 (ASan and UBSan)
+* Fedora 44 (on R-hub), R-devel, GCC 16.2.1 (standard, ASan and Valgrind)
+* Ubuntu 26.04 (on R-hub), R 4.6.2, GCC 15.2.0 (LTO)
 
-## CRAN Checks
+## R CMD check results
 
-All CRAN checks for the current release (0.2.0) are OK.
-The local macOS, Windows and WSL2 checks and win-builder all finished with 0 errors and 0 warnings.
+0 errors | 0 warnings
 
-Win-builder reported one NOTE for six Wikipedia links (HTTP 429) and a broken link in a vignette.
-The Wikipedia links resolved on recheck. The vignette link has been corrected.
-The corrected tarball passed incoming checks locally. Ubuntu's only NOTE was for a system
-compiler flag.
+* Local Windows and WSL2 reported a NOTE for the development version number.
+  On WSL2 the only NOTE for 0.3.0 was for Ubuntu's compiler flag `-mno-omit-leaf-frame-pointer`.
+* Win-Builder reported one NOTE for six Wikipedia links (HTTP 429) and a broken vignette link.
+  The Wikipedia links resolved on recheck. The corrected vignette link works in the built package.
 
-## Downstream dependencies
+## CRAN checks
 
-I checked all 3 direct CRAN reverse dependencies and 1 sampled indirect dependency,
-comparing R CMD check results against the CRAN and development versions.
+All CRAN checks for rnndescent 0.2.0 report OK.
 
-* I saw 0 new problems.
-* I failed to check 0 packages.
+## revdepcheck results
+
+We checked all 3 direct CRAN reverse dependencies and 1 sampled indirect dependency,
+comparing R CMD check results for CRAN and development versions of rnndescent.
+
+* We saw 0 new problems.
+* We failed to check 0 packages.
