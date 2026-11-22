@@ -20,8 +20,8 @@ This release adds prepared indexes for repeated queries and fixes several distan
 
 0 errors | 0 warnings
 
-Win-Builder reported one NOTE for six Wikipedia links (HTTP 429) and a broken vignette link.
-The Wikipedia links resolved on recheck. The corrected vignette link works in the built package.
+Win-Builder R-devel reported one NOTE for five Wikipedia links in the metrics vignette
+that returned HTTP 429. All five links resolved on recheck.
 
 ## CRAN checks
 
