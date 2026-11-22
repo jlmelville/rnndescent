@@ -6,75 +6,46 @@
 
 - Use
   [`rnnd_prepare()`](https://jlmelville.github.io/rnndescent/dev/reference/rnnd_prepare.md)
-  to reuse a compatible index across repeated queries in the same R
-  session. Save the original index and prepare it again after loading it
-  in a new session.
-- New utilities truncate and sort neighbor graphs, adjust
-  self-neighbors, convert graphs to sparse matrices, and compute
+  to speed up repeated queries on a compatible index. To reuse the index
+  in another R session, save the original index and prepare it after
+  loading.
+- New utilities sort and truncate neighbor graphs, move or remove
+  self-neighbors, convert graphs to sparse matrices, and calculate
   distances for supplied neighbor indices.
-- The README documents the supported C++ headers and their requirements
-  for downstream packages.
 
 ### Changes that can affect results
 
-- Correct cosine distances for negative similarities, improve numerical
-  stability for dense cosine and correlation, and fix sparse correlation
-  for overlapping features and pairs of all-zero vectors. Fix
-  `trueangular` distances and TS-SS distances for zero vectors. Rebuild
-  affected graphs or indexes.
-- Correct Jensen–Shannon and symmetric KL distances, including for
-  sparse inputs, and avoid losing near-identical Hellinger neighbors.
-  Sparse calculations now handle stored zeros correctly and use the
-  correct Canberra formula for signed data. Rebuild affected graphs or
-  indexes.
-- With the default tree initialization, dense Euclidean indexes with one
-  explicit search tree now use balanced splits informed by the neighbor
-  graph. Changes to multithreaded Euclidean forest initialization and to
-  filling partially missing graphs can change results with the same
-  seed. Batched distance calculations can reorder near ties.
-- Search graph pruning enforces degree limits when distances tie.
-  [`random_knn()`](https://jlmelville.github.io/rnndescent/dev/reference/random_knn.md)
-  preserves sampled neighbors when sorting, and
-  [`neighbor_overlap()`](https://jlmelville.github.io/rnndescent/dev/reference/neighbor_overlap.md)
-  ignores the missing-neighbor sentinel `0`.
+- Distance fixes cover cosine, correlation, `trueangular`, TS-SS,
+  Hellinger, Jensen–Shannon, symmetric KL, sparse Canberra on signed
+  data, and explicitly stored zeros in sparse input. Rebuild affected
+  graphs and indexes.
+- Results can change with the same seed for some dense Euclidean tree
+  builds and when filling missing neighbors. Batched distance
+  calculations can reorder near ties.
 
 ### Performance
 
-- Speed up forest initialization and parallel nearest neighbor descent,
-  and reduce memory used by forests built solely for initialization.
-- Reuse distance preparation across query stages, cache dense Spearman
-  ranks, and batch candidate distances for several dense metrics. Pack
-  logical matrices directly for supported binary metrics during builds
-  and queries.
-- Balance reverse diversification work across threads when preparing
-  sparse search graphs.
-- Batch squared-Euclidean distances during threaded tree-based graph
-  initialization and diversification for dense data.
-- Cache norms during nearest neighbor descent for dense ordinary cosine.
-- Speed up sparse ordinary cosine distances during descent and prepared
-  query traversal.
-- Reduce forest-seeding dispatch overhead and skip unused shuffle steps
-  when filling seeds for prepared dense cosine queries.
-- Speed up threaded sparse cosine tree initialization during
-  search-index builds.
-- Build large dense Euclidean hub trees in parallel during
-  [`rnnd_build()`](https://jlmelville.github.io/rnndescent/dev/reference/rnnd_build.md)
-  and check for interrupts while workers run.
+- Faster forest initialization, nearest neighbor descent, and search
+  graph preparation. Forests built solely for initialization use less
+  memory.
+- Faster queries for several dense metrics, including Spearman, and for
+  prepared sparse cosine indexes. Builds and queries also benefit from
+  direct packing of logical matrices for supported binary metrics.
 
-### Validation and reliability
+### Bug fixes and input validation
 
 - [`prepare_search_graph()`](https://jlmelville.github.io/rnndescent/dev/reference/prepare_search_graph.md)
-  accepts edgeless sparse graphs with the default alternative
-  calculations for Jaccard, Hellinger, and dot distances.
+  handles edgeless sparse graphs and respects degree limits when
+  distances tie.
+- [`random_knn()`](https://jlmelville.github.io/rnndescent/dev/reference/random_knn.md)
+  preserves sampled neighbors when sorting, and
+  [`neighbor_overlap()`](https://jlmelville.github.io/rnndescent/dev/reference/neighbor_overlap.md)
+  skips zeros that mark missing neighbors.
 - Reject non-finite numeric features, missing logical features, and
-  negative features used by Hellinger, Jensen–Shannon, or symmetric KL.
-  Reject fractional or out-of-range neighbor IDs while retaining support
-  for missing entries.
-- Give clearer errors for malformed graphs and forests, incompatible
-  query data, empty inputs, unsupported metrics, and invalid search
-  settings.
-- Queries with zero observations return empty neighbor matrices.
-  Detected user interrupts abort the operation.
+  invalid neighbor IDs. Hellinger, Jensen–Shannon, and symmetric KL
+  reject negative inputs.
+- Queries with zero observations return empty neighbor matrices. Long
+  operations abort when they detect a user interrupt.
 
 ## rnndescent 0.2.0
 
