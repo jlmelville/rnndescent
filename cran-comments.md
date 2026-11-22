@@ -1,88 +1,29 @@
-## Release summary
+## New Minor Release
 
-This release adds `rnnd_prepare()` for repeated queries and new nearest-neighbor
-graph utilities. It corrects several distance calculations, improves input
-validation, and improves index construction and query performance. Users should
-rebuild graphs or indexes affected by the distance corrections described in NEWS.
+This release adds prepared indexes for repeated queries and fixes several distance calculations.
 
-TODO before submission — set the final release version and reconcile these
-results with the submitted source tarball. R-hub checked development version
-0.2.0.9000 at b7b9c1c0. The local macOS check and GitHub Actions run at a259d5f8
-include the cosine comparison fix.
+## Test environments
 
-## Completed checks
+* R-hub, Ubuntu and Fedora, R-devel (ASan, UBSan and Valgrind) and R 4.6.2 (LTO)
+* GitHub Actions, Ubuntu (R 4.5.3, 4.6.2 and R-devel), Windows (R 4.5.3 and 4.6.2)
+  and macOS (R 4.6.2)
+* Local macOS arm64 and Windows 11 (R 4.6.2), Ubuntu 26.04 on WSL2 (R 4.5.2)
+* win-builder (R-devel)
 
-### R-hub
+## CRAN Checks
 
-All seven R-hub jobs completed successfully on 2026-11-17 UTC. Each returned
-`Status: OK` with 0 errors, 0 warnings, and 0 notes. Each job reported 6,075
-passing testthat assertions with no failures, warnings, or skips.
+All CRAN checks for the current release (0.2.0) are OK.
+The local macOS, Windows and WSL2 checks and win-builder all finished with 0 errors and 0 warnings.
 
-* Ubuntu 26.04.1, R-devel r90890, Clang 23.1.6, AddressSanitizer.
-* Ubuntu 26.04.1, R-devel r90890, Clang 23.1.6, UndefinedBehaviorSanitizer.
-* Fedora 44, R-devel r90899, GCC 16.2.1, AddressSanitizer.
-* Fedora 44, R-devel r90899, GCC 16.2.1, Valgrind. Valgrind reported
-  0 memory errors and 0 bytes definitely lost.
-* Ubuntu 26.04.1, R 4.6.2, GCC 15.2.0, link-time optimization.
-* Ubuntu 22.04.5, R-devel r90685, Clang 22.1.8.
-* Fedora 44, R-devel r90899, GCC 16.2.1.
+Win-builder reported one NOTE for six Wikipedia links (HTTP 429) and a broken link in a vignette.
+The Wikipedia links resolved on recheck. The vignette link has been corrected.
+The corrected tarball passed incoming checks locally. Ubuntu's only NOTE was for a system
+compiler flag.
 
-All jobs used `--no-manual`. The GCC ASan, GCC 16, Clang 22, and LTO jobs used
-`--as-cran`. The Clang sanitizer and Valgrind jobs used their platform-specific
-check settings.
+## Downstream dependencies
 
-[R-hub run](https://github.com/jlmelville/rnndescent/actions/runs/44028574259)
+I checked all 3 direct CRAN reverse dependencies and 1 sampled indirect dependency,
+comparing R CMD check results against the CRAN and development versions.
 
-### Local macOS
-
-* macOS arm64, Homebrew R 4.6.2, Apple Clang 21.0.0.
-  `R CMD check --as-cran --no-manual` returned `Status: OK` with 0 errors,
-  0 warnings, and 0 notes. All 6,077 testthat assertions passed with no
-  failures, warnings, or skips.
-
-### GitHub Actions
-
-All six `R CMD check --as-cran --no-manual` jobs at a259d5f8 reported 0 errors,
-0 warnings, and 0 notes. Each job reported 6,077 passing testthat assertions
-with no failures, warnings, or skips.
-
-* Ubuntu 26.04.1, R 4.5.3, R 4.6.2, and R-devel r90914.
-* macOS Tahoe 26.7.2, R 4.6.2, Apple Clang 21.0.0.
-* Windows x64, R 4.5.3 and R 4.6.2, GCC 14.3.0.
-
-The lint, test-coverage, and pkgdown workflows also passed.
-
-[R-CMD-check run](https://github.com/jlmelville/rnndescent/actions/runs/44242117208)
-
-### Local Intel laptop, 2026-11-21
-
-Both systems checked the same 0.2.0.9000 development tarball after the edgeless search graph fix
-and test suite cleanup. Its SHA-256 was
-`581611af392205d8369ae2603e0e524f071833aa27742410d629cda4d49c2b72`.
-All 2,503 testthat expectations passed with zero warnings or skips on both platforms.
-The standalone prepared-index unload and zero-feature regression tests also passed.
-
-* WSL2, Ubuntu 26.04.1 LTS, R 4.5.2, GCC 15.2.0. `R CMD check --as-cran` reported
-  0 errors, 0 warnings and 2 notes, for the development version and the distribution compiler flag
-  `-mno-omit-leaf-frame-pointer`. Both PDF and HTML manual checks passed.
-* Native Windows 11 x64 build 26200, R 4.6.2, Rtools45 with GCC 14.2.0.
-  `R CMD check --as-cran --no-manual` reported 0 errors, 0 warnings and 1 note for the
-  development version.
-
-## Remaining checks
-
-* TODO — final source tarball, `R CMD check --as-cran` on current R-devel,
-  including the PDF manual. Record the version, environment, and results.
-* TODO — win-builder R-devel. Record the R revision and results.
-* TODO — mac-builder R-devel. Record the environment and results.
-
-## Reverse dependencies
-
-On macOS arm64 with R 4.6.2, we compared CRAN rnndescent 0.2.0 with development
-0.2.0.9000 at b7b9c1c0. All four comparisons completed with no new problems.
-
-* All three direct CRAN reverse dependencies returned `OK` on both versions.
-  bbknnR 2.0.2 and blocking 1.0.3 import rnndescent. uwot 0.2.5 suggests it.
-* XYomics 0.1.5, sampled from indirect reverse dependencies through uwot with
-  seed 20261117, had the same Clang `char_traits` deprecation warning on both
-  versions.
+* I saw 0 new problems.
+* I failed to check 0 packages.
