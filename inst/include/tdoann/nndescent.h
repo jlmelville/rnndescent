@@ -53,9 +53,24 @@ public:
   // Local join update: instead of updating item i with the neighbors of the
   // candidates of i, explore pairs (p, q) of candidates and treat q as a
   // candidate for p, and vice versa.
-  auto execute(NNDHeap<Out, Idx> &current_graph,
-               const NNHeap<Out, Idx> &new_nbrs, decltype(new_nbrs) &old_nbrs,
-               NNDProgressBase &progress) -> unsigned long {
+  virtual auto execute(NNDHeap<Out, Idx> &current_graph,
+                       const NNHeap<Out, Idx> &new_nbrs,
+                       decltype(new_nbrs) &old_nbrs, NNDProgressBase &progress)
+      -> unsigned long {
+    return execute_anchors(
+        new_nbrs, old_nbrs, progress, [&](Idx p, auto visit) {
+          unsigned long updates = 0;
+          visit([&](Idx q) { updates += update(current_graph, p, q); });
+          return updates;
+        });
+  }
+
+protected:
+  template <typename Process>
+  static auto execute_anchors(const NNHeap<Out, Idx> &new_nbrs,
+                              const NNHeap<Out, Idx> &old_nbrs,
+                              NNDProgressBase &progress, Process process)
+      -> unsigned long {
     const auto n_points = new_nbrs.n_points;
     const auto max_new_candidates = new_nbrs.n_nbrs;
     const auto max_old_candidates = old_nbrs.n_nbrs;
@@ -68,22 +83,20 @@ public:
         if (new_j == npos) {
           continue;
         }
-        for (auto k = j; k < max_new_candidates; k++) {
-          auto new_k = new_nbrs.index(i, k);
-          if (new_k == npos) {
-            continue;
+        num_updates += process(new_j, [&](auto emit) {
+          for (auto k = j; k < max_new_candidates; k++) {
+            auto new_k = new_nbrs.index(i, k);
+            if (new_k != npos) {
+              emit(new_k);
+            }
           }
-          num_updates += this->update(current_graph, new_j, new_k);
-        }
-
-        // (new, old) pairs from 0 -> max_old_candidates
-        for (Idx k = 0; k < max_old_candidates; k++) {
-          auto old_k = old_nbrs.index(i, k);
-          if (old_k == npos) {
-            continue;
+          for (Idx k = 0; k < max_old_candidates; k++) {
+            auto old_k = old_nbrs.index(i, k);
+            if (old_k != npos) {
+              emit(old_k);
+            }
           }
-          num_updates += this->update(current_graph, new_j, old_k);
-        }
+        });
       }
       if (progress.check_interrupt()) {
         break;

@@ -94,8 +94,21 @@ forest_scoring_metric <- function(forest) {
   }
 }
 
-get_actual_metric <- function(use_alt_metric, metric, data, verbose) {
+is_packed_jaccard <- function(metric, data) {
+  is.logical(data) && is.matrix(data) && metric == "jaccard"
+}
+
+get_actual_metric <- function(
+  use_alt_metric,
+  metric,
+  data,
+  verbose,
+  for_build = FALSE
+) {
   if (use_alt_metric) {
+    if (for_build && is_packed_jaccard(metric, data)) {
+      return(metric)
+    }
     actual_metric <- find_alt_metric(metric, is_sparse(data))
     if (actual_metric != metric) {
       tsmessage("Using alt metric '", actual_metric, "' for '", metric, "'")

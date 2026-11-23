@@ -452,7 +452,8 @@ rpf_knn_impl <-
     margin = "auto",
     n_threads = 0,
     verbose = FALSE,
-    unzero = TRUE
+    unzero = TRUE,
+    descent_args = NULL
   ) {
     if (is.null(n_trees)) {
       # data is transposed at this point so n_obs is in the number of columns
@@ -482,7 +483,22 @@ rpf_knn_impl <-
       )
     )
 
-    if (margin == "implicit") {
+    if (!is.null(descent_args)) {
+      res <- do.call(
+        rnn_binary_tree_descent,
+        c(
+          list(
+            data = data,
+            k = k,
+            n_trees = n_trees,
+            leaf_size = leaf_size,
+            max_tree_depth = max_tree_depth,
+            ret_forest = ret_forest
+          ),
+          descent_args
+        )
+      )
+    } else if (margin == "implicit") {
       if (is_sparse(data)) {
         res <- rnn_sparse_rp_tree_knn_implicit(
           ind = data@i,
@@ -572,7 +588,13 @@ rpf_knn_impl <-
 
     if (ret_forest) {
       res$forest <-
-        set_forest_data(res$forest, use_alt_metric, metric, is_sparse(data))
+        set_forest_data(
+          res$forest,
+          use_alt_metric,
+          metric,
+          is_sparse(data),
+          build_data = data
+        )
     }
 
     # can't apply uncorrection here as we are not necessarily finishing the
@@ -580,7 +602,21 @@ rpf_knn_impl <-
     res
   }
 
-set_forest_data <- function(forest, use_alt_metric, metric, is_sparse) {
+set_forest_data <- function(
+  forest,
+  use_alt_metric,
+  metric,
+  is_sparse,
+  build_data = NULL
+) {
+  if (
+    is_packed_jaccard(metric, build_data) &&
+      use_alt_metric &&
+      identical(forest$actual_metric, "jaccard")
+  ) {
+    # Tree seeding and graph traversal share the query score.
+    forest$actual_metric <- find_alt_metric(metric, FALSE)
+  }
   forest$use_alt_metric <- use_alt_metric
   forest$original_metric <- metric
   forest$sparse <- is_sparse

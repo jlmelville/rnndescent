@@ -356,6 +356,32 @@ for (metric in logical_prepared_metrics) {
   )
 }
 
+test_that("Jaccard random fill completes short leaves before graph traversal", {
+  reference <- diag(17L) != 0
+  query <- reference[c(2L, 14L), , drop = FALSE]
+  for (alt in c(TRUE, FALSE)) {
+    set.seed(529L)
+    index <- rnnd_build(
+      reference,
+      k = 5L,
+      metric = "jaccard",
+      use_alt_metric = alt,
+      n_trees = 1L,
+      leaf_size = 3L
+    )
+    for (handle in list(index, rnnd_prepare(index))) {
+      set.seed(318L)
+      result <- rnnd_query(handle, query, k = 16L, max_search_fraction = 0)
+      for (i in seq_len(nrow(query))) {
+        ids <- result$idx[i, ]
+        expect_true(all(ids %in% seq_len(nrow(reference))))
+        expect_length(unique(ids), 16L)
+        expect_equal(result$dist[i, ], as.numeric(ids != c(2L, 14L)[i]))
+      }
+    }
+  }
+})
+
 test_that("prepared logical indexes own a snapshot and validate inputs", {
   set.seed(739L)
   data <- matrix(runif(40L * 65L) > 0.7, nrow = 40L)

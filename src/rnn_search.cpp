@@ -63,7 +63,7 @@ List nn_query_impl(const tdoann::BaseDistance<Out, Idx> &distance,
                    std::size_t n_threads, bool verbose,
                    const CalculateFour &calculate_four = nullptr,
                    const PrepareTraversal &prepare_traversal = nullptr,
-                   bool shuffle_prefix = false) {
+                   RandomFill fill = RandomFill::permutation) {
   auto nn_heap = r_to_query_heap<tdoann::NNHeap<Out, Idx>>(nn_idx, nn_dist);
 
   auto max_distance_calculations =
@@ -75,7 +75,7 @@ List nn_query_impl(const tdoann::BaseDistance<Out, Idx> &distance,
   }
   // replace missing data with randomly chosen neighbors so all points have
   // k initial guesses
-  fill_random(nn_heap, distance, n_threads, verbose, shuffle_prefix);
+  fill_random(nn_heap, distance, n_threads, verbose, fill);
   if constexpr (!std::is_same_v<PrepareTraversal, std::nullptr_t>) {
     prepare_traversal();
   }
@@ -133,11 +133,10 @@ List nn_query_impl(const tdoann::BaseDistance<Out, Idx> &distance,
                    double max_search_fraction, std::size_t n_threads,
                    bool verbose, const CalculateFour &calculate_four = nullptr,
                    const PrepareTraversal &prepare_traversal = nullptr,
-                   bool shuffle_prefix = false) {
+                   RandomFill fill = RandomFill::permutation) {
   return nn_query_impl(distance, r_to_sparse_graph<Out, Idx>(graph), nn_idx,
                        nn_dist, epsilon, max_search_fraction, n_threads,
-                       verbose, calculate_four, prepare_traversal,
-                       shuffle_prefix);
+                       verbose, calculate_four, prepare_traversal, fill);
 }
 
 template <rnndescent::DenseBatchMetric Metric, typename Graph>
@@ -340,7 +339,8 @@ List dense_query_impl(
     const Graph &graph, const IntegerMatrix &nn_idx,
     const NumericMatrix &nn_dist, const std::string &metric,
     std::size_t dimension, double epsilon, double max_search_fraction,
-    std::size_t n_threads, bool verbose, bool shuffle_prefix = false) {
+    std::size_t n_threads, bool verbose,
+    RandomFill fill = RandomFill::permutation) {
   if (metric == "sqeuclidean" && distance.get_nx() >= 4) {
     return dense_query_four_impl<
         rnndescent::DenseBatchMetric::squared_euclidean>(
@@ -353,11 +353,11 @@ List dense_query_impl(
                                          dimension, evaluate};
     return nn_query_impl(distance, graph, nn_idx, nn_dist, epsilon,
                          max_search_fraction, n_threads, verbose,
-                         calculate_four, nullptr, shuffle_prefix);
+                         calculate_four, nullptr, fill);
   }
   return nn_query_impl(distance, graph, nn_idx, nn_dist, epsilon,
                        max_search_fraction, n_threads, verbose, nullptr,
-                       nullptr, shuffle_prefix);
+                       nullptr, fill);
 }
 
 namespace {
@@ -402,7 +402,7 @@ auto prepared_query_seeds(const Forest &forest, const Distance &distance,
   RParallelExecutor executor;
   RPProgress progress(verbose);
   auto search = [&](const auto &trees) {
-    if constexpr (std::is_same_v<Distance, rnndescent::PreparedIndexQuery>) {
+    if constexpr (!sparse) {
       return tdoann::search_forest(trees, distance, k, rng_provider, true,
                                    n_threads, progress, executor,
                                    queries_per_worker);
@@ -438,13 +438,15 @@ List rnn_query_prepared(SEXP handle, const NumericMatrix &query, uint32_t k,
   const Rcpp::RNGScope scope;
   rnndescent::PreparedIndexQuery distance(index, query);
   const bool dense_cosine = index.metric == "cosine";
-  const auto queries_per_worker = dense_cosine ? 32U : 1U;
+  const auto queries_per_worker =
+      dense_cosine ? tdoann::grouped_queries_per_worker : 1U;
   const auto [indices, distances] =
       prepared_query_seeds(index.forest, distance, k, n_threads, verbose,
                            convert_seed_distances, queries_per_worker);
   return dense_query_impl(
       distance, index.graph, indices, distances, index.metric, index.ndim,
-      epsilon, max_search_fraction, n_threads, verbose, dense_cosine);
+      epsilon, max_search_fraction, n_threads, verbose,
+      dense_cosine ? RandomFill::shuffle_prefix : RandomFill::permutation);
 }
 
 // [[Rcpp::export(rng = false)]]
@@ -473,6 +475,18 @@ List rnn_query_prepared_sparse(SEXP handle, const IntegerVector &query_ind,
                        prepare_traversal);
 }
 
+namespace {
+using BinaryScore =
+    tdoann::BinaryDistanceFunc<RNN_DEFAULT_DIST, RNN_DEFAULT_IDX>;
+auto binary_query_fill(BinaryScore score) -> RandomFill {
+  return score == tdoann::bjaccard<RNN_DEFAULT_DIST, RNN_DEFAULT_IDX> ||
+                 score == tdoann::balternative_jaccard<RNN_DEFAULT_DIST,
+                                                       RNN_DEFAULT_IDX>
+             ? RandomFill::sample_k
+             : RandomFill::permutation;
+}
+} // namespace
+
 // [[Rcpp::export(rng = false)]]
 List rnn_query_prepared_logical(SEXP handle, const LogicalMatrix &query,
                                 uint32_t k, double epsilon,
@@ -486,9 +500,11 @@ List rnn_query_prepared_logical(SEXP handle, const LogicalMatrix &query,
   const Rcpp::RNGScope scope;
   rnndescent::PreparedLogicalQuery distance(index, query);
   const auto [indices, distances] = prepared_query_seeds(
-      index.forest, distance, k, n_threads, verbose, convert_seed_distances);
+      index.forest, distance, k, n_threads, verbose, convert_seed_distances,
+      tdoann::grouped_queries_per_worker);
   return nn_query_impl(distance, index.graph, indices, distances, epsilon,
-                       max_search_fraction, n_threads, verbose);
+                       max_search_fraction, n_threads, verbose, nullptr,
+                       nullptr, binary_query_fill(index.calculate));
 }
 
 // The nested native search calls manage RNG state themselves.
@@ -538,8 +554,12 @@ List rnn_logical_query(const LogicalMatrix &reference,
   if (!distance_ptr) {
     distance_ptr = create_query_distance(reference, query, metric);
   }
-  return nn_query_impl(*distance_ptr, reference_graph_list, nn_idx, nn_dist,
-                       epsilon, max_search_fraction, n_threads, verbose);
+  return nn_query_impl(
+      *distance_ptr, reference_graph_list, nn_idx, nn_dist, epsilon,
+      max_search_fraction, n_threads, verbose, nullptr, nullptr,
+      binary_query_fill(
+          find_packed_distance_func<RNN_DEFAULT_DIST, RNN_DEFAULT_IDX>(
+              metric)));
 }
 
 // [[Rcpp::export]]

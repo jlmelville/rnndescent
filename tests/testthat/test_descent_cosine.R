@@ -42,20 +42,26 @@ test_that("dense cosine descent preserves scores for zero and scaled rows", {
     idx = matrix(0L, ncol(data), 8L),
     dist = matrix(NA_real_, ncol(data), 8L)
   )
-  set.seed(710L)
-  dqrng::dqset.seed(710L)
-  graph <- rnnd_knn(
-    data,
-    k = 8L,
-    metric = "cosine",
-    init = init,
-    n_iters = 1L,
-    obs = "C"
-  )
-  expect_true(all(graph$idx > 0L))
-  expected <- knn_distances(data, graph$idx, metric = "cosine", obs = "C")
-  expect_equal(graph$dist, expected$dist, tolerance = 1e-6)
-  expect_true(all(graph$dist[1:2, ] %in% c(0, 1)))
+  for (threads in c(0L, 1L, 4L)) {
+    for (low_memory in c(TRUE, FALSE)) {
+      set.seed(710L)
+      dqrng::dqset.seed(710L)
+      graph <- rnnd_knn(
+        data,
+        k = 8L,
+        metric = "cosine",
+        init = init,
+        n_iters = 1L,
+        n_threads = threads,
+        low_memory = low_memory,
+        obs = "C"
+      )
+      expect_true(all(graph$idx > 0L))
+      expected <- knn_distances(data, graph$idx, metric = "cosine", obs = "C")
+      expect_equal(graph$dist, expected$dist, tolerance = 1e-6)
+      expect_true(all(graph$dist[1:2, ] %in% c(0, 1)))
+    }
+  }
 })
 
 test_that("sparse cosine descent reproduces directly scored distances", {

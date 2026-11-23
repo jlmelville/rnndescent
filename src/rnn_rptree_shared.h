@@ -32,7 +32,6 @@ void run_jobs(std::size_t n_jobs, std::size_t n_threads, Job job,
       },
       n_threads, 1);
   progress.check_interrupt();
-  progress.batch_finished();
 }
 
 template <typename In, typename Idx> struct Plane {
@@ -48,29 +47,32 @@ template <typename In> uint8_t margin_side(In margin) {
   return std::abs(margin) < epsilon ? tied_side : (margin > 0 ? 0 : 1);
 }
 
+template <typename Idx, typename Decision>
+void partition_projected_rows(const std::vector<Idx> &members,
+                              Decision decision, std::vector<Idx> &left,
+                              std::vector<Idx> &right,
+                              tdoann::RandomIntGenerator<Idx> &rng) {
+  // Resolve ties in member order to match the scalar split's RNG draws.
+  std::vector<uint8_t> sides;
+  sides.reserve(members.size());
+  std::size_t n_left = 0;
+  for (const auto p : members) {
+    const auto side = decision(p);
+    sides.push_back(side == tied_side ? rng.rand_int(2) : side);
+    n_left += sides.back() == 0;
+  }
+  tdoann::partition_indices(members, sides, n_left, members.size() - n_left,
+                            left, right, rng);
+}
+
 template <typename In, typename Idx>
-void project_four(const In *row, std::size_t ndim,
+void project_four(const In *row,
                   const std::array<const Plane<In, Idx> *, 4> &planes,
                   const std::array<uint8_t *, 4> &output) {
-  const auto *a = planes[0]->normal.data();
-  const auto *b = planes[1]->normal.data();
-  const auto *c = planes[2]->normal.data();
-  const auto *d = planes[3]->normal.data();
-  In ma = planes[0]->offset;
-  In mb = planes[1]->offset;
-  In mc = planes[2]->offset;
-  In md = planes[3]->offset;
-  for (std::size_t j = 0; j < ndim; ++j) {
-    const In value = row[j];
-    ma += a[j] * value;
-    mb += b[j] * value;
-    mc += c[j] * value;
-    md += d[j] * value;
+  for (std::size_t i = 0; i < planes.size(); ++i) {
+    *output[i] = margin_side(
+        tdoann::projection_margin(planes[i]->normal, row, planes[i]->offset));
   }
-  *output[0] = margin_side(ma);
-  *output[1] = margin_side(mb);
-  *output[2] = margin_side(mc);
-  *output[3] = margin_side(md);
 }
 
 template <typename In, typename Idx>
@@ -145,12 +147,12 @@ auto split_level(const std::vector<In> &data, std::size_t ndim,
                      output[lane] = &decisions[t][point];
                    }
                  }
-                 project_four(data.data() + point * ndim, ndim, selected,
-                              output);
+                 project_four(data.data() + point * ndim, selected, output);
                }
              }
            },
            progress, executor);
+  progress.batch_finished();
 
   std::vector<std::optional<Members>> children(frontier.size() * 2);
   run_jobs(
@@ -166,23 +168,13 @@ auto split_level(const std::vector<In> &data, std::size_t ndim,
           return;
         }
 
-        // Resolve ties in member order to match the scalar split's RNG draws.
-        std::vector<uint8_t> sides;
-        sides.reserve(members->size());
-        std::size_t n_left = 0;
-        for (const auto point : *members) {
-          const auto decision = decisions[i / width][point];
-          const auto side =
-              decision == tied_side ? plane.rng->rand_int(2) : decision;
-          sides.push_back(side);
-          n_left += side == 0;
-        }
-        tdoann::partition_indices(*members, sides, n_left,
-                                  members->size() - n_left,
-                                  children[2 * i].emplace(),
-                                  children[2 * i + 1].emplace(), *plane.rng);
+        partition_projected_rows(
+            *members, [&](Idx p) { return decisions[i / width][p]; },
+            children[2 * i].emplace(), children[2 * i + 1].emplace(),
+            *plane.rng);
       },
       progress, executor);
+  progress.batch_finished();
   return children;
 }
 
@@ -236,6 +228,7 @@ auto build(const std::vector<In> &data, std::size_t ndim, std::size_t n_trees,
         subtrees[i] = std::move(subtree);
       },
       progress, executor);
+  progress.batch_finished();
 
   std::vector<Tree> forest(n_trees);
   for (std::size_t i = 0; i < n_trees; ++i) {

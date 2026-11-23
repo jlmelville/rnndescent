@@ -28,6 +28,7 @@
 #define TDOANN_DISTANCE_H
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
@@ -35,6 +36,7 @@
 #include <iterator>
 #include <limits>
 #include <numeric>
+#include <type_traits>
 #include <vector>
 
 // NOLINTBEGIN(readability-identifier-length)
@@ -532,14 +534,38 @@ Out spearmanr(It xbegin, It xend, It ybegin) {
   return correlation<Out>(x_rank.begin(), x_rank.end(), y_rank.begin());
 }
 
+inline constexpr int feature_sum_width = 8;
+
+// Independent partial sums let ordinary C++ optimizers vectorize across
+// features. Scalar and batched callers use the same reduction order.
+template <typename Out, typename It, typename OtherIt, typename Product>
+Out sum_feature_products(It x, It end, OtherIt y, Out initial,
+                         Product product) {
+  using Category = typename std::iterator_traits<It>::iterator_category;
+  if constexpr (std::is_base_of_v<std::random_access_iterator_tag, Category>) {
+    constexpr auto width = feature_sum_width;
+    if (end - x >= width) {
+      std::array<Out, width> sums{};
+      do {
+        for (auto &sum : sums) {
+          sum += product(*x++, *y++);
+        }
+      } while (end - x >= width);
+      initial = std::accumulate(sums.begin(), sums.end(), initial);
+    }
+  }
+  for (; x != end; ++x, ++y) {
+    initial += product(*x, *y);
+  }
+  return initial;
+}
+
 template <typename Out, typename It>
 Out squared_euclidean(const It xbegin, const It xend, const It ybegin) {
-  Out sum = 0;
-  for (It xit = xbegin, yit = ybegin; xit != xend; ++xit, ++yit) {
-    const auto diff = *xit - *yit;
-    sum += diff * diff;
-  }
-  return sum;
+  return sum_feature_products(xbegin, xend, ybegin, Out{0}, [](auto x, auto y) {
+    const auto diff = x - y;
+    return diff * diff;
+  });
 }
 
 template <typename Out, typename It>

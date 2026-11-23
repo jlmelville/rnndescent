@@ -63,6 +63,8 @@ x2m <- function(X, obs = "R", name = "data") {
   }
   finite <- if (is_sparse(m)) {
     all(is.finite(m@x))
+  } else if (is.double(m) && is.matrix(m) && !is.object(m)) {
+    rnn_all_finite(m)
   } else {
     !is.numeric(m) ||
       length(m) == 0L ||

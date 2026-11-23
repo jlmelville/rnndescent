@@ -1,5 +1,16 @@
 library(rnndescent)
 
+test_that("dense Euclidean leaf distances include trailing features", {
+  set.seed(951)
+  for (width in c(7L, 8L, 9L, 19L)) {
+    x <- matrix(rnorm(11L * width), ncol = width)
+    graph <- rpf_knn(x, k = 11L, n_trees = 1L, leaf_size = 11L, n_threads = 2L)
+    expected <- unname(t(apply(as.matrix(dist(x)), 1L, sort)))
+    expect_equal(graph$dist, expected, tolerance = 1e-6)
+    expect_equal(knn_distances(x, graph$idx)$dist, expected, tolerance = 1e-6)
+  }
+})
+
 test_that("Bray-Curtis", {
   dbf <- brute_force_knn(ui10z, k = 4, metric = "braycurtis")
   sbd <- brute_force_knn(ui10sp, k = 4, metric = "braycurtis")
@@ -375,7 +386,10 @@ test_that("Jaccard", {
   )
 
   bfbin <- brute_force_knn(lbitdata, k = 4, metric = "jaccard")
-  expect_equal(bfbin, jbf)
+  expect_identical(
+    bfbin,
+    brute_force_knn(lbitdata, k = 4, metric = "jaccard", use_alt_metric = FALSE)
+  )
 
   # check dense uncorrection
   set.seed(1337)

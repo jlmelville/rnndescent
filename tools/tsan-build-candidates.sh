@@ -48,7 +48,7 @@ test_executable="$scratch_dir/build-candidates-tsan"
 g++ \
   -std=gnu++17 \
   -pthread \
-  -Iinst/include \
+  -Iinst/include -Isrc \
   -O1 \
   -g \
   -fsanitize=thread \

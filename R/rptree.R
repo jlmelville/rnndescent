@@ -19,12 +19,12 @@
 #'   specified.
 #' @template metric
 #' @templateVar explicit_margin TRUE
-#' @param use_alt_metric If `TRUE`, use faster metrics that maintain the
-#'   ordering of distances internally (e.g. squared Euclidean distances if using
-#'   `metric = "euclidean"`), then apply a correction at the end. Probably
-#'   the only reason to set this to `FALSE` is if you suspect that some
-#'   sort of numeric issue is occurring with your data in the alternative code
-#'   path.
+#' @param use_alt_metric If `TRUE`, use alternative scores such as squared
+#'   Euclidean distance internally and return distances in the requested metric.
+#'   With `metric = "jaccard"` and a dense logical matrix, construction uses
+#'   ordinary packed Jaccard.
+#'   Queries using the resulting Jaccard forest use log scoring by default. Set
+#'   `use_alt_metric = FALSE` to use ordinary Jaccard for queries.
 #' @param n_trees The number of trees to use in the RP forest. A larger number
 #'   will give more accurate results at the cost of a longer computation time.
 #'   The default of `NULL` means that the number is chosen based on the number
@@ -129,7 +129,13 @@ rpf_knn <- function(
   data <- x2m(data, obs)
   check_k(k, n_obs(data))
 
-  actual_metric <- get_actual_metric(use_alt_metric, metric, data, verbose)
+  actual_metric <- get_actual_metric(
+    use_alt_metric,
+    metric,
+    data,
+    verbose,
+    for_build = TRUE
+  )
 
   if (obs == "R") {
     data <- Matrix::t(data)
@@ -152,7 +158,7 @@ rpf_knn <- function(
     unzero = TRUE
   )
 
-  if (use_alt_metric) {
+  if (metric != actual_metric) {
     res$dist <-
       apply_alt_metric_correction(metric, res$dist, is_sparse(data))
   }
@@ -178,12 +184,12 @@ rpf_knn <- function(
 #'   are not allowed.
 #' @template metric
 #' @templateVar explicit_margin TRUE
-#' @param use_alt_metric If `TRUE`, use faster metrics that maintain the
-#'   ordering of distances internally (e.g. squared Euclidean distances if using
-#'   `metric = "euclidean"`). Probably the only reason to set this to `FALSE` is
-#'   if you suspect that some sort of numeric issue is occurring with your data
-#'   in the alternative code path. Only applies if the implicit `margin` method
-#'   is used.
+#' @param use_alt_metric If `TRUE`, use alternative scores such as squared
+#'   Euclidean distance internally and return distances in the requested metric.
+#'   With `metric = "jaccard"` and a dense logical matrix, construction uses
+#'   ordinary packed Jaccard.
+#'   Queries using the resulting Jaccard forest use log scoring by default. Set
+#'   `use_alt_metric = FALSE` to use ordinary Jaccard for queries. This option applies to implicit margins.
 #' @param n_trees The number of trees to use in the RP forest. A larger number
 #'   will give more accurate results at the cost of a longer computation time.
 #'   The default of `NULL` means that the number is chosen based on the number
@@ -279,7 +285,13 @@ rpf_build <- function(
 
   margin <- find_margin_method(margin, metric, data)
 
-  actual_metric <- get_actual_metric(use_alt_metric, metric, data, verbose)
+  actual_metric <- get_actual_metric(
+    use_alt_metric,
+    metric,
+    data,
+    verbose,
+    for_build = TRUE
+  )
 
   tsmessage(
     thread_msg(
@@ -366,7 +378,13 @@ rpf_build <- function(
     }
   }
   forest <-
-    set_forest_data(forest, use_alt_metric, metric, is_sparse(data))
+    set_forest_data(
+      forest,
+      use_alt_metric,
+      metric,
+      is_sparse(data),
+      build_data = data
+    )
 
   tsmessage("Finished")
   forest

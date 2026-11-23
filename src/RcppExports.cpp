@@ -262,6 +262,31 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rnn_binary_tree_descent
+List rnn_binary_tree_descent(const LogicalMatrix& data, uint32_t k, const std::string& metric, uint32_t n_trees, uint32_t leaf_size, uint32_t max_tree_depth, bool ret_forest, std::size_t max_candidates, uint32_t n_iters, double delta, bool low_memory, bool weight_by_degree, std::size_t n_threads, bool verbose, const std::string& progress_type);
+RcppExport SEXP _rnndescent_rnn_binary_tree_descent(SEXP dataSEXP, SEXP kSEXP, SEXP metricSEXP, SEXP n_treesSEXP, SEXP leaf_sizeSEXP, SEXP max_tree_depthSEXP, SEXP ret_forestSEXP, SEXP max_candidatesSEXP, SEXP n_itersSEXP, SEXP deltaSEXP, SEXP low_memorySEXP, SEXP weight_by_degreeSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP, SEXP progress_typeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const LogicalMatrix& >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< uint32_t >::type k(kSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type metric(metricSEXP);
+    Rcpp::traits::input_parameter< uint32_t >::type n_trees(n_treesSEXP);
+    Rcpp::traits::input_parameter< uint32_t >::type leaf_size(leaf_sizeSEXP);
+    Rcpp::traits::input_parameter< uint32_t >::type max_tree_depth(max_tree_depthSEXP);
+    Rcpp::traits::input_parameter< bool >::type ret_forest(ret_forestSEXP);
+    Rcpp::traits::input_parameter< std::size_t >::type max_candidates(max_candidatesSEXP);
+    Rcpp::traits::input_parameter< uint32_t >::type n_iters(n_itersSEXP);
+    Rcpp::traits::input_parameter< double >::type delta(deltaSEXP);
+    Rcpp::traits::input_parameter< bool >::type low_memory(low_memorySEXP);
+    Rcpp::traits::input_parameter< bool >::type weight_by_degree(weight_by_degreeSEXP);
+    Rcpp::traits::input_parameter< std::size_t >::type n_threads(n_threadsSEXP);
+    Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type progress_type(progress_typeSEXP);
+    rcpp_result_gen = Rcpp::wrap(rnn_binary_tree_descent(data, k, metric, n_trees, leaf_size, max_tree_depth, ret_forest, max_candidates, n_iters, delta, low_memory, weight_by_degree, n_threads, verbose, progress_type));
+    return rcpp_result_gen;
+END_RCPP
+}
 // rnn_logical_descent
 List rnn_logical_descent(const LogicalMatrix& data, const IntegerMatrix& nn_idx, const NumericMatrix& nn_dist, const std::string& metric, std::size_t max_candidates, uint32_t n_iters, double delta, bool low_memory, bool weight_by_degree, std::size_t n_threads, bool verbose, const std::string& progress_type);
 RcppExport SEXP _rnndescent_rnn_logical_descent(SEXP dataSEXP, SEXP nn_idxSEXP, SEXP nn_distSEXP, SEXP metricSEXP, SEXP max_candidatesSEXP, SEXP n_itersSEXP, SEXP deltaSEXP, SEXP low_memorySEXP, SEXP weight_by_degreeSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP, SEXP progress_typeSEXP) {
@@ -983,6 +1008,16 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rnn_all_finite
+bool rnn_all_finite(const Rcpp::NumericMatrix& data);
+RcppExport SEXP _rnndescent_rnn_all_finite(SEXP dataSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type data(dataSEXP);
+    rcpp_result_gen = Rcpp::wrap(rnn_all_finite(data));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_rnndescent_rnn_brute_force", (DL_FUNC) &_rnndescent_rnn_brute_force, 5},
@@ -1000,6 +1035,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_rnndescent_rnn_sparse_idx_to_graph_query", (DL_FUNC) &_rnndescent_rnn_sparse_idx_to_graph_query, 11},
     {"_rnndescent_rnn_merge_nn_all", (DL_FUNC) &_rnndescent_rnn_merge_nn_all, 4},
     {"_rnndescent_rnn_descent", (DL_FUNC) &_rnndescent_rnn_descent, 12},
+    {"_rnndescent_rnn_binary_tree_descent", (DL_FUNC) &_rnndescent_rnn_binary_tree_descent, 15},
     {"_rnndescent_rnn_logical_descent", (DL_FUNC) &_rnndescent_rnn_logical_descent, 12},
     {"_rnndescent_rnn_sparse_descent", (DL_FUNC) &_rnndescent_rnn_sparse_descent, 15},
     {"_rnndescent_rnn_sparse_diversify", (DL_FUNC) &_rnndescent_rnn_sparse_diversify, 10},
@@ -1040,6 +1076,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_rnndescent_rnn_logical_query", (DL_FUNC) &_rnndescent_rnn_logical_query, 11},
     {"_rnndescent_rnn_sparse_query", (DL_FUNC) &_rnndescent_rnn_sparse_query, 16},
     {"_rnndescent_is_binary_metric", (DL_FUNC) &_rnndescent_is_binary_metric, 1},
+    {"_rnndescent_rnn_all_finite", (DL_FUNC) &_rnndescent_rnn_all_finite, 1},
     {NULL, NULL, 0}
 };
 

@@ -17,6 +17,7 @@
 //  You should have received a copy of the GNU General Public License
 //  along with rnndescent.  If not, see <http://www.gnu.org/licenses/>.
 
+#include <algorithm>
 #include <chrono>
 #include <cmath>
 #include <thread>
@@ -40,6 +41,12 @@ bool is_binary_metric(const std::string &metric) {
   const auto &metric_map =
       get_binary_metric_map<RNN_DEFAULT_DIST, RNN_DEFAULT_IDX>();
   return metric_map.find(metric) != metric_map.end();
+}
+
+// [[Rcpp::export(rng = false)]]
+bool rnn_all_finite(const Rcpp::NumericMatrix &data) {
+  return std::all_of(data.begin(), data.end(),
+                     [](double value) { return std::isfinite(value); });
 }
 
 std::string timestamp(bool print_date) {

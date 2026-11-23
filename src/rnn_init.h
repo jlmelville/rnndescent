@@ -34,13 +34,22 @@
 #include "rnn_progress.h"
 #include "rnn_util.h"
 
+// Build the directed initial heap and optionally serialize the implicit forest.
+tdoann::NNHeap<RNN_DEFAULT_DIST, RNN_DEFAULT_IDX> implicit_leaf_heap(
+    const tdoann::BaseDistance<RNN_DEFAULT_DIST, RNN_DEFAULT_IDX> &distance,
+    std::size_t ndim, uint32_t nnbrs, const std::string &metric,
+    uint32_t n_trees, uint32_t leaf_size, uint32_t max_tree_depth,
+    bool include_self, std::size_t n_threads, bool verbose, Rcpp::List *forest);
+
+enum class RandomFill { permutation, shuffle_prefix, sample_k };
+
 // fill up heap, replacing any "missing" data with randomly chosen neighbors
 template <typename NbrHeap>
 void fill_random(NbrHeap &current_graph,
                  const tdoann::BaseDistance<typename NbrHeap::DistanceOut,
                                             typename NbrHeap::Index> &distance,
                  std::size_t n_threads, bool verbose,
-                 bool shuffle_prefix = false) {
+                 RandomFill fill = RandomFill::permutation) {
 
   const auto end = current_graph.idx.end();
   if (std::find(current_graph.idx.begin(), end, NbrHeap::npos()) == end) {
@@ -57,7 +66,7 @@ void fill_random(NbrHeap &current_graph,
   rnndescent::ParallelIntRNGAdapter<Idx, rnndescent::DQIntSampler> rng_provider;
   RParallelExecutor executor;
   RPProgress fill_progress(false);
-  if (shuffle_prefix) {
+  if (fill == RandomFill::shuffle_prefix) {
     const Idx n_ref_points = distance.get_nx();
     rng_provider.initialize();
     tdoann::fill_random_rows(
@@ -74,11 +83,11 @@ void fill_random(NbrHeap &current_graph,
         });
   } else {
     tdoann::fill_random(current_graph, distance, rng_provider, n_threads,
-                        fill_progress, executor);
+                        fill_progress, executor, fill == RandomFill::sample_k);
   }
   if (verbose) {
     tsmessage() << "Finished random fill\n";
   }
 }
 
-#endif // RNN_UTIL_H
+#endif // RNN_INIT_H

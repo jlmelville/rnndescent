@@ -91,3 +91,73 @@ test_that("Hamming queries score numeric and packed logical neighbors", {
     check_query_nbrs(result, query, 1:6, 7:10, 4, bit10_hamd, tolerance = 1e-6)
   }
 })
+
+test_that("binary tree descent preserves the serial symmetric import and forest", {
+  set.seed(818)
+  seed <- rpf_knn(
+    lbitdata,
+    4,
+    metric = "hamming",
+    n_trees = 2,
+    leaf_size = 4,
+    include_self = FALSE,
+    ret_forest = TRUE
+  )
+  expected <- nnd_knn(
+    lbitdata,
+    k = 4,
+    metric = "hamming",
+    init = seed,
+    ret_forest = TRUE
+  )
+  set.seed(818)
+  actual <- nnd_knn(
+    lbitdata,
+    k = 4,
+    metric = "hamming",
+    init = "tree",
+    init_args = list(n_trees = 2, leaf_size = 4),
+    ret_forest = TRUE
+  )
+  expect_identical(actual, expected)
+
+  # Tree initialization must use the descent metric, including in a saved forest.
+  set.seed(818)
+  conflicting <- nnd_knn(
+    lbitdata,
+    k = 4,
+    metric = "hamming",
+    init = "tree",
+    init_args = list(
+      n_trees = 2,
+      leaf_size = 4,
+      metric = "euclidean",
+      use_alt_metric = FALSE
+    ),
+    ret_forest = TRUE
+  )
+  expect_identical(conflicting, expected)
+})
+
+test_that("default logical Jaccard builds hand the leaf heap to descent", {
+  native <- rnn_binary_tree_descent
+  scores <- character()
+  local_mocked_bindings(
+    rnn_binary_tree_descent = function(..., metric) {
+      scores <<- c(scores, metric)
+      native(..., metric = metric)
+    },
+    .package = "rnndescent"
+  )
+  rnnd_knn(lbitdata, k = 4, metric = "jaccard")
+  index <- rnnd_build(lbitdata, k = 4, metric = "jaccard")
+  plain <- rnnd_build(
+    lbitdata,
+    k = 4,
+    metric = "jaccard",
+    use_alt_metric = FALSE
+  )
+  expect_identical(scores, rep("jaccard", 3L))
+  expect_identical(index$search_forest$actual_metric, "alternative-jaccard")
+  expect_identical(plain$search_forest$actual_metric, "jaccard")
+})

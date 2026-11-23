@@ -163,12 +163,12 @@ a small improvement in accuracy. Because this incurs a small extra cost of
 counting the degree of each node, and because it tends to delay early
 convergence, by default this is \code{FALSE}.}
 
-\item{use_alt_metric}{If \code{TRUE}, use faster metrics that maintain the
-ordering of distances internally (e.g. squared Euclidean distances if using
-\code{metric = "euclidean"}), then apply a correction at the end. Probably
-the only reason to set this to \code{FALSE} is if you suspect that some
-sort of numeric issue is occurring with your data in the alternative code
-path.}
+\item{use_alt_metric}{If \code{TRUE}, use alternative scores such as squared
+Euclidean distance internally and return distances in the requested metric.
+With \code{metric = "jaccard"} and a dense logical matrix, construction uses
+ordinary packed Jaccard.
+Queries using the resulting Jaccard forest use log scoring by default. Set
+\code{use_alt_metric = FALSE} to use ordinary Jaccard for queries.}
 
 \item{n_threads}{Number of threads to use.}
 

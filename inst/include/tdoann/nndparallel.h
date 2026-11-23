@@ -55,7 +55,6 @@ public:
                         Idx idx_q, std::size_t key) = 0;
   virtual auto apply(NNDHeap<Out, Idx> &current_graph) -> unsigned long = 0;
 
-protected:
   template <typename Process>
   static void visit_candidates(const NNHeap<Out, Idx> &new_nbrs,
                                decltype(new_nbrs) &old_nbrs,
@@ -90,6 +89,7 @@ protected:
     }
   }
 
+protected:
   static void queue_update(const NNDHeap<Out, Idx> &graph,
                            std::vector<Update> &updates, Idx p, Idx q,
                            Out distance) {
@@ -326,21 +326,19 @@ void flag_new_candidates(NNDHeap<Out, Idx> &current_graph,
   dispatch_work(worker, current_graph.n_points, n_threads, executor);
 }
 
-template <typename Out, typename Idx, typename LocalJoin>
+template <typename Out, typename Idx, typename LocalJoin, typename Populate>
 void nnd_build_parallel(NNDHeap<Out, Idx> &current_graph, LocalJoin &local_join,
                         std::size_t max_candidates, uint32_t n_iters,
-                        double delta, bool weight_by_degree,
-                        NNDProgressBase &progress,
-                        ParallelRandomProvider &parallel_rand,
-                        std::size_t n_threads, const Executor &executor) {
+                        double delta, NNDProgressBase &progress,
+                        std::size_t n_threads, const Executor &executor,
+                        Populate populate) {
   const std::size_t n_points = current_graph.n_points;
 
   for (auto iter = 0U; iter < n_iters; iter++) {
     NNHeap<Out, Idx> new_nbrs(n_points, max_candidates);
     decltype(new_nbrs) old_nbrs(n_points, max_candidates);
 
-    build_candidates(current_graph, new_nbrs, old_nbrs, weight_by_degree,
-                     parallel_rand, n_threads, executor);
+    populate(new_nbrs, old_nbrs);
 
     flag_new_candidates(current_graph, new_nbrs, n_threads, executor);
 
@@ -351,6 +349,21 @@ void nnd_build_parallel(NNDHeap<Out, Idx> &current_graph, LocalJoin &local_join,
       break;
     }
   }
+}
+
+template <typename Out, typename Idx, typename LocalJoin>
+void nnd_build_parallel(NNDHeap<Out, Idx> &current_graph, LocalJoin &local_join,
+                        std::size_t max_candidates, uint32_t n_iters,
+                        double delta, bool weight_by_degree,
+                        NNDProgressBase &progress,
+                        ParallelRandomProvider &parallel_rand,
+                        std::size_t n_threads, const Executor &executor) {
+  auto populate = [&](auto &new_nbrs, auto &old_nbrs) {
+    build_candidates(current_graph, new_nbrs, old_nbrs, weight_by_degree,
+                     parallel_rand, n_threads, executor);
+  };
+  nnd_build_parallel(current_graph, local_join, max_candidates, n_iters, delta,
+                     progress, n_threads, executor, populate);
 }
 
 template <typename Out, typename Idx>

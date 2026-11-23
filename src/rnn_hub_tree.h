@@ -90,8 +90,8 @@ template <typename In, typename Idx> class HubTreeBuilder {
       if (i % interrupt_rows == 0) {
         check_cancel();
       }
-      result[i] = std::inner_product(plane.normal.begin(), plane.normal.end(),
-                                     point(order[begin + i]), plane.offset);
+      result[i] = tdoann::projection_margin(
+          plane.normal, point(order[begin + i]), plane.offset);
       if (!std::isfinite(result[i])) {
         return false;
       }

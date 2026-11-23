@@ -33,10 +33,13 @@
 
 #include "rnn_distance.h"
 #include "rnn_distance_batch.h"
+#include "rnn_distance_cosine.h"
 #include "rnn_heaptor.h"
 #include "rnn_hub_tree.h"
+#include "rnn_init.h"
 #include "rnn_parallel.h"
 #include "rnn_progress.h"
+#include "rnn_rptree_angular.h"
 #include "rnn_rptree_from_r.h"
 #include "rnn_rptree_shared.h"
 #include "rnn_util.h"
@@ -259,8 +262,22 @@ build_rp_forest(const std::vector<In> &data_vec, std::size_t ndim,
   }
   RPProgress forest_progress(verbose);
   if constexpr (std::is_same_v<Tree, tdoann::RPLeafTree<Idx>>) {
+    const auto n_points = data_vec.size() / ndim;
+    // Share scans only when each worker has more than a local subtree's work.
+    if (metric == "cosine" && n_threads > 1 && n_trees > 1 &&
+        max_tree_depth > 0 &&
+        n_points / n_threads >
+            rnndescent::shared_forest::angular_local_rows(ndim, leaf_size) &&
+        n_points <= rnndescent::shared_forest::no_plane / n_trees) {
+      if (verbose) {
+        tsmessage() << "Sharing dense angular projections across trees\n";
+      }
+      return rnndescent::shared_forest::build_angular(
+          data_vec, ndim, n_trees, leaf_size, max_tree_depth, rng_provider,
+          n_threads, forest_progress, executor);
+    }
     if (n_threads > 1 && (metric == "euclidean" || metric == "sqeuclidean") &&
-        max_tree_depth > 0 && data_vec.size() / ndim > leaf_size) {
+        max_tree_depth > 0 && n_points > leaf_size) {
       if (verbose) {
         tsmessage() << "Sharing dense Euclidean projections across trees\n";
       }
@@ -348,9 +365,18 @@ List rnn_rp_tree_knn_explicit(const NumericMatrix &data, uint32_t nnbrs,
 
   RPProgress knn_progress(verbose);
 
-  auto distance =
-      create_self_distance_calculator(std::move(data_vec), ndim, metric);
   auto neighbor_heap = [&](const auto &leaves, std::size_t width) {
+    if (metric == "cosine") {
+      const rnndescent::CosineSelfDistance<rnndescent::CosineBuildStage::leaf>
+          distance(std::move(data_vec), ndim);
+      const auto kernel = distance.batch_kernel();
+      return tdoann::init_rp_tree(distance, leaves, width, nnbrs, include_self,
+                                  n_threads, knn_progress, executor,
+                                  kernel.evaluate);
+    }
+
+    auto distance =
+        create_self_distance_calculator(std::move(data_vec), ndim, metric);
     if (!ret_forest && n_threads > 1 && metric == "sqeuclidean" &&
         distance.get_nx() > 0) {
       using Kernel = rnndescent::DenseDistanceFour<RNN_DEFAULT_DIST, Idx>;
@@ -427,15 +453,13 @@ List rnn_sparse_rp_tree_knn_explicit(
   return nn_list;
 }
 
-template <typename Out, typename Idx>
-List rp_tree_knn_implicit_impl(const tdoann::BaseDistance<Out, Idx> &distance,
-                               std::size_t nobs, std::size_t ndim,
-                               uint32_t nnbrs, const std::string &metric,
-                               uint32_t n_trees, uint32_t leaf_size,
-                               uint32_t max_tree_depth, bool include_self,
-                               bool unzero = true, bool ret_forest = false,
-                               std::size_t n_threads = 0,
-                               bool verbose = false) {
+tdoann::NNHeap<RNN_DEFAULT_DIST, RNN_DEFAULT_IDX> implicit_leaf_heap(
+    const tdoann::BaseDistance<RNN_DEFAULT_DIST, RNN_DEFAULT_IDX> &distance,
+    std::size_t ndim, uint32_t nnbrs, const std::string &metric,
+    uint32_t n_trees, uint32_t leaf_size, uint32_t max_tree_depth,
+    bool include_self, std::size_t n_threads, bool verbose, List *forest) {
+  using Out = RNN_DEFAULT_DIST;
+  using Idx = RNN_DEFAULT_IDX;
   RParallelExecutor executor;
   rnndescent::ParallelIntRNGAdapter<Idx, rnndescent::DQIntSampler> rng_provider;
   RPProgress forest_progress(verbose);
@@ -447,7 +471,7 @@ List rp_tree_knn_implicit_impl(const tdoann::BaseDistance<Out, Idx> &distance,
         n_threads, forest_progress, executor);
   };
   auto [leaf_array, max_leaf_size] = prepare_initialization_leaves(
-      rp_forest, build_forest, ret_forest, leaf_size, verbose);
+      rp_forest, build_forest, forest != nullptr, leaf_size, verbose);
 
   RPProgress knn_progress(verbose);
 
@@ -455,15 +479,31 @@ List rp_tree_knn_implicit_impl(const tdoann::BaseDistance<Out, Idx> &distance,
       tdoann::init_rp_tree(distance, leaf_array, max_leaf_size, nnbrs,
                            include_self, n_threads, knn_progress, executor);
 
-  auto nn_list =
-      heap_to_r(neighbor_heap, n_threads, knn_progress, executor, unzero);
-
-  if (ret_forest) {
-    auto search_forest = tdoann::convert_rp_forest(rp_forest, nobs, ndim);
-    List search_forest_r = search_forest_implicit_to_r(search_forest, metric);
-    nn_list["forest"] = search_forest_r;
+  if (forest) {
+    auto search_forest =
+        tdoann::convert_rp_forest(rp_forest, distance.get_nx(), ndim);
+    *forest = search_forest_implicit_to_r(search_forest, metric);
   }
-  return nn_list;
+  return neighbor_heap;
+}
+
+List rp_tree_knn_implicit_impl(
+    const tdoann::BaseDistance<RNN_DEFAULT_DIST, RNN_DEFAULT_IDX> &distance,
+    std::size_t ndim, uint32_t nnbrs, const std::string &metric,
+    uint32_t n_trees, uint32_t leaf_size, uint32_t max_tree_depth,
+    bool include_self, bool unzero = true, bool ret_forest = false,
+    std::size_t n_threads = 0, bool verbose = false) {
+  List forest;
+  auto neighbors = implicit_leaf_heap(
+      distance, ndim, nnbrs, metric, n_trees, leaf_size, max_tree_depth,
+      include_self, n_threads, verbose, ret_forest ? &forest : nullptr);
+  RParallelExecutor executor;
+  RPProgress progress(verbose);
+  auto result = heap_to_r(neighbors, n_threads, progress, executor, unzero);
+  if (ret_forest) {
+    result["forest"] = forest;
+  }
+  return result;
 }
 
 // [[Rcpp::export]]
@@ -473,11 +513,10 @@ List rnn_sparse_rp_tree_knn_implicit(
     const std::string &metric, uint32_t n_trees, uint32_t leaf_size,
     uint32_t max_tree_depth, bool include_self, bool unzero = true,
     bool ret_forest = false, std::size_t n_threads = 0, bool verbose = false) {
-  const std::size_t nobs = ptr.size() - 1;
   auto distance_ptr = create_sparse_self_distance(ind, ptr, data, ndim, metric);
-  return rp_tree_knn_implicit_impl(
-      *distance_ptr, nobs, ndim, nnbrs, metric, n_trees, leaf_size,
-      max_tree_depth, include_self, unzero, ret_forest, n_threads, verbose);
+  return rp_tree_knn_implicit_impl(*distance_ptr, ndim, nnbrs, metric, n_trees,
+                                   leaf_size, max_tree_depth, include_self,
+                                   unzero, ret_forest, n_threads, verbose);
 }
 
 // [[Rcpp::export]]
@@ -488,10 +527,9 @@ List rnn_rp_tree_knn_implicit(const NumericMatrix &data, uint32_t nnbrs,
                               bool ret_forest = false,
                               std::size_t n_threads = 0, bool verbose = false) {
   auto distance_ptr = create_self_distance(data, metric);
-  return rp_tree_knn_implicit_impl(*distance_ptr, data.ncol(), data.nrow(),
-                                   nnbrs, metric, n_trees, leaf_size,
-                                   max_tree_depth, include_self, unzero,
-                                   ret_forest, n_threads, verbose);
+  return rp_tree_knn_implicit_impl(
+      *distance_ptr, data.nrow(), nnbrs, metric, n_trees, leaf_size,
+      max_tree_depth, include_self, unzero, ret_forest, n_threads, verbose);
 }
 
 // [[Rcpp::export]]
@@ -501,10 +539,9 @@ List rnn_logical_rp_tree_knn_implicit(
     bool include_self, bool unzero = true, bool ret_forest = false,
     std::size_t n_threads = 0, bool verbose = false) {
   auto distance_ptr = create_self_distance(data, metric);
-  return rp_tree_knn_implicit_impl(*distance_ptr, data.ncol(), data.nrow(),
-                                   nnbrs, metric, n_trees, leaf_size,
-                                   max_tree_depth, include_self, unzero,
-                                   ret_forest, n_threads, verbose);
+  return rp_tree_knn_implicit_impl(
+      *distance_ptr, data.nrow(), nnbrs, metric, n_trees, leaf_size,
+      max_tree_depth, include_self, unzero, ret_forest, n_threads, verbose);
 }
 
 // [[Rcpp::export]]
@@ -649,15 +686,16 @@ List rnn_sparse_rp_forest_implicit_build(
 template <typename Out, typename Idx>
 List rnn_rp_forest_search_implicit(
     const tdoann::BaseDistance<Out, Idx> &distance, const List &search_forest,
-    uint32_t n_nbrs, bool cache, std::size_t n_threads, bool verbose) {
+    uint32_t n_nbrs, bool cache, std::size_t n_threads, bool verbose,
+    std::size_t queries_per_worker = 1) {
   auto search_forest_cpp = r_to_search_forest_implicit<Idx>(search_forest);
 
   rnndescent::ParallelIntRNGAdapter<Idx, rnndescent::DQIntSampler> rng_provider;
   RParallelExecutor executor;
   RPProgress progress(verbose);
-  auto nn_heap =
-      tdoann::search_forest(search_forest_cpp, distance, n_nbrs, rng_provider,
-                            cache, n_threads, progress, executor);
+  auto nn_heap = tdoann::search_forest(search_forest_cpp, distance, n_nbrs,
+                                       rng_provider, cache, n_threads, progress,
+                                       executor, queries_per_worker);
   return heap_to_r(nn_heap);
 }
 
@@ -710,8 +748,12 @@ List rp_forest_search(const Matrix &query, const Matrix &reference,
         return create_query_distance(reference, query, metric);
       }
     }();
+    const bool packed =
+        std::is_same_v<Matrix, LogicalMatrix> &&
+        find_packed_distance_func<RNN_DEFAULT_DIST, RNN_DEFAULT_IDX>(metric);
     auto result = rnn_rp_forest_search_implicit(
-        *distance_ptr, search_forest, n_nbrs, cache, n_threads, verbose);
+        *distance_ptr, search_forest, n_nbrs, cache, n_threads, verbose,
+        packed ? tdoann::grouped_queries_per_worker : 1U);
     if (prepared_query != R_NilValue) {
       prepared_query_slot(prepared_query) = std::move(distance_ptr);
     }

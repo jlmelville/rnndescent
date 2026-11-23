@@ -9,16 +9,69 @@
 #define RNN_NND_BATCH_H
 
 #include <algorithm>
-#include <array>
 #include <cstddef>
 #include <type_traits>
 #include <utility>
 
 #include "rnn_distance_batch.h"
 #include "rnn_nnd_route.h"
+#include "tdoann/nndescent.h"
 #include "tdoann/nndparallel.h"
 
 namespace rnndescent {
+
+template <typename Out, typename Idx, typename Visit, typename Skip,
+          typename Apply>
+void score_candidates(const DenseDistanceFour<Out, Idx> &kernel,
+                      const tdoann::BaseDistance<Out, Idx> &distance, Idx p,
+                      Visit visit, Skip skip, Apply apply) {
+  typename DenseDistanceFour<Out, Idx>::Targets targets;
+  std::size_t size = 0;
+  visit([&](Idx q) {
+    if (skip(q)) {
+      return;
+    }
+    targets[size++] = q;
+    if (size == targets.size()) {
+      const auto scores = kernel.evaluate(p, targets);
+      for (std::size_t j = 0; j < size; ++j) {
+        apply(targets[j], scores[j]);
+      }
+      size = 0;
+    }
+  });
+  for (std::size_t j = 0; j < size; ++j) {
+    apply(targets[j], distance.calculate(p, targets[j]));
+  }
+}
+
+template <typename Out, typename Idx>
+class DenseLowMemSerialLocalJoin
+    : public tdoann::LowMemSerialLocalJoin<Out, Idx> {
+  using Join = tdoann::LowMemSerialLocalJoin<Out, Idx>;
+  DenseDistanceFour<Out, Idx> kernel;
+
+public:
+  DenseLowMemSerialLocalJoin(DenseDistanceFour<Out, Idx> kernel,
+                             const tdoann::BaseDistance<Out, Idx> &distance)
+      : Join(distance), kernel(kernel) {}
+
+  auto execute(tdoann::NNDHeap<Out, Idx> &graph,
+               const tdoann::NNHeap<Out, Idx> &new_nbrs,
+               const tdoann::NNHeap<Out, Idx> &old_nbrs,
+               tdoann::NNDProgressBase &progress) -> unsigned long override {
+    return this->execute_anchors(
+        new_nbrs, old_nbrs, progress, [&](Idx p, auto visit) {
+          unsigned long updates = 0;
+          score_candidates(
+              kernel, this->distance, p, visit, [](Idx) { return false; },
+              [&](Idx q, Out score) {
+                updates += graph.checked_push_pair(p, score, q);
+              });
+          return updates;
+        });
+  }
+};
 
 template <typename Out, typename Idx, bool Cached>
 class DenseParallelLocalJoin
@@ -68,8 +121,6 @@ private:
     this->visit_candidates(
         new_nbrs, old_nbrs, new_nbrs.n_nbrs, begin, end,
         [&](std::size_t row, Idx p, auto visit) {
-          std::array<Idx, 4> targets;
-          std::size_t size = 0;
           auto queue = [&](Idx q, Out distance) {
             if constexpr (Cached) {
               auto [first, second] = std::minmax(p, q);
@@ -81,27 +132,14 @@ private:
             }
           };
 
-          visit([&](Idx q) {
+          auto skip = [&](Idx q) {
             if constexpr (Cached) {
               auto [first, second] = std::minmax(p, q);
-              if (this->cache.contains(first, second)) {
-                return;
-              }
+              return this->cache.contains(first, second);
             }
-            targets[size++] = q;
-            if (size == targets.size()) {
-              const auto distances = kernel.calculate(p, targets);
-              for (std::size_t j = 0; j < targets.size(); ++j) {
-                queue(targets[j], distances[j]);
-              }
-              size = 0;
-            }
-          });
-
-          for (std::size_t j = 0; j < size; ++j) {
-            const auto q = targets[j];
-            queue(q, this->distance.calculate(p, q));
-          }
+            return false;
+          };
+          score_candidates(kernel, this->distance, p, visit, skip, queue);
         });
   }
 };

@@ -32,6 +32,7 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
+#include <functional>
 #include <limits>
 #include <numeric>
 #include <tuple>
@@ -44,6 +45,7 @@
 #include "heap.h"
 #include "parallel.h"
 #include "random.h"
+#include "rptreesearch.h"
 
 namespace tdoann {
 
@@ -151,15 +153,20 @@ std::pair<Idx, Idx> select_random_points(const std::vector<Idx> &indices,
   return {left_index, right_index};
 }
 
+template <typename In, typename It>
+In projection_margin(const std::vector<In> &normal, It row, In offset) {
+  return sum_feature_products(normal.begin(), normal.end(), row, offset,
+                              std::multiplies<>{});
+}
+
 template <typename In, typename Idx>
 uint8_t select_side(typename std::vector<In>::const_iterator data_it,
                     const std::vector<In> &hyperplane_vector,
                     In hyperplane_offset, RandomIntGenerator<Idx> &rng) {
   constexpr In EPS = 1e-8;
 
-  In margin =
-      std::inner_product(hyperplane_vector.begin(), hyperplane_vector.end(),
-                         data_it, hyperplane_offset);
+  const In margin =
+      projection_margin(hyperplane_vector, data_it, hyperplane_offset);
   if (std::abs(margin) < EPS) {
     return rng.rand_int(2);
   }
@@ -266,16 +273,15 @@ euclidean_random_projection_split(const std::vector<In> &data, std::size_t ndim,
 }
 
 template <typename In, typename Idx>
-std::tuple<std::vector<Idx>, std::vector<Idx>, std::vector<In>, In>
-angular_random_projection_split(const std::vector<In> &data, size_t ndim,
-                                const std::vector<Idx> &indices,
-                                RandomIntGenerator<Idx> &rng) {
+std::vector<In> angular_split_plane(const std::vector<In> &data, size_t ndim,
+                                    const std::vector<Idx> &indices,
+                                    RandomIntGenerator<Idx> &rng) {
   constexpr In EPS = 1e-8;
 
   auto [left_index, right_index] = select_random_points(indices, rng);
 
-  Idx left = indices[left_index] * ndim;
-  Idx right = indices[right_index] * ndim;
+  const std::size_t left = indices[left_index] * ndim;
+  const std::size_t right = indices[right_index] * ndim;
 
   // Compute normal vector to the hyperplane
   In left_norm = 0.0;
@@ -309,7 +315,15 @@ angular_random_projection_split(const std::vector<In> &data, size_t ndim,
   for (size_t d = 0; d < ndim; ++d) {
     hyperplane_vector[d] /= hyperplane_norm;
   }
+  return hyperplane_vector;
+}
 
+template <typename In, typename Idx>
+std::tuple<std::vector<Idx>, std::vector<Idx>, std::vector<In>, In>
+angular_random_projection_split(const std::vector<In> &data, size_t ndim,
+                                const std::vector<Idx> &indices,
+                                RandomIntGenerator<Idx> &rng) {
+  auto hyperplane_vector = angular_split_plane(data, ndim, indices, rng);
   std::vector<Idx> indices_left;
   std::vector<Idx> indices_right;
   split_indices(data, ndim, indices, hyperplane_vector, In(0), indices_left,
@@ -554,14 +568,38 @@ void init_rp_tree(const BaseDistance<Out, Idx> &distance,
                           updates, neighbor_begin, begin, end, batch_begin,
                           calculate_four);
   };
-  auto after_worker = [&current_graph, &updates](std::size_t begin,
-                                                 std::size_t end) {
-    for (std::size_t i = 0; i < end - begin; ++i) {
-      auto &leaf_updates = updates[i];
-      for (const auto &[p, q, d] : leaf_updates) {
-        current_graph.checked_push_pair(p, d, q);
+  auto after_worker = [&](std::size_t begin, std::size_t end) {
+    const auto count = end - begin;
+    if (n_threads <= 1) {
+      for (std::size_t i = 0; i < count; ++i) {
+        for (const auto &[p, q, d] : updates[i]) {
+          current_graph.checked_push_pair(p, d, q);
+        }
+        updates[i].clear();
       }
-      leaf_updates.clear();
+      return;
+    }
+
+    // Each worker reads the batch in insertion order and writes only its rows.
+    // Limit repeated reads of the proposal stream at high thread counts.
+    const auto owners = std::min(n_threads, std::size_t{8});
+    const std::size_t rows = current_graph.n_points;
+    const auto grain = rows / owners + (rows % owners != 0);
+    auto apply_to_rows = [&](std::size_t first, std::size_t last) {
+      for (std::size_t i = 0; i < count; ++i) {
+        for (const auto &[p, q, d] : updates[i]) {
+          if (p >= first && p < last) {
+            current_graph.checked_push(p, d, q);
+          }
+          if (q != p && q >= first && q < last) {
+            current_graph.checked_push(q, d, p);
+          }
+        }
+      }
+    };
+    executor.parallel_for(0, rows, apply_to_rows, owners, grain);
+    for (std::size_t i = 0; i < count; ++i) {
+      updates[i].clear();
     }
   };
   ExecutionParams exec_params{batch_size};
@@ -797,40 +835,9 @@ search_forest(const std::vector<SearchTree<In, Idx>> &forest,
               ParallelRandomIntProvider<Idx> &rng_provider, bool cache,
               std::size_t n_threads, ProgressBase &progress,
               const Executor &executor, std::size_t queries_per_worker = 1) {
-  const auto n_queries = distance.get_ny();
-  NNHeap<Out, Idx> current_graph(n_queries, n_nbrs);
-
-  const bool grouped = n_threads > 1 && queries_per_worker > 1;
-  rng_provider.initialize();
-  auto visit = [&](std::size_t i, RandomIntGenerator<Idx> &rng) {
-    if (cache) {
-      search_forest_cache(forest, distance, static_cast<Idx>(i), rng,
-                          current_graph);
-    } else {
-      search_forest(forest, distance, static_cast<Idx>(i), rng, current_graph);
-    }
-  };
-  auto worker = [&](std::size_t begin, std::size_t end) {
-    if (grouped) {
-      for (auto i = begin; i < end; ++i) {
-        // Match the exclusive end of each original one-query worker range.
-        auto rng = rng_provider.get_parallel_instance(i + 1);
-        visit(i, *rng);
-      }
-    } else {
-      auto rng = rng_provider.get_parallel_instance(end);
-      for (auto i = begin; i < end; ++i) {
-        visit(i, *rng);
-      }
-    }
-  };
-  progress.set_n_iters(n_queries);
-  const auto batch_size = std::max(n_threads, std::size_t{1});
-  ExecutionParams exec_params(grouped ? batch_size * queries_per_worker
-                                      : batch_size);
-  dispatch_work(worker, n_queries, n_threads, exec_params, progress, executor);
-
-  return current_graph;
+  return search_forest_queries(forest, distance, n_nbrs, rng_provider, cache,
+                               n_threads, progress, executor,
+                               queries_per_worker);
 }
 
 // Search Tree scoring/filtering

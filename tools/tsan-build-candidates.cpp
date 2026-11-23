@@ -1,6 +1,11 @@
+#include <tdoann/distancebin.h>
 #include <tdoann/nndparallel.h>
+#include <tdoann/nngraph.h>
 
 #include <pforr.h>
+
+#include "rnn_candidate_routing.h"
+#include "rnn_nnd_route.h"
 
 #include <algorithm>
 #include <array>
@@ -87,6 +92,124 @@ auto validate_and_snapshot(const Heap &heap) -> std::vector<
   return snapshot;
 }
 
+// Use the original stream keys but apply proposals in global source order.
+class OrderedExecutor : public tdoann::Executor {
+public:
+  void parallel_for(std::size_t begin, std::size_t end,
+                    std::function<void(std::size_t, std::size_t)> worker,
+                    std::size_t threads, std::size_t grain) const override {
+    for (const auto &range :
+         pforr::split_input_range({begin, end}, threads, grain)) {
+      worker(range.first, range.second);
+    }
+  }
+};
+
+void check_compact_routing(tdoann::NNDHeap<float> graph) {
+  using Heap = tdoann::NNHeap<float>;
+  // A hub, self edges and empty slots across uneven source ranges.
+  for (std::uint32_t row = 0; row < graph.n_points; ++row) {
+    const auto slot = row * graph.n_nbrs;
+    graph.idx[slot] = row;
+    graph.idx[slot + 1] = 0;
+    graph.idx[slot + 2] = graph.npos();
+  }
+  OrderedExecutor ordered;
+  ThreadExecutor threaded;
+  SplitMixProvider rng;
+  for (auto workers : {2U, 4U, 8U}) {
+    rnndescent::CompactCandidates<float, std::uint32_t> routing;
+    for (bool weighted : {false, true, false}) {
+      Heap fresh(graph.n_points, 7), old(graph.n_points, 7);
+      auto expected_fresh = fresh;
+      auto expected_old = old;
+      tdoann::build_candidates(graph, expected_fresh, expected_old, weighted,
+                               rng, workers, ordered);
+      routing.build(graph, fresh, old, weighted, rng, workers, threaded);
+      if (fresh.idx != expected_fresh.idx ||
+          fresh.dist != expected_fresh.dist || old.idx != expected_old.idx ||
+          old.dist != expected_old.dist) {
+        throw std::runtime_error("compact candidate IDs or priorities differ");
+      }
+      for (auto &flag : graph.flags) {
+        flag ^= 1;
+      }
+    }
+  }
+}
+
+void check_binary_updates() {
+  using Index = std::uint32_t;
+  // Two full routing windows followed by fewer rows than workers. Repeated
+  // feature vectors and endpoints make the order of tied insertions visible.
+  constexpr Index rows = 4099;
+  tdoann::BitVec bits(rows);
+  tdoann::NNHeap<float, Index> fresh(rows, 7), old(rows, 7);
+  for (Index row = 0; row < rows; ++row) {
+    bits[row] = row % 17;
+    for (Index j = 0; j < 6; ++j) {
+      const auto slot = row * fresh.n_nbrs + j;
+      fresh.idx[slot] = (row + j * 113) % rows;
+      old.idx[slot] = j < 2 ? 0 : (row + j * 113 + 1) % rows;
+    }
+  }
+  tdoann::BinarySelfDistanceCalculator<float, Index> distance(
+      std::move(bits), rows, 8, tdoann::bjaccard<float, Index>);
+  ThreadExecutor executor;
+  tdoann::NNDProgress progress(std::make_unique<tdoann::NullProgress>());
+  for (auto workers : {2U, 4U, 8U}) {
+    tdoann::NNDHeap<float, Index> expected(rows, 4);
+    auto actual = expected;
+    tdoann::LowMemParallelLocalJoin<float, Index> serial(distance);
+    rnndescent::BinaryDirectJoin<float, Index> direct(distance);
+    for (int round = 0; round < 2; ++round) {
+      const auto n =
+          serial.execute(expected, fresh, old, progress, workers, executor);
+      const auto changes =
+          direct.execute(actual, fresh, old, progress, workers, executor);
+      if (n != changes || actual.idx != expected.idx ||
+          actual.dist != expected.dist || actual.flags != expected.flags) {
+        throw std::runtime_error(
+            "binary refinement differs from serial application");
+      }
+      std::swap(fresh, old);
+    }
+  }
+}
+
+void check_leaf_handoff() {
+  ThreadExecutor executor;
+  tdoann::NullProgress progress;
+  using Index = std::uint32_t;
+  tdoann::NNHeap<float, Index> leaves(19, 2);
+  // Row 4 has only incoming edges. The first two tied sources win.
+  for (Index source : {0U, 1U, 2U}) {
+    leaves.checked_push(source, 0.5f, 4);
+  }
+  leaves.checked_push(5, 0.0f, 5);
+  leaves.checked_push(17, 1.0f, 6);
+  for (Index row = 6; row < 17; ++row) {
+    leaves.checked_push(row, 1.0f, 17);
+    leaves.checked_push(row, 1.0f, 5);
+  }
+  auto sorted = leaves;
+  tdoann::sort_heap(sorted, 0, progress, executor);
+  tdoann::NNDHeap<float, Index> expected(leaves.n_points, leaves.n_nbrs);
+  tdoann::vec_to_knn_heap(expected, sorted.idx, sorted.n_points, sorted.dist, 0,
+                          false, progress, executor);
+  for (auto threads : {0U, 1U, 4U, 8U}) {
+    auto input = leaves;
+    const auto graph =
+        rnndescent::import_leaf_heap(input, threads, progress, executor);
+    if (graph.idx != expected.idx || graph.dist != expected.dist ||
+        graph.flags != expected.flags || !graph.contains(4, 0) ||
+        !graph.contains(4, 1) || graph.contains(4, 2)) {
+      throw std::runtime_error(
+          "leaf handoff differs from serial symmetric import");
+    }
+  }
+}
+
 int main() {
   using Distance = float;
   using Index = std::uint32_t;
@@ -109,6 +232,9 @@ int main() {
     }
   }
 
+  check_compact_routing(current_graph);
+  check_binary_updates();
+  check_leaf_handoff();
   ThreadExecutor executor;
   SplitMixProvider random_provider;
   std::array<Snapshot, 2> expected;
@@ -134,5 +260,6 @@ int main() {
     }
   }
 
-  std::cout << "parallel candidate construction: PASS\n";
+  std::cout << "parallel candidate construction, binary refinement and leaf "
+               "handoff: PASS\n";
 }

@@ -27,6 +27,7 @@
 #ifndef TDOANN_RANDNBRS_H
 #define TDOANN_RANDNBRS_H
 
+#include <algorithm>
 #include <cstddef>
 #include <vector>
 
@@ -43,12 +44,18 @@ auto fill_random(NbrHeap &current_graph,
                                     typename NbrHeap::Index> &distance,
                  RandomIntGenerator<typename NbrHeap::Index> &rng,
                  typename NbrHeap::Index query,
-                 typename NbrHeap::Index n_ref_points) {
+                 typename NbrHeap::Index n_ref_points,
+                 bool sample_heap_width = false) {
   if (current_graph.is_full(query)) {
     return;
   }
-  auto sampled_refs = rng.sample(static_cast<int>(n_ref_points),
-                                 static_cast<int>(n_ref_points));
+  // With finite scores, k distinct candidates suffice even if some are
+  // already present: their union with the seed IDs has at least k members.
+  const auto count = sample_heap_width
+                         ? std::min(current_graph.n_nbrs, n_ref_points)
+                         : n_ref_points;
+  auto sampled_refs =
+      rng.sample(static_cast<int>(n_ref_points), static_cast<int>(count));
   for (const auto ref : sampled_refs) {
     if (current_graph.is_full(query)) {
       return;
@@ -79,7 +86,8 @@ auto fill_random(
     const BaseDistance<typename NbrHeap::DistanceOut, typename NbrHeap::Index>
         &distance,
     ParallelRandomIntProvider<typename NbrHeap::Index> &rng_provider,
-    std::size_t n_threads, ProgressBase &progress, const Executor &executor) {
+    std::size_t n_threads, ProgressBase &progress, const Executor &executor,
+    bool sample_heap_width = false) {
   using Idx = typename NbrHeap::Index;
   const Idx n_ref_points = distance.get_nx();
   rng_provider.initialize();
@@ -87,7 +95,8 @@ auto fill_random(
       current_graph.n_points, n_threads, progress, executor,
       [&](std::size_t end) { return rng_provider.get_parallel_instance(end); },
       [&](auto &rng, Idx query) {
-        fill_random(current_graph, distance, rng, query, n_ref_points);
+        fill_random(current_graph, distance, rng, query, n_ref_points,
+                    sample_heap_width);
       });
 }
 

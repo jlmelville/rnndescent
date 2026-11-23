@@ -115,11 +115,37 @@ test_that("recursive leaf-only forests preserve the initial graph and RNG state"
   }
 })
 
+test_that("grouped binary forest queries preserve random routing on ties", {
+  set.seed(731)
+  reference <- matrix(runif(128 * 65) < 0.2, nrow = 128)
+  reference[, 1] <- TRUE
+  forest <- rpf_build(reference, metric = "jaccard", n_trees = 2, leaf_size = 8)
+  # Every pivot is equally distant from an empty query. The last group is partial.
+  query <- matrix(FALSE, nrow = 259, ncol = ncol(reference))
+  search <- function(workers, cache) {
+    set.seed(732)
+    dqrng::dqset.seed(732L)
+    rpf_knn_query(
+      query,
+      reference,
+      forest,
+      k = 3,
+      cache = cache,
+      n_threads = workers
+    )
+  }
+  for (cache in c(TRUE, FALSE)) {
+    expected <- search(1, cache)
+    expect_gt(length(unique(expected$idx[, 1])), 1L)
+    expect_identical(search(8, cache), expected)
+  }
+})
+
 test_that("batched leaf updates preserve squared-Euclidean ties and tails", {
   x <- as.matrix(iris[1:11, 1:4])
   x[2, ] <- x[1, ]
   for (self in c(FALSE, TRUE)) {
-    run <- function(ret_forest) {
+    run <- function(ret_forest, threads = 2L) {
       set.seed(127L)
       dqrng::dqset.seed(127L)
       graph <- rpf_knn(
@@ -130,7 +156,7 @@ test_that("batched leaf updates preserve squared-Euclidean ties and tails", {
         leaf_size = 5L,
         max_tree_depth = 0L,
         include_self = self,
-        n_threads = 2L,
+        n_threads = threads,
         ret_forest = ret_forest
       )
       list(
@@ -141,7 +167,66 @@ test_that("batched leaf updates preserve squared-Euclidean ties and tails", {
     }
     # With zero split depth both routes visit the same single leaf.
     expect_identical(run(FALSE), run(TRUE))
+    expect_identical(run(TRUE, 4L)$graph, run(TRUE, 1L)$graph)
   }
+})
+
+test_that("dense cosine leaf batches and tails agree with direct scores", {
+  set.seed(931L)
+  x <- matrix(rnorm(11L * 29L), nrow = 11L)
+  x[1:2, ] <- 0
+  x[4, ] <- -x[3, ]
+  x[5, ] <- x[3, ]
+  x[6, ] <- x[6, ] * 2^-66
+  for (self in c(FALSE, TRUE)) {
+    for (threads in c(0L, 3L)) {
+      # One leaf exposes every pair, including the incomplete final batches.
+      g <- rpf_knn(
+        x,
+        k = nrow(x) - as.integer(!self),
+        metric = "cosine",
+        n_trees = 1L,
+        max_tree_depth = 0L,
+        include_self = self,
+        ret_forest = threads > 0L,
+        n_threads = threads
+      )
+      expect_true(all(g$idx > 0L))
+      expect_true(all(rowSums(g$idx == seq_len(nrow(x))) == as.integer(self)))
+      expected <- knn_distances(x, g$idx, metric = "cosine")
+      expect_lt(max(abs(g$dist - expected$dist)), 1e-6)
+    }
+  }
+})
+
+test_that("shared angular splits preserve leaf order across worker counts", {
+  set.seed(308L)
+  # At 1025 features the shared scan defers nodes with at most 255 rows.
+  # Five trees also exercise a partial group of projection planes.
+  x <- matrix(rnorm(900L * 1025L), nrow = 900L)
+  x[1:20, ] <- 0
+  x[21:40, ] <- rep(x[41L, ], each = 20L)
+  run <- function(workers) {
+    set.seed(710L)
+    rpf_knn(
+      x,
+      k = 8L,
+      metric = "cosine",
+      n_threads = workers,
+      n_trees = 5L,
+      leaf_size = 12L,
+      include_self = FALSE
+    )
+  }
+  g <- run(2L)
+  expect_identical(g, run(3L))
+  valid <- g$idx > 0L
+  expect_true(all(rowSums(valid) > 0L))
+  expect_identical(is.na(g$dist), !valid)
+  ids <- g$idx
+  ids[!valid] <- 1L
+  exact <- knn_distances(x, ids, metric = "cosine")$dist
+  expect_lt(max(abs(g$dist[valid] - exact[valid])), 2e-6)
 })
 
 test_that("indexed sparse margins preserve the tree and tie RNG", {

@@ -30,12 +30,12 @@
 #'   specified, in which case `k` can be inferred from the `init` data. If you
 #'   do both, then the specified version of `k` will take precedence.
 #' @template metric
-#' @param use_alt_metric If `TRUE`, use faster metrics that maintain the
-#'   ordering of distances internally (e.g. squared Euclidean distances if using
-#'   `metric = "euclidean"`), then apply a correction at the end. Probably
-#'   the only reason to set this to `FALSE` is if you suspect that some
-#'   sort of numeric issue is occurring with your data in the alternative code
-#'   path.
+#' @param use_alt_metric If `TRUE`, use alternative scores such as squared
+#'   Euclidean distance internally and return distances in the requested metric.
+#'   With `metric = "jaccard"` and a dense logical matrix, construction uses
+#'   ordinary packed Jaccard.
+#'   Queries on the resulting Jaccard index use log scoring by default.
+#'   Set `use_alt_metric = FALSE` to use ordinary Jaccard for queries.
 #' @param init Name of the initialization strategy or initial `data` neighbor
 #'   graph to optimize. One of:
 #'   - `"rand"` random initialization (the default).
@@ -775,12 +775,10 @@ can_validate_reference_on_copy <- function(reference, metric, init) {
 #' @param k Number of nearest neighbors to return. Optional if `init` is
 #'   specified.
 #' @template metric
-#' @param use_alt_metric If `TRUE`, use faster metrics that maintain the
-#'   ordering of distances internally (e.g. squared Euclidean distances if using
-#'   `metric = "euclidean"`), then apply a correction at the end. Probably
-#'   the only reason to set this to `FALSE` is if you suspect that some
-#'   sort of numeric issue is occurring with your data in the alternative code
-#'   path.
+#' @param use_alt_metric If `TRUE`, use alternative scores such as squared
+#'   Euclidean distance internally and return distances in the requested metric.
+#'   With `metric = "jaccard"` and a dense logical matrix, construction uses
+#'   ordinary packed Jaccard.
 #' @param init Name of the initialization strategy or initial `data` neighbor
 #'   graph to optimize. One of:
 #'   - `"rand"` random initialization (the default).
@@ -978,12 +976,10 @@ rnnd_knn <- function(
 #'   are not allowed.
 #' @param k Number of nearest neighbors to return.
 #' @template metric
-#' @param use_alt_metric If `TRUE`, use faster metrics that maintain the
-#'   ordering of distances internally (e.g. squared Euclidean distances if using
-#'   `metric = "euclidean"`), then apply a correction at the end. Probably
-#'   the only reason to set this to `FALSE` is if you suspect that some
-#'   sort of numeric issue is occurring with your data in the alternative code
-#'   path.
+#' @param use_alt_metric If `TRUE`, use alternative scores such as squared
+#'   Euclidean distance internally and return distances in the requested metric.
+#'   With `metric = "jaccard"` and a dense logical matrix, construction uses
+#'   ordinary packed Jaccard.
 #' @param n_threads Number of threads to use.
 #' @param verbose If `TRUE`, log information to the console.
 #' @param obs set to `"C"` to indicate that the input `data` orientation stores
@@ -1026,7 +1022,13 @@ brute_force_knn <- function(
   data <- x2m(data, obs)
   check_k(k, n_obs(data))
 
-  actual_metric <- get_actual_metric(use_alt_metric, metric, data, verbose)
+  actual_metric <- get_actual_metric(
+    use_alt_metric,
+    metric,
+    data,
+    verbose,
+    for_build = TRUE
+  )
 
   tsmessage(
     thread_msg(
@@ -1072,7 +1074,7 @@ brute_force_knn <- function(
 
   res$idx <- res$idx + 1
 
-  if (use_alt_metric) {
+  if (metric != actual_metric) {
     res$dist <-
       apply_alt_metric_correction(metric, res$dist, is_sparse(data))
   }
@@ -1100,12 +1102,10 @@ brute_force_knn <- function(
 #'   are not allowed.
 #' @param k Number of nearest neighbors to return.
 #' @template metric
-#' @param use_alt_metric If `TRUE`, use faster metrics that maintain the
-#'   ordering of distances internally (e.g. squared Euclidean distances if using
-#'   `metric = "euclidean"`), then apply a correction at the end. Probably
-#'   the only reason to set this to `FALSE` is if you suspect that some
-#'   sort of numeric issue is occurring with your data in the alternative code
-#'   path.
+#' @param use_alt_metric If `TRUE`, use alternative scores such as squared
+#'   Euclidean distance internally and return distances in the requested metric.
+#'   With `metric = "jaccard"` and a dense logical matrix, construction uses
+#'   ordinary packed Jaccard.
 #' @param order_by_distance If `TRUE` (the default), then results for each
 #'   item are returned by increasing distance. If you don't need the results
 #'   sorted, e.g. you are going to pass the results as initialization to another
@@ -1160,7 +1160,13 @@ random_knn <-
     data <- x2m(data, obs)
     check_k(k, n_obs(data))
 
-    actual_metric <- get_actual_metric(use_alt_metric, metric, data, verbose)
+    actual_metric <- get_actual_metric(
+      use_alt_metric,
+      metric,
+      data,
+      verbose,
+      for_build = TRUE
+    )
 
     if (obs == "R") {
       data <- Matrix::t(data)
@@ -1175,7 +1181,7 @@ random_knn <-
     )
     res$idx <- res$idx + 1
 
-    if (use_alt_metric) {
+    if (metric != actual_metric) {
       res$dist <-
         apply_alt_metric_correction(metric, res$dist, is_sparse(data))
     }
@@ -1256,12 +1262,12 @@ random_knn <-
 #'   a small improvement in accuracy. Because this incurs a small extra cost of
 #'   counting the degree of each node, and because it tends to delay early
 #'   convergence, by default this is `FALSE`.
-#' @param use_alt_metric If `TRUE`, use faster metrics that maintain the
-#'   ordering of distances internally (e.g. squared Euclidean distances if using
-#'   `metric = "euclidean"`), then apply a correction at the end. Probably
-#'   the only reason to set this to `FALSE` is if you suspect that some
-#'   sort of numeric issue is occurring with your data in the alternative code
-#'   path.
+#' @param use_alt_metric If `TRUE`, use alternative scores such as squared
+#'   Euclidean distance internally and return distances in the requested metric.
+#'   With `metric = "jaccard"` and a dense logical matrix, construction uses
+#'   ordinary packed Jaccard.
+#'   Queries using the resulting Jaccard forest use log scoring by default. Set
+#'   `use_alt_metric = FALSE` to use ordinary Jaccard for queries.
 #' @param ret_forest If `TRUE` and `init = "tree"` then the RP forest used to
 #'   initialize the nearest neighbors will be returned with the nearest neighbor
 #'   data. See the `Value` section for details. The returned forest can be used
@@ -1383,7 +1389,7 @@ nnd_knn <- function(
   max_candidates <- check_optional_count(max_candidates, "max_candidates")
 
   actual_metric <-
-    get_actual_metric(use_alt_metric, metric, data, verbose)
+    get_actual_metric(use_alt_metric, metric, data, verbose, for_build = TRUE)
 
   data <- x2m(data, obs)
   if (obs == "R") {
@@ -1433,7 +1439,13 @@ nnd_knn_prepared <- function(
   check_delta(delta)
   n_iters <- check_optional_count(n_iters, "n_iters", min = 0L)
   max_candidates <- check_optional_count(max_candidates, "max_candidates")
-  actual_metric <- get_actual_metric(use_alt_metric, metric, data, verbose)
+  actual_metric <- get_actual_metric(
+    use_alt_metric,
+    metric,
+    data,
+    verbose,
+    for_build = TRUE
+  )
 
   nnd_knn_impl(
     data = data,
@@ -1475,6 +1487,26 @@ nnd_knn_impl <- function(
   ret_forest
 ) {
   # data must be column-oriented at this point
+  if (!is.character(init) && is.null(k)) {
+    k <- ncol(init$idx)
+  }
+  if (is.null(max_candidates)) {
+    max_candidates <- min(k, 60)
+  }
+  if (is.null(n_iters)) {
+    n_iters <- max(5, round(log2(ncol(data))))
+  }
+  nnd_args <- list(
+    metric = actual_metric,
+    n_iters = n_iters,
+    max_candidates = max_candidates,
+    delta = delta,
+    low_memory = low_memory,
+    weight_by_degree = weight_by_degree,
+    n_threads = n_threads,
+    verbose = verbose,
+    progress_type = progress
+  )
   if (is.character(init)) {
     if (is.null(k)) {
       stop("Must provide k")
@@ -1482,52 +1514,62 @@ nnd_knn_impl <- function(
     check_k(k, ncol(data))
     init <- match.arg(tolower(init), c("rand", "tree"))
 
-    # if the use provided tree init args that could clash with nnd args
-    # ignore them
-    if (init == "tree" && is.list(init_args)) {
-      if ("use_alt_metric" %in% init_args) {
-        init_args$use_alt_metric <- use_alt_metric
-      }
-      if ("metric" %in% init_args) {
-        init_args$metric <- metric
-      }
-    }
     tsmessage("Initializing neighbors using '", init, "' method")
-    init <- switch(
-      init,
-      "rand" = random_knn_impl(
+    if (init == "tree") {
+      if (is.list(init_args)) {
+        init_args$metric <- NULL
+        init_args$use_alt_metric <- NULL
+      }
+      tree_args <- lmerge(
+        list(
+          data,
+          k = k,
+          metric = metric,
+          use_alt_metric = use_alt_metric,
+          actual_metric = actual_metric,
+          include_self = FALSE,
+          ret_forest = ret_forest,
+          unzero = FALSE,
+          n_threads = n_threads,
+          verbose = verbose
+        ),
+        init_args
+      )
+      # Other init_args can override k or data for seeding alone.
+      # Keep the general matrix importer for independently configured stages.
+      tree_controls <- c("n_trees", "leaf_size", "max_tree_depth", "margin")
+      if (
+        is.matrix(data) &&
+          is.logical(data) &&
+          (actual_metric == "alternative-jaccard" ||
+            is_binary_metric(actual_metric)) &&
+          all(names(init_args) %in% tree_controls)
+      ) {
+        margin <- if (is.null(tree_args$margin)) "auto" else tree_args$margin
+        if (find_margin_method(margin, metric, data) == "implicit") {
+          tree_args$descent_args <- nnd_args
+          res <- do.call(rpf_knn_impl, tree_args)
+          return(finish_nnd_graph(
+            res,
+            k,
+            data,
+            metric,
+            actual_metric,
+            verbose
+          ))
+        }
+      }
+      init <- do.call(rpf_knn_impl, tree_args)
+    } else {
+      init <- random_knn_impl(
         reference = data,
         k = k,
         actual_metric = actual_metric,
         order_by_distance = FALSE,
         n_threads = n_threads,
         verbose = verbose
-      ),
-      "tree" = do.call(
-        rpf_knn_impl,
-        lmerge(
-          # defaults we have no reason to change should match rpf_knn or rpf_build
-          list(
-            data,
-            k = k,
-            metric = metric,
-            use_alt_metric = use_alt_metric,
-            actual_metric = actual_metric,
-            n_trees = NULL,
-            leaf_size = NULL,
-            max_tree_depth = 200,
-            include_self = FALSE, # this is changed from default on purpose
-            ret_forest = ret_forest,
-            margin = "auto",
-            unzero = FALSE,
-            n_threads = n_threads,
-            verbose = verbose
-          ),
-          init_args
-        )
-      ),
-      stop("Unknown initialization option '", init, "'")
-    )
+      )
+    }
     # FIXME: can we just turn off unzero in tree and random return?
     init$idx <- init$idx + 1
     if (any(init$idx == 0)) {
@@ -1541,7 +1583,7 @@ nnd_knn_impl <- function(
     tsmessage("Initializing from user-supplied graph")
     # user-supplied input may need to be transformed to the actual metric
     if (
-      use_alt_metric &&
+      metric != actual_metric &&
         !is.null(init) &&
         is.list(init) &&
         !is.null(init$dist)
@@ -1555,10 +1597,6 @@ nnd_knn_impl <- function(
       )
       init$dist <-
         apply_alt_metric_uncorrection(metric, init$dist, is_sparse(data))
-    }
-
-    if (is.null(k)) {
-      k <- ncol(init$idx)
     }
   }
   forest <- NULL
@@ -1577,12 +1615,6 @@ nnd_knn_impl <- function(
       verbose = verbose
     )
 
-  if (is.null(max_candidates)) {
-    max_candidates <- min(k, 60)
-  }
-  if (is.null(n_iters)) {
-    n_iters <- max(5, round(log2(ncol(data))))
-  }
   tsmessage(
     thread_msg(
       "Running nearest neighbor descent for ",
@@ -1592,19 +1624,8 @@ nnd_knn_impl <- function(
     )
   )
 
-  nnd_args <- list(
-    nn_idx = init$idx,
-    nn_dist = init$dist,
-    metric = actual_metric,
-    n_iters = n_iters,
-    max_candidates = max_candidates,
-    delta = delta,
-    low_memory = low_memory,
-    weight_by_degree = weight_by_degree,
-    n_threads = n_threads,
-    verbose = verbose,
-    progress_type = progress
-  )
+  nnd_args$nn_idx <- init$idx
+  nnd_args$nn_dist <- init$dist
   if (is_sparse(data)) {
     nnd_fun <- rnn_sparse_descent
     nnd_args$data <- data@x
@@ -1620,7 +1641,14 @@ nnd_knn_impl <- function(
   }
   res <- do.call(nnd_fun, nnd_args)
 
-  if (use_alt_metric) {
+  if (!is.null(forest)) {
+    res$forest <- forest
+  }
+  finish_nnd_graph(res, k, data, metric, actual_metric, verbose)
+}
+
+finish_nnd_graph <- function(res, k, data, metric, actual_metric, verbose) {
+  if (metric != actual_metric) {
     res$dist <-
       apply_alt_metric_correction(metric, res$dist, is_sparse(data))
   }
@@ -1632,9 +1660,6 @@ nnd_knn_impl <- function(
     )
   }
   tsmessage("Finished")
-  if (!is.null(forest)) {
-    res$forest <- forest
-  }
   res
 }
 
@@ -2392,12 +2417,10 @@ graph_knn_query_impl <- function(
 #'   the data in `data`.
 #'   * `dist` an `n` by `k` matrix containing the nearest neighbor distances.
 #' @template metric
-#' @param use_alt_metric If `TRUE`, use faster metrics that maintain the
-#'   ordering of distances internally (e.g. squared Euclidean distances if using
-#'   `metric = "euclidean"`), then apply a correction at the end. Probably
-#'   the only reason to set this to `FALSE` is if you suspect that some
-#'   sort of numeric issue is occurring with your data in the alternative code
-#'   path.
+#' @param use_alt_metric If `TRUE`, use alternative scores such as squared
+#'   Euclidean distance internally and return distances in the requested metric.
+#'   With `metric = "jaccard"` and a dense logical matrix, construction uses
+#'   ordinary packed Jaccard.
 #' @param diversify_prob the degree of diversification of the search graph
 #'   by removing unnecessary edges through occlusion pruning. This should take a
 #'   value between `0` (no diversification) and `1` (remove as many edges as
@@ -2546,7 +2569,7 @@ prepare_search_graph_impl <- function(
   verbose
 ) {
   actual_metric <-
-    get_actual_metric(use_alt_metric, metric, data, verbose)
+    get_actual_metric(use_alt_metric, metric, data, verbose, for_build = TRUE)
 
   graph <- check_square_graph(graph, ncol(data))
 
@@ -2559,7 +2582,7 @@ prepare_search_graph_impl <- function(
     sp <- graph_to_csparse(graph)
   }
 
-  if (use_alt_metric) {
+  if (metric != actual_metric) {
     sp@x <-
       apply_alt_metric_uncorrection(metric, sp@x, is_sparse(data))
   }
@@ -2651,7 +2674,7 @@ prepare_search_graph_impl <- function(
     )
   }
 
-  if (use_alt_metric) {
+  if (metric != actual_metric) {
     res@x <-
       apply_alt_metric_correction(metric, res@x, is_sparse(data))
   }

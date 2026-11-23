@@ -14,14 +14,22 @@
 * Distance fixes cover cosine, correlation, `trueangular`, TS-SS, Hellinger,
   Jensen–Shannon, symmetric KL, sparse Canberra on signed data, and explicitly
   stored zeros in sparse input. Rebuild affected graphs and indexes.
-* Results can change with the same seed for some dense Euclidean tree builds
-  and when filling missing neighbors. Batched distance calculations can
-  reorder near ties.
+* Parallel candidate selection and tree initialization can change the neighbors
+  returned for the same seed. Batched dense Euclidean and cosine calculations
+  can also reorder near ties.
+* Filling missing neighbors can change results for the same seed. Queries on
+  dense logical Jaccard indexes now sample up to `k` distinct reference rows
+  when a search tree supplies too few neighbors.
 
 ## Performance
 
 * Faster forest initialization, nearest neighbor descent, and search graph
   preparation. Forests built solely for initialization use less memory.
+* Dense Euclidean and cosine graph builds score several neighbors together.
+  Parallel builds route candidates to the workers responsible for each row.
+  Binary builds also reuse packed data between tree initialization and descent.
+* Dense logical Jaccard builds use ordinary packed Jaccard. Queries keep log
+  scoring by default and seed batches of queries from the search trees.
 * Faster queries for several dense metrics, including Spearman, and for
   prepared sparse cosine indexes. Builds and queries also benefit from direct
   packing of logical matrices for supported binary metrics.

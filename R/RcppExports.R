@@ -61,6 +61,10 @@ rnn_descent <- function(data, nn_idx, nn_dist, metric, max_candidates, n_iters, 
     .Call(`_rnndescent_rnn_descent`, data, nn_idx, nn_dist, metric, max_candidates, n_iters, delta, low_memory, weight_by_degree, n_threads, verbose, progress_type)
 }
 
+rnn_binary_tree_descent <- function(data, k, metric, n_trees, leaf_size, max_tree_depth, ret_forest, max_candidates, n_iters, delta, low_memory, weight_by_degree, n_threads, verbose, progress_type) {
+    .Call(`_rnndescent_rnn_binary_tree_descent`, data, k, metric, n_trees, leaf_size, max_tree_depth, ret_forest, max_candidates, n_iters, delta, low_memory, weight_by_degree, n_threads, verbose, progress_type)
+}
+
 rnn_logical_descent <- function(data, nn_idx, nn_dist, metric, max_candidates, n_iters, delta, low_memory, weight_by_degree, n_threads, verbose, progress_type) {
     .Call(`_rnndescent_rnn_logical_descent`, data, nn_idx, nn_dist, metric, max_candidates, n_iters, delta, low_memory, weight_by_degree, n_threads, verbose, progress_type)
 }
@@ -219,5 +223,9 @@ rnn_sparse_query <- function(ref_ind, ref_ptr, ref_data, query_ind, query_ptr, q
 
 is_binary_metric <- function(metric) {
     .Call(`_rnndescent_is_binary_metric`, metric)
+}
+
+rnn_all_finite <- function(data) {
+    .Call(`_rnndescent_rnn_all_finite`, data)
 }
 
