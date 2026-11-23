@@ -228,12 +228,12 @@ nnd_knn(
 
 - use_alt_metric:
 
-  If `TRUE`, use faster metrics that maintain the ordering of distances
-  internally (e.g. squared Euclidean distances if using
-  `metric = "euclidean"`), then apply a correction at the end. Probably
-  the only reason to set this to `FALSE` is if you suspect that some
-  sort of numeric issue is occurring with your data in the alternative
-  code path.
+  If `TRUE`, use alternative scores such as squared Euclidean distance
+  internally and return distances in the requested metric. With
+  `metric = "jaccard"` and a dense logical matrix, construction uses
+  ordinary packed Jaccard. Queries using the resulting Jaccard forest
+  use log scoring by default. Set `use_alt_metric = FALSE` to use
+  ordinary Jaccard for queries.
 
 - n_threads:
 
@@ -319,11 +319,11 @@ iris_nn <- nnd_knn(iris, k = 4, metric = "manhattan", n_threads = 1)
 
 # Use verbose flag to see information about progress
 iris_nn <- nnd_knn(iris, k = 4, metric = "euclidean", verbose = TRUE)
-#> 06:11:00 Using alt metric 'sqeuclidean' for 'euclidean'
-#> 06:11:00 Initializing neighbors using 'rand' method
-#> 06:11:00 Generating random k-nearest neighbor graph with k = 4
-#> 06:11:00 Running nearest neighbor descent for 7 iterations
-#> 06:11:00 Finished
+#> 16:21:59 Using alt metric 'sqeuclidean' for 'euclidean'
+#> 16:21:59 Initializing neighbors using 'rand' method
+#> 16:21:59 Generating random k-nearest neighbor graph with k = 4
+#> 16:21:59 Running nearest neighbor descent for 7 iterations
+#> 16:21:59 Finished
 
 # Nearest neighbor descent uses random initialization, but you can pass any
 # approximation using the init argument (as long as the metrics used to
@@ -333,11 +333,11 @@ iris_nn <- random_knn(iris, k = 4, metric = "euclidean")
 iris_nn <- nnd_knn(
   iris, init = iris_nn, metric = "euclidean", verbose = TRUE
 )
-#> 06:11:00 Using alt metric 'sqeuclidean' for 'euclidean'
-#> 06:11:00 Initializing from user-supplied graph
-#> 06:11:00 Applying metric correction to initial distances from 'euclidean' to 'sqeuclidean'
-#> 06:11:00 Running nearest neighbor descent for 7 iterations
-#> 06:11:00 Finished
+#> 16:21:59 Using alt metric 'sqeuclidean' for 'euclidean'
+#> 16:21:59 Initializing from user-supplied graph
+#> 16:21:59 Applying metric correction to initial distances from 'euclidean' to 'sqeuclidean'
+#> 16:21:59 Running nearest neighbor descent for 7 iterations
+#> 16:21:59 Finished
 
 # Number of iterations controls how much optimization is attempted. A smaller
 # value will run faster but give poorer results

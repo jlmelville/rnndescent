@@ -141,12 +141,10 @@ random_knn(
 
 - use_alt_metric:
 
-  If `TRUE`, use faster metrics that maintain the ordering of distances
-  internally (e.g. squared Euclidean distances if using
-  `metric = "euclidean"`), then apply a correction at the end. Probably
-  the only reason to set this to `FALSE` is if you suspect that some
-  sort of numeric issue is occurring with your data in the alternative
-  code path.
+  If `TRUE`, use alternative scores such as squared Euclidean distance
+  internally and return distances in the requested metric. With
+  `metric = "jaccard"` and a dense logical matrix, construction uses
+  ordinary packed Jaccard.
 
 - order_by_distance:
 
@@ -198,18 +196,18 @@ iris_nn <- random_knn(iris, k = 4, metric = "manhattan", n_threads = 1)
 
 # Use verbose flag to see information about progress
 iris_nn <- random_knn(iris, k = 4, metric = "euclidean", verbose = TRUE)
-#> 06:11:01 Using alt metric 'sqeuclidean' for 'euclidean'
-#> 06:11:01 Generating random k-nearest neighbor graph with k = 4
-#> 06:11:01 Finished
+#> 16:21:59 Using alt metric 'sqeuclidean' for 'euclidean'
+#> 16:21:59 Generating random k-nearest neighbor graph with k = 4
+#> 16:21:59 Finished
 
 # These results can be improved by nearest neighbors descent. You don't need
 # to specify k here because this is worked out from the initial input
 iris_nn <- nnd_knn(
   iris, init = iris_nn, metric = "euclidean", verbose = TRUE
 )
-#> 06:11:01 Using alt metric 'sqeuclidean' for 'euclidean'
-#> 06:11:01 Initializing from user-supplied graph
-#> 06:11:01 Applying metric correction to initial distances from 'euclidean' to 'sqeuclidean'
-#> 06:11:01 Running nearest neighbor descent for 7 iterations
-#> 06:11:01 Finished
+#> 16:21:59 Using alt metric 'sqeuclidean' for 'euclidean'
+#> 16:21:59 Initializing from user-supplied graph
+#> 16:21:59 Applying metric correction to initial distances from 'euclidean' to 'sqeuclidean'
+#> 16:21:59 Running nearest neighbor descent for 7 iterations
+#> 16:21:59 Finished
 ```

@@ -165,12 +165,12 @@ distance between split points in the tree.</p></dd>
 
 
 <dt id="arg-use-alt-metric">use_alt_metric<a class="anchor" aria-label="anchor" href="#arg-use-alt-metric"></a></dt>
-<dd><p>If <code>TRUE</code>, use faster metrics that maintain the
-ordering of distances internally (e.g. squared Euclidean distances if using
-<code>metric = "euclidean"</code>), then apply a correction at the end. Probably
-the only reason to set this to <code>FALSE</code> is if you suspect that some
-sort of numeric issue is occurring with your data in the alternative code
-path.</p></dd>
+<dd><p>If <code>TRUE</code>, use alternative scores such as squared
+Euclidean distance internally and return distances in the requested metric.
+With <code>metric = "jaccard"</code> and a dense logical matrix, construction uses
+ordinary packed Jaccard.
+Queries using the resulting Jaccard forest use log scoring by default. Set
+<code>use_alt_metric = FALSE</code> to use ordinary Jaccard for queries.</p></dd>
 
 
 <dt id="arg-n-trees">n_trees<a class="anchor" aria-label="anchor" href="#arg-n-trees"></a></dt>

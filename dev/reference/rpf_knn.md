@@ -150,12 +150,12 @@ rpf_knn(
 
 - use_alt_metric:
 
-  If `TRUE`, use faster metrics that maintain the ordering of distances
-  internally (e.g. squared Euclidean distances if using
-  `metric = "euclidean"`), then apply a correction at the end. Probably
-  the only reason to set this to `FALSE` is if you suspect that some
-  sort of numeric issue is occurring with your data in the alternative
-  code path.
+  If `TRUE`, use alternative scores such as squared Euclidean distance
+  internally and return distances in the requested metric. With
+  `metric = "jaccard"` and a dense logical matrix, construction uses
+  ordinary packed Jaccard. Queries using the resulting Jaccard forest
+  use log scoring by default. Set `use_alt_metric = FALSE` to use
+  ordinary Jaccard for queries.
 
 - n_trees:
 

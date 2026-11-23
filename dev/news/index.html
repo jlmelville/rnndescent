@@ -65,11 +65,14 @@
 <div class="section level3">
 <h3 id="changes-that-can-affect-results-development-version">Changes that can affect results<a class="anchor" aria-label="anchor" href="#changes-that-can-affect-results-development-version"></a></h3>
 <ul><li>Distance fixes cover cosine, correlation, <code>trueangular</code>, TS-SS, Hellinger, Jensen–Shannon, symmetric KL, sparse Canberra on signed data, and explicitly stored zeros in sparse input. Rebuild affected graphs and indexes.</li>
-<li>Results can change with the same seed for some dense Euclidean tree builds and when filling missing neighbors. Batched distance calculations can reorder near ties.</li>
+<li>Parallel candidate selection and tree initialization can change the neighbors returned for the same seed. Batched dense Euclidean and cosine calculations can also reorder near ties.</li>
+<li>Filling missing neighbors can change results for the same seed. Queries on dense logical Jaccard indexes now sample up to <code>k</code> distinct reference rows when a search tree supplies too few neighbors.</li>
 </ul></div>
 <div class="section level3">
 <h3 id="performance-development-version">Performance<a class="anchor" aria-label="anchor" href="#performance-development-version"></a></h3>
 <ul><li>Faster forest initialization, nearest neighbor descent, and search graph preparation. Forests built solely for initialization use less memory.</li>
+<li>Dense Euclidean and cosine graph builds score several neighbors together. Parallel builds route candidates to the workers responsible for each row. Binary builds also reuse packed data between tree initialization and descent.</li>
+<li>Dense logical Jaccard builds use ordinary packed Jaccard. Queries keep log scoring by default and seed batches of queries from the search trees.</li>
 <li>Faster queries for several dense metrics, including Spearman, and for prepared sparse cosine indexes. Builds and queries also benefit from direct packing of logical matrices for supported binary metrics.</li>
 </ul></div>
 <div class="section level3">

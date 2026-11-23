@@ -97,7 +97,7 @@ g1000d_nnd <- nnd_knn(g1000d, k = 15, metric = "euclidean")
 ``` r
 
 neighbor_overlap(g1000d_nnbf, g1000d_nnd, k = 15)
-#> [1] 0.7844667
+#> [1] 0.7851333
 ```
 
 Still OK, but not as good as we might like.
@@ -475,7 +475,7 @@ counts.](hubness_files/figure-html/approximate-vs-true-1000D-k-occurrence-1.png)
 ``` r
 
 cor(g1000d_nndko, g1000d_bfko, method = "pearson")
-#> [1] 0.9939508
+#> [1] 0.9940029
 ```
 
 The overall relationship seems strong. The line on the plot is x=y, so
@@ -564,7 +564,7 @@ with that accuracy threshold?
 ``` r
 
 max(g1000d_nndko[g1000d_nnd_acc < 0.9])
-#> [1] 48
+#> [1] 54
 ```
 
 Then, to guarantee that we had found all the items that might be poorly
@@ -575,7 +575,7 @@ them are well-predicted:
 ``` r
 
 sum(g1000d_nndko <= max(g1000d_nndko[g1000d_nnd_acc < 0.9]))
-#> [1] 929
+#> [1] 937
 ```
 
 That’s most of the dataset. If we dropped the threshold to 80% accuracy,
@@ -584,7 +584,7 @@ does it help?
 ``` r
 
 sum(g1000d_nndko <= max(g1000d_nndko[g1000d_nnd_acc < 0.8]))
-#> [1] 860
+#> [1] 863
 ```
 
 A bit, but it’s still a substantial majority of the dataset. So whatever
@@ -745,7 +745,7 @@ case, it’s worth trying though:
 g1000d_nnd_w <-
   nnd_knn(g1000d, k = 15, metric = "euclidean", weight_by_degree = TRUE)
 neighbor_overlap(g1000d_nnbf, g1000d_nnd_w)
-#> [1] 0.8021333
+#> [1] 0.8022
 ```
 
 Like a 2%ish improvement. It’s not nothing. And despite the extra
@@ -767,7 +767,7 @@ get the top-15 accuracy:
 
 g1000d_nnd_k30 <- nnd_knn(g1000d, k = 30, metric = "euclidean")
 neighbor_overlap(g1000d_nnbf, g1000d_nnd_k30, k = 15)
-#> [1] 0.9750667
+#> [1] 0.9752
 ```
 
 That’s a big improvement, but increasing `k` in this way can be quite
@@ -788,7 +788,7 @@ g1000d_nnd_mc30 <- nnd_knn(
   max_candidates = 30
 )
 neighbor_overlap(g1000d_nnbf, g1000d_nnd_mc30)
-#> [1] 0.8796
+#> [1] 0.8797333
 ```
 
 Not as good as increasing `k`, but also not as time-consuming and still
@@ -804,7 +804,7 @@ You could set `delta` to lower than the default of `0.001` or even to
 
 g1000d_nnd_tol0 <- nnd_knn(g1000d, k = 15, metric = "euclidean", delta = 0)
 neighbor_overlap(g1000d_nnbf, g1000d_nnd_tol0)
-#> [1] 0.7909333
+#> [1] 0.7902667
 ```
 
 But as you can see, it’s unlikely to achieve very much. The default
@@ -823,7 +823,7 @@ Let’s repeat NND and see what the accuracy of this new result is like.
 
 g1000d_nnd_rep <- nnd_knn(g1000d, k = 15, metric = "euclidean")
 neighbor_overlap(g1000d_nnbf, g1000d_nnd_rep, k = 15)
-#> [1] 0.7858
+#> [1] 0.7857333
 ```
 
 That’s similar to the first run. That’s re-assuring in the sense that
@@ -836,7 +836,7 @@ them won’t be very helpful. Time to find out:
 
 g1000d_nnd_merge <- merge_knn(list(g1000d_nnd, g1000d_nnd_rep))
 neighbor_overlap(g1000d_nnbf, g1000d_nnd_merge, k = 15)
-#> [1] 0.9056667
+#> [1] 0.9049333
 ```
 
 That’s a big improvement. So it does seem like there is some diversity
@@ -862,7 +862,7 @@ runs.](hubness_files/figure-html/NND-100D-compare-accuracy-1.png)
 ``` r
 
 cor(g1000d_nnd_acc, g1000d_nnd_rep_acc)
-#> [1] 0.5069483
+#> [1] 0.5116042
 ```
 
 Despite the similar overall accuracies, there’s quite a large variance
@@ -929,7 +929,7 @@ tail.](hubness_files/figure-html/histogram-of-k-occurrences-of-search-graph-1.pn
 
 summary(g1000d_sgko)
 #>    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-#>   1.000   4.000   5.000   7.258   9.000  22.000
+#>   1.000   4.000   5.000   7.257   9.000  22.000
 sum(g1000d_sgko == 0)
 #> [1] 0
 ```
@@ -959,7 +959,7 @@ Are the results improved?
 ``` r
 
 neighbor_overlap(g1000d_nnbf, g1000d_search, k = 15)
-#> [1] 0.9979333
+#> [1] 0.998
 ```
 
 Yes, the accuracy is now nearly perfect. The disadvantages of the search
@@ -989,7 +989,7 @@ g1000d_nnd_search <-
     epsilon = 0.1
   )
 neighbor_overlap(g1000d_nnbf, g1000d_nnd_search, k = 15)
-#> [1] 0.9845333
+#> [1] 0.9846667
 ```
 
 Accuracies are nearly as good. You can save even more time by turning
@@ -1008,7 +1008,7 @@ g1000d_nnd_search0 <-
     epsilon = 0
   )
 neighbor_overlap(g1000d_nnbf, g1000d_nnd_search0, k = 15)
-#> [1] 0.8286667
+#> [1] 0.8292667
 ```
 
 but accuracies are now noticeably less improved. Using the search graph
@@ -1027,7 +1027,7 @@ g1000d_search0 <-
     epsilon = 0
   )
 neighbor_overlap(g1000d_nnbf, g1000d_search0, k = 15)
-#> [1] 0.8489333
+#> [1] 0.8493333
 ```
 
 but it seems like some sort of back-tracking is to be recommended with
@@ -1058,7 +1058,7 @@ g1000d_nnd_search_max <-
     max_search_fraction = 0.1
   )
 neighbor_overlap(g1000d_nnbf, g1000d_nnd_search_max, k = 15)
-#> [1] 0.8233333
+#> [1] 0.824
 ```
 
 Accuracies are again reduced.

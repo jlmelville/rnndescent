@@ -139,12 +139,10 @@ brute_force_knn(
 
 - use_alt_metric:
 
-  If `TRUE`, use faster metrics that maintain the ordering of distances
-  internally (e.g. squared Euclidean distances if using
-  `metric = "euclidean"`), then apply a correction at the end. Probably
-  the only reason to set this to `FALSE` is if you suspect that some
-  sort of numeric issue is occurring with your data in the alternative
-  code path.
+  If `TRUE`, use alternative scores such as squared Euclidean distance
+  internally and return distances in the requested metric. With
+  `metric = "jaccard"` and a dense logical matrix, construction uses
+  ordinary packed Jaccard.
 
 - n_threads:
 
@@ -194,7 +192,7 @@ iris_nn <- brute_force_knn(iris, k = 4, metric = "manhattan", n_threads = 1)
 
 # Use verbose flag to see information about progress
 iris_nn <- brute_force_knn(iris, k = 4, metric = "euclidean", verbose = TRUE)
-#> 06:10:58 Using alt metric 'sqeuclidean' for 'euclidean'
-#> 06:10:58 Calculating brute force k-nearest neighbors with k = 4
-#> 06:10:58 Finished
+#> 16:21:57 Using alt metric 'sqeuclidean' for 'euclidean'
+#> 16:21:57 Calculating brute force k-nearest neighbors with k = 4
+#> 16:21:57 Finished
 ```

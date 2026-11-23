@@ -150,12 +150,10 @@ prepare_search_graph(
 
 - use_alt_metric:
 
-  If `TRUE`, use faster metrics that maintain the ordering of distances
-  internally (e.g. squared Euclidean distances if using
-  `metric = "euclidean"`), then apply a correction at the end. Probably
-  the only reason to set this to `FALSE` is if you suspect that some
-  sort of numeric issue is occurring with your data in the alternative
-  code path.
+  If `TRUE`, use alternative scores such as squared Euclidean distance
+  internally and return distances in the requested metric. With
+  `metric = "jaccard"` and a dense logical matrix, construction uses
+  ordinary packed Jaccard.
 
 - diversify_prob:
 
@@ -303,9 +301,9 @@ iris_query_nn <- graph_knn_query(
   reference_graph = ref_search_graph, k = 4, metric = "euclidean",
   verbose = TRUE
 )
-#> 06:11:00 Using alt metric 'sqeuclidean' for 'euclidean'
-#> 06:11:00 Initializing from random neighbors
-#> 06:11:00 Generating random k-nearest neighbor graph from reference with k = 4
-#> 06:11:00 Searching nearest neighbor graph with epsilon = 0.1 and max_search_fraction = 1
-#> 06:11:00 Finished
+#> 16:21:59 Using alt metric 'sqeuclidean' for 'euclidean'
+#> 16:21:59 Initializing from random neighbors
+#> 16:21:59 Generating random k-nearest neighbor graph from reference with k = 4
+#> 16:21:59 Searching nearest neighbor graph with epsilon = 0.1 and max_search_fraction = 1
+#> 16:21:59 Finished
 ```
