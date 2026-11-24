@@ -13,6 +13,7 @@
 #include <cstddef>
 #include <functional>
 #include <numeric>
+#include <utility>
 
 #include "tdoann/distance.h"
 
@@ -95,11 +96,19 @@ template <typename Out, typename Idx> struct DenseDistanceFour {
     const auto block_end = dimension - dimension % width;
     // Each lane accumulates one residue class of feature indices.
     for (std::size_t j = 0; j < block_end; j += width) {
-      for (std::size_t target = 0; target < rows.size(); ++target) {
-        for (std::size_t lane = 0; lane < width; ++lane) {
-          if constexpr (Metric == DenseBatchMetric::raw_dot) {
-            sums[target][lane] += x[j + lane] * rows[target][j + lane];
-          } else {
+      if constexpr (Metric == DenseBatchMetric::raw_dot) {
+        // Update targets in pairs so each pair shares the anchor block.
+        // Fixed lane indices preserve the eight independent partial sums.
+        constexpr auto lanes = std::make_index_sequence<width>{};
+        for (std::size_t target = 0; target < rows.size(); target += 2) {
+          sums[target] =
+              add_dot_block(sums[target], x + j, rows[target] + j, lanes);
+          sums[target + 1] = add_dot_block(sums[target + 1], x + j,
+                                           rows[target + 1] + j, lanes);
+        }
+      } else {
+        for (std::size_t target = 0; target < rows.size(); ++target) {
+          for (std::size_t lane = 0; lane < width; ++lane) {
             const auto delta = x[j + lane] - rows[target][j + lane];
             const auto square = delta * delta;
             sums[target][lane] += square;
@@ -126,6 +135,14 @@ template <typename Out, typename Idx> struct DenseDistanceFour {
   }
 
 private:
+  template <std::size_t... Lane>
+  static auto add_dot_block(const std::array<Out, sizeof...(Lane)> &sums,
+                            const float *x, const float *y,
+                            std::index_sequence<Lane...>)
+      -> std::array<Out, sizeof...(Lane)> {
+    return {{(sums[Lane] + x[Lane] * y[Lane])...}};
+  }
+
   template <DenseBatchMetric Metric> static auto finish(Out sum) -> Out {
     if constexpr (Metric == DenseBatchMetric::euclidean) {
       return std::sqrt(sum);
