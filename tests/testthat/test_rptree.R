@@ -199,6 +199,31 @@ test_that("dense cosine leaf batches and tails agree with direct scores", {
   }
 })
 
+test_that("shared Euclidean splits preserve neighbors under translation", {
+  # At 4097 features the 80-row root exceeds the 63-row local cutoff.
+  x <- matrix(0, nrow = 80L, ncol = 4097L)
+  x[, 1L] <- seq_len(nrow(x)) - 40L
+  x[c(2L, 22L), 1L] <- x[c(3L, 23L), 1L]
+  forest <- function(data, workers) {
+    set.seed(108L)
+    dqrng::dqset.seed(108L)
+    rpf_knn(
+      data,
+      k = 8L,
+      n_trees = 1L,
+      leaf_size = 8L,
+      max_tree_depth = 1L,
+      n_threads = workers,
+      metric = "euclidean",
+      include_self = FALSE
+    )
+  }
+  original <- forest(x, 2L)
+  x[, 1L] <- x[, 1L] + 256
+  expect_identical(forest(x, 2L), original)
+  expect_identical(forest(x, 3L), original)
+})
+
 test_that("shared angular splits preserve leaf order across worker counts", {
   set.seed(308L)
   # At 1025 features the shared scan defers nodes with at most 255 rows.

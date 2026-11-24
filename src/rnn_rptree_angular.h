@@ -10,13 +10,14 @@
 
 #include <cstdint>
 #include <limits>
+#include <tuple>
 
 #include "rnn_distance_batch.h"
 #include "rnn_rptree_shared.h"
 
 namespace rnndescent::shared_forest {
 
-inline std::size_t angular_local_rows(std::size_t dimension,
+inline std::size_t local_subtree_rows(std::size_t dimension,
                                       std::size_t leaf_size) {
   constexpr std::size_t cache_bytes = 1024 * 1024;
   return std::max(leaf_size, cache_bytes / sizeof(float) / dimension);
@@ -54,8 +55,8 @@ void project_angular_row(const float *row, std::size_t dimension,
   }
 }
 
-template <typename Idx>
-auto build_angular(const std::vector<float> &data, std::size_t ndim,
+template <bool Angular, typename Idx>
+auto build_compact(const std::vector<float> &data, std::size_t ndim,
                    std::size_t n_trees, uint32_t leaf_size, uint32_t max_depth,
                    tdoann::ParallelRandomIntProvider<Idx> &provider,
                    std::size_t threads, RPProgress &progress,
@@ -68,7 +69,7 @@ auto build_angular(const std::vector<float> &data, std::size_t ndim,
     Members rows;
   };
   const auto n = data.size() / ndim;
-  const auto local_rows = angular_local_rows(ndim, leaf_size);
+  const auto local_rows = local_subtree_rows(ndim, leaf_size);
   provider.initialize();
   progress.set_n_iters(1);
   progress.set_n_batches(2);
@@ -81,7 +82,7 @@ auto build_angular(const std::vector<float> &data, std::size_t ndim,
   }
 
   uint64_t first_stream = 1;
-  {
+  if (n > local_rows) {
     std::vector<uint32_t> slots(n * n_trees);
     for (uint32_t level = 0; level < max_depth; ++level) {
       std::vector<std::size_t> active;
@@ -101,8 +102,14 @@ auto build_angular(const std::vector<float> &data, std::size_t ndim,
             const auto &node = frontier[active[i]];
             auto &plane = planes[i];
             plane.rng = provider.get_parallel_instance(first_stream + i);
-            plane.normal =
-                tdoann::angular_split_plane(data, ndim, node.rows, *plane.rng);
+            if constexpr (Angular) {
+              plane.normal = tdoann::angular_split_plane(data, ndim, node.rows,
+                                                         *plane.rng);
+            } else {
+              std::tie(plane.normal, plane.offset) =
+                  tdoann::euclidean_split_plane(data, ndim, node.rows,
+                                                *plane.rng);
+            }
             for (const auto p : node.rows) {
               slots[p * n_trees + node.tree] = static_cast<uint32_t>(i);
             }
@@ -115,8 +122,20 @@ auto build_angular(const std::vector<float> &data, std::size_t ndim,
                [&](std::size_t block) {
                  for (auto p = block * tile;
                       p < std::min(n, (block + 1) * tile); ++p) {
-                   project_angular_row(data.data() + p * ndim, ndim, planes,
-                                       slots.data() + p * n_trees, n_trees);
+                   const auto *row = data.data() + p * ndim;
+                   auto *row_slots = slots.data() + p * n_trees;
+                   if constexpr (Angular) {
+                     project_angular_row(row, ndim, planes, row_slots, n_trees);
+                   } else {
+                     for (std::size_t t = 0; t < n_trees; ++t) {
+                       auto &id = row_slots[t];
+                       if (id != no_plane) {
+                         const auto &plane = planes[id];
+                         id = margin_side(tdoann::projection_margin(
+                             plane.normal, row, plane.offset));
+                       }
+                     }
+                   }
                  }
                },
                progress, executor);
@@ -161,10 +180,11 @@ auto build_angular(const std::vector<float> &data, std::size_t ndim,
       [&](std::size_t i) {
         const auto &node = frontier[i];
         auto rng = provider.get_parallel_instance(first_stream + i);
-        tdoann::make_tree_recursive(
-            data, ndim, node.rows, subtrees[i], *rng,
-            tdoann::angular_random_projection_split<float, Idx>, leaf_size,
-            max_depth - node.depth);
+        constexpr auto split =
+            Angular ? tdoann::angular_random_projection_split<float, Idx>
+                    : tdoann::euclidean_random_projection_split<float, Idx>;
+        tdoann::make_tree_recursive(data, ndim, node.rows, subtrees[i], *rng,
+                                    split, leaf_size, max_depth - node.depth);
       },
       progress, executor);
   progress.batch_finished();

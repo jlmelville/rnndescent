@@ -267,12 +267,12 @@ build_rp_forest(const std::vector<In> &data_vec, std::size_t ndim,
     if (metric == "cosine" && n_threads > 1 && n_trees > 1 &&
         max_tree_depth > 0 &&
         n_points / n_threads >
-            rnndescent::shared_forest::angular_local_rows(ndim, leaf_size) &&
+            rnndescent::shared_forest::local_subtree_rows(ndim, leaf_size) &&
         n_points <= rnndescent::shared_forest::no_plane / n_trees) {
       if (verbose) {
         tsmessage() << "Sharing dense angular projections across trees\n";
       }
-      return rnndescent::shared_forest::build_angular(
+      return rnndescent::shared_forest::build_compact<true>(
           data_vec, ndim, n_trees, leaf_size, max_tree_depth, rng_provider,
           n_threads, forest_progress, executor);
     }
@@ -280,6 +280,11 @@ build_rp_forest(const std::vector<In> &data_vec, std::size_t ndim,
         max_tree_depth > 0 && n_points > leaf_size) {
       if (verbose) {
         tsmessage() << "Sharing dense Euclidean projections across trees\n";
+      }
+      if (n_trees <= rnndescent::shared_forest::no_plane / n_points) {
+        return rnndescent::shared_forest::build_compact<false>(
+            data_vec, ndim, n_trees, leaf_size, max_tree_depth, rng_provider,
+            n_threads, forest_progress, executor);
       }
       return rnndescent::shared_forest::build(
           data_vec, ndim, n_trees, leaf_size, max_tree_depth, rng_provider,
