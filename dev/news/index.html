@@ -72,7 +72,7 @@
 <h3 id="performance-development-version">Performance<a class="anchor" aria-label="anchor" href="#performance-development-version"></a></h3>
 <ul><li>Faster forest initialization, nearest neighbor descent, and search graph preparation. Forests built solely for initialization use less memory.</li>
 <li>Threaded dense Euclidean graph builds use a 1 MiB row-data cutoff to decide when to finish each initialization subtree on one worker.</li>
-<li>Dense Euclidean and cosine graph builds score several neighbors together. Parallel builds route candidates to the workers responsible for each row. Binary builds also reuse packed data between tree initialization and descent.</li>
+<li>Dense Euclidean and cosine graph builds score several neighbors together. Dense cosine builds speed up dot products by scoring four candidates in two pairs. Parallel builds route candidates to the workers responsible for each row. Binary builds also reuse packed data between tree initialization and descent.</li>
 <li>Dense logical Jaccard builds use ordinary packed Jaccard. Queries keep log scoring by default and seed batches of queries from the search trees.</li>
 <li>Faster queries for several dense metrics, including Spearman, and for prepared sparse cosine indexes. Builds and queries also benefit from direct packing of logical matrices for supported binary metrics.</li>
 </ul></div>

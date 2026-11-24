@@ -34,9 +34,10 @@
 - Threaded dense Euclidean graph builds use a 1 MiB row-data cutoff to
   decide when to finish each initialization subtree on one worker.
 - Dense Euclidean and cosine graph builds score several neighbors
-  together. Parallel builds route candidates to the workers responsible
-  for each row. Binary builds also reuse packed data between tree
-  initialization and descent.
+  together. Dense cosine builds speed up dot products by scoring four
+  candidates in two pairs. Parallel builds route candidates to the
+  workers responsible for each row. Binary builds also reuse packed data
+  between tree initialization and descent.
 - Dense logical Jaccard builds use ordinary packed Jaccard. Queries keep
   log scoring by default and seed batches of queries from the search
   trees.
