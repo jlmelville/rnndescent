@@ -31,6 +31,8 @@
 - Faster forest initialization, nearest neighbor descent, and search
   graph preparation. Forests built solely for initialization use less
   memory.
+- Threaded dense Euclidean graph builds use a 1 MiB row-data cutoff to
+  decide when to finish each initialization subtree on one worker.
 - Dense Euclidean and cosine graph builds score several neighbors
   together. Parallel builds route candidates to the workers responsible
   for each row. Binary builds also reuse packed data between tree
