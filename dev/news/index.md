@@ -1,6 +1,6 @@
 # Changelog
 
-## rnndescent (development version)
+## rnndescent 0.3.0
 
 ### New features
 
@@ -22,9 +22,9 @@
 - Changes to parallel candidate selection, tree initialization, and
   filling missing neighbors can change which neighbors are returned for
   the same seed. Batched dense Euclidean and cosine calculations can
-  also reorder near ties. Queries on dense logical Jaccard indexes now
-  sample up to `k` distinct reference rows when a search tree supplies
-  too few neighbors.
+  also reorder near ties.
+- Queries on dense logical Jaccard indexes now sample up to `k` distinct
+  reference rows when a search tree supplies too few neighbors.
 
 ### Performance
 
@@ -37,17 +37,17 @@
 ### Bug fixes and input validation
 
 - [`prepare_search_graph()`](https://jlmelville.github.io/rnndescent/dev/reference/prepare_search_graph.md)
-  handles edgeless sparse graphs and respects degree limits when
-  distances tie.
+  handles edgeless sparse graphs.
+- [`prepare_search_graph()`](https://jlmelville.github.io/rnndescent/dev/reference/prepare_search_graph.md)
+  respects degree limits when distances tie.
 - [`random_knn()`](https://jlmelville.github.io/rnndescent/dev/reference/random_knn.md)
-  preserves sampled neighbors when sorting, and
-  [`neighbor_overlap()`](https://jlmelville.github.io/rnndescent/dev/reference/neighbor_overlap.md)
+  preserves sampled neighbors when sorting.
+- [`neighbor_overlap()`](https://jlmelville.github.io/rnndescent/dev/reference/neighbor_overlap.md)
   skips zeros that mark missing neighbors.
-- Reject non-finite numeric features, missing logical features, and
-  invalid neighbor IDs. Hellinger, Jensen–Shannon, and symmetric KL
-  reject negative inputs.
-- Queries with zero observations return empty neighbor matrices. Long
-  operations abort when they detect a user interrupt.
+- Stricter input validation includes rejecting negative features for
+  Hellinger, Jensen–Shannon, and symmetric KL.
+- Queries with zero observations return empty neighbor matrices.
+- Improved detection of user interrupts during long operations.
 
 ## rnndescent 0.2.0
 

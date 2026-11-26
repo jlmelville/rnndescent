@@ -56,30 +56,36 @@
     </div>
 
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="development version" id="rnndescent-development-version">rnndescent (development version)<a class="anchor" aria-label="anchor" href="#rnndescent-development-version"></a></h2>
+<h2 class="pkg-version" data-toc-text="0.3.0" id="rnndescent-030">rnndescent 0.3.0<a class="anchor" aria-label="anchor" href="#rnndescent-030"></a></h2>
 <div class="section level3">
-<h3 id="new-features-development-version">New features<a class="anchor" aria-label="anchor" href="#new-features-development-version"></a></h3>
+<h3 id="new-features-0-3-0">New features<a class="anchor" aria-label="anchor" href="#new-features-0-3-0"></a></h3>
 <ul><li>Use <code><a href="../reference/rnnd_prepare.html">rnnd_prepare()</a></code> to speed up repeated queries on a compatible index. To reuse the index in another R session, save the original index and prepare it after loading.</li>
 <li>New utilities sort and truncate neighbor graphs, move or remove self-neighbors, convert graphs to sparse matrices, and calculate distances for supplied neighbor indices.</li>
 </ul></div>
 <div class="section level3">
-<h3 id="changes-that-can-affect-results-development-version">Changes that can affect results<a class="anchor" aria-label="anchor" href="#changes-that-can-affect-results-development-version"></a></h3>
+<h3 id="changes-that-can-affect-results-0-3-0">Changes that can affect results<a class="anchor" aria-label="anchor" href="#changes-that-can-affect-results-0-3-0"></a></h3>
 <ul><li>Distance fixes cover cosine, correlation, <code>trueangular</code>, TS-SS, Hellinger, Jensen–Shannon, symmetric KL, sparse Canberra on signed data, and explicitly stored zeros in sparse input. Rebuild affected graphs and indexes.</li>
-<li>Changes to parallel candidate selection, tree initialization, and filling missing neighbors can change which neighbors are returned for the same seed. Batched dense Euclidean and cosine calculations can also reorder near ties. Queries on dense logical Jaccard indexes now sample up to <code>k</code> distinct reference rows when a search tree supplies too few neighbors.</li>
+<li>Changes to parallel candidate selection, tree initialization, and filling missing neighbors can change which neighbors are returned for the same seed. Batched dense Euclidean and cosine calculations can also reorder near ties.</li>
+<li>Queries on dense logical Jaccard indexes now sample up to <code>k</code> distinct reference rows when a search tree supplies too few neighbors.</li>
 </ul></div>
 <div class="section level3">
-<h3 id="performance-development-version">Performance<a class="anchor" aria-label="anchor" href="#performance-development-version"></a></h3>
+<h3 id="performance-0-3-0">Performance<a class="anchor" aria-label="anchor" href="#performance-0-3-0"></a></h3>
 <ul><li>Faster graph and index builds, particularly for dense Euclidean, cosine, and binary data. Forests built solely for initialization use less memory.</li>
 <li>Faster queries for several dense metrics, including Spearman, and for prepared sparse cosine indexes.</li>
 </ul></div>
 <div class="section level3">
-<h3 id="bug-fixes-and-input-validation-development-version">Bug fixes and input validation<a class="anchor" aria-label="anchor" href="#bug-fixes-and-input-validation-development-version"></a></h3>
+<h3 id="bug-fixes-and-input-validation-0-3-0">Bug fixes and input validation<a class="anchor" aria-label="anchor" href="#bug-fixes-and-input-validation-0-3-0"></a></h3>
 <ul><li>
-<code><a href="../reference/prepare_search_graph.html">prepare_search_graph()</a></code> handles edgeless sparse graphs and respects degree limits when distances tie.</li>
+<code><a href="../reference/prepare_search_graph.html">prepare_search_graph()</a></code> handles edgeless sparse graphs.</li>
 <li>
-<code><a href="../reference/random_knn.html">random_knn()</a></code> preserves sampled neighbors when sorting, and <code><a href="../reference/neighbor_overlap.html">neighbor_overlap()</a></code> skips zeros that mark missing neighbors.</li>
-<li>Reject non-finite numeric features, missing logical features, and invalid neighbor IDs. Hellinger, Jensen–Shannon, and symmetric KL reject negative inputs.</li>
-<li>Queries with zero observations return empty neighbor matrices. Long operations abort when they detect a user interrupt.</li>
+<code><a href="../reference/prepare_search_graph.html">prepare_search_graph()</a></code> respects degree limits when distances tie.</li>
+<li>
+<code><a href="../reference/random_knn.html">random_knn()</a></code> preserves sampled neighbors when sorting.</li>
+<li>
+<code><a href="../reference/neighbor_overlap.html">neighbor_overlap()</a></code> skips zeros that mark missing neighbors.</li>
+<li>Stricter input validation includes rejecting negative features for Hellinger, Jensen–Shannon, and symmetric KL.</li>
+<li>Queries with zero observations return empty neighbor matrices.</li>
+<li>Improved detection of user interrupts during long operations.</li>
 </ul></div>
 </div>
     <div class="section level2">
