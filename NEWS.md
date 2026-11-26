@@ -14,27 +14,17 @@
 * Distance fixes cover cosine, correlation, `trueangular`, TS-SS, Hellinger,
   Jensen–Shannon, symmetric KL, sparse Canberra on signed data, and explicitly
   stored zeros in sparse input. Rebuild affected graphs and indexes.
-* Parallel candidate selection and tree initialization can change the neighbors
-  returned for the same seed. Batched dense Euclidean and cosine calculations
-  can also reorder near ties.
-* Filling missing neighbors can change results for the same seed. Queries on
-  dense logical Jaccard indexes now sample up to `k` distinct reference rows
-  when a search tree supplies too few neighbors.
+* Changes to parallel candidate selection, tree initialization, and filling missing neighbors can
+  change which neighbors are returned for the same seed. Batched dense Euclidean and cosine
+  calculations can also reorder near ties. Queries on dense logical Jaccard indexes now sample up
+  to `k` distinct reference rows when a search tree supplies too few neighbors.
 
 ## Performance
 
-* Faster forest initialization, nearest neighbor descent, and search graph
-  preparation. Forests built solely for initialization use less memory.
-* Threaded dense Euclidean graph builds use a 1 MiB row-data cutoff to decide
-  when to finish each initialization subtree on one worker.
-* Dense Euclidean and cosine graph builds score several neighbors together.
-  Parallel builds route candidates to the workers responsible for each row.
-  Binary builds also reuse packed data between tree initialization and descent.
-* Dense logical Jaccard builds use ordinary packed Jaccard. Queries keep log
-  scoring by default and seed batches of queries from the search trees.
-* Faster queries for several dense metrics, including Spearman, and for
-  prepared sparse cosine indexes. Builds and queries also benefit from direct
-  packing of logical matrices for supported binary metrics.
+* Faster graph and index builds, particularly for dense Euclidean, cosine, and binary data. Forests
+  built solely for initialization use less memory.
+* Faster queries for several dense metrics, including Spearman, and for prepared sparse cosine
+  indexes.
 
 ## Bug fixes and input validation
 
