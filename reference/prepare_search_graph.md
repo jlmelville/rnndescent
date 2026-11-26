@@ -38,7 +38,9 @@ prepare_search_graph(
   converted to `numerical` matrix format internally, so if your data
   columns are `logical` and intended to be used with the specialized
   binary `metric`s, you should convert it to a logical matrix first
-  (otherwise you will get the slower dense numerical version).
+  (otherwise you will get the slower dense numerical version). Numeric
+  feature values must be finite: `NA`, `NaN`, `Inf` and `-Inf` are not
+  allowed.
 
 - graph:
 
@@ -66,6 +68,9 @@ prepare_search_graph(
 
   - `"dice"`
 
+  - `"dot"` (1 minus the normalized dot product, capped at 1; 1 if
+    either vector is zero)
+
   - `"euclidean"`
 
   - `"hamming"`
@@ -86,6 +91,9 @@ prepare_search_graph(
 
   - `"manhattan"`
 
+  - `"matching"` (fraction of features whose zero/nonzero indicators
+    differ)
+
   - `"rogerstanimoto"`
 
   - `"russellrao"`
@@ -97,6 +105,9 @@ prepare_search_graph(
   - `"spearmanr"` (1 minus the Spearman rank correlation)
 
   - `"symmetrickl"` (symmetric Kullback-Leibler divergence)
+
+  - `"trueangular"` (angle between vectors divided by pi; 0 for two zero
+    vectors and 1/2 when exactly one vector is zero)
 
   - `"tsss"` (Triangle Area Similarity-Sector Area Similarity or TS-SS
     metric)
@@ -139,12 +150,10 @@ prepare_search_graph(
 
 - use_alt_metric:
 
-  If `TRUE`, use faster metrics that maintain the ordering of distances
-  internally (e.g. squared Euclidean distances if using
-  `metric = "euclidean"`), then apply a correction at the end. Probably
-  the only reason to set this to `FALSE` is if you suspect that some
-  sort of numeric issue is occurring with your data in the alternative
-  code path.
+  If `TRUE`, use alternative scores such as squared Euclidean distance
+  internally and return distances in the requested metric. With
+  `metric = "jaccard"` and a dense logical matrix, construction uses
+  ordinary packed Jaccard.
 
 - diversify_prob:
 
@@ -292,9 +301,9 @@ iris_query_nn <- graph_knn_query(
   reference_graph = ref_search_graph, k = 4, metric = "euclidean",
   verbose = TRUE
 )
-#> 07:06:46 Using alt metric 'sqeuclidean' for 'euclidean'
-#> 07:06:46 Initializing from random neighbors
-#> 07:06:46 Generating random k-nearest neighbor graph from reference with k = 4
-#> 07:06:46 Searching nearest neighbor graph with epsilon = 0.1 and max_search_fraction = 1
-#> 07:06:46 Finished
+#> 08:10:21 Using alt metric 'sqeuclidean' for 'euclidean'
+#> 08:10:21 Initializing from random neighbors
+#> 08:10:21 Generating random k-nearest neighbor graph from reference with k = 4
+#> 08:10:21 Searching nearest neighbor graph with epsilon = 0.1 and max_search_fraction = 1
+#> 08:10:21 Finished
 ```

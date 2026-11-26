@@ -9,7 +9,7 @@ to optimize an approximate nearest neighbor graph."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">rnndescent</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -54,7 +54,7 @@ to optimize an approximate nearest neighbor graph."></head><body>
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Find nearest neighbors using nearest neighbor descent</h1>
-      <small class="dont-index">Source: <a href="https://github.com/jlmelville/rnndescent/blob/v0.2.0/R/rnndescent.R" class="external-link"><code>R/rnndescent.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/jlmelville/rnndescent/blob/master/R/rnndescent.R" class="external-link"><code>R/rnndescent.R</code></a></small>
       <div class="d-none name"><code>nnd_knn.Rd</code></div>
     </div>
 
@@ -98,7 +98,9 @@ or <code><a href="https://rdrr.io/pkg/Matrix/man/sparseMatrix.html" class="exter
 format. Dataframes will be converted to <code>numerical</code> matrix format
 internally, so if your data columns are <code>logical</code> and intended to be used
 with the specialized binary <code>metric</code>s, you should convert it to a logical
-matrix first (otherwise you will get the slower dense numerical version).</p></dd>
+matrix first (otherwise you will get the slower dense numerical version).
+Numeric feature values must be finite: <code>NA</code>, <code>NaN</code>, <code>Inf</code> and <code>-Inf</code>
+are not allowed.</p></dd>
 
 
 <dt id="arg-k">k<a class="anchor" aria-label="anchor" href="#arg-k"></a></dt>
@@ -113,6 +115,8 @@ specified.</p></dd>
 <li><p><code>"correlation"</code> (1 minus the Pearson correlation)</p></li>
 <li><p><code>"cosine"</code></p></li>
 <li><p><code>"dice"</code></p></li>
+<li><p><code>"dot"</code> (1 minus the normalized dot product, capped at 1;
+1 if either vector is zero)</p></li>
 <li><p><code>"euclidean"</code></p></li>
 <li><p><code>"hamming"</code></p></li>
 <li><p><code>"haversine"</code> (great-circle distance for 2D latitude/longitude in
@@ -124,12 +128,16 @@ degrees are encountered)</p></li>
 <li><p><code>"kulsinski"</code></p></li>
 <li><p><code>"sqeuclidean"</code> (squared Euclidean)</p></li>
 <li><p><code>"manhattan"</code></p></li>
+<li><p><code>"matching"</code> (fraction of features whose zero/nonzero indicators
+differ)</p></li>
 <li><p><code>"rogerstanimoto"</code></p></li>
 <li><p><code>"russellrao"</code></p></li>
 <li><p><code>"sokalmichener"</code></p></li>
 <li><p><code>"sokalsneath"</code></p></li>
 <li><p><code>"spearmanr"</code> (1 minus the Spearman rank correlation)</p></li>
 <li><p><code>"symmetrickl"</code> (symmetric Kullback-Leibler divergence)</p></li>
+<li><p><code>"trueangular"</code> (angle between vectors divided by pi; 0 for two zero
+vectors and 1/2 when exactly one vector is zero)</p></li>
 <li><p><code>"tsss"</code> (Triangle Area Similarity-Sector Area Similarity or TS-SS
 metric)</p></li>
 <li><p><code>"yule"</code></p></li>
@@ -223,12 +231,12 @@ convergence, by default this is <code>FALSE</code>.</p></dd>
 
 
 <dt id="arg-use-alt-metric">use_alt_metric<a class="anchor" aria-label="anchor" href="#arg-use-alt-metric"></a></dt>
-<dd><p>If <code>TRUE</code>, use faster metrics that maintain the
-ordering of distances internally (e.g. squared Euclidean distances if using
-<code>metric = "euclidean"</code>), then apply a correction at the end. Probably
-the only reason to set this to <code>FALSE</code> is if you suspect that some
-sort of numeric issue is occurring with your data in the alternative code
-path.</p></dd>
+<dd><p>If <code>TRUE</code>, use alternative scores such as squared
+Euclidean distance internally and return distances in the requested metric.
+With <code>metric = "jaccard"</code> and a dense logical matrix, construction uses
+ordinary packed Jaccard.
+Queries using the resulting Jaccard forest use log scoring by default. Set
+<code>use_alt_metric = FALSE</code> to use ordinary Jaccard for queries.</p></dd>
 
 
 <dt id="arg-n-threads">n_threads<a class="anchor" aria-label="anchor" href="#arg-n-threads"></a></dt>
@@ -286,7 +294,8 @@ In <em>Proceedings of the fortieth annual ACM symposium on Theory of computing</
 <a href="https://doi.org/10.1145/1374376.1374452" class="external-link">doi:10.1145/1374376.1374452</a>
 .</p>
 <p>Dong, W., Moses, C., &amp; Li, K. (2011, March).
-Efficient k-nearest neighbor graph construction for generic similarity measures.
+Efficient k-nearest neighbor graph construction for generic similarity
+measures.
 In <em>Proceedings of the 20th international conference on World Wide Web</em>
 (pp. 577-586).
 ACM.
@@ -309,23 +318,25 @@ ACM.
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Use verbose flag to see information about progress</span></span></span>
 <span class="r-in"><span><span class="va">iris_nn</span> <span class="op">&lt;-</span> <span class="fu">nnd_knn</span><span class="op">(</span><span class="va">iris</span>, k <span class="op">=</span> <span class="fl">4</span>, metric <span class="op">=</span> <span class="st">"euclidean"</span>, verbose <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 07:06:46 Using alt metric 'sqeuclidean' for 'euclidean'</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 07:06:46 Initializing neighbors using 'rand' method</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 07:06:46 Generating random k-nearest neighbor graph with k = 4</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 07:06:46 Running nearest neighbor descent for 7 iterations</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 07:06:46 Finished</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 08:10:20 Using alt metric 'sqeuclidean' for 'euclidean'</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 08:10:20 Initializing neighbors using 'rand' method</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 08:10:20 Generating random k-nearest neighbor graph with k = 4</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 08:10:20 Running nearest neighbor descent for 7 iterations</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 08:10:20 Finished</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Nearest neighbor descent uses random initialization, but you can pass any</span></span></span>
 <span class="r-in"><span><span class="co"># approximation using the init argument (as long as the metrics used to</span></span></span>
 <span class="r-in"><span><span class="co"># calculate the initialization are compatible with the metric options used</span></span></span>
 <span class="r-in"><span><span class="co"># by nnd_knn).</span></span></span>
 <span class="r-in"><span><span class="va">iris_nn</span> <span class="op">&lt;-</span> <span class="fu"><a href="random_knn.html">random_knn</a></span><span class="op">(</span><span class="va">iris</span>, k <span class="op">=</span> <span class="fl">4</span>, metric <span class="op">=</span> <span class="st">"euclidean"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">iris_nn</span> <span class="op">&lt;-</span> <span class="fu">nnd_knn</span><span class="op">(</span><span class="va">iris</span>, init <span class="op">=</span> <span class="va">iris_nn</span>, metric <span class="op">=</span> <span class="st">"euclidean"</span>, verbose <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 07:06:46 Using alt metric 'sqeuclidean' for 'euclidean'</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 07:06:46 Initializing from user-supplied graph</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 07:06:46 Applying metric correction to initial distances from 'euclidean' to 'sqeuclidean'</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 07:06:46 Running nearest neighbor descent for 7 iterations</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 07:06:46 Finished</span>
+<span class="r-in"><span><span class="va">iris_nn</span> <span class="op">&lt;-</span> <span class="fu">nnd_knn</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  <span class="va">iris</span>, init <span class="op">=</span> <span class="va">iris_nn</span>, metric <span class="op">=</span> <span class="st">"euclidean"</span>, verbose <span class="op">=</span> <span class="cn">TRUE</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 08:10:20 Using alt metric 'sqeuclidean' for 'euclidean'</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 08:10:20 Initializing from user-supplied graph</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 08:10:20 Applying metric correction to initial distances from 'euclidean' to 'sqeuclidean'</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 08:10:20 Running nearest neighbor descent for 7 iterations</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 08:10:20 Finished</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Number of iterations controls how much optimization is attempted. A smaller</span></span></span>
 <span class="r-in"><span><span class="co"># value will run faster but give poorer results</span></span></span>
@@ -340,9 +351,12 @@ ACM.
 <span class="r-in"><span><span class="co"># stop progress earlier. The verbose flag will provide some information if</span></span></span>
 <span class="r-in"><span><span class="co"># convergence is occurring before all iterations are carried out.</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1337</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">iris_nn</span> <span class="op">&lt;-</span> <span class="fu">nnd_knn</span><span class="op">(</span><span class="va">iris</span>, k <span class="op">=</span> <span class="fl">4</span>, metric <span class="op">=</span> <span class="st">"euclidean"</span>, n_iters <span class="op">=</span> <span class="fl">5</span>, delta <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">iris_nn</span> <span class="op">&lt;-</span> <span class="fu">nnd_knn</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  <span class="va">iris</span>, k <span class="op">=</span> <span class="fl">4</span>, metric <span class="op">=</span> <span class="st">"euclidean"</span>, n_iters <span class="op">=</span> <span class="fl">5</span>, delta <span class="op">=</span> <span class="fl">0.5</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># To ensure that descent only stops if no improvements are made, set delta = 0</span></span></span>
+<span class="r-in"><span><span class="co"># To ensure that descent only stops if no improvements are made,</span></span></span>
+<span class="r-in"><span><span class="co"># set delta = 0</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1337</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">iris_nn</span> <span class="op">&lt;-</span> <span class="fu">nnd_knn</span><span class="op">(</span><span class="va">iris</span>, k <span class="op">=</span> <span class="fl">4</span>, metric <span class="op">=</span> <span class="st">"euclidean"</span>, n_iters <span class="op">=</span> <span class="fl">5</span>, delta <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>

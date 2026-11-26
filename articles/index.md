@@ -28,3 +28,7 @@ Some longer, more involved examples.
   Example](https://jlmelville.github.io/rnndescent/articles/sparse-example.md):
 - [Fashion MNIST
   Example](https://jlmelville.github.io/rnndescent/articles/fmnist-example.md):
+- [How many trees should I
+  use?](https://jlmelville.github.io/rnndescent/articles/tree-count.md):
+- [A sparse random projection for forest
+  initialization](https://jlmelville.github.io/rnndescent/articles/sparse-rp-example.md):

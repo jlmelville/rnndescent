@@ -45,7 +45,9 @@ rnnd_knn(
   converted to `numerical` matrix format internally, so if your data
   columns are `logical` and intended to be used with the specialized
   binary `metric`s, you should convert it to a logical matrix first
-  (otherwise you will get the slower dense numerical version).
+  (otherwise you will get the slower dense numerical version). Numeric
+  feature values must be finite: `NA`, `NaN`, `Inf` and `-Inf` are not
+  allowed.
 
 - k:
 
@@ -68,6 +70,9 @@ rnnd_knn(
 
   - `"dice"`
 
+  - `"dot"` (1 minus the normalized dot product, capped at 1; 1 if
+    either vector is zero)
+
   - `"euclidean"`
 
   - `"hamming"`
@@ -88,6 +93,9 @@ rnnd_knn(
 
   - `"manhattan"`
 
+  - `"matching"` (fraction of features whose zero/nonzero indicators
+    differ)
+
   - `"rogerstanimoto"`
 
   - `"russellrao"`
@@ -99,6 +107,9 @@ rnnd_knn(
   - `"spearmanr"` (1 minus the Spearman rank correlation)
 
   - `"symmetrickl"` (symmetric Kullback-Leibler divergence)
+
+  - `"trueangular"` (angle between vectors divided by pi; 0 for two zero
+    vectors and 1/2 when exactly one vector is zero)
 
   - `"tsss"` (Triangle Area Similarity-Sector Area Similarity or TS-SS
     metric)
@@ -141,12 +152,10 @@ rnnd_knn(
 
 - use_alt_metric:
 
-  If `TRUE`, use faster metrics that maintain the ordering of distances
-  internally (e.g. squared Euclidean distances if using
-  `metric = "euclidean"`), then apply a correction at the end. Probably
-  the only reason to set this to `FALSE` is if you suspect that some
-  sort of numeric issue is occurring with your data in the alternative
-  code path.
+  If `TRUE`, use alternative scores such as squared Euclidean distance
+  internally and return distances in the requested metric. With
+  `metric = "jaccard"` and a dense logical matrix, construction uses
+  ordinary packed Jaccard.
 
 - init:
 

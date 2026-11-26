@@ -41,7 +41,9 @@ nnd_knn(
   converted to `numerical` matrix format internally, so if your data
   columns are `logical` and intended to be used with the specialized
   binary `metric`s, you should convert it to a logical matrix first
-  (otherwise you will get the slower dense numerical version).
+  (otherwise you will get the slower dense numerical version). Numeric
+  feature values must be finite: `NA`, `NaN`, `Inf` and `-Inf` are not
+  allowed.
 
 - k:
 
@@ -64,6 +66,9 @@ nnd_knn(
 
   - `"dice"`
 
+  - `"dot"` (1 minus the normalized dot product, capped at 1; 1 if
+    either vector is zero)
+
   - `"euclidean"`
 
   - `"hamming"`
@@ -84,6 +89,9 @@ nnd_knn(
 
   - `"manhattan"`
 
+  - `"matching"` (fraction of features whose zero/nonzero indicators
+    differ)
+
   - `"rogerstanimoto"`
 
   - `"russellrao"`
@@ -95,6 +103,9 @@ nnd_knn(
   - `"spearmanr"` (1 minus the Spearman rank correlation)
 
   - `"symmetrickl"` (symmetric Kullback-Leibler divergence)
+
+  - `"trueangular"` (angle between vectors divided by pi; 0 for two zero
+    vectors and 1/2 when exactly one vector is zero)
 
   - `"tsss"` (Triangle Area Similarity-Sector Area Similarity or TS-SS
     metric)
@@ -217,12 +228,12 @@ nnd_knn(
 
 - use_alt_metric:
 
-  If `TRUE`, use faster metrics that maintain the ordering of distances
-  internally (e.g. squared Euclidean distances if using
-  `metric = "euclidean"`), then apply a correction at the end. Probably
-  the only reason to set this to `FALSE` is if you suspect that some
-  sort of numeric issue is occurring with your data in the alternative
-  code path.
+  If `TRUE`, use alternative scores such as squared Euclidean distance
+  internally and return distances in the requested metric. With
+  `metric = "jaccard"` and a dense logical matrix, construction uses
+  ordinary packed Jaccard. Queries using the resulting Jaccard forest
+  use log scoring by default. Set `use_alt_metric = FALSE` to use
+  ordinary Jaccard for queries.
 
 - n_threads:
 
@@ -308,23 +319,25 @@ iris_nn <- nnd_knn(iris, k = 4, metric = "manhattan", n_threads = 1)
 
 # Use verbose flag to see information about progress
 iris_nn <- nnd_knn(iris, k = 4, metric = "euclidean", verbose = TRUE)
-#> 07:06:46 Using alt metric 'sqeuclidean' for 'euclidean'
-#> 07:06:46 Initializing neighbors using 'rand' method
-#> 07:06:46 Generating random k-nearest neighbor graph with k = 4
-#> 07:06:46 Running nearest neighbor descent for 7 iterations
-#> 07:06:46 Finished
+#> 08:10:20 Using alt metric 'sqeuclidean' for 'euclidean'
+#> 08:10:20 Initializing neighbors using 'rand' method
+#> 08:10:20 Generating random k-nearest neighbor graph with k = 4
+#> 08:10:20 Running nearest neighbor descent for 7 iterations
+#> 08:10:20 Finished
 
 # Nearest neighbor descent uses random initialization, but you can pass any
 # approximation using the init argument (as long as the metrics used to
 # calculate the initialization are compatible with the metric options used
 # by nnd_knn).
 iris_nn <- random_knn(iris, k = 4, metric = "euclidean")
-iris_nn <- nnd_knn(iris, init = iris_nn, metric = "euclidean", verbose = TRUE)
-#> 07:06:46 Using alt metric 'sqeuclidean' for 'euclidean'
-#> 07:06:46 Initializing from user-supplied graph
-#> 07:06:46 Applying metric correction to initial distances from 'euclidean' to 'sqeuclidean'
-#> 07:06:46 Running nearest neighbor descent for 7 iterations
-#> 07:06:46 Finished
+iris_nn <- nnd_knn(
+  iris, init = iris_nn, metric = "euclidean", verbose = TRUE
+)
+#> 08:10:20 Using alt metric 'sqeuclidean' for 'euclidean'
+#> 08:10:20 Initializing from user-supplied graph
+#> 08:10:20 Applying metric correction to initial distances from 'euclidean' to 'sqeuclidean'
+#> 08:10:20 Running nearest neighbor descent for 7 iterations
+#> 08:10:20 Finished
 
 # Number of iterations controls how much optimization is attempted. A smaller
 # value will run faster but give poorer results
@@ -339,9 +352,12 @@ iris_nn <- nnd_knn(iris, k = 4, metric = "euclidean", max_candidates = 50)
 # stop progress earlier. The verbose flag will provide some information if
 # convergence is occurring before all iterations are carried out.
 set.seed(1337)
-iris_nn <- nnd_knn(iris, k = 4, metric = "euclidean", n_iters = 5, delta = 0.5)
+iris_nn <- nnd_knn(
+  iris, k = 4, metric = "euclidean", n_iters = 5, delta = 0.5
+)
 
-# To ensure that descent only stops if no improvements are made, set delta = 0
+# To ensure that descent only stops if no improvements are made,
+# set delta = 0
 set.seed(1337)
 iris_nn <- nnd_knn(iris, k = 4, metric = "euclidean", n_iters = 5, delta = 0)
 

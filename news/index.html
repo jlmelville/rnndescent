@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">rnndescent</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -52,9 +52,42 @@
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Changelog</h1>
-      <small>Source: <a href="https://github.com/jlmelville/rnndescent/blob/v0.2.0/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
+      <small>Source: <a href="https://github.com/jlmelville/rnndescent/blob/master/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.3.0" id="rnndescent-030">rnndescent 0.3.0<a class="anchor" aria-label="anchor" href="#rnndescent-030"></a></h2>
+<div class="section level3">
+<h3 id="new-features-0-3-0">New features<a class="anchor" aria-label="anchor" href="#new-features-0-3-0"></a></h3>
+<ul><li>Use <code><a href="../reference/rnnd_prepare.html">rnnd_prepare()</a></code> to speed up repeated queries on a compatible index. To reuse the index in another R session, save the original index and prepare it after loading.</li>
+<li>New utilities sort and truncate neighbor graphs (<code><a href="../reference/knn-utilities.html">sort_knn()</a></code>, <code><a href="../reference/knn-utilities.html">truncate_knn()</a></code>), move or remove self-neighbors (<code><a href="../reference/knn-utilities.html">self_first_knn()</a></code>, <code><a href="../reference/knn-utilities.html">remove_self_knn()</a></code>), convert graphs to sparse matrices (<code><a href="../reference/knn_to_sparse.html">knn_to_sparse()</a></code>), and calculate distances for supplied neighbor indices (<code><a href="../reference/knn_distances.html">knn_distances()</a></code>).</li>
+</ul></div>
+<div class="section level3">
+<h3 id="changes-that-can-affect-results-0-3-0">Changes that can affect results<a class="anchor" aria-label="anchor" href="#changes-that-can-affect-results-0-3-0"></a></h3>
+<ul><li>Distance fixes cover cosine, correlation, <code>trueangular</code>, TS-SS, Hellinger, Jensen–Shannon, symmetric KL, sparse Canberra on signed data, and explicitly stored zeros in sparse input. Rebuild affected graphs and indexes.</li>
+<li>Changes to parallel candidate selection, tree initialization, and filling missing neighbors can change which neighbors are returned for the same seed. Batched dense Euclidean and cosine calculations can also reorder near ties.</li>
+<li>Queries on dense logical Jaccard indexes now sample up to <code>k</code> distinct reference rows when a search tree supplies too few neighbors.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="performance-0-3-0">Performance<a class="anchor" aria-label="anchor" href="#performance-0-3-0"></a></h3>
+<ul><li>Faster graph and index builds, particularly for dense Euclidean, cosine, and binary data. Forests built solely for initialization use less memory.</li>
+<li>Faster queries for several dense metrics, including Spearman, and for prepared sparse cosine indexes.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="bug-fixes-and-input-validation-0-3-0">Bug fixes and input validation<a class="anchor" aria-label="anchor" href="#bug-fixes-and-input-validation-0-3-0"></a></h3>
+<ul><li>
+<code><a href="../reference/prepare_search_graph.html">prepare_search_graph()</a></code> handles edgeless sparse graphs.</li>
+<li>
+<code><a href="../reference/prepare_search_graph.html">prepare_search_graph()</a></code> respects degree limits when distances tie.</li>
+<li>
+<code><a href="../reference/random_knn.html">random_knn()</a></code> preserves sampled neighbors when sorting.</li>
+<li>
+<code><a href="../reference/neighbor_overlap.html">neighbor_overlap()</a></code> skips zeros that mark missing neighbors.</li>
+<li>Stricter input validation includes rejecting negative features for Hellinger, Jensen–Shannon, and symmetric KL.</li>
+<li>Queries with zero observations return empty neighbor matrices.</li>
+<li>Improved detection of user interrupts during long operations.</li>
+</ul></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.2.0" id="rnndescent-020">rnndescent 0.2.0<a class="anchor" aria-label="anchor" href="#rnndescent-020"></a></h2><p class="text-muted">CRAN release: 2026-05-26</p>
 <div class="section level3">

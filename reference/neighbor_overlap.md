@@ -65,5 +65,5 @@ mean_overlap <- neighbor_overlap(iris_rnn1, iris_rnn2)
 overlap_res <- neighbor_overlap(iris_rnn1, iris_rnn2, ret_vec = TRUE)
 summary(overlap_res$overlaps)
 #>    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-#>  0.0000  0.1333  0.2000  0.1871  0.2667  0.4000 
+#> 0.00000 0.06667 0.06667 0.09822 0.13333 0.33333 
 ```

@@ -35,7 +35,9 @@ random_knn(
   converted to `numerical` matrix format internally, so if your data
   columns are `logical` and intended to be used with the specialized
   binary `metric`s, you should convert it to a logical matrix first
-  (otherwise you will get the slower dense numerical version).
+  (otherwise you will get the slower dense numerical version). Numeric
+  feature values must be finite: `NA`, `NaN`, `Inf` and `-Inf` are not
+  allowed.
 
 - k:
 
@@ -57,6 +59,9 @@ random_knn(
 
   - `"dice"`
 
+  - `"dot"` (1 minus the normalized dot product, capped at 1; 1 if
+    either vector is zero)
+
   - `"euclidean"`
 
   - `"hamming"`
@@ -77,6 +82,9 @@ random_knn(
 
   - `"manhattan"`
 
+  - `"matching"` (fraction of features whose zero/nonzero indicators
+    differ)
+
   - `"rogerstanimoto"`
 
   - `"russellrao"`
@@ -88,6 +96,9 @@ random_knn(
   - `"spearmanr"` (1 minus the Spearman rank correlation)
 
   - `"symmetrickl"` (symmetric Kullback-Leibler divergence)
+
+  - `"trueangular"` (angle between vectors divided by pi; 0 for two zero
+    vectors and 1/2 when exactly one vector is zero)
 
   - `"tsss"` (Triangle Area Similarity-Sector Area Similarity or TS-SS
     metric)
@@ -130,12 +141,10 @@ random_knn(
 
 - use_alt_metric:
 
-  If `TRUE`, use faster metrics that maintain the ordering of distances
-  internally (e.g. squared Euclidean distances if using
-  `metric = "euclidean"`), then apply a correction at the end. Probably
-  the only reason to set this to `FALSE` is if you suspect that some
-  sort of numeric issue is occurring with your data in the alternative
-  code path.
+  If `TRUE`, use alternative scores such as squared Euclidean distance
+  internally and return distances in the requested metric. With
+  `metric = "jaccard"` and a dense logical matrix, construction uses
+  ordinary packed Jaccard.
 
 - order_by_distance:
 
@@ -187,16 +196,18 @@ iris_nn <- random_knn(iris, k = 4, metric = "manhattan", n_threads = 1)
 
 # Use verbose flag to see information about progress
 iris_nn <- random_knn(iris, k = 4, metric = "euclidean", verbose = TRUE)
-#> 07:06:46 Using alt metric 'sqeuclidean' for 'euclidean'
-#> 07:06:46 Generating random k-nearest neighbor graph with k = 4
-#> 07:06:46 Finished
+#> 08:10:21 Using alt metric 'sqeuclidean' for 'euclidean'
+#> 08:10:21 Generating random k-nearest neighbor graph with k = 4
+#> 08:10:21 Finished
 
 # These results can be improved by nearest neighbors descent. You don't need
 # to specify k here because this is worked out from the initial input
-iris_nn <- nnd_knn(iris, init = iris_nn, metric = "euclidean", verbose = TRUE)
-#> 07:06:46 Using alt metric 'sqeuclidean' for 'euclidean'
-#> 07:06:46 Initializing from user-supplied graph
-#> 07:06:46 Applying metric correction to initial distances from 'euclidean' to 'sqeuclidean'
-#> 07:06:46 Running nearest neighbor descent for 7 iterations
-#> 07:06:46 Finished
+iris_nn <- nnd_knn(
+  iris, init = iris_nn, metric = "euclidean", verbose = TRUE
+)
+#> 08:10:21 Using alt metric 'sqeuclidean' for 'euclidean'
+#> 08:10:21 Initializing from user-supplied graph
+#> 08:10:21 Applying metric correction to initial distances from 'euclidean' to 'sqeuclidean'
+#> 08:10:21 Running nearest neighbor descent for 7 iterations
+#> 08:10:21 Finished
 ```

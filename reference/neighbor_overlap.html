@@ -15,7 +15,7 @@ different approximate graphs."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">rnndescent</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -60,7 +60,7 @@ different approximate graphs."></head><body>
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Overlap between the indices of two nearest neighbor graphs</h1>
-      <small class="dont-index">Source: <a href="https://github.com/jlmelville/rnndescent/blob/v0.2.0/R/rnndescent.R" class="external-link"><code>R/rnndescent.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/jlmelville/rnndescent/blob/master/R/rnndescent.R" class="external-link"><code>R/rnndescent.R</code></a></small>
       <div class="d-none name"><code>neighbor_overlap.Rd</code></div>
     </div>
 
@@ -98,7 +98,8 @@ number of neighbors in <code>idx1</code> and <code>idx2</code> is used.</p></dd>
 
 
 <dt id="arg-ret-vec">ret_vec<a class="anchor" aria-label="anchor" href="#arg-ret-vec"></a></dt>
-<dd><p>If <code>TRUE</code>, also return a vector containing the per-item overlap.</p></dd>
+<dd><p>If <code>TRUE</code>, also return a vector containing the per-item
+overlap.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -130,7 +131,7 @@ then the smaller number of neighbors is used.</p>
 <span class="r-in"><span><span class="va">overlap_res</span> <span class="op">&lt;-</span> <span class="fu">neighbor_overlap</span><span class="op">(</span><span class="va">iris_rnn1</span>, <span class="va">iris_rnn2</span>, ret_vec <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">overlap_res</span><span class="op">$</span><span class="va">overlaps</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  0.0000  0.1333  0.2000  0.1871  0.2667  0.4000 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 0.00000 0.06667 0.06667 0.09822 0.13333 0.33333 </span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

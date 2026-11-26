@@ -38,7 +38,9 @@ graph_knn_query(
   converted to `numerical` matrix format internally, so if your data
   columns are `logical` and intended to be used with the specialized
   binary `metric`s, you should convert it to a logical matrix first
-  (otherwise you will get the slower dense numerical version).
+  (otherwise you will get the slower dense numerical version). Numeric
+  feature values must be finite: `NA`, `NaN`, `Inf` and `-Inf` are not
+  allowed.
 
 - reference:
 
@@ -51,7 +53,8 @@ graph_knn_query(
   [`base::data.frame()`](https://rdrr.io/r/base/data.frame.html),
   [`base::matrix()`](https://rdrr.io/r/base/matrix.html) or
   [`Matrix::sparseMatrix()`](https://rdrr.io/pkg/Matrix/man/sparseMatrix.html).
-  Sparse matrices should be in `dgCMatrix` format.
+  Sparse matrices should be in `dgCMatrix` format. Numeric feature
+  values must be finite: `NA`, `NaN`, `Inf` and `-Inf` are not allowed.
 
 - reference_graph:
 
@@ -83,6 +86,9 @@ graph_knn_query(
 
   - `"dice"`
 
+  - `"dot"` (1 minus the normalized dot product, capped at 1; 1 if
+    either vector is zero)
+
   - `"euclidean"`
 
   - `"hamming"`
@@ -103,6 +109,9 @@ graph_knn_query(
 
   - `"manhattan"`
 
+  - `"matching"` (fraction of features whose zero/nonzero indicators
+    differ)
+
   - `"rogerstanimoto"`
 
   - `"russellrao"`
@@ -114,6 +123,9 @@ graph_knn_query(
   - `"spearmanr"` (1 minus the Spearman rank correlation)
 
   - `"symmetrickl"` (symmetric Kullback-Leibler divergence)
+
+  - `"trueangular"` (angle between vectors divided by pi; 0 for two zero
+    vectors and 1/2 when exactly one vector is zero)
 
   - `"tsss"` (Triangle Area Similarity-Sector Area Similarity or TS-SS
     metric)
@@ -294,11 +306,11 @@ iris_ref_graph <- nnd_knn(iris_ref, k = 4)
 iris_query_nn <- graph_knn_query(iris_query, iris_ref, iris_ref_graph,
   k = 4, metric = "euclidean", verbose = TRUE
 )
-#> 07:06:45 Using alt metric 'sqeuclidean' for 'euclidean'
-#> 07:06:45 Initializing from random neighbors
-#> 07:06:45 Generating random k-nearest neighbor graph from reference with k = 4
-#> 07:06:45 Searching nearest neighbor graph with epsilon = 0.1 and max_search_fraction = 1
-#> 07:06:45 Finished
+#> 08:10:19 Using alt metric 'sqeuclidean' for 'euclidean'
+#> 08:10:19 Initializing from random neighbors
+#> 08:10:19 Generating random k-nearest neighbor graph from reference with k = 4
+#> 08:10:19 Searching nearest neighbor graph with epsilon = 0.1 and max_search_fraction = 1
+#> 08:10:19 Finished
 
 # A more complete example, converting the initial knn into a search graph
 # and using a filtered random projection forest to initialize the search

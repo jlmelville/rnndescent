@@ -1,5 +1,61 @@
 # Changelog
 
+## rnndescent 0.3.0
+
+### New features
+
+- Use
+  [`rnnd_prepare()`](https://jlmelville.github.io/rnndescent/reference/rnnd_prepare.md)
+  to speed up repeated queries on a compatible index. To reuse the index
+  in another R session, save the original index and prepare it after
+  loading.
+- New utilities sort and truncate neighbor graphs
+  ([`sort_knn()`](https://jlmelville.github.io/rnndescent/reference/knn-utilities.md),
+  [`truncate_knn()`](https://jlmelville.github.io/rnndescent/reference/knn-utilities.md)),
+  move or remove self-neighbors
+  ([`self_first_knn()`](https://jlmelville.github.io/rnndescent/reference/knn-utilities.md),
+  [`remove_self_knn()`](https://jlmelville.github.io/rnndescent/reference/knn-utilities.md)),
+  convert graphs to sparse matrices
+  ([`knn_to_sparse()`](https://jlmelville.github.io/rnndescent/reference/knn_to_sparse.md)),
+  and calculate distances for supplied neighbor indices
+  ([`knn_distances()`](https://jlmelville.github.io/rnndescent/reference/knn_distances.md)).
+
+### Changes that can affect results
+
+- Distance fixes cover cosine, correlation, `trueangular`, TS-SS,
+  Hellinger, Jensen–Shannon, symmetric KL, sparse Canberra on signed
+  data, and explicitly stored zeros in sparse input. Rebuild affected
+  graphs and indexes.
+- Changes to parallel candidate selection, tree initialization, and
+  filling missing neighbors can change which neighbors are returned for
+  the same seed. Batched dense Euclidean and cosine calculations can
+  also reorder near ties.
+- Queries on dense logical Jaccard indexes now sample up to `k` distinct
+  reference rows when a search tree supplies too few neighbors.
+
+### Performance
+
+- Faster graph and index builds, particularly for dense Euclidean,
+  cosine, and binary data. Forests built solely for initialization use
+  less memory.
+- Faster queries for several dense metrics, including Spearman, and for
+  prepared sparse cosine indexes.
+
+### Bug fixes and input validation
+
+- [`prepare_search_graph()`](https://jlmelville.github.io/rnndescent/reference/prepare_search_graph.md)
+  handles edgeless sparse graphs.
+- [`prepare_search_graph()`](https://jlmelville.github.io/rnndescent/reference/prepare_search_graph.md)
+  respects degree limits when distances tie.
+- [`random_knn()`](https://jlmelville.github.io/rnndescent/reference/random_knn.md)
+  preserves sampled neighbors when sorting.
+- [`neighbor_overlap()`](https://jlmelville.github.io/rnndescent/reference/neighbor_overlap.md)
+  skips zeros that mark missing neighbors.
+- Stricter input validation includes rejecting negative features for
+  Hellinger, Jensen–Shannon, and symmetric KL.
+- Queries with zero observations return empty neighbor matrices.
+- Improved detection of user interrupts during long operations.
+
 ## rnndescent 0.2.0
 
 CRAN release: 2026-05-26

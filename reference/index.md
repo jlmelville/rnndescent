@@ -8,6 +8,8 @@ Find approximate neighbors or build and query an index.
   : Find approximate nearest neighbors
 - [`rnnd_build()`](https://jlmelville.github.io/rnndescent/reference/rnnd_build.md)
   : Build approximate nearest neighbors index and neighbor graph
+- [`rnnd_prepare()`](https://jlmelville.github.io/rnndescent/reference/rnnd_prepare.md)
+  : Prepare an index for repeated queries
 - [`rnnd_query()`](https://jlmelville.github.io/rnndescent/reference/rnnd_query.md)
   : Query an index for approximate nearest neighbors
 
@@ -50,3 +52,12 @@ properties.
   : Quantify hubness of a nearest neighbor graph
 - [`neighbor_overlap()`](https://jlmelville.github.io/rnndescent/reference/neighbor_overlap.md)
   : Overlap between the indices of two nearest neighbor graphs
+- [`truncate_knn()`](https://jlmelville.github.io/rnndescent/reference/knn-utilities.md)
+  [`sort_knn()`](https://jlmelville.github.io/rnndescent/reference/knn-utilities.md)
+  [`remove_self_knn()`](https://jlmelville.github.io/rnndescent/reference/knn-utilities.md)
+  [`self_first_knn()`](https://jlmelville.github.io/rnndescent/reference/knn-utilities.md)
+  : Manipulate nearest neighbor graphs
+- [`knn_to_sparse()`](https://jlmelville.github.io/rnndescent/reference/knn_to_sparse.md)
+  : Convert a neighbor graph to a sparse matrix
+- [`knn_distances()`](https://jlmelville.github.io/rnndescent/reference/knn_distances.md)
+  : Calculate distances for fixed neighbor indices

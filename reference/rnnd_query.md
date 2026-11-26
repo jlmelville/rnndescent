@@ -30,7 +30,11 @@ rnnd_query(
 - index:
 
   A nearest neighbor index produced by
-  [`rnnd_build()`](https://jlmelville.github.io/rnndescent/reference/rnnd_build.md).
+  [`rnnd_build()`](https://jlmelville.github.io/rnndescent/reference/rnnd_build.md)
+  or a prepared index from
+  [`rnnd_prepare()`](https://jlmelville.github.io/rnndescent/reference/rnnd_prepare.md).
+  Prepared sparse indexes require sparse query data. Prepared dense
+  logical indexes require dense logical query data.
 
 - query:
 
@@ -48,7 +52,8 @@ rnnd_query(
   (otherwise you will get the slower dense numerical version). Sparse
   and non-sparse data cannot be mixed, so if the data used to build
   index was sparse, the `query` data must also be sparse. and vice
-  versa.
+  versa. Numeric feature values must be finite: `NA`, `NaN`, `Inf` and
+  `-Inf` are not allowed.
 
 - k:
 
@@ -82,7 +87,8 @@ rnnd_query(
 - init:
 
   An optional matrix of `k` initial nearest neighbors for each query
-  point.
+  point. A prepared index requires `init = NULL` and uses its search
+  forest to initialize the query.
 
 - n_threads:
 
@@ -121,7 +127,7 @@ k-nearest neighbor graph for proximity search in high-dimensional data.
 
 ## See also
 
-`rnnd_query()`
+[`rnnd_prepare()`](https://jlmelville.github.io/rnndescent/reference/rnnd_prepare.md)
 
 ## Examples
 
