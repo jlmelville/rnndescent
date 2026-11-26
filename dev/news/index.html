@@ -65,16 +65,12 @@
 <div class="section level3">
 <h3 id="changes-that-can-affect-results-development-version">Changes that can affect results<a class="anchor" aria-label="anchor" href="#changes-that-can-affect-results-development-version"></a></h3>
 <ul><li>Distance fixes cover cosine, correlation, <code>trueangular</code>, TS-SS, Hellinger, Jensen–Shannon, symmetric KL, sparse Canberra on signed data, and explicitly stored zeros in sparse input. Rebuild affected graphs and indexes.</li>
-<li>Parallel candidate selection and tree initialization can change the neighbors returned for the same seed. Batched dense Euclidean and cosine calculations can also reorder near ties.</li>
-<li>Filling missing neighbors can change results for the same seed. Queries on dense logical Jaccard indexes now sample up to <code>k</code> distinct reference rows when a search tree supplies too few neighbors.</li>
+<li>Changes to parallel candidate selection, tree initialization, and filling missing neighbors can change which neighbors are returned for the same seed. Batched dense Euclidean and cosine calculations can also reorder near ties. Queries on dense logical Jaccard indexes now sample up to <code>k</code> distinct reference rows when a search tree supplies too few neighbors.</li>
 </ul></div>
 <div class="section level3">
 <h3 id="performance-development-version">Performance<a class="anchor" aria-label="anchor" href="#performance-development-version"></a></h3>
-<ul><li>Faster forest initialization, nearest neighbor descent, and search graph preparation. Forests built solely for initialization use less memory.</li>
-<li>Threaded dense Euclidean graph builds use a 1 MiB row-data cutoff to decide when to finish each initialization subtree on one worker.</li>
-<li>Dense Euclidean and cosine graph builds score several neighbors together. Parallel builds route candidates to the workers responsible for each row. Binary builds also reuse packed data between tree initialization and descent.</li>
-<li>Dense logical Jaccard builds use ordinary packed Jaccard. Queries keep log scoring by default and seed batches of queries from the search trees.</li>
-<li>Faster queries for several dense metrics, including Spearman, and for prepared sparse cosine indexes. Builds and queries also benefit from direct packing of logical matrices for supported binary metrics.</li>
+<ul><li>Faster graph and index builds, particularly for dense Euclidean, cosine, and binary data. Forests built solely for initialization use less memory.</li>
+<li>Faster queries for several dense metrics, including Spearman, and for prepared sparse cosine indexes.</li>
 </ul></div>
 <div class="section level3">
 <h3 id="bug-fixes-and-input-validation-development-version">Bug fixes and input validation<a class="anchor" aria-label="anchor" href="#bug-fixes-and-input-validation-development-version"></a></h3>
