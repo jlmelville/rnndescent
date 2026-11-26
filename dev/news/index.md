@@ -9,9 +9,16 @@
   to speed up repeated queries on a compatible index. To reuse the index
   in another R session, save the original index and prepare it after
   loading.
-- New utilities sort and truncate neighbor graphs, move or remove
-  self-neighbors, convert graphs to sparse matrices, and calculate
-  distances for supplied neighbor indices.
+- New utilities sort and truncate neighbor graphs
+  ([`sort_knn()`](https://jlmelville.github.io/rnndescent/dev/reference/knn-utilities.md),
+  [`truncate_knn()`](https://jlmelville.github.io/rnndescent/dev/reference/knn-utilities.md)),
+  move or remove self-neighbors
+  ([`self_first_knn()`](https://jlmelville.github.io/rnndescent/dev/reference/knn-utilities.md),
+  [`remove_self_knn()`](https://jlmelville.github.io/rnndescent/dev/reference/knn-utilities.md)),
+  convert graphs to sparse matrices
+  ([`knn_to_sparse()`](https://jlmelville.github.io/rnndescent/dev/reference/knn_to_sparse.md)),
+  and calculate distances for supplied neighbor indices
+  ([`knn_distances()`](https://jlmelville.github.io/rnndescent/dev/reference/knn_distances.md)).
 
 ### Changes that can affect results
 

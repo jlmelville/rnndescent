@@ -60,7 +60,7 @@
 <div class="section level3">
 <h3 id="new-features-0-3-0">New features<a class="anchor" aria-label="anchor" href="#new-features-0-3-0"></a></h3>
 <ul><li>Use <code><a href="../reference/rnnd_prepare.html">rnnd_prepare()</a></code> to speed up repeated queries on a compatible index. To reuse the index in another R session, save the original index and prepare it after loading.</li>
-<li>New utilities sort and truncate neighbor graphs, move or remove self-neighbors, convert graphs to sparse matrices, and calculate distances for supplied neighbor indices.</li>
+<li>New utilities sort and truncate neighbor graphs (<code><a href="../reference/knn-utilities.html">sort_knn()</a></code>, <code><a href="../reference/knn-utilities.html">truncate_knn()</a></code>), move or remove self-neighbors (<code><a href="../reference/knn-utilities.html">self_first_knn()</a></code>, <code><a href="../reference/knn-utilities.html">remove_self_knn()</a></code>), convert graphs to sparse matrices (<code><a href="../reference/knn_to_sparse.html">knn_to_sparse()</a></code>), and calculate distances for supplied neighbor indices (<code><a href="../reference/knn_distances.html">knn_distances()</a></code>).</li>
 </ul></div>
 <div class="section level3">
 <h3 id="changes-that-can-affect-results-0-3-0">Changes that can affect results<a class="anchor" aria-label="anchor" href="#changes-that-can-affect-results-0-3-0"></a></h3>
