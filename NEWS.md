@@ -1,23 +1,22 @@
-# rnndescent (development version)
+# rnndescent 0.3.0
 
 ## New features
 
-* Use `rnnd_prepare()` to speed up repeated queries on a compatible index.
-  To reuse the index in another R session, save the original index and
-  prepare it after loading.
-* New utilities sort and truncate neighbor graphs, move or remove
-  self-neighbors, convert graphs to sparse matrices, and calculate distances
-  for supplied neighbor indices.
+* Use `rnnd_prepare()` to speed up repeated queries on a compatible index. To reuse the index in
+  another R session, save the original index and prepare it after loading.
+* New utilities sort and truncate neighbor graphs, move or remove self-neighbors, convert graphs to
+  sparse matrices, and calculate distances for supplied neighbor indices.
 
 ## Changes that can affect results
 
-* Distance fixes cover cosine, correlation, `trueangular`, TS-SS, Hellinger,
-  Jensen–Shannon, symmetric KL, sparse Canberra on signed data, and explicitly
-  stored zeros in sparse input. Rebuild affected graphs and indexes.
+* Distance fixes cover cosine, correlation, `trueangular`, TS-SS, Hellinger, Jensen–Shannon,
+  symmetric KL, sparse Canberra on signed data, and explicitly stored zeros in sparse input. Rebuild
+  affected graphs and indexes.
 * Changes to parallel candidate selection, tree initialization, and filling missing neighbors can
   change which neighbors are returned for the same seed. Batched dense Euclidean and cosine
-  calculations can also reorder near ties. Queries on dense logical Jaccard indexes now sample up
-  to `k` distinct reference rows when a search tree supplies too few neighbors.
+  calculations can also reorder near ties.
+* Queries on dense logical Jaccard indexes now sample up to `k` distinct reference rows when a
+  search tree supplies too few neighbors.
 
 ## Performance
 
@@ -28,15 +27,14 @@
 
 ## Bug fixes and input validation
 
-* `prepare_search_graph()` handles edgeless sparse graphs and respects degree
-  limits when distances tie.
-* `random_knn()` preserves sampled neighbors when sorting, and
-  `neighbor_overlap()` skips zeros that mark missing neighbors.
-* Reject non-finite numeric features, missing logical features, and invalid
-  neighbor IDs. Hellinger, Jensen–Shannon, and symmetric KL reject negative
-  inputs.
-* Queries with zero observations return empty neighbor matrices. Long
-  operations abort when they detect a user interrupt.
+* `prepare_search_graph()` handles edgeless sparse graphs.
+* `prepare_search_graph()` respects degree limits when distances tie.
+* `random_knn()` preserves sampled neighbors when sorting.
+* `neighbor_overlap()` skips zeros that mark missing neighbors.
+* Stricter input validation includes rejecting negative features for Hellinger, Jensen–Shannon,
+  and symmetric KL.
+* Queries with zero observations return empty neighbor matrices.
+* Improved detection of user interrupts during long operations.
 
 # rnndescent 0.2.0
 
