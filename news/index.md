@@ -2,6 +2,8 @@
 
 ## rnndescent 0.3.0
 
+CRAN release: 2026-11-26
+
 ### New features
 
 - Use

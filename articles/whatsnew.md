@@ -6,6 +6,11 @@ more, they will get moved here. You should look at the
 [Changelog](https://jlmelville.github.io/rnndescent/news/index.html) for
 fuller details.
 
+**26 November 2026** Version 0.3.0 is on CRAN and adds a large number of
+performance improvements utility functions for working with k-nearest
+neighbor graphs, correctness fixes for some metrics and other small
+improvements.
+
 *26 May 2026*: Version 0.2.0 has been released to CRAN to fix a compiler
 warning on gcc-16. There is also now support for the Haversine metric
 and many small bug fixes and validation improvements.
@@ -78,7 +83,7 @@ might be able to make a bit of progress on this package. For now, the
 `cosine` and `correlation` metrics have migrated to not preprocessing
 their data (these versions are still available as `cosine-preprocess`
 and `correlation-preprocess` respectively). Also, I have exported the
-distance metrics as R functions (e.g. `cosine_distance`,
+distance metrics as R functions (e.g. `cosine_distance`,
 `euclidean_distance`).
 
 *18 September 2021* The `"hamming"` metric now supports integer-valued
