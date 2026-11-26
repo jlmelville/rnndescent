@@ -11,7 +11,7 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/jlmelville/rnndescent/blob/v0.3.0/DESCRIPTION)
+[`DESCRIPTION`](https://github.com/jlmelville/rnndescent/blob/master/DESCRIPTION)
 
 Melville J (2026). *rnndescent: Nearest Neighbor Descent Method for
 Approximate Nearest Neighbors*. R package version 0.3.0,
