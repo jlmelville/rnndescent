@@ -21,7 +21,7 @@ The package adapts the core search methods from Leland McInnes's
 
 ## Current Status
 
-**26 November 2026** Version 0.3.0 is on CRAN and adds a large number of performance improvements
+**26 November 2026** Version 0.3.0 is on CRAN and adds a large number of performance improvements,
 utility functions for working with k-nearest neighbor graphs, correctness fixes for some metrics and
 other small improvements.
 
