@@ -4,8 +4,9 @@
 
 * Use `rnnd_prepare()` to speed up repeated queries on a compatible index. To reuse the index in
   another R session, save the original index and prepare it after loading.
-* New utilities sort and truncate neighbor graphs, move or remove self-neighbors, convert graphs to
-  sparse matrices, and calculate distances for supplied neighbor indices.
+* New utilities sort and truncate neighbor graphs (`sort_knn()`, `truncate_knn()`), move or remove
+  self-neighbors (`self_first_knn()`, `remove_self_knn()`), convert graphs to sparse matrices
+  (`knn_to_sparse()`), and calculate distances for supplied neighbor indices (`knn_distances()`).
 
 ## Changes that can affect results
 
