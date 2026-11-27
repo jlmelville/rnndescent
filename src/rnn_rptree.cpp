@@ -197,6 +197,9 @@ List sparse_search_tree_to_r(tdoann::SparseSearchTree<In, Idx> &&search_tree) {
   for (std::size_t i = 0; i < n_nodes; ++i) {
     total_size += search_tree.hyperplanes_ind[i].size();
   }
+  if (total_size > RNND_MAX_IDX) {
+    Rcpp::stop("Sparse tree hyperplane offsets exceed the R integer limit");
+  }
 
   NumericVector hyperplanes_data(total_size);
   IntegerVector hyperplanes_ind(total_size);
@@ -205,7 +208,7 @@ List sparse_search_tree_to_r(tdoann::SparseSearchTree<In, Idx> &&search_tree) {
   NumericVector offsets(n_nodes);
   IntegerMatrix children(n_nodes, 2);
 
-  std::size_t current_index = 0;
+  int current_index = 0;
   for (std::size_t i = 0; i < n_nodes; ++i) {
     hyperplanes_ptr[i] = current_index;
     std::copy(search_tree.hyperplanes_ind[i].begin(),
@@ -214,7 +217,7 @@ List sparse_search_tree_to_r(tdoann::SparseSearchTree<In, Idx> &&search_tree) {
     std::copy(search_tree.hyperplanes_data[i].begin(),
               search_tree.hyperplanes_data[i].end(),
               hyperplanes_data.begin() + current_index);
-    current_index += search_tree.hyperplanes_ind[i].size();
+    current_index += static_cast<int>(search_tree.hyperplanes_ind[i].size());
 
     children(i, 0) = search_tree.children[i].first;
     children(i, 1) = search_tree.children[i].second;

@@ -28,6 +28,7 @@
 #define TDOANN_PROGRESSBAR_H
 
 #include <algorithm>
+#include <cstdint>
 #include <ostream>
 #include <utility>
 
@@ -48,7 +49,8 @@ private:
   std::ostream *pout; // Using a pointer to allow for moving
 
   unsigned calculate_stars(unsigned value) const {
-    return static_cast<unsigned>((value * TOTAL_STEPS) / max + 0.5);
+    const auto scaled = static_cast<std::uint64_t>(value) * TOTAL_STEPS;
+    return static_cast<unsigned>((scaled + max / 2) / max);
   }
 
 public:

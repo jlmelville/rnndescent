@@ -7,7 +7,7 @@ Sys.setenv(
 )
 probe <- new.env(parent = baseenv())
 Rcpp::cppFunction(
-  code = '
+  code = r"(
 void check_progress_increments() {
   std::string failures;
   RPProgress zero(0, false);
@@ -32,12 +32,27 @@ void check_progress_increments() {
       failures += " positive count";
     }
   }
+  auto stars_at = [](unsigned maximum, unsigned value) {
+    std::ostringstream output;
+    tdoann::ProgressBar bar(maximum, true, output);
+    bar.update(value);
+    const auto rendered = output.str();
+    return std::count(rendered.begin(), rendered.end(), '*');
+  };
+  if (stars_at(100, 50) != 26) {
+    failures += " halfway star count";
+  }
+  const auto largest = std::numeric_limits<unsigned>::max();
+  if (stars_at(largest, largest) != 51) {
+    failures += " full star count at maximum unsigned value";
+  }
   if (!failures.empty()) {
     Rcpp::stop("progress increment regression:" + failures);
   }
-}',
-  # The quiet finite-state probe does not exercise out-of-line logging.
+})",
+  # The probe directs the progress bar to a string stream.
   includes = paste(
+    "#include <sstream>",
     paste0('#include "', normalizePath("src/rnn_progress.h"), '"'),
     "void ts(const std::string &) {}",
     sep = "\n"
@@ -46,4 +61,4 @@ void check_progress_increments() {
   env = probe
 )
 probe$check_progress_increments()
-cat("progress increments: PASS (zero constructor/setter and positive counts)\n")
+cat("progress increments and rendered star counts: PASS\n")
